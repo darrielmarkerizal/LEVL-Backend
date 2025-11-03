@@ -18,7 +18,8 @@ class AuthService implements AuthServiceInterface
     public function __construct(
         private readonly AuthRepositoryInterface $authRepository,
         private readonly JWTAuth $jwt,
-        private readonly EmailVerificationService $emailVerification
+        private readonly EmailVerificationService $emailVerification,
+        private readonly LoginThrottlingService $throttle
     ) {}
 
     public function register(array $validated, string $ip, ?string $userAgent): array
@@ -48,8 +49,22 @@ class AuthService implements AuthServiceInterface
 
     public function login(string $login, string $password, string $ip, ?string $userAgent): array
     {
+        $this->throttle->ensureNotLocked($login);
+        if ($this->throttle->tooManyAttempts($login, $ip)) {
+            $retryAfter = $this->throttle->getRetryAfterSeconds($login, $ip);
+            $cfg = $this->throttle->getRateLimitConfig();
+            $m = intdiv($retryAfter, 60);
+            $s = $retryAfter % 60;
+            $retryIn = $m > 0 ? ($m . ' menit' . ($s > 0 ? ' ' . $s . ' detik' : '')) : ($s . ' detik');
+            throw ValidationException::withMessages([
+                'login' => "Terlalu banyak percobaan login. Maksimal {$cfg['max']} kali dalam {$cfg['decay']} menit. Coba lagi dalam {$retryIn}.",
+            ]);
+        }
+
         $user = $this->authRepository->findActiveUserByLogin($login);
         if (!$user || !Hash::check($password, $user->password)) {
+            $this->throttle->hitAttempt($login, $ip);
+            $this->throttle->recordFailureAndMaybeLock($login);
             throw ValidationException::withMessages([
                 'login' => 'Kredensial tidak valid.',
             ]);
@@ -75,6 +90,9 @@ class AuthService implements AuthServiceInterface
             expiresIn: $this->jwt->factory()->getTTL() * 60,
             refreshToken: $refresh->getAttribute('plain_token')
         );
+
+        // Successful login: clear rate limiter attempts
+        $this->throttle->clearAttempts($login, $ip);
 
         return [ 'user' => $user ] + $pair->toArray();
     }
