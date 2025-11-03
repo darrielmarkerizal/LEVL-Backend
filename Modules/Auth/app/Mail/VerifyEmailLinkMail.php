@@ -3,19 +3,19 @@
 namespace Modules\Auth\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Modules\Auth\Models\User;
 
-class VerifyEmailLinkMail extends Mailable implements ShouldQueue
+class VerifyEmailLinkMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public function __construct(
         public readonly User $user,
         public readonly string $verifyUrl,
-        public readonly int $ttlMinutes
+        public readonly int $ttlMinutes,
+        public readonly string $code
     ) {}
 
     public function build(): self
@@ -26,6 +26,7 @@ class VerifyEmailLinkMail extends Mailable implements ShouldQueue
                 'user' => $this->user,
                 'verifyUrl' => $this->verifyUrl,
                 'ttlMinutes' => $this->ttlMinutes,
+                'code' => $this->code,
             ]);
     }
 }

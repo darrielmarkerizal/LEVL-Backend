@@ -108,29 +108,44 @@ class AuthApiController extends Controller
             return $this->error('Tidak terotorisasi. Token akses tidak ditemukan atau tidak valid.', 401);
         }
 
-        if ($user->email_verified_at) {
+        if ($user->email_verified_at && $user->status === 'active') {
             return $this->success([], 'Email Anda sudah terverifikasi.');
         }
 
-        $this->emailVerification->sendVerificationLink($user);
+        $uuid = $this->emailVerification->sendVerificationLink($user);
+        if ($uuid === null) {
+            return $this->success([], 'Email Anda sudah terverifikasi.');
+        }
 
-        return $this->success([], 'Tautan verifikasi telah dikirim ke email Anda. Berlaku 3 menit dan hanya bisa digunakan sekali.');
+        return $this->success(['uuid' => $uuid], 'Tautan verifikasi telah dikirim ke email Anda. Berlaku 3 menit dan hanya bisa digunakan sekali.');
     }
 
     public function verifyEmail(Request $request): JsonResponse
     {
         $request->validate([
-            'uid' => ['required', 'integer'],
+            'uuid' => ['required', 'string'],
             'code' => ['required', 'string'],
         ]);
 
-        $ok = $this->emailVerification->verifyByCode((int) $request->input('uid'), $request->string('code'));
+        $result = $this->emailVerification->verifyByCode($request->string('uuid'), $request->string('code'));
 
-        if (!$ok) {
-            return $this->error('Tautan verifikasi tidak valid atau telah kedaluwarsa.', 422);
+        if ($result['status'] === 'ok') {
+            return $this->success([], 'Email Anda berhasil diverifikasi.');
         }
 
-        return $this->success([], 'Email Anda berhasil diverifikasi.');
+        if ($result['status'] === 'expired') {
+            return $this->error('Kode verifikasi telah kedaluwarsa.', 422);
+        }
+
+        if ($result['status'] === 'invalid') {
+            return $this->error('Kode verifikasi salah.', 422);
+        }
+
+        if ($result['status'] === 'not_found') {
+            return $this->error('Tautan verifikasi tidak ditemukan.', 404);
+        }
+
+        return $this->error('Verifikasi gagal.', 422);
     }
 }
 

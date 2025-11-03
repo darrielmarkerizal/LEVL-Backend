@@ -13,8 +13,11 @@ class EmailVerificationService
 {
     public const PURPOSE = 'register_verification';
 
-    public function sendVerificationLink(User $user): void
+    public function sendVerificationLink(User $user): ?string
     {
+        if ($user->email_verified_at && $user->status === 'active') {
+            return null;
+        }
         OtpCode::query()
             ->forUser($user)
             ->forPurpose(self::PURPOSE)
@@ -23,9 +26,13 @@ class EmailVerificationService
 
         $ttlMinutes = (int) (SystemSetting::get('auth_email_verification_ttl_minutes', 3) ?? 3);
 
-        $code = Str::random(20);
+        // 6-digit numeric code
+        $code = (string) random_int(100000, 999999);
+
+        $uuid = (string) Str::uuid();
 
         $otp = OtpCode::create([
+            'uuid' => $uuid,
             'user_id' => $user->id,
             'channel' => 'email',
             'provider' => 'mailhog',
@@ -35,37 +42,52 @@ class EmailVerificationService
         ]);
 
         $baseUrl = rtrim(config('app.url'), '/');
-        $verifyUrl = $baseUrl.'/api/v1/auth/email/verify?uid='.$user->id.'&code='.$otp->code;
+        $verifyUrl = $baseUrl.'/api/v1/auth/email/verify?uuid='.$uuid.'&code='.$otp->code;
 
-        Mail::to($user)->queue(new VerifyEmailLinkMail($user, $verifyUrl, $ttlMinutes));
+        Mail::to($user)->send(new VerifyEmailLinkMail($user, $verifyUrl, $ttlMinutes, $code));
+
+        return $uuid;
     }
 
-    public function verifyByCode(int $userId, string $code): bool
+    public function verifyByCode(string $uuid, string $code): array
     {
         $otp = OtpCode::query()
-            ->forUser($userId)
             ->forPurpose(self::PURPOSE)
-            ->valid()
-            ->where('code', $code)
+            ->where('uuid', $uuid)
             ->latest('id')
             ->first();
 
         if (!$otp) {
-            return false;
+            return ['status' => 'not_found'];
+        }
+
+        if ($otp->isConsumed()) {
+            return ['status' => 'invalid'];
+        }
+
+        if ($otp->isExpired()) {
+            return ['status' => 'expired'];
+        }
+
+        if (!hash_equals($otp->code, $code)) {
+            return ['status' => 'invalid'];
+        }
+
+        $user = User::query()->find($otp->user_id);
+        if (!$user) {
+            return ['status' => 'not_found'];
         }
 
         $otp->markAsConsumed();
 
-        $user = User::query()->find($userId);
-        if (!$user) {
-            return false;
+        if (!$user->email_verified_at || $user->status !== 'active') {
+            $user->forceFill([
+                'email_verified_at' => now(),
+                'status' => 'active',
+            ])->save();
         }
 
-        if (!$user->email_verified_at) {
-            $user->forceFill(['email_verified_at' => now()])->save();
-        }
-
-        return true;
+        return ['status' => 'ok'];
     }
 }
 
