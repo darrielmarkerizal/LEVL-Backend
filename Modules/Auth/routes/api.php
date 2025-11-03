@@ -11,5 +11,9 @@ Route::prefix('v1')->as('auth.')->group(function () {
         Route::post('/auth/refresh', [AuthApiController::class, 'refresh'])->name('refresh');
         Route::post('/auth/logout', [AuthApiController::class, 'logout'])->name('logout');
         Route::get('/profile', [AuthApiController::class, 'profile'])->name('profile');
+        Route::post('/auth/email/verify', [AuthApiController::class, 'sendEmailVerification'])->name('email.verify.send');
     });
+
+    // Public email verification link
+    Route::get('/auth/email/verify', [AuthApiController::class, 'verifyEmail'])->name('email.verify');
 });

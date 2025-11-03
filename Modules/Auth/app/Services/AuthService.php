@@ -17,7 +17,8 @@ class AuthService implements AuthServiceInterface
 {
     public function __construct(
         private readonly AuthRepositoryInterface $authRepository,
-        private readonly JWTAuth $jwt
+        private readonly JWTAuth $jwt,
+        private readonly EmailVerificationService $emailVerification
     ) {}
 
     public function register(array $validated, string $ip, ?string $userAgent): array
@@ -39,6 +40,8 @@ class AuthService implements AuthServiceInterface
             expiresIn: $this->jwt->factory()->getTTL() * 60,
             refreshToken: $refresh->getAttribute('plain_token')
         );
+
+        $this->emailVerification->sendVerificationLink($user);
 
         return [ 'user' => $user ] + $pair->toArray();
     }
