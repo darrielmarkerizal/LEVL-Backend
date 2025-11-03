@@ -7,6 +7,8 @@ use Modules\Auth\Http\Controllers\PasswordResetController;
 Route::prefix('v1')->as('auth.')->group(function () {
     Route::post('/auth/register', [AuthApiController::class, 'register'])->name('register');
     Route::post('/auth/login', [AuthApiController::class, 'login'])->name('login');
+    Route::get('/auth/google/redirect', [AuthApiController::class, 'googleRedirect'])->name('google.redirect');
+    Route::get('/auth/google/callback', [AuthApiController::class, 'googleCallback'])->name('google.callback');
 
     Route::middleware(['auth:api'])->group(function () {
         Route::post('/auth/refresh', [AuthApiController::class, 'refresh'])->name('refresh');
