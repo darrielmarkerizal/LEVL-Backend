@@ -139,4 +139,114 @@ trait HasAuthRequestRules
             'refresh_token.string' => 'Refresh token harus berupa teks.',
         ];
     }
+
+    protected function rulesResendCredentials(): array
+    {
+        return [
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+        ];
+    }
+
+    protected function messagesResendCredentials(): array
+    {
+        return [
+            'user_id.required' => 'User ID wajib diisi.',
+            'user_id.integer' => 'User ID harus berupa angka.',
+            'user_id.exists' => 'User ID tidak ditemukan.',
+        ];
+    }
+
+    protected function rulesForgotPassword(): array
+    {
+        return [
+            'email' => ['required', 'email:rfc'],
+        ];
+    }
+
+    protected function messagesForgotPassword(): array
+    {
+        return [
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+        ];
+    }
+
+    protected function rulesUpdateProfile(): array
+    {
+        $userId = optional(auth('api')->user())->id ?? null;
+
+        return [
+            'name' => ['required', 'string', 'max:100'],
+            'username' => [
+                'required', 'string', 'max:50',
+                \Illuminate\Validation\Rule::unique('users', 'username')->ignore($userId),
+            ],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ];
+    }
+
+    protected function messagesUpdateProfile(): array
+    {
+        return [
+            'name.required' => 'Nama wajib diisi.',
+            'username.required' => 'Username wajib diisi.',
+            'username.unique' => 'Username sudah digunakan.',
+            'avatar.image' => 'Avatar harus berupa gambar.',
+            'avatar.mimes' => 'Avatar harus berformat jpg, jpeg, png, atau webp.',
+            'avatar.max' => 'Ukuran avatar maksimal 2MB.',
+        ];
+    }
+
+    protected function rulesRequestEmailChange(): array
+    {
+        $userId = optional(auth('api')->user())->id ?? null;
+
+        return [
+            'new_email' => [
+                'required', 'email:rfc', 'max:191',
+                \Illuminate\Validation\Rule::unique('users', 'email')->ignore($userId),
+            ],
+        ];
+    }
+
+    protected function messagesRequestEmailChange(): array
+    {
+        return [
+            'new_email.required' => 'Email baru wajib diisi.',
+            'new_email.email' => 'Format email tidak valid.',
+            'new_email.unique' => 'Email tersebut sudah digunakan.',
+        ];
+    }
+
+    protected function rulesVerifyEmailChange(): array
+    {
+        return [
+            'uuid' => ['required', 'string'],
+            'code' => ['required', 'string'],
+        ];
+    }
+
+    protected function messagesVerifyEmailChange(): array
+    {
+        return [
+            'uuid.required' => 'UUID wajib diisi.',
+            'code.required' => 'Kode wajib diisi.',
+        ];
+    }
+
+    protected function rulesVerifyEmail(): array
+    {
+        return [
+            'uuid' => ['required', 'string'],
+            'code' => ['required', 'string'],
+        ];
+    }
+
+    protected function messagesVerifyEmail(): array
+    {
+        return [
+            'uuid.required' => 'UUID wajib diisi.',
+            'code.required' => 'Kode wajib diisi.',
+        ];
+    }
 }
