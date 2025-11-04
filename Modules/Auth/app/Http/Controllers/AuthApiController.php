@@ -14,6 +14,11 @@ use Modules\Auth\Http\Requests\LoginRequest;
 use Modules\Auth\Http\Requests\LogoutRequest;
 use Modules\Auth\Http\Requests\RefreshTokenRequest;
 use Modules\Auth\Http\Requests\RegisterRequest;
+use Modules\Auth\Http\Requests\RequestEmailChangeRequest;
+use Modules\Auth\Http\Requests\ResendCredentialsRequest;
+use Modules\Auth\Http\Requests\UpdateProfileRequest;
+use Modules\Auth\Http\Requests\VerifyEmailChangeRequest;
+use Modules\Auth\Http\Requests\VerifyEmailRequest;
 use Modules\Auth\Interfaces\AuthRepositoryInterface;
 use Modules\Auth\Models\SocialAccount;
 use Modules\Auth\Models\User;
@@ -41,17 +46,12 @@ class AuthApiController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         $login = $request->string('login');
-
-        try {
-            $data = $this->auth->login(
-                login: $login,
-                password: $request->input('password'),
-                ip: $request->ip(),
-                userAgent: $request->userAgent()
-            );
-        } catch (ValidationException $e) {
-            return $this->error('Validasi gagal', 422, $e->errors());
-        }
+        $data = $this->auth->login(
+            login: $login,
+            password: $request->input('password'),
+            ip: $request->ip(),
+            userAgent: $request->userAgent()
+        );
 
         return $this->success($data, 'Login berhasil.');
     }
@@ -119,7 +119,7 @@ class AuthApiController extends Controller
         return $this->success($user->toArray(), 'Profil berhasil diambil.');
     }
 
-    public function updateProfile(Request $request): JsonResponse
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
         /** @var \Modules\Auth\Models\User|null $user */
         $user = auth('api')->user();
@@ -127,18 +127,7 @@ class AuthApiController extends Controller
             return $this->error('Tidak terotorisasi.', 401);
         }
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
-            'username' => ['required', 'string', 'max:50', 'unique:users,username,'.$user->id],
-            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-        ], [
-            'name.required' => 'Nama wajib diisi.',
-            'username.required' => 'Username wajib diisi.',
-            'username.unique' => 'Username sudah digunakan.',
-            'avatar.image' => 'Avatar harus berupa gambar.',
-            'avatar.mimes' => 'Avatar harus berformat jpg, jpeg, png, atau webp.',
-            'avatar.max' => 'Ukuran avatar maksimal 2MB.',
-        ]);
+        $validated = $request->validated();
 
         $changes = [];
         if ($user->name !== $validated['name']) {
@@ -290,7 +279,7 @@ class AuthApiController extends Controller
         return $this->success(['uuid' => $uuid], 'Tautan verifikasi telah dikirim ke email Anda. Berlaku 3 menit dan hanya bisa digunakan sekali.');
     }
 
-    public function requestEmailChange(Request $request): JsonResponse
+    public function requestEmailChange(RequestEmailChangeRequest $request): JsonResponse
     {
         /** @var \Modules\Auth\Models\User|null $user */
         $user = auth('api')->user();
@@ -298,17 +287,7 @@ class AuthApiController extends Controller
             return $this->error('Tidak terotorisasi.', 401);
         }
 
-        try {
-            $validated = $request->validate([
-                'new_email' => ['required', 'email:rfc', 'max:191', 'unique:users,email,'.$user->id],
-            ], [
-                'new_email.required' => 'Email baru wajib diisi.',
-                'new_email.email' => 'Format email tidak valid.',
-                'new_email.unique' => 'Email tersebut sudah digunakan.',
-            ]);
-        } catch (ValidationException $e) {
-            return $this->validationError($e->errors());
-        }
+        $validated = $request->validated();
 
         $uuid = $this->emailVerification->sendChangeEmailLink($user, $validated['new_email']);
 
@@ -327,19 +306,9 @@ class AuthApiController extends Controller
         return $this->success(['uuid' => $uuid], 'Tautan verifikasi perubahan email telah dikirim. Berlaku 3 menit.');
     }
 
-    public function verifyEmailChange(Request $request): JsonResponse
+    public function verifyEmailChange(VerifyEmailChangeRequest $request): JsonResponse
     {
-        try {
-            $validated = $request->validate([
-                'uuid' => ['required', 'string'],
-                'code' => ['required', 'string'],
-            ], [
-                'uuid.required' => 'UUID wajib diisi.',
-                'code.required' => 'Kode wajib diisi.',
-            ]);
-        } catch (ValidationException $e) {
-            return $this->validationError($e->errors());
-        }
+        $validated = $request->validated();
 
         $result = $this->emailVerification->verifyChangeByCode($validated['uuid'], $validated['code']);
 
@@ -362,16 +331,9 @@ class AuthApiController extends Controller
         return $this->error('Verifikasi perubahan email gagal.', 422);
     }
 
-    public function verifyEmail(Request $request): JsonResponse
+    public function verifyEmail(VerifyEmailRequest $request): JsonResponse
     {
-        try {
-            $request->validate([
-                'uuid' => ['required', 'string'],
-                'code' => ['required', 'string'],
-            ]);
-        } catch (ValidationException $e) {
-            return $this->validationError($e->errors());
-        }
+        $request->validated();
 
         $result = $this->emailVerification->verifyByCode($request->string('uuid'), $request->string('code'));
 
@@ -394,16 +356,9 @@ class AuthApiController extends Controller
         return $this->error('Verifikasi gagal.', 422);
     }
 
-    public function resendCredentials(Request $request): JsonResponse
+    public function resendCredentials(ResendCredentialsRequest $request): JsonResponse
     {
-        try {
-            $validated = $request->validate([
-                'user_id' => ['required', 'integer', 'exists:users,id'],
-            ]);
-        } catch (ValidationException $e) {
-            return $this->validationError($e->errors());
-        }
-
+        $validated = $request->validated();
         $target = User::query()->find($validated['user_id']);
         if (! $target) {
             return $this->error('User tidak ditemukan', 404);
