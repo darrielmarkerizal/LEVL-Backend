@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Schemes\Http\Controllers\CourseController;
+use Modules\Schemes\Http\Controllers\UnitController;
 
 Route::prefix('v1')->group(function () {
 
@@ -10,10 +11,17 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware(['auth:api', 'role:super-admin|admin'])->group(function () {
         Route::post('courses', [CourseController::class, 'store'])->middleware('can:create,Modules\\Schemes\\Models\\Course');
-    });
-
-    Route::middleware(['auth:api', 'role:super-admin|admin'])->group(function () {
         Route::put('courses/{course}', [CourseController::class, 'update'])->middleware('can:update,course');
         Route::delete('courses/{course}', [CourseController::class, 'destroy'])->middleware('can:delete,course');
+    });
+
+    Route::get('courses/{course}/units', [UnitController::class, 'index']);
+    Route::get('courses/{course}/units/{unit}', [UnitController::class, 'show']);
+
+    Route::middleware(['auth:api', 'role:super-admin|admin'])->group(function () {
+        Route::post('courses/{course}/units', [UnitController::class, 'store']);
+        Route::put('courses/{course}/units/reorder', [UnitController::class, 'reorder']);
+        Route::put('courses/{course}/units/{unit}', [UnitController::class, 'update']);
+        Route::delete('courses/{course}/units/{unit}', [UnitController::class, 'destroy']);
     });
 });

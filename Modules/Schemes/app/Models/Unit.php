@@ -8,7 +8,12 @@ class Unit extends Model
 {
     protected $fillable = [
         'course_id', 'code', 'slug', 'title', 'description',
-        'order', 'estimated_duration',
+        'order', 'estimated_duration', 'status',
+    ];
+
+    protected $casts = [
+        'order' => 'integer',
+        'estimated_duration' => 'integer',
     ];
 
     public function course()

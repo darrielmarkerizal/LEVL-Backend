@@ -67,4 +67,57 @@ trait HasSchemesRequestRules
             'course_admins.array' => 'Field course_admins harus berupa array.',
         ];
     }
+
+    protected function rulesUnit(int $courseId, int $unitId = 0): array
+    {
+        $uniqueCode = Rule::unique('units', 'code');
+        $uniqueSlug = Rule::unique('units', 'slug')
+            ->where('course_id', $courseId);
+
+        if ($unitId > 0) {
+            $uniqueCode = $uniqueCode->ignore($unitId);
+            $uniqueSlug = $uniqueSlug->ignore($unitId);
+        }
+
+        return [
+            'code' => ['required', 'string', 'max:50', $uniqueCode],
+            'slug' => ['nullable', 'string', 'max:100', $uniqueSlug],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'order' => ['sometimes', 'integer', 'min:1'],
+            'status' => ['sometimes', Rule::in(['draft', 'published'])],
+        ];
+    }
+
+    protected function messagesUnit(): array
+    {
+        return [
+            'code.required' => 'Kode wajib diisi.',
+            'code.unique' => 'Kode sudah digunakan.',
+            'slug.unique' => 'Slug sudah digunakan di course ini.',
+            'title.required' => 'Judul wajib diisi.',
+            'order.integer' => 'Order harus berupa angka.',
+            'order.min' => 'Order minimal 1.',
+            'status.in' => 'Status harus draft atau published.',
+        ];
+    }
+
+    protected function rulesReorderUnits(): array
+    {
+        return [
+            'units' => ['required', 'array'],
+            'units.*' => ['required', 'integer', 'exists:units,id'],
+        ];
+    }
+
+    protected function messagesReorderUnits(): array
+    {
+        return [
+            'units.required' => 'Daftar units wajib diisi.',
+            'units.array' => 'Units harus berupa array.',
+            'units.*.required' => 'Setiap item units wajib diisi.',
+            'units.*.integer' => 'Setiap item units harus berupa ID (angka).',
+            'units.*.exists' => 'Unit tidak ditemukan.',
+        ];
+    }
 }
