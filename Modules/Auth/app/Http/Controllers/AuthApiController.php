@@ -364,8 +364,10 @@ class AuthApiController extends Controller
             return $this->error('User tidak ditemukan', 404);
         }
 
-        if (! ($target->hasRole('admin') || $target->hasRole('instructor'))) {
-            return $this->error('Hanya untuk akun admin atau instruktur.', 422);
+        $isAllowedRole = $target->hasRole('admin') || $target->hasRole('super-admin') || $target->hasRole('instructor');
+        $isInactive = ($target->status ?? null) !== 'active';
+        if (! ($isAllowedRole && $isInactive)) {
+            return $this->error('Hanya untuk akun admin, superadmin, atau instruktur yang belum aktif.', 422);
         }
 
         $passwordPlain = (new \ReflectionClass($this->auth))->getMethod('generatePasswordFromNameEmail')->invoke($this->auth, $target->name, $target->email);
