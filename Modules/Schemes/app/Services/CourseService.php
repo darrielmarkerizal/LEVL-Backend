@@ -110,6 +110,41 @@ class CourseService
         return true;
     }
 
+    public function publish(int $id): ?Course
+    {
+        $course = $this->repository->findById($id);
+        if (! $course) {
+            return null;
+        }
+
+        $course->update([
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        Cache::forget('courses_public');
+        CoursePublished::dispatch($course->fresh());
+
+        return $course->fresh();
+    }
+
+    public function unpublish(int $id): ?Course
+    {
+        $course = $this->repository->findById($id);
+        if (! $course) {
+            return null;
+        }
+
+        $course->update([
+            'status' => 'draft',
+            'published_at' => null,
+        ]);
+
+        Cache::forget('courses_public');
+
+        return $course->fresh();
+    }
+
     private function generateUniqueSlug(string $source, ?int $ignoreId = null): string
     {
         $base = Str::slug($source);

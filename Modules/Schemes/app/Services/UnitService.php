@@ -80,6 +80,34 @@ class UnitService
         UnitCompleted::dispatch($unit, $userId, $enrollmentId);
     }
 
+    public function publish(int $courseId, int $id): ?Unit
+    {
+        $unit = $this->repository->findByCourseAndId($courseId, $id);
+        if (! $unit) {
+            return null;
+        }
+
+        $unit->update([
+            'status' => 'published',
+        ]);
+
+        return $unit->fresh();
+    }
+
+    public function unpublish(int $courseId, int $id): ?Unit
+    {
+        $unit = $this->repository->findByCourseAndId($courseId, $id);
+        if (! $unit) {
+            return null;
+        }
+
+        $unit->update([
+            'status' => 'draft',
+        ]);
+
+        return $unit->fresh();
+    }
+
     public function getRepository(): UnitRepository
     {
         return $this->repository;

@@ -84,4 +84,40 @@ class CourseController extends Controller
 
         return $this->success([], 'Course deleted');
     }
+
+    public function publish(int $course)
+    {
+        $found = $this->repository->findById($course);
+        if (! $found) {
+            return $this->error('Course tidak ditemukan.', 404);
+        }
+
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+        if (! \Illuminate\Support\Facades\Gate::forUser($user)->allows('update', $found)) {
+            return $this->error('Anda tidak memiliki akses untuk mempublish course ini.', 403);
+        }
+
+        $updated = $this->service->publish($course);
+
+        return $this->success(['course' => $updated], 'Course berhasil dipublish.');
+    }
+
+    public function unpublish(int $course)
+    {
+        $found = $this->repository->findById($course);
+        if (! $found) {
+            return $this->error('Course tidak ditemukan.', 404);
+        }
+
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+        if (! \Illuminate\Support\Facades\Gate::forUser($user)->allows('update', $found)) {
+            return $this->error('Anda tidak memiliki akses untuk unpublish course ini.', 403);
+        }
+
+        $updated = $this->service->unpublish($course);
+
+        return $this->success(['course' => $updated], 'Course berhasil diunpublish.');
+    }
 }

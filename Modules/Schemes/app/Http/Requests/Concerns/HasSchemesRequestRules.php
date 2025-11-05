@@ -120,4 +120,38 @@ trait HasSchemesRequestRules
             'units.*.exists' => 'Unit tidak ditemukan.',
         ];
     }
+
+    protected function rulesLesson(int $unitId, int $lessonId = 0): array
+    {
+        $uniqueSlug = Rule::unique('lessons', 'slug')
+            ->where('unit_id', $unitId);
+
+        if ($lessonId > 0) {
+            $uniqueSlug = $uniqueSlug->ignore($lessonId);
+        }
+
+        return [
+            'slug' => ['nullable', 'string', 'max:100', $uniqueSlug],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'markdown_content' => ['nullable', 'string'],
+            'order' => ['sometimes', 'integer', 'min:1'],
+            'duration_minutes' => ['sometimes', 'integer', 'min:0'],
+            'status' => ['sometimes', Rule::in(['draft', 'published'])],
+        ];
+    }
+
+    protected function messagesLesson(): array
+    {
+        return [
+            'slug.unique' => 'Slug sudah digunakan di unit ini.',
+            'title.required' => 'Judul wajib diisi.',
+            'markdown_content.string' => 'Markdown content harus berupa teks.',
+            'order.integer' => 'Order harus berupa angka.',
+            'order.min' => 'Order minimal 1.',
+            'duration_minutes.integer' => 'Durasi harus berupa angka.',
+            'duration_minutes.min' => 'Durasi minimal 0.',
+            'status.in' => 'Status harus draft atau published.',
+        ];
+    }
 }

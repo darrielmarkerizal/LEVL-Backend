@@ -147,4 +147,40 @@ class UnitController extends Controller
 
         return $this->success([], 'Urutan unit berhasil diperbarui.');
     }
+
+    public function publish(int $course, int $unit)
+    {
+        $found = $this->service->show($course, $unit);
+        if (! $found) {
+            return $this->error('Unit tidak ditemukan.', 404);
+        }
+
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+        if (! Gate::forUser($user)->allows('update', $found)) {
+            return $this->error('Anda tidak memiliki akses untuk mempublish unit ini.', 403);
+        }
+
+        $updated = $this->service->publish($course, $unit);
+
+        return $this->success(['unit' => $updated], 'Unit berhasil dipublish.');
+    }
+
+    public function unpublish(int $course, int $unit)
+    {
+        $found = $this->service->show($course, $unit);
+        if (! $found) {
+            return $this->error('Unit tidak ditemukan.', 404);
+        }
+
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+        if (! Gate::forUser($user)->allows('update', $found)) {
+            return $this->error('Anda tidak memiliki akses untuk unpublish unit ini.', 403);
+        }
+
+        $updated = $this->service->unpublish($course, $unit);
+
+        return $this->success(['unit' => $updated], 'Unit berhasil diunpublish.');
+    }
 }
