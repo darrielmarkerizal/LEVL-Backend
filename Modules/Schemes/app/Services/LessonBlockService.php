@@ -86,6 +86,9 @@ class LessonBlockService
         if ($block->getRawOriginal('media_url')) {
             $this->uploader->deletePublic($block->getRawOriginal('media_url'));
         }
+        if ($block->getRawOriginal('media_thumbnail_url')) {
+            $this->uploader->deletePublic($block->getRawOriginal('media_thumbnail_url'));
+        }
 
         return (bool) $block->delete();
     }
