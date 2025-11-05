@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Schemes\Http\Controllers\CourseController;
+use Modules\Schemes\Http\Controllers\LessonBlockController;
 use Modules\Schemes\Http\Controllers\LessonController;
 use Modules\Schemes\Http\Controllers\UnitController;
 
@@ -41,5 +42,15 @@ Route::prefix('v1')->group(function () {
         Route::delete('courses/{course}/units/{unit}/lessons/{lesson}', [LessonController::class, 'destroy']);
         Route::put('courses/{course}/units/{unit}/lessons/{lesson}/publish', [LessonController::class, 'publish']);
         Route::put('courses/{course}/units/{unit}/lessons/{lesson}/unpublish', [LessonController::class, 'unpublish']);
+    });
+
+    Route::middleware(['auth:api'])->group(function () {
+        Route::get('courses/{course}/units/{unit}/lessons/{lesson}/blocks', [LessonBlockController::class, 'index']);
+        Route::get('courses/{course}/units/{unit}/lessons/{lesson}/blocks/{block}', [LessonBlockController::class, 'show']);
+    });
+    Route::middleware(['auth:api', 'role:super-admin|admin'])->group(function () {
+        Route::post('courses/{course}/units/{unit}/lessons/{lesson}/blocks', [LessonBlockController::class, 'store']);
+        Route::put('courses/{course}/units/{unit}/lessons/{lesson}/blocks/{block}', [LessonBlockController::class, 'update']);
+        Route::delete('courses/{course}/units/{unit}/lessons/{lesson}/blocks/{block}', [LessonBlockController::class, 'destroy']);
     });
 });
