@@ -64,7 +64,7 @@ class AuthService implements AuthServiceInterface
             ]);
         }
 
-        $user = $this->authRepository->findActiveUserByLogin($login);
+        $user = $this->authRepository->findByLogin($login);
         if (! $user || ! Hash::check($password, $user->password)) {
             $this->throttle->hitAttempt($login, $ip);
             $this->throttle->recordFailureAndMaybeLock($login);
@@ -73,10 +73,27 @@ class AuthService implements AuthServiceInterface
             ]);
         }
 
-        if ($user->email_verified_at === null || $user->status !== 'active') {
-            $user->email_verified_at = now();
-            $user->status = 'active';
-            $user->save();
+        $roles = $user->getRoleNames();
+        $isPrivileged = $roles->contains(fn ($r) => in_array($r, ['super-admin', 'admin', 'instructor']));
+
+        if (in_array($user->status, ['inactive', 'banned'])) {
+            throw ValidationException::withMessages([
+                'login' => 'Akun Anda tidak aktif. Hubungi administrator.',
+            ]);
+        }
+
+        if (! $isPrivileged) {
+            if ($user->email_verified_at === null || $user->status !== 'active') {
+                throw ValidationException::withMessages([
+                    'login' => 'Akun Anda belum aktif. Silakan verifikasi email terlebih dahulu.',
+                ]);
+            }
+        } else {
+            if ($user->status === 'pending' || $user->email_verified_at === null) {
+                $user->email_verified_at = now();
+                $user->status = 'active';
+                $user->save();
+            }
         }
 
         $token = $this->jwt->fromUser($user);

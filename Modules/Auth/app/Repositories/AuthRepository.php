@@ -2,12 +2,10 @@
 
 namespace Modules\Auth\Repositories;
 
-use Illuminate\Contracts\Pagination\Paginator;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Modules\Auth\Interfaces\AuthRepositoryInterface;
 use Modules\Auth\Models\JwtRefreshToken;
 use Modules\Auth\Models\User;
-use Modules\Auth\Interfaces\AuthRepositoryInterface;
 
 class AuthRepository implements AuthRepositoryInterface
 {
@@ -20,6 +18,13 @@ class AuthRepository implements AuthRepositoryInterface
         return $query->first();
     }
 
+    public function findByLogin(string $login): ?User
+    {
+        return User::query()
+            ->where(fn ($q) => $q->where('email', $login)->orWhere('username', $login))
+            ->first();
+    }
+
     public function createUser(array $data): User
     {
         return User::create([
@@ -27,7 +32,7 @@ class AuthRepository implements AuthRepositoryInterface
             'username' => $data['username'],
             'email' => $data['email'],
             'password' => $data['password'],
-            'status' => 'active',
+            'status' => 'pending',
         ]);
     }
 
@@ -62,6 +67,7 @@ class AuthRepository implements AuthRepositoryInterface
     public function findValidRefreshRecordByUser(string $plainToken, int $userId): ?JwtRefreshToken
     {
         $hashed = hash('sha256', $plainToken);
+
         return JwtRefreshToken::query()
             ->where('user_id', $userId)
             ->where('token', $hashed)
@@ -69,5 +75,3 @@ class AuthRepository implements AuthRepositoryInterface
             ->first();
     }
 }
-
-
