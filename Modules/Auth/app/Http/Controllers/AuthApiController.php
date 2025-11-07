@@ -5,6 +5,7 @@ namespace Modules\Auth\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Contracts\Factory as SocialiteFactory;
@@ -17,6 +18,7 @@ use Modules\Auth\Http\Requests\RegisterRequest;
 use Modules\Auth\Http\Requests\RequestEmailChangeRequest;
 use Modules\Auth\Http\Requests\ResendCredentialsRequest;
 use Modules\Auth\Http\Requests\UpdateProfileRequest;
+use Modules\Auth\Http\Requests\UpdateUserStatusRequest;
 use Modules\Auth\Http\Requests\VerifyEmailChangeRequest;
 use Modules\Auth\Http\Requests\VerifyEmailRequest;
 use Modules\Auth\Interfaces\AuthRepositoryInterface;
@@ -183,8 +185,11 @@ class AuthApiController extends Controller
         }
     }
 
-    public function googleCallback(Request $request): JsonResponse
+    public function googleCallback(Request $request): RedirectResponse
     {
+        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+        $errorUrl = $frontendUrl.'/auth/login?error=google_login_failed';
+
         try {
             /** @var SocialiteFactory $socialite */
             $socialite = app(SocialiteFactory::class);
@@ -193,7 +198,7 @@ class AuthApiController extends Controller
             $provider = $provider->stateless();
             $googleUser = $provider->user();
         } catch (\Throwable $e) {
-            return $this->error('Login Google gagal. Silakan coba lagi atau gunakan login manual.', 400);
+            return redirect($errorUrl);
         }
 
         $email = $googleUser->getEmail();
@@ -247,16 +252,16 @@ class AuthApiController extends Controller
             ttlMinutes: (int) config('jwt.refresh_ttl')
         );
 
-        $userArray = $user->toArray();
-        $userArray['roles'] = $user->getRoleNames()->values();
+        // Redirect to frontend with tokens in hash fragment (more secure, not sent to server)
+        $successUrl = $frontendUrl.'/auth/callback?'
+            .http_build_query([
+                'access_token' => $accessToken,
+                'refresh_token' => $refresh->getAttribute('plain_token'),
+                'expires_in' => $jwt->factory()->getTTL() * 60,
+                'provider' => $provider,
+            ]);
 
-        return $this->success([
-            'user' => $userArray,
-            'access_token' => $accessToken,
-            'expires_in' => $jwt->factory()->getTTL() * 60,
-            'refresh_token' => $refresh->getAttribute('plain_token'),
-            'provider' => $provider,
-        ], 'Login Google berhasil.');
+        return redirect($successUrl);
     }
 
     public function sendEmailVerification(Request $request): JsonResponse
@@ -377,5 +382,105 @@ class AuthApiController extends Controller
         (new \ReflectionClass($this->auth))->getMethod('sendGeneratedPasswordEmail')->invoke($this->auth, $target, $passwordPlain);
 
         return $this->success(['user' => $target->toArray()], 'Kredensial berhasil dikirim ulang.');
+    }
+
+    public function updateUserStatus(UpdateUserStatusRequest $request, User $user): JsonResponse
+    {
+        $newStatus = $request->string('status');
+        if ($newStatus === 'pending') {
+            return $this->error('Mengubah status ke pending tidak diperbolehkan.', 422);
+        }
+
+        $user->status = $newStatus;
+        $user->save();
+
+        return $this->success(['user' => $user->toArray()], 'Status pengguna berhasil diperbarui.');
+    }
+
+    public function listUsers(Request $request): JsonResponse
+    {
+        $perPage = max(1, (int) ($request->query('per_page', 15)));
+        $q = trim((string) $request->query('search', ''));
+        $status = $request->input('filter.status');
+        $role = $request->input('filter.role');
+        $createdFrom = $request->input('filter.created_from');
+        $createdTo = $request->input('filter.created_to');
+        $sort = (string) $request->query('sort', '-created_at');
+
+        $query = User::query()->select(['id', 'name', 'email', 'username', 'avatar_path', 'status', 'created_at', 'email_verified_at'])->with('roles');
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', '%'.$q.'%')
+                    ->orWhere('email', 'like', '%'.$q.'%')
+                    ->orWhere('username', 'like', '%'.$q.'%');
+            });
+        }
+        if (is_string($status) && $status !== '') {
+            $statuses = array_values(array_filter(array_map('trim', explode(',', $status))));
+            if (! empty($statuses)) {
+                $query->whereIn('status', $statuses);
+            }
+        }
+        if (is_string($role) && $role !== '') {
+            $roles = array_values(array_filter(array_map('trim', explode(',', $role))));
+            if (! empty($roles)) {
+                $query->whereHas('roles', function ($q2) use ($roles) {
+                    $q2->whereIn('name', $roles);
+                });
+            }
+        }
+        if (is_string($createdFrom) && $createdFrom !== '') {
+            $query->whereDate('created_at', '>=', $createdFrom);
+        }
+        if (is_string($createdTo) && $createdTo !== '') {
+            $query->whereDate('created_at', '<=', $createdTo);
+        }
+
+        $direction = 'asc';
+        $field = $sort;
+        if (str_starts_with($sort, '-')) {
+            $direction = 'desc';
+            $field = substr($sort, 1);
+        }
+        $allowedSorts = ['name', 'email', 'username', 'status', 'created_at'];
+        if (! in_array($field, $allowedSorts, true)) {
+            $field = 'created_at';
+            $direction = 'desc';
+        }
+        $query->orderBy($field, $direction);
+
+        $paginator = $query->paginate($perPage)->appends($request->query());
+        $paginator->getCollection()->transform(function ($u) {
+            return [
+                'id' => $u->id,
+                'name' => $u->name,
+                'email' => $u->email,
+                'username' => $u->username,
+                'avatar' => $u->avatar_path ? asset('storage/'.$u->avatar_path) : null,
+                'status' => $u->status,
+                'created_at' => $u->created_at?->toISOString(),
+                'email_verified_at' => $u->email_verified_at?->toISOString(),
+                'roles' => method_exists($u, 'getRoleNames') ? $u->getRoleNames()->values() : ($u->roles?->pluck('name')->values() ?? []),
+            ];
+        });
+
+        return $this->paginateResponse($paginator);
+    }
+
+    public function showUser(User $user): JsonResponse
+    {
+        $data = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'username' => $user->username,
+            'avatar' => $user->avatar_path ? asset('storage/'.$user->avatar_path) : null,
+            'status' => $user->status,
+            'created_at' => $user->created_at?->toISOString(),
+            'email_verified_at' => $user->email_verified_at?->toISOString(),
+            'roles' => method_exists($user, 'getRoleNames') ? $user->getRoleNames()->values() : ($user->roles?->pluck('name')->values() ?? []),
+        ];
+
+        return $this->success(['user' => $data]);
     }
 }
