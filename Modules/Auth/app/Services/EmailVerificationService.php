@@ -2,6 +2,7 @@
 
 namespace Modules\Auth\Services;
 
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Modules\Auth\Models\OtpCode;
@@ -33,6 +34,10 @@ class EmailVerificationService
 
         $uuid = (string) Str::uuid();
 
+        
+        $token = $this->generateShortToken();
+        $tokenHash = hash('sha256', $token);
+
         $otp = OtpCode::create([
             'uuid' => $uuid,
             'user_id' => $user->id,
@@ -40,24 +45,45 @@ class EmailVerificationService
             'provider' => 'mailhog',
             'purpose' => self::PURPOSE,
             'code' => $code,
+            'meta' => ['token_hash' => $tokenHash],
             'expires_at' => now()->addMinutes($ttlMinutes),
         ]);
-
-        $baseUrl = rtrim(config('app.url'), '/');
-        $verifyUrl = $baseUrl.'/api/v1/auth/email/verify?uuid='.$uuid.'&code='.$otp->code;
+        
+        $frontendUrl = rtrim(env('FRONTEND_URL', config('app.url')), '/');
+        $verifyUrl = $frontendUrl.'/verify-email?token='.$token.'&uuid='.$uuid;
 
         Mail::to($user)->send(new VerifyEmailLinkMail($user, $verifyUrl, $ttlMinutes, $code));
 
         return $uuid;
     }
 
-    public function verifyByCode(string $uuid, string $code): array
+    public function verifyByCode(string $uuidOrToken, string $code): array
     {
-        $otp = OtpCode::query()
-            ->forPurpose(self::PURPOSE)
-            ->where('uuid', $uuid)
-            ->latest('id')
-            ->first();
+        $isUuid = preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuidOrToken);
+        
+        if ($isUuid) {
+            $otp = OtpCode::query()
+                ->forPurpose(self::PURPOSE)
+                ->where('uuid', $uuidOrToken)
+                ->latest('id')
+                ->first();
+        } else {
+            if (strlen($uuidOrToken) !== 16) {
+                return ['status' => 'invalid'];
+            }
+            
+            $tokenHash = hash('sha256', $uuidOrToken);
+            
+            
+            $otp = OtpCode::query()
+                ->forPurpose(self::PURPOSE)
+                ->valid()
+                ->get()
+                ->first(function ($record) use ($tokenHash) {
+                    return isset($record->meta['token_hash']) && 
+                           hash_equals($record->meta['token_hash'], $tokenHash);
+                });
+        }
 
         if (!$otp) {
             return ['status' => 'not_found'];
@@ -90,6 +116,52 @@ class EmailVerificationService
         }
 
         return ['status' => 'ok'];
+    }
+
+    public function verifyByToken(string $token): array
+    {
+        if (strlen($token) !== 16) {
+            return ['status' => 'invalid'];
+        }
+
+        $tokenHash = hash('sha256', $token);
+        
+        $otp = OtpCode::query()
+            ->forPurpose(self::PURPOSE)
+            ->valid()
+            ->get()
+            ->first(function ($record) use ($tokenHash) {
+                return isset($record->meta['token_hash']) && 
+                       hash_equals($record->meta['token_hash'], $tokenHash);
+            });
+
+        if (!$otp) {
+            return ['status' => 'not_found'];
+        }
+
+        if ($otp->isConsumed()) {
+            return ['status' => 'invalid'];
+        }
+
+        if ($otp->isExpired()) {
+            return ['status' => 'expired'];
+        }
+
+        $user = User::query()->find($otp->user_id);
+        if (!$user) {
+            return ['status' => 'not_found'];
+        }
+
+        $otp->markAsConsumed();
+
+        if (!$user->email_verified_at || $user->status !== 'active') {
+            $user->forceFill([
+                'email_verified_at' => now(),
+                'status' => 'active',
+            ])->save();
+        }
+
+        return ['status' => 'ok', 'user_id' => $user->id];
     }
 
     public function sendChangeEmailLink(User $user, string $newEmail): ?string
@@ -171,6 +243,28 @@ class EmailVerificationService
         ])->save();
 
         return ['status' => 'ok'];
+    }
+
+    
+    private function generateShortToken(): string
+    {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $token = '';
+        
+        for ($i = 0; $i < 16; $i++) {
+            $token .= $characters[random_int(0, strlen($characters) - 1)];
+        }
+        
+        $tokenHash = hash('sha256', $token);
+        $exists = OtpCode::query()
+            ->whereJsonContains('meta->token_hash', $tokenHash)
+            ->exists();
+        
+        if ($exists) {
+            return $this->generateShortToken();
+        }
+        
+        return $token;
     }
 }
 
