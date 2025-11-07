@@ -237,7 +237,8 @@ trait HasAuthRequestRules
     protected function rulesVerifyEmail(): array
     {
         return [
-            'uuid' => ['required', 'string'],
+            'uuid' => ['required_without:token', 'string'],
+            'token' => ['required_without:uuid', 'string'],
             'code' => ['required', 'string'],
         ];
     }
@@ -245,7 +246,8 @@ trait HasAuthRequestRules
     protected function messagesVerifyEmail(): array
     {
         return [
-            'uuid.required' => 'UUID wajib diisi.',
+            'uuid.required_without' => 'UUID atau token wajib diisi.',
+            'token.required_without' => 'Token atau UUID wajib diisi.',
             'code.required' => 'Kode wajib diisi.',
         ];
     }

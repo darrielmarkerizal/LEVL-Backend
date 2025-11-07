@@ -55,6 +55,11 @@ class AuthApiController extends Controller
             userAgent: $request->userAgent()
         );
 
+
+        if (isset($data['message'])) {
+            return $this->success($data, $data['message']);
+        }
+
         return $this->success($data, 'Login berhasil.');
     }
 
@@ -340,7 +345,10 @@ class AuthApiController extends Controller
     {
         $request->validated();
 
-        $result = $this->emailVerification->verifyByCode($request->string('uuid'), $request->string('code'));
+        $uuidOrToken = $request->input('token') ?? $request->input('uuid');
+        $code = $request->string('code');
+
+        $result = $this->emailVerification->verifyByCode($uuidOrToken, $code);
 
         if ($result['status'] === 'ok') {
             return $this->success([], 'Email Anda berhasil diverifikasi.');
@@ -351,11 +359,40 @@ class AuthApiController extends Controller
         }
 
         if ($result['status'] === 'invalid') {
-            return $this->error('Kode verifikasi salah.', 422);
+            return $this->error('Kode verifikasi salah atau token tidak valid.', 422);
         }
 
         if ($result['status'] === 'not_found') {
             return $this->error('Tautan verifikasi tidak ditemukan.', 404);
+        }
+
+        return $this->error('Verifikasi gagal.', 422);
+    }
+
+    public function verifyEmailByToken(Request $request): JsonResponse
+    {
+        $token = $request->string('token');
+        
+        if (strlen($token) !== 16) {
+            return $this->error('Token tidak valid.', 422);
+        }
+
+        $result = $this->emailVerification->verifyByToken($token);
+
+        if ($result['status'] === 'ok') {
+            return $this->success([], 'Email Anda berhasil diverifikasi.');
+        }
+
+        if ($result['status'] === 'expired') {
+            return $this->error('Link verifikasi telah kedaluwarsa.', 422);
+        }
+
+        if ($result['status'] === 'invalid') {
+            return $this->error('Link verifikasi tidak valid atau sudah digunakan.', 422);
+        }
+
+        if ($result['status'] === 'not_found') {
+            return $this->error('Link verifikasi tidak ditemukan.', 404);
         }
 
         return $this->error('Verifikasi gagal.', 422);

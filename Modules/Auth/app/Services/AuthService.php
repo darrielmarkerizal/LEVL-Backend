@@ -42,12 +42,18 @@ class AuthService implements AuthServiceInterface
             refreshToken: $refresh->getAttribute('plain_token')
         );
 
-        $this->emailVerification->sendVerificationLink($user);
+        $verificationUuid = $this->emailVerification->sendVerificationLink($user);
 
         $userArray = $user->toArray();
         $userArray['roles'] = $user->getRoleNames()->values();
 
-        return ['user' => $userArray] + $pair->toArray();
+        $response = ['user' => $userArray] + $pair->toArray();
+        
+        if ($verificationUuid) {
+            $response['verification_uuid'] = $verificationUuid;
+        }
+
+        return $response;
     }
 
     public function login(string $login, string $password, string $ip, ?string $userAgent): array
@@ -76,24 +82,14 @@ class AuthService implements AuthServiceInterface
         $roles = $user->getRoleNames();
         $isPrivileged = $roles->contains(fn ($r) => in_array($r, ['super-admin', 'admin', 'instructor']));
 
-        if (in_array($user->status, ['inactive', 'banned'])) {
-            throw ValidationException::withMessages([
-                'login' => 'Akun Anda tidak aktif. Hubungi administrator.',
-            ]);
-        }
-
-        if (! $isPrivileged) {
-            if ($user->email_verified_at === null || $user->status !== 'active') {
-                throw ValidationException::withMessages([
-                    'login' => 'Akun Anda belum aktif. Silakan verifikasi email terlebih dahulu.',
-                ]);
-            }
-        } else {
-            if ($user->status === 'pending' || $user->email_verified_at === null) {
-                $user->email_verified_at = now();
-                $user->status = 'active';
-                $user->save();
-            }
+        // Auto-verify privileged users (admin, super-admin, instructor) on first login
+        $wasAutoVerified = false;
+        if ($isPrivileged && ($user->status === 'pending' || $user->email_verified_at === null)) {
+            $user->email_verified_at = now();
+            $user->status = 'active';
+            $user->save();
+            $user->refresh(); // Refresh to get updated attributes
+            $wasAutoVerified = true;
         }
 
         $token = $this->jwt->fromUser($user);
@@ -116,7 +112,29 @@ class AuthService implements AuthServiceInterface
         $userArray = $user->toArray();
         $userArray['roles'] = $user->getRoleNames()->values();
 
-        return ['user' => $userArray] + $pair->toArray();
+        $response = ['user' => $userArray] + $pair->toArray();
+
+
+
+        if ($user->status === 'pending' && $user->email_verified_at === null && !$isPrivileged) {
+            $verificationUuid = $this->emailVerification->sendVerificationLink($user);
+            $response['status'] = 'pending';
+            $response['message'] = 'Akun Anda belum aktif. Silakan verifikasi email terlebih dahulu.';
+            if ($verificationUuid) {
+                $response['verification_uuid'] = $verificationUuid;
+            }
+        } elseif ($user->status === 'inactive') {
+            $response['status'] = 'inactive';
+            $response['message'] = 'Akun Anda tidak aktif. Hubungi administrator.';
+        } elseif ($user->status === 'banned') {
+            $response['status'] = 'banned';
+            $response['message'] = 'Akun Anda telah dibanned. Hubungi administrator.';
+        } elseif ($wasAutoVerified) {
+         
+            $response['message'] = 'Login berhasil. Akun Anda telah otomatis diverifikasi.';
+        }
+
+        return $response;
     }
 
     public function refresh(User $currentUser, string $refreshToken): array
