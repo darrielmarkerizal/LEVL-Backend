@@ -24,6 +24,9 @@ Route::prefix('v1')->as('auth.')->group(function () {
             Route::post('/auth/admin', [AuthApiController::class, 'createAdmin'])->name('admin.create');
             Route::post('/auth/super-admin', [AuthApiController::class, 'createSuperAdmin'])->name('super.create');
             Route::post('/auth/credentials/resend', [AuthApiController::class, 'resendCredentials'])->name('credentials.resend');
+            Route::put('/auth/users/{user}/status', [AuthApiController::class, 'updateUserStatus'])->name('users.status.update');
+            Route::get('/auth/users', [AuthApiController::class, 'listUsers'])->name('users.index');
+            Route::get('/auth/users/{user}', [AuthApiController::class, 'showUser'])->name('users.show');
         });
     });
 
