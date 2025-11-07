@@ -19,6 +19,7 @@ use Modules\Auth\Http\Requests\RequestEmailChangeRequest;
 use Modules\Auth\Http\Requests\ResendCredentialsRequest;
 use Modules\Auth\Http\Requests\UpdateProfileRequest;
 use Modules\Auth\Http\Requests\UpdateUserStatusRequest;
+use Modules\Auth\Http\Requests\VerifyEmailByTokenRequest;
 use Modules\Auth\Http\Requests\VerifyEmailChangeRequest;
 use Modules\Auth\Http\Requests\VerifyEmailRequest;
 use Modules\Auth\Interfaces\AuthRepositoryInterface;
@@ -369,13 +370,10 @@ class AuthApiController extends Controller
         return $this->error('Verifikasi gagal.', 422);
     }
 
-    public function verifyEmailByToken(Request $request): JsonResponse
+    public function verifyEmailByToken(VerifyEmailByTokenRequest $request): JsonResponse
     {
+        $request->validated();
         $token = $request->string('token');
-        
-        if (strlen($token) !== 16) {
-            return $this->error('Token tidak valid.', 422);
-        }
 
         $result = $this->emailVerification->verifyByToken($token);
 
