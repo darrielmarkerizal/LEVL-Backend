@@ -245,12 +245,12 @@ class AuthService implements AuthServiceInterface
             Mail::send('auth::emails.credentials', [
                 'user' => $user,
                 'password' => $passwordPlain,
-                'loginUrl' => config('app.url').'/login',
+                'loginUrl' => rtrim(env('FRONTEND_URL', config('app.url')), '/').'/auth/login',
             ], function ($message) use ($user) {
                 $message->to($user->email)->subject('Akun Anda Telah Dibuat');
             });
         } catch (\Throwable $e) {
-            // no-op: avoid breaking flow if mail fails
+     
         }
     }
 }
