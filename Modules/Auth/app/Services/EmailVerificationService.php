@@ -50,7 +50,7 @@ class EmailVerificationService
         ]);
         
         $frontendUrl = rtrim(env('FRONTEND_URL', config('app.url')), '/');
-        $verifyUrl = $frontendUrl.'/verify-email?token='.$token.'&uuid='.$uuid;
+        $verifyUrl = $frontendUrl.'/auth/verify-email?token='.$token.'&uuid='.$uuid;
 
         Mail::to($user)->send(new VerifyEmailLinkMail($user, $verifyUrl, $ttlMinutes, $code));
 
