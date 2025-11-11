@@ -1,14 +1,12 @@
 <?php
 
-namespace Modules\Schemes\Entities;
+namespace Modules\Schemes\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Schemes\Entities\CourseTag;
-use Modules\Schemes\Entities\Unit;
 
 class Course extends Model
 {
@@ -16,17 +14,38 @@ class Course extends Model
 
     protected $fillable = [
         'code', 'slug', 'title', 'short_desc', 'type',
-        'level_tag', 'category', 'tags_json', 'outcomes_json',
-        'prereq_text', 'duration_estimate', 'thumbnail_path',
+        'level_tag', 'category_id', 'tags_json', 'outcomes_json',
+        'prereq_json', 'duration_estimate', 'thumbnail_path',
         'banner_path', 'visibility', 'progression_mode',
-        'status', 'published_at', 'instructor_id'
+        'status', 'published_at', 'instructor_id',
     ];
 
     protected $casts = [
         'tags_json' => 'array',
         'outcomes_json' => 'array',
+        'prereq_json' => 'array',
         'published_at' => 'datetime',
     ];
+
+    protected $appends = ['thumbnail_url', 'banner_url'];
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        if (! $this->thumbnail_path) {
+            return null;
+        }
+
+        return asset('storage/'.$this->thumbnail_path);
+    }
+
+    public function getBannerUrlAttribute(): ?string
+    {
+        if (! $this->banner_path) {
+            return null;
+        }
+
+        return asset('storage/'.$this->banner_path);
+    }
 
     public function tags(): HasMany
     {
@@ -43,7 +62,7 @@ class Course extends Model
      */
     public function instructor(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Auth\Entities\User::class, 'instructor_id');
+        return $this->belongsTo(\Modules\Auth\Models\User::class, 'instructor_id');
     }
 
     /**
@@ -52,7 +71,7 @@ class Course extends Model
     public function admins(): BelongsToMany
     {
         return $this->belongsToMany(
-            \Modules\Auth\Entities\User::class,
+            \Modules\Auth\Models\User::class,
             'course_admins',
             'course_id',
             'user_id'
@@ -64,7 +83,7 @@ class Course extends Model
      */
     public function courseAdmins(): HasMany
     {
-        return $this->hasMany(CourseAdmin::class);
+        return $this->hasMany(\Modules\Schemes\Models\CourseAdmin::class);
     }
 
     /**
@@ -81,5 +100,10 @@ class Course extends Model
     public function hasInstructor($user): bool
     {
         return $this->instructor_id === (is_object($user) ? $user->id : $user);
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
     }
 }
