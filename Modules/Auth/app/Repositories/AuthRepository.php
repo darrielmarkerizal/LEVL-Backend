@@ -2,12 +2,10 @@
 
 namespace Modules\Auth\Repositories;
 
-use Illuminate\Contracts\Pagination\Paginator;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Modules\Auth\Interfaces\AuthRepositoryInterface;
 use Modules\Auth\Models\JwtRefreshToken;
 use Modules\Auth\Models\User;
-use Modules\Auth\Interfaces\AuthRepositoryInterface;
 
 class AuthRepository implements AuthRepositoryInterface
 {
@@ -20,6 +18,13 @@ class AuthRepository implements AuthRepositoryInterface
         return $query->first();
     }
 
+    public function findByLogin(string $login): ?User
+    {
+        return User::query()
+            ->where(fn ($q) => $q->where('email', $login)->orWhere('username', $login))
+            ->first();
+    }
+
     public function createUser(array $data): User
     {
         return User::create([
@@ -27,21 +32,32 @@ class AuthRepository implements AuthRepositoryInterface
             'username' => $data['username'],
             'email' => $data['email'],
             'password' => $data['password'],
-            'status' => 'active',
+            'status' => 'pending',
         ]);
     }
 
-    public function createRefreshToken(int $userId, ?string $ip, ?string $userAgent, ?int $ttlMinutes = null): JwtRefreshToken
+    public function createRefreshToken(int $userId, ?string $ip, ?string $userAgent, ?string $deviceId = null, ?int $idleTtlDays = null, ?int $absoluteTtlDays = null): JwtRefreshToken
     {
         $token = Str::random(64);
-        $expiresAt = $ttlMinutes ? now()->addMinutes($ttlMinutes) : null;
+        $idleTtlDays = $idleTtlDays ?? 14;
+        $absoluteTtlDays = $absoluteTtlDays ?? 90;
+        
+        $idleExpiresAt = now()->addDays($idleTtlDays);
+        $absoluteExpiresAt = now()->addDays($absoluteTtlDays);
+        
+        if (!$deviceId) {
+            $deviceId = hash('sha256', ($ip ?? '') . ($userAgent ?? '') . $userId);
+        }
 
         return JwtRefreshToken::create([
             'user_id' => $userId,
+            'device_id' => $deviceId,
             'token' => hash('sha256', $token),
             'ip' => $ip,
             'user_agent' => $userAgent,
-            'expires_at' => $expiresAt,
+            'last_used_at' => now(),
+            'idle_expires_at' => $idleExpiresAt,
+            'absolute_expires_at' => $absoluteExpiresAt,
         ])->setAttribute('plain_token', $token);
     }
 
@@ -62,12 +78,42 @@ class AuthRepository implements AuthRepositoryInterface
     public function findValidRefreshRecordByUser(string $plainToken, int $userId): ?JwtRefreshToken
     {
         $hashed = hash('sha256', $plainToken);
+
         return JwtRefreshToken::query()
             ->where('user_id', $userId)
             ->where('token', $hashed)
             ->valid()
             ->first();
     }
+
+    public function revokeAllUserRefreshTokensByDevice(int $userId, string $deviceId): void
+    {
+        JwtRefreshToken::where('user_id', $userId)
+            ->where('device_id', $deviceId)
+            ->valid()
+            ->update(['revoked_at' => now()]);
+    }
+
+    public function markTokenAsReplaced(int $oldTokenId, int $newTokenId): void
+    {
+        JwtRefreshToken::where('id', $oldTokenId)->update(['replaced_by' => $newTokenId]);
+    }
+
+    public function findReplacedTokenChain(int $tokenId): array
+    {
+        $chain = [];
+        $currentId = $tokenId;
+        
+        while ($currentId) {
+            $token = JwtRefreshToken::find($currentId);
+            if (!$token) {
+                break;
+            }
+            
+            $chain[] = $token;
+            $currentId = $token->replaced_by;
+        }
+        
+        return $chain;
+    }
 }
-
-

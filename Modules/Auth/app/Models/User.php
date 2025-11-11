@@ -9,7 +9,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use Notifiable, HasRoles;
+    use HasRoles, Notifiable;
 
     protected $guard_name = 'api';
 
@@ -21,12 +21,29 @@ class User extends Authenticatable implements JWTSubject
         'status',
         'email_verified_at',
         'remember_token',
+        'avatar_path',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    protected $appends = ['avatar_url'];
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        return asset('storage/'.$this->avatar_path);
+    }
 
     public function getJWTIdentifier()
     {
@@ -35,6 +52,9 @@ class User extends Authenticatable implements JWTSubject
 
     public function getJWTCustomClaims(): array
     {
-        return [];
+        return [
+            'status' => $this->status,
+            'roles' => $this->getRoleNames()->values()->toArray(),
+        ];
     }
 }
