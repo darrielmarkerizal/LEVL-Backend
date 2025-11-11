@@ -2,7 +2,7 @@ name: Deploy to VPS (Laravel)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 jobs:
@@ -13,16 +13,30 @@ jobs:
       - name: Checkout (for metadata only)
         uses: actions/checkout@v4
 
+      - name: Validate required secrets
+        run: |
+          missing=0
+          for v in SSH_HOST SSH_USER SSH_KEY; do
+            if [ -z "${{ secrets[v] }}" ]; then
+              echo "❌ Missing secret: $v"
+              missing=1
+            fi
+          done
+          # SSH_PORT opsional; kalau kamu pakai, ikut validasi:
+          # [ -z "${{ secrets.SSH_PORT }}" ] && echo "❌ Missing secret: SSH_PORT" && missing=1
+          exit $missing
+
       - name: SSH Deploy
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          # Hapus baris port kalau kamu tidak set SSH_PORT:
           port: ${{ secrets.SSH_PORT }}
           script_stop: true
           script: |
-            set -e
+            set -euo pipefail
             cd "${{ secrets.APP_DIR }}"
             chmod +x deploy.sh
             ./deploy.sh
