@@ -75,6 +75,7 @@ class CourseRequest extends FormRequest
         $data = parent::validated($key, $default);
         if (array_key_exists('tags', $data)) {
             $data['tags_json'] = $data['tags'];
+            $data['tags_list'] = $data['tags'];
             unset($data['tags']);
         }
         if (array_key_exists('outcomes', $data)) {

@@ -5,6 +5,7 @@ use Modules\Schemes\Http\Controllers\CourseController;
 use Modules\Schemes\Http\Controllers\LessonBlockController;
 use Modules\Schemes\Http\Controllers\LessonController;
 use Modules\Schemes\Http\Controllers\UnitController;
+use Modules\Schemes\Http\Controllers\TagController;
 use Modules\Schemes\Http\Controllers\ProgressController;
 
 Route::prefix('v1')->scopeBindings()->group(function () {
@@ -32,6 +33,9 @@ Route::prefix('v1')->scopeBindings()->group(function () {
         Route::put('courses/{course:slug}/units/{unit:slug}/unpublish', [UnitController::class, 'unpublish']);
     });
 
+    Route::get('course-tags', [TagController::class, 'index']);
+    Route::get('course-tags/{tag:slug}', [TagController::class, 'show']);
+
     Route::middleware(['auth:api'])->group(function () {
         Route::get('courses/{course:slug}/units/{unit:slug}/lessons', [LessonController::class, 'index']);
         Route::get('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}', [LessonController::class, 'show']);
@@ -45,6 +49,9 @@ Route::prefix('v1')->scopeBindings()->group(function () {
         Route::delete('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}', [LessonController::class, 'destroy']);
         Route::put('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/publish', [LessonController::class, 'publish']);
         Route::put('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/unpublish', [LessonController::class, 'unpublish']);
+        Route::post('course-tags', [TagController::class, 'store']);
+        Route::put('course-tags/{tag:slug}', [TagController::class, 'update']);
+        Route::delete('course-tags/{tag:slug}', [TagController::class, 'destroy']);
     });
 
     Route::middleware(['auth:api'])->group(function () {
