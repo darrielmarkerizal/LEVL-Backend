@@ -17,6 +17,11 @@ class Enrollment extends Model
         'progress_percent' => 'float',
     ];
 
+    protected $hidden = [
+        'course_id',
+        'user_id',
+    ];
+
     public function user()
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class);

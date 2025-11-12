@@ -3,7 +3,6 @@
 namespace Modules\Schemes\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Modules\Schemes\Events\CourseCreated;
 use Modules\Schemes\Events\CourseDeleted;
@@ -22,12 +21,9 @@ class CourseService
     {
         $params['status'] = $params['status'] ?? 'published';
 
-        return Cache::remember('courses_public', now()->addMinutes(10), function () use ($params) {
+        $perPage = isset($params['per_page']) ? max(1, (int) $params['per_page']) : 15;
 
-            $perPage = isset($params['per_page']) ? max(1, (int) $params['per_page']) : 15;
-
-            return $this->repository->paginate($params, $perPage);
-        });
+        return $this->repository->paginate($params, $perPage);
     }
 
     public function list(array $params): LengthAwarePaginator
@@ -79,8 +75,6 @@ class CourseService
 
         $freshCourse = $course->fresh(['tags', 'admins', 'instructor']);
 
-        Cache::forget('courses_public');
-
         CourseCreated::dispatch($freshCourse);
 
         if (($freshCourse->status ?? null) === 'published') {
@@ -124,8 +118,6 @@ class CourseService
             CoursePublished::dispatch($course);
         }
 
-        Cache::forget('courses_public');
-
         return $course->fresh(['tags', 'admins', 'instructor']);
     }
 
@@ -137,8 +129,6 @@ class CourseService
         }
 
         $this->repository->delete($course);
-
-        Cache::forget('courses_public');
 
         CourseDeleted::dispatch($course);
 
@@ -157,7 +147,6 @@ class CourseService
             'published_at' => now(),
         ]);
 
-        Cache::forget('courses_public');
         CoursePublished::dispatch($course->fresh());
 
         return $course->fresh();
@@ -174,8 +163,6 @@ class CourseService
             'status' => 'draft',
             'published_at' => null,
         ]);
-
-        Cache::forget('courses_public');
 
         return $course->fresh();
     }

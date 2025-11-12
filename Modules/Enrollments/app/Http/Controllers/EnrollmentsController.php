@@ -2,55 +2,299 @@
 
 namespace Modules\Enrollments\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Validation\ValidationException;
+use Modules\Enrollments\Models\Enrollment;
+use Modules\Enrollments\Services\EnrollmentService;
+use Modules\Schemes\Models\Course;
 
 class EnrollmentsController extends Controller
 {
+    use ApiResponse;
+
+    public function __construct(private EnrollmentService $service) {}
+
     /**
-     * Display a listing of the resource.
+     * Super-admin can list all enrollments (optional filters).
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('enrollments::index');
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+
+        if (! $user->hasRole('super-admin')) {
+            return $this->error('Anda tidak memiliki akses untuk melihat seluruh enrolment.', 403);
+        }
+
+        $query = Enrollment::query()
+            ->with(['user:id,name,email', 'course:id,slug,title,enrollment_type'])
+            ->orderByDesc('created_at');
+
+        if ($status = $request->query('status')) {
+            $query->where('status', $status);
+        }
+
+        if ($courseId = $request->query('course_id')) {
+            $query->where('course_id', $courseId);
+        }
+
+        if ($userId = $request->query('user_id')) {
+            $query->where('user_id', $userId);
+        }
+
+        $perPage = (int) $request->query('per_page', 15);
+        $paginator = $query->paginate(max(1, $perPage))->appends($request->query());
+
+        return $this->paginateResponse($paginator, 'Daftar enrolment berhasil diambil.');
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Course admin/instructor/super-admin can list enrollments for a course.
      */
-    public function create()
+    public function indexByCourse(Request $request, Course $course)
     {
-        return view('enrollments::create');
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+
+        if (! $this->userCanManageCourse($user, $course)) {
+            return $this->error('Anda tidak memiliki akses untuk melihat enrolment course ini.', 403);
+        }
+
+        $query = Enrollment::query()
+            ->where('course_id', $course->id)
+            ->with(['user:id,name,email'])
+            ->orderByDesc('created_at');
+
+        if ($status = $request->query('status')) {
+            $query->where('status', $status);
+        }
+
+        $perPage = (int) $request->query('per_page', 15);
+        $paginator = $query->paginate(max(1, $perPage))->appends($request->query());
+
+        return $this->paginateResponse($paginator, 'Daftar enrolment course berhasil diambil.');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Student enrols to a course.
      */
-    public function store(Request $request) {}
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
+    public function enroll(Request $request, Course $course)
     {
-        return view('enrollments::show');
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+
+        if (! $user->hasRole('student')) {
+            return $this->error('Hanya peserta yang dapat melakukan enrolment.', 403);
+        }
+
+        $request->validate([
+            'enrollment_key' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        try {
+            $result = $this->service->enroll($course, $user, $request->only('enrollment_key'));
+        } catch (ValidationException $e) {
+            throw $e;
+        }
+
+        return $this->success([
+            'enrollment' => $result['enrollment'],
+        ], $result['message']);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Student cancels a pending enrolment request.
      */
-    public function edit($id)
+    public function cancel(Request $request, Course $course)
     {
-        return view('enrollments::edit');
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+
+        $targetUserId = (int) $user->id;
+        if ($user->hasRole('super-admin')) {
+            $targetUserId = (int) $request->input('user_id', $user->id);
+        }
+
+        $enrollment = Enrollment::query()
+            ->where('course_id', $course->id)
+            ->when(
+                $user->hasRole('super-admin'),
+                fn ($query) => $query->where('user_id', $targetUserId),
+                fn ($query) => $query->where('user_id', $user->id)
+            )
+            ->first();
+
+        if (! $enrollment) {
+            return $this->error('Permintaan enrolment tidak ditemukan untuk course ini.', 404);
+        }
+
+        if (! $this->canModifyEnrollment($user, $enrollment)) {
+            return $this->error('Anda tidak memiliki akses untuk membatalkan enrolment ini.', 403);
+        }
+
+        $updated = $this->service->cancel($enrollment);
+
+        return $this->success(['enrollment' => $updated], 'Permintaan enrolment berhasil dibatalkan.');
     }
 
     /**
-     * Update the specified resource in storage.
+     * Student withdraws from an active course.
      */
-    public function update(Request $request, $id) {}
+    public function withdraw(Request $request, Course $course)
+    {
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+
+        $targetUserId = (int) $user->id;
+
+        if ($user->hasRole('super-admin')) {
+            $targetUserId = (int) $request->input('user_id', $user->id);
+        }
+
+        $enrollment = Enrollment::query()
+            ->where('course_id', $course->id)
+            ->when(! $user->hasRole('super-admin'), function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            }, function ($query) use ($targetUserId) {
+                $query->where('user_id', $targetUserId);
+            })
+            ->first();
+
+        if (! $enrollment) {
+            return $this->error('Enrolment tidak ditemukan untuk course ini.', 404);
+        }
+
+        if (! $this->canModifyEnrollment($user, $enrollment)) {
+            return $this->error('Anda tidak memiliki akses untuk mengundurkan diri dari enrolment ini.', 403);
+        }
+
+        $updated = $this->service->withdraw($enrollment);
+
+        return $this->success(['enrollment' => $updated], 'Anda berhasil mengundurkan diri dari course.');
+    }
 
     /**
-     * Remove the specified resource from storage.
+     * Get enrollment status for the authenticated student (or specified user_id for super-admin).
      */
-    public function destroy($id) {}
+    public function status(Request $request, Course $course)
+    {
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+
+        $targetUserId = (int) $user->id;
+
+        if ($user->hasRole('super-admin')) {
+            $targetUserId = (int) $request->query('user_id', $user->id);
+        }
+
+        $enrollment = Enrollment::query()
+            ->where('course_id', $course->id)
+            ->where('user_id', $targetUserId)
+            ->first();
+
+        if (! $enrollment) {
+            return $this->success([
+                'status' => 'not_enrolled',
+                'enrollment' => null,
+            ], 'Anda belum terdaftar pada course ini.');
+        }
+
+        if (! $this->canModifyEnrollment($user, $enrollment) && ! $this->userCanManageCourse($user, $course)) {
+            return $this->error('Anda tidak memiliki akses untuk melihat status enrolment ini.', 403);
+        }
+
+        $enrollmentData = $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+
+        return $this->success([
+            'status' => $enrollmentData->status,
+            'enrollment' => $enrollmentData,
+        ], 'Status enrolment berhasil diambil.');
+    }
+
+    /**
+     * Approve a pending enrollment request.
+     */
+    public function approve(Enrollment $enrollment)
+    {
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+
+        $enrollment->loadMissing('course');
+
+        if (! $enrollment->course || ! $this->userCanManageCourse($user, $enrollment->course)) {
+            return $this->error('Anda tidak memiliki akses untuk menyetujui enrolment ini.', 403);
+        }
+
+        $updated = $this->service->approve($enrollment);
+
+        return $this->success(['enrollment' => $updated], 'Permintaan enrolment disetujui.');
+    }
+
+    /**
+     * Decline a pending enrollment request.
+     */
+    public function decline(Request $request, Enrollment $enrollment)
+    {
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+
+        $enrollment->loadMissing('course');
+
+        if (! $enrollment->course || ! $this->userCanManageCourse($user, $enrollment->course)) {
+            return $this->error('Anda tidak memiliki akses untuk menolak enrolment ini.', 403);
+        }
+
+        $updated = $this->service->decline($enrollment);
+
+        return $this->success(['enrollment' => $updated], 'Permintaan enrolment ditolak.');
+    }
+
+    /**
+     * Remove an enrollment from a course.
+     */
+    public function remove(Enrollment $enrollment)
+    {
+        /** @var \Modules\Auth\Models\User $user */
+        $user = auth('api')->user();
+
+        $enrollment->loadMissing('course');
+
+        if (! $enrollment->course || ! $this->userCanManageCourse($user, $enrollment->course)) {
+            return $this->error('Anda tidak memiliki akses untuk mengeluarkan peserta dari course ini.', 403);
+        }
+
+        $updated = $this->service->remove($enrollment);
+
+        return $this->success(['enrollment' => $updated], 'Peserta berhasil dikeluarkan dari course.');
+    }
+
+    private function canModifyEnrollment($user, Enrollment $enrollment): bool
+    {
+        if ($user->hasRole('super-admin')) {
+            return true;
+        }
+
+        return (int) $enrollment->user_id === (int) $user->id;
+    }
+
+    private function userCanManageCourse($user, Course $course): bool
+    {
+        if ($user->hasRole('super-admin')) {
+            return true;
+        }
+
+        if ($user->hasRole('admin') || $user->hasRole('instructor')) {
+            if ((int) $course->instructor_id === (int) $user->id) {
+                return true;
+            }
+
+            if (method_exists($course, 'hasAdmin') && $course->hasAdmin($user)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
