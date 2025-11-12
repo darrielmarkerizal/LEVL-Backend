@@ -29,6 +29,12 @@ class Course extends Model
 
     protected $appends = ['thumbnail_url', 'banner_url', 'tag_list'];
 
+    protected $hidden = [
+        'thumbnail_path',
+        'banner_path',
+        'deleted_at',
+    ];
+
     public function getThumbnailUrlAttribute(): ?string
     {
         if (! $this->thumbnail_path) {
