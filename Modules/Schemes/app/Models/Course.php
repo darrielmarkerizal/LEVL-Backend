@@ -12,6 +12,13 @@ class Course extends Model
 {
     use SoftDeletes;
 
+    /**
+     * Fields that support full-text search via QueryFilter.
+     *
+     * @var array<int, string>
+     */
+    protected array $searchable = ['title', 'short_desc'];
+
     protected $fillable = [
         'code', 'slug', 'title', 'short_desc', 'type',
         'level_tag', 'category_id', 'tags_json', 'outcomes_json',
