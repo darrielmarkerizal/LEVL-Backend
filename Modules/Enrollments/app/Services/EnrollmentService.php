@@ -3,7 +3,13 @@
 namespace Modules\Enrollments\Services;
 
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use Modules\Enrollments\Mail\AdminEnrollmentNotificationMail;
+use Modules\Enrollments\Mail\StudentEnrollmentActiveMail;
+use Modules\Enrollments\Mail\StudentEnrollmentApprovedMail;
+use Modules\Enrollments\Mail\StudentEnrollmentDeclinedMail;
+use Modules\Enrollments\Mail\StudentEnrollmentPendingMail;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
 use Modules\Auth\Models\User;
@@ -49,8 +55,13 @@ class EnrollmentService
 
         $enrollment->save();
 
+        $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
+
+        // Send emails
+        $this->sendEnrollmentEmails($freshEnrollment, $course, $user, $status);
+
         return [
-            'enrollment' => $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']),
+            'enrollment' => $freshEnrollment,
             'status' => $status,
             'message' => $message,
         ];
@@ -115,7 +126,17 @@ class EnrollmentService
         $enrollment->completed_at = null;
         $enrollment->save();
 
-        return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+        $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
+        $course = $freshEnrollment->course;
+        $student = $freshEnrollment->user;
+
+        // Send approval email to student
+        if ($student && $course) {
+            $courseUrl = $this->getCourseUrl($course);
+            Mail::to($student->email)->send(new StudentEnrollmentApprovedMail($student, $course, $courseUrl));
+        }
+
+        return $freshEnrollment;
     }
 
     /**
@@ -136,7 +157,16 @@ class EnrollmentService
         $enrollment->completed_at = null;
         $enrollment->save();
 
-        return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+        $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
+        $course = $freshEnrollment->course;
+        $student = $freshEnrollment->user;
+
+        // Send decline email to student
+        if ($student && $course) {
+            Mail::to($student->email)->send(new StudentEnrollmentDeclinedMail($student, $course));
+        }
+
+        return $freshEnrollment;
     }
 
     /**
@@ -197,6 +227,91 @@ class EnrollmentService
         }
 
         return ['active', 'Enrol berhasil menggunakan kode kunci.'];
+    }
+
+    /**
+     * Send enrollment notification emails to student and admins/instructors.
+     */
+    private function sendEnrollmentEmails(Enrollment $enrollment, Course $course, User $student, string $status): void
+    {
+        // Send email to student based on status
+        if ($status === 'active') {
+            $courseUrl = $this->getCourseUrl($course);
+            Mail::to($student->email)->send(new StudentEnrollmentActiveMail($student, $course, $courseUrl));
+        } elseif ($status === 'pending') {
+            Mail::to($student->email)->send(new StudentEnrollmentPendingMail($student, $course));
+        }
+
+        // Send notification to course admins and instructor
+        $this->notifyCourseManagers($enrollment, $course, $student);
+    }
+
+    /**
+     * Notify all course managers (admins and instructor) about new enrollment.
+     */
+    private function notifyCourseManagers(Enrollment $enrollment, Course $course, User $student): void
+    {
+        $managers = $this->getCourseManagers($course);
+        $enrollmentsUrl = $this->getEnrollmentsUrl($course);
+
+        foreach ($managers as $manager) {
+            if ($manager && $manager->email) {
+                Mail::to($manager->email)->send(
+                    new AdminEnrollmentNotificationMail($manager, $student, $course, $enrollment, $enrollmentsUrl)
+                );
+            }
+        }
+    }
+
+    /**
+     * Get all course managers (instructor + admins).
+     *
+     * @return array<int, User>
+     */
+    private function getCourseManagers(Course $course): array
+    {
+        $managers = [];
+        $managerIds = [];
+
+        // Load fresh course with relationships
+        $course = $course->fresh(['instructor', 'admins']);
+
+        // Load instructor
+        if ($course->instructor_id && $course->instructor) {
+            $instructor = $course->instructor;
+            $managers[] = $instructor;
+            $managerIds[] = $instructor->id;
+        }
+
+        // Load admins
+        foreach ($course->admins as $admin) {
+            if ($admin && ! in_array($admin->id, $managerIds, true)) {
+                $managers[] = $admin;
+                $managerIds[] = $admin->id;
+            }
+        }
+
+        return $managers;
+    }
+
+    /**
+     * Generate course URL for frontend.
+     */
+    private function getCourseUrl(Course $course): string
+    {
+        $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
+
+        return rtrim($frontendUrl, '/') . '/courses/' . $course->slug;
+    }
+
+    /**
+     * Generate enrollments management URL for frontend.
+     */
+    private function getEnrollmentsUrl(Course $course): string
+    {
+        $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
+
+        return rtrim($frontendUrl, '/') . '/courses/' . $course->slug . '/enrollments';
     }
 }
 
