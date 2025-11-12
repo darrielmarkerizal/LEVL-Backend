@@ -120,9 +120,6 @@ class CourseRepository
 
         $filters = $params['filter'] ?? [];
 
-        if (! empty($filters['visibility'])) {
-            $query->where('visibility', $filters['visibility']);
-        }
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
@@ -165,9 +162,6 @@ class CourseRepository
         $query = Course::query()->with('tags');
 
         $filters = $params['filter'] ?? [];
-        if (! empty($filters['visibility'])) {
-            $query->where('visibility', $filters['visibility']);
-        }
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
