@@ -51,7 +51,7 @@ class CourseController extends Controller
 
     public function show(Course $course)
     {
-        return $this->success(['course' => $course]);
+        return $this->success(['course' => $course->load('tags')]);
     }
 
     public function update(CourseRequest $request, Course $course)

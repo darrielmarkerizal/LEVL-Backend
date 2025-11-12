@@ -13,7 +13,10 @@ use Modules\Schemes\Repositories\CourseRepository;
 
 class CourseService
 {
-    public function __construct(private CourseRepository $repository) {}
+    public function __construct(
+        private CourseRepository $repository,
+        private TagService $tagService
+    ) {}
 
     public function listPublic(array $params): LengthAwarePaginator
     {
@@ -37,7 +40,12 @@ class CourseService
 
     public function create(array $data, ?\Modules\Auth\Models\User $actor = null): Course
     {
+        $tags = $data['tags_list'] ?? [];
+        unset($data['tags_list']);
 
+        if (! isset($data['tags_json'])) {
+            $data['tags_json'] = [];
+        }
         if (empty($data['slug'])) {
             $data['slug'] = $this->generateUniqueSlug($data['title'] ?? $data['code'] ?? Str::random(8));
         } else {
@@ -50,14 +58,6 @@ class CourseService
 
         $course = $this->repository->create($data);
 
-        Cache::forget('courses_public');
-
-        CourseCreated::dispatch($course);
-
-        if (($course->status ?? null) === 'published') {
-            CoursePublished::dispatch($course);
-        }
-
         $adminIds = [];
         if (! empty($data['course_admins']) && is_array($data['course_admins'])) {
             $adminIds = array_map('intval', $data['course_admins']);
@@ -69,7 +69,21 @@ class CourseService
             $course->admins()->syncWithoutDetaching(array_unique($adminIds));
         }
 
-        return $course;
+        $course->load('tags');
+
+        $this->tagService->syncCourseTags($course, $tags);
+
+        $freshCourse = $course->fresh(['tags', 'admins', 'instructor']);
+
+        Cache::forget('courses_public');
+
+        CourseCreated::dispatch($freshCourse);
+
+        if (($freshCourse->status ?? null) === 'published') {
+            CoursePublished::dispatch($freshCourse);
+        }
+
+        return $freshCourse;
     }
 
     public function update(int $id, array $data): ?Course
@@ -79,11 +93,20 @@ class CourseService
             return null;
         }
 
+        $tags = $data['tags_list'] ?? null;
+        unset($data['tags_list']);
+
         if (! empty($data['slug'])) {
             $data['slug'] = $this->generateUniqueSlug($data['slug'], $course->id);
         }
 
         $course = $this->repository->update($course, $data);
+
+        if ($tags !== null) {
+            $this->tagService->syncCourseTags($course, $tags);
+        }
+
+        $course->load('tags');
 
         if (array_key_exists('status', $data) && $data['status'] === 'published') {
             CoursePublished::dispatch($course);
@@ -91,7 +114,7 @@ class CourseService
 
         Cache::forget('courses_public');
 
-        return $course;
+        return $course->fresh(['tags', 'admins', 'instructor']);
     }
 
     public function delete(int $id): bool

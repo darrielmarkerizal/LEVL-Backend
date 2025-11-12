@@ -27,7 +27,7 @@ class Course extends Model
         'published_at' => 'datetime',
     ];
 
-    protected $appends = ['thumbnail_url', 'banner_url'];
+    protected $appends = ['thumbnail_url', 'banner_url', 'tag_list'];
 
     public function getThumbnailUrlAttribute(): ?string
     {
@@ -47,9 +47,19 @@ class Course extends Model
         return asset('storage/'.$this->banner_path);
     }
 
-    public function tags(): HasMany
+    public function tagPivot(): HasMany
     {
-        return $this->hasMany(CourseTag::class);
+        return $this->hasMany(CourseTag::class, 'course_id');
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Tag::class,
+            'course_tag_pivot',
+            'course_id',
+            'tag_id'
+        )->withTimestamps();
     }
 
     public function units(): HasMany
@@ -105,5 +115,18 @@ class Course extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function getTagListAttribute(): array
+    {
+        if ($this->relationLoaded('tags')) {
+            return $this->tags->pluck('name')->unique()->values()->toArray();
+        }
+
+        if (is_array($this->tags_json)) {
+            return $this->tags_json;
+        }
+
+        return [];
     }
 }
