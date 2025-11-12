@@ -11,12 +11,16 @@ use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Services\LessonService;
+use Modules\Schemes\Services\ProgressionService;
 
 class LessonController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(private LessonService $service) {}
+    public function __construct(
+        private LessonService $service,
+        private ProgressionService $progression
+    ) {}
 
     public function index(Request $request, Course $course, Unit $unit)
     {
@@ -130,6 +134,17 @@ class LessonController extends Controller
 
         if (! $authorized) {
             return $this->error('Anda tidak memiliki akses untuk melihat lesson ini.', 403);
+        }
+
+        if ($user->hasRole('student')) {
+            $enrollment = $this->progression->getEnrollmentForCourse($course->id, $user->id);
+            if (! $enrollment) {
+                return $this->error('Anda belum terdaftar pada course ini.', 403);
+            }
+
+            if (! $this->progression->canAccessLesson($lesson, $enrollment)) {
+                return $this->error('Lesson masih terkunci karena prasyarat belum selesai.', 403);
+            }
         }
 
         return $this->success(['lesson' => $found]);

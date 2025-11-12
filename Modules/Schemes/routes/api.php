@@ -5,6 +5,7 @@ use Modules\Schemes\Http\Controllers\CourseController;
 use Modules\Schemes\Http\Controllers\LessonBlockController;
 use Modules\Schemes\Http\Controllers\LessonController;
 use Modules\Schemes\Http\Controllers\UnitController;
+use Modules\Schemes\Http\Controllers\ProgressController;
 
 Route::prefix('v1')->scopeBindings()->group(function () {
 
@@ -34,6 +35,8 @@ Route::prefix('v1')->scopeBindings()->group(function () {
     Route::middleware(['auth:api'])->group(function () {
         Route::get('courses/{course:slug}/units/{unit:slug}/lessons', [LessonController::class, 'index']);
         Route::get('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}', [LessonController::class, 'show']);
+        Route::get('courses/{course:slug}/progress', [ProgressController::class, 'show']);
+        Route::post('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/complete', [ProgressController::class, 'completeLesson']);
     });
 
     Route::middleware(['auth:api', 'role:super-admin|admin'])->group(function () {
