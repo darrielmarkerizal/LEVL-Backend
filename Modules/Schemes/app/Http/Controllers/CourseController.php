@@ -25,7 +25,7 @@ class CourseController extends Controller
     {
         $params = $request->all();
 
-        $isPublicListing = ($params['visibility'] ?? null) === 'public' && (($params['status'] ?? 'published') === 'published');
+        $isPublicListing = ($params['status'] ?? null) === 'published';
 
         $paginator = $isPublicListing
             ? $this->service->listPublic($params)

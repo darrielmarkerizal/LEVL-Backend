@@ -16,7 +16,7 @@ class Course extends Model
         'code', 'slug', 'title', 'short_desc', 'type',
         'level_tag', 'category_id', 'tags_json', 'outcomes_json',
         'prereq_json', 'duration_estimate', 'thumbnail_path',
-        'banner_path', 'visibility', 'progression_mode',
+        'banner_path', 'progression_mode', 'enrollment_type', 'enrollment_key',
         'status', 'published_at', 'instructor_id',
     ];
 
@@ -32,6 +32,7 @@ class Course extends Model
     protected $hidden = [
         'thumbnail_path',
         'banner_path',
+        'enrollment_key',
         'deleted_at',
     ];
 

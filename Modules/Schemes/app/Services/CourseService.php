@@ -20,7 +20,6 @@ class CourseService
 
     public function listPublic(array $params): LengthAwarePaginator
     {
-        $params['visibility'] = 'public';
         $params['status'] = $params['status'] ?? 'published';
 
         return Cache::remember('courses_public', now()->addMinutes(10), function () use ($params) {
@@ -54,6 +53,11 @@ class CourseService
 
         if (empty($data['status'])) {
             $data['status'] = 'draft';
+        }
+
+        $enrollmentType = $data['enrollment_type'] ?? 'auto_accept';
+        if ($enrollmentType !== 'key_based') {
+            $data['enrollment_key'] = null;
         }
 
         $course = $this->repository->create($data);
@@ -98,6 +102,14 @@ class CourseService
 
         if (! empty($data['slug'])) {
             $data['slug'] = $this->generateUniqueSlug($data['slug'], $course->id);
+        }
+
+        $enrollmentType = $data['enrollment_type'] ?? $course->enrollment_type;
+        if ($enrollmentType !== 'key_based') {
+            $data['enrollment_key'] = null;
+        } elseif (! array_key_exists('enrollment_key', $data)) {
+            // keep existing key
+            unset($data['enrollment_key']);
         }
 
         $course = $this->repository->update($course, $data);
