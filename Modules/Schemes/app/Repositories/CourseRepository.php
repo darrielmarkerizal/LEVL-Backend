@@ -5,6 +5,7 @@ namespace Modules\Schemes\Repositories;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 use Modules\Schemes\Models\Course;
 
 class CourseRepository
@@ -13,17 +14,17 @@ class CourseRepository
 
     public function query(): Builder
     {
-        return Course::query();
+        return Course::query()->with('tags');
     }
 
     public function findById(int $id): ?Course
     {
-        return Course::query()->find($id);
+        return Course::query()->with('tags')->find($id);
     }
 
     public function findBySlug(string $slug): ?Course
     {
-        return Course::query()->where('slug', $slug)->first();
+        return Course::query()->with('tags')->where('slug', $slug)->first();
     }
 
     public function create(array $attributes): Course
@@ -115,7 +116,7 @@ class CourseRepository
 
     public function paginate(array $params, int $perPage = 15): LengthAwarePaginator
     {
-        $query = Course::query();
+        $query = Course::query()->with('tags');
 
         $filters = $params['filter'] ?? [];
 
@@ -144,17 +145,7 @@ class CourseRepository
             $query->whereIn('category_id', array_filter($catIds, fn ($v) => (int) $v > 0));
         }
 
-        // Tags filter from filter[tag] as array JSON; legacy params['tags'] still supported
-        if (! empty($filters['tag'])) {
-            $tags = $this->parseArrayFilter($filters['tag']);
-            foreach ($tags as $tag) {
-                $query->whereJsonContains('tags_json', $tag);
-            }
-        } elseif (! empty($params['tags']) && is_array($params['tags'])) {
-            foreach ($params['tags'] as $tag) {
-                $query->whereJsonContains('tags_json', $tag);
-            }
-        }
+        $this->applyTagFilters($query, $filters['tag'] ?? null, $params['tags'] ?? null);
 
         if (! empty($params['search'])) {
             $keyword = trim((string) $params['search']);
@@ -171,7 +162,7 @@ class CourseRepository
 
     public function list(array $params): Collection
     {
-        $query = Course::query();
+        $query = Course::query()->with('tags');
 
         $filters = $params['filter'] ?? [];
         if (! empty($filters['visibility'])) {
@@ -191,16 +182,7 @@ class CourseRepository
             $catIds = $this->parseCategoryFilter($cat);
             $query->whereIn('category_id', array_filter($catIds, fn ($v) => (int) $v > 0));
         }
-        if (! empty($filters['tag'])) {
-            $tags = $this->parseArrayFilter($filters['tag']);
-            foreach ($tags as $tag) {
-                $query->whereJsonContains('tags_json', $tag);
-            }
-        } elseif (! empty($params['tags']) && is_array($params['tags'])) {
-            foreach ($params['tags'] as $tag) {
-                $query->whereJsonContains('tags_json', $tag);
-            }
-        }
+        $this->applyTagFilters($query, $filters['tag'] ?? null, $params['tags'] ?? null);
         if (! empty($params['search'])) {
             $keyword = trim((string) $params['search']);
             $query->where(function (Builder $sub) use ($keyword) {
@@ -212,5 +194,37 @@ class CourseRepository
         $this->applySorting($query, $params['sort'] ?? null);
 
         return $query->get();
+    }
+
+    private function applyTagFilters(Builder $query, $filterTag, $legacyTags): void
+    {
+        $tags = [];
+
+        if (! empty($filterTag)) {
+            $tags = $this->parseArrayFilter($filterTag);
+        } elseif (! empty($legacyTags) && is_array($legacyTags)) {
+            $tags = $legacyTags;
+        }
+
+        if (empty($tags)) {
+            return;
+        }
+
+        foreach ($tags as $tagValue) {
+            $value = trim((string) $tagValue);
+            if ($value === '') {
+                continue;
+            }
+
+            $slug = Str::slug($value);
+
+            $query->whereHas('tags', function (Builder $tagQuery) use ($value, $slug) {
+                $tagQuery->where(function (Builder $inner) use ($value, $slug) {
+                    $inner->where('slug', $slug)
+                        ->orWhere('slug', $value)
+                        ->orWhereRaw('LOWER(name) = ?', [mb_strtolower($value)]);
+                });
+            });
+        }
     }
 }
