@@ -42,7 +42,7 @@ class CourseRepository
 
     public function delete(Course $course): void
     {
-        $course->delete();
+        $course->forceDelete();
     }
 
     private function parseCategoryFilter($value): array
