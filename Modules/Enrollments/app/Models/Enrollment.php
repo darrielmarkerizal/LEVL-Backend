@@ -2,10 +2,12 @@
 
 namespace Modules\Enrollments\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Enrollment extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'user_id', 'course_id', 'status',
         'enrolled_at', 'completed_at', 'progress_percent',
@@ -45,5 +47,13 @@ class Enrollment extends Model
     public function courseProgress()
     {
         return $this->hasOne(CourseProgress::class);
+    }
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\EnrollmentFactory::new();
     }
 }

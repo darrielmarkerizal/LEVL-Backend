@@ -67,6 +67,12 @@ class SubmissionService
             // Check deadline and determine if late
             $isLate = $assignment->isPastDeadline();
 
+            // Delete existing submission if resubmission (due to unique constraint)
+            // Note: We cannot track previous_submission_id after deletion due to foreign key constraint
+            if ($isResubmission && $existingSubmission) {
+                $existingSubmission->delete();
+            }
+
             // Create submission
             $submission = Submission::create([
                 'assignment_id' => $assignment->id,
@@ -77,7 +83,7 @@ class SubmissionService
                 'attempt_number' => $attemptNumber,
                 'is_late' => $isLate,
                 'is_resubmission' => $isResubmission,
-                'previous_submission_id' => $isResubmission ? $existingSubmission->id : null,
+                'previous_submission_id' => null, // Cannot track after deletion due to unique constraint
                 'submitted_at' => Carbon::now(),
             ]);
 

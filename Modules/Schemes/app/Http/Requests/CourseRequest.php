@@ -17,7 +17,8 @@ class CourseRequest extends FormRequest
 
     public function rules(): array
     {
-        $courseId = $this->route('course') ? (int) $this->route('course') : 0;
+        $course = $this->route('course');
+        $courseId = $course ? (is_object($course) ? $course->id : (int) $course) : 0;
 
         return $this->rulesCourse($courseId);
     }
