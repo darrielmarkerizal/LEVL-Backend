@@ -3,7 +3,6 @@
 namespace Modules\Schemes\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Modules\Schemes\Events\CourseCreated;
 use Modules\Schemes\Events\CourseDeleted;
@@ -20,15 +19,11 @@ class CourseService
 
     public function listPublic(array $params): LengthAwarePaginator
     {
-        $params['visibility'] = 'public';
         $params['status'] = $params['status'] ?? 'published';
 
-        return Cache::remember('courses_public', now()->addMinutes(10), function () use ($params) {
+        $perPage = isset($params['per_page']) ? max(1, (int) $params['per_page']) : 15;
 
-            $perPage = isset($params['per_page']) ? max(1, (int) $params['per_page']) : 15;
-
-            return $this->repository->paginate($params, $perPage);
-        });
+        return $this->repository->paginate($params, $perPage);
     }
 
     public function list(array $params): LengthAwarePaginator
@@ -56,13 +51,18 @@ class CourseService
             $data['status'] = 'draft';
         }
 
+        $enrollmentType = $data['enrollment_type'] ?? 'auto_accept';
+        if ($enrollmentType !== 'key_based') {
+            $data['enrollment_key'] = null;
+        }
+
         $course = $this->repository->create($data);
 
         $adminIds = [];
         if (! empty($data['course_admins']) && is_array($data['course_admins'])) {
             $adminIds = array_map('intval', $data['course_admins']);
         }
-        if ($actor && ($actor->hasRole('admin') || $actor->hasRole('super-admin'))) {
+        if ($actor && ($actor->hasRole('admin') || $actor->hasRole('superadmin'))) {
             $adminIds[] = (int) $actor->id;
         }
         if (! empty($adminIds) && method_exists($course, 'admins')) {
@@ -74,8 +74,6 @@ class CourseService
         $this->tagService->syncCourseTags($course, $tags);
 
         $freshCourse = $course->fresh(['tags', 'admins', 'instructor']);
-
-        Cache::forget('courses_public');
 
         CourseCreated::dispatch($freshCourse);
 
@@ -100,6 +98,14 @@ class CourseService
             $data['slug'] = $this->generateUniqueSlug($data['slug'], $course->id);
         }
 
+        $enrollmentType = $data['enrollment_type'] ?? $course->enrollment_type;
+        if ($enrollmentType !== 'key_based') {
+            $data['enrollment_key'] = null;
+        } elseif (! array_key_exists('enrollment_key', $data)) {
+            // keep existing key
+            unset($data['enrollment_key']);
+        }
+
         $course = $this->repository->update($course, $data);
 
         if ($tags !== null) {
@@ -112,8 +118,6 @@ class CourseService
             CoursePublished::dispatch($course);
         }
 
-        Cache::forget('courses_public');
-
         return $course->fresh(['tags', 'admins', 'instructor']);
     }
 
@@ -125,8 +129,6 @@ class CourseService
         }
 
         $this->repository->delete($course);
-
-        Cache::forget('courses_public');
 
         CourseDeleted::dispatch($course);
 
@@ -145,7 +147,6 @@ class CourseService
             'published_at' => now(),
         ]);
 
-        Cache::forget('courses_public');
         CoursePublished::dispatch($course->fresh());
 
         return $course->fresh();
@@ -162,8 +163,6 @@ class CourseService
             'status' => 'draft',
             'published_at' => null,
         ]);
-
-        Cache::forget('courses_public');
 
         return $course->fresh();
     }

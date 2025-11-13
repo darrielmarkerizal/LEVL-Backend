@@ -45,6 +45,16 @@ class User extends Authenticatable implements JWTSubject
         return asset('storage/'.$this->avatar_path);
     }
 
+    public function gamificationStats()
+    {
+        return $this->hasOne(\Modules\Gamification\Models\UserGamificationStat::class);
+    }
+
+    public function badges()
+    {
+        return $this->hasMany(\Modules\Gamification\Models\UserBadge::class);
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey();

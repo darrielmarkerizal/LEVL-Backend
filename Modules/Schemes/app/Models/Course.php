@@ -12,11 +12,18 @@ class Course extends Model
 {
     use SoftDeletes;
 
+    /**
+     * Fields that support full-text search via QueryFilter.
+     *
+     * @var array<int, string>
+     */
+    protected array $searchable = ['title', 'short_desc'];
+
     protected $fillable = [
         'code', 'slug', 'title', 'short_desc', 'type',
         'level_tag', 'category_id', 'tags_json', 'outcomes_json',
         'prereq_json', 'duration_estimate', 'thumbnail_path',
-        'banner_path', 'visibility', 'progression_mode',
+        'banner_path', 'progression_mode', 'enrollment_type', 'enrollment_key',
         'status', 'published_at', 'instructor_id',
     ];
 
@@ -28,6 +35,13 @@ class Course extends Model
     ];
 
     protected $appends = ['thumbnail_url', 'banner_url', 'tag_list'];
+
+    protected $hidden = [
+        'thumbnail_path',
+        'banner_path',
+        'enrollment_key',
+        'deleted_at',
+    ];
 
     public function getThumbnailUrlAttribute(): ?string
     {
