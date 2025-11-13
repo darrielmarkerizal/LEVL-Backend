@@ -9,6 +9,7 @@ use Modules\Enrollments\Models\CourseProgress;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Enrollments\Models\LessonProgress;
 use Modules\Enrollments\Models\UnitProgress;
+use Modules\Schemes\Events\CourseCompleted;
 use Modules\Schemes\Events\UnitCompleted;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Lesson;
@@ -53,6 +54,11 @@ class ProgressionService
                 UnitCompleted::dispatch($lessonModel->unit, $enrollment->user_id, $enrollment->id);
             }
         });
+    }
+
+    public function onLessonCompleted(Lesson $lesson, Enrollment $enrollment): void
+    {
+        $this->markLessonCompleted($lesson, $enrollment);
     }
 
     public function markUnitCompleted(Unit $unit, Enrollment $enrollment): void
@@ -436,6 +442,8 @@ class ProgressionService
 
         $progress->save();
 
+        $courseJustCompleted = $previousStatus !== 'completed' && $status === 'completed';
+
         $enrollment->progress_percent = $progressPercent;
         if ($status === 'completed') {
             $enrollment->completed_at = $enrollment->completed_at ?? Carbon::now();
@@ -446,10 +454,14 @@ class ProgressionService
         }
         $enrollment->save();
 
+        if ($courseJustCompleted) {
+            CourseCompleted::dispatch($course->fresh(), $enrollment->fresh());
+        }
+
         return [
             'status' => $status,
             'progress_percent' => $progressPercent,
-            'just_completed' => $previousStatus !== 'completed' && $status === 'completed',
+            'just_completed' => $courseJustCompleted,
         ];
     }
 }

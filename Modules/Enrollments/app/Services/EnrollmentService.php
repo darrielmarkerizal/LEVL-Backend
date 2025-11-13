@@ -5,6 +5,7 @@ namespace Modules\Enrollments\Services;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use Modules\Enrollments\Events\EnrollmentCreated;
 use Modules\Enrollments\Mail\AdminEnrollmentNotificationMail;
 use Modules\Enrollments\Mail\StudentEnrollmentActiveMail;
 use Modules\Enrollments\Mail\StudentEnrollmentApprovedMail;
@@ -56,6 +57,9 @@ class EnrollmentService
         $enrollment->save();
 
         $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
+
+        // Initialize progress data
+        EnrollmentCreated::dispatch($freshEnrollment);
 
         // Send emails
         $this->sendEnrollmentEmails($freshEnrollment, $course, $user, $status);
