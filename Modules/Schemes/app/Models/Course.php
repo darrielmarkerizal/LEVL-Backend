@@ -2,6 +2,7 @@
 
 namespace Modules\Schemes\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Course extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     /**
      * Fields that support full-text search via QueryFilter.
@@ -142,5 +143,13 @@ class Course extends Model
         }
 
         return [];
+    }
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\CourseFactory::new();
     }
 }
