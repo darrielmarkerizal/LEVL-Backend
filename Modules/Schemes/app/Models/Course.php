@@ -22,7 +22,7 @@ class Course extends Model
 
     protected $fillable = [
         'code', 'slug', 'title', 'short_desc', 'type',
-        'level_tag', 'category_id', 'tags_json',
+        'level_tag', 'category_id', 'tags_json', 'prereq_text',
         'duration_estimate', 'thumbnail_path',
         'banner_path', 'progression_mode', 'enrollment_type', 'enrollment_key',
         'status', 'published_at', 'instructor_id',
@@ -143,41 +143,17 @@ class Course extends Model
         return [];
     }
 
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Common\Models\Category::class, 'category_id');
+    }
+
     /**
      * Get the outcomes for this course.
      */
     public function outcomes(): HasMany
     {
         return $this->hasMany(CourseOutcome::class)->orderBy('order');
-    }
-
-    /**
-     * Get the prerequisites for this course.
-     */
-    public function prerequisites(): HasMany
-    {
-        return $this->hasMany(CoursePrerequisite::class, 'course_id');
-    }
-
-    /**
-     * Get courses that require this course as prerequisite.
-     */
-    public function requiredBy(): HasMany
-    {
-        return $this->hasMany(CoursePrerequisite::class, 'prerequisite_course_id');
-    }
-
-    /**
-     * Get prerequisite courses.
-     */
-    public function prerequisiteCourses(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            Course::class,
-            'course_prerequisites',
-            'course_id',
-            'prerequisite_course_id'
-        )->withPivot('is_required')->withTimestamps();
     }
 
     /**
