@@ -13,7 +13,7 @@ class LessonPolicy
 
     public function update(User $user, Lesson $lesson)
     {
-        if (! $user->hasRole('admin')) {
+        if (! $user->hasRole('Admin')) {
             return $this->deny('Hanya admin atau superadmin yang dapat mengubah lesson.');
         }
 
@@ -41,7 +41,7 @@ class LessonPolicy
 
     public function delete(User $user, Lesson $lesson)
     {
-        if (! $user->hasRole('admin')) {
+        if (! $user->hasRole('Admin')) {
             return $this->deny('Hanya admin atau superadmin yang dapat menghapus lesson.');
         }
 

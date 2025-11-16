@@ -34,15 +34,15 @@ class LessonBlockController extends Controller
         }
 
         $authorized = false;
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             $authorized = true;
-        } elseif ($user->hasRole('admin')) {
+        } elseif ($user->hasRole('Admin')) {
             if ((int) $course->instructor_id === (int) $user->id) {
                 $authorized = true;
             } elseif (method_exists($course, 'hasAdmin') && $course->hasAdmin($user)) {
                 $authorized = true;
             }
-        } elseif ($user->hasRole('student')) {
+        } elseif ($user->hasRole('Student')) {
             $enrolled = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
                 ->where('course_id', $course->id)
                 ->whereIn('status', ['active', 'completed'])
@@ -76,9 +76,9 @@ class LessonBlockController extends Controller
         }
 
         $authorized = false;
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             $authorized = true;
-        } elseif ($user->hasRole('admin')) {
+        } elseif ($user->hasRole('Admin')) {
             if ((int) $course->instructor_id === (int) $user->id) {
                 $authorized = true;
             } elseif (method_exists($course, 'hasAdmin') && $course->hasAdmin($user)) {
@@ -114,15 +114,15 @@ class LessonBlockController extends Controller
         $course = $lessonModel->unit?->course;
 
         $authorized = false;
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             $authorized = true;
-        } elseif ($user->hasRole('admin')) {
+        } elseif ($user->hasRole('Admin')) {
             if ((int) $course->instructor_id === (int) $user->id) {
                 $authorized = true;
             } elseif (method_exists($course, 'hasAdmin') && $course->hasAdmin($user)) {
                 $authorized = true;
             }
-        } elseif ($user->hasRole('student')) {
+        } elseif ($user->hasRole('Student')) {
             $enrolled = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
                 ->where('course_id', $course->id)
                 ->whereIn('status', ['active', 'completed'])

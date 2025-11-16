@@ -14,7 +14,7 @@ beforeEach(function () {
 
 test('superadmin can create unit', function () {
     $user = User::factory()->create();
-    $user->assignRole('superadmin');
+    $user->assignRole('Superadmin');
     $course = Course::factory()->create();
 
     expect($this->policy->create($user, $course->id)->allowed())->toBeTrue();
@@ -22,7 +22,7 @@ test('superadmin can create unit', function () {
 
 test('admin can create unit for course they teach', function () {
     $user = User::factory()->create();
-    $user->assignRole('admin');
+    $user->assignRole('Admin');
     $course = Course::factory()->create(['instructor_id' => $user->id]);
 
     expect($this->policy->create($user, $course->id)->allowed())->toBeTrue();
@@ -30,7 +30,7 @@ test('admin can create unit for course they teach', function () {
 
 test('admin cannot create unit for unmanaged course', function () {
     $user = User::factory()->create();
-    $user->assignRole('admin');
+    $user->assignRole('Admin');
     $course = Course::factory()->create();
 
     expect($this->policy->create($user, $course->id)->denied())->toBeTrue();
@@ -38,7 +38,7 @@ test('admin cannot create unit for unmanaged course', function () {
 
 test('student cannot create unit', function () {
     $user = User::factory()->create();
-    $user->assignRole('student');
+    $user->assignRole('Student');
     $course = Course::factory()->create();
 
     expect($this->policy->create($user, $course->id)->denied())->toBeTrue();
@@ -46,7 +46,7 @@ test('student cannot create unit', function () {
 
 test('superadmin can update any unit', function () {
     $user = User::factory()->create();
-    $user->assignRole('superadmin');
+    $user->assignRole('Superadmin');
     $course = Course::factory()->create();
     $unit = Unit::factory()->create(['course_id' => $course->id]);
 
@@ -55,7 +55,7 @@ test('superadmin can update any unit', function () {
 
 test('admin can update unit in course they teach', function () {
     $user = User::factory()->create();
-    $user->assignRole('admin');
+    $user->assignRole('Admin');
     $course = Course::factory()->create(['instructor_id' => $user->id]);
     $unit = Unit::factory()->create(['course_id' => $course->id]);
 
@@ -64,7 +64,7 @@ test('admin can update unit in course they teach', function () {
 
 test('student cannot update unit', function () {
     $user = User::factory()->create();
-    $user->assignRole('student');
+    $user->assignRole('Student');
     $course = Course::factory()->create();
     $unit = Unit::factory()->create(['course_id' => $course->id]);
 

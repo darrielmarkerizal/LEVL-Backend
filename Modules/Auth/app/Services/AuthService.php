@@ -25,7 +25,7 @@ class AuthService implements AuthServiceInterface
         $validated['password'] = Hash::make($validated['password']);
         $user = $this->authRepository->createUser($validated);
 
-        $user->assignRole('student');
+        $user->assignRole('Student');
 
         $token = $this->jwt->fromUser($user);
 
@@ -81,9 +81,9 @@ class AuthService implements AuthServiceInterface
         }
 
         $roles = $user->getRoleNames();
-        $isPrivileged = $roles->contains(fn ($r) => in_array($r, ['superadmin', 'admin', 'instructor']));
+        $isPrivileged = $roles->contains(fn ($r) => in_array($r, ['Superadmin', 'Admin', 'Instructor']));
 
-        // Auto-verify privileged users (admin, superadmin, instructor) on first login
+        // Auto-verify privileged users (Admin, Superadmin, Instructor) on first login
         $wasAutoVerified = false;
         if ($isPrivileged && ($user->status === 'pending' || $user->email_verified_at === null)) {
             $user->email_verified_at = now();

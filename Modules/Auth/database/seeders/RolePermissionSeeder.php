@@ -86,7 +86,7 @@ class RolePermissionSeeder extends Seeder
             'guard_name' => 'api',
         ]);
 
-        // Assign all permissions to superadmin
+        // Assign all permissions to Superadmin
         $superadmin->givePermissionTo(Permission::all());
 
         // Assign course management permissions to admin (will be scoped per course)
