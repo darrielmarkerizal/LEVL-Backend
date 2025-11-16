@@ -1,6 +1,7 @@
 <?php
 
 use Modules\Auth\Models\User;
+use Modules\Common\Models\Category;
 use Modules\Schemes\Models\Course;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
@@ -11,6 +12,7 @@ beforeEach(function () {
     $this->admin->assignRole('admin');
     $this->student = User::factory()->create();
     $this->student->assignRole('student');
+    $this->category = Category::factory()->create();
 });
 
 // ==================== POSITIVE TEST CASES ====================
@@ -23,6 +25,7 @@ it('admin can create course with valid data', function () {
             'title' => 'Test Course',
             'level_tag' => 'dasar',
             'type' => 'okupasi',
+            'category_id' => $this->category->id,
             'enrollment_type' => 'auto_accept',
             'progression_mode' => 'free',
         ]);
@@ -35,6 +38,7 @@ it('admin can create course with valid data', function () {
     assertDatabaseHas('courses', [
         'code' => 'TEST-001',
         'title' => 'Test Course',
+        'category_id' => $this->category->id,
     ]);
 });
 
@@ -47,6 +51,7 @@ it('admin can create course with all fields', function () {
             'short_desc' => 'A complete course description',
             'level_tag' => 'mahir',
             'type' => 'kluster',
+            'category_id' => $this->category->id,
             'enrollment_type' => 'key_based',
             'enrollment_key' => 'SECRET123',
             'progression_mode' => 'sequential',
@@ -58,11 +63,12 @@ it('admin can create course with all fields', function () {
         'code' => 'TEST-002',
         'slug' => 'complete-course',
         'enrollment_key' => 'SECRET123',
+        'category_id' => $this->category->id,
     ]);
 });
 
 it('admin can create course with outcomes and prerequisites', function () {
-    $prerequisiteCourse = Course::factory()->create();
+    $prereqText = '<p>Harus memahami dasar pemrograman PHP.</p>';
 
     $response = $this->actingAs($this->admin, 'api')
         ->postJson(api('/courses'), [
@@ -70,6 +76,7 @@ it('admin can create course with outcomes and prerequisites', function () {
             'title' => 'Course with Outcomes',
             'level_tag' => 'dasar',
             'type' => 'okupasi',
+            'category_id' => $this->category->id,
             'enrollment_type' => 'auto_accept',
             'progression_mode' => 'free',
             'outcomes' => [
@@ -77,26 +84,22 @@ it('admin can create course with outcomes and prerequisites', function () {
                 'Understand MVC pattern',
                 'Build REST API',
             ],
-            'prereq' => [$prerequisiteCourse->id],
+            'prereq' => $prereqText,
         ]);
 
     $response->assertStatus(201);
     $course = Course::where('code', 'TEST-OUTCOMES')->first();
-    
+
     expect($course->outcomes)->toHaveCount(3);
-    expect($course->prerequisiteCourses)->toHaveCount(1);
-    
+    expect($course->prereq_text)->toEqual($prereqText);
+
     assertDatabaseHas('course_outcomes', [
         'course_id' => $course->id,
         'outcome_text' => 'Learn Laravel basics',
         'order' => 0,
     ]);
-    
-    assertDatabaseHas('course_prerequisites', [
-        'course_id' => $course->id,
-        'prerequisite_course_id' => $prerequisiteCourse->id,
-    ]);
 });
+
 
 it('superadmin can create course', function () {
     $superadmin = User::factory()->create();
@@ -108,6 +111,7 @@ it('superadmin can create course', function () {
             'title' => 'Superadmin Course',
             'level_tag' => 'dasar',
             'type' => 'okupasi',
+            'category_id' => $this->category->id,
             'enrollment_type' => 'auto_accept',
             'progression_mode' => 'free',
         ]);
@@ -125,6 +129,7 @@ it('admin can update course', function () {
             'title' => 'Updated Course Title',
             'level_tag' => 'mahir',
             'type' => 'okupasi',
+            'category_id' => $this->category->id,
             'enrollment_type' => 'auto_accept',
             'progression_mode' => 'free',
         ]);
@@ -160,9 +165,6 @@ it('admin can update course with partial data', function () {
 
 it('admin can update course outcomes and prerequisites', function () {
     $course = Course::factory()->create(['instructor_id' => $this->admin->id]);
-    $prerequisiteCourse1 = Course::factory()->create();
-    $prerequisiteCourse2 = Course::factory()->create();
-
     $response = $this->actingAs($this->admin, 'api')
         ->putJson(api("/courses/{$course->slug}"), [
             'code' => $course->code,
@@ -175,14 +177,14 @@ it('admin can update course outcomes and prerequisites', function () {
                 'Updated outcome 1',
                 'Updated outcome 2',
             ],
-            'prereq' => [$prerequisiteCourse1->id, $prerequisiteCourse2->id],
+            'prereq' => '<p>Lengkapi modul dasar terlebih dahulu.</p>',
         ]);
 
     $response->assertStatus(200);
     $course->refresh();
-    
+
     expect($course->outcomes)->toHaveCount(2);
-    expect($course->prerequisiteCourses)->toHaveCount(2);
+    expect($course->prereq_text)->toEqual('<p>Lengkapi modul dasar terlebih dahulu.</p>');
 });
 
 // DELETE - Delete Course
@@ -255,6 +257,7 @@ it('student cannot create course', function () {
             'title' => 'Student Course',
             'level_tag' => 'dasar',
             'type' => 'okupasi',
+            'category_id' => $this->category->id,
             'enrollment_type' => 'auto_accept',
             'progression_mode' => 'free',
         ]);
@@ -284,12 +287,28 @@ it('cannot create course with duplicate code', function () {
             'title' => 'Duplicate Code Course',
             'level_tag' => 'dasar',
             'type' => 'okupasi',
+            'category_id' => $this->category->id,
             'enrollment_type' => 'auto_accept',
             'progression_mode' => 'free',
         ]);
 
     $response->assertStatus(422)
         ->assertJsonValidationErrors(['code']);
+});
+
+it('cannot create course without category', function () {
+    $response = $this->actingAs($this->admin, 'api')
+        ->postJson(api('/courses'), [
+            'code' => 'TEST-010',
+            'title' => 'No Category',
+            'level_tag' => 'dasar',
+            'type' => 'okupasi',
+            'enrollment_type' => 'auto_accept',
+            'progression_mode' => 'free',
+        ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['category_id']);
 });
 
 it('cannot create course with invalid level_tag', function () {
@@ -299,6 +318,7 @@ it('cannot create course with invalid level_tag', function () {
             'title' => 'Invalid Level Course',
             'level_tag' => 'invalid_level',
             'type' => 'okupasi',
+            'category_id' => $this->category->id,
             'enrollment_type' => 'auto_accept',
             'progression_mode' => 'free',
         ]);
@@ -324,6 +344,7 @@ it('cannot create course with invalid enrollment_type', function () {
             'title' => 'Invalid Enrollment Course',
             'level_tag' => 'dasar',
             'type' => 'okupasi',
+            'category_id' => $this->category->id,
             'enrollment_type' => 'invalid_type',
             'progression_mode' => 'free',
         ]);
@@ -339,6 +360,7 @@ it('requires enrollment_key for key_based enrollment_type', function () {
             'title' => 'Key Based Course',
             'level_tag' => 'dasar',
             'type' => 'okupasi',
+            'category_id' => $this->category->id,
             'enrollment_type' => 'key_based',
             'progression_mode' => 'free',
         ]);
@@ -354,6 +376,7 @@ it('cannot create course with code exceeding max length', function () {
             'title' => 'Long Code Course',
             'level_tag' => 'dasar',
             'type' => 'okupasi',
+            'category_id' => $this->category->id,
             'enrollment_type' => 'auto_accept',
             'progression_mode' => 'free',
         ]);
@@ -422,6 +445,7 @@ it('cannot update non-existent course', function () {
             'title' => 'Non Existent',
             'level_tag' => 'dasar',
             'type' => 'okupasi',
+            'category_id' => $this->category->id,
             'enrollment_type' => 'auto_accept',
             'progression_mode' => 'free',
         ]);

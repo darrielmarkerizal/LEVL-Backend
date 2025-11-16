@@ -30,7 +30,7 @@ class CourseRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $fields = ['tags', 'outcomes', 'prereq', 'course_admins'];
+        $fields = ['tags', 'outcomes', 'course_admins'];
         $payload = [];
         foreach ($fields as $field) {
             $val = $this->input($field);
@@ -80,7 +80,7 @@ class CourseRequest extends FormRequest
             unset($data['tags']);
         }
         if (array_key_exists('prereq', $data)) {
-            $data['prerequisites'] = $data['prereq'];
+            $data['prereq_text'] = $data['prereq'];
             unset($data['prereq']);
         }
 
