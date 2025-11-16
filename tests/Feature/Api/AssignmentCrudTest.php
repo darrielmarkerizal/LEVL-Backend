@@ -11,9 +11,9 @@ uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 beforeEach(function () {
     createTestRoles();
     $this->admin = User::factory()->create();
-    $this->admin->assignRole('admin');
+    $this->admin->assignRole('Admin');
     $this->student = User::factory()->create();
-    $this->student->assignRole('student');
+    $this->student->assignRole('Student');
     $this->course = Course::factory()->create(['instructor_id' => $this->admin->id]);
     $this->unit = Unit::factory()->create(['course_id' => $this->course->id]);
     $this->lesson = Lesson::factory()->create(['unit_id' => $this->unit->id]);
@@ -131,7 +131,7 @@ it('unauthenticated user cannot create assignment', function () {
 
 it('admin cannot create assignment in course they dont manage', function () {
     $otherAdmin = User::factory()->create();
-    $otherAdmin->assignRole('admin');
+    $otherAdmin->assignRole('Admin');
     $otherCourse = Course::factory()->create(['instructor_id' => $otherAdmin->id]);
     $otherUnit = Unit::factory()->create(['course_id' => $otherCourse->id]);
     $otherLesson = Lesson::factory()->create(['unit_id' => $otherUnit->id]);
@@ -173,7 +173,7 @@ it('cannot update non-existent assignment', function () {
 
 it('admin cannot update assignment they dont manage', function () {
     $otherAdmin = User::factory()->create();
-    $otherAdmin->assignRole('admin');
+    $otherAdmin->assignRole('Admin');
     $otherCourse = Course::factory()->create(['instructor_id' => $otherAdmin->id]);
     $otherUnit = Unit::factory()->create(['course_id' => $otherCourse->id]);
     $otherLesson = Lesson::factory()->create(['unit_id' => $otherUnit->id]);
@@ -216,7 +216,7 @@ it('cannot delete non-existent assignment', function () {
 
 it('admin cannot delete assignment they dont manage', function () {
     $otherAdmin = User::factory()->create();
-    $otherAdmin->assignRole('admin');
+    $otherAdmin->assignRole('Admin');
     $otherCourse = Course::factory()->create(['instructor_id' => $otherAdmin->id]);
     $otherUnit = Unit::factory()->create(['course_id' => $otherCourse->id]);
     $otherLesson = Lesson::factory()->create(['unit_id' => $otherUnit->id]);

@@ -25,7 +25,7 @@ class SubmissionController extends Controller
             ->with(['user:id,name,email', 'enrollment:id,status', 'files', 'grade']);
 
         // Students can only see their own submissions
-        if ($user->hasRole('student')) {
+        if ($user->hasRole('Student')) {
             $query->where('user_id', $user->id);
         }
 
@@ -54,7 +54,7 @@ class SubmissionController extends Controller
         $user = auth('api')->user();
 
         // Students can only see their own submissions
-        if ($user->hasRole('student') && $submission->user_id !== $user->id) {
+        if ($user->hasRole('Student') && $submission->user_id !== $user->id) {
             return $this->error('Anda tidak memiliki akses untuk melihat submission ini.', 403);
         }
 
@@ -69,7 +69,7 @@ class SubmissionController extends Controller
         $user = auth('api')->user();
 
         // Students can only update their own draft submissions
-        if ($user->hasRole('student')) {
+        if ($user->hasRole('Student')) {
             if ($submission->user_id !== $user->id) {
                 return $this->error('Anda tidak memiliki akses untuk mengubah submission ini.', 403);
             }
@@ -93,7 +93,7 @@ class SubmissionController extends Controller
         $user = auth('api')->user();
 
         // Only admin/instructor can grade
-        if (! $user->hasRole('admin') && ! $user->hasRole('instructor') && ! $user->hasRole('superadmin')) {
+        if (! $user->hasRole('Admin') && ! $user->hasRole('Instructor') && ! $user->hasRole('Superadmin')) {
             return $this->error('Anda tidak memiliki akses untuk menilai submission ini.', 403);
         }
 

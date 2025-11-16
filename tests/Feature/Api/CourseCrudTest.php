@@ -9,9 +9,9 @@ uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 beforeEach(function () {
     createTestRoles();
     $this->admin = User::factory()->create();
-    $this->admin->assignRole('admin');
+    $this->admin->assignRole('Admin');
     $this->student = User::factory()->create();
-    $this->student->assignRole('student');
+    $this->student->assignRole('Student');
     $this->category = Category::factory()->create();
 });
 
@@ -103,7 +103,7 @@ it('admin can create course with outcomes and prerequisites', function () {
 
 it('superadmin can create course', function () {
     $superadmin = User::factory()->create();
-    $superadmin->assignRole('superadmin');
+    $superadmin->assignRole('Superadmin');
 
     $response = $this->actingAs($superadmin, 'api')
         ->postJson(api('/courses'), [
@@ -200,7 +200,7 @@ it('admin can delete course', function () {
 
 it('superadmin can delete any course', function () {
     $superadmin = User::factory()->create();
-    $superadmin->assignRole('superadmin');
+    $superadmin->assignRole('Superadmin');
     $course = Course::factory()->create();
 
     $response = $this->actingAs($superadmin, 'api')
@@ -404,7 +404,7 @@ it('student cannot update course', function () {
 
 it('admin cannot update course they dont manage', function () {
     $otherAdmin = User::factory()->create();
-    $otherAdmin->assignRole('admin');
+    $otherAdmin->assignRole('Admin');
     $course = Course::factory()->create(['instructor_id' => $otherAdmin->id]);
 
     $response = $this->actingAs($this->admin, 'api')
@@ -465,7 +465,7 @@ it('student cannot delete course', function () {
 
 it('admin cannot delete course they dont manage', function () {
     $otherAdmin = User::factory()->create();
-    $otherAdmin->assignRole('admin');
+    $otherAdmin->assignRole('Admin');
     $course = Course::factory()->create(['instructor_id' => $otherAdmin->id]);
 
     $response = $this->actingAs($this->admin, 'api')
@@ -493,7 +493,7 @@ it('student cannot publish course', function () {
 
 it('admin cannot publish course they dont manage', function () {
     $otherAdmin = User::factory()->create();
-    $otherAdmin->assignRole('admin');
+    $otherAdmin->assignRole('Admin');
     $course = Course::factory()->create([
         'instructor_id' => $otherAdmin->id,
         'status' => 'draft',

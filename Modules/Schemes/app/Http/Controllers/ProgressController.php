@@ -26,9 +26,9 @@ class ProgressController extends Controller
 
         $targetUserId = (int) ($request->query('user_id') ?? $user->id);
 
-        $isStudent = $user->hasRole('student');
-        $isAdmin = $user->hasRole('admin') || $user->hasRole('superadmin');
-        $isInstructor = $user->hasRole('instructor');
+        $isStudent = $user->hasRole('Student');
+        $isAdmin = $user->hasRole('Admin') || $user->hasRole('Superadmin');
+        $isInstructor = $user->hasRole('Instructor');
 
         $authorized = false;
 
@@ -77,7 +77,7 @@ class ProgressController extends Controller
             return $this->error('Anda belum login.', 401);
         }
 
-        if (! $user->hasRole('student')) {
+        if (! $user->hasRole('Student')) {
             return $this->error('Hanya peserta yang dapat menandai lesson sebagai selesai.', 403);
         }
 

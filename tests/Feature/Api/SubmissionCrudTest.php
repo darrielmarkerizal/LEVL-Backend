@@ -13,9 +13,9 @@ uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 beforeEach(function () {
     createTestRoles();
     $this->admin = User::factory()->create();
-    $this->admin->assignRole('admin');
+    $this->admin->assignRole('Admin');
     $this->student = User::factory()->create();
-    $this->student->assignRole('student');
+    $this->student->assignRole('Student');
     $this->course = Course::factory()->create(['instructor_id' => $this->admin->id]);
     $this->unit = Unit::factory()->create(['course_id' => $this->course->id]);
     $this->lesson = Lesson::factory()->create(['unit_id' => $this->unit->id]);
@@ -183,7 +183,7 @@ it('cannot update graded submission', function () {
 
 it('cannot update other user submission', function () {
     $otherStudent = User::factory()->create();
-    $otherStudent->assignRole('student');
+    $otherStudent->assignRole('Student');
     $submission = Submission::create([
         'assignment_id' => $this->assignment->id,
         'user_id' => $otherStudent->id,

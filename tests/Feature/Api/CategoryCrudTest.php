@@ -8,9 +8,9 @@ uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 beforeEach(function () {
     createTestRoles();
     $this->superadmin = User::factory()->create();
-    $this->superadmin->assignRole('superadmin');
+    $this->superadmin->assignRole('Superadmin');
     $this->admin = User::factory()->create();
-    $this->admin->assignRole('admin');
+    $this->admin->assignRole('Admin');
 });
 
 // ==================== POSITIVE TEST CASES ====================

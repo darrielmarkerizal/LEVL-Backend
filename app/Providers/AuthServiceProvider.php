@@ -22,11 +22,11 @@ class AuthServiceProvider extends ServiceProvider
 
         Gate::before(function (User $user, ?string $ability = null) {
 
-            if ($user->hasRole('superadmin')) {
+            if ($user->hasRole('Superadmin')) {
                 return true;
             }
 
-            if ($user->hasRole('admin') || $user->hasRole('Admin')) {
+            if ($user->hasRole('Admin') || $user->hasRole('Admin')) {
                 return null;
             }
 
