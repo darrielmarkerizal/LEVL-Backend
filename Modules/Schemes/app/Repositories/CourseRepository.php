@@ -65,7 +65,7 @@ class CourseRepository
         $params = $this->normalizeParams($params);
         $query = $this->query();
 
-        $this->applyTagFilters($query, $params['filter']['tag'] ?? null, $params['tags'] ?? null);
+        $this->applyTagFilters($query, $params['filter']['tag'] ?? null);
 
         return $this->filteredPaginate(
             $query,
@@ -88,7 +88,7 @@ class CourseRepository
             ->setDefaultSort('title');
 
         $filter->applyFiltersAndSorting($query);
-        $this->applyTagFilters($query, $params['filter']['tag'] ?? null, $params['tags'] ?? null);
+        $this->applyTagFilters($query, $params['filter']['tag'] ?? null);
 
         return $query->get();
     }
@@ -196,14 +196,12 @@ class CourseRepository
         return [];
     }
 
-    private function applyTagFilters(Builder $query, $filterTag, $legacyTags): void
+    private function applyTagFilters(Builder $query, $filterTag): void
     {
         $tags = [];
 
         if (!empty($filterTag)) {
             $tags = $this->parseArrayFilter($filterTag);
-        } elseif (!empty($legacyTags) && is_array($legacyTags)) {
-            $tags = $legacyTags;
         }
 
         if (empty($tags)) {

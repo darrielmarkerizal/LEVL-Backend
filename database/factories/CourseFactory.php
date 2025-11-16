@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use Modules\Common\Models\Category;
 use Modules\Schemes\Models\Course;
 
 /**
@@ -30,6 +31,7 @@ class CourseFactory extends Factory
             'short_desc' => fake()->paragraph(),
             'type' => fake()->randomElement(['okupasi', 'kluster']),
             'level_tag' => fake()->randomElement(['dasar', 'menengah', 'mahir']),
+            'category_id' => Category::factory(),
             'tags_json' => [],
             'progression_mode' => fake()->randomElement(['sequential', 'free']),
             'enrollment_type' => 'auto_accept',

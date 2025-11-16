@@ -37,8 +37,9 @@ class CourseService
     {
         $tags = $data['tags_list'] ?? [];
         $outcomes = $data['outcomes'] ?? [];
-        $prerequisites = $data['prerequisites'] ?? [];
-        unset($data['tags_list'], $data['outcomes'], $data['prerequisites']);
+        $hasPrereqText = array_key_exists('prereq_text', $data);
+        $prereqText = $hasPrereqText ? $data['prereq_text'] : null;
+        unset($data['tags_list'], $data['outcomes'], $data['prereq_text']);
 
         if (! isset($data['tags_json'])) {
             $data['tags_json'] = [];
@@ -75,9 +76,13 @@ class CourseService
 
         $this->tagService->syncCourseTags($course, $tags);
         $this->syncCourseOutcomes($course, $outcomes);
-        $this->syncCoursePrerequisites($course, $prerequisites);
 
-        $freshCourse = $course->fresh(['tags', 'admins', 'instructor', 'outcomes', 'prerequisiteCourses']);
+        if ($hasPrereqText) {
+            $course->prereq_text = $prereqText;
+            $course->save();
+        }
+
+        $freshCourse = $course->fresh(['tags', 'admins', 'instructor', 'outcomes']);
 
         CourseCreated::dispatch($freshCourse);
 
@@ -111,8 +116,9 @@ class CourseService
         }
 
         $outcomes = $data['outcomes'] ?? null;
-        $prerequisites = $data['prerequisites'] ?? null;
-        unset($data['outcomes'], $data['prerequisites']);
+        $hasPrereqText = array_key_exists('prereq_text', $data);
+        $prereqText = $hasPrereqText ? $data['prereq_text'] : null;
+        unset($data['outcomes'], $data['prereq_text']);
 
         $course = $this->repository->update($course, $data);
 
@@ -124,8 +130,9 @@ class CourseService
             $this->syncCourseOutcomes($course, $outcomes);
         }
 
-        if ($prerequisites !== null) {
-            $this->syncCoursePrerequisites($course, $prerequisites);
+        if ($hasPrereqText) {
+            $course->prereq_text = $prereqText;
+            $course->save();
         }
 
         $course->load('tags');
@@ -134,7 +141,7 @@ class CourseService
             CoursePublished::dispatch($course);
         }
 
-        return $course->fresh(['tags', 'admins', 'instructor', 'outcomes', 'prerequisiteCourses']);
+        return $course->fresh(['tags', 'admins', 'instructor', 'outcomes']);
     }
 
     public function delete(int $id): bool
@@ -218,24 +225,4 @@ class CourseService
         }
     }
 
-    private function syncCoursePrerequisites(Course $course, array $prerequisites): void
-    {
-        $course->prerequisites()->delete();
-
-        foreach ($prerequisites as $prereq) {
-            if (empty($prereq)) {
-                continue;
-            }
-
-            $prerequisiteCourseId = is_array($prereq) ? ($prereq['course_id'] ?? $prereq['id'] ?? null) : $prereq;
-            $isRequired = is_array($prereq) ? ($prereq['is_required'] ?? true) : true;
-
-            if ($prerequisiteCourseId && $prerequisiteCourseId != $course->id) {
-                $course->prerequisites()->create([
-                    'prerequisite_course_id' => $prerequisiteCourseId,
-                    'is_required' => $isRequired,
-                ]);
-            }
-        }
-    }
 }
