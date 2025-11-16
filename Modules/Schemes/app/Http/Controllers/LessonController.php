@@ -35,15 +35,15 @@ class LessonController extends Controller
         $courseModel = $course;
 
         $authorized = false;
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             $authorized = true;
-        } elseif ($user->hasRole('admin')) {
+        } elseif ($user->hasRole('Admin')) {
             if ((int) $courseModel->instructor_id === (int) $user->id) {
                 $authorized = true;
             } elseif (method_exists($courseModel, 'hasAdmin') && $courseModel->hasAdmin($user)) {
                 $authorized = true;
             }
-        } elseif ($user->hasRole('student')) {
+        } elseif ($user->hasRole('Student')) {
             $enrollment = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
                 ->where('course_id', $course)
                 ->whereIn('status', ['active', 'completed'])
@@ -76,9 +76,9 @@ class LessonController extends Controller
         $courseModel = $course;
 
         $authorized = false;
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             $authorized = true;
-        } elseif ($user->hasRole('admin')) {
+        } elseif ($user->hasRole('Admin')) {
             if ((int) $courseModel->instructor_id === (int) $user->id) {
                 $authorized = true;
             } elseif (method_exists($courseModel, 'hasAdmin') && $courseModel->hasAdmin($user)) {
@@ -114,15 +114,15 @@ class LessonController extends Controller
         $courseModel = $course;
 
         $authorized = false;
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             $authorized = true;
-        } elseif ($user->hasRole('admin')) {
+        } elseif ($user->hasRole('Admin')) {
             if ((int) $courseModel->instructor_id === (int) $user->id) {
                 $authorized = true;
             } elseif (method_exists($courseModel, 'hasAdmin') && $courseModel->hasAdmin($user)) {
                 $authorized = true;
             }
-        } elseif ($user->hasRole('student')) {
+        } elseif ($user->hasRole('Student')) {
             $enrollment = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
                 ->where('course_id', $course)
                 ->whereIn('status', ['active', 'completed'])
@@ -136,7 +136,7 @@ class LessonController extends Controller
             return $this->error('Anda tidak memiliki akses untuk melihat lesson ini.', 403);
         }
 
-        if ($user->hasRole('student')) {
+        if ($user->hasRole('Student')) {
             $enrollment = $this->progression->getEnrollmentForCourse($course->id, $user->id);
             if (! $enrollment) {
                 return $this->error('Anda belum terdaftar pada course ini.', 403);

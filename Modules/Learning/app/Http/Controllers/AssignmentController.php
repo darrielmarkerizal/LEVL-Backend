@@ -133,11 +133,11 @@ class AssignmentController extends Controller
      */
     private function userCanManageCourse(\Modules\Auth\Models\User $user, \Modules\Schemes\Models\Course $course): bool
     {
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             return true;
         }
 
-        if ($user->hasRole('admin') || $user->hasRole('instructor')) {
+        if ($user->hasRole('Admin') || $user->hasRole('Instructor')) {
             if ((int) $course->instructor_id === (int) $user->id) {
                 return true;
             }

@@ -20,7 +20,7 @@ class EnsureRole
         }
 
         // Superadmin bypasses all role checks
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             return $next($request);
         }
 

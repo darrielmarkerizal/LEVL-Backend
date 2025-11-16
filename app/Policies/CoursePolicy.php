@@ -13,7 +13,7 @@ class CoursePolicy
 
     public function create(User $user)
     {
-        if ($user->hasRole('superadmin') || $user->hasRole('admin')) {
+        if ($user->hasRole('Superadmin') || $user->hasRole('Admin')) {
             return Response::allow();
         }
         return $this->deny('Hanya admin atau superadmin yang dapat membuat course.');
@@ -21,10 +21,10 @@ class CoursePolicy
 
     public function update(User $user, Course $course)
     {
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             return Response::allow();
         }
-        if (! $user->hasRole('admin')) {
+        if (! $user->hasRole('Admin')) {
             return $this->deny('Hanya admin atau superadmin yang dapat mengubah course.');
         }
         if ((int) $course->instructor_id === (int) $user->id) {
@@ -39,10 +39,10 @@ class CoursePolicy
 
     public function delete(User $user, Course $course)
     {
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             return Response::allow();
         }
-        if (! $user->hasRole('admin')) {
+        if (! $user->hasRole('Admin')) {
             return $this->deny('Hanya admin atau superadmin yang dapat menghapus course.');
         }
         if ((int) $course->instructor_id === (int) $user->id) {

@@ -22,25 +22,25 @@ beforeEach(function () {
         'email' => 'superadmin@example.com',
         'username' => 'superadmin',
     ]);
-    $this->superadmin->assignRole('superadmin');
+    $this->superadmin->assignRole('Superadmin');
 
     $this->admin = User::factory()->create([
         'email' => 'admin@example.com',
         'username' => 'adminuser',
     ]);
-    $this->admin->assignRole('admin');
+    $this->admin->assignRole('Admin');
 
     $this->instructor = User::factory()->create([
         'email' => 'instructor@example.com',
         'username' => 'instructoruser',
     ]);
-    $this->instructor->assignRole('instructor');
+    $this->instructor->assignRole('Instructor');
 
     $this->student = User::factory()->create([
         'email' => 'student@example.com',
         'username' => 'studentuser',
     ]);
-    $this->student->assignRole('student');
+    $this->student->assignRole('Student');
 });
 
 it('registers a new user with verification link', function () {
@@ -74,7 +74,7 @@ it('logs in active user and returns token pair', function () {
         'username' => 'loginuser',
         'password' => Hash::make('Secret123!'),
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $response = $this->postJson(api('/auth/login'), [
         'login' => 'loginuser@example.com',
@@ -92,7 +92,7 @@ it('rejects login with invalid credentials', function () {
         'username' => 'wrongpassword',
         'password' => Hash::make('Secret123!'),
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $response = $this->postJson(api('/auth/login'), [
         'login' => 'wrongpassword@example.com',
@@ -109,7 +109,7 @@ it('refreshes token with valid refresh token', function () {
         'username' => 'refreshuser',
         'password' => Hash::make('Secret123!'),
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $login = $this->postJson(api('/auth/login'), [
         'login' => 'refresh@example.com',
@@ -150,7 +150,7 @@ it('logs out user and revokes refresh token', function () {
         'username' => 'logoutuser',
         'password' => Hash::make('Secret123!'),
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $login = $this->postJson(api('/auth/login'), [
         'login' => 'logout@example.com',
@@ -228,7 +228,7 @@ it('allows user without username to set one', function () {
         'email' => 'nousername@example.com',
         'username' => null,
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $response = $this->actingAs($user, 'api')->postJson(api('/auth/set-username'), [
         'username' => 'brandnewusername',
@@ -253,7 +253,7 @@ it('sends email verification link for pending user', function () {
         'username' => 'pendinguser',
         'status' => 'pending',
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $response = $this->actingAs($user, 'api')->postJson(api('/auth/email/verify/send'));
 
@@ -276,7 +276,7 @@ it('verifies email using uuid and code', function () {
         'username' => 'verifyuser',
         'status' => 'pending',
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $otp = OtpCode::create([
         'uuid' => (string) Str::uuid(),
@@ -327,7 +327,7 @@ it('verifies email using token link', function () {
         'username' => 'tokenverify',
         'status' => 'pending',
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $token = 'ABCDEFGHIJKL1234';
     OtpCode::create([
@@ -362,7 +362,7 @@ it('requests email change and sends verification', function () {
         'email' => 'change@example.com',
         'username' => 'changeuser',
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $response = $this->actingAs($user, 'api')->postJson(api('/profile/email/request'), [
         'new_email' => 'newchange@example.com',
@@ -387,7 +387,7 @@ it('verifies email change successfully', function () {
         'email' => 'old@example.com',
         'username' => 'olduser',
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $otp = OtpCode::create([
         'uuid' => (string) Str::uuid(),
@@ -483,7 +483,7 @@ it('allows superadmin to create superadmin accounts', function () {
     ]);
 
     $response->assertStatus(201)
-        ->assertJsonPath('data.user.roles.0', 'superadmin');
+        ->assertJsonPath('data.user.roles.0', 'Superadmin');
 });
 
 it('blocks superadmin creation for admin role', function () {
@@ -502,7 +502,7 @@ it('resends credentials for pending instructor', function () {
         'username' => 'pendinginstructor',
         'status' => 'pending',
     ]);
-    $pending->assignRole('instructor');
+    $pending->assignRole('Instructor');
 
     $response = $this->actingAs($this->superadmin, 'api')->postJson(api('/auth/credentials/resend'), [
         'user_id' => $pending->id,
@@ -526,7 +526,7 @@ it('updates user status as superadmin', function () {
         'username' => 'statususer',
         'status' => 'inactive',
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $response = $this->actingAs($this->superadmin, 'api')->putJson(api("/auth/users/{$user->id}/status"), [
         'status' => 'active',
@@ -542,7 +542,7 @@ it('prevents updating user status back to pending', function () {
         'username' => 'pendingstatus',
         'status' => 'inactive',
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $response = $this->actingAs($this->superadmin, 'api')->putJson(api("/auth/users/{$user->id}/status"), [
         'status' => 'pending',
@@ -593,7 +593,7 @@ it('confirms forgot password and resets password', function () {
         'username' => 'resetuser',
         'password' => Hash::make('OldPassword1!'),
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $token = '123456';
     PasswordResetToken::create([
@@ -639,7 +639,7 @@ it('resets password for authenticated user', function () {
         'username' => 'changepass',
         'password' => Hash::make('OldPassword1!'),
     ]);
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $newPassword = 'S3cure!'.Str::random(12);
 

@@ -24,7 +24,7 @@ class EnrollmentsController extends Controller
         /** @var \Modules\Auth\Models\User $user */
         $user = auth('api')->user();
 
-        if (! $user->hasRole('superadmin')) {
+        if (! $user->hasRole('Superadmin')) {
             return $this->error('Anda tidak memiliki akses untuk melihat seluruh enrolment.', 403);
         }
 
@@ -51,7 +51,7 @@ class EnrollmentsController extends Controller
     }
 
     /**
-     * Course admin/instructor/superadmin can list enrollments for a course.
+     * Course Admin/Instructor/Superadmin can list enrollments for a course.
      */
     public function indexByCourse(Request $request, Course $course)
     {
@@ -85,11 +85,11 @@ class EnrollmentsController extends Controller
         /** @var \Modules\Auth\Models\User $user */
         $user = auth('api')->user();
 
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             return $this->index($request);
         }
 
-        if (! $user->hasRole('admin') && ! $user->hasRole('instructor')) {
+        if (! $user->hasRole('Admin') && ! $user->hasRole('Instructor')) {
             return $this->error('Anda tidak memiliki akses untuk melihat enrolment ini.', 403);
         }
 
@@ -141,7 +141,7 @@ class EnrollmentsController extends Controller
         /** @var \Modules\Auth\Models\User $user */
         $user = auth('api')->user();
 
-        if (! $user->hasRole('student')) {
+        if (! $user->hasRole('Student')) {
             return $this->error('Hanya peserta yang dapat melakukan enrolment.', 403);
         }
 
@@ -169,14 +169,14 @@ class EnrollmentsController extends Controller
         $user = auth('api')->user();
 
         $targetUserId = (int) $user->id;
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             $targetUserId = (int) $request->input('user_id', $user->id);
         }
 
         $enrollment = Enrollment::query()
             ->where('course_id', $course->id)
             ->when(
-                $user->hasRole('superadmin'),
+                $user->hasRole('Superadmin'),
                 fn ($query) => $query->where('user_id', $targetUserId),
                 fn ($query) => $query->where('user_id', $user->id)
             )
@@ -205,13 +205,13 @@ class EnrollmentsController extends Controller
 
         $targetUserId = (int) $user->id;
 
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             $targetUserId = (int) $request->input('user_id', $user->id);
         }
 
         $enrollment = Enrollment::query()
             ->where('course_id', $course->id)
-            ->when(! $user->hasRole('superadmin'), function ($query) use ($user) {
+            ->when(! $user->hasRole('Superadmin'), function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             }, function ($query) use ($targetUserId) {
                 $query->where('user_id', $targetUserId);
@@ -232,7 +232,7 @@ class EnrollmentsController extends Controller
     }
 
     /**
-     * Get enrollment status for the authenticated student (or specified user_id for superadmin).
+     * Get enrollment status for the authenticated student (or specified user_id for Superadmin).
      */
     public function status(Request $request, Course $course)
     {
@@ -241,7 +241,7 @@ class EnrollmentsController extends Controller
 
         $targetUserId = (int) $user->id;
 
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             $targetUserId = (int) $request->query('user_id', $user->id);
         }
 
@@ -328,7 +328,7 @@ class EnrollmentsController extends Controller
 
     private function canModifyEnrollment($user, Enrollment $enrollment): bool
     {
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             return true;
         }
 
@@ -337,11 +337,11 @@ class EnrollmentsController extends Controller
 
     private function userCanManageCourse($user, Course $course): bool
     {
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             return true;
         }
 
-        if ($user->hasRole('admin') || $user->hasRole('instructor')) {
+        if ($user->hasRole('Admin') || $user->hasRole('Instructor')) {
             if ((int) $course->instructor_id === (int) $user->id) {
                 return true;
             }

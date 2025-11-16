@@ -10,9 +10,9 @@ uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 beforeEach(function () {
     createTestRoles();
     $this->admin = User::factory()->create();
-    $this->admin->assignRole('admin');
+    $this->admin->assignRole('Admin');
     $this->student = User::factory()->create();
-    $this->student->assignRole('student');
+    $this->student->assignRole('Student');
     $this->course = Course::factory()->create(['instructor_id' => $this->admin->id]);
     $this->unit = Unit::factory()->create(['course_id' => $this->course->id]);
 });
@@ -95,7 +95,7 @@ it('student cannot create lesson', function () {
 
 it('admin cannot create lesson in course they dont manage', function () {
     $otherAdmin = User::factory()->create();
-    $otherAdmin->assignRole('admin');
+    $otherAdmin->assignRole('Admin');
     $otherCourse = Course::factory()->create(['instructor_id' => $otherAdmin->id]);
     $otherUnit = Unit::factory()->create(['course_id' => $otherCourse->id]);
 
@@ -137,7 +137,7 @@ it('student cannot update lesson', function () {
 
 it('admin cannot update lesson in course they dont manage', function () {
     $otherAdmin = User::factory()->create();
-    $otherAdmin->assignRole('admin');
+    $otherAdmin->assignRole('Admin');
     $otherCourse = Course::factory()->create(['instructor_id' => $otherAdmin->id]);
     $otherUnit = Unit::factory()->create(['course_id' => $otherCourse->id]);
     $lesson = Lesson::factory()->create(['unit_id' => $otherUnit->id]);
@@ -171,7 +171,7 @@ it('student cannot delete lesson', function () {
 
 it('admin cannot delete lesson from course they dont manage', function () {
     $otherAdmin = User::factory()->create();
-    $otherAdmin->assignRole('admin');
+    $otherAdmin->assignRole('Admin');
     $otherCourse = Course::factory()->create(['instructor_id' => $otherAdmin->id]);
     $otherUnit = Unit::factory()->create(['course_id' => $otherCourse->id]);
     $lesson = Lesson::factory()->create(['unit_id' => $otherUnit->id]);
@@ -204,7 +204,7 @@ it('student cannot publish lesson', function () {
 
 it('admin cannot publish lesson in course they dont manage', function () {
     $otherAdmin = User::factory()->create();
-    $otherAdmin->assignRole('admin');
+    $otherAdmin->assignRole('Admin');
     $otherCourse = Course::factory()->create(['instructor_id' => $otherAdmin->id]);
     $otherUnit = Unit::factory()->create(['course_id' => $otherCourse->id]);
     $lesson = Lesson::factory()->create([

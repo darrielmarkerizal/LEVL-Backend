@@ -26,7 +26,7 @@ test('middleware returns 401 when user not authenticated', function () {
 
 test('middleware returns 403 when user does not have required role', function () {
     $user = User::factory()->create();
-    $user->assignRole('student');
+    $user->assignRole('Student');
 
     $request = Request::create('/test', 'GET');
     $request->setUserResolver(fn () => $user);
@@ -41,7 +41,7 @@ test('middleware returns 403 when user does not have required role', function ()
 
 test('middleware allows access when user has required role', function () {
     $user = User::factory()->create();
-    $user->assignRole('admin');
+    $user->assignRole('Admin');
 
     $request = Request::create('/test', 'GET');
     $request->setUserResolver(fn () => $user);
@@ -56,7 +56,7 @@ test('middleware allows access when user has required role', function () {
 
 test('middleware allows access when user has any of multiple roles', function () {
     $user = User::factory()->create();
-    $user->assignRole('instructor');
+    $user->assignRole('Instructor');
 
     $request = Request::create('/test', 'GET');
     $request->setUserResolver(fn () => $user);
@@ -69,7 +69,7 @@ test('middleware allows access when user has any of multiple roles', function ()
 
 test('middleware allows superadmin access to any role', function () {
     $user = User::factory()->create();
-    $user->assignRole('superadmin');
+    $user->assignRole('Superadmin');
 
     $request = Request::create('/test', 'GET');
     $request->setUserResolver(fn () => $user);

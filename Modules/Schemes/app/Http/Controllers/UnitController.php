@@ -34,9 +34,9 @@ class UnitController extends Controller
         $courseModel = $course;
 
         $authorized = false;
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             $authorized = true;
-        } elseif ($user->hasRole('admin')) {
+        } elseif ($user->hasRole('Admin')) {
             if ((int) $courseModel->instructor_id === (int) $user->id) {
                 $authorized = true;
             } elseif (method_exists($courseModel, 'hasAdmin') && $courseModel->hasAdmin($user)) {
@@ -109,9 +109,9 @@ class UnitController extends Controller
         $courseModel = $course;
 
         $authorized = false;
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole('Superadmin')) {
             $authorized = true;
-        } elseif ($user->hasRole('admin')) {
+        } elseif ($user->hasRole('Admin')) {
             if ((int) $courseModel->instructor_id === (int) $user->id) {
                 $authorized = true;
             } elseif (method_exists($courseModel, 'hasAdmin') && $courseModel->hasAdmin($user)) {

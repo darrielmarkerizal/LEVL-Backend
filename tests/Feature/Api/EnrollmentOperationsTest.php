@@ -9,9 +9,9 @@ uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 beforeEach(function () {
     createTestRoles();
     $this->admin = User::factory()->create();
-    $this->admin->assignRole('admin');
+    $this->admin->assignRole('Admin');
     $this->student = User::factory()->create();
-    $this->student->assignRole('student');
+    $this->student->assignRole('Student');
     $this->course = Course::factory()->create([
         'instructor_id' => $this->admin->id,
         'enrollment_type' => 'auto_accept',
@@ -83,7 +83,7 @@ it('student can cancel their enrollment', function () {
 // POST - Approve Enrollment
 it('admin can approve pending enrollment', function () {
     $student = User::factory()->create();
-    $student->assignRole('student');
+    $student->assignRole('Student');
     $enrollment = Enrollment::factory()->create([
         'user_id' => $student->id,
         'course_id' => $this->course->id,
@@ -100,7 +100,7 @@ it('admin can approve pending enrollment', function () {
 // POST - Decline Enrollment
 it('admin can decline pending enrollment', function () {
     $student = User::factory()->create();
-    $student->assignRole('student');
+    $student->assignRole('Student');
     $enrollment = Enrollment::factory()->create([
         'user_id' => $student->id,
         'course_id' => $this->course->id,
@@ -175,7 +175,7 @@ it('cannot cancel non-existent enrollment', function () {
 
 it('cannot cancel enrollment of other user', function () {
     $otherStudent = User::factory()->create();
-    $otherStudent->assignRole('student');
+    $otherStudent->assignRole('Student');
     Enrollment::factory()->create([
         'user_id' => $otherStudent->id,
         'course_id' => $this->course->id,
@@ -191,7 +191,7 @@ it('cannot cancel enrollment of other user', function () {
 // POST - Approve/Decline Negative
 it('student cannot approve enrollment', function () {
     $otherStudent = User::factory()->create();
-    $otherStudent->assignRole('student');
+    $otherStudent->assignRole('Student');
     $enrollment = Enrollment::factory()->create([
         'user_id' => $otherStudent->id,
         'course_id' => $this->course->id,
@@ -206,7 +206,7 @@ it('student cannot approve enrollment', function () {
 
 it('cannot approve non-pending enrollment', function () {
     $student = User::factory()->create();
-    $student->assignRole('student');
+    $student->assignRole('Student');
     $enrollment = Enrollment::factory()->create([
         'user_id' => $student->id,
         'course_id' => $this->course->id,
@@ -228,10 +228,10 @@ it('cannot approve non-existent enrollment', function () {
 
 it('admin cannot approve enrollment in course they dont manage', function () {
     $otherAdmin = User::factory()->create();
-    $otherAdmin->assignRole('admin');
+    $otherAdmin->assignRole('Admin');
     $otherCourse = Course::factory()->create(['instructor_id' => $otherAdmin->id]);
     $student = User::factory()->create();
-    $student->assignRole('student');
+    $student->assignRole('Student');
     $enrollment = Enrollment::factory()->create([
         'user_id' => $student->id,
         'course_id' => $otherCourse->id,
@@ -253,10 +253,10 @@ it('cannot decline non-existent enrollment', function () {
 
 it('admin cannot decline enrollment in course they dont manage', function () {
     $otherAdmin = User::factory()->create();
-    $otherAdmin->assignRole('admin');
+    $otherAdmin->assignRole('Admin');
     $otherCourse = Course::factory()->create(['instructor_id' => $otherAdmin->id]);
     $student = User::factory()->create();
-    $student->assignRole('student');
+    $student->assignRole('Student');
     $enrollment = Enrollment::factory()->create([
         'user_id' => $student->id,
         'course_id' => $otherCourse->id,
@@ -271,7 +271,7 @@ it('admin cannot decline enrollment in course they dont manage', function () {
 
 it('cannot decline non-pending enrollment', function () {
     $student = User::factory()->create();
-    $student->assignRole('student');
+    $student->assignRole('Student');
     $enrollment = Enrollment::factory()->create([
         'user_id' => $student->id,
         'course_id' => $this->course->id,
@@ -286,7 +286,7 @@ it('cannot decline non-pending enrollment', function () {
 
 it('student cannot decline enrollment', function () {
     $otherStudent = User::factory()->create();
-    $otherStudent->assignRole('student');
+    $otherStudent->assignRole('Student');
     $enrollment = Enrollment::factory()->create([
         'user_id' => $otherStudent->id,
         'course_id' => $this->course->id,
