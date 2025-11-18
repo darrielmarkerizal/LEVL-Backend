@@ -2,6 +2,10 @@
 
 namespace Modules\Auth\Services;
 
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
@@ -9,6 +13,8 @@ use Modules\Auth\Interfaces\AuthRepositoryInterface;
 use Modules\Auth\Interfaces\AuthServiceInterface;
 use Modules\Auth\Models\User;
 use Modules\Auth\Support\TokenPairDTO;
+use Modules\Enrollments\Models\Enrollment;
+use Modules\Schemes\Models\CourseAdmin;
 use Tymon\JWTAuth\JWTAuth;
 
 class AuthService implements AuthServiceInterface
@@ -242,6 +248,209 @@ class AuthService implements AuthServiceInterface
         $userArray['roles'] = $user->getRoleNames()->values();
 
         return ['user' => $userArray];
+    }
+
+    public function listUsers(User $authUser, array $params, int $perPage = 15): LengthAwarePaginator
+    {
+        $perPage = max(1, $perPage);
+        $query = $this->buildUserListQuery($params);
+
+        $isSuperadmin = $authUser->hasRole('Superadmin');
+        $isAdmin = $authUser->hasRole('Admin');
+
+        if ($isAdmin && ! $isSuperadmin) {
+            $this->applyAdminUserScope($query, $authUser);
+        }
+
+        $sort = (string) ($params['sort'] ?? '-created_at');
+        $direction = 'asc';
+        $field = $sort;
+        if (str_starts_with($sort, '-')) {
+            $direction = 'desc';
+            $field = substr($sort, 1);
+        }
+        $allowedSorts = ['name', 'email', 'username', 'status', 'created_at'];
+        if (! in_array($field, $allowedSorts, true)) {
+            $field = 'created_at';
+            $direction = 'desc';
+        }
+        $query->orderBy($field, $direction);
+
+        $paginator = $query->paginate($perPage)->appends($params);
+        $paginator->getCollection()->transform(fn ($u) => $this->transformUserForList($u));
+
+        return $paginator;
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    public function showUser(User $authUser, User $target): array
+    {
+        $isSuperadmin = $authUser->hasRole('Superadmin');
+        $isAdmin = $authUser->hasRole('Admin');
+
+        if (! $isSuperadmin && ! $isAdmin) {
+            throw new AuthorizationException('Tidak terotorisasi.');
+        }
+
+        if ($isAdmin && ! $isSuperadmin && ! $this->adminCanSeeUser($authUser, $target)) {
+            throw new AuthorizationException('Anda tidak memiliki akses untuk melihat pengguna ini.');
+        }
+
+        return $this->formatUserDetails($target);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function updateUserStatus(User $user, string $status): User
+    {
+        if ($status === 'pending') {
+            throw ValidationException::withMessages([
+                'status' => 'Mengubah status ke pending tidak diperbolehkan.',
+            ]);
+        }
+
+        $user->status = $status;
+        $user->save();
+
+        return $user->fresh();
+    }
+
+    private function buildUserListQuery(array $params): Builder
+    {
+        $query = User::query()->select(['id', 'name', 'email', 'username', 'avatar_path', 'status', 'created_at', 'email_verified_at'])->with('roles');
+
+        $search = trim((string) ($params['search'] ?? ''));
+        if ($search !== '') {
+            $query->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('email', 'like', '%'.$search.'%')
+                    ->orWhere('username', 'like', '%'.$search.'%');
+            });
+        }
+
+        $status = $params['filter']['status'] ?? null;
+        if (is_string($status) && $status !== '') {
+            $statuses = array_values(array_filter(array_map('trim', explode(',', $status))));
+            if (! empty($statuses)) {
+                $query->whereIn('status', $statuses);
+            }
+        }
+
+        $role = $params['filter']['role'] ?? null;
+        if (is_string($role) && $role !== '') {
+            $roles = array_values(array_filter(array_map('trim', explode(',', $role))));
+            if (! empty($roles)) {
+                $query->whereHas('roles', function ($q2) use ($roles) {
+                    $q2->whereIn('name', $roles);
+                });
+            }
+        }
+
+        $createdFrom = $params['filter']['created_from'] ?? null;
+        if (is_string($createdFrom) && $createdFrom !== '') {
+            $query->whereDate('created_at', '>=', $createdFrom);
+        }
+
+        $createdTo = $params['filter']['created_to'] ?? null;
+        if (is_string($createdTo) && $createdTo !== '') {
+            $query->whereDate('created_at', '<=', $createdTo);
+        }
+
+        return $query;
+    }
+
+    private function transformUserForList(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'username' => $user->username,
+            'avatar' => $user->avatar_path ? asset('storage/'.$user->avatar_path) : null,
+            'status' => $user->status,
+            'created_at' => $user->created_at?->toISOString(),
+            'email_verified_at' => $user->email_verified_at?->toISOString(),
+            'roles' => method_exists($user, 'getRoleNames') ? $user->getRoleNames()->values() : ($user->roles?->pluck('name')->values() ?? []),
+        ];
+    }
+
+    private function formatUserDetails(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'username' => $user->username,
+            'avatar' => $user->avatar_path ? asset('storage/'.$user->avatar_path) : null,
+            'status' => $user->status,
+            'created_at' => $user->created_at?->toISOString(),
+            'email_verified_at' => $user->email_verified_at?->toISOString(),
+            'roles' => method_exists($user, 'getRoleNames') ? $user->getRoleNames()->values() : ($user->roles?->pluck('name')->values() ?? []),
+        ];
+    }
+
+    private function applyAdminUserScope(Builder $query, User $admin): void
+    {
+        $managedCourseIds = $this->managedCourseIds($admin);
+
+        $query->where(function (Builder $visibility) use ($managedCourseIds) {
+            $visibility->where(function (Builder $studentScope) use ($managedCourseIds) {
+                if ($managedCourseIds->isEmpty()) {
+                    $studentScope->whereRaw('0 = 1');
+
+                    return;
+                }
+
+                $studentScope->whereHas('roles', function ($roleQuery) {
+                    $roleQuery->where('name', 'Student');
+                })->whereHas('enrollments', function ($enrollmentQuery) use ($managedCourseIds) {
+                    $enrollmentQuery->whereIn('course_id', $managedCourseIds);
+                });
+            })->orWhere(function (Builder $adminScope) {
+                $adminScope->whereHas('roles', function ($roleQuery) {
+                    $roleQuery->where('name', 'Admin');
+                })->whereDoesntHave('roles', function ($roleQuery) {
+                    $roleQuery->where('name', 'Superadmin');
+                });
+            });
+        });
+    }
+
+    private function adminCanSeeUser(User $admin, User $target): bool
+    {
+        if ($target->hasRole('Superadmin')) {
+            return false;
+        }
+
+        if ($target->hasRole('Admin')) {
+            return true;
+        }
+
+        if (! $target->hasRole('Student')) {
+            return false;
+        }
+
+        $managedCourseIds = $this->managedCourseIds($admin);
+        if ($managedCourseIds->isEmpty()) {
+            return false;
+        }
+
+        return Enrollment::query()
+            ->where('user_id', $target->id)
+            ->whereIn('course_id', $managedCourseIds)
+            ->exists();
+    }
+
+    private function managedCourseIds(User $admin): Collection
+    {
+        return CourseAdmin::query()
+            ->where('user_id', $admin->id)
+            ->pluck('course_id')
+            ->unique()
+            ->values();
     }
 
     private function generatePasswordFromNameEmail(string $name, string $email): string

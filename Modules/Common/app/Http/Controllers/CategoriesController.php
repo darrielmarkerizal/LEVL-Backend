@@ -7,78 +7,55 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Common\Http\Requests\CategoryStoreRequest;
 use Modules\Common\Http\Requests\CategoryUpdateRequest;
-use Modules\Common\Models\Category;
+use Modules\Common\Services\CategoryService;
 
 class CategoriesController extends Controller
 {
     use ApiResponse;
 
+    public function __construct(private readonly CategoryService $service) {}
+
     public function index(Request $request)
     {
-        $query = Category::query();
-
-        if ($search = $request->string('search')) {
-            $query->where('name', 'like', "%{$search}%")
-                ->orWhere('value', 'like', "%{$search}%");
-        }
-        if ($status = $request->string('filter.status')) {
-            $query->where('status', $status);
-        }
-
-        $sort = (string) $request->get('sort', '');
-        if ($sort !== '') {
-            $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
-            $field = ltrim($sort, '-');
-            if (in_array($field, ['created_at', 'name'], true)) {
-                $query->orderBy($field, $direction);
-            } else {
-                $query->latest();
-            }
-        } else {
-            $query->latest();
-
-        }
-
         $perPage = max(1, (int) $request->get('per_page', 15));
+        $paginator = $this->service->paginate($request->all(), $perPage);
 
-        return $this->paginateResponse($query->paginate($perPage)->appends($request->query()));
+        return $this->paginateResponse($paginator);
     }
 
     public function store(CategoryStoreRequest $request)
     {
-        $category = Category::create($request->validated());
+        $category = $this->service->create($request->validated());
 
         return $this->created(['category' => $category], 'Kategori dibuat');
     }
 
     public function show(int $category)
     {
-        $c = Category::find($category);
-        if (! $c) {
+        $model = $this->service->find($category);
+        if (! $model) {
             return $this->error('Kategori tidak ditemukan', 404);
         }
 
-        return $this->success(['category' => $c]);
+        return $this->success(['category' => $model]);
     }
 
     public function update(CategoryUpdateRequest $request, int $category)
     {
-        $c = Category::find($category);
-        if (! $c) {
+        $updated = $this->service->update($category, $request->validated());
+        if (! $updated) {
             return $this->error('Kategori tidak ditemukan', 404);
         }
-        $c->fill($request->validated())->save();
 
-        return $this->success(['category' => $c], 'Kategori diperbarui');
+        return $this->success(['category' => $updated], 'Kategori diperbarui');
     }
 
     public function destroy(int $category)
     {
-        $c = Category::find($category);
-        if (! $c) {
+        $deleted = $this->service->delete($category);
+        if (! $deleted) {
             return $this->error('Kategori tidak ditemukan', 404);
         }
-        $c->delete();
 
         return $this->success([], 'Kategori dihapus');
     }

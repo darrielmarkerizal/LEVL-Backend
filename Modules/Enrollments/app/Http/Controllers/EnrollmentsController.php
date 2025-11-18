@@ -40,24 +40,8 @@ class EnrollmentsController extends Controller
      */
     private function indexForSuperadmin(Request $request)
     {
-        $query = Enrollment::query()
-            ->with(['user:id,name,email', 'course:id,slug,title,enrollment_type'])
-            ->orderByDesc('created_at');
-
-        if ($status = $request->query('status')) {
-            $query->where('status', $status);
-        }
-
-        if ($courseId = $request->query('course_id')) {
-            $query->where('course_id', $courseId);
-        }
-
-        if ($userId = $request->query('user_id')) {
-            $query->where('user_id', $userId);
-        }
-
-        $perPage = (int) $request->query('per_page', 15);
-        $paginator = $query->paginate(max(1, $perPage))->appends($request->query());
+        $perPage = max(1, (int) $request->query('per_page', 15));
+        $paginator = $this->service->listForSuperadmin($request->all(), $perPage);
 
         return $this->paginateResponse($paginator, 'Daftar enrollment berhasil diambil.');
     }
@@ -74,17 +58,8 @@ class EnrollmentsController extends Controller
             return $this->error('Anda tidak memiliki akses untuk melihat enrollment course ini.', 403);
         }
 
-        $query = Enrollment::query()
-            ->where('course_id', $course->id)
-            ->with(['user:id,name,email'])
-            ->orderByDesc('created_at');
-
-        if ($status = $request->query('status')) {
-            $query->where('status', $status);
-        }
-
-        $perPage = (int) $request->query('per_page', 15);
-        $paginator = $query->paginate(max(1, $perPage))->appends($request->query());
+        $perPage = max(1, (int) $request->query('per_page', 15));
+        $paginator = $this->service->listByCourse($course, $request->all(), $perPage);
 
         return $this->paginateResponse($paginator, 'Daftar enrollment course berhasil diambil.');
     }
@@ -105,42 +80,13 @@ class EnrollmentsController extends Controller
             return $this->error('Anda tidak memiliki akses untuk melihat enrollment ini.', 403);
         }
 
-        $courses = Course::query()
-            ->select(['id', 'slug', 'title'])
-            ->where(function ($query) use ($user) {
-                $query->where('instructor_id', $user->id)
-                    ->orWhereHas('admins', function ($adminQuery) use ($user) {
-                        $adminQuery->where('user_id', $user->id);
-                    });
-            })
-            ->get();
+        $perPage = max(1, (int) $request->query('per_page', 15));
 
-        $courseIds = $courses->pluck('id')->all();
-
-        $query = Enrollment::query()
-            ->with(['user:id,name,email', 'course:id,slug,title,enrollment_type'])
-            ->orderByDesc('created_at');
-
-        if (! empty($courseIds)) {
-            $query->whereIn('course_id', $courseIds);
-        } else {
-            $query->whereRaw('1 = 0');
-        }
-
-        if ($status = $request->query('status')) {
-            $query->where('status', $status);
-        }
-
-        if ($courseSlug = $request->query('course_slug')) {
-            $course = $courses->firstWhere('slug', $courseSlug);
-            if (! $course) {
+        try {
+            $paginator = $this->service->listManaged($user, $request->all(), $perPage);
+        } catch (ValidationException $e) {
                 return $this->error('Course tidak ditemukan atau tidak berada di bawah pengelolaan Anda.', 404);
-            }
-            $query->where('course_id', $course->id);
         }
-
-        $perPage = (int) $request->query('per_page', 15);
-        $paginator = $query->paginate(max(1, $perPage))->appends($request->query());
 
         return $this->paginateResponse($paginator, 'Daftar enrollment berhasil diambil.');
     }
@@ -257,10 +203,7 @@ class EnrollmentsController extends Controller
             $targetUserId = (int) $request->query('user_id', $user->id);
         }
 
-        $enrollment = Enrollment::query()
-            ->where('course_id', $course->id)
-            ->where('user_id', $targetUserId)
-            ->first();
+        $enrollment = $this->service->findEnrollmentForCourse($course, $targetUserId);
 
         if (! $enrollment) {
             return $this->success([

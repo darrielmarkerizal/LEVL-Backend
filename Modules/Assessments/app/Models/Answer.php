@@ -31,3 +31,4 @@ class Answer extends Model
         return $this->hasMany(AnswerFile::class);
     }
 }
+

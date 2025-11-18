@@ -7,9 +7,17 @@ use Illuminate\Support\Facades\Storage;
 
 class UploadService
 {
-    public function storePublic(UploadedFile $file, string $directory, ?string $filename = null): string
+    protected string $defaultDisk;
+
+    public function __construct()
     {
-        $disk = Storage::disk('public');
+        $this->defaultDisk = config('filesystems.default', 'do');
+    }
+
+    public function storePublic(UploadedFile $file, string $directory, ?string $filename = null, ?string $disk = null): string
+    {
+        $diskName = $disk ?: $this->defaultDisk;
+        $storage = Storage::disk($diskName);
         $name = $filename ?: $this->generateFilename($file);
         $path = trim($directory, '/').'/'.$name;
         $mime = $file->getMimeType();
@@ -20,26 +28,57 @@ class UploadService
                 $image = call_user_func(['\\Intervention\\Image\\ImageManagerStatic', 'make'], $file->getRealPath());
                 $targetMime = method_exists($image, 'mime') ? $image->mime() : 'jpg';
                 $encoded = call_user_func([$image, 'encode'], $targetMime ?: 'jpg', $quality);
-                $disk->put($path, (string) $encoded);
+                $storage->put($path, (string) $encoded, 'public');
             } else {
-                $disk->putFileAs(trim($directory, '/'), $file, $name);
+                $storage->putFileAs(trim($directory, '/'), $file, $name, 'public');
             }
         } else {
-            $disk->putFileAs(trim($directory, '/'), $file, $name);
+            $storage->putFileAs(trim($directory, '/'), $file, $name, 'public');
         }
 
         return $path;
     }
 
-    public function deletePublic(?string $path): void
+    public function deletePublic(?string $path, ?string $disk = null): void
     {
         if (! $path) {
             return;
         }
-        $disk = Storage::disk('public');
-        if ($disk->exists($path)) {
-            $disk->delete($path);
+
+        $diskName = $disk ?: $this->defaultDisk;
+        $storage = Storage::disk($diskName);
+
+        if ($storage->exists($path)) {
+            $storage->delete($path);
         }
+    }
+
+    public function getPublicUrl(?string $path, ?string $disk = null): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        $diskName = $disk ?: $this->defaultDisk;
+
+        if ($diskName === 'public') {
+            return asset('storage/'.$path);
+        }
+
+        $config = config("filesystems.disks.{$diskName}");
+
+        if (isset($config['url'])) {
+            return rtrim($config['url'], '/').'/'.ltrim($path, '/');
+        }
+
+        return null;
+    }
+
+    public function exists(string $path, ?string $disk = null): bool
+    {
+        $diskName = $disk ?: $this->defaultDisk;
+
+        return Storage::disk($diskName)->exists($path);
     }
 
     protected function generateFilename(UploadedFile $file): string

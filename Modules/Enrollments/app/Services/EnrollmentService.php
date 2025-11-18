@@ -2,7 +2,9 @@
 
 namespace Modules\Enrollments\Services;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Modules\Enrollments\Events\EnrollmentCreated;
@@ -12,11 +14,57 @@ use Modules\Enrollments\Mail\StudentEnrollmentApprovedMail;
 use Modules\Enrollments\Mail\StudentEnrollmentDeclinedMail;
 use Modules\Enrollments\Mail\StudentEnrollmentPendingMail;
 use Modules\Enrollments\Models\Enrollment;
+use Modules\Enrollments\Repositories\EnrollmentRepository;
 use Modules\Schemes\Models\Course;
 use Modules\Auth\Models\User;
 
 class EnrollmentService
 {
+    private EnrollmentRepository $repository;
+
+    public function __construct(?EnrollmentRepository $repository = null)
+    {
+        $this->repository = $repository ?? app(EnrollmentRepository::class);
+    }
+
+    public function listForSuperadmin(array $params, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->repository->paginate($params, $perPage);
+    }
+
+    public function listByCourse(Course $course, array $params, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->repository->paginateByCourse($course->id, $params, $perPage);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function listManaged(User $user, array $params, int $perPage = 15): LengthAwarePaginator
+    {
+        $courses = $this->managedCourses($user);
+        $courseSlug = $params['course_slug'] ?? null;
+
+        if (is_string($courseSlug) && $courseSlug !== '') {
+            $course = $courses->firstWhere('slug', $courseSlug);
+            if (! $course) {
+                throw ValidationException::withMessages([
+                    'course_slug' => 'Course tidak ditemukan atau tidak berada di bawah pengelolaan Anda.',
+                ]);
+            }
+            $courseIds = [$course->id];
+        } else {
+            $courseIds = $courses->pluck('id')->all();
+        }
+
+        return $this->repository->paginateByCourseIds($courseIds, $params, $perPage);
+    }
+
+    public function findEnrollmentForCourse(Course $course, int $userId): ?Enrollment
+    {
+        return $this->repository->findByCourseAndUser($course->id, $userId);
+    }
+
     /**
      * @param  \Modules\Schemes\Models\Course  $course
      * @param  \Modules\Auth\Models\User  $user
@@ -317,6 +365,18 @@ class EnrollmentService
 
         return rtrim($frontendUrl, '/') . '/courses/' . $course->slug . '/enrollments';
     }
-}
 
+    private function managedCourses(User $user): Collection
+    {
+        return Course::query()
+            ->select(['id', 'slug', 'title'])
+            ->where(function ($query) use ($user) {
+                $query->where('instructor_id', $user->id)
+                    ->orWhereHas('admins', function ($adminQuery) use ($user) {
+                        $adminQuery->where('user_id', $user->id);
+                    });
+            })
+            ->get();
+    }
+}
 

@@ -3,7 +3,7 @@
 namespace Modules\Schemes\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Modules\Schemes\Http\Requests\Concerns\HasApiValidation;
+use Modules\Common\Http\Requests\Concerns\HasApiValidation;
 use Modules\Schemes\Http\Requests\Concerns\HasSchemesRequestRules;
 
 class CourseRequest extends FormRequest

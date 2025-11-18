@@ -4,14 +4,14 @@ namespace Modules\Auth\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Contracts\Factory as SocialiteFactory;
 use Laravel\Socialite\Two\AbstractProvider as SocialiteAbstractProvider;
+use Modules\Auth\Interfaces\AuthRepositoryInterface;
 use Modules\Auth\Http\Requests\CreateManagedUserRequest;
 use Modules\Auth\Http\Requests\LoginRequest;
 use Modules\Auth\Http\Requests\LogoutRequest;
@@ -25,15 +25,11 @@ use Modules\Auth\Http\Requests\UpdateUserStatusRequest;
 use Modules\Auth\Http\Requests\VerifyEmailByTokenRequest;
 use Modules\Auth\Http\Requests\VerifyEmailChangeRequest;
 use Modules\Auth\Http\Requests\VerifyEmailRequest;
-use Modules\Auth\Interfaces\AuthRepositoryInterface;
 use Modules\Auth\Models\SocialAccount;
 use Modules\Auth\Models\User;
 use Modules\Auth\Services\AuthService;
 use Modules\Auth\Services\EmailVerificationService;
 use Modules\Common\Models\Audit;
-use Modules\Enrollments\Models\Enrollment;
-use Modules\Schemes\Models\CourseAdmin;
-use Tymon\JWTAuth\JWTAuth;
 
 class AuthApiController extends Controller
 {
@@ -426,15 +422,13 @@ class AuthApiController extends Controller
 
     public function updateUserStatus(UpdateUserStatusRequest $request, User $user): JsonResponse
     {
-        $newStatus = $request->string('status');
-        if ($newStatus === 'pending') {
-            return $this->error('Mengubah status ke pending tidak diperbolehkan.', 422);
+        try {
+            $updated = $this->auth->updateUserStatus($user, (string) $request->string('status'));
+        } catch (ValidationException $e) {
+            return $this->validationError($e->errors());
         }
 
-        $user->status = $newStatus;
-        $user->save();
-
-        return $this->success(['user' => $user->toArray()], 'Status pengguna berhasil diperbarui.');
+        return $this->success(['user' => $updated->toArray()], 'Status pengguna berhasil diperbarui.');
     }
 
     public function listUsers(Request $request): JsonResponse
@@ -452,73 +446,7 @@ class AuthApiController extends Controller
         }
 
         $perPage = max(1, (int) ($request->query('per_page', 15)));
-        $q = trim((string) $request->query('search', ''));
-        $status = $request->input('filter.status');
-        $role = $request->input('filter.role');
-        $createdFrom = $request->input('filter.created_from');
-        $createdTo = $request->input('filter.created_to');
-        $sort = (string) $request->query('sort', '-created_at');
-
-        $query = User::query()->select(['id', 'name', 'email', 'username', 'avatar_path', 'status', 'created_at', 'email_verified_at'])->with('roles');
-        if ($q !== '') {
-            $query->where(function ($sub) use ($q) {
-                $sub->where('name', 'like', '%'.$q.'%')
-                    ->orWhere('email', 'like', '%'.$q.'%')
-                    ->orWhere('username', 'like', '%'.$q.'%');
-            });
-        }
-        if (is_string($status) && $status !== '') {
-            $statuses = array_values(array_filter(array_map('trim', explode(',', $status))));
-            if (! empty($statuses)) {
-                $query->whereIn('status', $statuses);
-            }
-        }
-        if (is_string($role) && $role !== '') {
-            $roles = array_values(array_filter(array_map('trim', explode(',', $role))));
-            if (! empty($roles)) {
-                $query->whereHas('roles', function ($q2) use ($roles) {
-                    $q2->whereIn('name', $roles);
-                });
-            }
-        }
-        if (is_string($createdFrom) && $createdFrom !== '') {
-            $query->whereDate('created_at', '>=', $createdFrom);
-        }
-        if (is_string($createdTo) && $createdTo !== '') {
-            $query->whereDate('created_at', '<=', $createdTo);
-        }
-
-        if ($isAdmin && ! $isSuperadmin) {
-            $this->applyAdminUserScope($query, $authUser);
-        }
-
-        $direction = 'asc';
-        $field = $sort;
-        if (str_starts_with($sort, '-')) {
-            $direction = 'desc';
-            $field = substr($sort, 1);
-        }
-        $allowedSorts = ['name', 'email', 'username', 'status', 'created_at'];
-        if (! in_array($field, $allowedSorts, true)) {
-            $field = 'created_at';
-            $direction = 'desc';
-        }
-        $query->orderBy($field, $direction);
-
-        $paginator = $query->paginate($perPage)->appends($request->query());
-        $paginator->getCollection()->transform(function ($u) {
-            return [
-                'id' => $u->id,
-                'name' => $u->name,
-                'email' => $u->email,
-                'username' => $u->username,
-                'avatar' => $u->avatar_path ? asset('storage/'.$u->avatar_path) : null,
-                'status' => $u->status,
-                'created_at' => $u->created_at?->toISOString(),
-                'email_verified_at' => $u->email_verified_at?->toISOString(),
-                'roles' => method_exists($u, 'getRoleNames') ? $u->getRoleNames()->values() : ($u->roles?->pluck('name')->values() ?? []),
-            ];
-        });
+        $paginator = $this->auth->listUsers($authUser, $request->all(), $perPage);
 
         return $this->paginateResponse($paginator);
     }
@@ -531,27 +459,11 @@ class AuthApiController extends Controller
             return $this->error('Tidak terotorisasi.', 401);
         }
 
-        $isSuperadmin = $authUser->hasRole('Superadmin');
-        $isAdmin = $authUser->hasRole('Admin');
-        if (! $isSuperadmin && ! $isAdmin) {
-            return $this->error('Tidak terotorisasi.', 403);
+        try {
+            $data = $this->auth->showUser($authUser, $user);
+        } catch (AuthorizationException $e) {
+            return $this->error($e->getMessage(), 403);
         }
-
-        if ($isAdmin && ! $isSuperadmin && ! $this->adminCanSeeUser($authUser, $user)) {
-            return $this->error('Anda tidak memiliki akses untuk melihat pengguna ini.', 403);
-        }
-
-        $data = [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'username' => $user->username,
-            'avatar' => $user->avatar_path ? asset('storage/'.$user->avatar_path) : null,
-            'status' => $user->status,
-            'created_at' => $user->created_at?->toISOString(),
-            'email_verified_at' => $user->email_verified_at?->toISOString(),
-            'roles' => method_exists($user, 'getRoleNames') ? $user->getRoleNames()->values() : ($user->roles?->pluck('name')->values() ?? []),
-        ];
 
         return $this->success(['user' => $data]);
     }
@@ -572,67 +484,4 @@ class AuthApiController extends Controller
         return $this->success($data, 'Username berhasil diatur.');
     }
 
-    /**
-     * Limit user visibility for Admin role.
-     */
-    private function applyAdminUserScope(Builder $query, User $admin): void
-    {
-        $managedCourseIds = $this->managedCourseIds($admin);
-
-        $query->where(function (Builder $visibility) use ($managedCourseIds) {
-            $visibility->where(function (Builder $studentScope) use ($managedCourseIds) {
-                if ($managedCourseIds->isEmpty()) {
-                    $studentScope->whereRaw('0 = 1');
-
-                    return;
-                }
-
-                $studentScope->whereHas('roles', function ($roleQuery) {
-                    $roleQuery->where('name', 'Student');
-                })->whereHas('enrollments', function ($enrollmentQuery) use ($managedCourseIds) {
-                    $enrollmentQuery->whereIn('course_id', $managedCourseIds);
-                });
-            })->orWhere(function (Builder $adminScope) {
-                $adminScope->whereHas('roles', function ($roleQuery) {
-                    $roleQuery->where('name', 'Admin');
-                })->whereDoesntHave('roles', function ($roleQuery) {
-                    $roleQuery->where('name', 'Superadmin');
-                });
-            });
-        });
-    }
-
-    private function adminCanSeeUser(User $admin, User $target): bool
-    {
-        if ($target->hasRole('Superadmin')) {
-            return false;
-        }
-
-        if ($target->hasRole('Admin')) {
-            return true;
-        }
-
-        if (! $target->hasRole('Student')) {
-            return false;
-        }
-
-        $managedCourseIds = $this->managedCourseIds($admin);
-        if ($managedCourseIds->isEmpty()) {
-            return false;
-        }
-
-        return Enrollment::query()
-            ->where('user_id', $target->id)
-            ->whereIn('course_id', $managedCourseIds)
-            ->exists();
-    }
-
-    private function managedCourseIds(User $admin): Collection
-    {
-        return CourseAdmin::query()
-            ->where('user_id', $admin->id)
-            ->pluck('course_id')
-            ->unique()
-            ->values();
-    }
 }

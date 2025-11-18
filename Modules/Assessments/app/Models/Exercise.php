@@ -3,9 +3,12 @@
 namespace Modules\Assessments\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Exercise extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'scope_type', 'scope_id', 'created_by',
         'title', 'description', 'type',
@@ -43,4 +46,10 @@ class Exercise extends Model
     {
         return $this->hasMany(Attempt::class);
     }
+
+    protected static function newFactory()
+    {
+        return \Modules\Assessments\Database\Factories\ExerciseFactory::new();
+    }
 }
+

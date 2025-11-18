@@ -10,10 +10,11 @@ trait HasApiValidation
     protected function failedValidation(Validator $validator)
     {
         $errors = $validator->errors()->toArray();
-        throw new HttpResponseException(response()->json([
+        $response = response()->json([
             'status' => 'error',
             'message' => 'Data yang Anda kirim tidak valid. Periksa kembali isian Anda.',
             'errors' => $errors,
-        ], 422));
+        ], 422);
+        throw new HttpResponseException($response);
     }
 }

@@ -20,16 +20,7 @@ class SubmissionController extends Controller
         /** @var \Modules\Auth\Models\User $user */
         $user = auth('api')->user();
 
-        $query = Submission::query()
-            ->where('assignment_id', $assignment->id)
-            ->with(['user:id,name,email', 'enrollment:id,status', 'files', 'grade']);
-
-        // Students can only see their own submissions
-        if ($user->hasRole('Student')) {
-            $query->where('user_id', $user->id);
-        }
-
-        $submissions = $query->orderBy('created_at', 'desc')->get();
+        $submissions = $this->service->listForAssignment($assignment, $user, $request->all());
 
         return $this->success(['submissions' => $submissions]);
     }
@@ -107,4 +98,3 @@ class SubmissionController extends Controller
         return $this->success(['submission' => $graded], 'Submission berhasil dinilai.');
     }
 }
-
