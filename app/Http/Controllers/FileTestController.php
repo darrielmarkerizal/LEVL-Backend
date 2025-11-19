@@ -21,6 +21,7 @@ class FileTestController extends Controller
     {
         $diskName = config('filesystems.default');
         $diskConfig = config("filesystems.disks.{$diskName}");
+        $doConfig = config('filesystems.disks.do');
         
         return response()->json([
             'default_disk' => $diskName,
@@ -32,11 +33,29 @@ class FileTestController extends Controller
                 'url' => $diskConfig['url'] ?? null,
                 'has_key' => !empty($diskConfig['key']),
                 'has_secret' => !empty($diskConfig['secret']),
+                'key_length' => !empty($diskConfig['key']) ? strlen($diskConfig['key']) : 0,
+                'secret_length' => !empty($diskConfig['secret']) ? strlen($diskConfig['secret']) : 0,
+            ],
+            'do_disk_config' => [
+                'driver' => $doConfig['driver'] ?? null,
+                'bucket' => $doConfig['bucket'] ?? null,
+                'region' => $doConfig['region'] ?? null,
+                'endpoint' => $doConfig['endpoint'] ?? null,
+                'url' => $doConfig['url'] ?? null,
+                'has_key' => !empty($doConfig['key']),
+                'has_secret' => !empty($doConfig['secret']),
+                'key_length' => !empty($doConfig['key']) ? strlen($doConfig['key']) : 0,
+                'secret_length' => !empty($doConfig['secret']) ? strlen($doConfig['secret']) : 0,
             ],
             'env_vars' => [
                 'FILESYSTEM_DISK' => env('FILESYSTEM_DISK'),
                 'DO_USE_CDN' => env('DO_USE_CDN'),
                 'IMAGE_QUALITY' => env('IMAGE_QUALITY', 80),
+                'DO_ACCESS_KEY_ID_set' => !empty(env('DO_ACCESS_KEY_ID')),
+                'DO_SECRET_ACCESS_KEY_set' => !empty(env('DO_SECRET_ACCESS_KEY')),
+                'DO_DEFAULT_REGION' => env('DO_DEFAULT_REGION'),
+                'DO_BUCKET' => env('DO_BUCKET'),
+                'DO_ENDPOINT' => env('DO_ENDPOINT'),
             ],
         ]);
     }
@@ -328,6 +347,128 @@ class FileTestController extends Controller
                     'exists' => $exists,
                     'url' => $url,
                 ],
+            ], 500);
+        }
+    }
+
+    /**
+     * Test AWS SDK S3 client directly
+     */
+    public function testAwsSdk(): JsonResponse
+    {
+        try {
+            $config = config('filesystems.disks.do');
+            
+            // Create S3 client
+            $s3Client = new \Aws\S3\S3Client([
+                'version' => 'latest',
+                'region' => $config['region'],
+                'endpoint' => $config['endpoint'],
+                'credentials' => [
+                    'key' => $config['key'],
+                    'secret' => $config['secret'],
+                ],
+                'use_path_style_endpoint' => false,
+            ]);
+
+            $testPath = 'test/aws-sdk-test-' . time() . '.txt';
+            $testContent = 'AWS SDK test at ' . now()->toDateTimeString();
+            
+            Log::info('Testing AWS SDK directly', [
+                'bucket' => $config['bucket'],
+                'path' => $testPath,
+            ]);
+
+            // Test 1: PutObject
+            $putResult = null;
+            $putError = null;
+            try {
+                $result = $s3Client->putObject([
+                    'Bucket' => $config['bucket'],
+                    'Key' => $testPath,
+                    'Body' => $testContent,
+                    'ACL' => 'public-read',
+                    'ContentType' => 'text/plain',
+                ]);
+                $putResult = [
+                    'success' => true,
+                    'etag' => $result['ETag'] ?? null,
+                    'version_id' => $result['VersionId'] ?? null,
+                ];
+            } catch (\Exception $e) {
+                $putError = [
+                    'message' => $e->getMessage(),
+                    'code' => $e->getCode(),
+                    'aws_code' => method_exists($e, 'getAwsErrorCode') ? $e->getAwsErrorCode() : null,
+                ];
+                Log::error('PutObject failed', $putError);
+            }
+
+            // Test 2: HeadObject (check if exists)
+            $headResult = null;
+            try {
+                $result = $s3Client->headObject([
+                    'Bucket' => $config['bucket'],
+                    'Key' => $testPath,
+                ]);
+                $headResult = [
+                    'exists' => true,
+                    'content_length' => $result['ContentLength'] ?? null,
+                    'content_type' => $result['ContentType'] ?? null,
+                    'last_modified' => $result['LastModified'] ? $result['LastModified']->format('Y-m-d H:i:s') : null,
+                ];
+            } catch (\Exception $e) {
+                $headResult = [
+                    'exists' => false,
+                    'error' => $e->getMessage(),
+                ];
+            }
+
+            // Test 3: Generate URL
+            $url = rtrim($config['url'], '/') . '/' . $testPath;
+            
+            // Test 4: Check URL accessibility
+            $urlCheck = $this->checkUrlAccessibility($url);
+
+            // Cleanup
+            $cleanedUp = false;
+            try {
+                $s3Client->deleteObject([
+                    'Bucket' => $config['bucket'],
+                    'Key' => $testPath,
+                ]);
+                $cleanedUp = true;
+            } catch (\Exception $e) {
+                Log::error('Cleanup failed', ['error' => $e->getMessage()]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'tests' => [
+                    'put_object' => $putResult,
+                    'put_error' => $putError,
+                    'head_object' => $headResult,
+                    'url_generated' => $url,
+                    'url_accessible' => $urlCheck,
+                    'cleaned_up' => $cleanedUp,
+                ],
+                'sdk_info' => [
+                    'bucket' => $config['bucket'],
+                    'region' => $config['region'],
+                    'endpoint' => $config['endpoint'],
+                    'test_path' => $testPath,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('AWS SDK test failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => config('app.debug') ? $e->getTraceAsString() : null,
             ], 500);
         }
     }

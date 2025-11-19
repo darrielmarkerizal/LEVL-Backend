@@ -16,4 +16,5 @@ Route::prefix('v1/file-test')->group(function () {
     Route::post('check', [FileTestController::class, 'check']);
     Route::delete('delete', [FileTestController::class, 'delete']);
     Route::get('test-s3', [FileTestController::class, 'testS3Operations']);
+    Route::get('test-aws-sdk', [FileTestController::class, 'testAwsSdk']);
 });
