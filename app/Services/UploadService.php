@@ -22,18 +22,37 @@ class UploadService
         $path = trim($directory, '/').'/'.$name;
         $mime = $file->getMimeType();
 
+        $options = [
+            'visibility' => 'public',
+        ];
+
+        
+        $diskConfig = config("filesystems.disks.{$diskName}");
+        if (isset($diskConfig['driver']) && $diskConfig['driver'] === 's3') {
+            $options['ACL'] = 'public-read';
+            
+            if (is_string($mime)) {
+                $options['ContentType'] = $mime;
+            }
+        }
+
         if (is_string($mime) && str_starts_with($mime, 'image/')) {
             if (class_exists('\\Intervention\\Image\\ImageManagerStatic')) {
                 $quality = (int) env('IMAGE_QUALITY', 80);
                 $image = call_user_func(['\\Intervention\\Image\\ImageManagerStatic', 'make'], $file->getRealPath());
                 $targetMime = method_exists($image, 'mime') ? $image->mime() : 'jpg';
                 $encoded = call_user_func([$image, 'encode'], $targetMime ?: 'jpg', $quality);
-                $storage->put($path, (string) $encoded, 'public');
+                
+                if (isset($options['ContentType']) && is_string($targetMime)) {
+                    $options['ContentType'] = 'image/'.$targetMime;
+                }
+                
+                $storage->put($path, (string) $encoded, $options);
             } else {
-                $storage->putFileAs(trim($directory, '/'), $file, $name, 'public');
+                $storage->putFileAs(trim($directory, '/'), $file, $name, $options);
             }
         } else {
-            $storage->putFileAs(trim($directory, '/'), $file, $name, 'public');
+            $storage->putFileAs(trim($directory, '/'), $file, $name, $options);
         }
 
         return $path;
@@ -66,26 +85,22 @@ class UploadService
 
         $config = config("filesystems.disks.{$diskName}");
 
-        // Prefer configured CDN/base URL when enabled
         $useCdn = filter_var(env('DO_USE_CDN', true), FILTER_VALIDATE_BOOL);
         if ($useCdn && isset($config['url']) && is_string($config['url']) && $config['url'] !== '') {
             return rtrim($config['url'], '/').'/'.ltrim($path, '/');
         }
 
-        // Fallback: build direct origin URL for S3-compatible endpoints (e.g., DigitalOcean Spaces)
         if (isset($config['driver']) && $config['driver'] === 's3') {
             $bucket = $config['bucket'] ?? null;
             $endpoint = $config['endpoint'] ?? null;
             if (is_string($bucket) && $bucket !== '' && is_string($endpoint) && $endpoint !== '') {
                 $host = parse_url($endpoint, PHP_URL_HOST);
                 if (is_string($host) && $host !== '') {
-                    // e.g. https://<bucket>.<region>.digitaloceanspaces.com/<path>
                     return 'https://'.rtrim($bucket.'.'.$host, '/').'/'.ltrim($path, '/');
                 }
             }
         }
 
-        // As a last resort, delegate to Storage::url if available
         try {
             return \Illuminate\Support\Facades\Storage::disk($diskName)->url($path);
         } catch (\Throwable $e) {
