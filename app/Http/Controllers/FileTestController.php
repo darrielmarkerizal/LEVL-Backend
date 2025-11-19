@@ -87,13 +87,38 @@ class FileTestController extends Controller
             // Get URL
             $url = $this->uploadService->getPublicUrl($path);
             
-            // Check if file exists
-            $exists = $this->uploadService->exists($path);
+            // Check if file exists and get metadata using AWS SDK for DO Spaces
+            $exists = false;
+            $fileSize = null;
+            $lastModified = null;
             
-            // Try to get file info from storage
-            $disk = Storage::disk(config('filesystems.default'));
-            $fileSize = $exists ? $disk->size($path) : null;
-            $lastModified = $exists ? $disk->lastModified($path) : null;
+            try {
+                $diskConfig = config('filesystems.disks.do');
+                $s3Client = new \Aws\S3\S3Client([
+                    'version' => 'latest',
+                    'region' => $diskConfig['region'] ?? 'sgp1',
+                    'endpoint' => $diskConfig['endpoint'] ?? 'https://sgp1.digitaloceanspaces.com',
+                    'credentials' => [
+                        'key' => $diskConfig['key'] ?? '',
+                        'secret' => $diskConfig['secret'] ?? '',
+                    ],
+                    'use_path_style_endpoint' => false,
+                ]);
+
+                $result = $s3Client->headObject([
+                    'Bucket' => $diskConfig['bucket'] ?? 'prep-lsp',
+                    'Key' => $path,
+                ]);
+
+                $exists = true;
+                $fileSize = $result['ContentLength'] ?? null;
+                $lastModified = isset($result['LastModified']) ? $result['LastModified']->format('Y-m-d H:i:s') : null;
+            } catch (\Exception $e) {
+                Log::warning('Could not verify file after upload', [
+                    'path' => $path,
+                    'error' => $e->getMessage(),
+                ]);
+            }
             
             Log::info('Test upload completed', [
                 'path' => $path,
@@ -108,7 +133,7 @@ class FileTestController extends Controller
                     'url' => $url,
                     'exists' => $exists,
                     'size' => $fileSize,
-                    'last_modified' => $lastModified ? date('Y-m-d H:i:s', $lastModified) : null,
+                    'last_modified' => $lastModified,
                     'original_name' => $file->getClientOriginalName(),
                     'mime_type' => $file->getMimeType(),
                 ],
