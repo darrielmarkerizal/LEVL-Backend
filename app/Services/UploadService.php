@@ -60,18 +60,37 @@ class UploadService
         }
 
         $diskName = $disk ?: $this->defaultDisk;
-
         if ($diskName === 'public') {
             return asset('storage/'.$path);
         }
 
         $config = config("filesystems.disks.{$diskName}");
 
-        if (isset($config['url'])) {
+        // Prefer configured CDN/base URL when enabled
+        $useCdn = filter_var(env('DO_USE_CDN', true), FILTER_VALIDATE_BOOL);
+        if ($useCdn && isset($config['url']) && is_string($config['url']) && $config['url'] !== '') {
             return rtrim($config['url'], '/').'/'.ltrim($path, '/');
         }
 
-        return null;
+        // Fallback: build direct origin URL for S3-compatible endpoints (e.g., DigitalOcean Spaces)
+        if (isset($config['driver']) && $config['driver'] === 's3') {
+            $bucket = $config['bucket'] ?? null;
+            $endpoint = $config['endpoint'] ?? null;
+            if (is_string($bucket) && $bucket !== '' && is_string($endpoint) && $endpoint !== '') {
+                $host = parse_url($endpoint, PHP_URL_HOST);
+                if (is_string($host) && $host !== '') {
+                    // e.g. https://<bucket>.<region>.digitaloceanspaces.com/<path>
+                    return 'https://'.rtrim($bucket.'.'.$host, '/').'/'.ltrim($path, '/');
+                }
+            }
+        }
+
+        // As a last resort, delegate to Storage::url if available
+        try {
+            return \Illuminate\Support\Facades\Storage::disk($diskName)->url($path);
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     public function exists(string $path, ?string $disk = null): bool
