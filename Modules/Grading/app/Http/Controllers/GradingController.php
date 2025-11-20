@@ -4,15 +4,17 @@ namespace Modules\Grading\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Grading\Services\GradingService;
 
 class GradingController extends Controller
 {
+    public function __construct(private readonly GradingService $service) {}
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('grading::index');
+        return $this->service->render('index');
     }
 
     /**
@@ -20,7 +22,7 @@ class GradingController extends Controller
      */
     public function create()
     {
-        return view('grading::create');
+        return $this->service->render('create');
     }
 
     /**
@@ -33,7 +35,7 @@ class GradingController extends Controller
      */
     public function show($id)
     {
-        return view('grading::show');
+        return $this->service->render('show');
     }
 
     /**
@@ -41,7 +43,7 @@ class GradingController extends Controller
      */
     public function edit($id)
     {
-        return view('grading::edit');
+        return $this->service->render('edit');
     }
 
     /**

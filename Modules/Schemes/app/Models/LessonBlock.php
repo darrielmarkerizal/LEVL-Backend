@@ -2,6 +2,7 @@
 
 namespace Modules\Schemes\Models;
 
+use App\Services\UploadService;
 use Illuminate\Database\Eloquent\Model;
 
 class LessonBlock extends Model
@@ -21,14 +22,26 @@ class LessonBlock extends Model
     {
         $path = $this->getRawOriginal('media_url');
 
-        return $path ? asset('storage/'.$path) : null;
+        if (! $path) {
+            return null;
+        }
+
+        $uploader = app(UploadService::class);
+
+        return $uploader->getPublicUrl($path);
     }
 
     public function getMediaThumbnailUrlFullAttribute(): ?string
     {
         $path = $this->getRawOriginal('media_thumbnail_url');
 
-        return $path ? asset('storage/'.$path) : null;
+        if (! $path) {
+            return null;
+        }
+
+        $uploader = app(UploadService::class);
+
+        return $uploader->getPublicUrl($path);
     }
 
     public function lesson()

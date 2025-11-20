@@ -3,9 +3,11 @@
 namespace Modules\Schemes\Http\Requests\Concerns;
 
 use Illuminate\Validation\Rule;
+use Modules\Common\Http\Requests\Concerns\HasCommonValidationMessages;
 
 trait HasSchemesRequestRules
 {
+    use HasCommonValidationMessages;
     protected function rulesCourse(int $courseId = 0): array
     {
         $uniqueCode = Rule::unique('courses', 'code')->whereNull('deleted_at');

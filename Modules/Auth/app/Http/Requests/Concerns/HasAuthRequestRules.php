@@ -2,6 +2,8 @@
 
 namespace Modules\Auth\Http\Requests\Concerns;
 
+use Modules\Common\Http\Requests\Concerns\HasCommonValidationMessages;
+
 trait HasAuthRequestRules
 {
     use HasCommonValidationMessages;

@@ -4,15 +4,18 @@ namespace Modules\Notifications\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Notifications\Services\NotificationsService;
 
 class NotificationsController extends Controller
 {
+    public function __construct(private readonly NotificationsService $service) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('notifications::index');
+        return $this->service->render('index');
     }
 
     /**
@@ -20,7 +23,7 @@ class NotificationsController extends Controller
      */
     public function create()
     {
-        return view('notifications::create');
+        return $this->service->render('create');
     }
 
     /**
@@ -33,7 +36,7 @@ class NotificationsController extends Controller
      */
     public function show($id)
     {
-        return view('notifications::show');
+        return $this->service->render('show');
     }
 
     /**
@@ -41,7 +44,7 @@ class NotificationsController extends Controller
      */
     public function edit($id)
     {
-        return view('notifications::edit');
+        return $this->service->render('edit');
     }
 
     /**

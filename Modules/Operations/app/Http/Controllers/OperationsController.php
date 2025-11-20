@@ -4,15 +4,17 @@ namespace Modules\Operations\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Operations\Services\OperationsService;
 
 class OperationsController extends Controller
 {
+    public function __construct(private readonly OperationsService $service) {}
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('operations::index');
+        return $this->service->render('index');
     }
 
     /**
@@ -20,7 +22,7 @@ class OperationsController extends Controller
      */
     public function create()
     {
-        return view('operations::create');
+        return $this->service->render('create');
     }
 
     /**
@@ -33,7 +35,7 @@ class OperationsController extends Controller
      */
     public function show($id)
     {
-        return view('operations::show');
+        return $this->service->render('show');
     }
 
     /**
@@ -41,7 +43,7 @@ class OperationsController extends Controller
      */
     public function edit($id)
     {
-        return view('operations::edit');
+        return $this->service->render('edit');
     }
 
     /**

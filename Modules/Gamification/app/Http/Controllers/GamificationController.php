@@ -4,15 +4,18 @@ namespace Modules\Gamification\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Gamification\Services\GamificationService;
 
 class GamificationController extends Controller
 {
+    public function __construct(private readonly GamificationService $service) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('gamification::index');
+        return $this->service->render('index');
     }
 
     /**
@@ -20,7 +23,7 @@ class GamificationController extends Controller
      */
     public function create()
     {
-        return view('gamification::create');
+        return $this->service->render('create');
     }
 
     /**
@@ -33,7 +36,7 @@ class GamificationController extends Controller
      */
     public function show($id)
     {
-        return view('gamification::show');
+        return $this->service->render('show');
     }
 
     /**
@@ -41,7 +44,7 @@ class GamificationController extends Controller
      */
     public function edit($id)
     {
-        return view('gamification::edit');
+        return $this->service->render('edit');
     }
 
     /**

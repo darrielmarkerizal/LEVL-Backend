@@ -33,7 +33,7 @@ abstract class TestCase extends BaseTestCase
         try {
             // Try to connect to MySQL server (without database)
             $pdo = new \PDO(
-                "mysql:host={$host};port=" . config('database.connections.mysql.port', 3306),
+                "mysql:host={$host};port=".config('database.connections.mysql.port', 26032003),
                 $username,
                 $password
             );

@@ -3,7 +3,7 @@
 namespace Modules\Auth\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Modules\Auth\Http\Requests\Concerns\HasApiValidation;
+use Modules\Common\Http\Requests\Concerns\HasApiValidation;
 
 class VerifyEmailByTokenRequest extends FormRequest
 {

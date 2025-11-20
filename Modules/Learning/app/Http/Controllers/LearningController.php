@@ -4,15 +4,18 @@ namespace Modules\Learning\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Learning\Services\LearningPageService;
 
 class LearningController extends Controller
 {
+    public function __construct(private readonly LearningPageService $service) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('learning::index');
+        return $this->service->render('index');
     }
 
     /**
@@ -20,7 +23,7 @@ class LearningController extends Controller
      */
     public function create()
     {
-        return view('learning::create');
+        return $this->service->render('create');
     }
 
     /**
@@ -33,7 +36,7 @@ class LearningController extends Controller
      */
     public function show($id)
     {
-        return view('learning::show');
+        return $this->service->render('show');
     }
 
     /**
@@ -41,7 +44,7 @@ class LearningController extends Controller
      */
     public function edit($id)
     {
-        return view('learning::edit');
+        return $this->service->render('edit');
     }
 
     /**
