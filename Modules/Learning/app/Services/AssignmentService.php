@@ -3,13 +3,25 @@
 namespace Modules\Learning\Services;
 
 use Modules\Learning\Models\Assignment;
-use Modules\Schemes\Models\Lesson;
+use Modules\Learning\Repositories\AssignmentRepository;
 
 class AssignmentService
 {
+    private AssignmentRepository $repository;
+
+    public function __construct(?AssignmentRepository $repository = null)
+    {
+        $this->repository = $repository ?? app(AssignmentRepository::class);
+    }
+
+    public function listByLesson(\Modules\Schemes\Models\Lesson $lesson, array $filters = [])
+    {
+        return $this->repository->listForLesson($lesson, $filters);
+    }
+
     public function create(array $data, int $createdBy): Assignment
     {
-        $assignment = Assignment::create([
+        $assignment = $this->repository->create([
             'lesson_id' => $data['lesson_id'],
             'created_by' => $createdBy,
             'title' => $data['title'],
@@ -28,7 +40,7 @@ class AssignmentService
 
     public function update(Assignment $assignment, array $data): Assignment
     {
-        $assignment->update([
+        $updated = $this->repository->update($assignment, [
             'title' => $data['title'] ?? $assignment->title,
             'description' => $data['description'] ?? $assignment->description,
             'submission_type' => $data['submission_type'] ?? $assignment->submission_type ?? 'text',
@@ -40,17 +52,15 @@ class AssignmentService
             'late_penalty_percent' => array_key_exists('late_penalty_percent', $data) ? $data['late_penalty_percent'] : $assignment->late_penalty_percent,
         ]);
 
-        return $assignment->fresh(['lesson', 'creator']);
+        return $updated->fresh(['lesson', 'creator']);
     }
 
     public function publish(Assignment $assignment): Assignment
     {
         $wasDraft = $assignment->status === 'draft';
-        $assignment->update(['status' => 'published']);
+        $published = $this->repository->update($assignment, ['status' => 'published']);
+        $freshAssignment = $published->fresh(['lesson', 'creator']);
 
-        $freshAssignment = $assignment->fresh(['lesson', 'creator']);
-
-        // Dispatch event only if transitioning from draft to published
         if ($wasDraft) {
             \Modules\Learning\Events\AssignmentPublished::dispatch($freshAssignment);
         }
@@ -60,14 +70,13 @@ class AssignmentService
 
     public function unpublish(Assignment $assignment): Assignment
     {
-        $assignment->update(['status' => 'draft']);
+        $updated = $this->repository->update($assignment, ['status' => 'draft']);
 
-        return $assignment->fresh(['lesson', 'creator']);
+        return $updated->fresh(['lesson', 'creator']);
     }
 
     public function delete(Assignment $assignment): bool
     {
-        return $assignment->delete();
+        return $this->repository->delete($assignment);
     }
 }
-

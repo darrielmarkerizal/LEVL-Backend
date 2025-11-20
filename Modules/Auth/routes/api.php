@@ -26,15 +26,17 @@ Route::prefix('v1')->as('auth.')->group(function () {
         Route::post('/profile/email/verify', [AuthApiController::class, 'verifyEmailChange'])->name('email.change.verify');
         Route::post('/profile/email/request', [AuthApiController::class, 'requestEmailChange'])->name('email.change.request');
 
-        Route::middleware(['role:Admin|Superadmin'])->post('/auth/instructor', [AuthApiController::class, 'createInstructor'])->name('instructor.create');
-
         Route::middleware(['role:Superadmin'])->group(function () {
+            Route::post('/auth/instructor', [AuthApiController::class, 'createInstructor'])->name('instructor.create');
             Route::post('/auth/admin', [AuthApiController::class, 'createAdmin'])->name('admin.create');
             Route::post('/auth/super-admin', [AuthApiController::class, 'createSuperAdmin'])->name('super.create');
             Route::post('/auth/credentials/resend', [AuthApiController::class, 'resendCredentials'])->name('credentials.resend');
             Route::put('/auth/users/{user}/status', [AuthApiController::class, 'updateUserStatus'])->name('users.status.update');
-            Route::get('/auth/users', [AuthApiController::class, 'listUsers'])->name('users.index');
             Route::get('/auth/users/{user}', [AuthApiController::class, 'showUser'])->name('users.show');
+        });
+
+        Route::middleware(['role:Admin,Superadmin'])->group(function () {
+            Route::get('/auth/users', [AuthApiController::class, 'listUsers'])->name('users.index');
         });
     });
 

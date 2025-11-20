@@ -3,22 +3,36 @@
 namespace Modules\Learning\Services;
 
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Auth\Models\User;
 use Modules\Common\Models\SystemSetting;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Enrollments\Models\LessonProgress;
 use Modules\Learning\Events\SubmissionCreated;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
+use Modules\Learning\Repositories\SubmissionRepository;
 use Modules\Schemes\Models\Lesson;
 
 class SubmissionService
 {
+    private SubmissionRepository $repository;
+
+    public function __construct(?SubmissionRepository $repository = null)
+    {
+        $this->repository = $repository ?? app(SubmissionRepository::class);
+    }
+
+    public function listForAssignment(Assignment $assignment, User $user, array $filters = []): Collection
+    {
+        return $this->repository->listForAssignment($assignment, $user, $filters);
+    }
+
     public function create(Assignment $assignment, int $userId, array $data): Submission
     {
         return DB::transaction(function () use ($assignment, $userId, $data) {
-            // Get enrollment via lesson
             $lesson = $assignment->lesson;
             if (! $lesson) {
                 throw ValidationException::withMessages([
@@ -33,20 +47,13 @@ class SubmissionService
                 ]);
             }
 
-            // Check if assignment is available
             if (! $assignment->isAvailable()) {
                 throw ValidationException::withMessages([
                     'assignment' => 'Assignment belum tersedia atau belum dipublish.',
                 ]);
             }
 
-            // Check for existing submission (only non-draft submissions count)
-            $existingSubmission = Submission::query()
-                ->where('assignment_id', $assignment->id)
-                ->where('user_id', $userId)
-                ->whereIn('status', ['submitted', 'late', 'graded'])
-                ->latest('id')
-                ->first();
+            $existingSubmission = $this->repository->latestCommittedSubmission($assignment, $userId);
 
             $allowResubmit = $assignment->allow_resubmit !== null
                 ? (bool) $assignment->allow_resubmit
@@ -59,22 +66,17 @@ class SubmissionService
                 ]);
             }
 
-            // Determine attempt number
             $attemptNumber = $isResubmission
                 ? ($existingSubmission->attempt_number + 1)
                 : 1;
 
-            // Check deadline and determine if late
             $isLate = $assignment->isPastDeadline();
 
-            // Delete existing submission if resubmission (due to unique constraint)
-            // Note: We cannot track previous_submission_id after deletion due to foreign key constraint
             if ($isResubmission && $existingSubmission) {
-                $existingSubmission->delete();
+                $this->repository->delete($existingSubmission);
             }
 
-            // Create submission
-            $submission = Submission::create([
+            $submission = $this->repository->create([
                 'assignment_id' => $assignment->id,
                 'user_id' => $userId,
                 'enrollment_id' => $enrollment->id,
@@ -83,14 +85,12 @@ class SubmissionService
                 'attempt_number' => $attemptNumber,
                 'is_late' => $isLate,
                 'is_resubmission' => $isResubmission,
-                'previous_submission_id' => null, // Cannot track after deletion due to unique constraint
+                'previous_submission_id' => null,
                 'submitted_at' => Carbon::now(),
             ]);
 
-            // Increment attempt_count in lesson_progress
             $this->incrementLessonProgressAttempt($enrollment->id, $lesson->id);
 
-            // Dispatch event
             SubmissionCreated::dispatch($submission);
 
             return $submission->fresh(['assignment', 'user', 'enrollment', 'files', 'grade']);
@@ -105,11 +105,11 @@ class SubmissionService
             ]);
         }
 
-        $submission->update([
+        $updated = $this->repository->update($submission, [
             'answer_text' => $data['answer_text'] ?? $submission->answer_text,
         ]);
 
-        return $submission->fresh(['assignment', 'user', 'enrollment', 'files']);
+        return $updated->fresh(['assignment', 'user', 'enrollment', 'files']);
     }
 
     public function grade(Submission $submission, int $score, ?string $feedback = null, ?int $gradedBy = null): Submission
@@ -123,7 +123,6 @@ class SubmissionService
             ]);
         }
 
-        // Apply late penalty if applicable
         $finalScore = $score;
         if ($submission->is_late) {
             $assignmentPenalty = $assignment->late_penalty_percent;
@@ -136,7 +135,6 @@ class SubmissionService
             }
         }
 
-        // Create or update grade record
         $grade = \Modules\Grading\Models\Grade::updateOrCreate(
             [
                 'source_type' => 'assignment',
@@ -153,15 +151,12 @@ class SubmissionService
             ]
         );
 
-        // Update submission status only (score and feedback are in grades table)
-        $submission->update([
+        $updated = $this->repository->update($submission, [
             'status' => 'graded',
-        ]);
+        ])->fresh(['assignment', 'user', 'enrollment', 'files']);
+        $updated->setRelation('grade', $grade);
 
-        $submission = $submission->fresh(['assignment', 'user', 'enrollment', 'files']);
-        $submission->setRelation('grade', $grade);
-
-        return $submission;
+        return $updated;
     }
 
     private function getEnrollmentForLesson(Lesson $lesson, int $userId): ?Enrollment
@@ -189,7 +184,6 @@ class SubmissionService
         if ($progress) {
             $progress->increment('attempt_count');
         } else {
-            // Create if doesn't exist
             LessonProgress::create([
                 'enrollment_id' => $enrollmentId,
                 'lesson_id' => $lessonId,
@@ -200,4 +194,3 @@ class SubmissionService
         }
     }
 }
-

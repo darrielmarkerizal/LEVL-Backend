@@ -16,16 +16,7 @@ class AssignmentController extends Controller
 
     public function index(Request $request, \Modules\Schemes\Models\Course $course, \Modules\Schemes\Models\Unit $unit, \Modules\Schemes\Models\Lesson $lesson)
     {
-        $query = Assignment::query()
-            ->where('lesson_id', $lesson->id)
-            ->with(['creator:id,name,email', 'lesson:id,title,slug']);
-
-        $status = $request->query('status');
-        if ($status) {
-            $query->where('status', $status);
-        }
-
-        $assignments = $query->orderBy('created_at', 'desc')->get();
+        $assignments = $this->service->listByLesson($lesson, $request->all());
 
         return $this->success(['assignments' => $assignments]);
     }
@@ -150,4 +141,3 @@ class AssignmentController extends Controller
         return false;
     }
 }
-

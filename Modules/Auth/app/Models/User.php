@@ -43,7 +43,9 @@ class User extends Authenticatable implements JWTSubject
             return null;
         }
 
-        return asset('storage/'.$this->avatar_path);
+        $uploader = app(\App\Services\UploadService::class);
+
+        return $uploader->getPublicUrl($this->avatar_path);
     }
 
     public function gamificationStats()
@@ -67,6 +69,29 @@ class User extends Authenticatable implements JWTSubject
             'status' => $this->status,
             'roles' => $this->getRoleNames()->values()->toArray(),
         ];
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(\Modules\Enrollments\Models\Enrollment::class);
+    }
+
+    public function attempts()
+    {
+        return $this->hasMany(\Modules\Assessments\Models\Attempt::class);
+    }
+
+    /**
+     * Get courses managed by this user (courses where user is an admin)
+     */
+    public function managedCourses()
+    {
+        return $this->belongsToMany(
+            \Modules\Schemes\Models\Course::class,
+            'course_admins',
+            'user_id',
+            'course_id'
+        );
     }
 
     /**

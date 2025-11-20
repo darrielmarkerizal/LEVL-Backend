@@ -48,7 +48,9 @@ class Course extends Model
             return null;
         }
 
-        return asset('storage/'.$this->thumbnail_path);
+        $uploader = app(\App\Services\UploadService::class);
+
+        return $uploader->getPublicUrl($this->thumbnail_path);
     }
 
     public function getBannerUrlAttribute(): ?string
@@ -57,7 +59,9 @@ class Course extends Model
             return null;
         }
 
-        return asset('storage/'.$this->banner_path);
+        $uploader = app(\App\Services\UploadService::class);
+
+        return $uploader->getPublicUrl($this->banner_path);
     }
 
     public function tagPivot(): HasMany

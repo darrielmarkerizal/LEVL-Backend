@@ -3,13 +3,12 @@
 namespace Modules\Auth\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Modules\Auth\Http\Requests\Concerns\HasApiValidation;
+use Modules\Common\Http\Requests\Concerns\HasApiValidation;
 use Modules\Auth\Http\Requests\Concerns\HasAuthRequestRules;
-use Modules\Auth\Http\Requests\Concerns\HasCommonValidationMessages;
 
 class LoginRequest extends FormRequest
 {
-    use HasApiValidation, HasAuthRequestRules, HasCommonValidationMessages;
+    use HasApiValidation, HasAuthRequestRules;
 
     public function authorize(): bool
     {

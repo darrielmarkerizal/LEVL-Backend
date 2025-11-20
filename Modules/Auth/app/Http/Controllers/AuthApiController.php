@@ -4,6 +4,7 @@ namespace Modules\Auth\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,7 +29,6 @@ use Modules\Auth\Models\SocialAccount;
 use Modules\Auth\Models\User;
 use Modules\Auth\Services\AuthService;
 use Modules\Auth\Services\EmailVerificationService;
-use Tymon\JWTAuth\JWTAuth;
 use Modules\Common\Models\Audit;
 
 class AuthApiController extends Controller
@@ -57,7 +57,6 @@ class AuthApiController extends Controller
             ip: $request->ip(),
             userAgent: $request->userAgent()
         );
-
 
         if (isset($data['message'])) {
             return $this->success($data, $data['message']);
@@ -157,11 +156,11 @@ class AuthApiController extends Controller
         if ($request->hasFile('avatar')) {
             $old = $user->avatar_path;
             $file = $request->file('avatar');
-            $path = app(\App\Services\UploadService::class)->storePublic($file, 'avatars');
+            $path = upload_file($file, 'avatars');
             $user->avatar_path = $path;
             $changes['avatar_path'] = [$old, $path];
             if ($old) {
-                app(\App\Services\UploadService::class)->deletePublic($old);
+                delete_file($old);
             }
         }
 
@@ -234,7 +233,6 @@ class AuthApiController extends Controller
             ]);
         }
 
-
         $account = SocialAccount::query()->firstOrNew([
             'provider_name' => $provider,
             'provider_id' => $providerId,
@@ -250,7 +248,7 @@ class AuthApiController extends Controller
 
         /** @var AuthRepositoryInterface $authRepo */
         $authRepo = app(AuthRepositoryInterface::class);
-        $deviceId = hash('sha256', ($request->ip() ?? '') . ($request->userAgent() ?? '') . $user->id);
+        $deviceId = hash('sha256', ($request->ip() ?? '').($request->userAgent() ?? '').$user->id);
         $refresh = $authRepo->createRefreshToken(
             userId: $user->id,
             ip: $request->ip(),
@@ -422,100 +420,56 @@ class AuthApiController extends Controller
 
     public function updateUserStatus(UpdateUserStatusRequest $request, User $user): JsonResponse
     {
-        $newStatus = $request->string('status');
-        if ($newStatus === 'pending') {
-            return $this->error('Mengubah status ke pending tidak diperbolehkan.', 422);
+        try {
+            $updated = $this->auth->updateUserStatus($user, (string) $request->string('status'));
+        } catch (ValidationException $e) {
+            return $this->validationError($e->errors());
         }
 
-        $user->status = $newStatus;
-        $user->save();
-
-        return $this->success(['user' => $user->toArray()], 'Status pengguna berhasil diperbarui.');
+        return $this->success(['user' => $updated->toArray()], 'Status pengguna berhasil diperbarui.');
     }
 
+    /**
+     * @allowedFilters status, role
+     *
+     * @allowedSorts name, email, created_at
+     *
+     * @filterEnum status pending|active|inactive|banned
+     * @filterEnum role Student|Instructor|Admin|Superadmin
+     */
     public function listUsers(Request $request): JsonResponse
     {
+        /** @var \Modules\Auth\Models\User|null $authUser */
+        $authUser = auth('api')->user();
+        if (! $authUser) {
+            return $this->error('Tidak terotorisasi.', 401);
+        }
+
+        $isSuperadmin = $authUser->hasRole('Superadmin');
+        $isAdmin = $authUser->hasRole('Admin');
+        if (! $isSuperadmin && ! $isAdmin) {
+            return $this->error('Tidak terotorisasi.', 403);
+        }
+
         $perPage = max(1, (int) ($request->query('per_page', 15)));
-        $q = trim((string) $request->query('search', ''));
-        $status = $request->input('filter.status');
-        $role = $request->input('filter.role');
-        $createdFrom = $request->input('filter.created_from');
-        $createdTo = $request->input('filter.created_to');
-        $sort = (string) $request->query('sort', '-created_at');
-
-        $query = User::query()->select(['id', 'name', 'email', 'username', 'avatar_path', 'status', 'created_at', 'email_verified_at'])->with('roles');
-        if ($q !== '') {
-            $query->where(function ($sub) use ($q) {
-                $sub->where('name', 'like', '%'.$q.'%')
-                    ->orWhere('email', 'like', '%'.$q.'%')
-                    ->orWhere('username', 'like', '%'.$q.'%');
-            });
-        }
-        if (is_string($status) && $status !== '') {
-            $statuses = array_values(array_filter(array_map('trim', explode(',', $status))));
-            if (! empty($statuses)) {
-                $query->whereIn('status', $statuses);
-            }
-        }
-        if (is_string($role) && $role !== '') {
-            $roles = array_values(array_filter(array_map('trim', explode(',', $role))));
-            if (! empty($roles)) {
-                $query->whereHas('roles', function ($q2) use ($roles) {
-                    $q2->whereIn('name', $roles);
-                });
-            }
-        }
-        if (is_string($createdFrom) && $createdFrom !== '') {
-            $query->whereDate('created_at', '>=', $createdFrom);
-        }
-        if (is_string($createdTo) && $createdTo !== '') {
-            $query->whereDate('created_at', '<=', $createdTo);
-        }
-
-        $direction = 'asc';
-        $field = $sort;
-        if (str_starts_with($sort, '-')) {
-            $direction = 'desc';
-            $field = substr($sort, 1);
-        }
-        $allowedSorts = ['name', 'email', 'username', 'status', 'created_at'];
-        if (! in_array($field, $allowedSorts, true)) {
-            $field = 'created_at';
-            $direction = 'desc';
-        }
-        $query->orderBy($field, $direction);
-
-        $paginator = $query->paginate($perPage)->appends($request->query());
-        $paginator->getCollection()->transform(function ($u) {
-            return [
-                'id' => $u->id,
-                'name' => $u->name,
-                'email' => $u->email,
-                'username' => $u->username,
-                'avatar' => $u->avatar_path ? asset('storage/'.$u->avatar_path) : null,
-                'status' => $u->status,
-                'created_at' => $u->created_at?->toISOString(),
-                'email_verified_at' => $u->email_verified_at?->toISOString(),
-                'roles' => method_exists($u, 'getRoleNames') ? $u->getRoleNames()->values() : ($u->roles?->pluck('name')->values() ?? []),
-            ];
-        });
+        $paginator = $this->auth->listUsers($authUser, $request->all(), $perPage);
 
         return $this->paginateResponse($paginator);
     }
 
     public function showUser(User $user): JsonResponse
     {
-        $data = [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'username' => $user->username,
-            'avatar' => $user->avatar_path ? asset('storage/'.$user->avatar_path) : null,
-            'status' => $user->status,
-            'created_at' => $user->created_at?->toISOString(),
-            'email_verified_at' => $user->email_verified_at?->toISOString(),
-            'roles' => method_exists($user, 'getRoleNames') ? $user->getRoleNames()->values() : ($user->roles?->pluck('name')->values() ?? []),
-        ];
+        /** @var \Modules\Auth\Models\User|null $authUser */
+        $authUser = auth('api')->user();
+        if (! $authUser) {
+            return $this->error('Tidak terotorisasi.', 401);
+        }
+
+        try {
+            $data = $this->auth->showUser($authUser, $user);
+        } catch (AuthorizationException $e) {
+            return $this->error($e->getMessage(), 403);
+        }
 
         return $this->success(['user' => $data]);
     }

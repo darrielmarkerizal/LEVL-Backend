@@ -4,7 +4,6 @@ namespace Modules\Enrollments\Repositories;
 
 use App\Support\FilterableRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Enrollments\Models\Enrollment;
 
@@ -79,6 +78,32 @@ class EnrollmentRepository
         return $query->paginate($pageSize, ['*'], 'page', $page)->appends($params);
     }
 
+    public function paginateByCourseIds(array $courseIds, array $params, int $perPage = 15): LengthAwarePaginator
+    {
+        $query = Enrollment::query()
+            ->with(['user:id,name,email', 'course:id,slug,title,enrollment_type'])
+            ->orderByDesc('created_at');
+
+        if (! empty($courseIds)) {
+            $query->whereIn('course_id', $courseIds);
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        $filteredParams = $params;
+        unset($filteredParams['filter']['course_id']);
+
+        $this->filter($query, $filteredParams)
+            ->allowFilters($this->allowedFilterFields)
+            ->allowSorts($this->allowedSortFields)
+            ->setDefaultSort('-created_at')
+            ->applyFiltersAndSorting($query);
+
+        [$page, $pageSize] = $this->getPaginationParams($params, $perPage);
+
+        return $query->paginate($pageSize, ['*'], 'page', $page)->appends($params);
+    }
+
     public function paginateByUser(int $userId, array $params, int $perPage = 15): LengthAwarePaginator
     {
         $query = Enrollment::query()
@@ -106,10 +131,19 @@ class EnrollmentRepository
             ->find($id);
     }
 
+    public function findByCourseAndUser(int $courseId, int $userId): ?Enrollment
+    {
+        return Enrollment::query()
+            ->where('course_id', $courseId)
+            ->where('user_id', $userId)
+            ->first();
+    }
+
     private function getPaginationParams(array $params, int $defaultPerPage): array
     {
         $page = max(1, (int) ($params['page'] ?? 1));
         $perPage = max(1, min(100, (int) ($params['per_page'] ?? $defaultPerPage)));
+
         return [$page, $perPage];
     }
 
