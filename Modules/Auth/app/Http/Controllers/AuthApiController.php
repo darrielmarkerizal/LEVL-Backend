@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Contracts\Factory as SocialiteFactory;
 use Laravel\Socialite\Two\AbstractProvider as SocialiteAbstractProvider;
-use Modules\Auth\Interfaces\AuthRepositoryInterface;
 use Modules\Auth\Http\Requests\CreateManagedUserRequest;
 use Modules\Auth\Http\Requests\LoginRequest;
 use Modules\Auth\Http\Requests\LogoutRequest;
@@ -25,6 +24,7 @@ use Modules\Auth\Http\Requests\UpdateUserStatusRequest;
 use Modules\Auth\Http\Requests\VerifyEmailByTokenRequest;
 use Modules\Auth\Http\Requests\VerifyEmailChangeRequest;
 use Modules\Auth\Http\Requests\VerifyEmailRequest;
+use Modules\Auth\Interfaces\AuthRepositoryInterface;
 use Modules\Auth\Models\SocialAccount;
 use Modules\Auth\Models\User;
 use Modules\Auth\Services\AuthService;
@@ -57,7 +57,6 @@ class AuthApiController extends Controller
             ip: $request->ip(),
             userAgent: $request->userAgent()
         );
-
 
         if (isset($data['message'])) {
             return $this->success($data, $data['message']);
@@ -234,7 +233,6 @@ class AuthApiController extends Controller
             ]);
         }
 
-
         $account = SocialAccount::query()->firstOrNew([
             'provider_name' => $provider,
             'provider_id' => $providerId,
@@ -250,7 +248,7 @@ class AuthApiController extends Controller
 
         /** @var AuthRepositoryInterface $authRepo */
         $authRepo = app(AuthRepositoryInterface::class);
-        $deviceId = hash('sha256', ($request->ip() ?? '') . ($request->userAgent() ?? '') . $user->id);
+        $deviceId = hash('sha256', ($request->ip() ?? '').($request->userAgent() ?? '').$user->id);
         $refresh = $authRepo->createRefreshToken(
             userId: $user->id,
             ip: $request->ip(),
@@ -431,6 +429,14 @@ class AuthApiController extends Controller
         return $this->success(['user' => $updated->toArray()], 'Status pengguna berhasil diperbarui.');
     }
 
+    /**
+     * @allowedFilters status, role
+     *
+     * @allowedSorts name, email, created_at
+     *
+     * @filterEnum status pending|active|inactive|banned
+     * @filterEnum role Student|Instructor|Admin|Superadmin
+     */
     public function listUsers(Request $request): JsonResponse
     {
         /** @var \Modules\Auth\Models\User|null $authUser */
@@ -483,5 +489,4 @@ class AuthApiController extends Controller
 
         return $this->success($data, 'Username berhasil diatur.');
     }
-
 }
