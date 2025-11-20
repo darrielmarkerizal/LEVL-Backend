@@ -12,6 +12,7 @@
         "laravel/tinker": "^2.10.1",
         "league/flysystem-aws-s3-v3": "*",
         "nwidart/laravel-modules": "^12.0",
+        "scalar/laravel": "^0.2.0",
         "spatie/laravel-permission": "^6.22",
         "tymon/jwt-auth": "^2.2"
     },

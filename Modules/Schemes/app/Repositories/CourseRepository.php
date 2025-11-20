@@ -27,6 +27,17 @@ class CourseRepository
      */
     private array $allowedSorts = ['id', 'code', 'title', 'created_at', 'updated_at', 'published_at'];
 
+    /**
+     * Filter enum values.
+     *
+     * @var array<string, string>
+     */
+    private array $filterEnums = [
+        'status' => 'draft|published|archived',
+        'level_tag' => 'dasar|menengah|mahir',
+        'type' => 'okupasi|kluster',
+    ];
+
     public function query(): Builder
     {
         return Course::query()->with('tags');
@@ -96,7 +107,7 @@ class CourseRepository
     private function normalizeParams(array $params): array
     {
         $filters = $params['filter'] ?? [];
-        if (!is_array($filters)) {
+        if (! is_array($filters)) {
             $filters = [];
         }
 
@@ -200,7 +211,7 @@ class CourseRepository
     {
         $tags = [];
 
-        if (!empty($filterTag)) {
+        if (! empty($filterTag)) {
             $tags = $this->parseArrayFilter($filterTag);
         }
 
@@ -226,4 +237,3 @@ class CourseRepository
         }
     }
 }
-

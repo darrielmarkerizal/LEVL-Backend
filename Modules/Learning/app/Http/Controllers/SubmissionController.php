@@ -15,6 +15,17 @@ class SubmissionController extends Controller
 
     public function __construct(private SubmissionService $service) {}
 
+    /**
+     * @summary Mengambil daftar submission untuk assignment
+     *
+     * @description Mengambil daftar submission dari sebuah assignment. Student hanya bisa melihat submission mereka sendiri, sedangkan Admin/Instructor dapat melihat semua submission.
+     *
+     * @allowedFilters user_id
+     *
+     * @allowedSorts created_at
+     *
+     * @filterEnum user_id integer
+     */
     public function index(Request $request, Assignment $assignment)
     {
         /** @var \Modules\Auth\Models\User $user */
@@ -25,6 +36,11 @@ class SubmissionController extends Controller
         return $this->success(['submissions' => $submissions]);
     }
 
+    /**
+     * @summary Membuat submission baru
+     *
+     * @description Membuat submission baru untuk sebuah assignment. Submission akan dibuat dengan status "draft" secara default dan dapat diupdate sebelum submit final.
+     */
     public function store(Request $request, Assignment $assignment)
     {
         $validated = $request->validate([
