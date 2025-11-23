@@ -454,13 +454,14 @@ class AuthApiController extends Controller
       );
     }
 
-    $passwordPlain = new \ReflectionClass($this->auth)
+    $reflection = new \ReflectionClass($this->auth);
+    $passwordPlain = $reflection
       ->getMethod("generatePasswordFromNameEmail")
       ->invoke($this->auth, $target->name, $target->email);
     $target->password = \Illuminate\Support\Facades\Hash::make($passwordPlain);
     $target->save();
 
-    new \ReflectionClass($this->auth)
+    $reflection
       ->getMethod("sendGeneratedPasswordEmail")
       ->invoke($this->auth, $target, $passwordPlain);
 
