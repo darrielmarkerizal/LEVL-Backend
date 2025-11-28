@@ -17,37 +17,41 @@ class EnrollmentsController extends Controller
     public function __construct(private EnrollmentService $service) {}
 
     /**
-     * Superadmin can list all enrollments. Admin can list enrollments for courses they manage.
+     * Super-admin can list all enrollments (optional filters).
      */
     public function index(Request $request)
     {
         /** @var \Modules\Auth\Models\User $user */
         $user = auth('api')->user();
 
-        if ($user->hasRole('Superadmin')) {
-            return $this->indexForSuperadmin($request);
+        if (! $user->hasRole('superadmin')) {
+            return $this->error('Anda tidak memiliki akses untuk melihat seluruh enrollment.', 403);
         }
 
-        if ($user->hasRole('Admin')) {
-            return $this->indexManaged($request);
+        $query = Enrollment::query()
+            ->with(['user:id,name,email', 'course:id,slug,title,enrollment_type'])
+            ->orderByDesc('created_at');
+
+        if ($status = $request->query('status')) {
+            $query->where('status', $status);
         }
 
-        return $this->error('Anda tidak memiliki akses untuk melihat enrollment.', 403);
-    }
+        if ($courseId = $request->query('course_id')) {
+            $query->where('course_id', $courseId);
+        }
 
-    /**
-     * Superadmin can view all enrollments with optional filters.
-     */
-    private function indexForSuperadmin(Request $request)
-    {
-        $perPage = max(1, (int) $request->query('per_page', 15));
-        $paginator = $this->service->listForSuperadmin($request->all(), $perPage);
+        if ($userId = $request->query('user_id')) {
+            $query->where('user_id', $userId);
+        }
+
+        $perPage = (int) $request->query('per_page', 15);
+        $paginator = $query->paginate(max(1, $perPage))->appends($request->query());
 
         return $this->paginateResponse($paginator, 'Daftar enrollment berhasil diambil.');
     }
 
     /**
-     * Course Admin/Instructor/Superadmin can list enrollments for a course.
+     * Course admin/instructor/superadmin can list enrollments for a course.
      */
     public function indexByCourse(Request $request, Course $course)
     {
@@ -58,8 +62,17 @@ class EnrollmentsController extends Controller
             return $this->error('Anda tidak memiliki akses untuk melihat enrollment course ini.', 403);
         }
 
-        $perPage = max(1, (int) $request->query('per_page', 15));
-        $paginator = $this->service->listByCourse($course, $request->all(), $perPage);
+        $query = Enrollment::query()
+            ->where('course_id', $course->id)
+            ->with(['user:id,name,email'])
+            ->orderByDesc('created_at');
+
+        if ($status = $request->query('status')) {
+            $query->where('status', $status);
+        }
+
+        $perPage = (int) $request->query('per_page', 15);
+        $paginator = $query->paginate(max(1, $perPage))->appends($request->query());
 
         return $this->paginateResponse($paginator, 'Daftar enrollment course berhasil diambil.');
     }
@@ -72,21 +85,50 @@ class EnrollmentsController extends Controller
         /** @var \Modules\Auth\Models\User $user */
         $user = auth('api')->user();
 
-        if ($user->hasRole('Superadmin')) {
+        if ($user->hasRole('superadmin')) {
             return $this->index($request);
         }
 
-        if (! $user->hasRole('Admin') && ! $user->hasRole('Instructor')) {
+        if (! $user->hasRole('admin') && ! $user->hasRole('instructor')) {
             return $this->error('Anda tidak memiliki akses untuk melihat enrollment ini.', 403);
         }
 
-        $perPage = max(1, (int) $request->query('per_page', 15));
+        $courses = Course::query()
+            ->select(['id', 'slug', 'title'])
+            ->where(function ($query) use ($user) {
+                $query->where('instructor_id', $user->id)
+                    ->orWhereHas('admins', function ($adminQuery) use ($user) {
+                        $adminQuery->where('user_id', $user->id);
+                    });
+            })
+            ->get();
 
-        try {
-            $paginator = $this->service->listManaged($user, $request->all(), $perPage);
-        } catch (ValidationException $e) {
-                return $this->error('Course tidak ditemukan atau tidak berada di bawah pengelolaan Anda.', 404);
+        $courseIds = $courses->pluck('id')->all();
+
+        $query = Enrollment::query()
+            ->with(['user:id,name,email', 'course:id,slug,title,enrollment_type'])
+            ->orderByDesc('created_at');
+
+        if (! empty($courseIds)) {
+            $query->whereIn('course_id', $courseIds);
+        } else {
+            $query->whereRaw('1 = 0');
         }
+
+        if ($status = $request->query('status')) {
+            $query->where('status', $status);
+        }
+
+        if ($courseSlug = $request->query('course_slug')) {
+            $course = $courses->firstWhere('slug', $courseSlug);
+            if (! $course) {
+                return $this->error('Course tidak ditemukan atau tidak berada di bawah pengelolaan Anda.', 404);
+            }
+            $query->where('course_id', $course->id);
+        }
+
+        $perPage = (int) $request->query('per_page', 15);
+        $paginator = $query->paginate(max(1, $perPage))->appends($request->query());
 
         return $this->paginateResponse($paginator, 'Daftar enrollment berhasil diambil.');
     }
@@ -99,7 +141,7 @@ class EnrollmentsController extends Controller
         /** @var \Modules\Auth\Models\User $user */
         $user = auth('api')->user();
 
-        if (! $user->hasRole('Student')) {
+        if (! $user->hasRole('student')) {
             return $this->error('Hanya peserta yang dapat melakukan enrollment.', 403);
         }
 
@@ -127,14 +169,14 @@ class EnrollmentsController extends Controller
         $user = auth('api')->user();
 
         $targetUserId = (int) $user->id;
-        if ($user->hasRole('Superadmin')) {
+        if ($user->hasRole('superadmin')) {
             $targetUserId = (int) $request->input('user_id', $user->id);
         }
 
         $enrollment = Enrollment::query()
             ->where('course_id', $course->id)
             ->when(
-                $user->hasRole('Superadmin'),
+                $user->hasRole('superadmin'),
                 fn ($query) => $query->where('user_id', $targetUserId),
                 fn ($query) => $query->where('user_id', $user->id)
             )
@@ -163,13 +205,13 @@ class EnrollmentsController extends Controller
 
         $targetUserId = (int) $user->id;
 
-        if ($user->hasRole('Superadmin')) {
+        if ($user->hasRole('superadmin')) {
             $targetUserId = (int) $request->input('user_id', $user->id);
         }
 
         $enrollment = Enrollment::query()
             ->where('course_id', $course->id)
-            ->when(! $user->hasRole('Superadmin'), function ($query) use ($user) {
+            ->when(! $user->hasRole('superadmin'), function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             }, function ($query) use ($targetUserId) {
                 $query->where('user_id', $targetUserId);
@@ -190,7 +232,7 @@ class EnrollmentsController extends Controller
     }
 
     /**
-     * Get enrollment status for the authenticated student (or specified user_id for Superadmin).
+     * Get enrollment status for the authenticated student (or specified user_id for superadmin).
      */
     public function status(Request $request, Course $course)
     {
@@ -199,11 +241,14 @@ class EnrollmentsController extends Controller
 
         $targetUserId = (int) $user->id;
 
-        if ($user->hasRole('Superadmin')) {
+        if ($user->hasRole('superadmin')) {
             $targetUserId = (int) $request->query('user_id', $user->id);
         }
 
-        $enrollment = $this->service->findEnrollmentForCourse($course, $targetUserId);
+        $enrollment = Enrollment::query()
+            ->where('course_id', $course->id)
+            ->where('user_id', $targetUserId)
+            ->first();
 
         if (! $enrollment) {
             return $this->success([
@@ -283,7 +328,7 @@ class EnrollmentsController extends Controller
 
     private function canModifyEnrollment($user, Enrollment $enrollment): bool
     {
-        if ($user->hasRole('Superadmin')) {
+        if ($user->hasRole('superadmin')) {
             return true;
         }
 
@@ -292,11 +337,11 @@ class EnrollmentsController extends Controller
 
     private function userCanManageCourse($user, Course $course): bool
     {
-        if ($user->hasRole('Superadmin')) {
+        if ($user->hasRole('superadmin')) {
             return true;
         }
 
-        if ($user->hasRole('Admin') || $user->hasRole('Instructor')) {
+        if ($user->hasRole('admin') || $user->hasRole('instructor')) {
             if ((int) $course->instructor_id === (int) $user->id) {
                 return true;
             }

@@ -13,7 +13,7 @@ beforeEach(function () {
 
 test('middleware returns 401 when user not authenticated', function () {
     $request = Request::create('/test', 'GET');
-    $next = fn ($req) => response()->json(['status' => 'success']);
+    $next = fn ($req) => response()->json(['success' => true]);
 
     $response = $this->middleware->handle($request, $next, 'courses.create');
 
@@ -29,7 +29,7 @@ test('middleware returns 403 when user does not have permission', function () {
 
     $request = Request::create('/test', 'GET');
     $request->setUserResolver(fn () => $user);
-    $next = fn ($req) => response()->json(['status' => 'success']);
+    $next = fn ($req) => response()->json(['success' => true]);
 
     $response = $this->middleware->handle($request, $next, 'courses.create');
 
@@ -45,7 +45,7 @@ test('middleware allows access when user has permission', function () {
 
     $request = Request::create('/test', 'GET');
     $request->setUserResolver(fn () => $user);
-    $next = fn ($req) => response()->json(['status' => 'success']);
+    $next = fn ($req) => response()->json(['success' => true]);
 
     $response = $this->middleware->handle($request, $next, 'courses.create');
 
@@ -62,7 +62,7 @@ test('middleware allows access when user has any of multiple permissions', funct
 
     $request = Request::create('/test', 'GET');
     $request->setUserResolver(fn () => $user);
-    $next = fn ($req) => response()->json(['status' => 'success']);
+    $next = fn ($req) => response()->json(['success' => true]);
 
     $response = $this->middleware->handle($request, $next, 'courses.create', 'courses.update');
 
