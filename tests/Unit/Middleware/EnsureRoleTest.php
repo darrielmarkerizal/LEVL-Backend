@@ -13,7 +13,7 @@ beforeEach(function () {
 
 test('middleware returns 401 when user not authenticated', function () {
     $request = Request::create('/test', 'GET');
-    $next = fn ($req) => response()->json(['status' => 'success']);
+    $next = fn ($req) => response()->json(['success' => true]);
 
     $response = $this->middleware->handle($request, $next, 'admin');
 
@@ -30,7 +30,7 @@ test('middleware returns 403 when user does not have required role', function ()
 
     $request = Request::create('/test', 'GET');
     $request->setUserResolver(fn () => $user);
-    $next = fn ($req) => response()->json(['status' => 'success']);
+    $next = fn ($req) => response()->json(['success' => true]);
 
     $response = $this->middleware->handle($request, $next, 'admin', 'instructor');
 
@@ -45,7 +45,7 @@ test('middleware allows access when user has required role', function () {
 
     $request = Request::create('/test', 'GET');
     $request->setUserResolver(fn () => $user);
-    $next = fn ($req) => response()->json(['status' => 'success']);
+    $next = fn ($req) => response()->json(['success' => true]);
 
     $response = $this->middleware->handle($request, $next, 'Admin');
 
@@ -60,7 +60,7 @@ test('middleware allows access when user has any of multiple roles', function ()
 
     $request = Request::create('/test', 'GET');
     $request->setUserResolver(fn () => $user);
-    $next = fn ($req) => response()->json(['status' => 'success']);
+    $next = fn ($req) => response()->json(['success' => true]);
 
     $response = $this->middleware->handle($request, $next, 'Admin', 'Instructor');
 
@@ -73,7 +73,7 @@ test('middleware allows superadmin access to any role', function () {
 
     $request = Request::create('/test', 'GET');
     $request->setUserResolver(fn () => $user);
-    $next = fn ($req) => response()->json(['status' => 'success']);
+    $next = fn ($req) => response()->json(['success' => true]);
 
     $response = $this->middleware->handle($request, $next, 'Admin', 'Instructor');
 

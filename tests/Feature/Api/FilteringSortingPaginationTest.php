@@ -38,7 +38,7 @@ it('can filter by status', function () {
     $response = $this->getJson(api('/courses?filter[status]=published'));
 
     $response->assertStatus(200)
-        ->assertJsonStructure(['data' => ['items', 'meta']])
+        ->assertJsonStructure(['data', 'meta' => ['pagination']])
         ->assertJsonCount(7, 'data.items')
         ->assertJsonPath('data.items.0.status', 'published');
 });
@@ -99,7 +99,7 @@ it('validates sort format', function () {
     $response = $this->getJson(api('/courses?sort=invalid sort format!'));
 
     $response->assertStatus(200)
-        ->assertJsonStructure(['data' => ['items', 'meta']]);
+        ->assertJsonStructure(['data', 'meta' => ['pagination']]);
 });
 
 it('can paginate results', function () {
@@ -445,7 +445,7 @@ it('handles request with no query parameters', function () {
     $response = $this->getJson(api('/courses'));
 
     $response->assertStatus(200)
-        ->assertJsonStructure(['data' => ['items', 'meta']]);
+        ->assertJsonStructure(['data', 'meta' => ['pagination']]);
     // Should return default pagination
     expect($response->json('data.meta.current_page'))->toEqual(1);
 });

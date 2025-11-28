@@ -7,32 +7,76 @@ use Illuminate\Http\JsonResponse;
 
 interface ApiResponseContract
 {
-  public function success(
-    array $data = [],
-    string $message = "Berhasil",
-    int $status = 200,
-  ): JsonResponse;
+    /**
+     * Generic success response
+     */
+    public function success(
+        mixed $data = null,
+        string $message = 'Berhasil',
+        int $status = 200,
+        ?array $meta = null
+    ): JsonResponse;
 
-  public function created(array $data = [], string $message = "Berhasil dibuat"): JsonResponse;
+    /**
+     * 201 Created response
+     */
+    public function created(
+        mixed $data = null,
+        string $message = 'Berhasil dibuat',
+        ?array $meta = null
+    ): JsonResponse;
 
-  public function error(
-    string $message = "Terjadi kesalahan",
-    int $status = 400,
-    ?array $errors = null,
-  ): JsonResponse;
+    /**
+     * Generic error response
+     */
+    public function error(
+        string $message = 'Terjadi kesalahan',
+        int $status = 400,
+        ?array $errors = null,
+        mixed $data = null,
+        ?array $meta = null
+    ): JsonResponse;
 
-  public function paginateResponse(
-    LengthAwarePaginator $paginator,
-    string $message = "Berhasil",
-  ): JsonResponse;
+    /**
+     * Paginated response
+     */
+    public function paginateResponse(
+        LengthAwarePaginator $paginator,
+        string $message = 'Berhasil',
+        int $status = 200
+    ): JsonResponse;
 
-  public function validationError(array $errors): JsonResponse;
+    /**
+     * Validation error (422)
+     */
+    public function validationError(
+        array $errors,
+        string $message = 'Validasi data gagal'
+    ): JsonResponse;
 
-  public function notFound(string $message = "Resource tidak ditemukan"): JsonResponse;
+    /**
+     * Resource not found (404)
+     */
+    public function notFound(
+        string $message = 'Resource tidak ditemukan'
+    ): JsonResponse;
 
-  public function unauthorized(string $message = "Tidak terotorisasi"): JsonResponse;
+    /**
+     * Unauthorized (401)
+     */
+    public function unauthorized(
+        string $message = 'Tidak terotorisasi'
+    ): JsonResponse;
 
-  public function forbidden(string $message = "Akses ditolak"): JsonResponse;
+    /**
+     * Forbidden (403)
+     */
+    public function forbidden(
+        string $message = 'Akses ditolak'
+    ): JsonResponse;
 
-  public function noContent(): JsonResponse;
+    /**
+     * 204 No Content
+     */
+    public function noContent(): JsonResponse;
 }
