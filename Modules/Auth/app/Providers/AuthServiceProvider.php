@@ -4,8 +4,8 @@ namespace Modules\Auth\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
-use Modules\Auth\Interfaces\AuthRepositoryInterface;
-use Modules\Auth\Interfaces\AuthServiceInterface;
+use Modules\Auth\Contracts\AuthRepositoryInterface;
+use Modules\Auth\Contracts\AuthServiceInterface;
 use Modules\Auth\Models\User;
 use Modules\Auth\Observers\UserObserver;
 use Modules\Auth\Repositories\AuthRepository;

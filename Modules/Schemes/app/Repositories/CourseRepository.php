@@ -7,9 +7,10 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
+use Modules\Schemes\Contracts\Repositories\CourseRepositoryInterface;
 use Modules\Schemes\Models\Course;
 
-class CourseRepository
+class CourseRepository implements CourseRepositoryInterface
 {
     use FilterableRepository;
 

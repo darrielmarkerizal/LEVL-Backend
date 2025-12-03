@@ -4,9 +4,10 @@ namespace Modules\Schemes\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Modules\Schemes\Contracts\Repositories\UnitRepositoryInterface;
 use Modules\Schemes\Models\Unit;
 
-class UnitRepository
+class UnitRepository implements UnitRepositoryInterface
 {
     public function findByCourse(int $courseId, array $params = []): LengthAwarePaginator
     {

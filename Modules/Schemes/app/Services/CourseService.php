@@ -2,19 +2,22 @@
 
 namespace Modules\Schemes\Services;
 
+use App\Contracts\EnrollmentKeyHasherInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
+use Modules\Schemes\Contracts\Services\CourseServiceInterface;
 use Modules\Schemes\Events\CourseCreated;
 use Modules\Schemes\Events\CourseDeleted;
 use Modules\Schemes\Events\CoursePublished;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Repositories\CourseRepository;
 
-class CourseService
+class CourseService implements CourseServiceInterface
 {
     public function __construct(
         private CourseRepository $repository,
-        private TagService $tagService
+        private TagService $tagService,
+        private EnrollmentKeyHasherInterface $keyHasher
     ) {}
 
     public function listPublic(array $params): LengthAwarePaginator
@@ -56,7 +59,12 @@ class CourseService
 
         $enrollmentType = $data['enrollment_type'] ?? 'auto_accept';
         if ($enrollmentType !== 'key_based') {
-            $data['enrollment_key'] = null;
+            $data['enrollment_key_hash'] = null;
+            unset($data['enrollment_key']);
+        } elseif (isset($data['enrollment_key'])) {
+            // Hash the enrollment key before storing
+            $data['enrollment_key_hash'] = $this->keyHasher->hash($data['enrollment_key']);
+            unset($data['enrollment_key']);
         }
 
         $course = $this->repository->create($data);
@@ -109,11 +117,18 @@ class CourseService
 
         $enrollmentType = $data['enrollment_type'] ?? $course->enrollment_type;
         if ($enrollmentType !== 'key_based') {
-            $data['enrollment_key'] = null;
-        } elseif (! array_key_exists('enrollment_key', $data)) {
-            // keep existing key
+            $data['enrollment_key_hash'] = null;
+            unset($data['enrollment_key']);
+        } elseif (array_key_exists('enrollment_key', $data)) {
+            // Hash the new enrollment key before storing
+            if ($data['enrollment_key'] !== null) {
+                $data['enrollment_key_hash'] = $this->keyHasher->hash($data['enrollment_key']);
+            } else {
+                $data['enrollment_key_hash'] = null;
+            }
             unset($data['enrollment_key']);
         }
+        // If enrollment_key is not in data, keep existing hash
 
         $outcomes = $data['outcomes'] ?? null;
         $hasPrereqText = array_key_exists('prereq_text', $data);
@@ -225,4 +240,41 @@ class CourseService
         }
     }
 
+    /**
+     * Verify an enrollment key against a course's stored hash.
+     *
+     * @param  Course  $course  The course to verify against
+     * @param  string  $plainKey  The plain text enrollment key to verify
+     * @return bool True if the key is valid, false otherwise
+     */
+    public function verifyEnrollmentKey(Course $course, string $plainKey): bool
+    {
+        if (empty($course->enrollment_key_hash)) {
+            return false;
+        }
+
+        return $this->keyHasher->verify($plainKey, $course->enrollment_key_hash);
+    }
+
+    /**
+     * Generate a new enrollment key for a course.
+     *
+     * @param  int  $length  The length of the key to generate (default: 12)
+     * @return string The generated plain text enrollment key
+     */
+    public function generateEnrollmentKey(int $length = 12): string
+    {
+        return $this->keyHasher->generate($length);
+    }
+
+    /**
+     * Check if a course has an enrollment key set.
+     *
+     * @param  Course  $course  The course to check
+     * @return bool True if the course has an enrollment key hash, false otherwise
+     */
+    public function hasEnrollmentKey(Course $course): bool
+    {
+        return ! empty($course->enrollment_key_hash);
+    }
 }

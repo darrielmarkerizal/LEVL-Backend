@@ -4,12 +4,13 @@ namespace Modules\Schemes\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
+use Modules\Schemes\Contracts\Services\LessonServiceInterface;
 use Modules\Schemes\Events\LessonCompleted;
 use Modules\Schemes\Events\LessonViewed;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Repositories\LessonRepository;
 
-class LessonService
+class LessonService implements LessonServiceInterface
 {
     public function __construct(private LessonRepository $repository) {}
 
