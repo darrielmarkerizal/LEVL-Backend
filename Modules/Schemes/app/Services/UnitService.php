@@ -4,11 +4,12 @@ namespace Modules\Schemes\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
+use Modules\Schemes\Contracts\Services\UnitServiceInterface;
 use Modules\Schemes\Events\UnitCompleted;
 use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Repositories\UnitRepository;
 
-class UnitService
+class UnitService implements UnitServiceInterface
 {
     public function __construct(private UnitRepository $repository) {}
 

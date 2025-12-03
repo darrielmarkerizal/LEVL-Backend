@@ -26,6 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => EnsurePermission::class,
         ]);
 
+        // Apply CORS and rate limiting to all API routes
+        $middleware->api(prepend: [
+            \Illuminate\Http\Middleware\HandleCors::class,
+            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
+        ]);
+
         $middleware->append(\App\Http\Middleware\LogApiAction::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

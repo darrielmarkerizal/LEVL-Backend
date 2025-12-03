@@ -36,6 +36,34 @@ class SchemesServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+
+        // Bind service interfaces
+        $this->app->bind(
+            \Modules\Schemes\Contracts\Services\CourseServiceInterface::class,
+            \Modules\Schemes\Services\CourseService::class
+        );
+        $this->app->bind(
+            \Modules\Schemes\Contracts\Services\UnitServiceInterface::class,
+            \Modules\Schemes\Services\UnitService::class
+        );
+        $this->app->bind(
+            \Modules\Schemes\Contracts\Services\LessonServiceInterface::class,
+            \Modules\Schemes\Services\LessonService::class
+        );
+
+        // Bind repository interfaces
+        $this->app->bind(
+            \Modules\Schemes\Contracts\Repositories\CourseRepositoryInterface::class,
+            \Modules\Schemes\Repositories\CourseRepository::class
+        );
+        $this->app->bind(
+            \Modules\Schemes\Contracts\Repositories\UnitRepositoryInterface::class,
+            \Modules\Schemes\Repositories\UnitRepository::class
+        );
+        $this->app->bind(
+            \Modules\Schemes\Contracts\Repositories\LessonRepositoryInterface::class,
+            \Modules\Schemes\Repositories\LessonRepository::class
+        );
     }
 
     /**
@@ -129,7 +157,7 @@ class SchemesServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->nameLower);
 
-        Blade::componentNamespace(config('modules.namespace').'\\' . $this->name . '\\View\\Components', $this->nameLower);
+        Blade::componentNamespace(config('modules.namespace').'\\'.$this->name.'\\View\\Components', $this->nameLower);
     }
 
     /**

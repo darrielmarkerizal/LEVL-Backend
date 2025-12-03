@@ -18,7 +18,7 @@ class OpenApiGeneratorService
                     'label' => 'Jadwal & Pendaftaran Asesmen',
                     'description' => 'Melihat jadwal dan mendaftar asesmen.',
                     'modules' => ['Assessments', 'Enrollments'],
-                    'keywords' => ['assessments/schedules', 'assessments/register'],
+                    'keywords' => ['assessments/schedules', 'assessments/register', 'assessments/prerequisites', 'assessments/slots', 'assessment-registrations'],
                 ],
                 'pelaksanaan' => [
                     'label' => 'Pelaksanaan Asesmen',
@@ -89,19 +89,19 @@ class OpenApiGeneratorService
                 'forum-skema' => [
                     'label' => 'Forum Skema',
                     'description' => 'Forum diskusi spesifik untuk skema/kelas tertentu.',
-                    'modules' => ['Learning', 'Schemes'],
-                    'keywords' => ['forum/schemes'],
+                    'modules' => ['Learning', 'Schemes', 'Forums'],
+                    'keywords' => ['forum/schemes', 'forum/statistics'],
                 ],
                 'topik' => [
                     'label' => 'Topik & Thread Diskusi',
                     'description' => 'Membuat dan melihat topik diskusi.',
-                    'modules' => ['Learning'],
+                    'modules' => ['Learning', 'Forums'],
                     'keywords' => ['forum/threads', 'forum/topics'],
                 ],
                 'komentar' => [
                     'label' => 'Komentar & Balasan',
                     'description' => 'Memberikan komentar atau balasan pada diskusi.',
-                    'modules' => ['Learning'],
+                    'modules' => ['Learning', 'Forums'],
                     'keywords' => ['forum/comments', 'forum/replies'],
                 ],
             ],
@@ -143,8 +143,8 @@ class OpenApiGeneratorService
                 'berita' => [
                     'label' => 'Berita & Pengumuman',
                     'description' => 'Berita terbaru dan pengumuman penting.',
-                    'modules' => ['Common', 'Operations'],
-                    'keywords' => ['news', 'announcements', 'info'],
+                    'modules' => ['Content', 'Common', 'Operations'],
+                    'keywords' => ['news', 'announcements', 'info', 'content/statistics', 'content/search', 'content/pending'],
                 ],
                 'notifikasi-sistem' => [
                     'label' => 'Notifikasi Sistem',
@@ -180,7 +180,7 @@ class OpenApiGeneratorService
                     'label' => 'Profil Pengguna (Lihat & Update)',
                     'description' => 'Melihat dan mengubah data profil.',
                     'modules' => ['Auth'],
-                    'keywords' => ['profile', 'me'],
+                    'keywords' => ['profile', 'me', 'profile/privacy', 'profile/activities', 'profile/statistics'],
                 ],
                 'email' => [
                     'label' => 'Manajemen Email',
@@ -192,13 +192,25 @@ class OpenApiGeneratorService
                     'label' => 'Manajemen Password',
                     'description' => 'Ubah password akun.',
                     'modules' => ['Auth'],
-                    'keywords' => ['password/update'],
+                    'keywords' => ['password/update', 'profile/password'],
                 ],
                 'avatar' => [
                     'label' => 'Avatar & Data Pribadi',
                     'description' => 'Upload avatar dan update data pribadi.',
                     'modules' => ['Auth'],
-                    'keywords' => ['avatar', 'biodata'],
+                    'keywords' => ['avatar', 'biodata', 'profile/avatar'],
+                ],
+                'achievements' => [
+                    'label' => 'Pencapaian & Badge',
+                    'description' => 'Melihat pencapaian dan mengelola badge.',
+                    'modules' => ['Auth', 'Gamification'],
+                    'keywords' => ['profile/achievements', 'badges/pin', 'badges/unpin'],
+                ],
+                'account' => [
+                    'label' => 'Manajemen Akun',
+                    'description' => 'Hapus dan restore akun pengguna.',
+                    'modules' => ['Auth'],
+                    'keywords' => ['profile/account'],
                 ],
             ],
         ],
@@ -260,6 +272,12 @@ class OpenApiGeneratorService
                     'modules' => ['Schemes'],
                     'keywords' => ['tags'],
                 ],
+                'exports' => [
+                    'label' => 'Export Data Kelas',
+                    'description' => 'Export data pendaftaran dan laporan kelas.',
+                    'modules' => ['Enrollments', 'Schemes'],
+                    'keywords' => ['exports', 'enrollments-csv'],
+                ],
             ],
         ],
         '10-sistem' => [
@@ -270,7 +288,7 @@ class OpenApiGeneratorService
                     'label' => 'Manajemen Pengguna',
                     'description' => 'CRUD pengguna dan manajemen status.',
                     'modules' => ['Auth'],
-                    'keywords' => ['users', 'profile', 'updateUserStatus'],
+                    'keywords' => ['users', 'profile', 'updateUserStatus', 'admin/users', 'suspend', 'activate', 'audit-logs'],
                 ],
                 'master' => [
                     'label' => 'Master Data',
@@ -306,7 +324,7 @@ class OpenApiGeneratorService
                     'label' => 'Tugas & Latihan Soal',
                     'description' => 'Daftar tugas yang harus dikerjakan.',
                     'modules' => ['Learning'],
-                    'keywords' => ['assignments', 'exercises'],
+                    'keywords' => ['assignments', 'exercises', 'lessons/assignments'],
                 ],
                 'submission' => [
                     'label' => 'Pengumpulan Jawaban',
@@ -690,12 +708,20 @@ class OpenApiGeneratorService
         ];
 
         // Security
-        $middleware = $route->gatherMiddleware();
-        if (
-            in_array('auth:api', $middleware) ||
-            in_array('auth:sanctum', $middleware) ||
-            in_array('auth', $middleware)
-        ) {
+        try {
+            $middleware = $route->gatherMiddleware();
+            $hasAuth = in_array('auth:api', $middleware) ||
+                in_array('auth:sanctum', $middleware) ||
+                in_array('auth', $middleware) ||
+                in_array('jwt.auth', $middleware) ||
+                in_array('jwt.verify', $middleware);
+
+            if ($hasAuth) {
+                $pathItem['security'] = [['bearerAuth' => []]];
+            }
+        } catch (\Throwable $e) {
+            // Some controllers may not be instantiable during generation
+            // Default to requiring auth for safety
             $pathItem['security'] = [['bearerAuth' => []]];
         }
 
@@ -704,12 +730,16 @@ class OpenApiGeneratorService
 
         // Add standard query params for GET list endpoints
         // List endpoints are GET requests that don't have required path parameters (like {id})
-        // or are explicitly named 'index', 'list', etc.
+        // or are explicitly named 'index', 'list', 'search', etc.
         $isListEndpoint =
           $httpMethod === 'get' &&
           ($method === 'index' ||
             $method === 'list' ||
+            $method === 'search' ||
             str_starts_with($method, 'list') ||
+            str_starts_with($method, 'search') ||
+            str_contains($uri, '/search') ||
+            str_contains($uri, '/statistics') ||
             (empty($parameters) && ! str_contains($uri, '{'))); // No path params = likely a list
 
         if ($isListEndpoint) {
@@ -1168,6 +1198,22 @@ class OpenApiGeneratorService
             'exercise' => 'ID exercise',
             'question' => 'ID question',
             'attempt' => 'ID attempt',
+            'assessment' => 'ID atau slug assessment',
+            'registration' => 'ID registrasi assessment',
+            'announcement' => 'ID pengumuman',
+            'news' => 'ID atau slug berita',
+            'user' => 'ID atau username pengguna',
+            'badge' => 'ID badge',
+            'scheme' => 'Slug atau identifier skema',
+            'type' => 'Tipe konten (announcement, news)',
+            'category' => 'ID kategori',
+            'tag' => 'ID atau slug tag',
+            'thread' => 'ID thread diskusi',
+            'comment' => 'ID komentar',
+            'reply' => 'ID balasan',
+            'block' => 'ID block konten',
+            'media' => 'ID media file',
+            'notification' => 'ID notifikasi',
         ];
 
         return $descriptions[$type] ?? ($descriptions[$name] ?? "Parameter {$name}");
@@ -1224,22 +1270,27 @@ class OpenApiGeneratorService
 
         // Try to get validation rules from FormRequest
         if (method_exists($requestParam, 'rules')) {
-            $requestInstance = new $requestParam;
-            $rules = $requestInstance->rules();
-            $schemaResult = $this->rulesToSchema($rules);
-            $schema = $schemaResult['schema'];
-            $hasFile = $schemaResult['hasFile'];
+            try {
+                $requestInstance = new $requestParam;
+                $rules = $requestInstance->rules();
+                $schemaResult = $this->rulesToSchema($rules);
+                $schema = $schemaResult['schema'];
+                $hasFile = $schemaResult['hasFile'];
 
-            $contentType = $hasFile ? 'multipart/form-data' : 'application/json';
+                $contentType = $hasFile ? 'multipart/form-data' : 'application/json';
 
-            return [
-                'required' => true,
-                'content' => [
-                    $contentType => [
-                        'schema' => $schema,
+                return [
+                    'required' => true,
+                    'content' => [
+                        $contentType => [
+                            'schema' => $schema,
+                        ],
                     ],
-                ],
-            ];
+                ];
+            } catch (\Throwable $e) {
+                // Some FormRequests may depend on auth user or other runtime context
+                // Fall through to default schema
+            }
         }
 
         return [
