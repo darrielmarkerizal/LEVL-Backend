@@ -16898,6 +16898,3035 @@
                 }
             }
         },
+        "/v1/schemes/{scheme}/forum/threads": {
+            "get": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Mengambil detail Thread",
+                "description": "Mengambil informasi detail dari Thread berdasarkan ID.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "scheme",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari scheme",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Nomor halaman (pagination)",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Jumlah item per halaman",
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Kata kunci pencarian",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Pengurutan data (contoh: -created_at)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filter data (contoh: filter[status]=active)",
+                        "style": "deepObject",
+                        "explode": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response sukses dengan pagination",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Berhasil",
+                                            "data": {
+                                                "pinned": {
+                                                    "id": 1,
+                                                    "name": "Pinned",
+                                                    "created_at": "2024-01-01T00:00:00.000000Z",
+                                                    "updated_at": "2024-01-01T00:00:00.000000Z"
+                                                }
+                                            },
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Membuat detail Thread",
+                "description": "Membuat Thread baru dengan data yang diberikan.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "scheme",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari scheme",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Judul Contoh"
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Lorem ipsum dolor sit amet."
+                                    }
+                                },
+                                "required": [
+                                    "title",
+                                    "content"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Data berhasil dibuat",
+                                            "data": {
+                                                "id": 1,
+                                                "code": "RESOURCE-001",
+                                                "title": "Resource Title",
+                                                "slug": "resource-title",
+                                                "status": "active",
+                                                "created_at": "2024-01-01T00:00:00.000000Z",
+                                                "updated_at": "2024-01-01T00:00:00.000000Z"
+                                            },
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/schemes/{scheme}/forum/threads/search": {
+            "get": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Mengambil detail Search",
+                "description": "Mengambil informasi detail dari Search berdasarkan ID.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "scheme",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari scheme",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Berhasil",
+                                            "data": {
+                                                "id": 1,
+                                                "code": "RESOURCE-001",
+                                                "title": "Resource Title",
+                                                "slug": "resource-title",
+                                                "description": "Resource description",
+                                                "status": "active",
+                                                "created_at": "2024-01-01T00:00:00.000000Z",
+                                                "updated_at": "2024-01-01T00:00:00.000000Z"
+                                            },
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/schemes/{scheme}/forum/threads/{thread}": {
+            "get": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Mengambil detail Thread",
+                "description": "Mengambil informasi detail dari Thread berdasarkan ID.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "scheme",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari scheme",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari thread",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Berhasil",
+                                            "data": {
+                                                "id": 1,
+                                                "code": "RESOURCE-001",
+                                                "title": "Resource Title",
+                                                "slug": "resource-title",
+                                                "description": "Resource description",
+                                                "status": "active",
+                                                "created_at": "2024-01-01T00:00:00.000000Z",
+                                                "updated_at": "2024-01-01T00:00:00.000000Z"
+                                            },
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Memperbarui detail Thread",
+                "description": "Memperbarui seluruh data Thread yang sudah ada.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "scheme",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari scheme",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari thread",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Judul Contoh"
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Lorem ipsum dolor sit amet."
+                                    }
+                                },
+                                "required": [
+                                    "title",
+                                    "content"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Data berhasil diperbarui",
+                                            "data": {
+                                                "id": 1,
+                                                "code": "RESOURCE-001",
+                                                "title": "Updated Resource Title",
+                                                "slug": "updated-resource-title",
+                                                "status": "active",
+                                                "created_at": "2024-01-01T00:00:00.000000Z",
+                                                "updated_at": "2024-01-02T00:00:00.000000Z"
+                                            },
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Menghapus detail Thread",
+                "description": "Menghapus Thread dari sistem secara permanen.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "scheme",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari scheme",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari thread",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Data berhasil dihapus",
+                                            "data": [],
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/schemes/{scheme}/forum/threads/{thread}/pin": {
+            "post": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Membuat detail Pin",
+                "description": "Membuat Pin baru dengan data yang diberikan.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "scheme",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari scheme",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari thread",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": []
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Data berhasil dibuat",
+                                            "data": {
+                                                "id": 1,
+                                                "code": "RESOURCE-001",
+                                                "title": "Resource Title",
+                                                "slug": "resource-title",
+                                                "status": "active",
+                                                "created_at": "2024-01-01T00:00:00.000000Z",
+                                                "updated_at": "2024-01-01T00:00:00.000000Z"
+                                            },
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/schemes/{scheme}/forum/threads/{thread}/close": {
+            "post": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Membuat detail Close",
+                "description": "Membuat Close baru dengan data yang diberikan.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "scheme",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari scheme",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari thread",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": []
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Data berhasil dibuat",
+                                            "data": {
+                                                "id": 1,
+                                                "code": "RESOURCE-001",
+                                                "title": "Resource Title",
+                                                "slug": "resource-title",
+                                                "status": "active",
+                                                "created_at": "2024-01-01T00:00:00.000000Z",
+                                                "updated_at": "2024-01-01T00:00:00.000000Z"
+                                            },
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/forum/threads/{thread}/replies": {
+            "post": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Membuat detail Balasan",
+                "description": "Membuat Balasan baru dengan data yang diberikan.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari thread",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Lorem ipsum dolor sit amet."
+                                    },
+                                    "parent_id": {
+                                        "type": "integer",
+                                        "example": 1,
+                                        "nullable": true
+                                    }
+                                },
+                                "required": [
+                                    "content"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Data berhasil dibuat",
+                                            "data": {
+                                                "id": 1,
+                                                "code": "RESOURCE-001",
+                                                "title": "Resource Title",
+                                                "slug": "resource-title",
+                                                "status": "active",
+                                                "created_at": "2024-01-01T00:00:00.000000Z",
+                                                "updated_at": "2024-01-01T00:00:00.000000Z"
+                                            },
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/forum/replies/{reply}": {
+            "put": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Memperbarui detail Reply",
+                "description": "Memperbarui seluruh data Reply yang sudah ada.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "reply",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari reply",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Lorem ipsum dolor sit amet."
+                                    }
+                                },
+                                "required": [
+                                    "content"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Data berhasil diperbarui",
+                                            "data": {
+                                                "id": 1,
+                                                "code": "RESOURCE-001",
+                                                "title": "Updated Resource Title",
+                                                "slug": "updated-resource-title",
+                                                "status": "active",
+                                                "created_at": "2024-01-01T00:00:00.000000Z",
+                                                "updated_at": "2024-01-02T00:00:00.000000Z"
+                                            },
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Menghapus detail Reply",
+                "description": "Menghapus Reply dari sistem secara permanen.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "reply",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari reply",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Data berhasil dihapus",
+                                            "data": [],
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/forum/replies/{reply}/accept": {
+            "post": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Membuat detail Accept",
+                "description": "Membuat Accept baru dengan data yang diberikan.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "reply",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari reply",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": []
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Data berhasil dibuat",
+                                            "data": {
+                                                "id": 1,
+                                                "code": "RESOURCE-001",
+                                                "title": "Resource Title",
+                                                "slug": "resource-title",
+                                                "status": "active",
+                                                "created_at": "2024-01-01T00:00:00.000000Z",
+                                                "updated_at": "2024-01-01T00:00:00.000000Z"
+                                            },
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/forum/threads/{thread}/reactions": {
+            "post": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Membuat detail Reactions",
+                "description": "Membuat Reactions baru dengan data yang diberikan.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari thread",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": []
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Data berhasil dibuat",
+                                            "data": {
+                                                "id": 1,
+                                                "code": "RESOURCE-001",
+                                                "title": "Resource Title",
+                                                "slug": "resource-title",
+                                                "status": "active",
+                                                "created_at": "2024-01-01T00:00:00.000000Z",
+                                                "updated_at": "2024-01-01T00:00:00.000000Z"
+                                            },
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/forum/replies/{reply}/reactions": {
+            "post": {
+                "tags": [
+                    "Endpoint Lainnya"
+                ],
+                "summary": "Membuat detail Reactions",
+                "description": "Membuat Reactions baru dengan data yang diberikan.",
+                "operationId": "api.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "reply",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID unik dari reply",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": []
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Response sukses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Contoh response sukses",
+                                        "value": {
+                                            "success": true,
+                                            "message": "Data berhasil dibuat",
+                                            "data": {
+                                                "id": 1,
+                                                "code": "RESOURCE-001",
+                                                "title": "Resource Title",
+                                                "slug": "resource-title",
+                                                "status": "active",
+                                                "created_at": "2024-01-01T00:00:00.000000Z",
+                                                "updated_at": "2024-01-01T00:00:00.000000Z"
+                                            },
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Request tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error bad request",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Request tidak valid",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "parameter": [
+                                                    "Parameter yang diberikan tidak sesuai format"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token tidak valid atau tidak ada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error unauthorized",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Token tidak valid atau tidak ada",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Tidak memiliki akses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error forbidden",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Anda tidak memiliki akses untuk melakukan operasi ini",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error - Data yang dikirim tidak valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh validation error",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Data yang Anda kirim tidak valid. Periksa kembali isian Anda.",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": {
+                                                "name": [
+                                                    "Field name wajib diisi"
+                                                ],
+                                                "email": [
+                                                    "Format email tidak valid"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Resource tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error not found",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Resource tidak ditemukan",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Terjadi kesalahan pada server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "error": {
+                                        "summary": "Contoh error server",
+                                        "value": {
+                                            "success": false,
+                                            "message": "Terjadi kesalahan pada server",
+                                            "data": null,
+                                            "meta": null,
+                                            "errors": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/assessments/exercises": {
             "get": {
                 "tags": [
