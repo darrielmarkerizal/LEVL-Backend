@@ -27,7 +27,6 @@ class Grade extends Model
     {
         return match ($this->source_type) {
             SourceType::Assignment => $this->belongsTo(\Modules\Learning\Models\Assignment::class, 'source_id'),
-            SourceType::Attempt => $this->belongsTo(\Modules\Assessments\Models\Attempt::class, 'source_id'),
             default => null,
         };
     }

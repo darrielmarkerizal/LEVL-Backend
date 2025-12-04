@@ -3,7 +3,6 @@
     "Schemes": true,
     "Enrollments": true,
     "Learning": true,
-    "Assessments": true,
     "Grading": true,
     "Gamification": true,
     "Notifications": true,

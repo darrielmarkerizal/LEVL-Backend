@@ -20,13 +20,7 @@
     - Add 'admin/users', 'suspend', 'activate', 'audit-logs'
     - _Requirements: 3.1-3.5_
 
-- [x] 4. Update featureGroups untuk Assessment Module
-  - [x] 4.1 Add keywords untuk assessment registration
-    - Add 'assessments/register', 'assessments/prerequisites', 'assessments/slots'
-    - Add 'assessment-registrations'
-    - _Requirements: 4.1-4.4_
-
-- [x] 5. Update featureGroups untuk Forum Module
+- [x] 4. Update featureGroups untuk Forum Module
   - [x] 5.1 Add keywords untuk forum statistics
     - Add 'forum/statistics', 'forum/statistics/me'
     - _Requirements: 5.1-5.2_
@@ -123,31 +117,7 @@
     - Add examples for submit, approve, reject, pending-review
     - _Requirements: 1.6_
 
-- [x] 15. Add Assessment Module examples
-  - [x] 15.1 Add Assessment Registration examples
-    - Add examples for register, prerequisites, slots
-    - Include actual registration structure
-    - _Requirements: 4.1-4.4_
-
-  - [x] 15.2 Add Exercise examples
-    - Add examples for exercises CRUD
-    - Include actual exercise structure
-    - _Requirements: 20.1-20.3_
-
-  - [x] 15.3 Add Question examples
-    - Add examples for questions CRUD
-    - Add examples for options CRUD
-    - _Requirements: 21.1-21.4_
-
-  - [x] 15.4 Add Attempt examples
-    - Add examples for start, list, show, submitAnswer, complete
-    - _Requirements: 22.1-22.5_
-
-  - [x] 15.5 Add Grading examples
-    - Add examples for exercise attempts, attempt answers, feedback, score
-    - _Requirements: 23.1-23.4_
-
-- [x] 16. Add Forum Module examples
+- [x] 15. Add Forum Module examples
   - [x] 16.1 Add Thread examples
     - Add examples for threads CRUD, search, pin, close
     - Include actual thread structure with author, reactions, replies count

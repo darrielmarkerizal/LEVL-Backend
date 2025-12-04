@@ -10,6 +10,3 @@ Artisan::command('inspire', function () {
 
 // Schedule Content Publishing
 Schedule::job(new \Modules\Content\Jobs\PublishScheduledContent)->everyFiveMinutes();
-
-// Schedule Assessment Reminders (run every hour to check for upcoming assessments)
-Schedule::job(new \Modules\Assessments\Jobs\SendAssessmentReminders)->hourly();

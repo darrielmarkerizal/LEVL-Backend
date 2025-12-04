@@ -138,23 +138,23 @@ class NotificationPreferenceServiceTest extends TestCase
         $this->assertTrue($shouldSend);
     }
 
-    public function test_assessment_notifications_are_critical(): void
+    public function test_system_notifications_are_critical(): void
     {
         $user = User::factory()->create();
 
-        // Create a preference that disables assessment notifications
+        // Create a preference that disables system notifications
         NotificationPreference::create([
             'user_id' => $user->id,
-            'category' => NotificationPreference::CATEGORY_ASSESSMENTS,
+            'category' => NotificationPreference::CATEGORY_SYSTEM,
             'channel' => NotificationPreference::CHANNEL_EMAIL,
             'enabled' => false,
             'frequency' => NotificationPreference::FREQUENCY_IMMEDIATE,
         ]);
 
-        // Assessment notifications are critical and should always be sent
+        // System notifications are critical and should always be sent
         $shouldSend = $this->service->shouldSendNotification(
             $user,
-            NotificationPreference::CATEGORY_ASSESSMENTS,
+            NotificationPreference::CATEGORY_SYSTEM,
             NotificationPreference::CHANNEL_EMAIL
         );
 

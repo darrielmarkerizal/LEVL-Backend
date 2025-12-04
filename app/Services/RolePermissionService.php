@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Arr;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -63,7 +62,6 @@ class RolePermissionService
             'learning.forum.view',
             'learning.forum.create',
             'learning.forum.reply',
-            'assessments.take',
             'gamification.view',
             'gamification.leaderboard.view',
             'profiles.view',

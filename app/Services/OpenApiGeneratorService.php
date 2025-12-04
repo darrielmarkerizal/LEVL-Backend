@@ -10,37 +10,7 @@ use ReflectionMethod;
 class OpenApiGeneratorService
 {
     protected array $featureGroups = [
-        '01-asesmen' => [
-            'label' => '01 - Asesmen',
-            'description' => 'Manajemen jadwal, pelaksanaan, hasil, dan bank soal asesmen.',
-            'features' => [
-                'jadwal-pendaftaran' => [
-                    'label' => 'Jadwal & Pendaftaran Asesmen',
-                    'description' => 'Melihat jadwal dan mendaftar asesmen.',
-                    'modules' => ['Assessments', 'Enrollments'],
-                    'keywords' => ['assessments/schedules', 'assessments/register', 'assessments/prerequisites', 'assessments/slots', 'assessment-registrations'],
-                ],
-                'pelaksanaan' => [
-                    'label' => 'Pelaksanaan Asesmen',
-                    'description' => 'Proses pengerjaan asesmen oleh asesi.',
-                    'modules' => ['Assessments'],
-                    'keywords' => ['assessments/attempts', 'assessments/submit', 'assessments/exercises', 'assessments/answers', 'attempts/complete', 'attempts/answers'],
-                ],
-                'hasil-rekomendasi' => [
-                    'label' => 'Hasil & Rekomendasi Asesmen',
-                    'description' => 'Melihat hasil penilaian dan rekomendasi asesor.',
-                    'modules' => ['Assessments', 'Grading'],
-                    'keywords' => ['assessments/results', 'assessments/recommendations', 'grading', 'answers/feedback', 'attempts/score'],
-                ],
-                'bank-soal' => [
-                    'label' => 'Bank Soal Asesmen',
-                    'description' => 'Manajemen bank soal khusus untuk asesmen.',
-                    'modules' => ['Assessments'],
-                    'keywords' => ['assessments/questions', 'assessments/banks', 'assessments/options', 'questions/options'],
-                ],
-            ],
-        ],
-        '02-auth' => [
+        '01-auth' => [
             'label' => '02 - Autentikasi & Registrasi',
             'description' => 'Fitur autentikasi, registrasi, dan manajemen sesi pengguna.',
             'features' => [
@@ -1095,32 +1065,6 @@ class OpenApiGeneratorService
         'v1/content/{type}/{id}/reject' => ['post' => 'Tolak konten'],
         'v1/content/pending-review' => ['get' => 'Daftar konten menunggu review'],
 
-        // Assessments
-        'v1/assessments/{assessment}/register' => ['post' => 'Daftar ke jadwal asesmen'],
-        'v1/assessments/{assessment}/prerequisites' => ['get' => 'Cek prasyarat asesmen'],
-        'v1/assessments/{assessment}/slots' => ['get' => 'Daftar slot waktu asesmen'],
-        'v1/assessment-registrations/{registration}' => ['delete' => 'Batalkan pendaftaran asesmen'],
-
-        // Exercises
-        'v1/assessments/exercises' => ['get' => 'Daftar exercise', 'post' => 'Buat exercise baru'],
-        'v1/assessments/exercises/{exercise}' => ['get' => 'Detail exercise', 'put' => 'Update exercise', 'delete' => 'Hapus exercise'],
-        'v1/assessments/exercises/{exercise}/publish' => ['put' => 'Publikasikan exercise'],
-        'v1/assessments/exercises/{exercise}/questions' => ['get' => 'Daftar soal dalam exercise', 'post' => 'Tambah soal ke exercise'],
-
-        // Questions
-        'v1/assessments/questions/{question}' => ['get' => 'Detail soal', 'put' => 'Update soal', 'delete' => 'Hapus soal'],
-        'v1/assessments/questions/{question}/options' => ['post' => 'Tambah opsi jawaban'],
-        'v1/assessments/options/{option}' => ['put' => 'Update opsi jawaban', 'delete' => 'Hapus opsi jawaban'],
-
-        // Attempts
-        'v1/assessments/exercises/{exercise}/attempts' => ['get' => 'Daftar attempt exercise', 'post' => 'Mulai attempt baru'],
-        'v1/assessments/attempts' => ['get' => 'Daftar attempt saya'],
-        'v1/assessments/attempts/{attempt}' => ['get' => 'Detail attempt'],
-        'v1/assessments/attempts/{attempt}/answers' => ['get' => 'Daftar jawaban attempt', 'post' => 'Submit jawaban'],
-        'v1/assessments/attempts/{attempt}/complete' => ['put' => 'Selesaikan attempt'],
-        'v1/assessments/attempts/{attempt}/score' => ['put' => 'Update skor attempt'],
-        'v1/assessments/answers/{answer}/feedback' => ['put' => 'Berikan feedback jawaban'],
-
         // Forum Threads
         'v1/schemes/{scheme}/forum/threads' => ['get' => 'Daftar thread forum', 'post' => 'Buat thread baru'],
         'v1/schemes/{scheme}/forum/threads/search' => ['get' => 'Cari thread forum'],
@@ -1202,7 +1146,6 @@ class OpenApiGeneratorService
         'courses' => 'Kursus',
         'schemes' => 'Skema',
         'enrollments' => 'Pendaftaran',
-        'assessments' => 'Asesmen',
         'submissions' => 'Pengumpulan Tugas',
         'assignments' => 'Tugas',
         'lessons' => 'Lesson',
@@ -1457,8 +1400,6 @@ class OpenApiGeneratorService
             'exercise' => 'ID exercise',
             'question' => 'ID question',
             'attempt' => 'ID attempt',
-            'assessment' => 'ID atau slug assessment',
-            'registration' => 'ID registrasi assessment',
             'announcement' => 'ID pengumuman',
             'news' => 'ID atau slug berita',
             'user' => 'ID atau username pengguna',
