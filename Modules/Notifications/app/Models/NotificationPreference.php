@@ -31,8 +31,6 @@ class NotificationPreference extends Model
 
     const CATEGORY_ASSIGNMENTS = 'assignments';
 
-    const CATEGORY_ASSESSMENTS = 'assessments';
-
     const CATEGORY_FORUM = 'forum';
 
     const CATEGORY_ACHIEVEMENTS = 'achievements';

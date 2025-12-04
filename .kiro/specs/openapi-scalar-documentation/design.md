@@ -331,36 +331,6 @@ protected array $summaryOverrides = [
 ]
 ```
 
-### Assessment Registration Response Structure
-
-```php
-[
-    'id' => 1,
-    'assessment_id' => 5,
-    'user_id' => 10,
-    'slot_id' => 3,
-    'status' => 'registered|confirmed|cancelled|completed',
-    'registered_at' => '2024-01-15T10:30:00.000000Z',
-    'assessment' => [
-        'id' => 5,
-        'title' => 'Asesmen Kompetensi Web Development',
-        'scheme' => [
-            'id' => 2,
-            'name' => 'Junior Web Developer',
-        ],
-    ],
-    'slot' => [
-        'id' => 3,
-        'date' => '2024-02-01',
-        'start_time' => '09:00',
-        'end_time' => '12:00',
-        'location' => 'TUK Jakarta',
-        'available_seats' => 15,
-    ],
-]
-```
-
-
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
@@ -702,88 +672,6 @@ Berikut adalah mapping lengkap untuk semua endpoint dengan summary, description,
     'get' => [
         'summary' => 'Mengambil statistik konten',
         'description' => 'Mengambil statistik keseluruhan konten (total pengumuman, berita, views).',
-    ]
-],
-```
-
-### Assessment Module Endpoints
-
-```php
-'v1/assessments/{assessment}/register' => [
-    'post' => [
-        'summary' => 'Mendaftar ke jadwal asesmen',
-        'description' => 'Mendaftarkan user ke jadwal asesmen tertentu. Prasyarat harus dipenuhi.',
-        'successExample' => [
-            'message' => 'Berhasil mendaftar ke asesmen.',
-            'data' => [
-                'registration' => [
-                    'id' => 1,
-                    'assessment_id' => 5,
-                    'user_id' => 10,
-                    'slot_id' => 3,
-                    'status' => 'registered',
-                    'registered_at' => '2024-01-15T10:30:00.000000Z',
-                ]
-            ]
-        ]
-    ]
-],
-
-'v1/assessments/{assessment}/prerequisites' => [
-    'get' => [
-        'summary' => 'Mengecek prasyarat asesmen',
-        'description' => 'Mengecek apakah user memenuhi prasyarat untuk mengikuti asesmen.',
-        'successExample' => [
-            'data' => [
-                'eligible' => true,
-                'prerequisites' => [
-                    [
-                        'type' => 'course_completion',
-                        'course_id' => 5,
-                        'course_title' => 'Dasar-Dasar Web Development',
-                        'fulfilled' => true,
-                    ]
-                ]
-            ]
-        ]
-    ]
-],
-
-'v1/assessments/{assessment}/slots' => [
-    'get' => [
-        'summary' => 'Mengambil slot waktu asesmen',
-        'description' => 'Mengambil daftar slot waktu yang tersedia untuk asesmen.',
-        'successExample' => [
-            'data' => [
-                [
-                    'id' => 1,
-                    'date' => '2024-02-01',
-                    'start_time' => '09:00',
-                    'end_time' => '12:00',
-                    'location' => 'TUK Jakarta',
-                    'capacity' => 20,
-                    'available_seats' => 15,
-                ]
-            ]
-        ]
-    ]
-],
-
-'v1/assessments/exercises' => [
-    'get' => [
-        'summary' => 'Mengambil daftar exercise',
-        'description' => 'Mengambil daftar exercise/latihan soal yang tersedia.',
-    ],
-    'post' => [
-        'summary' => 'Membuat exercise baru',
-        'description' => 'Membuat exercise/latihan soal baru. Hanya Instructor/Admin.',
-    ]
-],
-
-'v1/assessments/attempts' => [
-    'get' => [
-        'summary' => 'Mengambil daftar attempt',
-        'description' => 'Mengambil daftar attempt/percobaan pengerjaan exercise user.',
     ]
 ],
 ```

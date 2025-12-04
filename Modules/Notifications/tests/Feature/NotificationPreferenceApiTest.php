@@ -304,7 +304,7 @@ class NotificationPreferenceApiTest extends TestCase
         // Verify preferences were reset
         // Email should be enabled for important categories by default
         $preference = NotificationPreference::where('user_id', $this->user->id)
-            ->where('category', 'assessments')
+            ->where('category', 'assignments')
             ->where('channel', 'email')
             ->first();
 

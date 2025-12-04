@@ -153,7 +153,6 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
     {
         $criticalCategories = [
             NotificationPreference::CATEGORY_SYSTEM,
-            NotificationPreference::CATEGORY_ASSESSMENTS,
         ];
 
         return in_array($category, $criticalCategories);
@@ -167,7 +166,6 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
         // Email enabled by default for important categories
         if ($channel === NotificationPreference::CHANNEL_EMAIL) {
             return in_array($category, [
-                NotificationPreference::CATEGORY_ASSESSMENTS,
                 NotificationPreference::CATEGORY_ASSIGNMENTS,
                 NotificationPreference::CATEGORY_SYSTEM,
             ]);

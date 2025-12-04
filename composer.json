@@ -3,7 +3,10 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",
@@ -40,9 +43,6 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "Modules\\Assessments\\": "Modules/Assessments/app/",
-            "Modules\\Assessments\\Database\\Factories\\": "Modules/Assessments/database/factories/",
-            "Modules\\Assessments\\Database\\Seeders\\": "Modules/Assessments/database/seeders/",
             "Modules\\Auth\\": "Modules/Auth/app/",
             "Modules\\Auth\\Database\\Factories\\": "Modules/Auth/database/factories/",
             "Modules\\Auth\\Database\\Seeders\\": "Modules/Auth/database/seeders/",
@@ -84,7 +84,6 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/",
-            "Modules\\Assessments\\Tests\\": "Modules/Assessments/tests/",
             "Modules\\Auth\\Tests\\": "Modules/Auth/tests/",
             "Modules\\Common\\Tests\\": "Modules/Common/tests/",
             "Modules\\Enrollments\\Tests\\": "Modules/Enrollments/tests/",

@@ -59,18 +59,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 4. WHEN admin activates user THEN the OpenAPI spec SHALL document `/v1/admin/users/{user}/activate` endpoint
 5. WHEN admin views audit logs THEN the OpenAPI spec SHALL document `/v1/admin/users/{user}/audit-logs` endpoint
 
-### Requirement 4: Assessment Registration Documentation
-
-**User Story:** As an API consumer, I want complete documentation for assessment registration endpoints, so that I can integrate assessment scheduling features.
-
-#### Acceptance Criteria
-
-1. WHEN registering for assessment THEN the OpenAPI spec SHALL document `/v1/assessments/{assessment}/register` endpoint
-2. WHEN checking prerequisites THEN the OpenAPI spec SHALL document `/v1/assessments/{assessment}/prerequisites` endpoint
-3. WHEN viewing available slots THEN the OpenAPI spec SHALL document `/v1/assessments/{assessment}/slots` endpoint
-4. WHEN cancelling registration THEN the OpenAPI spec SHALL document `/v1/assessment-registrations/{registration}` DELETE endpoint
-
-### Requirement 5: Forum Statistics Documentation
+### Requirement 4: Forum Statistics Documentation
 
 **User Story:** As an API consumer, I want complete documentation for forum statistics endpoints, so that I can integrate forum analytics features.
 
@@ -79,7 +68,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 1. WHEN viewing forum statistics THEN the OpenAPI spec SHALL document `/v1/schemes/{scheme}/forum/statistics` endpoint
 2. WHEN viewing user forum statistics THEN the OpenAPI spec SHALL document `/v1/schemes/{scheme}/forum/statistics/me` endpoint
 
-### Requirement 6: Export and Reports Documentation
+### Requirement 5: Export and Reports Documentation
 
 **User Story:** As an API consumer, I want complete documentation for export and reporting endpoints, so that I can integrate data export features.
 
@@ -87,7 +76,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 
 1. WHEN exporting enrollments THEN the OpenAPI spec SHALL document `/v1/courses/{course}/exports/enrollments-csv` endpoint with CSV response type
 
-### Requirement 7: Learning Module Nested Routes Documentation
+### Requirement 6: Learning Module Nested Routes Documentation
 
 **User Story:** As an API consumer, I want complete documentation for learning module nested routes, so that I can integrate assignment features within lessons.
 
@@ -95,7 +84,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 
 1. WHEN accessing lesson assignments THEN the OpenAPI spec SHALL document `/v1/courses/{course}/units/{unit}/lessons/{lesson}/assignments` GET and POST endpoints
 
-### Requirement 8: OpenAPI Spec Quality Standards
+### Requirement 7: OpenAPI Spec Quality Standards
 
 **User Story:** As an API consumer, I want consistent and complete API documentation, so that I can efficiently integrate with the system.
 
@@ -107,7 +96,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 4. WHEN any endpoint is documented THEN the OpenAPI spec SHALL include all possible response codes (200, 201, 400, 401, 403, 404, 422, 500)
 5. WHEN any POST/PUT endpoint is documented THEN the OpenAPI spec SHALL include request body schema with required fields
 
-### Requirement 9: Specific and Actual Documentation Content
+### Requirement 8: Specific and Actual Documentation Content
 
 **User Story:** As an API consumer, I want documentation with specific and actual names, descriptions, and response examples, so that I can understand exactly what each endpoint does and what data it returns.
 
@@ -120,7 +109,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 5. WHEN any request body example is generated THEN the OpenAPI spec SHALL include field-specific example values (e.g., actual course titles, user names, dates) instead of generic placeholders
 6. WHEN any parameter description is generated THEN the OpenAPI spec SHALL describe the parameter's purpose in the context of the specific endpoint
 
-### Requirement 10: Enrollments Module Specific Documentation
+### Requirement 9: Enrollments Module Specific Documentation
 
 **User Story:** As an API consumer, I want complete and specific documentation for enrollment endpoints, so that I can integrate course enrollment features correctly.
 
@@ -131,7 +120,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 3. WHEN listing user enrollments THEN the OpenAPI spec SHALL document `/v1/enrollments` GET endpoint with actual enrollment response structure
 4. WHEN unenrolling from course THEN the OpenAPI spec SHALL document `/v1/courses/{course}/unenroll` DELETE endpoint
 
-### Requirement 11: Schemes Module Documentation
+### Requirement 10: Schemes Module Documentation
 
 **User Story:** As an API consumer, I want complete documentation for certification schemes endpoints, so that I can integrate scheme management features.
 
@@ -140,9 +129,8 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 1. WHEN listing schemes THEN the OpenAPI spec SHALL document `/v1/schemes` GET endpoint with pagination and filter parameters
 2. WHEN viewing scheme detail THEN the OpenAPI spec SHALL document `/v1/schemes/{scheme}` GET endpoint with complete scheme structure
 3. WHEN accessing scheme courses THEN the OpenAPI spec SHALL document `/v1/schemes/{scheme}/courses` endpoint
-4. WHEN accessing scheme assessments THEN the OpenAPI spec SHALL document `/v1/schemes/{scheme}/assessments` endpoint
 
-### Requirement 12: Gamification Module Documentation
+### Requirement 11: Gamification Module Documentation
 
 **User Story:** As an API consumer, I want complete documentation for gamification endpoints, so that I can integrate badges, points, and leaderboard features.
 
@@ -150,7 +138,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 
 1. WHEN accessing gamification THEN the OpenAPI spec SHALL document `/v1/gamifications` CRUD endpoints
 
-### Requirement 13: Search Module Documentation
+### Requirement 12: Search Module Documentation
 
 **User Story:** As an API consumer, I want complete documentation for search endpoints, so that I can integrate course search and autocomplete features.
 
@@ -161,7 +149,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 3. WHEN viewing search history THEN the OpenAPI spec SHALL document `/v1/search/history` GET endpoint
 4. WHEN clearing search history THEN the OpenAPI spec SHALL document `/v1/search/history` DELETE endpoint
 
-### Requirement 14: Notifications Module Documentation
+### Requirement 13: Notifications Module Documentation
 
 **User Story:** As an API consumer, I want complete documentation for notification endpoints, so that I can integrate notification features.
 
@@ -171,7 +159,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 2. WHEN accessing notification preferences THEN the OpenAPI spec SHALL document `/v1/notification-preferences` GET and PUT endpoints
 3. WHEN resetting notification preferences THEN the OpenAPI spec SHALL document `/v1/notification-preferences/reset` POST endpoint
 
-### Requirement 15: Categories Module Documentation
+### Requirement 14: Categories Module Documentation
 
 **User Story:** As an API consumer, I want complete documentation for category endpoints, so that I can integrate category management features.
 
@@ -181,7 +169,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 2. WHEN viewing category detail THEN the OpenAPI spec SHALL document `/v1/categories/{category}` GET endpoint
 3. WHEN managing categories (admin) THEN the OpenAPI spec SHALL document POST, PUT, DELETE endpoints
 
-### Requirement 16: Course Tags Documentation
+### Requirement 15: Course Tags Documentation
 
 **User Story:** As an API consumer, I want complete documentation for course tag endpoints, so that I can integrate tag management features.
 
@@ -191,7 +179,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 2. WHEN viewing tag detail THEN the OpenAPI spec SHALL document `/v1/course-tags/{tag}` GET endpoint
 3. WHEN managing tags (admin) THEN the OpenAPI spec SHALL document POST, PUT, DELETE endpoints
 
-### Requirement 17: Course Structure Documentation (Units, Lessons, Blocks)
+### Requirement 16: Course Structure Documentation (Units, Lessons, Blocks)
 
 **User Story:** As an API consumer, I want complete documentation for course structure endpoints, so that I can integrate course content navigation.
 
@@ -204,7 +192,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 5. WHEN publishing/unpublishing units THEN the OpenAPI spec SHALL document publish/unpublish endpoints
 6. WHEN publishing/unpublishing lessons THEN the OpenAPI spec SHALL document publish/unpublish endpoints
 
-### Requirement 18: Course Progress Documentation
+### Requirement 17: Course Progress Documentation
 
 **User Story:** As an API consumer, I want complete documentation for course progress endpoints, so that I can integrate progress tracking features.
 
@@ -213,7 +201,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 1. WHEN viewing course progress THEN the OpenAPI spec SHALL document `/v1/courses/{course}/progress` GET endpoint
 2. WHEN completing a lesson THEN the OpenAPI spec SHALL document `/v1/courses/{course}/units/{unit}/lessons/{lesson}/complete` POST endpoint
 
-### Requirement 19: Enrollment Key Management Documentation
+### Requirement 18: Enrollment Key Management Documentation
 
 **User Story:** As an API consumer, I want complete documentation for enrollment key management endpoints, so that I can integrate key-based enrollment features.
 
@@ -223,51 +211,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 2. WHEN updating enrollment key THEN the OpenAPI spec SHALL document `/v1/courses/{course}/enrollment-key` PUT endpoint
 3. WHEN removing enrollment key THEN the OpenAPI spec SHALL document `/v1/courses/{course}/enrollment-key` DELETE endpoint
 
-### Requirement 20: Assessment Exercises Documentation
-
-**User Story:** As an API consumer, I want complete documentation for assessment exercise endpoints, so that I can integrate exercise management features.
-
-#### Acceptance Criteria
-
-1. WHEN managing exercises THEN the OpenAPI spec SHALL document `/v1/assessments/exercises` CRUD endpoints
-2. WHEN publishing exercise THEN the OpenAPI spec SHALL document `/v1/assessments/exercises/{exercise}/publish` PUT endpoint
-3. WHEN viewing exercise questions THEN the OpenAPI spec SHALL document `/v1/assessments/exercises/{exercise}/questions` GET endpoint
-
-### Requirement 21: Assessment Questions Documentation
-
-**User Story:** As an API consumer, I want complete documentation for assessment question endpoints, so that I can integrate question management features.
-
-#### Acceptance Criteria
-
-1. WHEN creating question THEN the OpenAPI spec SHALL document `/v1/assessments/exercises/{exercise}/questions` POST endpoint
-2. WHEN managing question THEN the OpenAPI spec SHALL document `/v1/assessments/questions/{question}` GET, PUT, DELETE endpoints
-3. WHEN managing question options THEN the OpenAPI spec SHALL document `/v1/assessments/questions/{question}/options` POST endpoint
-4. WHEN updating/deleting options THEN the OpenAPI spec SHALL document `/v1/assessments/options/{option}` PUT, DELETE endpoints
-
-### Requirement 22: Assessment Attempts Documentation
-
-**User Story:** As an API consumer, I want complete documentation for assessment attempt endpoints, so that I can integrate assessment taking features.
-
-#### Acceptance Criteria
-
-1. WHEN starting attempt THEN the OpenAPI spec SHALL document `/v1/assessments/exercises/{exercise}/attempts` POST endpoint
-2. WHEN listing attempts THEN the OpenAPI spec SHALL document `/v1/assessments/attempts` GET endpoint
-3. WHEN viewing attempt THEN the OpenAPI spec SHALL document `/v1/assessments/attempts/{attempt}` GET endpoint
-4. WHEN submitting answer THEN the OpenAPI spec SHALL document `/v1/assessments/attempts/{attempt}/answers` POST endpoint
-5. WHEN completing attempt THEN the OpenAPI spec SHALL document `/v1/assessments/attempts/{attempt}/complete` PUT endpoint
-
-### Requirement 23: Assessment Grading Documentation
-
-**User Story:** As an API consumer, I want complete documentation for assessment grading endpoints, so that I can integrate grading features.
-
-#### Acceptance Criteria
-
-1. WHEN viewing exercise attempts THEN the OpenAPI spec SHALL document `/v1/assessments/exercises/{exercise}/attempts` GET endpoint
-2. WHEN viewing attempt answers THEN the OpenAPI spec SHALL document `/v1/assessments/attempts/{attempt}/answers` GET endpoint
-3. WHEN adding feedback THEN the OpenAPI spec SHALL document `/v1/assessments/answers/{answer}/feedback` PUT endpoint
-4. WHEN updating score THEN the OpenAPI spec SHALL document `/v1/assessments/attempts/{attempt}/score` PUT endpoint
-
-### Requirement 24: Forum Threads Documentation
+### Requirement 19: Forum Threads Documentation
 
 **User Story:** As an API consumer, I want complete documentation for forum thread endpoints, so that I can integrate forum discussion features.
 
@@ -279,7 +223,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 4. WHEN pinning thread THEN the OpenAPI spec SHALL document `/v1/schemes/{scheme}/forum/threads/{thread}/pin` POST endpoint
 5. WHEN closing thread THEN the OpenAPI spec SHALL document `/v1/schemes/{scheme}/forum/threads/{thread}/close` POST endpoint
 
-### Requirement 25: Forum Replies Documentation
+### Requirement 20: Forum Replies Documentation
 
 **User Story:** As an API consumer, I want complete documentation for forum reply endpoints, so that I can integrate reply features.
 
@@ -289,7 +233,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 2. WHEN managing reply THEN the OpenAPI spec SHALL document `/v1/forum/replies/{reply}` PUT, DELETE endpoints
 3. WHEN accepting reply THEN the OpenAPI spec SHALL document `/v1/forum/replies/{reply}/accept` POST endpoint
 
-### Requirement 26: Forum Reactions Documentation
+### Requirement 21: Forum Reactions Documentation
 
 **User Story:** As an API consumer, I want complete documentation for forum reaction endpoints, so that I can integrate reaction features.
 
@@ -298,7 +242,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 1. WHEN reacting to thread THEN the OpenAPI spec SHALL document `/v1/forum/threads/{thread}/reactions` POST endpoint
 2. WHEN reacting to reply THEN the OpenAPI spec SHALL document `/v1/forum/replies/{reply}/reactions` POST endpoint
 
-### Requirement 27: Enrollment Reports Documentation
+### Requirement 22: Enrollment Reports Documentation
 
 **User Story:** As an API consumer, I want complete documentation for enrollment report endpoints, so that I can integrate analytics features.
 
@@ -307,7 +251,7 @@ Dokumen ini mendefinisikan requirements untuk melengkapi dokumentasi API pada Sc
 1. WHEN viewing completion rate THEN the OpenAPI spec SHALL document `/v1/courses/{course}/reports/completion-rate` GET endpoint
 2. WHEN viewing enrollment funnel THEN the OpenAPI spec SHALL document `/v1/reports/enrollment-funnel` GET endpoint
 
-### Requirement 28: Learning Submissions Documentation
+### Requirement 23: Learning Submissions Documentation
 
 **User Story:** As an API consumer, I want complete documentation for assignment submission endpoints, so that I can integrate submission features.
 

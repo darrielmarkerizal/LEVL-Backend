@@ -115,11 +115,6 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(\Modules\Enrollments\Models\Enrollment::class);
     }
 
-    public function attempts()
-    {
-        return $this->hasMany(\Modules\Assessments\Models\Attempt::class);
-    }
-
     /**
      * Get courses managed by this user (courses where user is an admin)
      */
