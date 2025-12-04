@@ -14,19 +14,22 @@ use Modules\Auth\Http\Controllers\ProfileStatisticsController;
 use Modules\Auth\Http\Controllers\PublicProfileController;
 
 Route::prefix('v1')->as('auth.')->group(function () {
-    Route::post('/auth/register', [AuthApiController::class, 'register'])->name('register');
-    Route::post('/auth/login', [AuthApiController::class, 'login'])->name('login');
-    Route::get('/auth/google/redirect', [AuthApiController::class, 'googleRedirect'])->name('google.redirect');
-    Route::get('/auth/google/callback', [AuthApiController::class, 'googleCallback'])->name('google.callback');
+    // Auth endpoints with rate limiting (10 requests per minute)
+    Route::middleware(['throttle:auth'])->group(function () {
+        Route::post('/auth/register', [AuthApiController::class, 'register'])->name('register');
+        Route::post('/auth/login', [AuthApiController::class, 'login'])->name('login');
+        Route::get('/auth/google/redirect', [AuthApiController::class, 'googleRedirect'])->name('google.redirect');
+        Route::get('/auth/google/callback', [AuthApiController::class, 'googleCallback'])->name('google.callback');
 
-    Route::post('/auth/email/verify', [AuthApiController::class, 'verifyEmail'])->name('email.verify');
-    Route::post('/auth/email/verify/by-token', [AuthApiController::class, 'verifyEmailByToken'])->name('email.verify.by-token');
+        Route::post('/auth/email/verify', [AuthApiController::class, 'verifyEmail'])->name('email.verify');
+        Route::post('/auth/email/verify/by-token', [AuthApiController::class, 'verifyEmailByToken'])->name('email.verify.by-token');
+    });
 
     Route::post('/auth/refresh', [AuthApiController::class, 'refresh'])
-        ->middleware([\Modules\Auth\Http\Middleware\AllowExpiredToken::class])
+        ->middleware([\Modules\Auth\Http\Middleware\AllowExpiredToken::class, 'throttle:auth'])
         ->name('refresh');
 
-    Route::middleware(['auth:api'])->group(function () {
+    Route::middleware(['auth:api', 'throttle:api'])->group(function () {
         Route::post('/auth/logout', [AuthApiController::class, 'logout'])->name('logout');
         Route::get('/profile', [AuthApiController::class, 'profile'])->name('profile');
         Route::put('/profile', [AuthApiController::class, 'updateProfile'])->name('profile.update');
@@ -91,7 +94,10 @@ Route::prefix('v1')->as('auth.')->group(function () {
         });
     });
 
-    Route::post('/auth/password/forgot', [PasswordResetController::class, 'forgot'])->name('password.forgot');
-    Route::post('/auth/password/forgot/confirm', [PasswordResetController::class, 'confirmForgot'])->name('password.forgot.confirm');
-    Route::middleware(['auth:api'])->post('/auth/password/reset', [PasswordResetController::class, 'reset'])->name('password.reset');
+    // Password reset endpoints with auth rate limiting
+    Route::middleware(['throttle:auth'])->group(function () {
+        Route::post('/auth/password/forgot', [PasswordResetController::class, 'forgot'])->name('password.forgot');
+        Route::post('/auth/password/forgot/confirm', [PasswordResetController::class, 'confirmForgot'])->name('password.forgot.confirm');
+    });
+    Route::middleware(['auth:api', 'throttle:api'])->post('/auth/password/reset', [PasswordResetController::class, 'reset'])->name('password.reset');
 });

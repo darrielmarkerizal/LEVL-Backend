@@ -14,8 +14,8 @@ class GradingRubric extends Model
     public function scope()
     {
         return match ($this->scope_type) {
-            'exercise' => $this->belongsTo(\Modules\Assessments\Models\Exercise::class, 'scope_id'),
             'assignment' => $this->belongsTo(\Modules\Learning\Models\Assignment::class, 'scope_id'),
+            default => null,
         };
     }
 }

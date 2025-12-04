@@ -3,8 +3,8 @@
 namespace Modules\Auth\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -24,7 +24,7 @@ class RolePermissionSeeder extends Seeder
             'users.update',
             'users.delete',
             'users.assign-admin',
-            
+
             // Course management
             'courses.create',
             'courses.read',
@@ -33,7 +33,7 @@ class RolePermissionSeeder extends Seeder
             'courses.publish',
             'courses.assign-admin',
             'courses.assign-instructor',
-            
+
             // Content management
             'units.create',
             'units.read',
@@ -43,19 +43,12 @@ class RolePermissionSeeder extends Seeder
             'lessons.read',
             'lessons.update',
             'lessons.delete',
-            
+
             // Enrollment management
             'enrollments.create',
             'enrollments.read',
             'enrollments.update',
             'enrollments.delete',
-            
-            // Assessment management
-            'assessments.create',
-            'assessments.read',
-            'assessments.update',
-            'assessments.delete',
-            'assessments.grade',
         ];
 
         foreach ($permissions as $permission) {
@@ -118,10 +111,6 @@ class RolePermissionSeeder extends Seeder
             'lessons.read',
             'lessons.update',
             'enrollments.read',
-            'assessments.create',
-            'assessments.read',
-            'assessments.update',
-            'assessments.grade',
         ]);
 
         // Assign read-only permissions to student
@@ -130,8 +119,6 @@ class RolePermissionSeeder extends Seeder
             'units.read',
             'lessons.read',
             'enrollments.read',
-            'assessments.read',
         ]);
     }
 }
-

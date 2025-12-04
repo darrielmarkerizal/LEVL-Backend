@@ -2,9 +2,11 @@
 
 namespace Modules\Enrollments\Services;
 
+use App\Contracts\EnrollmentKeyHasherInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use Modules\Auth\Models\User;
 use Modules\Enrollments\Events\EnrollmentCreated;
 use Modules\Enrollments\Mail\AdminEnrollmentNotificationMail;
 use Modules\Enrollments\Mail\StudentEnrollmentActiveMail;
@@ -13,13 +15,14 @@ use Modules\Enrollments\Mail\StudentEnrollmentDeclinedMail;
 use Modules\Enrollments\Mail\StudentEnrollmentPendingMail;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
-use Modules\Auth\Models\User;
 
 class EnrollmentService
 {
+    public function __construct(
+        private EnrollmentKeyHasherInterface $keyHasher
+    ) {}
+
     /**
-     * @param  \Modules\Schemes\Models\Course  $course
-     * @param  \Modules\Auth\Models\User  $user
      * @param  array<string, mixed>  $payload
      * @return array{enrollment: Enrollment, status: string, message: string}
      *
@@ -224,7 +227,8 @@ class EnrollmentService
             ]);
         }
 
-        if (! hash_equals((string) $course->enrollment_key, $providedKey)) {
+        // Verify the provided key against the stored hash
+        if (empty($course->enrollment_key_hash) || ! $this->keyHasher->verify($providedKey, $course->enrollment_key_hash)) {
             throw ValidationException::withMessages([
                 'enrollment_key' => 'Kode enrollment tidak valid.',
             ]);
@@ -305,7 +309,7 @@ class EnrollmentService
     {
         $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
 
-        return rtrim($frontendUrl, '/') . '/courses/' . $course->slug;
+        return rtrim($frontendUrl, '/').'/courses/'.$course->slug;
     }
 
     /**
@@ -315,8 +319,6 @@ class EnrollmentService
     {
         $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
 
-        return rtrim($frontendUrl, '/') . '/courses/' . $course->slug . '/enrollments';
+        return rtrim($frontendUrl, '/').'/courses/'.$course->slug.'/enrollments';
     }
 }
-
-

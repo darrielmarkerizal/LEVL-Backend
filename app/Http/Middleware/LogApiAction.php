@@ -17,7 +17,7 @@ class LogApiAction
 
     public function terminate(Request $request, Response $response): void
     {
-        if (!$request->is('api/*')) {
+        if (! $request->is('api/*')) {
             return;
         }
 
@@ -51,13 +51,13 @@ class LogApiAction
                 }
                 // Filter out file uploads as they cannot be JSON encoded
                 $body = array_filter($body, function ($value) {
-                    return !($value instanceof \Illuminate\Http\UploadedFile);
+                    return ! ($value instanceof \Illuminate\Http\UploadedFile);
                 });
                 // Also handle arrays of files
                 foreach ($body as $key => $value) {
                     if (is_array($value)) {
                         $body[$key] = array_filter($value, function ($item) {
-                            return !($item instanceof \Illuminate\Http\UploadedFile);
+                            return ! ($item instanceof \Illuminate\Http\UploadedFile);
                         });
                     }
                 }
@@ -83,7 +83,7 @@ class LogApiAction
                 'logged_at' => now(),
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to log API action: ' . $e->getMessage(), [
+            Log::error('Failed to log API action: '.$e->getMessage(), [
                 'request_path' => $request->path(),
                 'exception' => $e,
             ]);
@@ -115,8 +115,6 @@ class LogApiAction
                 'assignments' => 'Learning',
                 'submissions' => 'Learning',
                 'enrollments' => 'Enrollments',
-                'exercises' => 'Assessments',
-                'attempts' => 'Assessments',
                 'auth' => 'Auth',
                 'users' => 'Auth',
                 'categories' => 'Common',
@@ -161,7 +159,7 @@ class LogApiAction
     {
         $route = $request->route();
 
-        if (!$route) {
+        if (! $route) {
             return null;
         }
 
