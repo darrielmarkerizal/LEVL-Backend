@@ -14,19 +14,23 @@ class AwardBadgeForCourseCompleted
         $enrollment = $event->enrollment->fresh(['user']);
         $course = $event->course->fresh();
 
-        if (! $enrollment || ! $enrollment->user) {
+        if (! $enrollment || ! $enrollment->user || ! $course) {
             return;
         }
 
+        // Award unique badge per course
+        $badgeCode = sprintf('course_completion_%d', $course->id);
+        $badgeName = sprintf('Menyelesaikan: %s', $course->title);
+
         $this->gamification->awardBadge(
             $enrollment->user_id,
-            'course_completion',
-            'Course Completer',
-            sprintf('Completed course: %s', $event->course->title)
+            $badgeCode,
+            $badgeName,
+            sprintf('Berhasil menyelesaikan course "%s"', $course->title)
         );
 
         // Optional XP bonus for finishing a course (configurable)
-        $completionXp = (int) \Modules\Common\Models\SystemSetting::get('gamification.points.course_complete', 0);
+        $completionXp = (int) \Modules\Common\Models\SystemSetting::get('gamification.points.course_complete', 50);
 
         if ($completionXp > 0) {
             $this->gamification->awardXp(
@@ -34,13 +38,12 @@ class AwardBadgeForCourseCompleted
                 $completionXp,
                 'bonus',
                 'system',
-                $event->course->id,
+                $course->id,
                 [
-                    'description' => sprintf('Completed course: %s', $event->course->title),
+                    'description' => sprintf('Menyelesaikan course: %s', $course->title),
                     'allow_multiple' => false,
                 ]
             );
         }
     }
 }
-

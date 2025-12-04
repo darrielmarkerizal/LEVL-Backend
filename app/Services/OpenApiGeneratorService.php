@@ -24,19 +24,19 @@ class OpenApiGeneratorService
                     'label' => 'Pelaksanaan Asesmen',
                     'description' => 'Proses pengerjaan asesmen oleh asesi.',
                     'modules' => ['Assessments'],
-                    'keywords' => ['assessments/attempts', 'assessments/submit'],
+                    'keywords' => ['assessments/attempts', 'assessments/submit', 'assessments/exercises', 'assessments/answers', 'attempts/complete', 'attempts/answers'],
                 ],
                 'hasil-rekomendasi' => [
                     'label' => 'Hasil & Rekomendasi Asesmen',
                     'description' => 'Melihat hasil penilaian dan rekomendasi asesor.',
                     'modules' => ['Assessments', 'Grading'],
-                    'keywords' => ['assessments/results', 'assessments/recommendations'],
+                    'keywords' => ['assessments/results', 'assessments/recommendations', 'grading', 'answers/feedback', 'attempts/score'],
                 ],
                 'bank-soal' => [
                     'label' => 'Bank Soal Asesmen',
                     'description' => 'Manajemen bank soal khusus untuk asesmen.',
                     'modules' => ['Assessments'],
-                    'keywords' => ['assessments/questions', 'assessments/banks'],
+                    'keywords' => ['assessments/questions', 'assessments/banks', 'assessments/options', 'questions/options'],
                 ],
             ],
         ],
@@ -90,19 +90,19 @@ class OpenApiGeneratorService
                     'label' => 'Forum Skema',
                     'description' => 'Forum diskusi spesifik untuk skema/kelas tertentu.',
                     'modules' => ['Learning', 'Schemes', 'Forums'],
-                    'keywords' => ['forum/schemes', 'forum/statistics'],
+                    'keywords' => ['forum/schemes', 'forum/statistics', 'schemes/forum', 'statistics/me'],
                 ],
                 'topik' => [
                     'label' => 'Topik & Thread Diskusi',
                     'description' => 'Membuat dan melihat topik diskusi.',
                     'modules' => ['Learning', 'Forums'],
-                    'keywords' => ['forum/threads', 'forum/topics'],
+                    'keywords' => ['forum/threads', 'forum/topics', 'threads/search', 'threads/pin', 'threads/close', 'threads/reactions'],
                 ],
                 'komentar' => [
                     'label' => 'Komentar & Balasan',
                     'description' => 'Memberikan komentar atau balasan pada diskusi.',
                     'modules' => ['Learning', 'Forums'],
-                    'keywords' => ['forum/comments', 'forum/replies'],
+                    'keywords' => ['forum/comments', 'forum/replies', 'replies/accept', 'replies/reactions', 'threads/replies'],
                 ],
             ],
         ],
@@ -120,7 +120,7 @@ class OpenApiGeneratorService
                     'label' => 'Poin & Badges',
                     'description' => 'Sistem poin dan lencana penghargaan.',
                     'modules' => ['Gamification'],
-                    'keywords' => ['points', 'badges'],
+                    'keywords' => ['points', 'badges', 'gamification/summary', 'gamification/badges', 'gamification/points-history', 'gamification/achievements'],
                 ],
                 'level' => [
                     'label' => 'Level & XP',
@@ -128,11 +128,17 @@ class OpenApiGeneratorService
                     'modules' => ['Gamification'],
                     'keywords' => ['levels', 'xp'],
                 ],
+                'challenges' => [
+                    'label' => 'Challenges',
+                    'description' => 'Tantangan harian dan mingguan untuk mendapatkan XP dan badge.',
+                    'modules' => ['Gamification'],
+                    'keywords' => ['challenges', 'challenges/my', 'challenges/completed', 'challenges/claim'],
+                ],
                 'leaderboard' => [
                     'label' => 'Leaderboard',
                     'description' => 'Papan peringkat pengguna terbaik.',
                     'modules' => ['Gamification'],
-                    'keywords' => ['leaderboard'],
+                    'keywords' => ['leaderboard', 'leaderboards', 'leaderboards/my-rank'],
                 ],
             ],
         ],
@@ -144,7 +150,7 @@ class OpenApiGeneratorService
                     'label' => 'Berita & Pengumuman',
                     'description' => 'Berita terbaru dan pengumuman penting.',
                     'modules' => ['Content', 'Common', 'Operations'],
-                    'keywords' => ['news', 'announcements', 'info', 'content/statistics', 'content/search', 'content/pending'],
+                    'keywords' => ['news', 'announcements', 'info', 'content/statistics', 'content/search', 'content/pending', 'content/submit', 'content/approve', 'content/reject', 'courses/announcements', 'pending-review'],
                 ],
                 'notifikasi-sistem' => [
                     'label' => 'Notifikasi Sistem',
@@ -156,7 +162,13 @@ class OpenApiGeneratorService
                     'label' => 'Notifikasi In-App',
                     'description' => 'Daftar notifikasi di dalam aplikasi.',
                     'modules' => ['Notifications'],
-                    'keywords' => ['notifications'],
+                    'keywords' => ['notifications', 'notification-preferences'],
+                ],
+                'pencarian' => [
+                    'label' => 'Pencarian',
+                    'description' => 'Fitur pencarian kursus dan konten.',
+                    'modules' => ['Search'],
+                    'keywords' => ['search/courses', 'search/autocomplete', 'search/history'],
                 ],
             ],
         ],
@@ -180,7 +192,7 @@ class OpenApiGeneratorService
                     'label' => 'Profil Pengguna (Lihat & Update)',
                     'description' => 'Melihat dan mengubah data profil.',
                     'modules' => ['Auth'],
-                    'keywords' => ['profile', 'me', 'profile/privacy', 'profile/activities', 'profile/statistics'],
+                    'keywords' => ['profile', 'me', 'profile/privacy', 'profile/activities', 'profile/statistics', 'profile/achievements', 'users/profile'],
                 ],
                 'email' => [
                     'label' => 'Manajemen Email',
@@ -210,7 +222,7 @@ class OpenApiGeneratorService
                     'label' => 'Manajemen Akun',
                     'description' => 'Hapus dan restore akun pengguna.',
                     'modules' => ['Auth'],
-                    'keywords' => ['profile/account'],
+                    'keywords' => ['profile/account', 'account/restore', 'account/delete'],
                 ],
             ],
         ],
@@ -276,7 +288,7 @@ class OpenApiGeneratorService
                     'label' => 'Export Data Kelas',
                     'description' => 'Export data pendaftaran dan laporan kelas.',
                     'modules' => ['Enrollments', 'Schemes'],
-                    'keywords' => ['exports', 'enrollments-csv'],
+                    'keywords' => ['exports', 'enrollments-csv', 'reports/completion-rate', 'reports/enrollment-funnel'],
                 ],
             ],
         ],
@@ -330,7 +342,7 @@ class OpenApiGeneratorService
                     'label' => 'Pengumpulan Jawaban',
                     'description' => 'Submit jawaban tugas atau latihan.',
                     'modules' => ['Learning'],
-                    'keywords' => ['submissions', 'answers'],
+                    'keywords' => ['submissions', 'answers', 'assignments/submissions'],
                 ],
                 'penilaian' => [
                     'label' => 'Penilaian Tugas & Latihan',
@@ -955,6 +967,231 @@ class OpenApiGeneratorService
         return null;
     }
 
+    /**
+     * Endpoint-specific summaries for actual documentation
+     */
+    protected array $summaryOverrides = [
+        // Auth Module
+        'v1/auth/login' => ['post' => 'Login ke sistem'],
+        'v1/auth/register' => ['post' => 'Registrasi akun baru'],
+        'v1/auth/logout' => ['post' => 'Logout dari sistem'],
+        'v1/auth/refresh' => ['post' => 'Refresh access token'],
+        'v1/auth/set-username' => ['post' => 'Set username untuk akun baru'],
+        'v1/auth/email/verify' => ['post' => 'Verifikasi email dengan OTP'],
+        'v1/auth/email/verify/by-token' => ['post' => 'Verifikasi email dengan magic link'],
+        'v1/auth/email/verify/send' => ['post' => 'Kirim ulang email verifikasi'],
+        'v1/auth/password/forgot' => ['post' => 'Request reset password'],
+        'v1/auth/password/forgot/confirm' => ['post' => 'Konfirmasi kode reset password'],
+        'v1/auth/password/reset' => ['post' => 'Reset password dengan token'],
+        'v1/auth/google/redirect' => ['get' => 'Redirect ke Google OAuth'],
+        'v1/auth/google/callback' => ['get' => 'Callback dari Google OAuth'],
+        'v1/auth/instructor' => ['post' => 'Buat akun Instructor baru'],
+        'v1/auth/admin' => ['post' => 'Buat akun Admin baru'],
+        'v1/auth/super-admin' => ['post' => 'Buat akun Super Admin baru'],
+        'v1/auth/credentials/resend' => ['post' => 'Kirim ulang kredensial akun'],
+        'v1/auth/users' => ['get' => 'Daftar semua pengguna'],
+        'v1/auth/users/{user}' => ['get' => 'Detail pengguna'],
+        'v1/auth/users/{user}/status' => ['put' => 'Update status pengguna'],
+
+        // Profile Module
+        'v1/profile' => ['get' => 'Lihat profil saya', 'put' => 'Update profil saya'],
+        'v1/profile/avatar' => ['post' => 'Upload foto profil', 'delete' => 'Hapus foto profil'],
+        'v1/profile/privacy' => ['get' => 'Lihat pengaturan privasi', 'put' => 'Update pengaturan privasi'],
+        'v1/profile/activities' => ['get' => 'Riwayat aktivitas saya'],
+        'v1/profile/achievements' => ['get' => 'Daftar pencapaian saya'],
+        'v1/profile/badges/{badge}/pin' => ['post' => 'Pin badge ke profil'],
+        'v1/profile/badges/{badge}/unpin' => ['delete' => 'Unpin badge dari profil'],
+        'v1/profile/statistics' => ['get' => 'Statistik pembelajaran saya'],
+        'v1/profile/password' => ['put' => 'Ubah password'],
+        'v1/profile/account' => ['delete' => 'Nonaktifkan akun'],
+        'v1/profile/account/restore' => ['post' => 'Aktifkan kembali akun'],
+        'v1/profile/email/verify' => ['post' => 'Verifikasi perubahan email'],
+        'v1/profile/email/request' => ['post' => 'Request perubahan email'],
+        'v1/users/{user}/profile' => ['get' => 'Lihat profil publik pengguna'],
+
+        // Admin Profile
+        'v1/admin/users/{user}/profile' => ['get' => 'Lihat profil pengguna (Admin)', 'put' => 'Update profil pengguna (Admin)'],
+        'v1/admin/users/{user}/suspend' => ['post' => 'Suspend akun pengguna'],
+        'v1/admin/users/{user}/activate' => ['post' => 'Aktifkan akun pengguna'],
+        'v1/admin/users/{user}/audit-logs' => ['get' => 'Log audit aktivitas pengguna'],
+
+        // Courses
+        'v1/courses' => ['get' => 'Daftar kursus', 'post' => 'Buat kursus baru'],
+        'v1/courses/{course}' => ['get' => 'Detail kursus', 'put' => 'Update kursus', 'delete' => 'Hapus kursus'],
+        'v1/courses/{course}/publish' => ['put' => 'Publikasikan kursus'],
+        'v1/courses/{course}/unpublish' => ['put' => 'Batalkan publikasi kursus'],
+        'v1/courses/{course}/enrollment-key/generate' => ['post' => 'Generate enrollment key baru'],
+        'v1/courses/{course}/enrollment-key' => ['put' => 'Update enrollment key', 'delete' => 'Hapus enrollment key'],
+
+        // Units
+        'v1/courses/{course}/units' => ['get' => 'Daftar unit dalam kursus', 'post' => 'Buat unit baru'],
+        'v1/courses/{course}/units/reorder' => ['put' => 'Ubah urutan unit'],
+        'v1/courses/{course}/units/{unit}' => ['get' => 'Detail unit', 'put' => 'Update unit', 'delete' => 'Hapus unit'],
+        'v1/courses/{course}/units/{unit}/publish' => ['put' => 'Publikasikan unit'],
+        'v1/courses/{course}/units/{unit}/unpublish' => ['put' => 'Batalkan publikasi unit'],
+
+        // Lessons
+        'v1/courses/{course}/units/{unit}/lessons' => ['get' => 'Daftar lesson dalam unit', 'post' => 'Buat lesson baru'],
+        'v1/courses/{course}/units/{unit}/lessons/{lesson}' => ['get' => 'Detail lesson', 'put' => 'Update lesson', 'delete' => 'Hapus lesson'],
+        'v1/courses/{course}/units/{unit}/lessons/{lesson}/publish' => ['put' => 'Publikasikan lesson'],
+        'v1/courses/{course}/units/{unit}/lessons/{lesson}/unpublish' => ['put' => 'Batalkan publikasi lesson'],
+        'v1/courses/{course}/units/{unit}/lessons/{lesson}/complete' => ['post' => 'Tandai lesson selesai'],
+
+        // Blocks
+        'v1/courses/{course}/units/{unit}/lessons/{lesson}/blocks' => ['get' => 'Daftar block dalam lesson', 'post' => 'Buat block baru'],
+        'v1/courses/{course}/units/{unit}/lessons/{lesson}/blocks/{block}' => ['get' => 'Detail block', 'put' => 'Update block', 'delete' => 'Hapus block'],
+
+        // Progress
+        'v1/courses/{course}/progress' => ['get' => 'Progress kursus saya'],
+
+        // Tags
+        'v1/course-tags' => ['get' => 'Daftar tag kursus', 'post' => 'Buat tag baru'],
+        'v1/course-tags/{tag}' => ['get' => 'Detail tag', 'put' => 'Update tag', 'delete' => 'Hapus tag'],
+
+        // Enrollments
+        'v1/courses/{course}/enrollments' => ['get' => 'Daftar peserta kursus', 'post' => 'Daftar ke kursus'],
+        'v1/courses/{course}/enrollment-status' => ['get' => 'Cek status pendaftaran'],
+        'v1/courses/{course}/cancel' => ['post' => 'Batalkan pendaftaran'],
+        'v1/courses/{course}/withdraw' => ['post' => 'Keluar dari kursus'],
+        'v1/enrollments' => ['get' => 'Daftar pendaftaran saya'],
+        'v1/courses/enrollments' => ['get' => 'Daftar pendaftaran yang dikelola'],
+        'v1/enrollments/{enrollment}/approve' => ['post' => 'Setujui pendaftaran'],
+        'v1/enrollments/{enrollment}/decline' => ['post' => 'Tolak pendaftaran'],
+        'v1/enrollments/{enrollment}/remove' => ['post' => 'Hapus peserta dari kursus'],
+
+        // Reports
+        'v1/courses/{course}/reports/completion-rate' => ['get' => 'Laporan tingkat penyelesaian kursus'],
+        'v1/reports/enrollment-funnel' => ['get' => 'Laporan funnel pendaftaran'],
+        'v1/courses/{course}/exports/enrollments-csv' => ['get' => 'Export data pendaftaran ke CSV'],
+
+        // Announcements
+        'v1/announcements' => ['get' => 'Daftar pengumuman', 'post' => 'Buat pengumuman baru'],
+        'v1/announcements/{announcement}' => ['get' => 'Detail pengumuman', 'put' => 'Update pengumuman', 'delete' => 'Hapus pengumuman'],
+        'v1/announcements/{announcement}/publish' => ['post' => 'Publikasikan pengumuman'],
+        'v1/announcements/{announcement}/schedule' => ['post' => 'Jadwalkan pengumuman'],
+        'v1/announcements/{announcement}/read' => ['post' => 'Tandai pengumuman sudah dibaca'],
+
+        // News
+        'v1/news' => ['get' => 'Daftar berita', 'post' => 'Buat berita baru'],
+        'v1/news/trending' => ['get' => 'Berita trending'],
+        'v1/news/{news}' => ['get' => 'Detail berita', 'put' => 'Update berita', 'delete' => 'Hapus berita'],
+        'v1/news/{news}/publish' => ['post' => 'Publikasikan berita'],
+        'v1/news/{news}/schedule' => ['post' => 'Jadwalkan berita'],
+
+        // Course Announcements
+        'v1/courses/{course}/announcements' => ['get' => 'Daftar pengumuman kursus', 'post' => 'Buat pengumuman kursus'],
+
+        // Content Statistics
+        'v1/content/statistics' => ['get' => 'Statistik konten'],
+        'v1/content/statistics/announcements/{announcement}' => ['get' => 'Statistik pengumuman'],
+        'v1/content/statistics/news/{news}' => ['get' => 'Statistik berita'],
+        'v1/content/statistics/trending' => ['get' => 'Konten trending'],
+        'v1/content/statistics/most-viewed' => ['get' => 'Konten paling banyak dilihat'],
+        'v1/content/search' => ['get' => 'Cari konten'],
+
+        // Content Approval
+        'v1/content/{type}/{id}/submit' => ['post' => 'Submit konten untuk review'],
+        'v1/content/{type}/{id}/approve' => ['post' => 'Setujui konten'],
+        'v1/content/{type}/{id}/reject' => ['post' => 'Tolak konten'],
+        'v1/content/pending-review' => ['get' => 'Daftar konten menunggu review'],
+
+        // Assessments
+        'v1/assessments/{assessment}/register' => ['post' => 'Daftar ke jadwal asesmen'],
+        'v1/assessments/{assessment}/prerequisites' => ['get' => 'Cek prasyarat asesmen'],
+        'v1/assessments/{assessment}/slots' => ['get' => 'Daftar slot waktu asesmen'],
+        'v1/assessment-registrations/{registration}' => ['delete' => 'Batalkan pendaftaran asesmen'],
+
+        // Exercises
+        'v1/assessments/exercises' => ['get' => 'Daftar exercise', 'post' => 'Buat exercise baru'],
+        'v1/assessments/exercises/{exercise}' => ['get' => 'Detail exercise', 'put' => 'Update exercise', 'delete' => 'Hapus exercise'],
+        'v1/assessments/exercises/{exercise}/publish' => ['put' => 'Publikasikan exercise'],
+        'v1/assessments/exercises/{exercise}/questions' => ['get' => 'Daftar soal dalam exercise', 'post' => 'Tambah soal ke exercise'],
+
+        // Questions
+        'v1/assessments/questions/{question}' => ['get' => 'Detail soal', 'put' => 'Update soal', 'delete' => 'Hapus soal'],
+        'v1/assessments/questions/{question}/options' => ['post' => 'Tambah opsi jawaban'],
+        'v1/assessments/options/{option}' => ['put' => 'Update opsi jawaban', 'delete' => 'Hapus opsi jawaban'],
+
+        // Attempts
+        'v1/assessments/exercises/{exercise}/attempts' => ['get' => 'Daftar attempt exercise', 'post' => 'Mulai attempt baru'],
+        'v1/assessments/attempts' => ['get' => 'Daftar attempt saya'],
+        'v1/assessments/attempts/{attempt}' => ['get' => 'Detail attempt'],
+        'v1/assessments/attempts/{attempt}/answers' => ['get' => 'Daftar jawaban attempt', 'post' => 'Submit jawaban'],
+        'v1/assessments/attempts/{attempt}/complete' => ['put' => 'Selesaikan attempt'],
+        'v1/assessments/attempts/{attempt}/score' => ['put' => 'Update skor attempt'],
+        'v1/assessments/answers/{answer}/feedback' => ['put' => 'Berikan feedback jawaban'],
+
+        // Forum Threads
+        'v1/schemes/{scheme}/forum/threads' => ['get' => 'Daftar thread forum', 'post' => 'Buat thread baru'],
+        'v1/schemes/{scheme}/forum/threads/search' => ['get' => 'Cari thread forum'],
+        'v1/schemes/{scheme}/forum/threads/{thread}' => ['get' => 'Detail thread', 'put' => 'Update thread', 'delete' => 'Hapus thread'],
+        'v1/schemes/{scheme}/forum/threads/{thread}/pin' => ['post' => 'Pin thread'],
+        'v1/schemes/{scheme}/forum/threads/{thread}/close' => ['post' => 'Tutup thread'],
+        'v1/schemes/{scheme}/forum/statistics' => ['get' => 'Statistik forum skema'],
+        'v1/schemes/{scheme}/forum/statistics/me' => ['get' => 'Statistik forum saya'],
+
+        // Forum Replies
+        'v1/forum/threads/{thread}/replies' => ['post' => 'Balas thread'],
+        'v1/forum/replies/{reply}' => ['put' => 'Update balasan', 'delete' => 'Hapus balasan'],
+        'v1/forum/replies/{reply}/accept' => ['post' => 'Terima sebagai jawaban terbaik'],
+
+        // Forum Reactions
+        'v1/forum/threads/{thread}/reactions' => ['post' => 'Toggle reaksi thread'],
+        'v1/forum/replies/{reply}/reactions' => ['post' => 'Toggle reaksi balasan'],
+
+        // Search
+        'v1/search/courses' => ['get' => 'Cari kursus'],
+        'v1/search/autocomplete' => ['get' => 'Autocomplete pencarian'],
+        'v1/search/history' => ['get' => 'Riwayat pencarian', 'delete' => 'Hapus riwayat pencarian'],
+
+        // Notifications
+        'v1/notifications' => ['get' => 'Daftar notifikasi'],
+        'v1/notifications/{notification}' => ['get' => 'Detail notifikasi', 'put' => 'Update notifikasi', 'delete' => 'Hapus notifikasi'],
+        'v1/notification-preferences' => ['get' => 'Preferensi notifikasi', 'put' => 'Update preferensi notifikasi'],
+        'v1/notification-preferences/reset' => ['post' => 'Reset preferensi notifikasi'],
+
+        // Categories
+        'v1/categories' => ['get' => 'Daftar kategori', 'post' => 'Buat kategori baru'],
+        'v1/categories/{category}' => ['get' => 'Detail kategori', 'put' => 'Update kategori', 'delete' => 'Hapus kategori'],
+
+        // Assignments
+        'v1/courses/{course}/units/{unit}/lessons/{lesson}/assignments' => ['get' => 'Daftar tugas dalam lesson', 'post' => 'Buat tugas baru'],
+        'v1/assignments/{assignment}' => ['get' => 'Detail tugas', 'put' => 'Update tugas', 'delete' => 'Hapus tugas'],
+        'v1/assignments/{assignment}/publish' => ['put' => 'Publikasikan tugas'],
+        'v1/assignments/{assignment}/unpublish' => ['put' => 'Batalkan publikasi tugas'],
+
+        // Submissions
+        'v1/assignments/{assignment}/submissions' => ['get' => 'Daftar pengumpulan tugas', 'post' => 'Kumpulkan tugas'],
+        'v1/submissions/{submission}' => ['get' => 'Detail pengumpulan', 'put' => 'Update pengumpulan'],
+
+        // Gamification
+        'v1/gamifications' => ['get' => 'Daftar gamifikasi', 'post' => 'Buat gamifikasi baru'],
+        'v1/gamifications/{gamification}' => ['get' => 'Detail gamifikasi', 'put' => 'Update gamifikasi', 'delete' => 'Hapus gamifikasi'],
+        'v1/gamification/summary' => ['get' => 'Ringkasan gamifikasi user (XP, level, streak, rank)'],
+        'v1/gamification/badges' => ['get' => 'Daftar badge yang dimiliki user'],
+        'v1/gamification/points-history' => ['get' => 'Riwayat perolehan XP user'],
+        'v1/gamification/achievements' => ['get' => 'Pencapaian dan milestone user'],
+
+        // Challenges
+        'v1/challenges' => ['get' => 'Daftar challenge aktif'],
+        'v1/challenges/my' => ['get' => 'Challenge yang di-assign ke user'],
+        'v1/challenges/completed' => ['get' => 'Riwayat challenge yang sudah selesai'],
+        'v1/challenges/{challenge}' => ['get' => 'Detail challenge'],
+        'v1/challenges/{challenge}/claim' => ['post' => 'Klaim reward challenge yang sudah selesai'],
+
+        // Leaderboards
+        'v1/leaderboards' => ['get' => 'Leaderboard global'],
+        'v1/leaderboards/my-rank' => ['get' => 'Rank user saat ini dan user sekitarnya'],
+
+        // Grading
+        'v1/gradings' => ['get' => 'Daftar penilaian', 'post' => 'Buat penilaian baru'],
+        'v1/gradings/{grading}' => ['get' => 'Detail penilaian', 'put' => 'Update penilaian', 'delete' => 'Hapus penilaian'],
+
+        // Operations
+        'v1/operations' => ['get' => 'Daftar operasi', 'post' => 'Buat operasi baru'],
+        'v1/operations/{operation}' => ['get' => 'Detail operasi', 'put' => 'Update operasi', 'delete' => 'Hapus operasi'],
+    ];
+
     protected array $resourceMap = [
         'auth' => 'Autentikasi',
         'login' => 'Login',
@@ -983,6 +1220,9 @@ class OpenApiGeneratorService
         'threads' => 'Thread',
         'topics' => 'Topik',
         'leaderboard' => 'Leaderboard',
+        'leaderboards' => 'Leaderboard',
+        'challenges' => 'Challenge',
+        'gamification' => 'Gamifikasi',
         'points' => 'Poin',
         'badges' => 'Badge',
         'levels' => 'Level',
@@ -1019,6 +1259,12 @@ class OpenApiGeneratorService
 
     protected function getSummary(?ReflectionMethod $method, string $uri, string $httpMethod): string
     {
+        // Priority 0: Check summaryOverrides map first
+        $normalizedUri = $this->normalizeUriForLookup($uri);
+        if (isset($this->summaryOverrides[$normalizedUri][$httpMethod])) {
+            return $this->summaryOverrides[$normalizedUri][$httpMethod];
+        }
+
         if ($method) {
             $docComment = $method->getDocComment();
             if ($docComment && preg_match("/@summary\s+(.+)/", $docComment, $matches)) {
@@ -1160,6 +1406,19 @@ class OpenApiGeneratorService
         }, $words);
 
         return implode(' ', $translatedWords);
+    }
+
+    /**
+     * Normalize URI for lookup in override maps
+     * Converts actual parameter values to placeholder format
+     */
+    protected function normalizeUriForLookup(string $uri): string
+    {
+        // Replace :slug binding with just the parameter name
+        $normalized = preg_replace('/\{(\w+):slug\}/', '{$1}', $uri);
+
+        // Ensure consistent format
+        return $normalized;
     }
 
     protected function extractParameters(string $uri): array

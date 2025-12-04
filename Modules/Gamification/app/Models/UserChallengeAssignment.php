@@ -5,6 +5,7 @@ namespace Modules\Gamification\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Auth\Models\User;
+use Modules\Gamification\Enums\ChallengeAssignmentStatus;
 
 class UserChallengeAssignment extends Model
 {
@@ -15,7 +16,9 @@ class UserChallengeAssignment extends Model
         'challenge_id',
         'assigned_date',
         'status',
+        'current_progress',
         'completed_at',
+        'reward_claimed',
         'expires_at',
     ];
 
@@ -23,8 +26,10 @@ class UserChallengeAssignment extends Model
         'user_id' => 'integer',
         'challenge_id' => 'integer',
         'assigned_date' => 'date',
-        'status' => 'string',
+        'status' => ChallengeAssignmentStatus::class,
+        'current_progress' => 'integer',
         'completed_at' => 'datetime',
+        'reward_claimed' => 'boolean',
         'expires_at' => 'datetime',
     ];
 
@@ -64,7 +69,39 @@ class UserChallengeAssignment extends Model
 
     public function isCompleted(): bool
     {
-        return $this->status === 'completed';
+        return $this->status === ChallengeAssignmentStatus::Completed
+            || $this->status === ChallengeAssignmentStatus::Claimed;
+    }
+
+    /**
+     * Check if reward can be claimed.
+     */
+    public function isClaimable(): bool
+    {
+        return $this->status === ChallengeAssignmentStatus::Completed
+            && ! $this->reward_claimed;
+    }
+
+    /**
+     * Get progress percentage.
+     */
+    public function getProgressPercentage(): float
+    {
+        $target = $this->challenge?->criteria_target ?? 1;
+        if ($target <= 0) {
+            return 100.0;
+        }
+
+        return min(100.0, ($this->current_progress / $target) * 100);
+    }
+
+    /**
+     * Check if challenge criteria is met.
+     */
+    public function isCriteriaMet(): bool
+    {
+        $target = $this->challenge?->criteria_target ?? 1;
+
+        return $this->current_progress >= $target;
     }
 }
-
