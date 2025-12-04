@@ -7,6 +7,7 @@ enum PointSourceType: string
     case Lesson = 'lesson';
     case Assignment = 'assignment';
     case Attempt = 'attempt';
+    case Challenge = 'challenge';
     case System = 'system';
 
     /**
@@ -34,6 +35,7 @@ enum PointSourceType: string
             self::Lesson => __('enums.point_source_type.lesson'),
             self::Assignment => __('enums.point_source_type.assignment'),
             self::Attempt => __('enums.point_source_type.attempt'),
+            self::Challenge => __('enums.point_source_type.challenge'),
             self::System => __('enums.point_source_type.system'),
         };
     }

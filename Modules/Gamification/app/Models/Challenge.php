@@ -15,6 +15,8 @@ class Challenge extends Model
         'title',
         'description',
         'type',
+        'criteria',
+        'target_count',
         'points_reward',
         'badge_id',
         'start_at',
@@ -24,6 +26,8 @@ class Challenge extends Model
     protected $casts = [
         'badge_id' => 'integer',
         'points_reward' => 'integer',
+        'target_count' => 'integer',
+        'criteria' => 'array',
         'start_at' => 'datetime',
         'end_at' => 'datetime',
         'type' => ChallengeType::class,
@@ -79,5 +83,21 @@ class Challenge extends Model
         $notEnded = $this->end_at === null || $this->end_at->gte($now);
 
         return $started && $notEnded;
+    }
+
+    /**
+     * Get the criteria type from the criteria JSON.
+     */
+    public function getCriteriaTypeAttribute(): ?string
+    {
+        return $this->criteria['type'] ?? null;
+    }
+
+    /**
+     * Get the criteria target from the criteria JSON.
+     */
+    public function getCriteriaTargetAttribute(): int
+    {
+        return $this->criteria['target'] ?? $this->target_count;
     }
 }

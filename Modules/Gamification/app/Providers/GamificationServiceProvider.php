@@ -39,7 +39,7 @@ class GamificationServiceProvider extends ServiceProvider
         $this->app->register(RouteServiceProvider::class);
 
         $this->app->singleton(GamificationService::class, function () {
-            return new GamificationService();
+            return new GamificationService;
         });
     }
 
@@ -48,7 +48,12 @@ class GamificationServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Gamification\Console\Commands\AssignDailyChallenges::class,
+            \Modules\Gamification\Console\Commands\AssignWeeklyChallenges::class,
+            \Modules\Gamification\Console\Commands\ExpireChallenges::class,
+            \Modules\Gamification\Console\Commands\UpdateLeaderboard::class,
+        ]);
     }
 
     /**
@@ -56,10 +61,13 @@ class GamificationServiceProvider extends ServiceProvider
      */
     protected function registerCommandSchedules(): void
     {
-        // $this->app->booted(function () {
-        //     $schedule = $this->app->make(Schedule::class);
-        //     $schedule->command('inspire')->hourly();
-        // });
+        $this->app->booted(function () {
+            $schedule = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
+            $schedule->command('challenges:assign-daily')->dailyAt('00:01');
+            $schedule->command('challenges:assign-weekly')->weeklyOn(1, '00:01');
+            $schedule->command('challenges:expire')->hourly();
+            $schedule->command('leaderboard:update')->everyFiveMinutes();
+        });
     }
 
     /**
@@ -134,7 +142,7 @@ class GamificationServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->nameLower);
 
-        Blade::componentNamespace(config('modules.namespace').'\\' . $this->name . '\\View\\Components', $this->nameLower);
+        Blade::componentNamespace(config('modules.namespace').'\\'.$this->name.'\\View\\Components', $this->nameLower);
     }
 
     /**
