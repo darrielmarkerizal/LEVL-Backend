@@ -9,12 +9,31 @@ use Laravel\Scout\Searchable;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Traits\HasProfilePrivacy;
 use Modules\Auth\Traits\TracksUserActivity;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, HasProfilePrivacy, HasRoles, Notifiable, Searchable, TracksUserActivity;
+    use HasFactory, HasProfilePrivacy, HasRoles, LogsActivity, Notifiable, Searchable, TracksUserActivity;
+
+    /**
+     * Get activity log options for this model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $eventName) => match ($eventName) {
+                'created' => 'User baru telah dibuat',
+                'updated' => 'User telah diperbarui',
+                'deleted' => 'User telah dihapus',
+                default => "User {$eventName}",
+            });
+    }
 
     protected $guard_name = 'api';
 

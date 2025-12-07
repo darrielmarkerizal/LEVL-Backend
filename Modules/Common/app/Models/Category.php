@@ -7,10 +7,29 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Scout\Searchable;
 use Modules\Common\Enums\CategoryStatus;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Category extends Model
 {
-    use HasFactory, Searchable, SoftDeletes;
+    use HasFactory, LogsActivity, Searchable, SoftDeletes;
+
+    /**
+     * Get activity log options for this model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $eventName) => match ($eventName) {
+                'created' => 'Kategori baru telah dibuat',
+                'updated' => 'Kategori telah diperbarui',
+                'deleted' => 'Kategori telah dihapus',
+                default => "Kategori {$eventName}",
+            });
+    }
 
     protected $fillable = [
         'name',

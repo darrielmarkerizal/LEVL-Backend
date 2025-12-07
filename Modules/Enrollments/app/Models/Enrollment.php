@@ -5,10 +5,29 @@ namespace Modules\Enrollments\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Enrollments\Enums\EnrollmentStatus;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Enrollment extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    /**
+     * Get activity log options for this model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $eventName) => match ($eventName) {
+                'created' => 'Enrollment baru telah dibuat',
+                'updated' => 'Enrollment telah diperbarui',
+                'deleted' => 'Enrollment telah dihapus',
+                default => "Enrollment {$eventName}",
+            });
+    }
 
     protected $fillable = [
         'user_id', 'course_id', 'status',

@@ -14,12 +14,14 @@ use Modules\Schemes\Enums\CourseType;
 use Modules\Schemes\Enums\EnrollmentType;
 use Modules\Schemes\Enums\LevelTag;
 use Modules\Schemes\Enums\ProgressionMode;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 class Course extends Model
 {
-    use HasFactory, HasSlug, Searchable, SoftDeletes;
+    use HasFactory, HasSlug, LogsActivity, Searchable, SoftDeletes;
 
     /**
      * Get the options for generating the slug.
@@ -30,6 +32,23 @@ class Course extends Model
             ->generateSlugsFrom('title')
             ->saveSlugsTo('slug')
             ->doNotGenerateSlugsOnUpdate();
+    }
+
+    /**
+     * Get activity log options for this model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $eventName) => match ($eventName) {
+                'created' => 'Course baru telah dibuat',
+                'updated' => 'Course telah diperbarui',
+                'deleted' => 'Course telah dihapus',
+                default => "Course {$eventName}",
+            });
     }
 
     /**

@@ -12,12 +12,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Auth\Models\User;
 use Modules\Content\Enums\ContentStatus;
 use Modules\Schemes\Models\Tag;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 class News extends Model
 {
-    use HasFactory, HasSlug, SoftDeletes;
+    use HasFactory, HasSlug, LogsActivity, SoftDeletes;
 
     protected $table = 'news';
 
@@ -35,6 +37,23 @@ class News extends Model
             ->generateSlugsFrom('title')
             ->saveSlugsTo('slug')
             ->doNotGenerateSlugsOnUpdate();
+    }
+
+    /**
+     * Get activity log options for this model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $eventName) => match ($eventName) {
+                'created' => 'Berita baru telah dibuat',
+                'updated' => 'Berita telah diperbarui',
+                'deleted' => 'Berita telah dihapus',
+                default => "Berita {$eventName}",
+            });
     }
 
     protected $fillable = [
