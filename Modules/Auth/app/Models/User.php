@@ -11,12 +11,50 @@ use Modules\Auth\Traits\HasProfilePrivacy;
 use Modules\Auth\Traits\TracksUserActivity;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements HasMedia, JWTSubject
 {
-    use HasFactory, HasProfilePrivacy, HasRoles, LogsActivity, Notifiable, Searchable, TracksUserActivity;
+    use HasFactory, HasProfilePrivacy, HasRoles, InteractsWithMedia, LogsActivity, Notifiable, Searchable, TracksUserActivity;
+
+    /**
+     * Register media collections for this model.
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('avatar')
+            ->singleFile()
+            ->useDisk('do')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+    }
+
+    /**
+     * Register media conversions for this model.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(150)
+            ->height(150)
+            ->sharpen(10)
+            ->performOnCollections('avatar')
+            ->nonQueued();
+
+        // Responsive images for different screen sizes
+        $this->addMediaConversion('small')
+            ->width(64)
+            ->height(64)
+            ->performOnCollections('avatar');
+
+        $this->addMediaConversion('medium')
+            ->width(256)
+            ->height(256)
+            ->performOnCollections('avatar');
+    }
 
     /**
      * Get activity log options for this model.
@@ -45,7 +83,6 @@ class User extends Authenticatable implements JWTSubject
         'status',
         'email_verified_at',
         'remember_token',
-        'avatar_path',
         'bio',
         'phone',
         'account_status',
@@ -68,13 +105,16 @@ class User extends Authenticatable implements JWTSubject
 
     public function getAvatarUrlAttribute(): ?string
     {
-        if (! $this->avatar_path) {
-            return null;
-        }
+        $media = $this->getFirstMedia('avatar');
 
-        $uploader = app(\App\Services\UploadService::class);
+        return $media?->getUrl();
+    }
 
-        return $uploader->getPublicUrl($this->avatar_path);
+    public function getAvatarThumbUrlAttribute(): ?string
+    {
+        $media = $this->getFirstMedia('avatar');
+
+        return $media?->getUrl('thumb');
     }
 
     public function gamificationStats()

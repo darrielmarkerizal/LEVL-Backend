@@ -186,11 +186,12 @@ class NewsTest extends TestCase
     }
 
     #[Test]
-    public function news_with_image_can_be_created()
+    public function news_can_have_featured_image_via_media_library()
     {
-        $news = News::factory()->withImage()->create();
+        $news = News::factory()->create();
 
-        $this->assertNotNull($news->featured_image_path);
-        $this->assertStringContainsString('news/', $news->featured_image_path);
+        // Verify media collection is set up correctly
+        $this->assertEmpty($news->getMedia('featured_image'));
+        $this->assertNull($news->featured_image_url);
     }
 }

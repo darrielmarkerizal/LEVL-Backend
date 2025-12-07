@@ -16,12 +16,66 @@ use Modules\Schemes\Enums\LevelTag;
 use Modules\Schemes\Enums\ProgressionMode;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
-class Course extends Model
+class Course extends Model implements HasMedia
 {
-    use HasFactory, HasSlug, LogsActivity, Searchable, SoftDeletes;
+    use HasFactory, HasSlug, InteractsWithMedia, LogsActivity, Searchable, SoftDeletes;
+
+    /**
+     * Register media collections for this model.
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('thumbnail')
+            ->singleFile()
+            ->useDisk('do')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
+        $this->addMediaCollection('banner')
+            ->singleFile()
+            ->useDisk('do')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+    }
+
+    /**
+     * Register media conversions for this model.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        // Thumbnail conversions (16:9 ratio)
+        $this->addMediaConversion('thumb')
+            ->width(400)
+            ->height(225)
+            ->sharpen(10)
+            ->performOnCollections('thumbnail', 'banner')
+            ->nonQueued();
+
+        $this->addMediaConversion('medium')
+            ->width(800)
+            ->height(450)
+            ->performOnCollections('thumbnail', 'banner');
+
+        $this->addMediaConversion('large')
+            ->width(1920)
+            ->height(1080)
+            ->performOnCollections('banner');
+
+        // Mobile-optimized sizes
+        $this->addMediaConversion('mobile')
+            ->width(320)
+            ->height(180)
+            ->performOnCollections('thumbnail');
+
+        $this->addMediaConversion('tablet')
+            ->width(600)
+            ->height(338)
+            ->performOnCollections('thumbnail');
+    }
 
     /**
      * Get the options for generating the slug.
@@ -61,8 +115,7 @@ class Course extends Model
     protected $fillable = [
         'code', 'slug', 'title', 'short_desc', 'type',
         'level_tag', 'category_id', 'tags_json', 'prereq_text',
-        'duration_estimate', 'thumbnail_path',
-        'banner_path', 'progression_mode', 'enrollment_type', 'enrollment_key_hash',
+        'duration_estimate', 'progression_mode', 'enrollment_type', 'enrollment_key_hash',
         'status', 'published_at', 'instructor_id', 'deleted_by',
     ];
 
@@ -79,32 +132,36 @@ class Course extends Model
     protected $appends = ['thumbnail_url', 'banner_url', 'tag_list'];
 
     protected $hidden = [
-        'thumbnail_path',
-        'banner_path',
         'enrollment_key_hash',
         'deleted_at',
     ];
 
     public function getThumbnailUrlAttribute(): ?string
     {
-        if (! $this->thumbnail_path) {
-            return null;
-        }
+        $media = $this->getFirstMedia('thumbnail');
 
-        $uploader = app(\App\Services\UploadService::class);
+        return $media?->getUrl();
+    }
 
-        return $uploader->getPublicUrl($this->thumbnail_path);
+    public function getThumbnailThumbUrlAttribute(): ?string
+    {
+        $media = $this->getFirstMedia('thumbnail');
+
+        return $media?->getUrl('thumb');
     }
 
     public function getBannerUrlAttribute(): ?string
     {
-        if (! $this->banner_path) {
-            return null;
-        }
+        $media = $this->getFirstMedia('banner');
 
-        $uploader = app(\App\Services\UploadService::class);
+        return $media?->getUrl();
+    }
 
-        return $uploader->getPublicUrl($this->banner_path);
+    public function getBannerLargeUrlAttribute(): ?string
+    {
+        $media = $this->getFirstMedia('banner');
+
+        return $media?->getUrl('large');
     }
 
     public function tagPivot(): HasMany

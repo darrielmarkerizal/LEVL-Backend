@@ -16,7 +16,7 @@ class LeaderboardService
     {
         $perPage = min($perPage, 100); // Max 100 per page
 
-        return UserGamificationStat::with(['user:id,name,avatar_path'])
+        return UserGamificationStat::with(['user:id,name', 'user.media'])
             ->orderByDesc('total_xp')
             ->orderBy('user_id')
             ->paginate($perPage, ['*'], 'page', $page);
@@ -92,7 +92,7 @@ class LeaderboardService
     private function getSurroundingUsers(int $userId, int $userXp, int $count = 2): array
     {
         // Users above (higher XP)
-        $above = UserGamificationStat::with(['user:id,name,avatar_path'])
+        $above = UserGamificationStat::with(['user:id,name', 'user.media'])
             ->where('total_xp', '>', $userXp)
             ->orderBy('total_xp')
             ->limit($count)
@@ -101,14 +101,14 @@ class LeaderboardService
             ->values();
 
         // Users below (lower XP)
-        $below = UserGamificationStat::with(['user:id,name,avatar_path'])
+        $below = UserGamificationStat::with(['user:id,name', 'user.media'])
             ->where('total_xp', '<', $userXp)
             ->orderByDesc('total_xp')
             ->limit($count)
             ->get();
 
         // Current user
-        $current = UserGamificationStat::with(['user:id,name,avatar_path'])
+        $current = UserGamificationStat::with(['user:id,name', 'user.media'])
             ->where('user_id', $userId)
             ->first();
 

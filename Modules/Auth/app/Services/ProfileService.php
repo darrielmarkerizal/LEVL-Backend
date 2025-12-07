@@ -3,7 +3,6 @@
 namespace Modules\Auth\Services;
 
 use App\Contracts\Services\ProfileServiceInterface;
-use App\Services\UploadService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -16,7 +15,6 @@ use Modules\Auth\Models\User;
 class ProfileService implements ProfileServiceInterface
 {
     public function __construct(
-        private UploadService $uploadService,
         private ProfileStatisticsService $statisticsService,
         private ProfilePrivacyService $privacyService,
         private UserActivityService $activityService
@@ -54,29 +52,25 @@ class ProfileService implements ProfileServiceInterface
 
     public function uploadAvatar(User $user, UploadedFile $file): string
     {
-        // Delete old avatar if exists
-        if ($user->avatar_path) {
-            $this->uploadService->deletePublic($user->avatar_path);
-        }
+        // Clear old avatar (singleFile collection handles this, but explicit is cleaner)
+        $user->clearMediaCollection('avatar');
 
-        // Upload new avatar
-        $path = $this->uploadService->storePublic($file, 'avatars');
+        // Add new avatar using Media Library
+        $media = $user
+            ->addMedia($file)
+            ->toMediaCollection('avatar');
 
-        $user->avatar_path = $path;
         $user->last_profile_update = now();
         $user->save();
 
-        return $this->uploadService->getPublicUrl($path);
+        return $media->getUrl();
     }
 
     public function deleteAvatar(User $user): void
     {
-        if ($user->avatar_path) {
-            $this->uploadService->deletePublic($user->avatar_path);
-            $user->avatar_path = null;
-            $user->last_profile_update = now();
-            $user->save();
-        }
+        $user->clearMediaCollection('avatar');
+        $user->last_profile_update = now();
+        $user->save();
     }
 
     public function getProfileData(User $user, ?User $viewer = null): array

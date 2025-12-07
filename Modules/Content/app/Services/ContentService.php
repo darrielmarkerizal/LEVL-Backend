@@ -74,7 +74,6 @@ class ContentService implements ContentServiceInterface
                 'slug' => $data['slug'] ?? null,
                 'excerpt' => $data['excerpt'] ?? null,
                 'content' => $data['content'],
-                'featured_image_path' => $data['featured_image_path'] ?? null,
                 'status' => $data['status'] ?? 'draft',
                 'is_featured' => $data['is_featured'] ?? false,
                 'category_ids' => $data['category_ids'] ?? [],
@@ -141,10 +140,6 @@ class ContentService implements ContentServiceInterface
 
             if (isset($data['excerpt'])) {
                 $updateData['excerpt'] = $data['excerpt'];
-            }
-
-            if (isset($data['featured_image_path'])) {
-                $updateData['featured_image_path'] = $data['featured_image_path'];
             }
 
             if (isset($data['is_featured'])) {

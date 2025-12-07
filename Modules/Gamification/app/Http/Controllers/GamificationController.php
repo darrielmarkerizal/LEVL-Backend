@@ -57,7 +57,7 @@ class GamificationController extends Controller
     {
         $userId = $request->user()->id;
 
-        $badges = UserBadge::with('badge')
+        $badges = UserBadge::with(['badge', 'badge.media'])
             ->where('user_id', $userId)
             ->orderByDesc('awarded_at')
             ->get()
@@ -67,7 +67,7 @@ class GamificationController extends Controller
                     'code' => $userBadge->badge?->code,
                     'name' => $userBadge->badge?->name,
                     'description' => $userBadge->description ?? $userBadge->badge?->description,
-                    'icon_path' => $userBadge->badge?->icon_path,
+                    'icon_url' => $userBadge->badge?->icon_url,
                     'type' => $userBadge->badge?->type?->value,
                     'awarded_at' => $userBadge->awarded_at,
                 ];

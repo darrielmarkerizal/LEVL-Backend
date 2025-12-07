@@ -20,7 +20,7 @@ class CreateNewsRequest extends FormRequest
             'slug' => 'nullable|string|max:255|unique:news,slug',
             'excerpt' => 'nullable|string',
             'content' => 'required|string',
-            'featured_image_path' => 'nullable|string|max:255',
+            'featured_image' => 'nullable|image|max:5120',
             'is_featured' => 'nullable|boolean',
             'status' => ['nullable', Rule::enum(ContentStatus::class)->only([ContentStatus::Draft, ContentStatus::Published, ContentStatus::Scheduled])],
             'scheduled_at' => 'nullable|date|after:now',

@@ -45,23 +45,25 @@ class CourseController extends Controller
     public function store(CourseRequest $request)
     {
         $data = $request->validated();
-        // Handle file uploads
-        if ($request->hasFile('thumbnail')) {
-            $data['thumbnail_path'] = upload_file($request->file('thumbnail'), 'courses/thumbnails');
-        }
-        if ($request->hasFile('banner')) {
-            $data['banner_path'] = upload_file($request->file('banner'), 'courses/banners');
-        }
+
         /** @var \Modules\Auth\Models\User|null $actor */
         $actor = auth('api')->user();
 
         try {
             $course = $this->service->create($data, $actor);
+
+            // Handle file uploads via Spatie Media Library
+            if ($request->hasFile('thumbnail')) {
+                $course->addMedia($request->file('thumbnail'))->toMediaCollection('thumbnail');
+            }
+            if ($request->hasFile('banner')) {
+                $course->addMedia($request->file('banner'))->toMediaCollection('banner');
+            }
         } catch (UniqueConstraintViolationException|QueryException $e) {
             return $this->handleCourseUniqueConstraint($e);
         }
 
-        return $this->created(['course' => $course], 'Course berhasil dibuat.');
+        return $this->created(['course' => $course->fresh()], 'Course berhasil dibuat.');
     }
 
     public function show(Course $course)
@@ -72,19 +74,24 @@ class CourseController extends Controller
     public function update(CourseRequest $request, Course $course)
     {
         $data = $request->validated();
-        if ($request->hasFile('thumbnail')) {
-            $data['thumbnail_path'] = upload_file($request->file('thumbnail'), 'courses/thumbnails');
-        }
-        if ($request->hasFile('banner')) {
-            $data['banner_path'] = upload_file($request->file('banner'), 'courses/banners');
-        }
+
         try {
             $updated = $this->service->update($course->id, $data);
+
+            // Handle file uploads via Spatie Media Library
+            if ($request->hasFile('thumbnail')) {
+                $updated->clearMediaCollection('thumbnail');
+                $updated->addMedia($request->file('thumbnail'))->toMediaCollection('thumbnail');
+            }
+            if ($request->hasFile('banner')) {
+                $updated->clearMediaCollection('banner');
+                $updated->addMedia($request->file('banner'))->toMediaCollection('banner');
+            }
         } catch (UniqueConstraintViolationException|QueryException $e) {
             return $this->handleCourseUniqueConstraint($e);
         }
 
-        return $this->success(['course' => $updated], 'Course berhasil diperbarui.');
+        return $this->success(['course' => $updated->fresh()], 'Course berhasil diperbarui.');
     }
 
     public function destroy(Course $course)

@@ -196,4 +196,52 @@ class CourseService
 
         return $code;
     }
+
+    /**
+     * Upload a thumbnail for the course.
+     */
+    public function uploadThumbnail(int $id, \Illuminate\Http\UploadedFile $file): Course
+    {
+        $course = $this->findOrFail($id);
+
+        $course->clearMediaCollection('thumbnail');
+        $course->addMedia($file)->toMediaCollection('thumbnail');
+
+        return $course->fresh();
+    }
+
+    /**
+     * Upload a banner for the course.
+     */
+    public function uploadBanner(int $id, \Illuminate\Http\UploadedFile $file): Course
+    {
+        $course = $this->findOrFail($id);
+
+        $course->clearMediaCollection('banner');
+        $course->addMedia($file)->toMediaCollection('banner');
+
+        return $course->fresh();
+    }
+
+    /**
+     * Delete the course thumbnail.
+     */
+    public function deleteThumbnail(int $id): Course
+    {
+        $course = $this->findOrFail($id);
+        $course->clearMediaCollection('thumbnail');
+
+        return $course->fresh();
+    }
+
+    /**
+     * Delete the course banner.
+     */
+    public function deleteBanner(int $id): Course
+    {
+        $course = $this->findOrFail($id);
+        $course->clearMediaCollection('banner');
+
+        return $course->fresh();
+    }
 }
