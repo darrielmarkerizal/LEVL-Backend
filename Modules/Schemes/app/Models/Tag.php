@@ -6,12 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Laravel\Scout\Searchable;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 class Tag extends Model
 {
-    use HasFactory, HasSlug, Searchable;
+    use HasFactory, HasSlug, LogsActivity, Searchable;
 
     /**
      * Get the options for generating the slug.
@@ -22,6 +24,23 @@ class Tag extends Model
             ->generateSlugsFrom('name')
             ->saveSlugsTo('slug')
             ->doNotGenerateSlugsOnUpdate();
+    }
+
+    /**
+     * Get activity log options for this model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $eventName) => match ($eventName) {
+                'created' => 'Tag baru telah dibuat',
+                'updated' => 'Tag telah diperbarui',
+                'deleted' => 'Tag telah dihapus',
+                default => "Tag {$eventName}",
+            });
     }
 
     protected $fillable = [

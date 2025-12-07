@@ -6,12 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 use Modules\Schemes\Enums\ContentType;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 class Lesson extends Model
 {
-    use HasFactory, HasSlug, Searchable;
+    use HasFactory, HasSlug, LogsActivity, Searchable;
 
     /**
      * Get the options for generating the slug.
@@ -22,6 +24,23 @@ class Lesson extends Model
             ->generateSlugsFrom('title')
             ->saveSlugsTo('slug')
             ->doNotGenerateSlugsOnUpdate();
+    }
+
+    /**
+     * Get activity log options for this model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $eventName) => match ($eventName) {
+                'created' => 'Lesson baru telah dibuat',
+                'updated' => 'Lesson telah diperbarui',
+                'deleted' => 'Lesson telah dihapus',
+                default => "Lesson {$eventName}",
+            });
     }
 
     protected $fillable = [
