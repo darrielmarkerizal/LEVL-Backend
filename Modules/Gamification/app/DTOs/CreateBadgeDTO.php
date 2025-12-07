@@ -10,7 +10,6 @@ final class CreateBadgeDTO extends BaseDTO
         public readonly string $name,
         public readonly string $description,
         public readonly string $type,
-        public readonly ?string $iconPath = null,
         public readonly ?int $requiredValue = null,
     ) {}
 
@@ -20,7 +19,6 @@ final class CreateBadgeDTO extends BaseDTO
             name: $data['name'],
             description: $data['description'],
             type: $data['type'],
-            iconPath: $data['icon_path'] ?? null,
             requiredValue: isset($data['required_value']) ? (int) $data['required_value'] : null,
         );
     }
@@ -31,7 +29,6 @@ final class CreateBadgeDTO extends BaseDTO
             'name' => $this->name,
             'description' => $this->description,
             'type' => $this->type,
-            'icon_path' => $this->iconPath,
             'required_value' => $this->requiredValue,
         ];
     }

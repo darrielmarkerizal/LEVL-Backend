@@ -24,7 +24,7 @@ class UpdateContentRequest extends FormRequest
         // Add news-specific rules
         if ($this->route('news')) {
             $rules['excerpt'] = 'nullable|string';
-            $rules['featured_image_path'] = 'nullable|string|max:255';
+            $rules['featured_image'] = 'nullable|image|max:5120';
             $rules['is_featured'] = 'nullable|boolean';
             $rules['category_ids'] = 'nullable|array';
             $rules['category_ids.*'] = 'exists:content_categories,id';

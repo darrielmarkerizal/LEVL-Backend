@@ -363,12 +363,11 @@ class AuthService implements AuthServiceInterface
                 'name',
                 'email',
                 'username',
-                'avatar_path',
                 'status',
                 'created_at',
                 'email_verified_at',
             ])
-            ->with('roles');
+            ->with(['roles', 'media']);
 
         // Use Scout/Meilisearch for full-text search
         if ($searchQuery && trim($searchQuery) !== '') {
@@ -401,7 +400,7 @@ class AuthService implements AuthServiceInterface
             'name' => $user->name,
             'email' => $user->email,
             'username' => $user->username,
-            'avatar' => $user->avatar_path ? asset('storage/'.$user->avatar_path) : null,
+            'avatar' => $user->avatar_url,
             'status' => $user->status,
             'created_at' => $user->created_at?->toISOString(),
             'email_verified_at' => $user->email_verified_at?->toISOString(),
@@ -418,7 +417,7 @@ class AuthService implements AuthServiceInterface
             'name' => $user->name,
             'email' => $user->email,
             'username' => $user->username,
-            'avatar' => $user->avatar_path ? asset('storage/'.$user->avatar_path) : null,
+            'avatar' => $user->avatar_url,
             'status' => $user->status,
             'created_at' => $user->created_at?->toISOString(),
             'email_verified_at' => $user->email_verified_at?->toISOString(),

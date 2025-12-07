@@ -53,10 +53,10 @@ trait HasProfilePrivacy
         $privacySettings = $this->privacySettings;
 
         if (! $privacySettings) {
-            return ['name', 'avatar_path', 'bio']; // Default visible fields
+            return ['name', 'avatar_url', 'bio']; // Default visible fields
         }
 
-        $visibleFields = ['name', 'avatar_path', 'bio'];
+        $visibleFields = ['name', 'avatar_url', 'bio'];
 
         if ($privacySettings->show_email) {
             $visibleFields[] = 'email';

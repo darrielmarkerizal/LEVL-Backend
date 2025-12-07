@@ -187,15 +187,12 @@ class AuthApiController extends Controller
             $user->username = $validated['username'];
         }
 
+        // Handle avatar upload via Spatie Media Library
         if ($request->hasFile('avatar')) {
-            $old = $user->avatar_path;
-            $file = $request->file('avatar');
-            $path = upload_file($file, 'avatars');
-            $user->avatar_path = $path;
-            $changes['avatar_path'] = [$old, $path];
-            if ($old) {
-                delete_file($old);
-            }
+            $oldUrl = $user->avatar_url;
+            $user->clearMediaCollection('avatar');
+            $user->addMedia($request->file('avatar'))->toMediaCollection('avatar');
+            $changes['avatar'] = [$oldUrl, $user->fresh()->avatar_url];
         }
 
         $user->save();
@@ -212,7 +209,7 @@ class AuthApiController extends Controller
             'logged_at' => now(),
         ]);
 
-        return $this->success($user->toArray(), 'Profil berhasil diperbarui.');
+        return $this->success($user->fresh()->toArray(), 'Profil berhasil diperbarui.');
     }
 
     public function googleRedirect(Request $request)

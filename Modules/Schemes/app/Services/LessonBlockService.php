@@ -2,17 +2,13 @@
 
 namespace Modules\Schemes\Services;
 
-use App\Services\UploadService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Modules\Schemes\Jobs\ProcessLessonBlockMedia;
-use Modules\Schemes\Models\LessonBlock;
 use Illuminate\Support\Str;
+use Modules\Schemes\Models\LessonBlock;
 
 class LessonBlockService
 {
-    public function __construct(private UploadService $uploader) {}
-
     public function list(int $lessonId)
     {
         return LessonBlock::where('lesson_id', $lessonId)
@@ -26,23 +22,24 @@ class LessonBlockService
             $nextOrder = LessonBlock::where('lesson_id', $lessonId)->max('order');
             $nextOrder = $nextOrder ? $nextOrder + 1 : 1;
 
-            $path = null;
-            if ($mediaFile) {
-                $dir = 'lesson_blocks/'.$lessonId;
-                $path = $this->uploader->storePublic($mediaFile, $dir);
-            }
-
             $block = LessonBlock::create([
                 'lesson_id' => $lessonId,
                 'slug' => (string) Str::uuid(),
                 'block_type' => $data['type'],
                 'content' => $data['content'] ?? null,
-                'media_url' => $path,
                 'order' => $data['order'] ?? $nextOrder,
             ]);
 
-            if ($path && in_array($data['type'], ['image', 'video', 'file'])) {
-                ProcessLessonBlockMedia::dispatch($block->id);
+            // Add media using Spatie Media Library
+            if ($mediaFile && in_array($data['type'], ['image', 'video', 'file'])) {
+                $media = $block
+                    ->addMedia($mediaFile)
+                    ->toMediaCollection('media');
+
+                // Store additional metadata for video files
+                if ($data['type'] === 'video') {
+                    $this->storeVideoMetadata($media);
+                }
             }
 
             return $block->fresh();
@@ -63,19 +60,22 @@ class LessonBlockService
                 $update['order'] = $data['order'];
             }
 
-            if ($mediaFile) {
-                if ($block->getRawOriginal('media_url')) {
-                    $this->uploader->deletePublic($block->getRawOriginal('media_url'));
-                }
-                $dir = 'lesson_blocks/'.$lessonId;
-                $path = $this->uploader->storePublic($mediaFile, $dir);
-                $update['media_url'] = $path;
-            }
-
             $block->update($update);
 
-            if ($mediaFile && in_array($block->block_type, ['image', 'video', 'file'])) {
-                ProcessLessonBlockMedia::dispatch($block->id);
+            // Handle media update using Spatie Media Library
+            if ($mediaFile) {
+                // Clear existing media (singleFile handles this, but explicit is cleaner)
+                $block->clearMediaCollection('media');
+
+                $media = $block
+                    ->addMedia($mediaFile)
+                    ->toMediaCollection('media');
+
+                // Store additional metadata for video files
+                $blockType = $data['type'] ?? $block->block_type;
+                if ($blockType === 'video') {
+                    $this->storeVideoMetadata($media);
+                }
             }
 
             return $block->fresh();
@@ -85,13 +85,48 @@ class LessonBlockService
     public function delete(int $lessonId, int $blockId): bool
     {
         $block = LessonBlock::where('lesson_id', $lessonId)->findOrFail($blockId);
-        if ($block->getRawOriginal('media_url')) {
-            $this->uploader->deletePublic($block->getRawOriginal('media_url'));
-        }
-        if ($block->getRawOriginal('media_thumbnail_url')) {
-            $this->uploader->deletePublic($block->getRawOriginal('media_thumbnail_url'));
-        }
 
+        // Media Library automatically cleans up media when model is deleted
         return (bool) $block->delete();
+    }
+
+    /**
+     * Store video metadata as custom properties on the media item.
+     */
+    private function storeVideoMetadata($media): void
+    {
+        try {
+            $path = $media->getPath();
+            $ffprobe = config('media-library.ffprobe_path', '/usr/bin/ffprobe');
+
+            if (file_exists($path) && is_executable($ffprobe)) {
+                $cmd = sprintf(
+                    '%s -v quiet -print_format json -show_format -show_streams %s',
+                    escapeshellarg($ffprobe),
+                    escapeshellarg($path)
+                );
+
+                $output = shell_exec($cmd);
+                if ($output) {
+                    $data = json_decode($output, true);
+                    if (isset($data['format']['duration'])) {
+                        $media->setCustomProperty('duration', (float) $data['format']['duration']);
+                    }
+                    if (isset($data['streams'][0])) {
+                        $stream = $data['streams'][0];
+                        if (isset($stream['width'])) {
+                            $media->setCustomProperty('width', (int) $stream['width']);
+                        }
+                        if (isset($stream['height'])) {
+                            $media->setCustomProperty('height', (int) $stream['height']);
+                        }
+                    }
+                    $media->save();
+                }
+            }
+        } catch (\Throwable $e) {
+            // Silently fail - metadata is optional
+            \Log::warning('Failed to extract video metadata: '.$e->getMessage());
+        }
     }
 }

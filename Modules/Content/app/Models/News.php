@@ -14,18 +14,64 @@ use Modules\Content\Enums\ContentStatus;
 use Modules\Schemes\Models\Tag;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
-class News extends Model
+class News extends Model implements HasMedia
 {
-    use HasFactory, HasSlug, LogsActivity, SoftDeletes;
+    use HasFactory, HasSlug, InteractsWithMedia, LogsActivity, SoftDeletes;
 
     protected $table = 'news';
 
     protected static function newFactory()
     {
         return \Modules\Content\Database\Factories\NewsFactory::new();
+    }
+
+    /**
+     * Register media collections for this model.
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('featured_image')
+            ->singleFile()
+            ->useDisk('do')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
+        $this->addMediaCollection('gallery')
+            ->useDisk('do')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+    }
+
+    /**
+     * Register media conversions for this model.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(400)
+            ->height(300)
+            ->sharpen(10)
+            ->nonQueued();
+
+        $this->addMediaConversion('og_image')
+            ->width(1200)
+            ->height(630) // Open Graph ratio for social sharing
+            ->performOnCollections('featured_image');
+
+        // Mobile-optimized sizes
+        $this->addMediaConversion('mobile')
+            ->width(320)
+            ->height(240)
+            ->performOnCollections('featured_image', 'gallery');
+
+        $this->addMediaConversion('medium')
+            ->width(800)
+            ->height(600)
+            ->performOnCollections('featured_image', 'gallery');
     }
 
     /**
@@ -62,7 +108,6 @@ class News extends Model
         'slug',
         'excerpt',
         'content',
-        'featured_image_path',
         'status',
         'is_featured',
         'published_at',
@@ -70,6 +115,29 @@ class News extends Model
         'views_count',
         'deleted_by',
     ];
+
+    protected $appends = ['featured_image_url'];
+
+    public function getFeaturedImageUrlAttribute(): ?string
+    {
+        $media = $this->getFirstMedia('featured_image');
+
+        return $media?->getUrl();
+    }
+
+    public function getFeaturedImageThumbUrlAttribute(): ?string
+    {
+        $media = $this->getFirstMedia('featured_image');
+
+        return $media?->getUrl('thumb');
+    }
+
+    public function getOgImageUrlAttribute(): ?string
+    {
+        $media = $this->getFirstMedia('featured_image');
+
+        return $media?->getUrl('og_image');
+    }
 
     protected $casts = [
         'status' => ContentStatus::class,
