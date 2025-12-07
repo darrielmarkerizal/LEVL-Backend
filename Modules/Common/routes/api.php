@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ActivityLogController;
 use App\Http\Controllers\Api\MasterDataCrudController;
 use Illuminate\Support\Facades\Route;
 use Modules\Common\Http\Controllers\CategoriesController;
@@ -7,6 +8,12 @@ use Modules\Common\Http\Controllers\MasterDataController;
 use Modules\Schemes\Http\Controllers\TagController;
 
 Route::prefix('v1')->group(function () {
+
+    // Activity Logs (Superadmin only)
+    Route::middleware(['auth:api', 'role:Superadmin'])->prefix('activity-logs')->name('activity-logs.')->group(function () {
+        Route::get('/', [ActivityLogController::class, 'index'])->name('index');
+        Route::get('/{id}', [ActivityLogController::class, 'show'])->name('show');
+    });
 
     // Master Data routes
     Route::prefix('master-data')->name('master-data.')->group(function () {
