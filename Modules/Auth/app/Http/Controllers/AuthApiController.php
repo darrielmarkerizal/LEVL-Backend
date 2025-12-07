@@ -516,9 +516,9 @@ class AuthApiController extends Controller
     }
 
     /**
-     * @allowedFilters status, role
+     * @allowedFilters filter[search], filter[status], filter[role], filter[created_from], filter[created_to]
      *
-     * @allowedSorts name, email, created_at
+     * @allowedSorts name, email, username, status, created_at
      *
      * @filterEnum status pending|active|inactive|banned
      * @filterEnum role Student|Instructor|Admin|Superadmin
@@ -538,7 +538,7 @@ class AuthApiController extends Controller
         }
 
         $perPage = max(1, (int) $request->query('per_page', 15));
-        $paginator = $this->auth->listUsers($authUser, $request->all(), $perPage);
+        $paginator = $this->auth->listUsers($authUser, $perPage);
 
         return $this->paginateResponse($paginator);
     }

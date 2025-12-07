@@ -22,7 +22,7 @@ class CourseController extends Controller
     ) {}
 
     /**
-     * @allowedFilters status, level_tag, type, category_id, tag
+     * @allowedFilters filter[search], filter[status], filter[level_tag], filter[type], filter[category_id], filter[tag]
      *
      * @allowedSorts id, code, title, created_at, updated_at, published_at
      *
@@ -32,13 +32,12 @@ class CourseController extends Controller
      */
     public function index(Request $request)
     {
-        $params = $request->all();
+        $status = $request->input('filter.status');
+        $perPage = max(1, (int) $request->query('per_page', 15));
 
-        $isPublicListing = ($params['status'] ?? null) === 'published';
-
-        $paginator = $isPublicListing
-          ? $this->service->listPublic($params)
-          : $this->service->list($params);
+        $paginator = ($status === 'published')
+            ? $this->service->listPublic($perPage)
+            : $this->service->list($perPage);
 
         return $this->paginateResponse($paginator);
     }

@@ -16,6 +16,8 @@ use Modules\Auth\Models\User;
 use Modules\Auth\Support\TokenPairDTO;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\CourseAdmin;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 use Tymon\JWTAuth\JWTAuth;
 
 class AuthService implements AuthServiceInterface
@@ -290,33 +292,26 @@ class AuthService implements AuthServiceInterface
         return ['user' => $userArray];
     }
 
-    public function listUsers(User $authUser, array $params, int $perPage = 15): LengthAwarePaginator
+    /**
+     * List users with Spatie Query Builder + Scout search.
+     *
+     * Supports:
+     * - filter[search] (Scout), filter[status], filter[role], filter[created_from], filter[created_to]
+     * - sort: name, email, username, status, created_at
+     */
+    public function listUsers(User $authUser, int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $query = $this->buildUserListQuery($params);
+        $query = $this->buildUserListQuery();
 
         $isSuperadmin = $authUser->hasRole('Superadmin');
         $isAdmin = $authUser->hasRole('Admin');
 
         if ($isAdmin && ! $isSuperadmin) {
-            $this->applyAdminUserScope($query, $authUser);
+            $this->applyAdminUserScope($query->getEloquentBuilder(), $authUser);
         }
 
-        $sort = (string) ($params['sort'] ?? '-created_at');
-        $direction = 'asc';
-        $field = $sort;
-        if (str_starts_with($sort, '-')) {
-            $direction = 'desc';
-            $field = substr($sort, 1);
-        }
-        $allowedSorts = ['name', 'email', 'username', 'status', 'created_at'];
-        if (! in_array($field, $allowedSorts, true)) {
-            $field = 'created_at';
-            $direction = 'desc';
-        }
-        $query->orderBy($field, $direction);
-
-        $paginator = $query->paginate($perPage)->appends($params);
+        $paginator = $query->paginate($perPage);
         $paginator->getCollection()->transform(fn ($u) => $this->transformUserForList($u));
 
         return $paginator;
@@ -358,9 +353,11 @@ class AuthService implements AuthServiceInterface
         return $user->fresh();
     }
 
-    private function buildUserListQuery(array $params): Builder
+    private function buildUserListQuery(): QueryBuilder
     {
-        $query = User::query()
+        $searchQuery = request('filter.search');
+
+        $builder = QueryBuilder::for(User::class)
             ->select([
                 'id',
                 'name',
@@ -373,50 +370,28 @@ class AuthService implements AuthServiceInterface
             ])
             ->with('roles');
 
-        $search = trim((string) ($params['search'] ?? ''));
-        if ($search !== '') {
-            $query->where(function ($sub) use ($search) {
-                $sub
-                    ->where('name', 'like', '%'.$search.'%')
-                    ->orWhere('email', 'like', '%'.$search.'%')
-                    ->orWhere('username', 'like', '%'.$search.'%');
-            });
+        // Use Scout/Meilisearch for full-text search
+        if ($searchQuery && trim($searchQuery) !== '') {
+            $ids = User::search($searchQuery)->keys()->toArray();
+            $builder->whereIn('id', $ids);
         }
 
-        $status = $params['filter']['status'] ?? null;
-        if (is_string($status) && $status !== '') {
-            $statuses = array_values(array_filter(array_map('trim', explode(',', $status))));
-            if (! empty($statuses)) {
-                $query->whereIn('status', $statuses);
-            }
-        }
-
-        $email = $params['filter']['email'] ?? null;
-        if (is_string($email) && $email !== '') {
-            $query->where('email', 'like', '%'.$email.'%');
-        }
-
-        $role = $params['filter']['role'] ?? null;
-        if (is_string($role) && $role !== '') {
-            $roles = array_values(array_filter(array_map('trim', explode(',', $role))));
-            if (! empty($roles)) {
-                $query->whereHas('roles', function ($q2) use ($roles) {
-                    $q2->whereIn('name', $roles);
-                });
-            }
-        }
-
-        $createdFrom = $params['filter']['created_from'] ?? null;
-        if (is_string($createdFrom) && $createdFrom !== '') {
-            $query->whereDate('created_at', '>=', $createdFrom);
-        }
-
-        $createdTo = $params['filter']['created_to'] ?? null;
-        if (is_string($createdTo) && $createdTo !== '') {
-            $query->whereDate('created_at', '<=', $createdTo);
-        }
-
-        return $query;
+        return $builder
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::callback('role', function (Builder $query, $value) {
+                    $roles = is_array($value) ? $value : explode(',', $value);
+                    $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
+                }),
+                AllowedFilter::callback('created_from', function (Builder $query, $value) {
+                    $query->whereDate('created_at', '>=', $value);
+                }),
+                AllowedFilter::callback('created_to', function (Builder $query, $value) {
+                    $query->whereDate('created_at', '<=', $value);
+                }),
+            ])
+            ->allowedSorts(['name', 'email', 'username', 'status', 'created_at'])
+            ->defaultSort('-created_at');
     }
 
     private function transformUserForList(User $user): array

@@ -7,11 +7,17 @@ use Illuminate\Database\Eloquent\Builder;
 class QueryFilter
 {
     private array $allowedFilters = [];
+
     private array $allowedSorts = [];
+
     private string $defaultSort = 'id';
+
     private int $defaultPerPage = 15;
+
     private int $maxPerPage = 100;
+
     private array $params = [];
+
     private array $filterOperators = [
         'eq' => '=',
         'neq' => '!=',
@@ -32,30 +38,35 @@ class QueryFilter
     public function allowFilters(array $fields): self
     {
         $this->allowedFilters = $fields;
+
         return $this;
     }
 
     public function allowSorts(array $fields): self
     {
         $this->allowedSorts = $fields;
+
         return $this;
     }
 
     public function setDefaultSort(string $sort): self
     {
         $this->defaultSort = $sort;
+
         return $this;
     }
 
     public function setDefaultPerPage(int $perPage): self
     {
         $this->defaultPerPage = $perPage;
+
         return $this;
     }
 
     public function setMaxPerPage(int $maxPerPage): self
     {
         $this->maxPerPage = $maxPerPage;
+
         return $this;
     }
 
@@ -63,12 +74,14 @@ class QueryFilter
     {
         $this->applyFilters($query);
         $this->applySorting($query);
+
         return $this->paginate($query);
     }
 
     public function applyFiltersOnly(Builder $query): Builder
     {
         $this->applyFilters($query);
+
         return $query;
     }
 
@@ -76,6 +89,7 @@ class QueryFilter
     {
         $this->applyFilters($query);
         $this->applySorting($query);
+
         return $query;
     }
 
@@ -83,19 +97,19 @@ class QueryFilter
     {
         $filters = $this->params['filter'] ?? [];
 
-        if (is_string($filters) || !is_array($filters)) {
+        if (is_string($filters) || ! is_array($filters)) {
             $filters = [];
         }
 
         foreach ($filters as $field => $value) {
-            if (empty($value) || !in_array($field, $this->allowedFilters, true)) {
+            if (empty($value) || ! in_array($field, $this->allowedFilters, true)) {
                 continue;
             }
 
             $this->applyFilterValue($query, $field, $value);
         }
 
-        if (!empty($this->params['search'])) {
+        if (! empty($this->params['search'])) {
             $this->applySearch($query, $this->params['search']);
         }
     }
@@ -111,7 +125,7 @@ class QueryFilter
                 }
             }
 
-            if (!$hasOperator && !empty($value)) {
+            if (! $hasOperator && ! empty($value)) {
                 $query->whereIn($field, array_filter(array_map('trim', $value)));
             } else {
                 foreach ($value as $v) {
@@ -127,7 +141,7 @@ class QueryFilter
 
     private function applyFilterWithOperator(Builder $query, string $field, $value): void
     {
-        if (!is_string($value)) {
+        if (! is_string($value)) {
             $value = (string) $value;
         }
 
@@ -143,6 +157,7 @@ class QueryFilter
 
             if (array_key_exists($operator, $this->filterOperators)) {
                 $this->applyOperatorFilter($query, $field, $operator, $filterValue);
+
                 return;
             }
         }
@@ -172,9 +187,26 @@ class QueryFilter
 
     protected function applySearch(Builder $query, string $search): void
     {
-        if (property_exists($query->getModel(), 'searchable')) {
-            $searchables = $query->getModel()->searchable ?? [];
-            if (!empty($searchables)) {
+        $model = $query->getModel();
+
+        // Use Scout/Meilisearch if model has Searchable trait
+        if (in_array(\Laravel\Scout\Searchable::class, class_uses_recursive($model))) {
+            $modelClass = get_class($model);
+            $ids = $modelClass::search($search)->keys()->toArray();
+            if (! empty($ids)) {
+                $query->whereIn($model->getKeyName(), $ids);
+            } else {
+                // No results from search - return empty
+                $query->whereRaw('1 = 0');
+            }
+
+            return;
+        }
+
+        // Fallback to SQL LIKE for models without Searchable trait
+        if (property_exists($model, 'searchable')) {
+            $searchables = $model->searchable ?? [];
+            if (! empty($searchables)) {
                 $query->where(function (Builder $sub) use ($search, $searchables) {
                     foreach ($searchables as $field) {
                         $sub->orWhere($field, 'like', "%{$search}%");
@@ -199,7 +231,7 @@ class QueryFilter
         $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
         $field = ltrim($sort, '-');
 
-        if (!in_array($field, $this->allowedSorts, true)) {
+        if (! in_array($field, $this->allowedSorts, true)) {
             $direction = str_starts_with($this->defaultSort, '-') ? 'desc' : 'asc';
             $field = ltrim($this->defaultSort, '-');
         }
@@ -211,12 +243,14 @@ class QueryFilter
     {
         $page = max(1, (int) ($this->params['page'] ?? 1));
         $perPage = max(1, min($this->maxPerPage, (int) ($this->params['per_page'] ?? $this->defaultPerPage)));
+
         return [$page, $perPage];
     }
 
     private function paginate(Builder $query)
     {
         [$page, $perPage] = $this->getPaginationParams();
+
         return $query->paginate($perPage, ['*'], 'page', $page)->appends($this->params);
     }
 

@@ -14,10 +14,23 @@ use Modules\Schemes\Enums\CourseType;
 use Modules\Schemes\Enums\EnrollmentType;
 use Modules\Schemes\Enums\LevelTag;
 use Modules\Schemes\Enums\ProgressionMode;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 class Course extends Model
 {
-    use HasFactory, Searchable, SoftDeletes;
+    use HasFactory, HasSlug, Searchable, SoftDeletes;
+
+    /**
+     * Get the options for generating the slug.
+     */
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('title')
+            ->saveSlugsTo('slug')
+            ->doNotGenerateSlugsOnUpdate();
+    }
 
     /**
      * Fields that support full-text search via QueryFilter.

@@ -3,46 +3,45 @@
 namespace Modules\Schemes\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Schemes\Contracts\Repositories\UnitRepositoryInterface;
 use Modules\Schemes\Models\Unit;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class UnitRepository implements UnitRepositoryInterface
 {
-    public function findByCourse(int $courseId, array $params = []): LengthAwarePaginator
+    /**
+     * Find units by course with Spatie Query Builder + Scout search.
+     *
+     * Supports:
+     * - filter[status], filter[search] (Meilisearch)
+     * - sort: id, code, title, order, status, created_at, updated_at (prefix with - for desc)
+     */
+    public function findByCourse(int $courseId, int $perPage = 15): LengthAwarePaginator
     {
-        $query = Unit::where('course_id', $courseId);
+        $searchQuery = request('filter.search');
 
-        if (! empty($params['filter']['status'])) {
-            $query->where('status', $params['filter']['status']);
+        $builder = QueryBuilder::for(Unit::class)
+            ->where('course_id', $courseId);
+
+        // If search query exists, use Scout to get matching IDs
+        if ($searchQuery && trim($searchQuery) !== '') {
+            $ids = Unit::search($searchQuery)
+                ->query(fn ($q) => $q->where('course_id', $courseId))
+                ->keys()
+                ->toArray();
+            $builder->whereIn('id', $ids);
         }
 
-        if (! empty($params['search'])) {
-            $search = $params['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%");
-            });
-        }
-
-        $sortField = $params['sort'] ?? 'order';
-        $sortDirection = 'asc';
-        if (str_starts_with($sortField, '-')) {
-            $sortField = substr($sortField, 1);
-            $sortDirection = 'desc';
-        }
-
-        $allowedSortFields = ['id', 'code', 'title', 'order', 'status', 'created_at', 'updated_at'];
-        if (in_array($sortField, $allowedSortFields)) {
-            $query->orderBy($sortField, $sortDirection);
-        } else {
-            $query->orderBy('order', 'asc');
-        }
-
-        $perPage = isset($params['per_page']) ? max(1, (int) $params['per_page']) : 15;
-
-        return $query->paginate($perPage);
+        return $builder
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+            ])
+            ->allowedSorts(['id', 'code', 'title', 'order', 'status', 'created_at', 'updated_at'])
+            ->defaultSort('order')
+            ->paginate($perPage);
     }
 
     public function findById(int $id): ?Unit

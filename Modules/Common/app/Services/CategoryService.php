@@ -10,11 +10,11 @@ class CategoryService
 {
     public function __construct(private readonly CategoryRepository $repository) {}
 
-    public function paginate(array $params, int $perPage = 15): LengthAwarePaginator
+    public function paginate(int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
 
-        return $this->repository->paginate($params, $perPage);
+        return $this->repository->paginate($perPage);
     }
 
     public function create(array $data): Category

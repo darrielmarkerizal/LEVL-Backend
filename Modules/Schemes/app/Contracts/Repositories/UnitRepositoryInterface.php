@@ -10,11 +10,12 @@ interface UnitRepositoryInterface
 {
     /**
      * Find units by course ID with pagination.
+     * Uses Spatie Query Builder for filter/sort from request.
      *
      * @param  int  $courseId  Course ID
-     * @param  array  $params  Filter and pagination parameters
+     * @param  int  $perPage  Items per page
      */
-    public function findByCourse(int $courseId, array $params = []): LengthAwarePaginator;
+    public function findByCourse(int $courseId, int $perPage = 15): LengthAwarePaginator;
 
     /**
      * Find a unit by ID.

@@ -4,7 +4,10 @@ namespace Modules\Common\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Modules\Common\Models\Category;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class CategoryRepository
 {
@@ -13,11 +16,51 @@ class CategoryRepository
         return Category::query();
     }
 
-    public function paginate(array $params, int $perPage): LengthAwarePaginator
+    /**
+     * Get paginated categories using Spatie Query Builder + Scout search.
+     *
+     * Supports:
+     * - filter[name], filter[value], filter[description], filter[status]
+     * - filter[search] for Scout/Meilisearch full-text search
+     * - sort: name, value, status, created_at, updated_at (prefix with - for desc)
+     */
+    public function paginate(int $perPage = 15): LengthAwarePaginator
     {
-        return $this->applyFilters($this->query(), $params)
-            ->paginate($perPage)
-            ->appends($params);
+        return $this->buildQuery()->paginate($perPage);
+    }
+
+    /**
+     * Get all categories (no pagination) using Spatie Query Builder + Scout.
+     */
+    public function all(): Collection
+    {
+        return $this->buildQuery()->get();
+    }
+
+    /**
+     * Build query with Spatie Query Builder + Scout search.
+     */
+    private function buildQuery(): QueryBuilder
+    {
+        $searchQuery = request('filter.search');
+
+        $builder = QueryBuilder::for(Category::class);
+
+        // If search query exists, use Scout to get matching IDs
+        if ($searchQuery && trim($searchQuery) !== '') {
+            $ids = Category::search($searchQuery)->keys()->toArray();
+            $builder->whereIn('id', $ids);
+        }
+
+        return $builder
+            ->allowedFilters([
+                AllowedFilter::partial('name'),
+                AllowedFilter::partial('value'),
+                AllowedFilter::partial('description'),
+                AllowedFilter::exact('status'),
+            ])
+            ->allowedSorts(['name', 'value', 'status', 'created_at', 'updated_at'])
+            ->defaultSort('-created_at');
     }
 
     public function create(array $attributes): Category
@@ -40,56 +83,5 @@ class CategoryRepository
     public function delete(Category $category): bool
     {
         return $category->delete();
-    }
-
-    private function applyFilters(Builder $query, array $params): Builder
-    {
-        // Global search across name and value
-        $search = trim((string) ($params['search'] ?? ''));
-        if ($search !== '') {
-            $query->where(function (Builder $builder) use ($search) {
-                $builder->where('name', 'like', "%{$search}%")
-                    ->orWhere('value', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        // Individual field filters
-        $name = $params['filter']['name'] ?? $params['name'] ?? null;
-        if (is_string($name) && $name !== '') {
-            $query->where('name', 'like', "%{$name}%");
-        }
-
-        $value = $params['filter']['value'] ?? $params['value'] ?? null;
-        if (is_string($value) && $value !== '') {
-            $query->where('value', 'like', "%{$value}%");
-        }
-
-        $description = $params['filter']['description'] ?? $params['description'] ?? null;
-        if (is_string($description) && $description !== '') {
-            $query->where('description', 'like', "%{$description}%");
-        }
-
-        $status = $params['filter']['status'] ?? $params['status'] ?? null;
-        if (is_string($status) && $status !== '') {
-            $query->where('status', $status);
-        }
-
-        // Sorting
-        $sort = (string) ($params['sort'] ?? '');
-        if ($sort !== '') {
-            $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
-            $field = ltrim($sort, '-');
-            $sortableFields = ['created_at', 'updated_at', 'name', 'value', 'status'];
-            if (in_array($field, $sortableFields, true)) {
-                $query->orderBy($field, $direction);
-            } else {
-                $query->latest();
-            }
-        } else {
-            $query->latest();
-        }
-
-        return $query;
     }
 }

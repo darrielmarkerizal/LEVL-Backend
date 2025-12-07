@@ -18,9 +18,8 @@ class TagController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) ($request->query('per_page', 0));
-        $params = $request->all();
 
-        $result = $this->service->list($params, $perPage);
+        $result = $this->service->list($perPage);
 
         if ($result instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) {
             return $this->paginateResponse($result, 'Daftar tag berhasil diambil.');
@@ -76,5 +75,3 @@ class TagController extends Controller
         return $this->success([], 'Tag berhasil dihapus.');
     }
 }
-
-

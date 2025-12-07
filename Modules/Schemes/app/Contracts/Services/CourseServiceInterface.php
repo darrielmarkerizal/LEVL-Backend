@@ -9,17 +9,15 @@ interface CourseServiceInterface
 {
     /**
      * List public courses with pagination.
-     *
-     * @param  array  $params  Filter and pagination parameters
+     * Spatie Query Builder reads filter/sort from request automatically.
      */
-    public function listPublic(array $params): LengthAwarePaginator;
+    public function listPublic(int $perPage = 15): LengthAwarePaginator;
 
     /**
      * List all courses with pagination.
-     *
-     * @param  array  $params  Filter and pagination parameters
+     * Spatie Query Builder reads filter/sort from request automatically.
      */
-    public function list(array $params): LengthAwarePaginator;
+    public function list(int $perPage = 15): LengthAwarePaginator;
 
     /**
      * Create a new course.

@@ -10,11 +10,12 @@ interface LessonRepositoryInterface
 {
     /**
      * Find lessons by unit ID with pagination.
+     * Uses Spatie Query Builder for filter/sort from request.
      *
      * @param  int  $unitId  Unit ID
-     * @param  array  $params  Filter and pagination parameters
+     * @param  int  $perPage  Items per page
      */
-    public function findByUnit(int $unitId, array $params = []): LengthAwarePaginator;
+    public function findByUnit(int $unitId, int $perPage = 15): LengthAwarePaginator;
 
     /**
      * Find a lesson by ID.

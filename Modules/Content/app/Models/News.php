@@ -9,20 +9,32 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str;
 use Modules\Auth\Models\User;
 use Modules\Content\Enums\ContentStatus;
 use Modules\Schemes\Models\Tag;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 class News extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasSlug, SoftDeletes;
 
     protected $table = 'news';
 
     protected static function newFactory()
     {
         return \Modules\Content\Database\Factories\NewsFactory::new();
+    }
+
+    /**
+     * Get the options for generating the slug.
+     */
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('title')
+            ->saveSlugsTo('slug')
+            ->doNotGenerateSlugsOnUpdate();
     }
 
     protected $fillable = [
@@ -50,17 +62,6 @@ class News extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($news) {
-            if (empty($news->slug)) {
-                $news->slug = Str::slug($news->title);
-            }
-        });
-    }
 
     public function author(): BelongsTo
     {

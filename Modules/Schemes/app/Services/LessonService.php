@@ -3,7 +3,6 @@
 namespace Modules\Schemes\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Str;
 use Modules\Schemes\Contracts\Repositories\LessonRepositoryInterface;
 use Modules\Schemes\DTOs\CreateLessonDTO;
 use Modules\Schemes\DTOs\UpdateLessonDTO;
@@ -15,9 +14,9 @@ class LessonService
         private readonly LessonRepositoryInterface $repository
     ) {}
 
-    public function paginate(int $unitId, array $params, int $perPage = 15): LengthAwarePaginator
+    public function paginate(int $unitId, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->repository->findByUnit($unitId, $params);
+        return $this->repository->findByUnit($unitId, $perPage);
     }
 
     public function find(int $id): ?Lesson
@@ -35,9 +34,8 @@ class LessonService
         $attributes = $data instanceof CreateLessonDTO ? $data->toArrayWithoutNull() : $data;
         $attributes['unit_id'] = $unitId;
 
-        if (! isset($attributes['slug']) && isset($attributes['title'])) {
-            $attributes['slug'] = Str::slug($attributes['title']);
-        }
+        // Remove slug - HasSlug trait auto-generates from title
+        unset($attributes['slug']);
 
         return $this->repository->create($attributes);
     }
@@ -47,9 +45,8 @@ class LessonService
         $lesson = $this->repository->findByIdOrFail($id);
         $attributes = $data instanceof UpdateLessonDTO ? $data->toArrayWithoutNull() : $data;
 
-        if (isset($attributes['title']) && $attributes['title'] !== $lesson->title) {
-            $attributes['slug'] = Str::slug($attributes['title']);
-        }
+        // Remove slug - HasSlug doesn't regenerate on update
+        unset($attributes['slug']);
 
         return $this->repository->update($lesson, $attributes);
     }

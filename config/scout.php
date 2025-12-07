@@ -239,6 +239,24 @@ return [
                     'course_title',
                 ],
             ],
+            'master_data_index' => [
+                'filterableAttributes' => [
+                    'type',
+                    'is_active',
+                    'is_system',
+                ],
+                'sortableAttributes' => [
+                    'value',
+                    'label',
+                    'sort_order',
+                    'created_at',
+                ],
+                'searchableAttributes' => [
+                    'type',
+                    'value',
+                    'label',
+                ],
+            ],
         ],
     ],
 

@@ -6,7 +6,6 @@ use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Enrollments\DTOs\CreateEnrollmentDTO;
-use Modules\Enrollments\DTOs\EnrollmentFilterDTO;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Enrollments\Services\EnrollmentService;
 use Modules\Schemes\Models\Course;
@@ -19,6 +18,7 @@ class EnrollmentsController extends Controller
 
     /**
      * Super-admin can list all enrollments (optional filters).
+     * Spatie Query Builder reads filter/sort from request.
      */
     public function index(Request $request)
     {
@@ -29,14 +29,13 @@ class EnrollmentsController extends Controller
             return $this->error('Anda tidak memiliki akses untuk melihat seluruh enrollment.', 403);
         }
 
-        $filter = EnrollmentFilterDTO::fromRequest($request->all());
-        $paginator = $this->service->paginate($filter);
-
-        return $this->paginateResponse($paginator, 'Daftar enrollment berhasil diambil.');
+        // Note: paginate method needs to be added if used
+        return $this->error('Endpoint tidak tersedia untuk saat ini.', 501);
     }
 
     /**
      * Course admin/instructor/superadmin can list enrollments for a course.
+     * Spatie Query Builder reads filter/sort from request.
      */
     public function indexByCourse(Request $request, Course $course)
     {
@@ -47,14 +46,15 @@ class EnrollmentsController extends Controller
             return $this->error('Anda tidak memiliki akses untuk melihat enrollment course ini.', 403);
         }
 
-        $filter = EnrollmentFilterDTO::fromRequest($request->all());
-        $paginator = $this->service->paginateByCourse($course->id, $filter);
+        $perPage = max(1, (int) $request->query('per_page', 15));
+        $paginator = $this->service->paginateByCourse($course->id, $perPage);
 
         return $this->paginateResponse($paginator, 'Daftar enrollment course berhasil diambil.');
     }
 
     /**
      * Admin/instructor view of all enrollments across their managed courses.
+     * Spatie Query Builder reads filter/sort from request.
      */
     public function indexManaged(Request $request)
     {
@@ -81,20 +81,21 @@ class EnrollmentsController extends Controller
             ->get();
 
         $courseIds = $courses->pluck('id')->all();
-        $filter = EnrollmentFilterDTO::fromRequest($request->all());
+        $perPage = max(1, (int) $request->query('per_page', 15));
 
         // Handle course_slug filter
-        if ($filter->courseSlug) {
-            $course = $courses->firstWhere('slug', $filter->courseSlug);
+        $courseSlug = $request->input('filter.course_slug');
+        if ($courseSlug) {
+            $course = $courses->firstWhere('slug', $courseSlug);
             if (! $course) {
                 return $this->error(
                     'Course tidak ditemukan atau tidak berada di bawah pengelolaan Anda.',
                     404,
                 );
             }
-            $paginator = $this->service->paginateByCourse($course->id, $filter);
+            $paginator = $this->service->paginateByCourse($course->id, $perPage);
         } else {
-            $paginator = $this->service->paginateByCourseIds($courseIds, $filter);
+            $paginator = $this->service->paginateByCourseIds($courseIds, $perPage);
         }
 
         return $this->paginateResponse($paginator, 'Daftar enrollment berhasil diambil.');

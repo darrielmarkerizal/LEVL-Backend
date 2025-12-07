@@ -3,46 +3,46 @@
 namespace Modules\Schemes\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Schemes\Contracts\Repositories\LessonRepositoryInterface;
 use Modules\Schemes\Models\Lesson;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class LessonRepository implements LessonRepositoryInterface
 {
-    public function findByUnit(int $unitId, array $params = []): LengthAwarePaginator
+    /**
+     * Find lessons by unit with Spatie Query Builder + Scout search.
+     *
+     * Supports:
+     * - filter[status], filter[content_type], filter[search] (Meilisearch)
+     * - sort: id, title, order, status, duration_minutes, created_at, updated_at (prefix with - for desc)
+     */
+    public function findByUnit(int $unitId, int $perPage = 15): LengthAwarePaginator
     {
-        $query = Lesson::where('unit_id', $unitId);
+        $searchQuery = request('filter.search');
 
-        if (! empty($params['filter']['status'])) {
-            $query->where('status', $params['filter']['status']);
+        $builder = QueryBuilder::for(Lesson::class)
+            ->where('unit_id', $unitId);
+
+        // If search query exists, use Scout to get matching IDs
+        if ($searchQuery && trim($searchQuery) !== '') {
+            $ids = Lesson::search($searchQuery)
+                ->query(fn ($q) => $q->where('unit_id', $unitId))
+                ->keys()
+                ->toArray();
+            $builder->whereIn('id', $ids);
         }
 
-        if (! empty($params['search'])) {
-            $search = $params['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhere('markdown_content', 'like', "%{$search}%");
-            });
-        }
-
-        $sortField = $params['sort'] ?? 'order';
-        $sortDirection = 'asc';
-        if (str_starts_with($sortField, '-')) {
-            $sortField = substr($sortField, 1);
-            $sortDirection = 'desc';
-        }
-
-        $allowedSortFields = ['id', 'title', 'order', 'status', 'duration_minutes', 'created_at', 'updated_at', 'published_at'];
-        if (in_array($sortField, $allowedSortFields)) {
-            $query->orderBy($sortField, $sortDirection);
-        } else {
-            $query->orderBy('order', 'asc');
-        }
-
-        $perPage = isset($params['per_page']) ? max(1, (int) $params['per_page']) : 15;
-
-        return $query->paginate($perPage);
+        return $builder
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::exact('content_type'),
+            ])
+            ->allowedSorts(['id', 'title', 'order', 'status', 'duration_minutes', 'created_at', 'updated_at', 'published_at'])
+            ->defaultSort('order')
+            ->paginate($perPage);
     }
 
     public function findById(int $id): ?Lesson

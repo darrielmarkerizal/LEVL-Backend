@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Mail;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Contracts\Repositories\EnrollmentRepositoryInterface;
 use Modules\Enrollments\DTOs\CreateEnrollmentDTO;
-use Modules\Enrollments\DTOs\EnrollmentFilterDTO;
 use Modules\Enrollments\Enums\EnrollmentStatus;
 use Modules\Enrollments\Events\EnrollmentCreated;
 use Modules\Enrollments\Mail\AdminEnrollmentNotificationMail;
@@ -28,36 +27,33 @@ class EnrollmentService
         private EnrollmentKeyHasherInterface $keyHasher
     ) {}
 
-    /**
-     * Get paginated list of all enrollments.
-     */
-    public function paginate(EnrollmentFilterDTO $filter): LengthAwarePaginator
-    {
-        return $this->repository->paginate($filter->toFilterArray(), $filter->perPage);
-    }
+    // Note: Global paginate removed - use paginateByCourse, paginateByCourseIds, or paginateByUser instead
 
     /**
      * Get paginated enrollments by course.
+     * Spatie Query Builder reads filter/sort from request.
      */
-    public function paginateByCourse(int $courseId, EnrollmentFilterDTO $filter): LengthAwarePaginator
+    public function paginateByCourse(int $courseId, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->repository->paginateByCourse($courseId, $filter->toFilterArray(), $filter->perPage);
+        return $this->repository->paginateByCourse($courseId, $perPage);
     }
 
     /**
      * Get paginated enrollments by course IDs.
+     * Spatie Query Builder reads filter/sort from request.
      */
-    public function paginateByCourseIds(array $courseIds, EnrollmentFilterDTO $filter): LengthAwarePaginator
+    public function paginateByCourseIds(array $courseIds, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->repository->paginateByCourseIds($courseIds, $filter->toFilterArray(), $filter->perPage);
+        return $this->repository->paginateByCourseIds($courseIds, $perPage);
     }
 
     /**
      * Get paginated enrollments by user.
+     * Spatie Query Builder reads filter/sort from request.
      */
-    public function paginateByUser(int $userId, EnrollmentFilterDTO $filter): LengthAwarePaginator
+    public function paginateByUser(int $userId, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->repository->paginateByUser($userId, $filter->toFilterArray(), $filter->perPage);
+        return $this->repository->paginateByUser($userId, $perPage);
     }
 
     /**

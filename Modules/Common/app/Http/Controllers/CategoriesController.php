@@ -18,7 +18,7 @@ class CategoriesController extends Controller
     public function index(Request $request)
     {
         $perPage = max(1, (int) $request->get('per_page', 15));
-        $paginator = $this->service->paginate($request->all(), $perPage);
+        $paginator = $this->service->paginate($perPage);
 
         return $this->paginateResponse($paginator);
     }
