@@ -5,10 +5,12 @@ namespace Modules\Schemes\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Laravel\Scout\Searchable;
 
 class Tag extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
+
     protected $fillable = [
         'name',
         'slug',
@@ -48,6 +50,35 @@ class Tag extends Model
     }
 
     /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+        ];
+    }
+
+    /**
+     * Get the name of the index associated with the model.
+     */
+    public function searchableAs(): string
+    {
+        return 'tags_index';
+    }
+
+    /**
+     * Determine if the model should be searchable.
+     */
+    public function shouldBeSearchable(): bool
+    {
+        return true;
+    }
+
+    /**
      * Create a new factory instance for the model.
      */
     protected static function newFactory()
@@ -55,5 +86,3 @@ class Tag extends Model
         return \Database\Factories\TagFactory::new();
     }
 }
-
-

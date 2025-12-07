@@ -47,6 +47,16 @@ class ContentServiceProvider extends ServiceProvider
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
 
+        // Bind repository interfaces
+        $this->app->bind(
+            \Modules\Content\Contracts\Repositories\AnnouncementRepositoryInterface::class,
+            \Modules\Content\Repositories\AnnouncementRepository::class
+        );
+        $this->app->bind(
+            \Modules\Content\Contracts\Repositories\NewsRepositoryInterface::class,
+            \Modules\Content\Repositories\NewsRepository::class
+        );
+
         // Bind service interfaces to implementations
         $this->app->bind(
             \App\Contracts\Services\ContentServiceInterface::class,
@@ -58,6 +68,10 @@ class ContentServiceProvider extends ServiceProvider
             \Modules\Content\Contracts\ContentWorkflowServiceInterface::class,
             \Modules\Content\Services\ContentWorkflowService::class
         );
+
+        // Bind specific services
+        $this->app->singleton(\Modules\Content\Services\AnnouncementService::class);
+        $this->app->singleton(\Modules\Content\Services\NewsService::class);
     }
 
     /**

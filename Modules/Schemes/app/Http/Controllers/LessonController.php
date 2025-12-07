@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Modules\Schemes\Http\Requests\LessonRequest;
-use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Course;
+use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Services\LessonService;
 use Modules\Schemes\Services\ProgressionService;
@@ -22,6 +22,14 @@ class LessonController extends Controller
         private ProgressionService $progression
     ) {}
 
+    /**
+     * @allowedFilters status, content_type
+     *
+     * @allowedSorts order, title, created_at
+     *
+     * @filterEnum status draft|published
+     * @filterEnum content_type markdown|video|link
+     */
     public function index(Request $request, Course $course, Unit $unit)
     {
         /** @var \Modules\Auth\Models\User $user */

@@ -4,6 +4,9 @@ namespace Modules\Enrollments\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Enrollments\Contracts\Repositories\EnrollmentRepositoryInterface;
+use Modules\Enrollments\Repositories\EnrollmentRepository;
+use Modules\Enrollments\Services\EnrollmentService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -36,6 +39,12 @@ class EnrollmentsServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+
+        // Bind Repository
+        $this->app->bind(EnrollmentRepositoryInterface::class, EnrollmentRepository::class);
+
+        // Bind Service
+        $this->app->singleton(EnrollmentService::class);
     }
 
     /**
@@ -129,7 +138,7 @@ class EnrollmentsServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->nameLower);
 
-        Blade::componentNamespace(config('modules.namespace').'\\' . $this->name . '\\View\\Components', $this->nameLower);
+        Blade::componentNamespace(config('modules.namespace').'\\'.$this->name.'\\View\\Components', $this->nameLower);
     }
 
     /**

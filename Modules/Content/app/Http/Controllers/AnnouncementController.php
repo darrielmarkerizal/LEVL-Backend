@@ -22,6 +22,13 @@ class AnnouncementController extends Controller
 
     /**
      * Display a listing of announcements.
+     *
+     * @allowedFilters course_id, priority, unread
+     *
+     * @allowedSorts created_at, published_at
+     *
+     * @filterEnum priority low|medium|high
+     * @filterEnum unread true|false
      */
     public function index(Request $request): JsonResponse
     {

@@ -44,12 +44,30 @@ class CategoryRepository
 
     private function applyFilters(Builder $query, array $params): Builder
     {
+        // Global search across name and value
         $search = trim((string) ($params['search'] ?? ''));
         if ($search !== '') {
             $query->where(function (Builder $builder) use ($search) {
                 $builder->where('name', 'like', "%{$search}%")
-                    ->orWhere('value', 'like', "%{$search}%");
+                    ->orWhere('value', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
             });
+        }
+
+        // Individual field filters
+        $name = $params['filter']['name'] ?? $params['name'] ?? null;
+        if (is_string($name) && $name !== '') {
+            $query->where('name', 'like', "%{$name}%");
+        }
+
+        $value = $params['filter']['value'] ?? $params['value'] ?? null;
+        if (is_string($value) && $value !== '') {
+            $query->where('value', 'like', "%{$value}%");
+        }
+
+        $description = $params['filter']['description'] ?? $params['description'] ?? null;
+        if (is_string($description) && $description !== '') {
+            $query->where('description', 'like', "%{$description}%");
         }
 
         $status = $params['filter']['status'] ?? $params['status'] ?? null;
@@ -57,11 +75,13 @@ class CategoryRepository
             $query->where('status', $status);
         }
 
+        // Sorting
         $sort = (string) ($params['sort'] ?? '');
         if ($sort !== '') {
             $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
             $field = ltrim($sort, '-');
-            if (in_array($field, ['created_at', 'name'], true)) {
+            $sortableFields = ['created_at', 'updated_at', 'name', 'value', 'status'];
+            if (in_array($field, $sortableFields, true)) {
                 $query->orderBy($field, $direction);
             } else {
                 $query->latest();

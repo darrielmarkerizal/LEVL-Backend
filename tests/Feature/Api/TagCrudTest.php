@@ -18,7 +18,7 @@ beforeEach(function () {
 // POST - Create Tag
 it('admin can create tag', function () {
     $response = $this->actingAs($this->admin, 'api')
-        ->postJson(api('/course-tags'), [
+        ->postJson(api('/master-data/tags'), [
             'name' => 'Laravel',
         ]);
 
@@ -33,7 +33,7 @@ it('admin can create tag', function () {
 
 it('admin can create multiple tags at once', function () {
     $response = $this->actingAs($this->admin, 'api')
-        ->postJson(api('/course-tags'), [
+        ->postJson(api('/master-data/tags'), [
             'names' => ['PHP', 'JavaScript', 'Python'],
         ]);
 
@@ -50,7 +50,7 @@ it('admin can update tag', function () {
     $tag = Tag::factory()->create(['name' => 'Old Name']);
 
     $response = $this->actingAs($this->admin, 'api')
-        ->putJson(api("/course-tags/{$tag->slug}"), [
+        ->putJson(api("/master-data/tags/{$tag->slug}"), [
             'name' => 'New Name',
         ]);
 
@@ -68,7 +68,7 @@ it('admin can delete tag', function () {
     $tag = Tag::factory()->create();
 
     $response = $this->actingAs($this->admin, 'api')
-        ->deleteJson(api("/course-tags/{$tag->slug}"));
+        ->deleteJson(api("/master-data/tags/{$tag->slug}"));
 
     $response->assertStatus(200);
     assertDatabaseMissing('tags', ['id' => $tag->id]);
@@ -79,7 +79,7 @@ it('admin can delete tag', function () {
 // POST - Create Tag Negative
 it('student cannot create tag', function () {
     $response = $this->actingAs($this->student, 'api')
-        ->postJson(api('/course-tags'), [
+        ->postJson(api('/master-data/tags'), [
             'name' => 'Student Tag',
         ]);
 
@@ -90,7 +90,7 @@ it('cannot create tag with duplicate name', function () {
     Tag::factory()->create(['name' => 'Duplicate Tag']);
 
     $response = $this->actingAs($this->admin, 'api')
-        ->postJson(api('/course-tags'), [
+        ->postJson(api('/master-data/tags'), [
             'name' => 'Duplicate Tag',
         ]);
 
@@ -101,13 +101,13 @@ it('cannot create tag with duplicate name', function () {
 
 it('cannot create tag with missing name', function () {
     $response = $this->actingAs($this->admin, 'api')
-        ->postJson(api('/course-tags'), []);
+        ->postJson(api('/master-data/tags'), []);
 
     $response->assertStatus(422);
 });
 
 it('unauthenticated user cannot create tag', function () {
-    $response = $this->postJson(api('/course-tags'), [
+    $response = $this->postJson(api('/master-data/tags'), [
         'name' => 'Unauthenticated Tag',
     ]);
 
@@ -119,7 +119,7 @@ it('student cannot update tag', function () {
     $tag = Tag::factory()->create();
 
     $response = $this->actingAs($this->student, 'api')
-        ->putJson(api("/course-tags/{$tag->slug}"), [
+        ->putJson(api("/master-data/tags/{$tag->slug}"), [
             'name' => 'Updated by Student',
         ]);
 
@@ -128,7 +128,7 @@ it('student cannot update tag', function () {
 
 it('cannot update non-existent tag', function () {
     $response = $this->actingAs($this->admin, 'api')
-        ->putJson(api('/course-tags/non-existent-slug'), [
+        ->putJson(api('/master-data/tags/non-existent-slug'), [
             'name' => 'Non Existent',
         ]);
 
@@ -140,7 +140,7 @@ it('cannot update tag with duplicate name', function () {
     $tag2 = Tag::factory()->create(['name' => 'Tag Two']);
 
     $response = $this->actingAs($this->admin, 'api')
-        ->putJson(api("/course-tags/{$tag1->slug}"), [
+        ->putJson(api("/master-data/tags/{$tag1->slug}"), [
             'name' => 'Tag Two',
         ]);
 
@@ -153,14 +153,14 @@ it('student cannot delete tag', function () {
     $tag = Tag::factory()->create();
 
     $response = $this->actingAs($this->student, 'api')
-        ->deleteJson(api("/course-tags/{$tag->slug}"));
+        ->deleteJson(api("/master-data/tags/{$tag->slug}"));
 
     $response->assertStatus(403);
 });
 
 it('cannot delete non-existent tag', function () {
     $response = $this->actingAs($this->admin, 'api')
-        ->deleteJson(api('/course-tags/non-existent-slug'));
+        ->deleteJson(api('/master-data/tags/non-existent-slug'));
 
     $response->assertStatus(404);
 });
@@ -168,8 +168,7 @@ it('cannot delete non-existent tag', function () {
 it('unauthenticated user cannot delete tag', function () {
     $tag = Tag::factory()->create();
 
-    $response = $this->deleteJson(api("/course-tags/{$tag->slug}"));
+    $response = $this->deleteJson(api("/master-data/tags/{$tag->slug}"));
 
     $response->assertStatus(401);
 });
-

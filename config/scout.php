@@ -163,6 +163,82 @@ return [
                     'tags',
                 ],
             ],
+            'categories_index' => [
+                'filterableAttributes' => [
+                    'status',
+                ],
+                'sortableAttributes' => [
+                    'name',
+                    'created_at',
+                ],
+                'searchableAttributes' => [
+                    'name',
+                    'value',
+                    'description',
+                ],
+            ],
+            'tags_index' => [
+                'filterableAttributes' => [],
+                'sortableAttributes' => [
+                    'name',
+                    'created_at',
+                ],
+                'searchableAttributes' => [
+                    'name',
+                    'slug',
+                    'description',
+                ],
+            ],
+            'users_index' => [
+                'filterableAttributes' => [
+                    'status',
+                    'account_status',
+                ],
+                'sortableAttributes' => [
+                    'name',
+                    'created_at',
+                ],
+                'searchableAttributes' => [
+                    'name',
+                    'email',
+                    'username',
+                ],
+            ],
+            'units_index' => [
+                'filterableAttributes' => [
+                    'course_id',
+                    'status',
+                ],
+                'sortableAttributes' => [
+                    'title',
+                    'order',
+                ],
+                'searchableAttributes' => [
+                    'title',
+                    'description',
+                    'code',
+                    'course_title',
+                ],
+            ],
+            'lessons_index' => [
+                'filterableAttributes' => [
+                    'unit_id',
+                    'course_id',
+                    'status',
+                    'content_type',
+                ],
+                'sortableAttributes' => [
+                    'title',
+                    'order',
+                ],
+                'searchableAttributes' => [
+                    'title',
+                    'description',
+                    'markdown_content',
+                    'unit_title',
+                    'course_title',
+                ],
+            ],
         ],
     ],
 

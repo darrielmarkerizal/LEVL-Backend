@@ -4,9 +4,10 @@ namespace Modules\Content\Repositories;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Modules\Content\Contracts\Repositories\NewsRepositoryInterface;
 use Modules\Content\Models\News;
 
-class NewsRepository
+class NewsRepository implements NewsRepositoryInterface
 {
     /**
      * Get news feed with sorting and filtering.

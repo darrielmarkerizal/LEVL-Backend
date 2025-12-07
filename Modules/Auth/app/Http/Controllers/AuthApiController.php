@@ -44,8 +44,10 @@ class AuthApiController extends Controller
 
     public function register(RegisterRequest $request): JsonResponse
     {
+        $dto = RegisterDTO::fromRequest($request->validated());
+
         $data = $this->auth->register(
-            validated: $request->validated(),
+            data: $dto,
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );
@@ -58,10 +60,11 @@ class AuthApiController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
-        $login = $request->string('login');
+        $dto = LoginDTO::fromRequest($request->validated());
+
         $data = $this->auth->login(
-            login: $login,
-            password: $request->input('password'),
+            loginOrDto: $dto,
+            password: null,
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );

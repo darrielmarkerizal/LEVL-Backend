@@ -28,6 +28,14 @@ class ThreadController extends Controller
 
     /**
      * Display a listing of threads for a scheme.
+     *
+     * @allowedFilters pinned, resolved, closed
+     *
+     * @allowedSorts created_at, updated_at, replies_count
+     *
+     * @filterEnum pinned true|false
+     * @filterEnum resolved true|false
+     * @filterEnum closed true|false
      */
     public function index(Request $request, int $schemeId): JsonResponse
     {

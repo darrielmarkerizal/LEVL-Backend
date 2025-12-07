@@ -21,6 +21,15 @@ class CourseController extends Controller
         private CourseRepository $repository,
     ) {}
 
+    /**
+     * @allowedFilters status, level_tag, type, category_id, tag
+     *
+     * @allowedSorts id, code, title, created_at, updated_at, published_at
+     *
+     * @filterEnum status draft|published|archived
+     * @filterEnum level_tag dasar|menengah|mahir
+     * @filterEnum type okupasi|kluster
+     */
     public function index(Request $request)
     {
         $params = $request->all();

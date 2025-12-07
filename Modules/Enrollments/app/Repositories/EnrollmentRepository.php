@@ -2,16 +2,14 @@
 
 namespace Modules\Enrollments\Repositories;
 
-use App\Support\FilterableRepository;
+use App\Repositories\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
+use Modules\Enrollments\Contracts\Repositories\EnrollmentRepositoryInterface;
 use Modules\Enrollments\Models\Enrollment;
 
-class EnrollmentRepository
+class EnrollmentRepository extends BaseRepository implements EnrollmentRepositoryInterface
 {
-    use FilterableRepository;
-
-    private array $allowedFilterFields = [
+    protected array $allowedFilters = [
         'status',
         'course_id',
         'user_id',
@@ -19,7 +17,7 @@ class EnrollmentRepository
         'completed_at',
     ];
 
-    private array $allowedSortFields = [
+    protected array $allowedSorts = [
         'id',
         'created_at',
         'updated_at',
@@ -29,60 +27,38 @@ class EnrollmentRepository
         'progress_percent',
     ];
 
-    public function paginate(array $params, int $perPage = 15): LengthAwarePaginator
+    protected string $defaultSort = '-created_at';
+
+    protected array $with = ['user:id,name,email', 'course:id,slug,title,enrollment_type'];
+
+    protected function model(): string
     {
-        $query = Enrollment::query()->with(['user:id,name,email', 'course:id,slug,title,enrollment_type']);
-
-        $this->filter($query, $params)
-            ->allowFilters($this->allowedFilterFields)
-            ->allowSorts($this->allowedSortFields)
-            ->setDefaultSort('-created_at')
-            ->setDefaultPerPage($perPage)
-            ->applyFiltersAndSorting($query);
-
-        [$page, $pageSize] = $this->getPaginationParams($params, $perPage);
-
-        return $query->paginate($pageSize, ['*'], 'page', $page)->appends($params);
-    }
-
-    public function list(array $params): Collection
-    {
-        $query = Enrollment::query()->with(['user:id,name,email', 'course:id,slug,title']);
-
-        $this->filter($query, $params)
-            ->allowFilters($this->allowedFilterFields)
-            ->allowSorts($this->allowedSortFields)
-            ->setDefaultSort('-created_at')
-            ->applyFiltersAndSorting($query);
-
-        return $query->get();
+        return Enrollment::class;
     }
 
     public function paginateByCourse(int $courseId, array $params, int $perPage = 15): LengthAwarePaginator
     {
-        $query = Enrollment::query()
+        $query = $this->model()::query()
             ->where('course_id', $courseId)
             ->with(['user:id,name,email']);
 
         $filteredParams = $params;
         unset($filteredParams['filter']['course_id']);
 
-        $this->filter($query, $filteredParams)
-            ->allowFilters(['status', 'user_id', 'enrolled_at', 'completed_at'])
-            ->allowSorts($this->allowedSortFields)
-            ->setDefaultSort('-created_at')
-            ->applyFiltersAndSorting($query);
-
-        [$page, $pageSize] = $this->getPaginationParams($params, $perPage);
-
-        return $query->paginate($pageSize, ['*'], 'page', $page)->appends($params);
+        return $this->filteredPaginate(
+            $query,
+            $filteredParams,
+            ['status', 'user_id', 'enrolled_at', 'completed_at'],
+            $this->allowedSorts,
+            $this->defaultSort,
+            $perPage
+        );
     }
 
     public function paginateByCourseIds(array $courseIds, array $params, int $perPage = 15): LengthAwarePaginator
     {
-        $query = Enrollment::query()
-            ->with(['user:id,name,email', 'course:id,slug,title,enrollment_type'])
-            ->orderByDesc('created_at');
+        $query = $this->model()::query()
+            ->with(['user:id,name,email', 'course:id,slug,title,enrollment_type']);
 
         if (! empty($courseIds)) {
             $query->whereIn('course_id', $courseIds);
@@ -93,67 +69,40 @@ class EnrollmentRepository
         $filteredParams = $params;
         unset($filteredParams['filter']['course_id']);
 
-        $this->filter($query, $filteredParams)
-            ->allowFilters($this->allowedFilterFields)
-            ->allowSorts($this->allowedSortFields)
-            ->setDefaultSort('-created_at')
-            ->applyFiltersAndSorting($query);
-
-        [$page, $pageSize] = $this->getPaginationParams($params, $perPage);
-
-        return $query->paginate($pageSize, ['*'], 'page', $page)->appends($params);
+        return $this->filteredPaginate(
+            $query,
+            $filteredParams,
+            $this->allowedFilters,
+            $this->allowedSorts,
+            $this->defaultSort,
+            $perPage
+        );
     }
 
     public function paginateByUser(int $userId, array $params, int $perPage = 15): LengthAwarePaginator
     {
-        $query = Enrollment::query()
+        $query = $this->model()::query()
             ->where('user_id', $userId)
             ->with(['course:id,slug,title,status']);
 
         $filteredParams = $params;
         unset($filteredParams['filter']['user_id']);
 
-        $this->filter($query, $filteredParams)
-            ->allowFilters(['status', 'course_id', 'enrolled_at', 'completed_at'])
-            ->allowSorts($this->allowedSortFields)
-            ->setDefaultSort('-created_at')
-            ->applyFiltersAndSorting($query);
-
-        [$page, $pageSize] = $this->getPaginationParams($params, $perPage);
-
-        return $query->paginate($pageSize, ['*'], 'page', $page)->appends($params);
-    }
-
-    public function findById(int $id): ?Enrollment
-    {
-        return Enrollment::query()
-            ->with(['user', 'course'])
-            ->find($id);
+        return $this->filteredPaginate(
+            $query,
+            $filteredParams,
+            ['status', 'course_id', 'enrolled_at', 'completed_at'],
+            $this->allowedSorts,
+            $this->defaultSort,
+            $perPage
+        );
     }
 
     public function findByCourseAndUser(int $courseId, int $userId): ?Enrollment
     {
-        return Enrollment::query()
+        return $this->model()::query()
             ->where('course_id', $courseId)
             ->where('user_id', $userId)
             ->first();
-    }
-
-    private function getPaginationParams(array $params, int $defaultPerPage): array
-    {
-        $page = max(1, (int) ($params['page'] ?? 1));
-        $perPage = max(1, min(100, (int) ($params['per_page'] ?? $defaultPerPage)));
-
-        return [$page, $perPage];
-    }
-
-    public function getAllowedFilterFields(): array
-    {
-        return $this->allowedFilterFields;
-    }
-
-    public function getAllowedSortFields(): array
-    {
-        return $this->allowedSortFields;
     }
 }

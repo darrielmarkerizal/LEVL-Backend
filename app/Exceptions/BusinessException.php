@@ -4,37 +4,29 @@ namespace App\Exceptions;
 
 use Exception;
 
-/**
- * Base Business Exception class.
- *
- * All business logic exceptions should extend this class to ensure
- * consistent error handling and response formatting.
- */
-abstract class BusinessException extends Exception
+class BusinessException extends Exception
 {
     /**
-     * HTTP status code for this exception.
+     * @var array<string, array<string>>
      */
-    protected int $statusCode = 400;
+    protected array $errors = [];
 
     /**
-     * Application-specific error code.
+     * @param  array<string, array<string>>  $errors
      */
-    protected string $errorCode = 'BUSINESS_ERROR';
-
-    /**
-     * Get the HTTP status code.
-     */
-    public function getStatusCode(): int
+    public function __construct(string $message, array $errors = [], int $code = 422)
     {
-        return $this->statusCode;
+        parent::__construct($message, $code);
+        $this->errors = $errors;
     }
 
     /**
-     * Get the application error code.
+     * Get the validation errors.
+     *
+     * @return array<string, array<string>>
      */
-    public function getErrorCode(): string
+    public function getErrors(): array
     {
-        return $this->errorCode;
+        return $this->errors;
     }
 }

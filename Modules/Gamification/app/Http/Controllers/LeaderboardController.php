@@ -18,6 +18,8 @@ class LeaderboardController extends Controller
      * Get global leaderboard.
      *
      * @summary Mengambil leaderboard global
+     *
+     * @allowedSorts total_xp, global_level
      */
     public function index(Request $request): JsonResponse
     {

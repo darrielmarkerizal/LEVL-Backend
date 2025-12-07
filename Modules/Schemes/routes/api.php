@@ -5,7 +5,6 @@ use Modules\Schemes\Http\Controllers\CourseController;
 use Modules\Schemes\Http\Controllers\LessonBlockController;
 use Modules\Schemes\Http\Controllers\LessonController;
 use Modules\Schemes\Http\Controllers\ProgressController;
-use Modules\Schemes\Http\Controllers\TagController;
 use Modules\Schemes\Http\Controllers\UnitController;
 
 Route::prefix('v1')->scopeBindings()->group(function () {
@@ -59,10 +58,6 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.units.unpublish');
     });
 
-    // Public tag routes
-    Route::get('course-tags', [TagController::class, 'index'])->name('course-tags.index');
-    Route::get('course-tags/{tag:slug}', [TagController::class, 'show'])->name('course-tags.show');
-
     // Authenticated lesson and progress routes
     Route::middleware(['auth:api'])->group(function () {
         Route::get('courses/{course:slug}/units/{unit:slug}/lessons', [LessonController::class, 'index'])
@@ -87,11 +82,6 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.units.lessons.publish');
         Route::put('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/unpublish', [LessonController::class, 'unpublish'])
             ->name('courses.units.lessons.unpublish');
-
-        // Admin tag management
-        Route::post('course-tags', [TagController::class, 'store'])->name('course-tags.store');
-        Route::put('course-tags/{tag:slug}', [TagController::class, 'update'])->name('course-tags.update');
-        Route::delete('course-tags/{tag:slug}', [TagController::class, 'destroy'])->name('course-tags.destroy');
     });
 
     // Authenticated lesson block routes

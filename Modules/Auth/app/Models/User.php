@@ -5,6 +5,7 @@ namespace Modules\Auth\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Scout\Searchable;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Traits\HasProfilePrivacy;
 use Modules\Auth\Traits\TracksUserActivity;
@@ -13,7 +14,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, HasProfilePrivacy, HasRoles, Notifiable, TracksUserActivity;
+    use HasFactory, HasProfilePrivacy, HasRoles, Notifiable, Searchable, TracksUserActivity;
 
     protected $guard_name = 'api';
 
@@ -126,6 +127,37 @@ class User extends Authenticatable implements JWTSubject
             'user_id',
             'course_id'
         );
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'username' => $this->username,
+            'status' => $this->status?->value,
+            'account_status' => $this->account_status,
+        ];
+    }
+
+    /**
+     * Get the name of the index associated with the model.
+     */
+    public function searchableAs(): string
+    {
+        return 'users_index';
+    }
+
+    /**
+     * Determine if the model should be searchable.
+     */
+    public function shouldBeSearchable(): bool
+    {
+        return $this->account_status === 'active';
     }
 
     /**

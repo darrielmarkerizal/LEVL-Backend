@@ -12,7 +12,7 @@ class OpenApiGeneratorService
     protected array $featureGroups = [
         '01-auth' => [
             'label' => '02 - Autentikasi & Registrasi',
-            'description' => 'Fitur autentikasi, registrasi, dan manajemen sesi pengguna.',
+            'description' => 'Fitur autentikasi, registrasi, dan manajemen sesi pengguna. Rate limit: 10 requests per minute untuk endpoint auth (login, register, password reset).',
             'features' => [
                 'verifikasi-email' => [
                     'label' => 'Verifikasi Email',
@@ -228,7 +228,7 @@ class OpenApiGeneratorService
         ],
         '09-kelas' => [
             'label' => '09 - Kelas & Pendaftaran',
-            'description' => 'Manajemen pendaftaran kelas dan kategori.',
+            'description' => 'Manajemen pendaftaran kelas dan kategori. Rate limit: 5 requests per minute untuk endpoint enrollment (enroll, cancel, withdraw).',
             'features' => [
                 'enrollments' => [
                     'label' => 'Pendaftaran Kelas (Enrollments)',
@@ -274,9 +274,9 @@ class OpenApiGeneratorService
                 ],
                 'master' => [
                     'label' => 'Master Data',
-                    'description' => 'Data referensi sistem.',
-                    'modules' => ['Master'],
-                    'keywords' => ['master', 'provinces', 'cities'],
+                    'description' => 'Data referensi sistem termasuk enum values untuk status, tipe, dan kategori yang digunakan di seluruh aplikasi.',
+                    'modules' => ['Master', 'Common'],
+                    'keywords' => ['master', 'master-data', 'provinces', 'cities', 'user-status', 'roles', 'course-status', 'course-types', 'enrollment-types', 'level-tags', 'progression-modes', 'content-types', 'enrollment-status', 'progress-status', 'assignment-status', 'submission-status', 'submission-types', 'content-status', 'priorities', 'target-types', 'challenge-types', 'challenge-assignment-status', 'challenge-criteria-types', 'badge-types', 'point-source-types', 'point-reasons', 'notification-types', 'notification-channels', 'notification-frequencies', 'grade-status', 'grade-source-types', 'category-status'],
                 ],
                 'roles' => [
                     'label' => 'Role & Hak Akses',
@@ -497,6 +497,80 @@ class OpenApiGeneratorService
                             ],
                         ],
                         'required' => ['success', 'message', 'data', 'meta', 'errors'],
+                    ],
+                    // Auth Enums
+                    'UserStatus' => $this->enumToSchema(\Modules\Auth\Enums\UserStatus::class, 'Status pengguna'),
+
+                    // Schemes Enums
+                    'CourseStatus' => $this->enumToSchema(\Modules\Schemes\Enums\CourseStatus::class, 'Status kursus'),
+                    'CourseType' => $this->enumToSchema(\Modules\Schemes\Enums\CourseType::class, 'Tipe kursus'),
+                    'EnrollmentType' => $this->enumToSchema(\Modules\Schemes\Enums\EnrollmentType::class, 'Tipe pendaftaran kursus'),
+                    'LevelTag' => $this->enumToSchema(\Modules\Schemes\Enums\LevelTag::class, 'Level kesulitan'),
+                    'ProgressionMode' => $this->enumToSchema(\Modules\Schemes\Enums\ProgressionMode::class, 'Mode progres pembelajaran'),
+                    'ContentType' => $this->enumToSchema(\Modules\Schemes\Enums\ContentType::class, 'Tipe konten lesson'),
+
+                    // Enrollments Enums
+                    'EnrollmentStatus' => $this->enumToSchema(\Modules\Enrollments\Enums\EnrollmentStatus::class, 'Status pendaftaran'),
+                    'ProgressStatus' => $this->enumToSchema(\Modules\Enrollments\Enums\ProgressStatus::class, 'Status progres pembelajaran'),
+
+                    // Learning Enums
+                    'AssignmentStatus' => $this->enumToSchema(\Modules\Learning\Enums\AssignmentStatus::class, 'Status tugas'),
+                    'SubmissionStatus' => $this->enumToSchema(\Modules\Learning\Enums\SubmissionStatus::class, 'Status pengumpulan'),
+                    'SubmissionType' => $this->enumToSchema(\Modules\Learning\Enums\SubmissionType::class, 'Tipe pengumpulan'),
+
+                    // Content Enums
+                    'ContentStatus' => $this->enumToSchema(\Modules\Content\Enums\ContentStatus::class, 'Status konten berita/pengumuman'),
+                    'Priority' => $this->enumToSchema(\Modules\Content\Enums\Priority::class, 'Prioritas'),
+                    'TargetType' => $this->enumToSchema(\Modules\Content\Enums\TargetType::class, 'Tipe target audiens'),
+
+                    // Gamification Enums
+                    'ChallengeType' => $this->enumToSchema(\Modules\Gamification\Enums\ChallengeType::class, 'Tipe tantangan'),
+                    'ChallengeAssignmentStatus' => $this->enumToSchema(\Modules\Gamification\Enums\ChallengeAssignmentStatus::class, 'Status tantangan user'),
+                    'ChallengeCriteriaType' => $this->enumToSchema(\Modules\Gamification\Enums\ChallengeCriteriaType::class, 'Tipe kriteria tantangan'),
+                    'BadgeType' => $this->enumToSchema(\Modules\Gamification\Enums\BadgeType::class, 'Tipe badge'),
+                    'PointSourceType' => $this->enumToSchema(\Modules\Gamification\Enums\PointSourceType::class, 'Sumber poin'),
+                    'PointReason' => $this->enumToSchema(\Modules\Gamification\Enums\PointReason::class, 'Alasan pemberian poin'),
+
+                    // Notifications Enums
+                    'NotificationType' => $this->enumToSchema(\Modules\Notifications\Enums\NotificationType::class, 'Tipe notifikasi'),
+                    'NotificationChannel' => $this->enumToSchema(\Modules\Notifications\Enums\NotificationChannel::class, 'Channel notifikasi'),
+                    'NotificationFrequency' => $this->enumToSchema(\Modules\Notifications\Enums\NotificationFrequency::class, 'Frekuensi notifikasi'),
+
+                    // Grading Enums
+                    'GradeStatus' => $this->enumToSchema(\Modules\Grading\Enums\GradeStatus::class, 'Status nilai'),
+                    'GradeSourceType' => $this->enumToSchema(\Modules\Grading\Enums\SourceType::class, 'Sumber nilai'),
+
+                    // Common Enums
+                    'CategoryStatus' => $this->enumToSchema(\Modules\Common\Enums\CategoryStatus::class, 'Status kategori'),
+
+                    'RateLimitError' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'success' => [
+                                'type' => 'boolean',
+                                'example' => false,
+                            ],
+                            'message' => [
+                                'type' => 'string',
+                                'example' => 'Terlalu banyak permintaan. Silakan coba lagi nanti.',
+                            ],
+                            'data' => [
+                                'type' => 'null',
+                            ],
+                            'meta' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'retry_after' => [
+                                        'type' => 'integer',
+                                        'description' => 'Waktu dalam detik sebelum dapat mencoba lagi',
+                                        'example' => 60,
+                                    ],
+                                ],
+                            ],
+                            'errors' => [
+                                'type' => 'null',
+                            ],
+                        ],
                     ],
                 ],
             ],
@@ -1513,6 +1587,7 @@ class OpenApiGeneratorService
             'required' => [],
         ];
         $hasFile = false;
+        $confirmationFields = [];
 
         foreach ($rules as $field => $rule) {
             $rulesArray = is_array($rule) ? $rule : explode('|', $rule);
@@ -1523,12 +1598,68 @@ class OpenApiGeneratorService
                 $schema['required'][] = $field;
             }
 
+            // Check for 'confirmed' rule - this means we need a {field}_confirmation field
+            if (in_array('confirmed', $rulesArray)) {
+                $confirmationFields[] = $field;
+            }
+
             if (in_array('integer', $rulesArray) || in_array('numeric', $rulesArray)) {
                 $fieldSchema['type'] = 'integer';
             } elseif (in_array('boolean', $rulesArray)) {
                 $fieldSchema['type'] = 'boolean';
             } elseif (in_array('array', $rulesArray)) {
                 $fieldSchema['type'] = 'array';
+            }
+
+            // Check for email format
+            if (in_array('email', $rulesArray)) {
+                $fieldSchema['format'] = 'email';
+            }
+
+            // Check for min/max constraints and enum values
+            foreach ($rulesArray as $ruleItem) {
+                if (is_string($ruleItem)) {
+                    if (preg_match('/^min:(\d+)$/', $ruleItem, $matches)) {
+                        if ($fieldSchema['type'] === 'string') {
+                            $fieldSchema['minLength'] = (int) $matches[1];
+                        } else {
+                            $fieldSchema['minimum'] = (int) $matches[1];
+                        }
+                    }
+                    if (preg_match('/^max:(\d+)$/', $ruleItem, $matches)) {
+                        if ($fieldSchema['type'] === 'string') {
+                            $fieldSchema['maxLength'] = (int) $matches[1];
+                        } else {
+                            $fieldSchema['maximum'] = (int) $matches[1];
+                        }
+                    }
+                    // Check for regex pattern
+                    if (preg_match('/^regex:(.+)$/', $ruleItem, $matches)) {
+                        // Convert Laravel regex to OpenAPI pattern (remove delimiters)
+                        $pattern = trim($matches[1], '/');
+                        $pattern = str_replace(['i', 'm', 's', 'u'], '', $pattern); // Remove flags
+                        if (! empty($pattern)) {
+                            $fieldSchema['pattern'] = $pattern;
+                        }
+                    }
+                    // Check for unique rule - add to description
+                    if (str_starts_with($ruleItem, 'unique:')) {
+                        $fieldSchema['description'] = ($fieldSchema['description'] ?? '').' Must be unique.';
+                    }
+                    // Check for 'in:' rule - enum values
+                    if (preg_match('/^in:(.+)$/', $ruleItem, $matches)) {
+                        $enumValues = explode(',', $matches[1]);
+                        // Try to match with known enum schema
+                        $schemaRef = $this->getEnumSchemaRef($enumValues);
+                        if ($schemaRef) {
+                            // Use $ref to enum schema
+                            $fieldSchema = ['$ref' => $schemaRef];
+                        } else {
+                            // Inline enum values
+                            $fieldSchema['enum'] = $enumValues;
+                        }
+                    }
+                }
             }
 
             // Check for file uploads
@@ -1540,6 +1671,20 @@ class OpenApiGeneratorService
                 $fieldSchema['type'] = 'string';
                 $fieldSchema['format'] = 'binary';
                 $hasFile = true;
+
+                // Add file constraints to description
+                $mimeTypes = $this->extractMimeTypes($rulesArray);
+                $maxSize = $this->extractMaxSize($rulesArray);
+                $description = [];
+                if ($mimeTypes) {
+                    $description[] = "Allowed types: {$mimeTypes}";
+                }
+                if ($maxSize) {
+                    $description[] = "Max size: {$maxSize}KB";
+                }
+                if (! empty($description)) {
+                    $fieldSchema['description'] = implode('. ', $description);
+                }
             } else {
                 // Generate example if not a file
                 $example = $this->generateExample($field, $fieldSchema['type']);
@@ -1555,7 +1700,44 @@ class OpenApiGeneratorService
             $schema['properties'][$field] = $fieldSchema;
         }
 
+        // Add confirmation fields for fields with 'confirmed' rule
+        foreach ($confirmationFields as $field) {
+            $confirmField = $field.'_confirmation';
+            $schema['properties'][$confirmField] = [
+                'type' => 'string',
+                'description' => "Konfirmasi {$field}. Harus sama dengan field {$field}.",
+                'example' => $schema['properties'][$field]['example'] ?? 'password123',
+            ];
+            // Copy minLength if exists
+            if (isset($schema['properties'][$field]['minLength'])) {
+                $schema['properties'][$confirmField]['minLength'] = $schema['properties'][$field]['minLength'];
+            }
+            $schema['required'][] = $confirmField;
+        }
+
         return ['schema' => $schema, 'hasFile' => $hasFile];
+    }
+
+    protected function extractMimeTypes(array $rulesArray): ?string
+    {
+        foreach ($rulesArray as $rule) {
+            if (is_string($rule) && str_starts_with($rule, 'mimes:')) {
+                return str_replace('mimes:', '', $rule);
+            }
+        }
+
+        return null;
+    }
+
+    protected function extractMaxSize(array $rulesArray): ?string
+    {
+        foreach ($rulesArray as $rule) {
+            if (is_string($rule) && preg_match('/^max:(\d+)$/', $rule, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return null;
     }
 
     protected function generateExample(string $field, string $type): mixed
@@ -1796,6 +1978,45 @@ class OpenApiGeneratorService
                                 'message' => 'Resource tidak ditemukan',
                                 'data' => null,
                                 'meta' => null,
+                                'errors' => null,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $responses['429'] = [
+            'description' => 'Too Many Requests - Rate limit terlampaui',
+            'headers' => [
+                'X-RateLimit-Limit' => [
+                    'description' => 'Jumlah maksimum request yang diizinkan per periode',
+                    'schema' => ['type' => 'integer'],
+                ],
+                'X-RateLimit-Remaining' => [
+                    'description' => 'Jumlah request tersisa dalam periode saat ini',
+                    'schema' => ['type' => 'integer'],
+                ],
+                'Retry-After' => [
+                    'description' => 'Waktu dalam detik sebelum dapat mencoba lagi',
+                    'schema' => ['type' => 'integer'],
+                ],
+            ],
+            'content' => [
+                'application/json' => [
+                    'schema' => [
+                        '$ref' => '#/components/schemas/RateLimitError',
+                    ],
+                    'examples' => [
+                        'error' => [
+                            'summary' => 'Contoh error rate limit',
+                            'value' => [
+                                'success' => false,
+                                'message' => 'Terlalu banyak permintaan. Silakan coba lagi nanti.',
+                                'data' => null,
+                                'meta' => [
+                                    'retry_after' => 60,
+                                ],
                                 'errors' => null,
                             ],
                         ],
@@ -2485,5 +2706,99 @@ class OpenApiGeneratorService
             'created_at' => '2024-01-01T00:00:00.000000Z',
             'updated_at' => '2024-01-01T00:00:00.000000Z',
         ];
+    }
+
+    /**
+     * Convert PHP Enum class to OpenAPI schema
+     */
+    protected function enumToSchema(string $enumClass, string $description): array
+    {
+        $values = [];
+        $labels = [];
+
+        foreach ($enumClass::cases() as $case) {
+            $values[] = $case->value;
+            $labels[] = "{$case->value}: {$case->label()}";
+        }
+
+        return [
+            'type' => 'string',
+            'enum' => $values,
+            'description' => $description.'. Nilai yang tersedia: '.implode(', ', $labels),
+        ];
+    }
+
+    /**
+     * Mapping of enum values to schema references
+     * Used to detect enum types from validation rules
+     */
+    protected function getEnumMapping(): array
+    {
+        return [
+            // Auth
+            \Modules\Auth\Enums\UserStatus::class => 'UserStatus',
+
+            // Schemes
+            \Modules\Schemes\Enums\CourseStatus::class => 'CourseStatus',
+            \Modules\Schemes\Enums\CourseType::class => 'CourseType',
+            \Modules\Schemes\Enums\EnrollmentType::class => 'EnrollmentType',
+            \Modules\Schemes\Enums\LevelTag::class => 'LevelTag',
+            \Modules\Schemes\Enums\ProgressionMode::class => 'ProgressionMode',
+            \Modules\Schemes\Enums\ContentType::class => 'ContentType',
+
+            // Enrollments
+            \Modules\Enrollments\Enums\EnrollmentStatus::class => 'EnrollmentStatus',
+            \Modules\Enrollments\Enums\ProgressStatus::class => 'ProgressStatus',
+
+            // Learning
+            \Modules\Learning\Enums\AssignmentStatus::class => 'AssignmentStatus',
+            \Modules\Learning\Enums\SubmissionStatus::class => 'SubmissionStatus',
+            \Modules\Learning\Enums\SubmissionType::class => 'SubmissionType',
+
+            // Content
+            \Modules\Content\Enums\ContentStatus::class => 'ContentStatus',
+            \Modules\Content\Enums\Priority::class => 'Priority',
+            \Modules\Content\Enums\TargetType::class => 'TargetType',
+
+            // Gamification
+            \Modules\Gamification\Enums\ChallengeType::class => 'ChallengeType',
+            \Modules\Gamification\Enums\ChallengeAssignmentStatus::class => 'ChallengeAssignmentStatus',
+            \Modules\Gamification\Enums\ChallengeCriteriaType::class => 'ChallengeCriteriaType',
+            \Modules\Gamification\Enums\BadgeType::class => 'BadgeType',
+            \Modules\Gamification\Enums\PointSourceType::class => 'PointSourceType',
+            \Modules\Gamification\Enums\PointReason::class => 'PointReason',
+
+            // Notifications
+            \Modules\Notifications\Enums\NotificationType::class => 'NotificationType',
+            \Modules\Notifications\Enums\NotificationChannel::class => 'NotificationChannel',
+            \Modules\Notifications\Enums\NotificationFrequency::class => 'NotificationFrequency',
+
+            // Grading
+            \Modules\Grading\Enums\GradeStatus::class => 'GradeStatus',
+            \Modules\Grading\Enums\SourceType::class => 'GradeSourceType',
+
+            // Common
+            \Modules\Common\Enums\CategoryStatus::class => 'CategoryStatus',
+        ];
+    }
+
+    /**
+     * Get enum schema reference from validation rule values
+     */
+    protected function getEnumSchemaRef(array $enumValues): ?string
+    {
+        $enumMapping = $this->getEnumMapping();
+
+        foreach ($enumMapping as $enumClass => $schemaName) {
+            $classValues = $enumClass::values();
+            sort($classValues);
+            sort($enumValues);
+
+            if ($classValues === $enumValues) {
+                return '#/components/schemas/'.$schemaName;
+            }
+        }
+
+        return null;
     }
 }

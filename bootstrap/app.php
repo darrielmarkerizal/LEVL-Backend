@@ -36,6 +36,17 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
+        // Handle BusinessException for business rule violations
+        $exceptions->render(function (BusinessException $e, \Illuminate\Http\Request $request) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'data' => null,
+                'meta' => null,
+                'errors' => $e->getErrors(),
+            ], $e->getCode());
+        });
+
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, \Illuminate\Http\Request $request) {
             $isAuthRoute = $request->is('api/v1/auth/login') ||
                           $request->is('api/v1/auth/register') ||

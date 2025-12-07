@@ -4,11 +4,12 @@ namespace Modules\Schemes\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Searchable;
 use Modules\Schemes\Enums\ContentType;
 
 class Lesson extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
 
     protected $fillable = [
         'unit_id', 'slug', 'title', 'description',
@@ -36,6 +37,43 @@ class Lesson extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        $this->loadMissing(['unit', 'unit.course']);
+
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'description' => $this->description,
+            'markdown_content' => $this->markdown_content,
+            'unit_id' => $this->unit_id,
+            'unit_title' => $this->unit?->title,
+            'course_id' => $this->unit?->course_id,
+            'course_title' => $this->unit?->course?->title,
+            'status' => $this->status,
+            'content_type' => $this->content_type?->value,
+        ];
+    }
+
+    /**
+     * Get the name of the index associated with the model.
+     */
+    public function searchableAs(): string
+    {
+        return 'lessons_index';
+    }
+
+    /**
+     * Determine if the model should be searchable.
+     */
+    public function shouldBeSearchable(): bool
+    {
+        return $this->status === 'published';
     }
 
     /**

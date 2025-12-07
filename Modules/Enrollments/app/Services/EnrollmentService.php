@@ -3,10 +3,14 @@
 namespace Modules\Enrollments\Services;
 
 use App\Contracts\EnrollmentKeyHasherInterface;
+use App\Exceptions\BusinessException;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Validation\ValidationException;
 use Modules\Auth\Models\User;
+use Modules\Enrollments\Contracts\Repositories\EnrollmentRepositoryInterface;
+use Modules\Enrollments\DTOs\CreateEnrollmentDTO;
+use Modules\Enrollments\DTOs\EnrollmentFilterDTO;
 use Modules\Enrollments\Enums\EnrollmentStatus;
 use Modules\Enrollments\Events\EnrollmentCreated;
 use Modules\Enrollments\Mail\AdminEnrollmentNotificationMail;
@@ -20,26 +24,71 @@ use Modules\Schemes\Models\Course;
 class EnrollmentService
 {
     public function __construct(
+        private EnrollmentRepositoryInterface $repository,
         private EnrollmentKeyHasherInterface $keyHasher
     ) {}
 
     /**
-     * @param  array<string, mixed>  $payload
+     * Get paginated list of all enrollments.
+     */
+    public function paginate(EnrollmentFilterDTO $filter): LengthAwarePaginator
+    {
+        return $this->repository->paginate($filter->toFilterArray(), $filter->perPage);
+    }
+
+    /**
+     * Get paginated enrollments by course.
+     */
+    public function paginateByCourse(int $courseId, EnrollmentFilterDTO $filter): LengthAwarePaginator
+    {
+        return $this->repository->paginateByCourse($courseId, $filter->toFilterArray(), $filter->perPage);
+    }
+
+    /**
+     * Get paginated enrollments by course IDs.
+     */
+    public function paginateByCourseIds(array $courseIds, EnrollmentFilterDTO $filter): LengthAwarePaginator
+    {
+        return $this->repository->paginateByCourseIds($courseIds, $filter->toFilterArray(), $filter->perPage);
+    }
+
+    /**
+     * Get paginated enrollments by user.
+     */
+    public function paginateByUser(int $userId, EnrollmentFilterDTO $filter): LengthAwarePaginator
+    {
+        return $this->repository->paginateByUser($userId, $filter->toFilterArray(), $filter->perPage);
+    }
+
+    /**
+     * Find enrollment by ID.
+     */
+    public function findById(int $id): ?Enrollment
+    {
+        return $this->repository->findById($id);
+    }
+
+    /**
+     * Find enrollment by course and user.
+     */
+    public function findByCourseAndUser(int $courseId, int $userId): ?Enrollment
+    {
+        return $this->repository->findByCourseAndUser($courseId, $userId);
+    }
+
+    /**
+     * Enroll user to a course.
+     *
      * @return array{enrollment: Enrollment, status: string, message: string}
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws BusinessException
      */
-    public function enroll(Course $course, User $user, array $payload = []): array
+    public function enroll(Course $course, User $user, CreateEnrollmentDTO $dto): array
     {
-        $existing = Enrollment::query()
-            ->where('user_id', $user->id)
-            ->where('course_id', $course->id)
-            ->first();
+        $existing = $this->repository->findByCourseAndUser($course->id, $user->id);
 
         if ($existing && in_array($existing->status, [EnrollmentStatus::Active, EnrollmentStatus::Pending], true)) {
-            throw ValidationException::withMessages([
-                'course' => 'Anda sudah terdaftar pada course ini.',
-            ]);
+            throw new BusinessException('Anda sudah terdaftar pada course ini.', ['course' => 'Anda sudah terdaftar pada course ini.']);
         }
 
         $enrollment = $existing ?? new Enrollment([
@@ -47,11 +96,9 @@ class EnrollmentService
             'course_id' => $course->id,
         ]);
 
-        [$status, $message] = $this->determineStatusAndMessage($course, $payload);
+        [$status, $message] = $this->determineStatusAndMessage($course, $dto);
 
         $enrollment->status = EnrollmentStatus::from($status);
-        // Progress is now stored in course_progress table, not in enrollments
-        // enrolled_at cannot be null per migration, always set to now
         $enrollment->enrolled_at = $enrollment->enrolled_at ?? Carbon::now();
 
         if ($status !== EnrollmentStatus::Completed->value) {
@@ -62,10 +109,7 @@ class EnrollmentService
 
         $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
 
-        // Initialize progress data
         EnrollmentCreated::dispatch($freshEnrollment);
-
-        // Send emails
         $this->sendEnrollmentEmails($freshEnrollment, $course, $user, $status);
 
         return [
@@ -78,18 +122,18 @@ class EnrollmentService
     /**
      * Cancel pending enrollment request.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws BusinessException
      */
     public function cancel(Enrollment $enrollment): Enrollment
     {
         if ($enrollment->status !== EnrollmentStatus::Pending) {
-            throw ValidationException::withMessages([
-                'enrollment' => 'Hanya enrollment dengan status pending yang dapat dibatalkan.',
-            ]);
+            throw new BusinessException(
+                'Hanya enrollment dengan status pending yang dapat dibatalkan.',
+                ['enrollment' => 'Hanya enrollment dengan status pending yang dapat dibatalkan.']
+            );
         }
 
         $enrollment->status = EnrollmentStatus::Cancelled;
-        // Keep enrolled_at as is (cannot be null per migration)
         $enrollment->completed_at = null;
         $enrollment->save();
 
@@ -99,14 +143,15 @@ class EnrollmentService
     /**
      * Withdraw from an active course.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws BusinessException
      */
     public function withdraw(Enrollment $enrollment): Enrollment
     {
         if ($enrollment->status !== EnrollmentStatus::Active) {
-            throw ValidationException::withMessages([
-                'enrollment' => 'Hanya enrollment aktif yang dapat mengundurkan diri.',
-            ]);
+            throw new BusinessException(
+                'Hanya enrollment aktif yang dapat mengundurkan diri.',
+                ['enrollment' => 'Hanya enrollment aktif yang dapat mengundurkan diri.']
+            );
         }
 
         $enrollment->status = EnrollmentStatus::Cancelled;
@@ -119,14 +164,15 @@ class EnrollmentService
     /**
      * Approve a pending enrollment.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws BusinessException
      */
     public function approve(Enrollment $enrollment): Enrollment
     {
         if ($enrollment->status !== EnrollmentStatus::Pending) {
-            throw ValidationException::withMessages([
-                'enrollment' => 'Hanya permintaan enrollment pending yang dapat disetujui.',
-            ]);
+            throw new BusinessException(
+                'Hanya permintaan enrollment pending yang dapat disetujui.',
+                ['enrollment' => 'Hanya permintaan enrollment pending yang dapat disetujui.']
+            );
         }
 
         $enrollment->status = EnrollmentStatus::Active;
@@ -138,7 +184,6 @@ class EnrollmentService
         $course = $freshEnrollment->course;
         $student = $freshEnrollment->user;
 
-        // Send approval email to student
         if ($student && $course) {
             $courseUrl = $this->getCourseUrl($course);
             Mail::to($student->email)->send(new StudentEnrollmentApprovedMail($student, $course, $courseUrl));
@@ -150,18 +195,18 @@ class EnrollmentService
     /**
      * Decline a pending enrollment.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws BusinessException
      */
     public function decline(Enrollment $enrollment): Enrollment
     {
         if ($enrollment->status !== EnrollmentStatus::Pending) {
-            throw ValidationException::withMessages([
-                'enrollment' => 'Hanya permintaan enrollment pending yang dapat ditolak.',
-            ]);
+            throw new BusinessException(
+                'Hanya permintaan enrollment pending yang dapat ditolak.',
+                ['enrollment' => 'Hanya permintaan enrollment pending yang dapat ditolak.']
+            );
         }
 
         $enrollment->status = EnrollmentStatus::Cancelled;
-        // Keep enrolled_at as is (cannot be null per migration)
         $enrollment->completed_at = null;
         $enrollment->save();
 
@@ -169,7 +214,6 @@ class EnrollmentService
         $course = $freshEnrollment->course;
         $student = $freshEnrollment->user;
 
-        // Send decline email to student
         if ($student && $course) {
             Mail::to($student->email)->send(new StudentEnrollmentDeclinedMail($student, $course));
         }
@@ -180,18 +224,18 @@ class EnrollmentService
     /**
      * Remove an enrollment from a course.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws BusinessException
      */
     public function remove(Enrollment $enrollment): Enrollment
     {
         if (! in_array($enrollment->status, [EnrollmentStatus::Active, EnrollmentStatus::Pending], true)) {
-            throw ValidationException::withMessages([
-                'enrollment' => 'Hanya enrollment aktif atau pending yang dapat dikeluarkan.',
-            ]);
+            throw new BusinessException(
+                'Hanya enrollment aktif atau pending yang dapat dikeluarkan.',
+                ['enrollment' => 'Hanya enrollment aktif atau pending yang dapat dikeluarkan.']
+            );
         }
 
-        $enrollment->status = 'cancelled';
-        // Keep enrolled_at as is (cannot be null per migration)
+        $enrollment->status = EnrollmentStatus::Cancelled;
         $enrollment->completed_at = null;
         $enrollment->save();
 
@@ -201,13 +245,16 @@ class EnrollmentService
     /**
      * @return array{0: string, 1: string}
      */
-    private function determineStatusAndMessage(Course $course, array $payload): array
+    private function determineStatusAndMessage(Course $course, CreateEnrollmentDTO $dto): array
     {
-        $type = $course->enrollment_type ?? 'auto_accept';
+        $type = $course->enrollment_type;
 
-        return match ($type) {
+        // Handle both enum and string values
+        $typeValue = $type instanceof \Modules\Schemes\Enums\EnrollmentType ? $type->value : ($type ?? 'auto_accept');
+
+        return match ($typeValue) {
             'auto_accept' => ['active', 'Enrol berhasil. Anda sekarang terdaftar pada course ini.'],
-            'key_based' => $this->handleKeyBasedEnrollment($course, $payload),
+            'key_based' => $this->handleKeyBasedEnrollment($course, $dto),
             'approval' => ['pending', 'Permintaan enrollment berhasil dikirim. Menunggu persetujuan.'],
             default => ['active', 'Enrol berhasil.'],
         };
@@ -216,23 +263,18 @@ class EnrollmentService
     /**
      * @return array{0: string, 1: string}
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws BusinessException
      */
-    private function handleKeyBasedEnrollment(Course $course, array $payload): array
+    private function handleKeyBasedEnrollment(Course $course, CreateEnrollmentDTO $dto): array
     {
-        $providedKey = trim((string) ($payload['enrollment_key'] ?? ''));
+        $providedKey = trim((string) ($dto->enrollmentKey ?? ''));
 
         if ($providedKey === '') {
-            throw ValidationException::withMessages([
-                'enrollment_key' => 'Kode enrollment wajib diisi.',
-            ]);
+            throw new BusinessException('Kode enrollment wajib diisi.', ['enrollment_key' => 'Kode enrollment wajib diisi.']);
         }
 
-        // Verify the provided key against the stored hash
         if (empty($course->enrollment_key_hash) || ! $this->keyHasher->verify($providedKey, $course->enrollment_key_hash)) {
-            throw ValidationException::withMessages([
-                'enrollment_key' => 'Kode enrollment tidak valid.',
-            ]);
+            throw new BusinessException('Kode enrollment tidak valid.', ['enrollment_key' => 'Kode enrollment tidak valid.']);
         }
 
         return ['active', 'Enrol berhasil menggunakan kode kunci.'];
@@ -243,15 +285,13 @@ class EnrollmentService
      */
     private function sendEnrollmentEmails(Enrollment $enrollment, Course $course, User $student, string $status): void
     {
-        // Send email to student based on status
-        if ($status === \Modules\Enrollments\Enums\EnrollmentStatus::Active->value) {
+        if ($status === EnrollmentStatus::Active->value) {
             $courseUrl = $this->getCourseUrl($course);
             Mail::to($student->email)->send(new StudentEnrollmentActiveMail($student, $course, $courseUrl));
-        } elseif ($status === \Modules\Enrollments\Enums\EnrollmentStatus::Pending->value) {
+        } elseif ($status === EnrollmentStatus::Pending->value) {
             Mail::to($student->email)->send(new StudentEnrollmentPendingMail($student, $course));
         }
 
-        // Send notification to course admins and instructor
         $this->notifyCourseManagers($enrollment, $course, $student);
     }
 
@@ -282,17 +322,14 @@ class EnrollmentService
         $managers = [];
         $managerIds = [];
 
-        // Load fresh course with relationships
         $course = $course->fresh(['instructor', 'admins']);
 
-        // Load instructor
         if ($course->instructor_id && $course->instructor) {
             $instructor = $course->instructor;
             $managers[] = $instructor;
             $managerIds[] = $instructor->id;
         }
 
-        // Load admins
         foreach ($course->admins as $admin) {
             if ($admin && ! in_array($admin->id, $managerIds, true)) {
                 $managers[] = $admin;

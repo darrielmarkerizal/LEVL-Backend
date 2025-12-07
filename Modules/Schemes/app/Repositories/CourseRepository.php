@@ -2,7 +2,7 @@
 
 namespace Modules\Schemes\Repositories;
 
-use App\Support\FilterableRepository;
+use App\Repositories\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -10,23 +10,41 @@ use Illuminate\Support\Str;
 use Modules\Schemes\Contracts\Repositories\CourseRepositoryInterface;
 use Modules\Schemes\Models\Course;
 
-class CourseRepository implements CourseRepositoryInterface
+class CourseRepository extends BaseRepository implements CourseRepositoryInterface
 {
-    use FilterableRepository;
+    /**
+     * Get the model class name.
+     */
+    protected function model(): string
+    {
+        return Course::class;
+    }
 
     /**
      * Allowed filter keys mapped to database columns.
      *
      * @var array<int, string>
      */
-    private array $allowedFilters = ['status', 'level_tag', 'type', 'category_id'];
+    protected array $allowedFilters = ['status', 'level_tag', 'type', 'category_id'];
 
     /**
      * Allowed sort fields.
      *
      * @var array<int, string>
      */
-    private array $allowedSorts = ['id', 'code', 'title', 'created_at', 'updated_at', 'published_at'];
+    protected array $allowedSorts = ['id', 'code', 'title', 'created_at', 'updated_at', 'published_at'];
+
+    /**
+     * Default sort field.
+     */
+    protected string $defaultSort = 'title';
+
+    /**
+     * Default relations to load.
+     *
+     * @var array<int, string>
+     */
+    protected array $with = ['tags'];
 
     /**
      * Filter enum values.
@@ -39,37 +57,9 @@ class CourseRepository implements CourseRepositoryInterface
         'type' => 'okupasi|kluster',
     ];
 
-    public function query(): Builder
-    {
-        return Course::query()->with('tags');
-    }
-
-    public function findById(int $id): ?Course
-    {
-        return Course::query()->with('tags')->find($id);
-    }
-
     public function findBySlug(string $slug): ?Course
     {
-        return Course::query()->with('tags')->where('slug', $slug)->first();
-    }
-
-    public function create(array $attributes): Course
-    {
-        return Course::create($attributes);
-    }
-
-    public function update(Course $course, array $attributes): Course
-    {
-        $course->fill($attributes);
-        $course->save();
-
-        return $course;
-    }
-
-    public function delete(Course $course): void
-    {
-        $course->forceDelete();
+        return $this->query()->where('slug', $slug)->first();
     }
 
     public function paginate(array $params, int $perPage = 15): LengthAwarePaginator

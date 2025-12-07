@@ -28,6 +28,12 @@ class NewsController extends Controller
 
     /**
      * Display a listing of news.
+     *
+     * @allowedFilters category_id, tag_id, featured, date_from, date_to
+     *
+     * @allowedSorts created_at, published_at, views_count
+     *
+     * @filterEnum featured true|false
      */
     public function index(Request $request): JsonResponse
     {

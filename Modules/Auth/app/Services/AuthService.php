@@ -27,8 +27,12 @@ class AuthService implements AuthServiceInterface
         private readonly LoginThrottlingService $throttle,
     ) {}
 
-    public function register(array $validated, string $ip, ?string $userAgent): array
+    /**
+     * Register a new user.
+     */
+    public function register(RegisterDTO|array $data, string $ip, ?string $userAgent): array
     {
+        $validated = $data instanceof RegisterDTO ? $data->toArray() : $data;
         $validated['password'] = Hash::make($validated['password']);
         $user = $this->authRepository->createUser($validated);
 
@@ -64,8 +68,20 @@ class AuthService implements AuthServiceInterface
         return $response;
     }
 
-    public function login(string $login, string $password, string $ip, ?string $userAgent): array
+    /**
+     * Login a user.
+     *
+     * @param  string|null  $password  Required if $loginOrDto is string
+     */
+    public function login(LoginDTO|string $loginOrDto, ?string $password, string $ip, ?string $userAgent): array
     {
+        if ($loginOrDto instanceof LoginDTO) {
+            $login = $loginOrDto->login;
+            $password = $loginOrDto->password;
+        } else {
+            $login = $loginOrDto;
+        }
+
         $this->throttle->ensureNotLocked($login);
         if ($this->throttle->tooManyAttempts($login, $ip)) {
             $retryAfter = $this->throttle->getRetryAfterSeconds($login, $ip);
@@ -82,9 +98,11 @@ class AuthService implements AuthServiceInterface
         if (! $user || ! Hash::check($password, $user->password)) {
             $this->throttle->hitAttempt($login, $ip);
             $this->throttle->recordFailureAndMaybeLock($login);
-            throw ValidationException::withMessages([
-                'login' => 'Username/email atau password salah.',
-            ]);
+            throw new BusinessException(
+                'Username/email atau password salah.',
+                ['login' => ['Username/email atau password salah.']],
+                401
+            );
         }
 
         $roles = $user->getRoleNames();

@@ -18,7 +18,7 @@ beforeEach(function () {
 // POST - Create Category
 it('superadmin can create category', function () {
     $response = $this->actingAs($this->superadmin, 'api')
-        ->postJson(api('/categories'), [
+        ->postJson(api('/master-data/categories'), [
             'name' => 'Technology',
             'value' => 'technology',
             'description' => 'Tech related courses',
@@ -45,7 +45,7 @@ it('superadmin can update category', function () {
     ]);
 
     $response = $this->actingAs($this->superadmin, 'api')
-        ->putJson(api("/categories/{$category->id}"), [
+        ->putJson(api("/master-data/categories/{$category->id}"), [
             'name' => 'New Name',
             'value' => 'new-value',
             'description' => 'Updated description',
@@ -70,7 +70,7 @@ it('superadmin can delete category', function () {
     ]);
 
     $response = $this->actingAs($this->superadmin, 'api')
-        ->deleteJson(api("/categories/{$category->id}"));
+        ->deleteJson(api("/master-data/categories/{$category->id}"));
 
     $response->assertStatus(200);
     // Category uses SoftDeletes, so check deleted_at
@@ -83,7 +83,7 @@ it('superadmin can delete category', function () {
 // POST - Create Category Negative
 it('admin cannot create category', function () {
     $response = $this->actingAs($this->admin, 'api')
-        ->postJson(api('/categories'), [
+        ->postJson(api('/master-data/categories'), [
             'name' => 'Admin Category',
             'value' => 'admin-category',
             'status' => 'active',
@@ -100,7 +100,7 @@ it('cannot create category with duplicate value', function () {
     ]);
 
     $response = $this->actingAs($this->superadmin, 'api')
-        ->postJson(api('/categories'), [
+        ->postJson(api('/master-data/categories'), [
             'name' => 'Duplicate',
             'value' => 'duplicate-value',
             'status' => 'active',
@@ -112,14 +112,14 @@ it('cannot create category with duplicate value', function () {
 
 it('cannot create category with missing required fields', function () {
     $response = $this->actingAs($this->superadmin, 'api')
-        ->postJson(api('/categories'), []);
+        ->postJson(api('/master-data/categories'), []);
 
     $response->assertStatus(422)
         ->assertJsonValidationErrors(['name', 'value', 'status']);
 });
 
 it('unauthenticated user cannot create category', function () {
-    $response = $this->postJson(api('/categories'), [
+    $response = $this->postJson(api('/master-data/categories'), [
         'name' => 'Unauthenticated Category',
         'value' => 'unauthenticated',
         'status' => 'active',
@@ -137,7 +137,7 @@ it('admin cannot update category', function () {
     ]);
 
     $response = $this->actingAs($this->admin, 'api')
-        ->putJson(api("/categories/{$category->id}"), [
+        ->putJson(api("/master-data/categories/{$category->id}"), [
             'name' => 'Updated by Admin',
             'value' => 'updated',
         ]);
@@ -147,7 +147,7 @@ it('admin cannot update category', function () {
 
 it('cannot update non-existent category', function () {
     $response = $this->actingAs($this->superadmin, 'api')
-        ->putJson(api('/categories/99999'), [
+        ->putJson(api('/master-data/categories/99999'), [
             'name' => 'Non Existent',
             'value' => 'non-existent',
         ]);
@@ -168,7 +168,7 @@ it('cannot update category with duplicate value', function () {
     ]);
 
     $response = $this->actingAs($this->superadmin, 'api')
-        ->putJson(api("/categories/{$category1->id}"), [
+        ->putJson(api("/master-data/categories/{$category1->id}"), [
             'name' => 'Updated Name',
             'value' => 'category-two',
             'status' => 'active',
@@ -187,14 +187,14 @@ it('admin cannot delete category', function () {
     ]);
 
     $response = $this->actingAs($this->admin, 'api')
-        ->deleteJson(api("/categories/{$category->id}"));
+        ->deleteJson(api("/master-data/categories/{$category->id}"));
 
     $response->assertStatus(403);
 });
 
 it('cannot delete non-existent category', function () {
     $response = $this->actingAs($this->superadmin, 'api')
-        ->deleteJson(api('/categories/99999'));
+        ->deleteJson(api('/master-data/categories/99999'));
 
     $response->assertStatus(404);
 });
@@ -206,8 +206,7 @@ it('unauthenticated user cannot delete category', function () {
         'status' => 'active',
     ]);
 
-    $response = $this->deleteJson(api("/categories/{$category->id}"));
+    $response = $this->deleteJson(api("/master-data/categories/{$category->id}"));
 
     $response->assertStatus(401);
 });
-

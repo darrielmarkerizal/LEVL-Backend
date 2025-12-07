@@ -35,7 +35,7 @@ class CourseFactory extends Factory
             'tags_json' => [],
             'progression_mode' => fake()->randomElement(['sequential', 'free']),
             'enrollment_type' => 'auto_accept',
-            'enrollment_key' => null,
+            'enrollment_key_hash' => null,
             'status' => 'published',
             'published_at' => now(),
             'instructor_id' => null,
@@ -60,7 +60,7 @@ class CourseFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'enrollment_type' => 'approval',
-            'enrollment_key' => null,
+            'enrollment_key_hash' => null,
         ]);
     }
 
@@ -69,10 +69,11 @@ class CourseFactory extends Factory
      */
     public function keyBased(): static
     {
+        $keyHasher = app(\App\Contracts\EnrollmentKeyHasherInterface::class);
+
         return $this->state(fn (array $attributes) => [
             'enrollment_type' => 'key_based',
-            'enrollment_key' => Str::random(10),
+            'enrollment_key_hash' => $keyHasher->hash(Str::random(10)),
         ]);
     }
 }
-

@@ -15,21 +15,54 @@ class TagService
     {
         $query = Tag::query();
 
+        // Global search across name and slug
         if (! empty($params['search'])) {
             $keyword = trim((string) $params['search']);
             $query->where(function ($q) use ($keyword) {
                 $q->where('name', 'like', "%{$keyword}%")
-                    ->orWhere('slug', 'like', "%{$keyword}%");
+                    ->orWhere('slug', 'like', "%{$keyword}%")
+                    ->orWhere('description', 'like', "%{$keyword}%");
             });
+        }
+
+        // Individual field filters
+        $name = $params['filter']['name'] ?? $params['name'] ?? null;
+        if (is_string($name) && $name !== '') {
+            $query->where('name', 'like', "%{$name}%");
+        }
+
+        $slug = $params['filter']['slug'] ?? $params['slug'] ?? null;
+        if (is_string($slug) && $slug !== '') {
+            $query->where('slug', 'like', "%{$slug}%");
+        }
+
+        $description = $params['filter']['description'] ?? $params['description'] ?? null;
+        if (is_string($description) && $description !== '') {
+            $query->where('description', 'like', "%{$description}%");
+        }
+
+        // Sorting
+        $sort = (string) ($params['sort'] ?? '');
+        $sortableFields = ['created_at', 'updated_at', 'name', 'slug'];
+        if ($sort !== '') {
+            $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
+            $field = ltrim($sort, '-');
+            if (in_array($field, $sortableFields, true)) {
+                $query->orderBy($field, $direction);
+            } else {
+                $query->orderBy('name');
+            }
+        } else {
+            $query->orderBy('name');
         }
 
         if ($perPage > 0) {
             $size = max(1, $perPage);
 
-            return $query->orderBy('name')->paginate($size)->appends($params);
+            return $query->paginate($size)->appends($params);
         }
 
-        return $query->orderBy('name')->get();
+        return $query->get();
     }
 
     public function create(array $data): Tag
@@ -40,7 +73,7 @@ class TagService
     }
 
     /**
-     * @param array<int, string> $names
+     * @param  array<int, string>  $names
      * @return \Illuminate\Support\Collection<int, Tag>
      */
     public function createMany(array $names): BaseCollection
@@ -146,7 +179,7 @@ class TagService
     }
 
     /**
-     * @param array<string|int> $tags
+     * @param  array<string|int>  $tags
      * @return array<int>
      */
     private function resolveTagIds(array $tags): array
@@ -186,5 +219,3 @@ class TagService
             ->toArray();
     }
 }
-
-

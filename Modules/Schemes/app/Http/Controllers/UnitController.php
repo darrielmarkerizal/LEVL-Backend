@@ -18,6 +18,13 @@ class UnitController extends Controller
 
     public function __construct(private UnitService $service) {}
 
+    /**
+     * @allowedFilters status
+     *
+     * @allowedSorts order, title, created_at
+     *
+     * @filterEnum status draft|published
+     */
     public function index(Request $request, Course $course)
     {
         $params = $request->all();

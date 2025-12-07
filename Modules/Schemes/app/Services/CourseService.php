@@ -2,280 +2,187 @@
 
 namespace Modules\Schemes\Services;
 
-use App\Contracts\EnrollmentKeyHasherInterface;
+use App\Exceptions\BusinessException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
-use Modules\Schemes\Contracts\Services\CourseServiceInterface;
-use Modules\Schemes\Enums\CourseStatus;
-use Modules\Schemes\Events\CourseCreated;
-use Modules\Schemes\Events\CourseDeleted;
-use Modules\Schemes\Events\CoursePublished;
+use Modules\Schemes\Contracts\Repositories\CourseRepositoryInterface;
+use Modules\Schemes\DTOs\CourseFilterDTO;
+use Modules\Schemes\DTOs\CreateCourseDTO;
+use Modules\Schemes\DTOs\UpdateCourseDTO;
 use Modules\Schemes\Models\Course;
-use Modules\Schemes\Repositories\CourseRepository;
 
-class CourseService implements CourseServiceInterface
+class CourseService
 {
     public function __construct(
-        private CourseRepository $repository,
-        private TagService $tagService,
-        private EnrollmentKeyHasherInterface $keyHasher
+        private readonly CourseRepositoryInterface $repository
     ) {}
 
-    public function listPublic(array $params): LengthAwarePaginator
+    /**
+     * Get paginated list of courses.
+     */
+    public function paginate(CourseFilterDTO|array $params, int $perPage = 15): LengthAwarePaginator
     {
-        $params['status'] = $params['status'] ?? CourseStatus::Published->value;
+        $params = $params instanceof CourseFilterDTO ? $params->toArray() : $params;
 
-        $perPage = isset($params['per_page']) ? max(1, (int) $params['per_page']) : 15;
-
-        return $this->repository->paginate($params, $perPage);
+        return $this->repository->paginate($params, max(1, $perPage));
     }
 
-    public function list(array $params): LengthAwarePaginator
+    /**
+     * Get all courses matching params.
+     */
+    public function list(CourseFilterDTO|array $params): Collection
     {
-        $perPage = isset($params['per_page']) ? max(1, (int) $params['per_page']) : 15;
+        $params = $params instanceof CourseFilterDTO ? $params->toArray() : $params;
 
-        return $this->repository->paginate($params, $perPage);
+        return $this->repository->list($params);
     }
 
-    public function create(array $data, ?\Modules\Auth\Models\User $actor = null): Course
+    /**
+     * Find course by ID.
+     */
+    public function find(int $id): ?Course
     {
-        $tags = $data['tags_list'] ?? [];
-        $outcomes = $data['outcomes'] ?? [];
-        $hasPrereqText = array_key_exists('prereq_text', $data);
-        $prereqText = $hasPrereqText ? $data['prereq_text'] : null;
-        unset($data['tags_list'], $data['outcomes'], $data['prereq_text']);
-
-        if (! isset($data['tags_json'])) {
-            $data['tags_json'] = [];
-        }
-        if (empty($data['slug'])) {
-            $data['slug'] = $this->generateUniqueSlug($data['title'] ?? $data['code'] ?? Str::random(8));
-        } else {
-            $data['slug'] = $this->generateUniqueSlug($data['slug']);
-        }
-
-        if (empty($data['status'])) {
-            $data['status'] = CourseStatus::Draft->value;
-        }
-
-        $enrollmentType = $data['enrollment_type'] ?? 'auto_accept';
-        if ($enrollmentType !== 'key_based') {
-            $data['enrollment_key_hash'] = null;
-            unset($data['enrollment_key']);
-        } elseif (isset($data['enrollment_key'])) {
-            // Hash the enrollment key before storing
-            $data['enrollment_key_hash'] = $this->keyHasher->hash($data['enrollment_key']);
-            unset($data['enrollment_key']);
-        }
-
-        $course = $this->repository->create($data);
-
-        $adminIds = [];
-        if (! empty($data['course_admins']) && is_array($data['course_admins'])) {
-            $adminIds = array_map('intval', $data['course_admins']);
-        }
-        if ($actor && ($actor->hasRole('Admin') || $actor->hasRole('Superadmin'))) {
-            $adminIds[] = (int) $actor->id;
-        }
-        if (! empty($adminIds) && method_exists($course, 'admins')) {
-            $course->admins()->syncWithoutDetaching(array_unique($adminIds));
-        }
-
-        $course->load('tags');
-
-        $this->tagService->syncCourseTags($course, $tags);
-        $this->syncCourseOutcomes($course, $outcomes);
-
-        if ($hasPrereqText) {
-            $course->prereq_text = $prereqText;
-            $course->save();
-        }
-
-        $freshCourse = $course->fresh(['tags', 'admins', 'instructor', 'outcomes']);
-
-        CourseCreated::dispatch($freshCourse);
-
-        if (($freshCourse->status ?? null) === CourseStatus::Published) {
-            CoursePublished::dispatch($freshCourse);
-        }
-
-        return $freshCourse;
+        return $this->repository->findById($id);
     }
 
-    public function update(int $id, array $data): ?Course
+    /**
+     * Find course by ID or fail.
+     */
+    public function findOrFail(int $id): Course
     {
-        $course = $this->repository->findById($id);
-        if (! $course) {
-            return null;
+        return $this->repository->findByIdOrFail($id);
+    }
+
+    /**
+     * Find course by slug.
+     */
+    public function findBySlug(string $slug): ?Course
+    {
+        return $this->repository->findBySlug($slug);
+    }
+
+    /**
+     * Create a new course.
+     */
+    public function create(CreateCourseDTO|array $data): Course
+    {
+        $attributes = $data instanceof CreateCourseDTO ? $data->toArrayWithoutNull() : $data;
+
+        // Generate slug from title
+        if (! isset($attributes['slug']) && isset($attributes['title'])) {
+            $attributes['slug'] = Str::slug($attributes['title']);
         }
 
-        $tags = $data['tags_list'] ?? null;
-        unset($data['tags_list']);
-
-        if (! empty($data['slug'])) {
-            $data['slug'] = $this->generateUniqueSlug($data['slug'], $course->id);
+        // Generate code if not provided
+        if (! isset($attributes['code'])) {
+            $attributes['code'] = $this->generateCourseCode();
         }
 
-        $enrollmentType = $data['enrollment_type'] ?? $course->enrollment_type;
-        if ($enrollmentType !== 'key_based') {
-            $data['enrollment_key_hash'] = null;
-            unset($data['enrollment_key']);
-        } elseif (array_key_exists('enrollment_key', $data)) {
-            // Hash the new enrollment key before storing
-            if ($data['enrollment_key'] !== null) {
-                $data['enrollment_key_hash'] = $this->keyHasher->hash($data['enrollment_key']);
-            } else {
-                $data['enrollment_key_hash'] = null;
-            }
-            unset($data['enrollment_key']);
+        $tags = $attributes['tags'] ?? null;
+        unset($attributes['tags']);
+
+        $course = $this->repository->create($attributes);
+
+        if ($tags) {
+            $course->tags()->sync($tags);
         }
-        // If enrollment_key is not in data, keep existing hash
 
-        $outcomes = $data['outcomes'] ?? null;
-        $hasPrereqText = array_key_exists('prereq_text', $data);
-        $prereqText = $hasPrereqText ? $data['prereq_text'] : null;
-        unset($data['outcomes'], $data['prereq_text']);
+        return $course->fresh(['tags']);
+    }
 
-        $course = $this->repository->update($course, $data);
+    /**
+     * Update an existing course.
+     */
+    public function update(int $id, UpdateCourseDTO|array $data): Course
+    {
+        $course = $this->repository->findByIdOrFail($id);
+        $attributes = $data instanceof UpdateCourseDTO ? $data->toArrayWithoutNull() : $data;
+
+        // Update slug if title changed
+        if (isset($attributes['title']) && $attributes['title'] !== $course->title) {
+            $attributes['slug'] = Str::slug($attributes['title']);
+        }
+
+        $tags = $attributes['tags'] ?? null;
+        unset($attributes['tags']);
+
+        $this->repository->update($course, $attributes);
 
         if ($tags !== null) {
-            $this->tagService->syncCourseTags($course, $tags);
+            $course->tags()->sync($tags);
         }
 
-        if ($outcomes !== null) {
-            $this->syncCourseOutcomes($course, $outcomes);
-        }
-
-        if ($hasPrereqText) {
-            $course->prereq_text = $prereqText;
-            $course->save();
-        }
-
-        $course->load('tags');
-
-        if (array_key_exists('status', $data) && $data['status'] === CourseStatus::Published->value) {
-            CoursePublished::dispatch($course);
-        }
-
-        return $course->fresh(['tags', 'admins', 'instructor', 'outcomes']);
+        return $course->fresh(['tags']);
     }
 
+    /**
+     * Delete a course.
+     */
     public function delete(int $id): bool
     {
-        $course = $this->repository->findById($id);
-        if (! $course) {
-            return false;
-        }
+        $course = $this->repository->findByIdOrFail($id);
 
-        $this->repository->delete($course);
-
-        CourseDeleted::dispatch($course);
-
-        return true;
+        return $this->repository->delete($course);
     }
 
-    public function publish(int $id): ?Course
+    /**
+     * Publish a course.
+     *
+     * @throws BusinessException
+     */
+    public function publish(int $id): Course
     {
-        $course = $this->repository->findById($id);
-        if (! $course) {
-            return null;
+        $course = $this->repository->findByIdOrFail($id);
+
+        // Business rule: course must have at least one unit with lessons
+        if ($course->units()->count() === 0) {
+            throw new BusinessException(
+                'Kursus tidak dapat dipublikasikan karena belum memiliki unit.',
+                ['units' => ['Kursus harus memiliki minimal satu unit.']]
+            );
         }
 
-        $course->update([
-            'status' => CourseStatus::Published->value,
+        $hasLessons = $course->units()->whereHas('lessons')->exists();
+        if (! $hasLessons) {
+            throw new BusinessException(
+                'Kursus tidak dapat dipublikasikan karena belum memiliki lesson.',
+                ['lessons' => ['Kursus harus memiliki minimal satu lesson.']]
+            );
+        }
+
+        $this->repository->update($course, [
+            'status' => 'published',
             'published_at' => now(),
         ]);
-
-        CoursePublished::dispatch($course->fresh());
 
         return $course->fresh();
     }
 
-    public function unpublish(int $id): ?Course
+    /**
+     * Unpublish a course.
+     */
+    public function unpublish(int $id): Course
     {
-        $course = $this->repository->findById($id);
-        if (! $course) {
-            return null;
-        }
+        $course = $this->repository->findByIdOrFail($id);
 
-        $course->update([
-            'status' => CourseStatus::Draft->value,
+        $this->repository->update($course, [
+            'status' => 'draft',
             'published_at' => null,
         ]);
 
         return $course->fresh();
     }
 
-    private function generateUniqueSlug(string $source, ?int $ignoreId = null): string
+    /**
+     * Generate a unique course code.
+     */
+    private function generateCourseCode(): string
     {
-        $base = Str::slug($source);
-        $slug = $base !== '' ? $base : Str::random(8);
-        $suffix = 0;
         do {
-            $candidate = $suffix > 0 ? $slug.'-'.$suffix : $slug;
-            $existsQuery = Course::query()->where('slug', $candidate);
-            if ($ignoreId) {
-                $existsQuery->where('id', '!=', $ignoreId);
-            }
-            $exists = $existsQuery->exists();
-            if (! $exists) {
-                return $candidate;
-            }
-            $suffix++;
-        } while (true);
-    }
+            $code = 'CRS-'.strtoupper(Str::random(6));
+        } while (Course::where('code', $code)->exists());
 
-    private function syncCourseOutcomes(Course $course, array $outcomes): void
-    {
-        $course->outcomes()->delete();
-
-        foreach ($outcomes as $index => $outcome) {
-            if (empty($outcome)) {
-                continue;
-            }
-
-            $course->outcomes()->create([
-                'outcome_text' => is_string($outcome) ? $outcome : (is_array($outcome) ? ($outcome['text'] ?? $outcome['outcome_text'] ?? json_encode($outcome)) : (string) $outcome),
-                'order' => is_array($outcome) ? ($outcome['order'] ?? $index) : $index,
-            ]);
-        }
-    }
-
-    /**
-     * Verify an enrollment key against a course's stored hash.
-     *
-     * @param  Course  $course  The course to verify against
-     * @param  string  $plainKey  The plain text enrollment key to verify
-     * @return bool True if the key is valid, false otherwise
-     */
-    public function verifyEnrollmentKey(Course $course, string $plainKey): bool
-    {
-        if (empty($course->enrollment_key_hash)) {
-            return false;
-        }
-
-        return $this->keyHasher->verify($plainKey, $course->enrollment_key_hash);
-    }
-
-    /**
-     * Generate a new enrollment key for a course.
-     *
-     * @param  int  $length  The length of the key to generate (default: 12)
-     * @return string The generated plain text enrollment key
-     */
-    public function generateEnrollmentKey(int $length = 12): string
-    {
-        return $this->keyHasher->generate($length);
-    }
-
-    /**
-     * Check if a course has an enrollment key set.
-     *
-     * @param  Course  $course  The course to check
-     * @return bool True if the course has an enrollment key hash, false otherwise
-     */
-    public function hasEnrollmentKey(Course $course): bool
-    {
-        return ! empty($course->enrollment_key_hash);
+        return $code;
     }
 }

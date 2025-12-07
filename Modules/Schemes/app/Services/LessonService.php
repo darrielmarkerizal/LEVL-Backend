@@ -4,134 +4,60 @@ namespace Modules\Schemes\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
-use Modules\Schemes\Contracts\Services\LessonServiceInterface;
-use Modules\Schemes\Events\LessonCompleted;
-use Modules\Schemes\Events\LessonViewed;
+use Modules\Schemes\Contracts\Repositories\LessonRepositoryInterface;
+use Modules\Schemes\DTOs\CreateLessonDTO;
+use Modules\Schemes\DTOs\UpdateLessonDTO;
 use Modules\Schemes\Models\Lesson;
-use Modules\Schemes\Repositories\LessonRepository;
 
-class LessonService implements LessonServiceInterface
+class LessonService
 {
-    public function __construct(private LessonRepository $repository) {}
+    public function __construct(
+        private readonly LessonRepositoryInterface $repository
+    ) {}
 
-    public function listByUnit(int $unitId, array $params): LengthAwarePaginator
+    public function paginate(int $unitId, array $params, int $perPage = 15): LengthAwarePaginator
     {
         return $this->repository->findByUnit($unitId, $params);
     }
 
-    public function show(int $unitId, int $id): ?Lesson
+    public function find(int $id): ?Lesson
     {
-        return $this->repository->findByUnitAndId($unitId, $id);
+        return $this->repository->findById($id);
     }
 
-    public function create(int $unitId, array $data): Lesson
+    public function findOrFail(int $id): Lesson
     {
-        $data['unit_id'] = $unitId;
-
-        if (empty($data['slug'])) {
-            $data['slug'] = $this->generateUniqueSlug($unitId, $data['title'] ?? Str::random(8));
-        } else {
-            $data['slug'] = $this->generateUniqueSlug($unitId, $data['slug']);
-        }
-
-        if (empty($data['order'])) {
-            $maxOrder = $this->repository->getMaxOrderForUnit($unitId);
-            $data['order'] = $maxOrder + 1;
-        }
-
-        if (empty($data['status'])) {
-            $data['status'] = 'draft';
-        }
-
-        return $this->repository->create($data);
+        return $this->repository->findByIdOrFail($id);
     }
 
-    public function update(int $unitId, int $id, array $data): ?Lesson
+    public function create(int $unitId, CreateLessonDTO|array $data): Lesson
     {
-        $lesson = $this->repository->findByUnitAndId($unitId, $id);
-        if (! $lesson) {
-            return null;
+        $attributes = $data instanceof CreateLessonDTO ? $data->toArrayWithoutNull() : $data;
+        $attributes['unit_id'] = $unitId;
+
+        if (! isset($attributes['slug']) && isset($attributes['title'])) {
+            $attributes['slug'] = Str::slug($attributes['title']);
         }
 
-        if (! empty($data['slug']) && $data['slug'] !== $lesson->slug) {
-            $data['slug'] = $this->generateUniqueSlug($unitId, $data['slug'], $lesson->id);
-        }
-
-        return $this->repository->update($lesson, $data);
+        return $this->repository->create($attributes);
     }
 
-    public function delete(int $unitId, int $id): bool
+    public function update(int $id, UpdateLessonDTO|array $data): Lesson
     {
-        $lesson = $this->repository->findByUnitAndId($unitId, $id);
-        if (! $lesson) {
-            return false;
+        $lesson = $this->repository->findByIdOrFail($id);
+        $attributes = $data instanceof UpdateLessonDTO ? $data->toArrayWithoutNull() : $data;
+
+        if (isset($attributes['title']) && $attributes['title'] !== $lesson->title) {
+            $attributes['slug'] = Str::slug($attributes['title']);
         }
+
+        return $this->repository->update($lesson, $attributes);
+    }
+
+    public function delete(int $id): bool
+    {
+        $lesson = $this->repository->findByIdOrFail($id);
 
         return $this->repository->delete($lesson);
-    }
-
-    public function publish(int $unitId, int $id): ?Lesson
-    {
-        $lesson = $this->repository->findByUnitAndId($unitId, $id);
-        if (! $lesson) {
-            return null;
-        }
-
-        $lesson->update([
-            'status' => 'published',
-            'published_at' => now(),
-        ]);
-
-        return $lesson->fresh();
-    }
-
-    public function unpublish(int $unitId, int $id): ?Lesson
-    {
-        $lesson = $this->repository->findByUnitAndId($unitId, $id);
-        if (! $lesson) {
-            return null;
-        }
-
-        $lesson->update([
-            'status' => 'draft',
-            'published_at' => null,
-        ]);
-
-        return $lesson->fresh();
-    }
-
-    public function markViewed(Lesson $lesson, int $userId, int $enrollmentId): void
-    {
-        LessonViewed::dispatch($lesson, $userId, $enrollmentId);
-    }
-
-    public function markCompleted(Lesson $lesson, int $userId, int $enrollmentId): void
-    {
-        LessonCompleted::dispatch($lesson, $userId, $enrollmentId);
-    }
-
-    public function getRepository(): LessonRepository
-    {
-        return $this->repository;
-    }
-
-    private function generateUniqueSlug(int $unitId, string $source, ?int $ignoreId = null): string
-    {
-        $base = Str::slug($source);
-        $slug = $base !== '' ? $base : Str::random(8);
-        $suffix = 0;
-        do {
-            $candidate = $suffix > 0 ? $slug.'-'.$suffix : $slug;
-            $existsQuery = Lesson::where('unit_id', $unitId)
-                ->where('slug', $candidate);
-            if ($ignoreId) {
-                $existsQuery->where('id', '!=', $ignoreId);
-            }
-            $exists = $existsQuery->exists();
-            if (! $exists) {
-                return $candidate;
-            }
-            $suffix++;
-        } while (true);
     }
 }

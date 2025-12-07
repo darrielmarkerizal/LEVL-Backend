@@ -5,9 +5,10 @@ namespace Modules\Content\Repositories;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Auth\Models\User;
+use Modules\Content\Contracts\Repositories\AnnouncementRepositoryInterface;
 use Modules\Content\Models\Announcement;
 
-class AnnouncementRepository
+class AnnouncementRepository implements AnnouncementRepositoryInterface
 {
     /**
      * Get announcements for a specific user with targeting logic.

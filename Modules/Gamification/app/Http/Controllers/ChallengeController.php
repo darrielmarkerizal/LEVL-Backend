@@ -19,6 +19,12 @@ class ChallengeController extends Controller
      * Get list of active challenges.
      *
      * @summary Mengambil daftar challenge aktif
+     *
+     * @allowedFilters type
+     *
+     * @allowedSorts type, points_reward, created_at
+     *
+     * @filterEnum type daily|weekly|special
      */
     public function index(Request $request): JsonResponse
     {
