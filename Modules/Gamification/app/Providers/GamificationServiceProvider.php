@@ -27,7 +27,23 @@ class GamificationServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
+        $this->registerPolicies();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+    }
+
+    /**
+     * Register policies.
+     */
+    protected function registerPolicies(): void
+    {
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Gamification\Models\Challenge::class,
+            \Modules\Gamification\Policies\ChallengePolicy::class
+        );
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Gamification\Models\Badge::class,
+            \Modules\Gamification\Policies\BadgePolicy::class
+        );
     }
 
     /**
@@ -38,6 +54,31 @@ class GamificationServiceProvider extends ServiceProvider
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
 
+        // Register Repository bindings
+        $this->app->bind(
+            \Modules\Gamification\Contracts\Repositories\GamificationRepositoryInterface::class,
+            \Modules\Gamification\Repositories\GamificationRepository::class
+        );
+        $this->app->bind(
+            \Modules\Gamification\Contracts\Repositories\ChallengeRepositoryInterface::class,
+            \Modules\Gamification\Repositories\ChallengeRepository::class
+        );
+
+        // Register Service bindings
+        $this->app->singleton(
+            \Modules\Gamification\Contracts\Services\GamificationServiceInterface::class,
+            \Modules\Gamification\Services\GamificationService::class
+        );
+        $this->app->singleton(
+            \Modules\Gamification\Contracts\Services\ChallengeServiceInterface::class,
+            \Modules\Gamification\Services\ChallengeService::class
+        );
+        $this->app->singleton(
+            \Modules\Gamification\Contracts\Services\LeaderboardServiceInterface::class,
+            \Modules\Gamification\Services\LeaderboardService::class
+        );
+
+        // Keep backward compatibility
         $this->app->singleton(GamificationService::class, function () {
             return new GamificationService;
         });

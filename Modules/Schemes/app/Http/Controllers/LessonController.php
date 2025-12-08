@@ -13,6 +13,9 @@ use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Services\LessonService;
 use Modules\Schemes\Services\ProgressionService;
 
+/**
+ * @tags Materi Pembelajaran
+ */
 class LessonController extends Controller
 {
     use ApiResponse;
@@ -23,6 +26,8 @@ class LessonController extends Controller
     ) {}
 
     /**
+     * @summary Daftar Lesson
+     *
      * @allowedFilters status, content_type
      *
      * @allowedSorts order, title, created_at
@@ -71,6 +76,9 @@ class LessonController extends Controller
         return $this->paginateResponse($paginator);
     }
 
+    /**
+     * @summary Buat Lesson Baru
+     */
     public function store(LessonRequest $request, Course $course, Unit $unit)
     {
         /** @var \Modules\Auth\Models\User $user */
@@ -104,6 +112,9 @@ class LessonController extends Controller
         return $this->created(['lesson' => $lesson], 'Lesson berhasil dibuat.');
     }
 
+    /**
+     * @summary Detail Lesson
+     */
     public function show(Course $course, Unit $unit, Lesson $lesson)
     {
         /** @var \Modules\Auth\Models\User $user */
@@ -158,6 +169,9 @@ class LessonController extends Controller
         return $this->success(['lesson' => $found]);
     }
 
+    /**
+     * @summary Perbarui Lesson
+     */
     public function update(LessonRequest $request, Course $course, Unit $unit, Lesson $lesson)
     {
         $found = $this->service->show($unit->id, $lesson->id);
@@ -177,6 +191,9 @@ class LessonController extends Controller
         return $this->success(['lesson' => $updated], 'Lesson berhasil diperbarui.');
     }
 
+    /**
+     * @summary Hapus Lesson
+     */
     public function destroy(Course $course, Unit $unit, Lesson $lesson)
     {
         $found = $this->service->show($unit->id, $lesson->id);
@@ -195,6 +212,9 @@ class LessonController extends Controller
         return $this->success([], 'Lesson berhasil dihapus.');
     }
 
+    /**
+     * @summary Publish Lesson
+     */
     public function publish(Course $course, Unit $unit, Lesson $lesson)
     {
         $found = $this->service->show($unit->id, $lesson->id);
@@ -213,6 +233,9 @@ class LessonController extends Controller
         return $this->success(['lesson' => $updated], 'Lesson berhasil dipublish.');
     }
 
+    /**
+     * @summary Unpublish Lesson
+     */
     public function unpublish(Course $course, Unit $unit, Lesson $lesson)
     {
         $found = $this->service->show($unit->id, $lesson->id);

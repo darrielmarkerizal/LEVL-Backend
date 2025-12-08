@@ -9,6 +9,9 @@ use Modules\Content\Models\Announcement;
 use Modules\Content\Models\News;
 use Modules\Content\Services\ContentStatisticsService;
 
+/**
+ * @tags Konten & Berita
+ */
 class ContentStatisticsController extends Controller
 {
     protected ContentStatisticsService $statisticsService;

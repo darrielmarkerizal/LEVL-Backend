@@ -2,32 +2,34 @@
 
 namespace Modules\Auth\DTOs;
 
-use App\Support\BaseDTO;
 use Illuminate\Http\UploadedFile;
+use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Optional;
 
-final class UpdateProfileDTO extends BaseDTO
+final class UpdateProfileDTO extends Data
 {
     public function __construct(
-        public readonly ?string $name = null,
-        public readonly ?string $username = null,
-        public readonly ?UploadedFile $avatar = null,
+        #[Max(255)]
+        public string|Optional|null $name,
+
+        #[Max(255)]
+        public string|Optional|null $username,
+
+        public UploadedFile|Optional|null $avatar,
     ) {}
 
-    public static function fromRequest(array $data): static
+    public function toModelArray(): array
     {
-        return new self(
-            name: $data['name'] ?? null,
-            username: $data['username'] ?? null,
-            avatar: $data['avatar'] ?? null,
-        );
-    }
+        $data = [];
 
-    public function toArray(): array
-    {
-        return [
-            'name' => $this->name,
-            'username' => $this->username,
-            'avatar' => $this->avatar,
-        ];
+        if (! $this->name instanceof Optional && $this->name !== null) {
+            $data['name'] = $this->name;
+        }
+        if (! $this->username instanceof Optional && $this->username !== null) {
+            $data['username'] = $this->username;
+        }
+
+        return $data;
     }
 }

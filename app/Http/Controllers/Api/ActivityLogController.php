@@ -8,6 +8,9 @@ use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @tags Laporan & Statistik
+ */
 class ActivityLogController extends Controller
 {
     public function __construct(
@@ -15,7 +18,7 @@ class ActivityLogController extends Controller
     ) {}
 
     /**
-     * Get paginated list of activity logs (superadmin only).
+     * @summary Daftar Log Aktivitas
      */
     public function index(Request $request): JsonResponse
     {
@@ -26,7 +29,7 @@ class ActivityLogController extends Controller
     }
 
     /**
-     * Get single activity log detail (superadmin only).
+     * @summary Detail Log Aktivitas
      */
     public function show(int $id): JsonResponse
     {

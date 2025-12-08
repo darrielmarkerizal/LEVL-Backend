@@ -12,12 +12,18 @@ use Modules\Schemes\Models\LessonBlock;
 use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Services\LessonBlockService;
 
+/**
+ * @tags Materi Pembelajaran
+ */
 class LessonBlockController extends Controller
 {
     use ApiResponse;
 
     public function __construct(private LessonBlockService $service) {}
 
+    /**
+     * @summary Daftar Blok Lesson
+     */
     public function index(Course $course, Unit $unit, Lesson $lesson)
     {
         $lessonModel = $lesson->load(['unit.course']);
@@ -61,6 +67,9 @@ class LessonBlockController extends Controller
         return $this->success(['blocks' => $blocks]);
     }
 
+    /**
+     * @summary Buat Blok Lesson Baru
+     */
     public function store(LessonBlockRequest $request, Course $course, Unit $unit, Lesson $lesson)
     {
         $lessonModel = $lesson->load(['unit.course']);
@@ -97,6 +106,9 @@ class LessonBlockController extends Controller
         return $this->created(['block' => $block], 'Blok lesson berhasil dibuat.');
     }
 
+    /**
+     * @summary Detail Blok Lesson
+     */
     public function show(Course $course, Unit $unit, Lesson $lesson, LessonBlock $block)
     {
         $lessonModel = $lesson->load(['unit.course']);
@@ -139,6 +151,9 @@ class LessonBlockController extends Controller
         return $this->success(['block' => $found]);
     }
 
+    /**
+     * @summary Perbarui Blok Lesson
+     */
     public function update(LessonBlockRequest $request, Course $course, Unit $unit, Lesson $lesson, LessonBlock $block)
     {
         $lessonModel = $lesson->load(['unit.course']);
@@ -164,6 +179,9 @@ class LessonBlockController extends Controller
         return $this->success(['block' => $updated], 'Blok lesson berhasil diperbarui.');
     }
 
+    /**
+     * @summary Hapus Blok Lesson
+     */
     public function destroy(Course $course, Unit $unit, Lesson $lesson, LessonBlock $block)
     {
         $lessonModel = $lesson->load(['unit.course']);

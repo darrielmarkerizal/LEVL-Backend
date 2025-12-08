@@ -4,6 +4,10 @@ namespace Modules\Grading\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Grading\Contracts\Repositories\GradingRepositoryInterface;
+use Modules\Grading\Contracts\Services\GradingServiceInterface;
+use Modules\Grading\Repositories\GradingRepository;
+use Modules\Grading\Services\GradingService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -26,7 +30,19 @@ class GradingServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
+        $this->registerPolicies();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+    }
+
+    /**
+     * Register policies.
+     */
+    protected function registerPolicies(): void
+    {
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Grading\Models\Grade::class,
+            \Modules\Grading\Policies\GradePolicy::class
+        );
     }
 
     /**
@@ -36,6 +52,19 @@ class GradingServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+        $this->registerBindings();
+    }
+
+    /**
+     * Register interface bindings.
+     */
+    protected function registerBindings(): void
+    {
+        // Repository bindings
+        $this->app->bind(GradingRepositoryInterface::class, GradingRepository::class);
+
+        // Service bindings
+        $this->app->bind(GradingServiceInterface::class, GradingService::class);
     }
 
     /**
@@ -129,7 +158,7 @@ class GradingServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->nameLower);
 
-        Blade::componentNamespace(config('modules.namespace').'\\' . $this->name . '\\View\\Components', $this->nameLower);
+        Blade::componentNamespace(config('modules.namespace').'\\'.$this->name.'\\View\\Components', $this->nameLower);
     }
 
     /**

@@ -10,12 +10,18 @@ use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Services\ProgressionService;
 
+/**
+ * @tags Progress Belajar
+ */
 class ProgressController extends Controller
 {
     use ApiResponse;
 
     public function __construct(private ProgressionService $progression) {}
 
+    /**
+     * @summary Lihat Progress Belajar
+     */
     public function show(Request $request, Course $course)
     {
         /** @var \Modules\Auth\Models\User|null $user */
@@ -69,6 +75,9 @@ class ProgressController extends Controller
         return $this->success($data);
     }
 
+    /**
+     * @summary Tandai Lesson Selesai
+     */
     public function completeLesson(Request $request, Course $course, Unit $unit, Lesson $lesson)
     {
         /** @var \Modules\Auth\Models\User|null $user */
@@ -109,5 +118,3 @@ class ProgressController extends Controller
         return $this->success($data, 'Progress berhasil diperbarui.');
     }
 }
-
-

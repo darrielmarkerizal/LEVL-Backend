@@ -4,6 +4,16 @@ namespace Modules\Learning\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Learning\Contracts\Repositories\AssignmentRepositoryInterface;
+use Modules\Learning\Contracts\Repositories\SubmissionRepositoryInterface;
+use Modules\Learning\Contracts\Services\AssignmentServiceInterface;
+use Modules\Learning\Contracts\Services\LearningPageServiceInterface;
+use Modules\Learning\Contracts\Services\SubmissionServiceInterface;
+use Modules\Learning\Repositories\AssignmentRepository;
+use Modules\Learning\Repositories\SubmissionRepository;
+use Modules\Learning\Services\AssignmentService;
+use Modules\Learning\Services\LearningPageService;
+use Modules\Learning\Services\SubmissionService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -26,7 +36,23 @@ class LearningServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
+        $this->registerPolicies();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+    }
+
+    /**
+     * Register policies.
+     */
+    protected function registerPolicies(): void
+    {
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Learning\Models\Assignment::class,
+            \Modules\Learning\Policies\AssignmentPolicy::class
+        );
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Learning\Models\Submission::class,
+            \Modules\Learning\Policies\SubmissionPolicy::class
+        );
     }
 
     /**
@@ -36,6 +62,22 @@ class LearningServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+        $this->registerBindings();
+    }
+
+    /**
+     * Register interface bindings.
+     */
+    protected function registerBindings(): void
+    {
+        // Repository bindings
+        $this->app->bind(AssignmentRepositoryInterface::class, AssignmentRepository::class);
+        $this->app->bind(SubmissionRepositoryInterface::class, SubmissionRepository::class);
+
+        // Service bindings
+        $this->app->bind(AssignmentServiceInterface::class, AssignmentService::class);
+        $this->app->bind(SubmissionServiceInterface::class, SubmissionService::class);
+        $this->app->bind(LearningPageServiceInterface::class, LearningPageService::class);
     }
 
     /**
@@ -129,7 +171,7 @@ class LearningServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->nameLower);
 
-        Blade::componentNamespace(config('modules.namespace').'\\' . $this->name . '\\View\\Components', $this->nameLower);
+        Blade::componentNamespace(config('modules.namespace').'\\'.$this->name.'\\View\\Components', $this->nameLower);
     }
 
     /**

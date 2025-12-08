@@ -11,6 +11,9 @@ use Modules\Learning\Enums\SubmissionType;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Services\AssignmentService;
 
+/**
+ * @tags Tugas & Pengumpulan
+ */
 class AssignmentController extends Controller
 {
     use ApiResponse;

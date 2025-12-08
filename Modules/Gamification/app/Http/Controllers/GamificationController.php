@@ -3,7 +3,7 @@
 namespace Modules\Gamification\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Responses\ApiResponse;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Gamification\Models\Point;
@@ -13,8 +13,13 @@ use Modules\Gamification\Services\ChallengeService;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Gamification\Services\LeaderboardService;
 
+/**
+ * @tags Gamifikasi
+ */
 class GamificationController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly GamificationService $gamificationService,
         private readonly LeaderboardService $leaderboardService,
@@ -35,7 +40,7 @@ class GamificationController extends Controller
         $activeChallenges = $this->challengeService->getUserChallenges($userId)->count();
         $badgesCount = UserBadge::where('user_id', $userId)->count();
 
-        return ApiResponse::success([
+        return $this->success([
             'total_xp' => $stats?->total_xp ?? 0,
             'level' => $stats?->global_level ?? 0,
             'xp_to_next_level' => $stats?->xp_to_next_level ?? 100,
@@ -45,7 +50,7 @@ class GamificationController extends Controller
             'longest_streak' => $stats?->longest_streak ?? 0,
             'rank' => $rankData['rank'],
             'active_challenges' => $activeChallenges,
-        ]);
+        ], __('gamification.summary_retrieved'));
     }
 
     /**
@@ -73,7 +78,7 @@ class GamificationController extends Controller
                 ];
             });
 
-        return ApiResponse::success(['badges' => $badges]);
+        return $this->success(['badges' => $badges], __('gamification.badges_retrieved'));
     }
 
     /**
@@ -103,7 +108,7 @@ class GamificationController extends Controller
             ];
         });
 
-        return ApiResponse::success([
+        return $this->success([
             'points' => $data,
             'meta' => [
                 'current_page' => $points->currentPage(),
@@ -111,7 +116,7 @@ class GamificationController extends Controller
                 'total' => $points->total(),
                 'last_page' => $points->lastPage(),
             ],
-        ]);
+        ], __('gamification.points_history_retrieved'));
     }
 
     /**
@@ -153,11 +158,11 @@ class GamificationController extends Controller
         // Find next milestone
         $nextMilestone = $achievements->first(fn ($m) => ! $m['achieved']);
 
-        return ApiResponse::success([
+        return $this->success([
             'achievements' => $achievements,
             'next_milestone' => $nextMilestone,
             'current_xp' => $totalXp,
             'current_level' => $level,
-        ]);
+        ], __('gamification.achievements_retrieved'));
     }
 }

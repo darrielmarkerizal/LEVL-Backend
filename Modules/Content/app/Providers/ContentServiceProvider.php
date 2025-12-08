@@ -46,8 +46,15 @@ class ContentServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+        $this->registerBindings();
+    }
 
-        // Bind repository interfaces
+    /**
+     * Register interface bindings.
+     */
+    protected function registerBindings(): void
+    {
+        // Repository bindings
         $this->app->bind(
             \Modules\Content\Contracts\Repositories\AnnouncementRepositoryInterface::class,
             \Modules\Content\Repositories\AnnouncementRepository::class
@@ -57,21 +64,29 @@ class ContentServiceProvider extends ServiceProvider
             \Modules\Content\Repositories\NewsRepository::class
         );
 
-        // Bind service interfaces to implementations
+        // Service bindings
+        $this->app->bind(
+            \Modules\Content\Contracts\Services\AnnouncementServiceInterface::class,
+            \Modules\Content\Services\AnnouncementService::class
+        );
+        $this->app->bind(
+            \Modules\Content\Contracts\Services\NewsServiceInterface::class,
+            \Modules\Content\Services\NewsService::class
+        );
+        $this->app->bind(
+            \Modules\Content\Contracts\Services\ContentStatisticsServiceInterface::class,
+            \Modules\Content\Services\ContentStatisticsService::class
+        );
+
+        // Legacy bindings (for backward compatibility)
         $this->app->bind(
             \App\Contracts\Services\ContentServiceInterface::class,
             \Modules\Content\Services\ContentService::class
         );
-
-        // Bind workflow service interface to implementation
         $this->app->bind(
             \Modules\Content\Contracts\ContentWorkflowServiceInterface::class,
             \Modules\Content\Services\ContentWorkflowService::class
         );
-
-        // Bind specific services
-        $this->app->singleton(\Modules\Content\Services\AnnouncementService::class);
-        $this->app->singleton(\Modules\Content\Services\NewsService::class);
     }
 
     /**

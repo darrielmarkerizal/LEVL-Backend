@@ -2,36 +2,39 @@
 
 namespace Modules\Content\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
-final class CreateNewsDTO extends BaseDTO
+#[MapInputName(SnakeCaseMapper::class)]
+final class CreateNewsDTO extends Data
 {
     public function __construct(
-        public readonly string $title,
-        public readonly string $content,
-        public readonly ?string $slug = null,
-        public readonly ?string $excerpt = null,
-        public readonly ?string $status = 'draft',
-        public readonly bool $isFeatured = false,
-        public readonly array $categoryIds = [],
-        public readonly array $tagIds = [],
+        #[Required, Max(255)]
+        public string $title,
+
+        #[Required]
+        public string $content,
+
+        public ?string $slug = null,
+
+        public ?string $excerpt = null,
+
+        public ?string $status = 'draft',
+
+        #[MapInputName('is_featured')]
+        public bool $isFeatured = false,
+
+        #[MapInputName('category_ids')]
+        public array $categoryIds = [],
+
+        #[MapInputName('tag_ids')]
+        public array $tagIds = [],
     ) {}
 
-    public static function fromRequest(array $data): static
-    {
-        return new self(
-            title: $data['title'],
-            content: $data['content'],
-            slug: $data['slug'] ?? null,
-            excerpt: $data['excerpt'] ?? null,
-            status: $data['status'] ?? 'draft',
-            isFeatured: (bool) ($data['is_featured'] ?? false),
-            categoryIds: $data['category_ids'] ?? [],
-            tagIds: $data['tag_ids'] ?? [],
-        );
-    }
-
-    public function toArray(): array
+    public function toModelArray(): array
     {
         return [
             'title' => $this->title,

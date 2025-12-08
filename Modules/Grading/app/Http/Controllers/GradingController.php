@@ -6,9 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Grading\Services\GradingService;
 
+/**
+ * @tags Penilaian
+ */
 class GradingController extends Controller
 {
     public function __construct(private readonly GradingService $service) {}
+
     /**
      * Display a listing of the resource.
      */

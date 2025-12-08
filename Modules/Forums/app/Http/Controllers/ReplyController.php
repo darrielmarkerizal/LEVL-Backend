@@ -2,19 +2,24 @@
 
 namespace Modules\Forums\Http\Controllers;
 
-use App\Contracts\Services\ForumServiceInterface;
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Forums\Contracts\Services\ForumServiceInterface;
 use Modules\Forums\Http\Requests\CreateReplyRequest;
 use Modules\Forums\Http\Requests\UpdateReplyRequest;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 use Modules\Forums\Services\ModerationService;
 
+/**
+ * @tags Forum Diskusi
+ */
 class ReplyController extends Controller
 {
+    use ApiResponse;
+
     protected ForumServiceInterface $forumService;
 
     protected ModerationService $moderationService;
@@ -28,24 +33,24 @@ class ReplyController extends Controller
     }
 
     /**
-     * Store a newly created reply.
+     * @summary Buat Balasan Baru
      */
     public function store(CreateReplyRequest $request, int $threadId): JsonResponse
     {
         $thread = Thread::find($threadId);
 
         if (! $thread) {
-            return ApiResponse::errorStatic('Thread not found', 404);
+            return $this->notFound(__('forums.thread_not_found'));
         }
 
         $this->authorize('create', [Reply::class, $thread]);
 
         try {
-            $parent = null;
-            if ($request->has('parent_id')) {
-                $parent = Reply::find($request->input('parent_id'));
+            $parentId = $request->input('parent_id');
+            if ($parentId) {
+                $parent = Reply::find($parentId);
                 if (! $parent || $parent->thread_id != $threadId) {
-                    return ApiResponse::errorStatic('Invalid parent reply', 400);
+                    return $this->error(__('forums.invalid_parent_reply'), 400);
                 }
             }
 
@@ -53,24 +58,24 @@ class ReplyController extends Controller
                 $thread,
                 $request->validated(),
                 $request->user(),
-                $parent
+                $parentId
             );
 
-            return ApiResponse::successStatic($reply, 'Reply created successfully', 201);
+            return $this->created($reply, __('forums.reply_created'));
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 
     /**
-     * Update the specified reply.
+     * @summary Perbarui Balasan
      */
     public function update(UpdateReplyRequest $request, int $replyId): JsonResponse
     {
         $reply = Reply::find($replyId);
 
         if (! $reply) {
-            return ApiResponse::errorStatic('Reply not found', 404);
+            return $this->notFound(__('forums.reply_not_found'));
         }
 
         $this->authorize('update', $reply);
@@ -78,21 +83,21 @@ class ReplyController extends Controller
         try {
             $updatedReply = $this->forumService->updateReply($reply, $request->validated());
 
-            return ApiResponse::successStatic($updatedReply, 'Reply updated successfully');
+            return $this->success($updatedReply, __('forums.reply_updated'));
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 
     /**
-     * Remove the specified reply.
+     * @summary Hapus Balasan
      */
     public function destroy(Request $request, int $replyId): JsonResponse
     {
         $reply = Reply::find($replyId);
 
         if (! $reply) {
-            return ApiResponse::errorStatic('Reply not found', 404);
+            return $this->notFound(__('forums.reply_not_found'));
         }
 
         $this->authorize('delete', $reply);
@@ -100,31 +105,31 @@ class ReplyController extends Controller
         try {
             $this->forumService->deleteReply($reply, $request->user());
 
-            return ApiResponse::successStatic(null, 'Reply deleted successfully');
+            return $this->success(null, __('forums.reply_deleted'));
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 
     /**
-     * Mark a reply as accepted answer.
+     * @summary Terima Balasan sebagai Jawaban
      */
     public function accept(Request $request, int $replyId): JsonResponse
     {
         $reply = Reply::find($replyId);
 
         if (! $reply) {
-            return ApiResponse::errorStatic('Reply not found', 404);
+            return $this->notFound(__('forums.reply_not_found'));
         }
 
         $this->authorize('markAsAccepted', $reply);
 
         try {
-            $this->moderationService->markAsAcceptedAnswer($reply, $request->user());
+            $acceptedReply = $this->moderationService->markAsAcceptedAnswer($reply, $request->user());
 
-            return ApiResponse::successStatic($reply->fresh(), 'Reply marked as accepted answer');
+            return $this->success($acceptedReply, __('forums.reply_accepted'));
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 }

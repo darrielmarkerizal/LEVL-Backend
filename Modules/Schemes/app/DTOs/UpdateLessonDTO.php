@@ -2,34 +2,46 @@
 
 namespace Modules\Schemes\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Attributes\Validation\Min;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
+use Spatie\LaravelData\Optional;
 
-final class UpdateLessonDTO extends BaseDTO
+#[MapInputName(SnakeCaseMapper::class)]
+final class UpdateLessonDTO extends Data
 {
     public function __construct(
-        public readonly ?string $title = null,
-        public readonly ?string $description = null,
-        public readonly ?string $contentType = null,
-        public readonly ?int $order = null,
+        #[Max(255)]
+        public string|Optional|null $title,
+
+        public string|Optional|null $description,
+
+        #[MapInputName('content_type')]
+        public string|Optional|null $contentType,
+
+        #[Min(0)]
+        public int|Optional|null $order,
     ) {}
 
-    public static function fromRequest(array $data): static
+    public function toModelArray(): array
     {
-        return new self(
-            title: $data['title'] ?? null,
-            description: $data['description'] ?? null,
-            contentType: $data['content_type'] ?? null,
-            order: $data['order'] ?? null,
-        );
-    }
+        $data = [];
 
-    public function toArray(): array
-    {
-        return [
-            'title' => $this->title,
-            'description' => $this->description,
-            'content_type' => $this->contentType,
-            'order' => $this->order,
-        ];
+        if (! $this->title instanceof Optional) {
+            $data['title'] = $this->title;
+        }
+        if (! $this->description instanceof Optional) {
+            $data['description'] = $this->description;
+        }
+        if (! $this->contentType instanceof Optional) {
+            $data['content_type'] = $this->contentType;
+        }
+        if (! $this->order instanceof Optional) {
+            $data['order'] = $this->order;
+        }
+
+        return $data;
     }
 }

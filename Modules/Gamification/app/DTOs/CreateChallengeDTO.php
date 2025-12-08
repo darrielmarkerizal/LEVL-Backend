@@ -2,38 +2,48 @@
 
 namespace Modules\Gamification\DTOs;
 
-use App\Support\BaseDTO;
+use Carbon\Carbon;
+use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Attributes\Validation\Min;
+use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
-final class CreateChallengeDTO extends BaseDTO
+#[MapInputName(SnakeCaseMapper::class)]
+final class CreateChallengeDTO extends Data
 {
     public function __construct(
-        public readonly string $title,
-        public readonly string $description,
-        public readonly string $type,
-        public readonly int $xpReward,
-        public readonly ?int $courseId = null,
-        public readonly ?string $criteriaType = null,
-        public readonly ?int $criteriaValue = null,
-        public readonly ?\DateTimeInterface $startDate = null,
-        public readonly ?\DateTimeInterface $endDate = null,
+        #[Required, Max(255)]
+        public string $title,
+
+        #[Required]
+        public string $description,
+
+        #[Required]
+        public string $type,
+
+        #[Required, Min(0)]
+        #[MapInputName('xp_reward')]
+        public int $xpReward,
+
+        #[MapInputName('course_id')]
+        public ?int $courseId = null,
+
+        #[MapInputName('criteria_type')]
+        public ?string $criteriaType = null,
+
+        #[MapInputName('criteria_value')]
+        public ?int $criteriaValue = null,
+
+        #[MapInputName('start_date')]
+        public ?Carbon $startDate = null,
+
+        #[MapInputName('end_date')]
+        public ?Carbon $endDate = null,
     ) {}
 
-    public static function fromRequest(array $data): static
-    {
-        return new self(
-            title: $data['title'],
-            description: $data['description'],
-            type: $data['type'],
-            xpReward: (int) $data['xp_reward'],
-            courseId: isset($data['course_id']) ? (int) $data['course_id'] : null,
-            criteriaType: $data['criteria_type'] ?? null,
-            criteriaValue: isset($data['criteria_value']) ? (int) $data['criteria_value'] : null,
-            startDate: isset($data['start_date']) ? new \DateTime($data['start_date']) : null,
-            endDate: isset($data['end_date']) ? new \DateTime($data['end_date']) : null,
-        );
-    }
-
-    public function toArray(): array
+    public function toModelArray(): array
     {
         return [
             'title' => $this->title,

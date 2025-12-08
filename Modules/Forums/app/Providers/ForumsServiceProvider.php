@@ -53,11 +53,22 @@ class ForumsServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+        $this->registerBindings();
+    }
 
-        // Bind service interfaces to implementations
+    /**
+     * Register interface bindings.
+     */
+    protected function registerBindings(): void
+    {
+        // Service bindings
         $this->app->bind(
-            \App\Contracts\Services\ForumServiceInterface::class,
+            \Modules\Forums\Contracts\Services\ForumServiceInterface::class,
             \Modules\Forums\Services\ForumService::class
+        );
+        $this->app->bind(
+            \Modules\Forums\Contracts\Services\ModerationServiceInterface::class,
+            \Modules\Forums\Services\ModerationService::class
         );
     }
 

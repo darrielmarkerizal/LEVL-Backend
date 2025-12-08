@@ -8,13 +8,14 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
 use Modules\Content\Contracts\Repositories\NewsRepositoryInterface;
+use Modules\Content\Contracts\Services\NewsServiceInterface;
 use Modules\Content\DTOs\CreateNewsDTO;
 use Modules\Content\DTOs\UpdateNewsDTO;
 use Modules\Content\Events\NewsPublished;
 use Modules\Content\Models\ContentRevision;
 use Modules\Content\Models\News;
 
-class NewsService
+class NewsService implements NewsServiceInterface
 {
     public function __construct(
         private NewsRepositoryInterface $repository

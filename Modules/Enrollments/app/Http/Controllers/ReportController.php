@@ -9,6 +9,9 @@ use Modules\Enrollments\Models\CourseProgress;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
 
+/**
+ * @tags Laporan & Statistik
+ */
 class ReportController extends Controller
 {
     use ApiResponse;
@@ -16,7 +19,7 @@ class ReportController extends Controller
     /**
      * Get completion rate statistics for a course.
      *
-     * @summary Course completion rate
+     * @summary Statistik Tingkat Penyelesaian Kursus
      *
      * @description Get completion statistics including total enrolled, active, completed, and completion percentage for a specific course.
      */
@@ -70,7 +73,7 @@ class ReportController extends Controller
     /**
      * Get enrollment funnel statistics.
      *
-     * @summary Enrollment funnel
+     * @summary Statistik Funnel Pendaftaran
      *
      * @description Get funnel statistics showing enrollment journey from request to completion.
      */
@@ -136,7 +139,7 @@ class ReportController extends Controller
     /**
      * Export enrollment data to CSV.
      *
-     * @summary Export enrollments CSV
+     * @summary Ekspor Data Pendaftaran CSV
      *
      * @description Export enrollment data for a course to CSV format.
      */

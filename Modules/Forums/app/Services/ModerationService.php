@@ -5,12 +5,13 @@ namespace Modules\Forums\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Auth\Models\User;
+use Modules\Forums\Contracts\Services\ModerationServiceInterface;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 use Modules\Forums\Repositories\ReplyRepository;
 use Modules\Forums\Repositories\ThreadRepository;
 
-class ModerationService
+class ModerationService implements ModerationServiceInterface
 {
     protected ThreadRepository $threadRepository;
 
@@ -27,91 +28,87 @@ class ModerationService
     /**
      * Pin a thread.
      */
-    public function pinThread(Thread $thread, User $moderator): bool
+    public function pinThread(Thread $thread, User $moderator): Thread
     {
-        $result = $this->threadRepository->update($thread, ['is_pinned' => true]);
+        $this->threadRepository->update($thread, ['is_pinned' => true]);
 
         $this->logModerationAction('pin_thread', $moderator, $thread);
 
         // Fire event for notifications
         event(new \Modules\Forums\Events\ThreadPinned($thread));
 
-        return $result !== null;
+        return $thread->fresh();
     }
 
     /**
      * Unpin a thread.
      */
-    public function unpinThread(Thread $thread, User $moderator): bool
+    public function unpinThread(Thread $thread, User $moderator): Thread
     {
-        $result = $this->threadRepository->update($thread, ['is_pinned' => false]);
+        $this->threadRepository->update($thread, ['is_pinned' => false]);
 
         $this->logModerationAction('unpin_thread', $moderator, $thread);
 
-        return $result !== null;
+        return $thread->fresh();
     }
 
     /**
      * Close a thread.
      */
-    public function closeThread(Thread $thread, User $moderator): bool
+    public function closeThread(Thread $thread, User $moderator): Thread
     {
-        $result = $this->threadRepository->update($thread, ['is_closed' => true]);
+        $this->threadRepository->update($thread, ['is_closed' => true]);
 
         $this->logModerationAction('close_thread', $moderator, $thread);
 
-        return $result !== null;
+        return $thread->fresh();
     }
 
     /**
-     * Open a thread.
+     * Reopen a thread.
      */
-    public function openThread(Thread $thread, User $moderator): bool
+    public function reopenThread(Thread $thread, User $moderator): Thread
     {
-        $result = $this->threadRepository->update($thread, ['is_closed' => false]);
+        $this->threadRepository->update($thread, ['is_closed' => false]);
 
         $this->logModerationAction('open_thread', $moderator, $thread);
 
-        return $result !== null;
+        return $thread->fresh();
     }
 
     /**
      * Mark a reply as accepted answer.
      */
-    public function markAsAcceptedAnswer(Reply $reply, User $instructor): bool
+    public function markAsAcceptedAnswer(Reply $reply, User $user): Reply
     {
-        return DB::transaction(function () use ($reply, $instructor) {
-            $result = $this->replyRepository->markAsAccepted($reply);
+        return DB::transaction(function () use ($reply, $user) {
+            $this->replyRepository->markAsAccepted($reply);
 
-            if ($result) {
-                // Mark thread as resolved
-                $thread = $reply->thread;
-                $this->threadRepository->update($thread, ['is_resolved' => true]);
+            // Mark thread as resolved
+            $thread = $reply->thread;
+            $this->threadRepository->update($thread, ['is_resolved' => true]);
 
-                $this->logModerationAction('mark_accepted_answer', $instructor, $reply);
-            }
+            $this->logModerationAction('mark_accepted_answer', $user, $reply);
 
-            return $result;
+            return $reply->fresh();
         });
     }
 
     /**
      * Unmark a reply as accepted answer.
      */
-    public function unmarkAcceptedAnswer(Reply $reply, User $instructor): bool
+    public function unmarkAsAcceptedAnswer(Reply $reply, User $user): Reply
     {
-        return DB::transaction(function () use ($reply, $instructor) {
-            $result = $this->replyRepository->unmarkAsAccepted($reply);
+        return DB::transaction(function () use ($reply, $user) {
+            $this->replyRepository->unmarkAsAccepted($reply);
 
-            if ($result) {
-                // Mark thread as unresolved
-                $thread = $reply->thread;
-                $this->threadRepository->update($thread, ['is_resolved' => false]);
+            // Mark thread as unresolved
+            $thread = $reply->thread;
+            $this->threadRepository->update($thread, ['is_resolved' => false]);
 
-                $this->logModerationAction('unmark_accepted_answer', $instructor, $reply);
-            }
+            $this->logModerationAction('unmark_accepted_answer', $user, $reply);
 
-            return $result;
+            return $reply->fresh();
         });
     }
 

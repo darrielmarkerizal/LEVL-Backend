@@ -7,6 +7,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @tags Konten & Berita
+ */
 class SearchController extends Controller
 {
     protected ContentServiceInterface $contentService;

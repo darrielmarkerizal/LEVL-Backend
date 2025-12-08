@@ -2,24 +2,24 @@
 
 namespace Modules\Enrollments\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
-final class CreateEnrollmentDTO extends BaseDTO
+#[MapInputName(SnakeCaseMapper::class)]
+final class CreateEnrollmentDTO extends Data
 {
     public function __construct(
-        public readonly int $courseId,
-        public readonly ?string $enrollmentKey = null,
+        #[Required]
+        #[MapInputName('course_id')]
+        public int $courseId,
+
+        #[MapInputName('enrollment_key')]
+        public ?string $enrollmentKey = null,
     ) {}
 
-    public static function fromRequest(array $data): static
-    {
-        return new self(
-            courseId: $data['course_id'],
-            enrollmentKey: $data['enrollment_key'] ?? null,
-        );
-    }
-
-    public function toArray(): array
+    public function toModelArray(): array
     {
         return [
             'course_id' => $this->courseId,

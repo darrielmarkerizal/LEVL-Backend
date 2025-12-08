@@ -8,12 +8,18 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Auth\Models\User;
 
+/**
+ * @tags Profil Pengguna
+ */
 class PublicProfileController extends Controller
 {
     public function __construct(
         private ProfileServiceInterface $profileService
     ) {}
 
+    /**
+     * @summary Lihat Profil Publik
+     */
     public function show(Request $request, int $userId): JsonResponse
     {
         try {

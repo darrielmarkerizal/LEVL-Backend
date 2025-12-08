@@ -2,26 +2,25 @@
 
 namespace Modules\Learning\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
-final class CreateSubmissionDTO extends BaseDTO
+#[MapInputName(SnakeCaseMapper::class)]
+final class CreateSubmissionDTO extends Data
 {
     public function __construct(
-        public readonly int $assignmentId,
-        public readonly ?string $content = null,
-        public readonly ?array $files = null,
+        #[Required]
+        #[MapInputName('assignment_id')]
+        public int $assignmentId,
+
+        public ?string $content = null,
+
+        public ?array $files = null,
     ) {}
 
-    public static function fromRequest(array $data): static
-    {
-        return new self(
-            assignmentId: (int) $data['assignment_id'],
-            content: $data['content'] ?? null,
-            files: $data['files'] ?? null,
-        );
-    }
-
-    public function toArray(): array
+    public function toModelArray(): array
     {
         return [
             'assignment_id' => $this->assignmentId,

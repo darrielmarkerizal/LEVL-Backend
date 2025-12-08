@@ -5,6 +5,9 @@ namespace Modules\Forums\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
+/**
+ * @tags Forum Diskusi
+ */
 class ForumsController extends Controller
 {
     /**

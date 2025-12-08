@@ -5,6 +5,9 @@ namespace Modules\Content\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
+/**
+ * @tags Konten & Berita
+ */
 class ContentController extends Controller
 {
     /**

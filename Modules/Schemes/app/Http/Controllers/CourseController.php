@@ -12,6 +12,9 @@ use Modules\Schemes\Models\Course;
 use Modules\Schemes\Repositories\CourseRepository;
 use Modules\Schemes\Services\CourseService;
 
+/**
+ * @tags Skema & Kursus
+ */
 class CourseController extends Controller
 {
     use ApiResponse;
@@ -22,6 +25,8 @@ class CourseController extends Controller
     ) {}
 
     /**
+     * @summary Daftar Kursus
+     *
      * @allowedFilters filter[search], filter[status], filter[level_tag], filter[type], filter[category_id], filter[tag]
      *
      * @allowedSorts id, code, title, created_at, updated_at, published_at
@@ -42,6 +47,9 @@ class CourseController extends Controller
         return $this->paginateResponse($paginator);
     }
 
+    /**
+     * @summary Buat Kursus Baru
+     */
     public function store(CourseRequest $request)
     {
         $data = $request->validated();
@@ -66,11 +74,17 @@ class CourseController extends Controller
         return $this->created(['course' => $course->fresh()], 'Course berhasil dibuat.');
     }
 
+    /**
+     * @summary Detail Kursus
+     */
     public function show(Course $course)
     {
         return $this->success(['course' => $course->load(['tags', 'outcomes'])]);
     }
 
+    /**
+     * @summary Perbarui Kursus
+     */
     public function update(CourseRequest $request, Course $course)
     {
         $data = $request->validated();
@@ -94,6 +108,9 @@ class CourseController extends Controller
         return $this->success(['course' => $updated->fresh()], 'Course berhasil diperbarui.');
     }
 
+    /**
+     * @summary Hapus Kursus
+     */
     public function destroy(Course $course)
     {
         $ok = $this->service->delete($course->id);
@@ -101,6 +118,9 @@ class CourseController extends Controller
         return $this->success([], 'Course berhasil dihapus.');
     }
 
+    /**
+     * @summary Publish Kursus
+     */
     public function publish(Course $course)
     {
         /** @var \Modules\Auth\Models\User $user */
@@ -114,6 +134,9 @@ class CourseController extends Controller
         return $this->success(['course' => $updated], 'Course berhasil dipublish.');
     }
 
+    /**
+     * @summary Unpublish Kursus
+     */
     public function unpublish(Course $course)
     {
         /** @var \Modules\Auth\Models\User $user */
@@ -130,7 +153,7 @@ class CourseController extends Controller
     /**
      * Generate a new enrollment key for the course.
      *
-     * @summary Generate enrollment key
+     * @summary Buat Kunci Pendaftaran
      *
      * @description Generate a new random 12-character alphanumeric enrollment key for a course. The key will be uppercase and can be used by students to enroll in key-based courses. Only Admin/Instructor course owners can generate keys.
      *
@@ -176,7 +199,7 @@ class CourseController extends Controller
     /**
      * Update enrollment key for the course.
      *
-     * @summary Update enrollment settings
+     * @summary Perbarui Pengaturan Pendaftaran
      *
      * @description Update enrollment type and key for a course. If enrollment_type is 'key_based' but no key provided, one will be auto-generated. If enrollment_type is not 'key_based', the key will be cleared.
      *
@@ -237,7 +260,7 @@ class CourseController extends Controller
     /**
      * Remove enrollment key from the course.
      *
-     * @summary Remove enrollment key
+     * @summary Hapus Kunci Pendaftaran
      *
      * @description Remove the enrollment key and automatically set enrollment type to 'auto_accept'. This makes the course publicly enrollable without requiring a key. Only Admin/Instructor course owners can remove keys.
      *

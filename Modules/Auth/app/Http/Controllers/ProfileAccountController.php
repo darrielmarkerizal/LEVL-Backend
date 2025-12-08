@@ -7,12 +7,18 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Modules\Auth\Http\Requests\DeleteAccountRequest;
 
+/**
+ * @tags Profil Pengguna
+ */
 class ProfileAccountController extends Controller
 {
     public function __construct(
         private ProfileServiceInterface $profileService
     ) {}
 
+    /**
+     * @summary Hapus Akun Sendiri
+     */
     public function destroy(DeleteAccountRequest $request): JsonResponse
     {
         try {
@@ -32,6 +38,9 @@ class ProfileAccountController extends Controller
         }
     }
 
+    /**
+     * @summary Pulihkan Akun yang Dihapus
+     */
     public function restore(DeleteAccountRequest $request): JsonResponse
     {
         try {

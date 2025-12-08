@@ -2,25 +2,23 @@
 
 namespace Modules\Forums\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Optional;
 
-final class UpdateReplyDTO extends BaseDTO
+final class UpdateReplyDTO extends Data
 {
     public function __construct(
-        public readonly ?string $content = null,
+        public string|Optional|null $content,
     ) {}
 
-    public static function fromRequest(array $data): static
+    public function toModelArray(): array
     {
-        return new self(
-            content: $data['content'] ?? null,
-        );
-    }
+        $data = [];
 
-    public function toArray(): array
-    {
-        return [
-            'content' => $this->content,
-        ];
+        if (! $this->content instanceof Optional) {
+            $data['content'] = $this->content;
+        }
+
+        return $data;
     }
 }

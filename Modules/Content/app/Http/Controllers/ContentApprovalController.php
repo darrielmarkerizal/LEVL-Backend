@@ -2,18 +2,23 @@
 
 namespace Modules\Content\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Modules\Content\Contracts\ContentWorkflowServiceInterface;
 use Modules\Content\Exceptions\InvalidTransitionException;
 use Modules\Content\Models\Announcement;
 use Modules\Content\Models\News;
 
+/**
+ * @tags Konten & Berita
+ */
 class ContentApprovalController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private ContentWorkflowServiceInterface $workflowService
     ) {}
@@ -26,18 +31,17 @@ class ContentApprovalController extends Controller
         $content = $this->findContent($type, $id);
 
         if (! $content) {
-            return ApiResponse::error('Content not found', 404);
+            return $this->notFound(__('content.not_found'));
         }
 
         try {
             $this->workflowService->submitForReview($content, Auth::user());
 
-            return ApiResponse::success([
-                'message' => 'Content submitted for review successfully',
+            return $this->success([
                 'content' => $content->fresh(),
-            ]);
+            ], __('content.submitted_for_review'));
         } catch (InvalidTransitionException $e) {
-            return ApiResponse::error($e->getMessage(), 422);
+            return $this->error($e->getMessage(), 422);
         }
     }
 
@@ -53,7 +57,7 @@ class ContentApprovalController extends Controller
         $content = $this->findContent($type, $id);
 
         if (! $content) {
-            return ApiResponse::error('Content not found', 404);
+            return $this->notFound(__('content.not_found'));
         }
 
         try {
@@ -63,12 +67,11 @@ class ContentApprovalController extends Controller
                 $request->input('note')
             );
 
-            return ApiResponse::success([
-                'message' => 'Content approved successfully',
+            return $this->success([
                 'content' => $content->fresh(),
-            ]);
+            ], __('content.approved'));
         } catch (InvalidTransitionException $e) {
-            return ApiResponse::error($e->getMessage(), 422);
+            return $this->error($e->getMessage(), 422);
         }
     }
 
@@ -84,7 +87,7 @@ class ContentApprovalController extends Controller
         $content = $this->findContent($type, $id);
 
         if (! $content) {
-            return ApiResponse::error('Content not found', 404);
+            return $this->notFound(__('content.not_found'));
         }
 
         try {
@@ -94,12 +97,11 @@ class ContentApprovalController extends Controller
                 $request->input('reason')
             );
 
-            return ApiResponse::success([
-                'message' => 'Content rejected',
+            return $this->success([
                 'content' => $content->fresh(),
-            ]);
+            ], __('content.rejected'));
         } catch (InvalidTransitionException $e) {
-            return ApiResponse::error($e->getMessage(), 422);
+            return $this->error($e->getMessage(), 422);
         }
     }
 
@@ -150,15 +152,14 @@ class ContentApprovalController extends Controller
             $pendingContent = array_merge($pendingContent, $announcements->toArray());
         }
 
-        // Sort by created_at descending
         usort($pendingContent, function ($a, $b) {
             return $b['created_at'] <=> $a['created_at'];
         });
 
-        return ApiResponse::success([
+        return $this->success([
             'pending_content' => $pendingContent,
             'count' => count($pendingContent),
-        ]);
+        ], __('content.pending_review_retrieved'));
     }
 
     /**

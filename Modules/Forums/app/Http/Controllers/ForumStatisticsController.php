@@ -9,8 +9,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Forums\Repositories\ForumStatisticsRepository;
 
+/**
+ * @tags Forum Diskusi
+ */
 class ForumStatisticsController extends Controller
 {
+    use ApiResponse;
+
     protected ForumStatisticsRepository $statisticsRepository;
 
     public function __construct(ForumStatisticsRepository $statisticsRepository)
@@ -41,7 +46,6 @@ class ForumStatisticsController extends Controller
 
         try {
             if ($userId) {
-                // Get user-specific statistics
                 $statistics = $this->statisticsRepository->getUserStatistics(
                     $schemeId,
                     $userId,
@@ -50,7 +54,6 @@ class ForumStatisticsController extends Controller
                 );
 
                 if (! $statistics) {
-                    // Create statistics if not exists
                     $statistics = $this->statisticsRepository->updateUserStatistics(
                         $schemeId,
                         $userId,
@@ -59,7 +62,6 @@ class ForumStatisticsController extends Controller
                     );
                 }
             } else {
-                // Get scheme-wide statistics
                 $statistics = $this->statisticsRepository->getSchemeStatistics(
                     $schemeId,
                     $periodStart,
@@ -67,7 +69,6 @@ class ForumStatisticsController extends Controller
                 );
 
                 if (! $statistics) {
-                    // Create statistics if not exists
                     $statistics = $this->statisticsRepository->updateSchemeStatistics(
                         $schemeId,
                         $periodStart,
@@ -76,9 +77,9 @@ class ForumStatisticsController extends Controller
                 }
             }
 
-            return ApiResponse::successStatic($statistics, 'Statistics retrieved successfully');
+            return $this->success($statistics, __('forums.statistics_retrieved'));
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 
@@ -117,9 +118,9 @@ class ForumStatisticsController extends Controller
                 );
             }
 
-            return ApiResponse::successStatic($statistics, 'User statistics retrieved successfully');
+            return $this->success($statistics, __('forums.user_statistics_retrieved'));
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 }

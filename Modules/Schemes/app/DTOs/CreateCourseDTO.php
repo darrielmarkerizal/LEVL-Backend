@@ -2,32 +2,33 @@
 
 namespace Modules\Schemes\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
-final class CreateCourseDTO extends BaseDTO
+#[MapInputName(SnakeCaseMapper::class)]
+final class CreateCourseDTO extends Data
 {
     public function __construct(
-        public readonly string $title,
-        public readonly ?string $description = null,
-        public readonly ?int $categoryId = null,
-        public readonly ?string $levelTag = null,
-        public readonly ?string $type = null,
-        public readonly ?array $tags = null,
+        #[Required, Max(255)]
+        public string $title,
+
+        public ?string $description = null,
+
+        #[MapInputName('category_id')]
+        public ?int $categoryId = null,
+
+        #[MapInputName('level_tag')]
+        public ?string $levelTag = null,
+
+        public ?string $type = null,
+
+        public ?array $tags = null,
     ) {}
 
-    public static function fromRequest(array $data): static
-    {
-        return new self(
-            title: $data['title'],
-            description: $data['description'] ?? null,
-            categoryId: $data['category_id'] ?? null,
-            levelTag: $data['level_tag'] ?? null,
-            type: $data['type'] ?? null,
-            tags: $data['tags'] ?? null,
-        );
-    }
-
-    public function toArray(): array
+    public function toModelArray(): array
     {
         return [
             'title' => $this->title,

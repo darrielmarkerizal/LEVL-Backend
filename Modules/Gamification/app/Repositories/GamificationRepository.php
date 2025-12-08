@@ -4,13 +4,14 @@ namespace Modules\Gamification\Repositories;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Modules\Gamification\Contracts\Repositories\GamificationRepositoryInterface;
 use Modules\Gamification\Models\Badge;
 use Modules\Gamification\Models\Leaderboard;
 use Modules\Gamification\Models\Point;
 use Modules\Gamification\Models\UserBadge;
 use Modules\Gamification\Models\UserGamificationStat;
 
-class GamificationRepository
+class GamificationRepository implements GamificationRepositoryInterface
 {
     public function view(string $template): string
     {

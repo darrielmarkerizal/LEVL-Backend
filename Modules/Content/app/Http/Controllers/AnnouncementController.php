@@ -4,6 +4,7 @@ namespace Modules\Content\Http\Controllers;
 
 use App\Contracts\Services\ContentServiceInterface;
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Content\Http\Requests\CreateAnnouncementRequest;
@@ -11,8 +12,13 @@ use Modules\Content\Http\Requests\ScheduleContentRequest;
 use Modules\Content\Http\Requests\UpdateContentRequest;
 use Modules\Content\Models\Announcement;
 
+/**
+ * @tags Konten & Berita
+ */
 class AnnouncementController extends Controller
 {
+    use ApiResponse;
+
     protected ContentServiceInterface $contentService;
 
     public function __construct(ContentServiceInterface $contentService)
@@ -21,7 +27,7 @@ class AnnouncementController extends Controller
     }
 
     /**
-     * Display a listing of announcements.
+     * @summary Daftar Pengumuman
      *
      * @allowedFilters course_id, priority, unread
      *
@@ -43,14 +49,11 @@ class AnnouncementController extends Controller
 
         $announcements = $this->contentService->getAnnouncementsForUser($user, $filters);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $announcements,
-        ]);
+        return $this->paginateResponse($announcements);
     }
 
     /**
-     * Store a newly created announcement.
+     * @summary Buat Pengumuman Baru
      */
     public function store(CreateAnnouncementRequest $request): JsonResponse
     {
@@ -75,21 +78,17 @@ class AnnouncementController extends Controller
                 );
             }
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Pengumuman berhasil dibuat.',
-                'data' => $announcement->load(['author', 'course']),
-            ], 201);
+            return $this->created(
+                ['announcement' => $announcement->load(['author', 'course'])],
+                'Pengumuman berhasil dibuat.'
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], 422);
+            return $this->error($e->getMessage(), 422);
         }
     }
 
     /**
-     * Display the specified announcement.
+     * @summary Detail Pengumuman
      */
     public function show(int $id): JsonResponse
     {
@@ -104,14 +103,11 @@ class AnnouncementController extends Controller
         // Increment views
         $this->contentService->incrementViews($announcement);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $announcement,
-        ]);
+        return $this->success(['announcement' => $announcement]);
     }
 
     /**
-     * Update the specified announcement.
+     * @summary Perbarui Pengumuman
      */
     public function update(UpdateContentRequest $request, int $id): JsonResponse
     {
@@ -126,21 +122,17 @@ class AnnouncementController extends Controller
                 auth()->user()
             );
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Pengumuman berhasil diperbarui.',
-                'data' => $announcement->load(['author', 'course']),
-            ]);
+            return $this->success(
+                ['announcement' => $announcement->load(['author', 'course'])],
+                'Pengumuman berhasil diperbarui.'
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], 422);
+            return $this->error($e->getMessage(), 422);
         }
     }
 
     /**
-     * Remove the specified announcement.
+     * @summary Hapus Pengumuman
      */
     public function destroy(int $id): JsonResponse
     {
@@ -150,14 +142,11 @@ class AnnouncementController extends Controller
 
         $this->contentService->deleteContent($announcement, auth()->user());
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Pengumuman berhasil dihapus.',
-        ]);
+        return $this->success([], 'Pengumuman berhasil dihapus.');
     }
 
     /**
-     * Publish the specified announcement.
+     * @summary Publikasikan Pengumuman
      */
     public function publish(int $id): JsonResponse
     {
@@ -167,15 +156,14 @@ class AnnouncementController extends Controller
 
         $this->contentService->publishContent($announcement);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Pengumuman berhasil dipublikasikan.',
-            'data' => $announcement->fresh(),
-        ]);
+        return $this->success(
+            ['announcement' => $announcement->fresh()],
+            'Pengumuman berhasil dipublikasikan.'
+        );
     }
 
     /**
-     * Schedule the specified announcement.
+     * @summary Jadwalkan Pengumuman
      */
     public function schedule(ScheduleContentRequest $request, int $id): JsonResponse
     {
@@ -189,21 +177,17 @@ class AnnouncementController extends Controller
                 \Carbon\Carbon::parse($request->input('scheduled_at'))
             );
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Pengumuman berhasil dijadwalkan.',
-                'data' => $announcement->fresh(),
-            ]);
+            return $this->success(
+                ['announcement' => $announcement->fresh()],
+                'Pengumuman berhasil dijadwalkan.'
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], 422);
+            return $this->error($e->getMessage(), 422);
         }
     }
 
     /**
-     * Mark announcement as read.
+     * @summary Tandai Pengumuman Dibaca
      */
     public function markAsRead(int $id): JsonResponse
     {
@@ -211,9 +195,6 @@ class AnnouncementController extends Controller
 
         $this->contentService->markAsRead($announcement, auth()->user());
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Pengumuman ditandai sudah dibaca.',
-        ]);
+        return $this->success([], 'Pengumuman ditandai sudah dibaca.');
     }
 }

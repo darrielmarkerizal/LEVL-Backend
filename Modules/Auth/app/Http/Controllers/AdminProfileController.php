@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Modules\Auth\Models\ProfileAuditLog;
 use Modules\Auth\Models\User;
 
+/**
+ * @tags Manajemen Pengguna
+ */
 class AdminProfileController extends Controller
 {
     public function __construct(
@@ -17,6 +20,9 @@ class AdminProfileController extends Controller
         $this->middleware('role:Admin');
     }
 
+    /**
+     * @summary Lihat Profil Pengguna (Admin)
+     */
     public function show(Request $request, int $userId): JsonResponse
     {
         try {
@@ -35,6 +41,9 @@ class AdminProfileController extends Controller
         }
     }
 
+    /**
+     * @summary Perbarui Profil Pengguna (Admin)
+     */
     public function update(Request $request, int $userId): JsonResponse
     {
         $request->validate([
@@ -79,6 +88,9 @@ class AdminProfileController extends Controller
         }
     }
 
+    /**
+     * @summary Tangguhkan Akun Pengguna
+     */
     public function suspend(Request $request, int $userId): JsonResponse
     {
         try {
@@ -110,6 +122,9 @@ class AdminProfileController extends Controller
         }
     }
 
+    /**
+     * @summary Aktifkan Akun Pengguna
+     */
     public function activate(Request $request, int $userId): JsonResponse
     {
         try {
@@ -141,6 +156,9 @@ class AdminProfileController extends Controller
         }
     }
 
+    /**
+     * @summary Riwayat Audit Pengguna
+     */
     public function auditLogs(Request $request, int $userId): JsonResponse
     {
         try {

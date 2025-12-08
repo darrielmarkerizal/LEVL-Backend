@@ -3,10 +3,11 @@
 namespace Modules\Learning\Repositories;
 
 use Illuminate\Database\Eloquent\Collection;
+use Modules\Learning\Contracts\Repositories\AssignmentRepositoryInterface;
 use Modules\Learning\Models\Assignment;
 use Modules\Schemes\Models\Lesson;
 
-class AssignmentRepository
+class AssignmentRepository implements AssignmentRepositoryInterface
 {
     public function listForLesson(Lesson $lesson, array $filters = []): Collection
     {

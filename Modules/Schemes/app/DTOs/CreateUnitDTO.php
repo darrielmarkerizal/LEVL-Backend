@@ -2,26 +2,24 @@
 
 namespace Modules\Schemes\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Attributes\Validation\Min;
+use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Data;
 
-final class CreateUnitDTO extends BaseDTO
+final class CreateUnitDTO extends Data
 {
     public function __construct(
-        public readonly string $title,
-        public readonly ?string $description = null,
-        public readonly ?int $order = null,
+        #[Required, Max(255)]
+        public string $title,
+
+        public ?string $description = null,
+
+        #[Min(0)]
+        public ?int $order = null,
     ) {}
 
-    public static function fromRequest(array $data): static
-    {
-        return new self(
-            title: $data['title'],
-            description: $data['description'] ?? null,
-            order: $data['order'] ?? null,
-        );
-    }
-
-    public function toArray(): array
+    public function toModelArray(): array
     {
         return [
             'title' => $this->title,

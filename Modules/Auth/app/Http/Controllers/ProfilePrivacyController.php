@@ -8,12 +8,18 @@ use Illuminate\Http\Request;
 use Modules\Auth\Http\Requests\UpdatePrivacySettingsRequest;
 use Modules\Auth\Services\ProfilePrivacyService;
 
+/**
+ * @tags Profil Pengguna
+ */
 class ProfilePrivacyController extends Controller
 {
     public function __construct(
         private ProfilePrivacyService $privacyService
     ) {}
 
+    /**
+     * @summary Ambil Pengaturan Privasi
+     */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -25,6 +31,9 @@ class ProfilePrivacyController extends Controller
         ]);
     }
 
+    /**
+     * @summary Perbarui Pengaturan Privasi
+     */
     public function update(UpdatePrivacySettingsRequest $request): JsonResponse
     {
         try {

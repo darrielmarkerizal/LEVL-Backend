@@ -6,9 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Operations\Services\OperationsService;
 
+/**
+ * @tags Laporan & Statistik
+ */
 class OperationsController extends Controller
 {
     public function __construct(private readonly OperationsService $service) {}
+
     /**
      * Display a listing of the resource.
      */

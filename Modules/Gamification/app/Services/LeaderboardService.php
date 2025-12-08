@@ -4,10 +4,11 @@ namespace Modules\Gamification\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Modules\Gamification\Contracts\Services\LeaderboardServiceInterface;
 use Modules\Gamification\Models\Leaderboard;
 use Modules\Gamification\Models\UserGamificationStat;
 
-class LeaderboardService
+class LeaderboardService implements LeaderboardServiceInterface
 {
     /**
      * Get global leaderboard with pagination.

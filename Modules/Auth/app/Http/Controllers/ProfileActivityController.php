@@ -7,12 +7,18 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Auth\Services\UserActivityService;
 
+/**
+ * @tags Profil Pengguna
+ */
 class ProfileActivityController extends Controller
 {
     public function __construct(
         private UserActivityService $activityService
     ) {}
 
+    /**
+     * @summary Riwayat Aktivitas Pengguna
+     */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
