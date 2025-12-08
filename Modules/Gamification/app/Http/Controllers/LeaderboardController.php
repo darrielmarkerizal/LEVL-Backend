@@ -3,13 +3,18 @@
 namespace Modules\Gamification\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Responses\ApiResponse;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Gamification\Services\LeaderboardService;
 
+/**
+ * @tags Gamifikasi
+ */
 class LeaderboardController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly LeaderboardService $leaderboardService
     ) {}
@@ -44,7 +49,7 @@ class LeaderboardController extends Controller
             ];
         });
 
-        return ApiResponse::success([
+        return $this->success([
             'leaderboard' => $data,
             'meta' => [
                 'current_page' => $leaderboard->currentPage(),
@@ -52,7 +57,7 @@ class LeaderboardController extends Controller
                 'total' => $leaderboard->total(),
                 'last_page' => $leaderboard->lastPage(),
             ],
-        ]);
+        ], __('gamification.leaderboard_retrieved'));
     }
 
     /**
@@ -65,11 +70,11 @@ class LeaderboardController extends Controller
         $userId = $request->user()->id;
         $rankData = $this->leaderboardService->getUserRank($userId);
 
-        return ApiResponse::success([
+        return $this->success([
             'rank' => $rankData['rank'],
             'total_xp' => $rankData['total_xp'],
             'level' => $rankData['level'],
             'surrounding' => $rankData['surrounding'],
-        ]);
+        ], __('gamification.rank_retrieved'));
     }
 }

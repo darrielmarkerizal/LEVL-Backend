@@ -33,6 +33,9 @@ use Modules\Auth\Services\EmailVerificationService;
 use Modules\Common\Models\Audit;
 use Tymon\JWTAuth\JWTAuth;
 
+/**
+ * @tags Autentikasi
+ */
 class AuthApiController extends Controller
 {
     use ApiResponse;
@@ -42,6 +45,9 @@ class AuthApiController extends Controller
         private readonly EmailVerificationService $emailVerification,
     ) {}
 
+    /**
+     * @summary Registrasi Pengguna Baru
+     */
     public function register(RegisterRequest $request): JsonResponse
     {
         $dto = RegisterDTO::fromRequest($request->validated());
@@ -58,6 +64,9 @@ class AuthApiController extends Controller
         );
     }
 
+    /**
+     * @summary Login Pengguna
+     */
     public function login(LoginRequest $request): JsonResponse
     {
         $dto = LoginDTO::fromRequest($request->validated());
@@ -76,6 +85,9 @@ class AuthApiController extends Controller
         return $this->success($data, 'Login berhasil.');
     }
 
+    /**
+     * @summary Buat Akun Instructor
+     */
     public function createInstructor(CreateManagedUserRequest $request): JsonResponse
     {
         $data = $this->auth->createInstructor($request->validated());
@@ -83,6 +95,9 @@ class AuthApiController extends Controller
         return $this->created($data, 'Instructor berhasil dibuat.');
     }
 
+    /**
+     * @summary Buat Akun Admin
+     */
     public function createAdmin(CreateManagedUserRequest $request): JsonResponse
     {
         $data = $this->auth->createAdmin($request->validated());
@@ -90,6 +105,9 @@ class AuthApiController extends Controller
         return $this->created($data, 'Admin berhasil dibuat.');
     }
 
+    /**
+     * @summary Buat Akun Super Admin
+     */
     public function createSuperAdmin(CreateManagedUserRequest $request): JsonResponse
     {
         $data = $this->auth->createSuperAdmin($request->validated());
@@ -98,7 +116,7 @@ class AuthApiController extends Controller
     }
 
     /**
-     * @summary Refresh Access Token
+     * @summary Perbarui Token Akses
      *
      * @description Memperbarui access token menggunakan refresh token yang valid. Refresh token dapat dikirim via cookie (refresh_token), header (X-Refresh-Token), atau body (refresh_token). Endpoint ini tidak memerlukan access token dan dapat digunakan untuk mobile app.
      *
@@ -138,6 +156,9 @@ class AuthApiController extends Controller
         return $this->success($data, 'Token akses berhasil diperbarui.');
     }
 
+    /**
+     * @summary Logout Pengguna
+     */
     public function logout(LogoutRequest $request): JsonResponse
     {
         /** @var \Modules\Auth\Models\User|null $user */
@@ -156,6 +177,9 @@ class AuthApiController extends Controller
         return $this->success([], 'Logout berhasil.');
     }
 
+    /**
+     * @summary Ambil Profil Pengguna
+     */
     public function profile(): JsonResponse
     {
         /** @var \Modules\Auth\Models\User|null $user */
@@ -167,6 +191,9 @@ class AuthApiController extends Controller
         return $this->success($user->toArray(), 'Profil berhasil diambil.');
     }
 
+    /**
+     * @summary Perbarui Profil Pengguna
+     */
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
         /** @var \Modules\Auth\Models\User|null $user */
@@ -212,6 +239,9 @@ class AuthApiController extends Controller
         return $this->success($user->fresh()->toArray(), 'Profil berhasil diperbarui.');
     }
 
+    /**
+     * @summary Redirect ke Google OAuth
+     */
     public function googleRedirect(Request $request)
     {
         try {
@@ -228,6 +258,9 @@ class AuthApiController extends Controller
         }
     }
 
+    /**
+     * @summary Callback dari Google OAuth
+     */
     public function googleCallback(Request $request): RedirectResponse
     {
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
@@ -302,6 +335,9 @@ class AuthApiController extends Controller
         return redirect($successUrl);
     }
 
+    /**
+     * @summary Kirim Tautan Verifikasi Email
+     */
     public function sendEmailVerification(Request $request): JsonResponse
     {
         /** @var \Modules\Auth\Models\User|null $user */
@@ -325,6 +361,9 @@ class AuthApiController extends Controller
         );
     }
 
+    /**
+     * @summary Minta Perubahan Email
+     */
     public function requestEmailChange(RequestEmailChangeRequest $request): JsonResponse
     {
         /** @var \Modules\Auth\Models\User|null $user */
@@ -359,6 +398,9 @@ class AuthApiController extends Controller
         );
     }
 
+    /**
+     * @summary Verifikasi Perubahan Email
+     */
     public function verifyEmailChange(VerifyEmailChangeRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -469,6 +511,9 @@ class AuthApiController extends Controller
         return $this->error('Verifikasi gagal.', 422);
     }
 
+    /**
+     * @summary Kirim Ulang Kredensial Akun
+     */
     public function resendCredentials(ResendCredentialsRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -501,6 +546,9 @@ class AuthApiController extends Controller
         return $this->success(['user' => $target->toArray()], 'Kredensial berhasil dikirim ulang.');
     }
 
+    /**
+     * @summary Perbarui Status Pengguna
+     */
     public function updateUserStatus(UpdateUserStatusRequest $request, User $user): JsonResponse
     {
         try {
@@ -513,6 +561,8 @@ class AuthApiController extends Controller
     }
 
     /**
+     * @summary Daftar Semua Pengguna
+     *
      * @allowedFilters filter[search], filter[status], filter[role], filter[created_from], filter[created_to]
      *
      * @allowedSorts name, email, username, status, created_at
@@ -540,6 +590,9 @@ class AuthApiController extends Controller
         return $this->paginateResponse($paginator);
     }
 
+    /**
+     * @summary Detail Pengguna
+     */
     public function showUser(User $user): JsonResponse
     {
         /** @var \Modules\Auth\Models\User|null $authUser */
@@ -557,6 +610,9 @@ class AuthApiController extends Controller
         return $this->success(['user' => $data]);
     }
 
+    /**
+     * @summary Atur Username Pertama Kali
+     */
     public function setUsername(SetUsernameRequest $request): JsonResponse
     {
         $user = auth('api')->user();

@@ -2,40 +2,55 @@
 
 namespace Modules\Schemes\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
+use Spatie\LaravelData\Optional;
 
-final class UpdateCourseDTO extends BaseDTO
+#[MapInputName(SnakeCaseMapper::class)]
+final class UpdateCourseDTO extends Data
 {
     public function __construct(
-        public readonly ?string $title = null,
-        public readonly ?string $description = null,
-        public readonly ?int $categoryId = null,
-        public readonly ?string $levelTag = null,
-        public readonly ?string $type = null,
-        public readonly ?array $tags = null,
+        #[Max(255)]
+        public string|Optional|null $title,
+
+        public string|Optional|null $description,
+
+        #[MapInputName('category_id')]
+        public int|Optional|null $categoryId,
+
+        #[MapInputName('level_tag')]
+        public string|Optional|null $levelTag,
+
+        public string|Optional|null $type,
+
+        public array|Optional|null $tags,
     ) {}
 
-    public static function fromRequest(array $data): static
+    public function toModelArray(): array
     {
-        return new self(
-            title: $data['title'] ?? null,
-            description: $data['description'] ?? null,
-            categoryId: $data['category_id'] ?? null,
-            levelTag: $data['level_tag'] ?? null,
-            type: $data['type'] ?? null,
-            tags: $data['tags'] ?? null,
-        );
-    }
+        $data = [];
 
-    public function toArray(): array
-    {
-        return [
-            'title' => $this->title,
-            'description' => $this->description,
-            'category_id' => $this->categoryId,
-            'level_tag' => $this->levelTag,
-            'type' => $this->type,
-            'tags' => $this->tags,
-        ];
+        if (! $this->title instanceof Optional) {
+            $data['title'] = $this->title;
+        }
+        if (! $this->description instanceof Optional) {
+            $data['description'] = $this->description;
+        }
+        if (! $this->categoryId instanceof Optional) {
+            $data['category_id'] = $this->categoryId;
+        }
+        if (! $this->levelTag instanceof Optional) {
+            $data['level_tag'] = $this->levelTag;
+        }
+        if (! $this->type instanceof Optional) {
+            $data['type'] = $this->type;
+        }
+        if (! $this->tags instanceof Optional) {
+            $data['tags'] = $this->tags;
+        }
+
+        return $data;
     }
 }

@@ -7,12 +7,18 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Modules\Auth\Http\Requests\ChangePasswordRequest;
 
+/**
+ * @tags Profil Pengguna
+ */
 class ProfilePasswordController extends Controller
 {
     public function __construct(
         private ProfileServiceInterface $profileService
     ) {}
 
+    /**
+     * @summary Ubah Kata Sandi Profil
+     */
     public function update(ChangePasswordRequest $request): JsonResponse
     {
         try {

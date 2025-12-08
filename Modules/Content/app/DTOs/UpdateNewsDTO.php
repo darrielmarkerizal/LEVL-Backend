@@ -2,40 +2,56 @@
 
 namespace Modules\Content\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
+use Spatie\LaravelData\Optional;
 
-final class UpdateNewsDTO extends BaseDTO
+#[MapInputName(SnakeCaseMapper::class)]
+final class UpdateNewsDTO extends Data
 {
     public function __construct(
-        public readonly ?string $title = null,
-        public readonly ?string $content = null,
-        public readonly ?string $excerpt = null,
-        public readonly ?bool $isFeatured = null,
-        public readonly ?array $categoryIds = null,
-        public readonly ?array $tagIds = null,
+        #[Max(255)]
+        public string|Optional|null $title,
+
+        public string|Optional|null $content,
+
+        public string|Optional|null $excerpt,
+
+        #[MapInputName('is_featured')]
+        public bool|Optional|null $isFeatured,
+
+        #[MapInputName('category_ids')]
+        public array|Optional|null $categoryIds,
+
+        #[MapInputName('tag_ids')]
+        public array|Optional|null $tagIds,
     ) {}
 
-    public static function fromRequest(array $data): static
+    public function toModelArray(): array
     {
-        return new self(
-            title: $data['title'] ?? null,
-            content: $data['content'] ?? null,
-            excerpt: $data['excerpt'] ?? null,
-            isFeatured: isset($data['is_featured']) ? (bool) $data['is_featured'] : null,
-            categoryIds: $data['category_ids'] ?? null,
-            tagIds: $data['tag_ids'] ?? null,
-        );
-    }
+        $data = [];
 
-    public function toArray(): array
-    {
-        return [
-            'title' => $this->title,
-            'content' => $this->content,
-            'excerpt' => $this->excerpt,
-            'is_featured' => $this->isFeatured,
-            'category_ids' => $this->categoryIds,
-            'tag_ids' => $this->tagIds,
-        ];
+        if (! $this->title instanceof Optional) {
+            $data['title'] = $this->title;
+        }
+        if (! $this->content instanceof Optional) {
+            $data['content'] = $this->content;
+        }
+        if (! $this->excerpt instanceof Optional) {
+            $data['excerpt'] = $this->excerpt;
+        }
+        if (! $this->isFeatured instanceof Optional) {
+            $data['is_featured'] = $this->isFeatured;
+        }
+        if (! $this->categoryIds instanceof Optional) {
+            $data['category_ids'] = $this->categoryIds;
+        }
+        if (! $this->tagIds instanceof Optional) {
+            $data['tag_ids'] = $this->tagIds;
+        }
+
+        return $data;
     }
 }

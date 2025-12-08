@@ -2,28 +2,25 @@
 
 namespace Modules\Content\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Data;
 
-final class CreateAnnouncementDTO extends BaseDTO
+final class CreateAnnouncementDTO extends Data
 {
     public function __construct(
-        public readonly string $title,
-        public readonly string $content,
-        public readonly ?string $status = 'draft',
-        public readonly ?string $priority = null,
+        #[Required, Max(255)]
+        public string $title,
+
+        #[Required]
+        public string $content,
+
+        public ?string $status = 'draft',
+
+        public ?string $priority = null,
     ) {}
 
-    public static function fromRequest(array $data): static
-    {
-        return new self(
-            title: $data['title'],
-            content: $data['content'],
-            status: $data['status'] ?? 'draft',
-            priority: $data['priority'] ?? null,
-        );
-    }
-
-    public function toArray(): array
+    public function toModelArray(): array
     {
         return [
             'title' => $this->title,

@@ -9,6 +9,9 @@ use App\Services\MasterDataService;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @tags Data Master
+ */
 class MasterDataCrudController extends Controller
 {
     use ApiResponse;
@@ -16,7 +19,7 @@ class MasterDataCrudController extends Controller
     public function __construct(private readonly MasterDataService $service) {}
 
     /**
-     * Get all available master data types.
+     * @summary Daftar Tipe Master Data
      */
     public function types()
     {
@@ -31,7 +34,7 @@ class MasterDataCrudController extends Controller
     }
 
     /**
-     * List master data items by type with filtering, sorting, pagination.
+     * @summary Daftar Item Master Data
      */
     public function index(Request $request, string $type)
     {
@@ -49,7 +52,7 @@ class MasterDataCrudController extends Controller
     }
 
     /**
-     * Show a single master data item.
+     * @summary Detail Master Data
      */
     public function show(string $type, int $id)
     {
@@ -63,7 +66,7 @@ class MasterDataCrudController extends Controller
     }
 
     /**
-     * Create a new master data item.
+     * @summary Buat Master Data Baru
      */
     public function store(MasterDataStoreRequest $request, string $type)
     {
@@ -80,7 +83,7 @@ class MasterDataCrudController extends Controller
     }
 
     /**
-     * Update a master data item.
+     * @summary Perbarui Master Data
      */
     public function update(MasterDataUpdateRequest $request, string $type, int $id)
     {
@@ -103,7 +106,7 @@ class MasterDataCrudController extends Controller
     }
 
     /**
-     * Delete a master data item.
+     * @summary Hapus Master Data
      */
     public function destroy(string $type, int $id)
     {

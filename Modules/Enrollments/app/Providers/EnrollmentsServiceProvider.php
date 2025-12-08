@@ -29,7 +29,19 @@ class EnrollmentsServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
+        $this->registerPolicies();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+    }
+
+    /**
+     * Register policies.
+     */
+    protected function registerPolicies(): void
+    {
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Enrollments\Models\Enrollment::class,
+            \Modules\Enrollments\Policies\EnrollmentPolicy::class
+        );
     }
 
     /**
@@ -39,12 +51,22 @@ class EnrollmentsServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+        $this->registerBindings();
+    }
 
-        // Bind Repository
+    /**
+     * Register interface bindings.
+     */
+    protected function registerBindings(): void
+    {
+        // Repository bindings
         $this->app->bind(EnrollmentRepositoryInterface::class, EnrollmentRepository::class);
 
-        // Bind Service
-        $this->app->singleton(EnrollmentService::class);
+        // Service bindings
+        $this->app->bind(
+            \Modules\Enrollments\Contracts\Services\EnrollmentServiceInterface::class,
+            EnrollmentService::class
+        );
     }
 
     /**

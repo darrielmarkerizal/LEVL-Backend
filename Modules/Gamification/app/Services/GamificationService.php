@@ -5,12 +5,13 @@ namespace Modules\Gamification\Services;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
+use Modules\Gamification\Contracts\Services\GamificationServiceInterface;
 use Modules\Gamification\Models\Point;
 use Modules\Gamification\Models\UserBadge;
 use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Gamification\Repositories\GamificationRepository;
 
-class GamificationService
+class GamificationService implements GamificationServiceInterface
 {
     private readonly GamificationRepository $repository;
 

@@ -9,12 +9,18 @@ use Modules\Common\Http\Requests\CategoryStoreRequest;
 use Modules\Common\Http\Requests\CategoryUpdateRequest;
 use Modules\Common\Services\CategoryService;
 
+/**
+ * @tags Data Master
+ */
 class CategoriesController extends Controller
 {
     use ApiResponse;
 
     public function __construct(private readonly CategoryService $service) {}
 
+    /**
+     * @summary Daftar Kategori
+     */
     public function index(Request $request)
     {
         $perPage = max(1, (int) $request->get('per_page', 15));
@@ -23,6 +29,9 @@ class CategoriesController extends Controller
         return $this->paginateResponse($paginator);
     }
 
+    /**
+     * @summary Buat Kategori Baru
+     */
     public function store(CategoryStoreRequest $request)
     {
         $category = $this->service->create($request->validated());
@@ -30,6 +39,9 @@ class CategoriesController extends Controller
         return $this->created(['category' => $category], 'Kategori dibuat');
     }
 
+    /**
+     * @summary Detail Kategori
+     */
     public function show(int $category)
     {
         $model = $this->service->find($category);
@@ -40,6 +52,9 @@ class CategoriesController extends Controller
         return $this->success(['category' => $model]);
     }
 
+    /**
+     * @summary Perbarui Kategori
+     */
     public function update(CategoryUpdateRequest $request, int $category)
     {
         $updated = $this->service->update($category, $request->validated());
@@ -50,6 +65,9 @@ class CategoriesController extends Controller
         return $this->success(['category' => $updated], 'Kategori diperbarui');
     }
 
+    /**
+     * @summary Hapus Kategori
+     */
     public function destroy(int $category)
     {
         $deleted = $this->service->delete($category);

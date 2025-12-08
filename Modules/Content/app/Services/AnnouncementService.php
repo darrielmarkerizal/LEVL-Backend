@@ -8,13 +8,14 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
 use Modules\Content\Contracts\Repositories\AnnouncementRepositoryInterface;
+use Modules\Content\Contracts\Services\AnnouncementServiceInterface;
 use Modules\Content\DTOs\CreateAnnouncementDTO;
 use Modules\Content\DTOs\UpdateAnnouncementDTO;
 use Modules\Content\Events\AnnouncementPublished;
 use Modules\Content\Models\Announcement;
 use Modules\Content\Models\ContentRevision;
 
-class AnnouncementService
+class AnnouncementService implements AnnouncementServiceInterface
 {
     public function __construct(
         private AnnouncementRepositoryInterface $repository

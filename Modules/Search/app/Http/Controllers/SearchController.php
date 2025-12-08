@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Modules\Search\Contracts\SearchServiceInterface;
 use Modules\Search\Models\SearchHistory;
 
+/**
+ * @tags Pencarian
+ */
 class SearchController extends Controller
 {
     protected SearchServiceInterface $searchService;
@@ -18,7 +21,7 @@ class SearchController extends Controller
     }
 
     /**
-     * Search for courses with filters.
+     * @summary Cari Kursus
      */
     public function search(Request $request): JsonResponse
     {
@@ -103,7 +106,7 @@ class SearchController extends Controller
     }
 
     /**
-     * Get autocomplete suggestions.
+     * @summary Saran Pencarian
      */
     public function autocomplete(Request $request): JsonResponse
     {
@@ -119,7 +122,7 @@ class SearchController extends Controller
     }
 
     /**
-     * Get search history for authenticated user.
+     * @summary Riwayat Pencarian
      */
     public function getSearchHistory(Request $request): JsonResponse
     {
@@ -137,7 +140,7 @@ class SearchController extends Controller
     }
 
     /**
-     * Clear search history for authenticated user.
+     * @summary Hapus Riwayat Pencarian
      */
     public function clearSearchHistory(Request $request): JsonResponse
     {

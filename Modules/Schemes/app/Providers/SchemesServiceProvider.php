@@ -26,7 +26,27 @@ class SchemesServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
+        $this->registerPolicies();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+    }
+
+    /**
+     * Register policies.
+     */
+    protected function registerPolicies(): void
+    {
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Schemes\Models\Course::class,
+            \Modules\Schemes\Policies\CoursePolicy::class
+        );
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Schemes\Models\Unit::class,
+            \Modules\Schemes\Policies\UnitPolicy::class
+        );
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Schemes\Models\Lesson::class,
+            \Modules\Schemes\Policies\LessonPolicy::class
+        );
     }
 
     /**

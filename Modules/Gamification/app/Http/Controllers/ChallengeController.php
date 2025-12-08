@@ -3,14 +3,19 @@
 namespace Modules\Gamification\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Responses\ApiResponse;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Gamification\Models\Challenge;
 use Modules\Gamification\Services\ChallengeService;
 
+/**
+ * @tags Gamifikasi
+ */
 class ChallengeController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly ChallengeService $challengeService
     ) {}
@@ -55,7 +60,7 @@ class ChallengeController extends Controller
             });
         }
 
-        return ApiResponse::success($challenges);
+        return $this->paginateResponse($challenges);
     }
 
     /**
@@ -68,7 +73,7 @@ class ChallengeController extends Controller
         $challenge = Challenge::with('badge')->find($challengeId);
 
         if (! $challenge) {
-            return ApiResponse::error('Challenge tidak ditemukan.', 404);
+            return $this->notFound('Challenge tidak ditemukan.');
         }
 
         $userId = $request->user()?->id;
@@ -88,7 +93,7 @@ class ChallengeController extends Controller
             ] : null;
         }
 
-        return ApiResponse::success(['challenge' => $challenge]);
+        return $this->success(['challenge' => $challenge]);
     }
 
     /**
@@ -118,7 +123,7 @@ class ChallengeController extends Controller
             ];
         });
 
-        return ApiResponse::success(['challenges' => $data]);
+        return $this->success(['challenges' => $data]);
     }
 
     /**
@@ -143,7 +148,7 @@ class ChallengeController extends Controller
             ];
         });
 
-        return ApiResponse::success(['completions' => $data]);
+        return $this->success(['completions' => $data]);
     }
 
     /**
@@ -158,12 +163,12 @@ class ChallengeController extends Controller
         try {
             $rewards = $this->challengeService->claimReward($userId, $challengeId);
 
-            return ApiResponse::success([
+            return $this->success([
                 'message' => 'Reward berhasil diklaim!',
                 'rewards' => $rewards,
             ]);
         } catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(), 400);
+            return $this->error($e->getMessage(), 400);
         }
     }
 }

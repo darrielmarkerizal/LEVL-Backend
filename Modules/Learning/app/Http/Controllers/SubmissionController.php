@@ -9,6 +9,9 @@ use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
 use Modules\Learning\Services\SubmissionService;
 
+/**
+ * @tags Tugas & Pengumpulan
+ */
 class SubmissionController extends Controller
 {
     use ApiResponse;
@@ -55,6 +58,9 @@ class SubmissionController extends Controller
         return $this->created(['submission' => $submission], 'Submission berhasil dibuat.');
     }
 
+    /**
+     * @summary Detail Submission
+     */
     public function show(Submission $submission)
     {
         /** @var \Modules\Auth\Models\User $user */
@@ -70,6 +76,9 @@ class SubmissionController extends Controller
         return $this->success(['submission' => $submission]);
     }
 
+    /**
+     * @summary Perbarui Submission
+     */
     public function update(Request $request, Submission $submission)
     {
         /** @var \Modules\Auth\Models\User $user */
@@ -94,6 +103,9 @@ class SubmissionController extends Controller
         return $this->success(['submission' => $updated], 'Submission berhasil diperbarui.');
     }
 
+    /**
+     * @summary Nilai Submission
+     */
     public function grade(Request $request, Submission $submission)
     {
         /** @var \Modules\Auth\Models\User $user */

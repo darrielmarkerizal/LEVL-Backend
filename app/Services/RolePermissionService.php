@@ -87,7 +87,6 @@ class RolePermissionService
             ],
             'enrollments' => [
                 'enrollments.classes.manage',
-                'enrollments.assessments.manage',
                 'enrollments.register',
             ],
             'schemes' => [
@@ -126,11 +125,6 @@ class RolePermissionService
                 'question_bank.file_upload.manage',
                 'question_bank.answers.manage',
                 'question_bank.answers.key.manage',
-            ],
-            'assessments' => [
-                'assessments.manage',
-                'assessments.take',
-                'assessments.answers.manage',
             ],
             'grading' => [
                 'grading.view',

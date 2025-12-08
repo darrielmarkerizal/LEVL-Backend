@@ -9,12 +9,18 @@ use Modules\Schemes\Http\Requests\TagRequest;
 use Modules\Schemes\Models\Tag;
 use Modules\Schemes\Services\TagService;
 
+/**
+ * @tags Skema & Kursus
+ */
 class TagController extends Controller
 {
     use ApiResponse;
 
     public function __construct(private TagService $service) {}
 
+    /**
+     * @summary Daftar Tag
+     */
     public function index(Request $request)
     {
         $perPage = (int) ($request->query('per_page', 0));
@@ -30,6 +36,9 @@ class TagController extends Controller
         ], 'Daftar tag berhasil diambil.');
     }
 
+    /**
+     * @summary Buat Tag Baru
+     */
     public function store(TagRequest $request)
     {
         $validated = $request->validated();
@@ -45,11 +54,17 @@ class TagController extends Controller
         return $this->created(['tag' => $tag], 'Tag berhasil dibuat.');
     }
 
+    /**
+     * @summary Detail Tag
+     */
     public function show(Tag $tag)
     {
         return $this->success(['tag' => $tag]);
     }
 
+    /**
+     * @summary Perbarui Tag
+     */
     public function update(TagRequest $request, Tag $tag)
     {
         $validated = $request->validated();
@@ -64,6 +79,9 @@ class TagController extends Controller
         return $this->success(['tag' => $updated], 'Tag berhasil diperbarui.');
     }
 
+    /**
+     * @summary Hapus Tag
+     */
     public function destroy(Tag $tag)
     {
         $deleted = $this->service->delete($tag->id);

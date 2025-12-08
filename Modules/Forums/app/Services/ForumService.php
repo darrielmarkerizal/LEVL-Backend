@@ -2,10 +2,11 @@
 
 namespace Modules\Forums\Services;
 
-use App\Contracts\Services\ForumServiceInterface;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
+use Modules\Forums\Contracts\Services\ForumServiceInterface;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 use Modules\Forums\Repositories\ReplyRepository;
@@ -91,9 +92,9 @@ class ForumService implements ForumServiceInterface
     /**
      * Search threads by query.
      */
-    public function searchThreads(string $query, int $schemeId): LengthAwarePaginator
+    public function searchThreads(string $query, ?int $schemeId = null): Collection
     {
-        return $this->threadRepository->searchThreads($query, $schemeId);
+        return $this->threadRepository->searchThreads($query, $schemeId)->getCollection();
     }
 
     /**
@@ -115,12 +116,14 @@ class ForumService implements ForumServiceInterface
      *
      * @throws \Exception
      */
-    public function createReply(Thread $thread, array $data, User $user, ?Reply $parent = null): Reply
+    public function createReply(Thread $thread, array $data, User $user, ?int $parentId = null): Reply
     {
         // Check if thread is closed
         if ($thread->isClosed()) {
             throw new \Exception('Cannot reply to a closed thread.');
         }
+
+        $parent = $parentId ? Reply::find($parentId) : null;
 
         // Check depth limit if replying to another reply
         if ($parent && ! $parent->canHaveChildren()) {

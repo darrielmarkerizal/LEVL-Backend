@@ -7,8 +7,14 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Auth\Models\PinnedBadge;
 
+/**
+ * @tags Profil Pengguna
+ */
 class ProfileAchievementController extends Controller
 {
+    /**
+     * @summary Daftar Badge dan Pencapaian
+     */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -25,6 +31,9 @@ class ProfileAchievementController extends Controller
         ]);
     }
 
+    /**
+     * @summary Sematkan Badge ke Profil
+     */
     public function pinBadge(Request $request, int $badgeId): JsonResponse
     {
         $request->validate([
@@ -75,6 +84,9 @@ class ProfileAchievementController extends Controller
         }
     }
 
+    /**
+     * @summary Lepas Badge dari Profil
+     */
     public function unpinBadge(Request $request, int $badgeId): JsonResponse
     {
         try {

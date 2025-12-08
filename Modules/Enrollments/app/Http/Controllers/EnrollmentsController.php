@@ -10,6 +10,9 @@ use Modules\Enrollments\Models\Enrollment;
 use Modules\Enrollments\Services\EnrollmentService;
 use Modules\Schemes\Models\Course;
 
+/**
+ * @tags Pendaftaran Kursus
+ */
 class EnrollmentsController extends Controller
 {
     use ApiResponse;
@@ -17,8 +20,7 @@ class EnrollmentsController extends Controller
     public function __construct(private EnrollmentService $service) {}
 
     /**
-     * Super-admin can list all enrollments (optional filters).
-     * Spatie Query Builder reads filter/sort from request.
+     * @summary Daftar Semua Pendaftaran (Superadmin)
      */
     public function index(Request $request)
     {
@@ -34,8 +36,7 @@ class EnrollmentsController extends Controller
     }
 
     /**
-     * Course admin/instructor/superadmin can list enrollments for a course.
-     * Spatie Query Builder reads filter/sort from request.
+     * @summary Daftar Pendaftaran per Kursus
      */
     public function indexByCourse(Request $request, Course $course)
     {
@@ -53,8 +54,7 @@ class EnrollmentsController extends Controller
     }
 
     /**
-     * Admin/instructor view of all enrollments across their managed courses.
-     * Spatie Query Builder reads filter/sort from request.
+     * @summary Daftar Pendaftaran yang Dikelola
      */
     public function indexManaged(Request $request)
     {
@@ -102,7 +102,7 @@ class EnrollmentsController extends Controller
     }
 
     /**
-     * Student enrols to a course.
+     * @summary Daftar ke Kursus
      */
     public function enroll(Request $request, Course $course)
     {
@@ -131,7 +131,7 @@ class EnrollmentsController extends Controller
     }
 
     /**
-     * Student cancels a pending enrollment request.
+     * @summary Batalkan Permintaan Pendaftaran
      */
     public function cancel(Request $request, Course $course)
     {
@@ -159,7 +159,7 @@ class EnrollmentsController extends Controller
     }
 
     /**
-     * Student withdraws from an active course.
+     * @summary Undur Diri dari Kursus
      */
     public function withdraw(Request $request, Course $course)
     {
@@ -193,7 +193,7 @@ class EnrollmentsController extends Controller
     }
 
     /**
-     * Get enrollment status for the authenticated student.
+     * @summary Status Pendaftaran
      */
     public function status(Request $request, Course $course)
     {
@@ -236,7 +236,7 @@ class EnrollmentsController extends Controller
     }
 
     /**
-     * Approve a pending enrollment request.
+     * @summary Setujui Pendaftaran
      */
     public function approve(Enrollment $enrollment)
     {
@@ -255,7 +255,7 @@ class EnrollmentsController extends Controller
     }
 
     /**
-     * Decline a pending enrollment request.
+     * @summary Tolak Pendaftaran
      */
     public function decline(Enrollment $enrollment)
     {
@@ -274,7 +274,7 @@ class EnrollmentsController extends Controller
     }
 
     /**
-     * Remove an enrollment from a course.
+     * @summary Hapus Pendaftaran dari Kursus
      */
     public function remove(Enrollment $enrollment)
     {

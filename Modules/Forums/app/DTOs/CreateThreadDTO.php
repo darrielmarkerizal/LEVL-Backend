@@ -2,26 +2,27 @@
 
 namespace Modules\Forums\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
-final class CreateThreadDTO extends BaseDTO
+#[MapInputName(SnakeCaseMapper::class)]
+final class CreateThreadDTO extends Data
 {
     public function __construct(
-        public readonly string $title,
-        public readonly string $content,
-        public readonly ?int $courseId = null,
+        #[Required, Max(255)]
+        public string $title,
+
+        #[Required]
+        public string $content,
+
+        #[MapInputName('course_id')]
+        public ?int $courseId = null,
     ) {}
 
-    public static function fromRequest(array $data): static
-    {
-        return new self(
-            title: $data['title'],
-            content: $data['content'],
-            courseId: $data['course_id'] ?? null,
-        );
-    }
-
-    public function toArray(): array
+    public function toModelArray(): array
     {
         return [
             'title' => $this->title,

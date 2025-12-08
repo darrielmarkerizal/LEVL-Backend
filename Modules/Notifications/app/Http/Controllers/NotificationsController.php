@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Notifications\Services\NotificationsService;
 
+/**
+ * @tags Notifikasi
+ */
 class NotificationsController extends Controller
 {
     public function __construct(private readonly NotificationsService $service) {}

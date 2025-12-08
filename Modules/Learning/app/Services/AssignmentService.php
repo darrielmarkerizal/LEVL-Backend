@@ -2,11 +2,12 @@
 
 namespace Modules\Learning\Services;
 
+use Modules\Learning\Contracts\Services\AssignmentServiceInterface;
 use Modules\Learning\Enums\AssignmentStatus;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Repositories\AssignmentRepository;
 
-class AssignmentService
+class AssignmentService implements AssignmentServiceInterface
 {
     private AssignmentRepository $repository;
 

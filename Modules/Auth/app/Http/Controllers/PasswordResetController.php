@@ -14,10 +14,16 @@ use Modules\Auth\Mail\ResetPasswordMail;
 use Modules\Auth\Models\PasswordResetToken;
 use Modules\Auth\Models\User;
 
+/**
+ * @tags Autentikasi
+ */
 class PasswordResetController extends Controller
 {
     use ApiResponse;
 
+    /**
+     * @summary Minta Reset Kata Sandi
+     */
     public function forgot(ForgotPasswordRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -51,6 +57,9 @@ class PasswordResetController extends Controller
         return $this->success([], 'Jika email atau username terdaftar, kami telah mengirimkan instruksi reset kata sandi.');
     }
 
+    /**
+     * @summary Konfirmasi Reset Kata Sandi
+     */
     public function confirmForgot(ResetPasswordRequest $request): JsonResponse
     {
         $token = $request->string('token');
@@ -98,6 +107,9 @@ class PasswordResetController extends Controller
         return $this->success([], 'Kata sandi berhasil direset.');
     }
 
+    /**
+     * @summary Ubah Kata Sandi
+     */
     public function reset(ChangePasswordRequest $request): JsonResponse
     {
         /** @var User|null $user */

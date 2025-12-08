@@ -2,18 +2,23 @@
 
 namespace Modules\Forums\Http\Controllers;
 
-use App\Contracts\Services\ForumServiceInterface;
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Forums\Contracts\Services\ForumServiceInterface;
 use Modules\Forums\Http\Requests\CreateThreadRequest;
 use Modules\Forums\Http\Requests\UpdateThreadRequest;
 use Modules\Forums\Models\Thread;
 use Modules\Forums\Services\ModerationService;
 
+/**
+ * @tags Forum Diskusi
+ */
 class ThreadController extends Controller
 {
+    use ApiResponse;
+
     protected ForumServiceInterface $forumService;
 
     protected ModerationService $moderationService;
@@ -27,15 +32,7 @@ class ThreadController extends Controller
     }
 
     /**
-     * Display a listing of threads for a scheme.
-     *
-     * @allowedFilters pinned, resolved, closed
-     *
-     * @allowedSorts created_at, updated_at, replies_count
-     *
-     * @filterEnum pinned true|false
-     * @filterEnum resolved true|false
-     * @filterEnum closed true|false
+     * @summary Daftar Thread Forum
      */
     public function index(Request $request, int $schemeId): JsonResponse
     {
@@ -48,11 +45,11 @@ class ThreadController extends Controller
 
         $threads = $this->forumService->getThreadsForScheme($schemeId, $filters);
 
-        return ApiResponse::successStatic($threads, 'Threads retrieved successfully');
+        return $this->paginateResponse($threads, __('forums.threads_retrieved'));
     }
 
     /**
-     * Store a newly created thread.
+     * @summary Buat Thread Baru
      */
     public function store(CreateThreadRequest $request, int $schemeId): JsonResponse
     {
@@ -60,35 +57,35 @@ class ThreadController extends Controller
             $data = array_merge($request->validated(), ['scheme_id' => $schemeId]);
             $thread = $this->forumService->createThread($data, $request->user());
 
-            return ApiResponse::successStatic($thread, 'Thread created successfully', 201);
+            return $this->created($thread, __('forums.thread_created'));
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 
     /**
-     * Display the specified thread.
+     * @summary Detail Thread
      */
     public function show(int $schemeId, int $threadId): JsonResponse
     {
         $thread = $this->forumService->getThreadDetail($threadId);
 
         if (! $thread || $thread->scheme_id != $schemeId) {
-            return ApiResponse::errorStatic('Thread not found', 404);
+            return $this->notFound(__('forums.thread_not_found'));
         }
 
-        return ApiResponse::successStatic($thread, 'Thread retrieved successfully');
+        return $this->success($thread, __('forums.thread_retrieved'));
     }
 
     /**
-     * Update the specified thread.
+     * @summary Perbarui Thread
      */
     public function update(UpdateThreadRequest $request, int $schemeId, int $threadId): JsonResponse
     {
         $thread = Thread::find($threadId);
 
         if (! $thread || $thread->scheme_id != $schemeId) {
-            return ApiResponse::errorStatic('Thread not found', 404);
+            return $this->notFound(__('forums.thread_not_found'));
         }
 
         $this->authorize('update', $thread);
@@ -96,21 +93,21 @@ class ThreadController extends Controller
         try {
             $updatedThread = $this->forumService->updateThread($thread, $request->validated());
 
-            return ApiResponse::successStatic($updatedThread, 'Thread updated successfully');
+            return $this->success($updatedThread, __('forums.thread_updated'));
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 
     /**
-     * Remove the specified thread.
+     * @summary Hapus Thread
      */
     public function destroy(Request $request, int $schemeId, int $threadId): JsonResponse
     {
         $thread = Thread::find($threadId);
 
         if (! $thread || $thread->scheme_id != $schemeId) {
-            return ApiResponse::errorStatic('Thread not found', 404);
+            return $this->notFound(__('forums.thread_not_found'));
         }
 
         $this->authorize('delete', $thread);
@@ -118,69 +115,69 @@ class ThreadController extends Controller
         try {
             $this->forumService->deleteThread($thread, $request->user());
 
-            return ApiResponse::successStatic(null, 'Thread deleted successfully');
+            return $this->success(null, __('forums.thread_deleted'));
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 
     /**
-     * Pin a thread.
+     * @summary Sematkan Thread
      */
     public function pin(Request $request, int $schemeId, int $threadId): JsonResponse
     {
         $thread = Thread::find($threadId);
 
         if (! $thread || $thread->scheme_id != $schemeId) {
-            return ApiResponse::errorStatic('Thread not found', 404);
+            return $this->notFound(__('forums.thread_not_found'));
         }
 
         $this->authorize('pin', $thread);
 
         try {
-            $this->moderationService->pinThread($thread, $request->user());
+            $pinnedThread = $this->moderationService->pinThread($thread, $request->user());
 
-            return ApiResponse::successStatic($thread->fresh(), 'Thread pinned successfully');
+            return $this->success($pinnedThread, __('forums.thread_pinned'));
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 
     /**
-     * Close a thread.
+     * @summary Tutup Thread
      */
     public function close(Request $request, int $schemeId, int $threadId): JsonResponse
     {
         $thread = Thread::find($threadId);
 
         if (! $thread || $thread->scheme_id != $schemeId) {
-            return ApiResponse::errorStatic('Thread not found', 404);
+            return $this->notFound(__('forums.thread_not_found'));
         }
 
         $this->authorize('close', $thread);
 
         try {
-            $this->moderationService->closeThread($thread, $request->user());
+            $closedThread = $this->moderationService->closeThread($thread, $request->user());
 
-            return ApiResponse::successStatic($thread->fresh(), 'Thread closed successfully');
+            return $this->success($closedThread, __('forums.thread_closed'));
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 
     /**
-     * Search threads.
+     * @summary Cari Thread
      */
     public function search(Request $request, int $schemeId): JsonResponse
     {
         $query = $request->input('q', '');
 
         if (empty($query)) {
-            return ApiResponse::errorStatic('Search query is required', 400);
+            return $this->error(__('forums.search_query_required'), 400);
         }
 
         $threads = $this->forumService->searchThreads($query, $schemeId);
 
-        return ApiResponse::successStatic($threads, 'Search results retrieved successfully');
+        return $this->success($threads, __('forums.search_results_retrieved'));
     }
 }

@@ -2,28 +2,16 @@
 
 namespace Modules\Auth\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Data;
 
-final class LoginDTO extends BaseDTO
+final class LoginDTO extends Data
 {
     public function __construct(
-        public readonly string $login,
-        public readonly string $password,
+        #[Required]
+        public string $login,
+
+        #[Required]
+        public string $password,
     ) {}
-
-    public static function fromRequest(array $data): static
-    {
-        return new self(
-            login: $data['login'],
-            password: $data['password'],
-        );
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'login' => $this->login,
-            'password' => $this->password,
-        ];
-    }
 }

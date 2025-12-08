@@ -36,7 +36,7 @@ use Modules\Schemes\Enums\ProgressionMode;
 use Spatie\Permission\Models\Role;
 
 /**
- * @tags Master Data
+ * @tags Data Master
  */
 class MasterDataController extends Controller
 {
@@ -57,9 +57,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get all master data types
-     *
-     * Returns list of available master data endpoints
+     * @summary Daftar Tipe Master Data
      */
     public function index(): JsonResponse
     {
@@ -105,9 +103,7 @@ class MasterDataController extends Controller
     // ==================== AUTH ====================
 
     /**
-     * Get user statuses
-     *
-     * Returns list of user status options
+     * @summary Daftar Status Pengguna
      */
     public function userStatuses(): JsonResponse
     {
@@ -118,9 +114,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get roles
-     *
-     * Returns list of available roles
+     * @summary Daftar Peran
      */
     public function roles(): JsonResponse
     {
@@ -135,9 +129,7 @@ class MasterDataController extends Controller
     // ==================== SCHEMES ====================
 
     /**
-     * Get course statuses
-     *
-     * Returns list of course status options
+     * @summary Daftar Status Kursus
      */
     public function courseStatuses(): JsonResponse
     {
@@ -148,9 +140,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get course types
-     *
-     * Returns list of course type options
+     * @summary Daftar Tipe Kursus
      */
     public function courseTypes(): JsonResponse
     {
@@ -161,9 +151,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get enrollment types
-     *
-     * Returns list of enrollment type options
+     * @summary Daftar Tipe Pendaftaran
      */
     public function enrollmentTypes(): JsonResponse
     {
@@ -174,9 +162,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get level tags
-     *
-     * Returns list of difficulty level options
+     * @summary Daftar Level Kesulitan
      */
     public function levelTags(): JsonResponse
     {
@@ -187,9 +173,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get progression modes
-     *
-     * Returns list of progression mode options
+     * @summary Daftar Mode Progres
      */
     public function progressionModes(): JsonResponse
     {
@@ -200,9 +184,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get content types (lesson)
-     *
-     * Returns list of lesson content type options
+     * @summary Daftar Tipe Konten Lesson
      */
     public function contentTypes(): JsonResponse
     {
@@ -215,9 +197,7 @@ class MasterDataController extends Controller
     // ==================== ENROLLMENTS ====================
 
     /**
-     * Get enrollment statuses
-     *
-     * Returns list of enrollment status options
+     * @summary Daftar Status Pendaftaran
      */
     public function enrollmentStatuses(): JsonResponse
     {
@@ -228,9 +208,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get progress statuses
-     *
-     * Returns list of progress status options
+     * @summary Daftar Status Progres
      */
     public function progressStatuses(): JsonResponse
     {
@@ -243,9 +221,7 @@ class MasterDataController extends Controller
     // ==================== LEARNING ====================
 
     /**
-     * Get assignment statuses
-     *
-     * Returns list of assignment status options
+     * @summary Daftar Status Tugas
      */
     public function assignmentStatuses(): JsonResponse
     {
@@ -256,9 +232,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get submission statuses
-     *
-     * Returns list of submission status options
+     * @summary Daftar Status Pengumpulan
      */
     public function submissionStatuses(): JsonResponse
     {
@@ -269,9 +243,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get submission types
-     *
-     * Returns list of submission type options
+     * @summary Daftar Tipe Pengumpulan
      */
     public function submissionTypes(): JsonResponse
     {
@@ -284,9 +256,7 @@ class MasterDataController extends Controller
     // ==================== CONTENT ====================
 
     /**
-     * Get content statuses (news/announcement)
-     *
-     * Returns list of content status options
+     * @summary Daftar Status Konten
      */
     public function contentStatuses(): JsonResponse
     {
@@ -297,9 +267,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get priorities
-     *
-     * Returns list of priority options
+     * @summary Daftar Prioritas
      */
     public function priorities(): JsonResponse
     {
@@ -310,9 +278,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get target types
-     *
-     * Returns list of target type options
+     * @summary Daftar Tipe Target
      */
     public function targetTypes(): JsonResponse
     {
@@ -325,9 +291,7 @@ class MasterDataController extends Controller
     // ==================== GAMIFICATION ====================
 
     /**
-     * Get challenge types
-     *
-     * Returns list of challenge type options
+     * @summary Daftar Tipe Tantangan
      */
     public function challengeTypes(): JsonResponse
     {
@@ -338,9 +302,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get challenge assignment statuses
-     *
-     * Returns list of challenge assignment status options
+     * @summary Daftar Status Tantangan User
      */
     public function challengeAssignmentStatuses(): JsonResponse
     {
@@ -351,9 +313,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get challenge criteria types
-     *
-     * Returns list of challenge criteria type options
+     * @summary Daftar Kriteria Tantangan
      */
     public function challengeCriteriaTypes(): JsonResponse
     {
@@ -364,9 +324,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get badge types
-     *
-     * Returns list of badge type options
+     * @summary Daftar Tipe Badge
      */
     public function badgeTypes(): JsonResponse
     {
@@ -377,9 +335,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get point source types
-     *
-     * Returns list of point source type options
+     * @summary Daftar Sumber Poin
      */
     public function pointSourceTypes(): JsonResponse
     {
@@ -390,9 +346,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get point reasons
-     *
-     * Returns list of point reason options
+     * @summary Daftar Alasan Poin
      */
     public function pointReasons(): JsonResponse
     {
@@ -405,9 +359,7 @@ class MasterDataController extends Controller
     // ==================== NOTIFICATIONS ====================
 
     /**
-     * Get notification types
-     *
-     * Returns list of notification type options
+     * @summary Daftar Tipe Notifikasi
      */
     public function notificationTypes(): JsonResponse
     {
@@ -418,9 +370,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get notification channels
-     *
-     * Returns list of notification channel options
+     * @summary Daftar Channel Notifikasi
      */
     public function notificationChannels(): JsonResponse
     {
@@ -431,9 +381,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get notification frequencies
-     *
-     * Returns list of notification frequency options
+     * @summary Daftar Frekuensi Notifikasi
      */
     public function notificationFrequencies(): JsonResponse
     {
@@ -446,9 +394,7 @@ class MasterDataController extends Controller
     // ==================== GRADING ====================
 
     /**
-     * Get grade statuses
-     *
-     * Returns list of grade status options
+     * @summary Daftar Status Nilai
      */
     public function gradeStatuses(): JsonResponse
     {
@@ -459,9 +405,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get grade source types
-     *
-     * Returns list of grade source type options
+     * @summary Daftar Sumber Nilai
      */
     public function gradeSourceTypes(): JsonResponse
     {
@@ -474,9 +418,7 @@ class MasterDataController extends Controller
     // ==================== COMMON ====================
 
     /**
-     * Get category statuses
-     *
-     * Returns list of category status options
+     * @summary Daftar Status Kategori
      */
     public function categoryStatuses(): JsonResponse
     {
@@ -487,9 +429,7 @@ class MasterDataController extends Controller
     }
 
     /**
-     * Get setting types
-     *
-     * Returns list of setting type options
+     * @summary Daftar Tipe Pengaturan
      */
     public function settingTypes(): JsonResponse
     {

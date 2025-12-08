@@ -12,6 +12,9 @@ use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Services\UnitService;
 
+/**
+ * @tags Unit Kompetensi
+ */
 class UnitController extends Controller
 {
     use ApiResponse;
@@ -19,6 +22,8 @@ class UnitController extends Controller
     public function __construct(private UnitService $service) {}
 
     /**
+     * @summary Daftar Unit Kompetensi
+     *
      * @allowedFilters status
      *
      * @allowedSorts order, title, created_at
@@ -33,6 +38,9 @@ class UnitController extends Controller
         return $this->paginateResponse($paginator);
     }
 
+    /**
+     * @summary Buat Unit Kompetensi Baru
+     */
     public function store(UnitRequest $request, Course $course)
     {
         /** @var \Modules\Auth\Models\User $user */
@@ -61,6 +69,9 @@ class UnitController extends Controller
         return $this->created(['unit' => $unit], 'Unit berhasil dibuat.');
     }
 
+    /**
+     * @summary Detail Unit Kompetensi
+     */
     public function show(Course $course, Unit $unit)
     {
         $found = $this->service->show($course->id, $unit->id);
@@ -71,6 +82,9 @@ class UnitController extends Controller
         return $this->success(['unit' => $found]);
     }
 
+    /**
+     * @summary Perbarui Unit Kompetensi
+     */
     public function update(UnitRequest $request, Course $course, Unit $unit)
     {
         $found = $this->service->show($course->id, $unit->id);
@@ -90,6 +104,9 @@ class UnitController extends Controller
         return $this->success(['unit' => $updated], 'Unit berhasil diperbarui.');
     }
 
+    /**
+     * @summary Hapus Unit Kompetensi
+     */
     public function destroy(Course $course, Unit $unit)
     {
         $found = $this->service->show($course->id, $unit->id);
@@ -108,6 +125,9 @@ class UnitController extends Controller
         return $this->success([], 'Unit berhasil dihapus.');
     }
 
+    /**
+     * @summary Ubah Urutan Unit
+     */
     public function reorder(ReorderUnitsRequest $request, Course $course)
     {
         /** @var \Modules\Auth\Models\User $user */
@@ -150,6 +170,9 @@ class UnitController extends Controller
         return $this->success([], 'Urutan unit berhasil diperbarui.');
     }
 
+    /**
+     * @summary Publish Unit
+     */
     public function publish(Course $course, Unit $unit)
     {
         $found = $this->service->show($course->id, $unit->id);
@@ -168,6 +191,9 @@ class UnitController extends Controller
         return $this->success(['unit' => $updated], 'Unit berhasil dipublish.');
     }
 
+    /**
+     * @summary Unpublish Unit
+     */
     public function unpublish(Course $course, Unit $unit)
     {
         $found = $this->service->show($course->id, $unit->id);

@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Learning\Services\LearningPageService;
 
+/**
+ * @tags Progress Belajar
+ */
 class LearningController extends Controller
 {
     public function __construct(private readonly LearningPageService $service) {}

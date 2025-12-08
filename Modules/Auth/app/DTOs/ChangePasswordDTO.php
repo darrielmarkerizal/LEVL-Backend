@@ -2,28 +2,22 @@
 
 namespace Modules\Auth\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\Validation\Min;
+use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
-final class ChangePasswordDTO extends BaseDTO
+#[MapInputName(SnakeCaseMapper::class)]
+final class ChangePasswordDTO extends Data
 {
     public function __construct(
-        public readonly string $currentPassword,
-        public readonly string $newPassword,
+        #[Required]
+        #[MapInputName('current_password')]
+        public string $currentPassword,
+
+        #[Required, Min(8)]
+        #[MapInputName('new_password')]
+        public string $newPassword,
     ) {}
-
-    public static function fromRequest(array $data): static
-    {
-        return new self(
-            currentPassword: $data['current_password'],
-            newPassword: $data['new_password'],
-        );
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'current_password' => $this->currentPassword,
-            'new_password' => $this->newPassword,
-        ];
-    }
 }

@@ -8,12 +8,18 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Auth\Http\Requests\UpdateProfileRequest;
 
+/**
+ * @tags Profil Pengguna
+ */
 class ProfileController extends Controller
 {
     public function __construct(
         private ProfileServiceInterface $profileService
     ) {}
 
+    /**
+     * @summary Ambil Data Profil
+     */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -25,6 +31,9 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * @summary Perbarui Data Profil
+     */
     public function update(UpdateProfileRequest $request): JsonResponse
     {
         try {
@@ -44,6 +53,9 @@ class ProfileController extends Controller
         }
     }
 
+    /**
+     * @summary Unggah Foto Profil
+     */
     public function uploadAvatar(Request $request): JsonResponse
     {
         $request->validate([
@@ -69,6 +81,9 @@ class ProfileController extends Controller
         }
     }
 
+    /**
+     * @summary Hapus Foto Profil
+     */
     public function deleteAvatar(Request $request): JsonResponse
     {
         try {

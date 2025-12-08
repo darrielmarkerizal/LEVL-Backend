@@ -7,12 +7,13 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Enums\EnrollmentStatus;
+use Modules\Gamification\Contracts\Services\ChallengeServiceInterface;
 use Modules\Gamification\Enums\ChallengeAssignmentStatus;
 use Modules\Gamification\Models\Challenge;
 use Modules\Gamification\Models\UserChallengeAssignment;
 use Modules\Gamification\Models\UserChallengeCompletion;
 
-class ChallengeService
+class ChallengeService implements ChallengeServiceInterface
 {
     public function __construct(
         private readonly GamificationService $gamificationService

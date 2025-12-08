@@ -11,6 +11,9 @@ use Modules\Content\Models\Announcement;
 use Modules\Content\Repositories\AnnouncementRepository;
 use Modules\Schemes\Models\Course;
 
+/**
+ * @tags Konten & Berita
+ */
 class CourseAnnouncementController extends Controller
 {
     protected ContentServiceInterface $contentService;
@@ -26,7 +29,7 @@ class CourseAnnouncementController extends Controller
     }
 
     /**
-     * Display announcements for a specific course.
+     * @summary Daftar Pengumuman Kursus
      */
     public function index(Request $request, int $courseId): JsonResponse
     {
@@ -45,7 +48,7 @@ class CourseAnnouncementController extends Controller
     }
 
     /**
-     * Store a new course announcement.
+     * @summary Buat Pengumuman Kursus Baru
      */
     public function store(CreateAnnouncementRequest $request, int $courseId): JsonResponse
     {

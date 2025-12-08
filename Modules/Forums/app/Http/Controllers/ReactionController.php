@@ -10,8 +10,13 @@ use Modules\Forums\Models\Reaction;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 
+/**
+ * @tags Forum Diskusi
+ */
 class ReactionController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Toggle a reaction on a thread.
      */
@@ -24,7 +29,7 @@ class ReactionController extends Controller
         $thread = Thread::find($threadId);
 
         if (! $thread) {
-            return ApiResponse::errorStatic('Thread not found', 404);
+            return $this->notFound(__('forums.thread_not_found'));
         }
 
         try {
@@ -35,9 +40,8 @@ class ReactionController extends Controller
                 $request->input('type')
             );
 
-            $message = $added ? 'Reaction added successfully' : 'Reaction removed successfully';
+            $message = $added ? __('forums.reaction_added') : __('forums.reaction_removed');
 
-            // Fire event if reaction was added
             if ($added) {
                 $reaction = Reaction::where([
                     'user_id' => $request->user()->id,
@@ -51,9 +55,9 @@ class ReactionController extends Controller
                 }
             }
 
-            return ApiResponse::successStatic(['added' => $added], $message);
+            return $this->success(['added' => $added], $message);
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 
@@ -69,7 +73,7 @@ class ReactionController extends Controller
         $reply = Reply::find($replyId);
 
         if (! $reply) {
-            return ApiResponse::errorStatic('Reply not found', 404);
+            return $this->notFound(__('forums.reply_not_found'));
         }
 
         try {
@@ -80,9 +84,8 @@ class ReactionController extends Controller
                 $request->input('type')
             );
 
-            $message = $added ? 'Reaction added successfully' : 'Reaction removed successfully';
+            $message = $added ? __('forums.reaction_added') : __('forums.reaction_removed');
 
-            // Fire event if reaction was added
             if ($added) {
                 $reaction = Reaction::where([
                     'user_id' => $request->user()->id,
@@ -96,9 +99,9 @@ class ReactionController extends Controller
                 }
             }
 
-            return ApiResponse::successStatic(['added' => $added], $message);
+            return $this->success(['added' => $added], $message);
         } catch (\Exception $e) {
-            return ApiResponse::errorStatic($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 500);
         }
     }
 }

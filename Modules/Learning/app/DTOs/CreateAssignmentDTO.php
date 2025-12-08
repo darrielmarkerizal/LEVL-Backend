@@ -2,32 +2,39 @@
 
 namespace Modules\Learning\DTOs;
 
-use App\Support\BaseDTO;
+use Carbon\Carbon;
+use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Attributes\Validation\Min;
+use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
-final class CreateAssignmentDTO extends BaseDTO
+#[MapInputName(SnakeCaseMapper::class)]
+final class CreateAssignmentDTO extends Data
 {
     public function __construct(
-        public readonly string $title,
-        public readonly string $description,
-        public readonly int $lessonId,
-        public readonly ?string $submissionType = 'file',
-        public readonly ?int $maxScore = 100,
-        public readonly ?\DateTimeInterface $dueDate = null,
+        #[Required, Max(255)]
+        public string $title,
+
+        #[Required]
+        public string $description,
+
+        #[Required]
+        #[MapInputName('lesson_id')]
+        public int $lessonId,
+
+        #[MapInputName('submission_type')]
+        public ?string $submissionType = 'file',
+
+        #[MapInputName('max_score'), Min(0)]
+        public ?int $maxScore = 100,
+
+        #[MapInputName('due_date')]
+        public ?Carbon $dueDate = null,
     ) {}
 
-    public static function fromRequest(array $data): static
-    {
-        return new self(
-            title: $data['title'],
-            description: $data['description'],
-            lessonId: (int) $data['lesson_id'],
-            submissionType: $data['submission_type'] ?? 'file',
-            maxScore: isset($data['max_score']) ? (int) $data['max_score'] : 100,
-            dueDate: isset($data['due_date']) ? new \DateTime($data['due_date']) : null,
-        );
-    }
-
-    public function toArray(): array
+    public function toModelArray(): array
     {
         return [
             'title' => $this->title,

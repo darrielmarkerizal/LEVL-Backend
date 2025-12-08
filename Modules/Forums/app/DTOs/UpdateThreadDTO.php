@@ -2,28 +2,30 @@
 
 namespace Modules\Forums\DTOs;
 
-use App\Support\BaseDTO;
+use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Optional;
 
-final class UpdateThreadDTO extends BaseDTO
+final class UpdateThreadDTO extends Data
 {
     public function __construct(
-        public readonly ?string $title = null,
-        public readonly ?string $content = null,
+        #[Max(255)]
+        public string|Optional|null $title,
+
+        public string|Optional|null $content,
     ) {}
 
-    public static function fromRequest(array $data): static
+    public function toModelArray(): array
     {
-        return new self(
-            title: $data['title'] ?? null,
-            content: $data['content'] ?? null,
-        );
-    }
+        $data = [];
 
-    public function toArray(): array
-    {
-        return [
-            'title' => $this->title,
-            'content' => $this->content,
-        ];
+        if (! $this->title instanceof Optional) {
+            $data['title'] = $this->title;
+        }
+        if (! $this->content instanceof Optional) {
+            $data['content'] = $this->content;
+        }
+
+        return $data;
     }
 }

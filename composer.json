@@ -10,6 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "dedoc/scramble": "^0.13.7",
         "http-interop/http-factory-guzzle": "^1.2",
         "laravel/framework": "^12.0",
         "laravel/scout": "*",
@@ -20,6 +21,7 @@
         "nwidart/laravel-modules": "^12.0",
         "scalar/laravel": "^0.2.0",
         "spatie/laravel-activitylog": "^4.10",
+        "spatie/laravel-data": "^4.18",
         "spatie/laravel-medialibrary": "^11.0",
         "spatie/laravel-permission": "^6.22",
         "spatie/laravel-query-builder": "^6.3",

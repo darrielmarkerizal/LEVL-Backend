@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Modules\Notifications\Contracts\NotificationPreferenceServiceInterface;
 use Modules\Notifications\Models\NotificationPreference;
 
+/**
+ * @tags Notifikasi
+ */
 class NotificationPreferenceController extends Controller
 {
     protected NotificationPreferenceServiceInterface $preferenceService;

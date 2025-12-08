@@ -12,6 +12,9 @@ use Modules\Content\Http\Requests\UpdateContentRequest;
 use Modules\Content\Models\News;
 use Modules\Content\Services\ContentStatisticsService;
 
+/**
+ * @tags Konten & Berita
+ */
 class NewsController extends Controller
 {
     protected ContentServiceInterface $contentService;
@@ -27,7 +30,7 @@ class NewsController extends Controller
     }
 
     /**
-     * Display a listing of news.
+     * @summary Daftar Berita
      *
      * @allowedFilters category_id, tag_id, featured, date_from, date_to
      *
@@ -55,7 +58,7 @@ class NewsController extends Controller
     }
 
     /**
-     * Store a newly created news article.
+     * @summary Buat Berita Baru
      */
     public function store(CreateNewsRequest $request): JsonResponse
     {
@@ -94,7 +97,7 @@ class NewsController extends Controller
     }
 
     /**
-     * Display the specified news article.
+     * @summary Detail Berita
      */
     public function show(string $slug): JsonResponse
     {
@@ -119,7 +122,7 @@ class NewsController extends Controller
     }
 
     /**
-     * Update the specified news article.
+     * @summary Perbarui Berita
      */
     public function update(UpdateContentRequest $request, string $slug): JsonResponse
     {
@@ -148,7 +151,7 @@ class NewsController extends Controller
     }
 
     /**
-     * Remove the specified news article.
+     * @summary Hapus Berita
      */
     public function destroy(string $slug): JsonResponse
     {
@@ -165,7 +168,7 @@ class NewsController extends Controller
     }
 
     /**
-     * Publish the specified news article.
+     * @summary Publikasikan Berita
      */
     public function publish(string $slug): JsonResponse
     {
@@ -183,7 +186,7 @@ class NewsController extends Controller
     }
 
     /**
-     * Schedule the specified news article.
+     * @summary Jadwalkan Berita
      */
     public function schedule(ScheduleContentRequest $request, string $slug): JsonResponse
     {
@@ -211,7 +214,7 @@ class NewsController extends Controller
     }
 
     /**
-     * Get trending news.
+     * @summary Berita Trending
      */
     public function trending(Request $request): JsonResponse
     {

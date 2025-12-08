@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Contracts\Repositories\EnrollmentRepositoryInterface;
+use Modules\Enrollments\Contracts\Services\EnrollmentServiceInterface;
 use Modules\Enrollments\DTOs\CreateEnrollmentDTO;
 use Modules\Enrollments\Enums\EnrollmentStatus;
 use Modules\Enrollments\Events\EnrollmentCreated;
@@ -20,7 +21,7 @@ use Modules\Enrollments\Mail\StudentEnrollmentPendingMail;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
 
-class EnrollmentService
+class EnrollmentService implements EnrollmentServiceInterface
 {
     public function __construct(
         private EnrollmentRepositoryInterface $repository,
