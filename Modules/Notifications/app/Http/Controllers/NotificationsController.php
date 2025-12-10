@@ -3,6 +3,7 @@
 namespace Modules\Notifications\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Modules\Notifications\Services\NotificationsService;
 
@@ -11,6 +12,8 @@ use Modules\Notifications\Services\NotificationsService;
  */
 class NotificationsController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(private readonly NotificationsService $service) {}
 
     /**
@@ -52,9 +55,13 @@ class NotificationsController extends Controller
      * @response 201 scenario="Success" {"success":true,"message":"Notifications berhasil dibuat.","data":{"id":1,"name":"New Notifications"}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 422 scenario="Validation Error" {"success":false,"message":"Validasi gagal.","errors":{"field":["Field wajib diisi."]}}
+     * @response 501 scenario="Not Implemented" {"success":false,"message":"Fitur belum tersedia."}
      * @authenticated
      */
-    public function store(Request $request) {}
+    public function store(Request $request)
+    {
+        return $this->error('Fitur belum tersedia.', 501);
+    }
 
     /**
      * Menampilkan data tertentu
@@ -97,9 +104,13 @@ class NotificationsController extends Controller
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 404 scenario="Not Found" {"success":false,"message":"Notifications tidak ditemukan."}
      * @response 422 scenario="Validation Error" {"success":false,"message":"Validasi gagal.","errors":{"field":["Field wajib diisi."]}}
+     * @response 501 scenario="Not Implemented" {"success":false,"message":"Fitur belum tersedia."}
      * @authenticated
      */
-    public function update(Request $request, $id) {}
+    public function update(Request $request, $id)
+    {
+        return $this->error('Fitur belum tersedia.', 501);
+    }
 
     /**
      * Menghapus data
@@ -110,7 +121,11 @@ class NotificationsController extends Controller
      * @response 200 scenario="Success" {"success":true,"message":"Notifications berhasil dihapus.","data":[]}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 404 scenario="Not Found" {"success":false,"message":"Notifications tidak ditemukan."}
+     * @response 501 scenario="Not Implemented" {"success":false,"message":"Fitur belum tersedia."}
      * @authenticated
      */
-    public function destroy($id) {}
+    public function destroy($id)
+    {
+        return $this->error('Fitur belum tersedia.', 501);
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Notifications\Contracts;
+namespace Modules\Notifications\Contracts\Services;
 
 use Illuminate\Support\Collection;
 use Modules\Auth\Models\User;

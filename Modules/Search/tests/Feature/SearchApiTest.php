@@ -27,12 +27,13 @@ class SearchApiTest extends TestCase
     /** @test */
     public function can_search_courses_without_authentication()
     {
-        $response = $this->getJson('/api/v1/search/courses?query=Laravel');
+        $response = $this->getJson('/api/v1/search/courses?search=Laravel');
 
         $response->assertStatus(200)
             ->assertJson(['success' => true])
             ->assertJsonStructure([
                 'success',
+                'message',
                 'data',
                 'meta' => [
                     'query',
@@ -41,20 +42,23 @@ class SearchApiTest extends TestCase
                     'total',
                     'execution_time',
                     'suggestions',
+                    'pagination' => [
+                        'current_page',
+                        'per_page',
+                        'total',
+                        'last_page',
+                        'has_next',
+                        'has_prev',
+                    ],
                 ],
-                'pagination' => [
-                    'current_page',
-                    'per_page',
-                    'total',
-                    'last_page',
-                ],
+                'errors',
             ]);
     }
 
     /** @test */
     public function search_returns_filtered_results_by_level()
     {
-        $response = $this->getJson('/api/v1/search/courses?query=&level_tag[]=beginner');
+        $response = $this->getJson('/api/v1/search/courses?search=&filter[level_tag][]=beginner');
 
         $response->assertStatus(200)
             ->assertJson(['success' => true]);
@@ -67,7 +71,7 @@ class SearchApiTest extends TestCase
     /** @test */
     public function search_returns_filtered_results_by_status()
     {
-        $response = $this->getJson('/api/v1/search/courses?query=&status[]=published');
+        $response = $this->getJson('/api/v1/search/courses?search=&filter[status][]=published');
 
         $response->assertStatus(200)
             ->assertJson(['success' => true]);
@@ -79,12 +83,12 @@ class SearchApiTest extends TestCase
     /** @test */
     public function search_supports_pagination()
     {
-        $response = $this->getJson('/api/v1/search/courses?query=&per_page=10&page=1');
+        $response = $this->getJson('/api/v1/search/courses?search=&per_page=10&page=1');
 
         $response->assertStatus(200)
             ->assertJson(['success' => true]);
 
-        $pagination = $response->json('pagination');
+        $pagination = $response->json('meta.pagination');
         $this->assertEquals(10, $pagination['per_page']);
         $this->assertEquals(1, $pagination['current_page']);
     }
@@ -94,7 +98,7 @@ class SearchApiTest extends TestCase
     {
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->token,
-        ])->getJson('/api/v1/search/courses?query=Laravel');
+        ])->getJson('/api/v1/search/courses?search=Laravel');
 
         $response->assertStatus(200);
 
@@ -110,7 +114,7 @@ class SearchApiTest extends TestCase
     {
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->token,
-        ])->getJson('/api/v1/search/courses?query=');
+        ])->getJson('/api/v1/search/courses?search=');
 
         $response->assertStatus(200);
 
@@ -124,7 +128,7 @@ class SearchApiTest extends TestCase
     public function search_returns_suggestions_when_no_results_found()
     {
         // Search for something that won't match
-        $response = $this->getJson('/api/v1/search/courses?query=NonexistentCourse');
+        $response = $this->getJson('/api/v1/search/courses?search=NonexistentCourse');
 
         $response->assertStatus(200)
             ->assertJson(['success' => true]);
@@ -136,7 +140,7 @@ class SearchApiTest extends TestCase
     /** @test */
     public function can_get_autocomplete_suggestions()
     {
-        $response = $this->getJson('/api/v1/search/autocomplete?query=Laravel');
+        $response = $this->getJson('/api/v1/search/autocomplete?search=Laravel');
 
         $response->assertStatus(200)
             ->assertJson(['success' => true])
@@ -152,7 +156,7 @@ class SearchApiTest extends TestCase
     /** @test */
     public function autocomplete_returns_empty_array_for_empty_query()
     {
-        $response = $this->getJson('/api/v1/search/autocomplete?query=');
+        $response = $this->getJson('/api/v1/search/autocomplete?search=');
 
         $response->assertStatus(200)
             ->assertJson([
@@ -164,7 +168,7 @@ class SearchApiTest extends TestCase
     /** @test */
     public function autocomplete_respects_limit_parameter()
     {
-        $response = $this->getJson('/api/v1/search/autocomplete?query=Laravel&limit=5');
+        $response = $this->getJson('/api/v1/search/autocomplete?search=Laravel&limit=5');
 
         $response->assertStatus(200);
 

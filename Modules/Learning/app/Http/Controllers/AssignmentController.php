@@ -3,6 +3,7 @@
 namespace Modules\Learning\Http\Controllers;
 
 use App\Support\ApiResponse;
+use App\Traits\ManagesCourse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Validation\Rule;
@@ -17,6 +18,7 @@ use Modules\Learning\Services\AssignmentService;
 class AssignmentController extends Controller
 {
     use ApiResponse;
+    use ManagesCourse;
 
     public function __construct(private AssignmentService $service) {}
 
@@ -27,11 +29,12 @@ class AssignmentController extends Controller
      *
      *
      * @summary Daftar Tugas
+     *
      * @response 200 scenario="Success" {"success": true, "data": {"assignments": [{"id": 1, "title": "Tugas 1", "submission_type": "file", "status": "published", "deadline_at": "2024-01-20T23:59:59Z"}]}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      *
      * @authenticated
-     */    
+     */
     public function index(Request $request, \Modules\Schemes\Models\Course $course, \Modules\Schemes\Models\Unit $unit, \Modules\Schemes\Models\Lesson $lesson)
     {
         $assignments = $this->service->listByLesson($lesson, $request->all());
@@ -46,13 +49,14 @@ class AssignmentController extends Controller
      *
      *
      * @summary Buat Tugas Baru
+     *
      * @response 201 scenario="Success" {"success": true, "message": "Assignment berhasil dibuat.", "data": {"assignment": {"id": 1, "title": "Tugas Baru", "submission_type": "file", "status": "draft"}}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 403 scenario="Forbidden" {"success":false,"message":"Anda tidak memiliki akses untuk membuat assignment di course ini."}
      * @response 422 scenario="Validation Error" {"success": false, "message": "Validasi gagal.", "errors": {"title": ["Judul wajib diisi."]}}
      *
      * @authenticated
-     */    
+     */
     public function store(Request $request, \Modules\Schemes\Models\Course $course, \Modules\Schemes\Models\Unit $unit, \Modules\Schemes\Models\Lesson $lesson)
     {
         /** @var \Modules\Auth\Models\User $user */
@@ -89,11 +93,12 @@ class AssignmentController extends Controller
      *
      *
      * @summary Detail Tugas
+     *
      * @response 200 scenario="Success" {"success": true, "data": {"assignment": {"id": 1, "title": "Tugas 1", "description": "Deskripsi tugas...", "submission_type": "file", "max_score": 100, "deadline_at": "2024-01-20T23:59:59Z", "creator": {"id": 1, "name": "Instructor"}, "lesson": {"id": 1, "title": "Lesson 1"}}}}
      * @response 404 scenario="Not Found" {"success":false,"message":"Assignment tidak ditemukan."}
      *
      * @authenticated
-     */    
+     */
     public function show(Assignment $assignment)
     {
         $assignment->load(['creator:id,name,email', 'lesson:id,title,slug']);
@@ -108,13 +113,14 @@ class AssignmentController extends Controller
      *
      *
      * @summary Perbarui Tugas
+     *
      * @response 200 scenario="Success" {"success": true, "message": "Assignment berhasil diperbarui.", "data": {"assignment": {"id": 1, "title": "Tugas Updated"}}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 403 scenario="Forbidden" {"success":false,"message":"Anda tidak memiliki akses untuk mengubah assignment ini."}
      * @response 404 scenario="Not Found" {"success":false,"message":"Assignment tidak ditemukan."}
      *
      * @authenticated
-     */    
+     */
     public function update(Request $request, Assignment $assignment)
     {
         /** @var \Modules\Auth\Models\User $user */
@@ -152,13 +158,14 @@ class AssignmentController extends Controller
      *
      *
      * @summary Hapus Tugas
+     *
      * @response 200 scenario="Success" {"success":true,"message":"Assignment berhasil dihapus.","data":[]}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 403 scenario="Forbidden" {"success":false,"message":"Anda tidak memiliki akses untuk menghapus assignment ini."}
      * @response 404 scenario="Not Found" {"success":false,"message":"Assignment tidak ditemukan."}
      *
      * @authenticated
-     */    
+     */
     public function destroy(Assignment $assignment)
     {
         /** @var \Modules\Auth\Models\User $user */
@@ -184,12 +191,13 @@ class AssignmentController extends Controller
      *
      *
      * @summary Publish Tugas
+     *
      * @response 200 scenario="Success" {"success": true, "message": "Assignment berhasil dipublish.", "data": {"assignment": {"id": 1, "status": "published"}}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 403 scenario="Forbidden" {"success":false,"message":"Anda tidak memiliki akses untuk mempublish assignment ini."}
      *
      * @authenticated
-     */    
+     */
     public function publish(Assignment $assignment)
     {
         $updated = $this->service->publish($assignment);
@@ -204,38 +212,17 @@ class AssignmentController extends Controller
      *
      *
      * @summary Unpublish Tugas
+     *
      * @response 200 scenario="Success" {"success": true, "message": "Assignment berhasil diunpublish.", "data": {"assignment": {"id": 1, "status": "draft"}}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 403 scenario="Forbidden" {"success":false,"message":"Anda tidak memiliki akses untuk unpublish assignment ini."}
      *
      * @authenticated
-     */    
+     */
     public function unpublish(Assignment $assignment)
     {
         $updated = $this->service->unpublish($assignment);
 
         return $this->success(['assignment' => $updated], 'Assignment berhasil diunpublish.');
-    }
-
-    /**
-     * Check if user can manage a course.
-     */
-    private function userCanManageCourse(\Modules\Auth\Models\User $user, \Modules\Schemes\Models\Course $course): bool
-    {
-        if ($user->hasRole('Superadmin')) {
-            return true;
-        }
-
-        if ($user->hasRole('Admin') || $user->hasRole('Instructor')) {
-            if ((int) $course->instructor_id === (int) $user->id) {
-                return true;
-            }
-
-            if (method_exists($course, 'hasAdmin') && $course->hasAdmin($user)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

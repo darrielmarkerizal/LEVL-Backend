@@ -4,6 +4,7 @@ namespace Modules\Auth\Http\Controllers;
 
 use App\Contracts\Services\ProfileServiceInterface;
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Modules\Auth\Http\Requests\ChangePasswordRequest;
 
@@ -12,6 +13,8 @@ use Modules\Auth\Http\Requests\ChangePasswordRequest;
  */
 class ProfilePasswordController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private ProfileServiceInterface $profileService
     ) {}
@@ -23,13 +26,14 @@ class ProfilePasswordController extends Controller
      *
      *
      * @summary Ubah Kata Sandi Profil
+     *
      * @response 200 scenario="Success" {"success":true,"message":"Password changed successfully."}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 422 scenario="Wrong Password" {"success":false,"message":"Password lama tidak cocok."}
      * @response 422 scenario="Validation Error" {"success":false,"message":"Password baru minimal 8 karakter."}
      *
      * @authenticated
-     */    
+     */
     public function update(ChangePasswordRequest $request): JsonResponse
     {
         try {
@@ -41,15 +45,9 @@ class ProfilePasswordController extends Controller
                 $request->input('new_password')
             );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Password changed successfully.',
-            ]);
+            return $this->success(null, 'Password changed successfully.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
+            return $this->error($e->getMessage(), 422);
         }
     }
 }

@@ -3,6 +3,7 @@
 namespace Modules\Auth\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Auth\Models\PinnedBadge;
@@ -12,6 +13,8 @@ use Modules\Auth\Models\PinnedBadge;
  */
 class ProfileAchievementController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Daftar Badge dan Pencapaian
      *
@@ -20,6 +23,7 @@ class ProfileAchievementController extends Controller
      *
      * @response 200 scenario="Success" {"success":true,"message":"Success","data":[{"id":1,"name":"Example ProfileAchievement"}],"meta":{"current_page":1,"last_page":5,"per_page":15,"total":75},"links":{"first":"...","last":"...","prev":null,"next":"..."}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
+     *
      * @authenticated
      */
     public function index(Request $request): JsonResponse
@@ -29,12 +33,9 @@ class ProfileAchievementController extends Controller
         $badges = $user->badges()->with('badge')->get();
         $pinnedBadges = $user->pinnedBadges()->with('badge')->orderBy('order')->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'badges' => $badges,
-                'pinned_badges' => $pinnedBadges,
-            ],
+        return $this->success([
+            'badges' => $badges,
+            'pinned_badges' => $pinnedBadges,
         ]);
     }
 
@@ -46,6 +47,7 @@ class ProfileAchievementController extends Controller
      *
      * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example ProfileAchievement"}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
+     *
      * @authenticated
      */
     public function pinBadge(Request $request, int $badgeId): JsonResponse
@@ -60,10 +62,7 @@ class ProfileAchievementController extends Controller
             // Check if user has this badge
             $hasBadge = $user->badges()->where('badge_id', $badgeId)->exists();
             if (! $hasBadge) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You do not have this badge.',
-                ], 404);
+                return $this->notFound('You do not have this badge.');
             }
 
             // Check if already pinned
@@ -72,10 +71,7 @@ class ProfileAchievementController extends Controller
                 ->first();
 
             if ($existing) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Badge is already pinned.',
-                ], 422);
+                return $this->error('Badge is already pinned.', 422);
             }
 
             // Pin the badge
@@ -85,16 +81,9 @@ class ProfileAchievementController extends Controller
                 'order' => $request->input('order', 0),
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Badge pinned successfully.',
-                'data' => $pinnedBadge->load('badge'),
-            ]);
+            return $this->success($pinnedBadge->load('badge'), 'Badge pinned successfully.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
+            return $this->error($e->getMessage(), 422);
         }
     }
 
@@ -106,6 +95,7 @@ class ProfileAchievementController extends Controller
      *
      * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example ProfileAchievement"}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
+     *
      * @authenticated
      */
     public function unpinBadge(Request $request, int $badgeId): JsonResponse
@@ -118,23 +108,14 @@ class ProfileAchievementController extends Controller
                 ->first();
 
             if (! $pinnedBadge) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Badge is not pinned.',
-                ], 404);
+                return $this->notFound('Badge is not pinned.');
             }
 
             $pinnedBadge->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Badge unpinned successfully.',
-            ]);
+            return $this->success(null, 'Badge unpinned successfully.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
+            return $this->error($e->getMessage(), 422);
         }
     }
 }

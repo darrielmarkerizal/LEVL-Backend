@@ -4,6 +4,7 @@ namespace Modules\Content\Http\Controllers;
 
 use App\Contracts\Services\ContentServiceInterface;
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,12 +13,11 @@ use Illuminate\Http\Request;
  */
 class SearchController extends Controller
 {
-    protected ContentServiceInterface $contentService;
+    use ApiResponse;
 
-    public function __construct(ContentServiceInterface $contentService)
-    {
-        $this->contentService = $contentService;
-    }
+    public function __construct(
+        protected ContentServiceInterface $contentService
+    ) {}
 
     /**
      * Pencarian Konten
@@ -39,7 +39,7 @@ class SearchController extends Controller
      * @queryParam filter[date_to] string Filter sampai tanggal (format: Y-m-d). Example: 2025-12-31
      * @queryParam per_page integer Jumlah item per halaman. Default: 15. Example: 15
      *
-     * @response 200 scenario="Success" {"success":true,"message":"Berhasil","data":{"news":[{"id":1,"title":"Sertifikasi Cloud Computing"}],"announcements":[{"id":1,"title":"Jadwal Sertifikasi"}]}}
+     * @response 200 scenario="Success" {"success":true,"message":"Berhasil","data":{"news":[{"id":1,"title":"Sertifikasi Cloud Computing"}],"announcements":[{"id":1,"title":"Jadwal Sertifikasi"}],"meta":null,"errors":null}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 422 scenario="Validation Error" {"success":false,"message":"Kata kunci minimal 2 karakter."}
      *
@@ -64,9 +64,6 @@ class SearchController extends Controller
 
         $results = $this->contentService->searchContent($query, $type, $filters);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $results,
-        ]);
+        return $this->success($results);
     }
 }

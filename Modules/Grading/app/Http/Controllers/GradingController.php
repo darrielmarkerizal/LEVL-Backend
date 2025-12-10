@@ -3,6 +3,7 @@
 namespace Modules\Grading\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Modules\Grading\Services\GradingService;
 
@@ -11,6 +12,8 @@ use Modules\Grading\Services\GradingService;
  */
 class GradingController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(private readonly GradingService $service) {}
 
     /**
@@ -21,6 +24,7 @@ class GradingController extends Controller
      *
      * @response 200 scenario="Success" {"success":true,"message":"Success","data":[{"id":1,"name":"Example Grading"}],"meta":{"current_page":1,"last_page":5,"per_page":15,"total":75},"links":{"first":"...","last":"...","prev":null,"next":"..."}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
+     *
      * @authenticated
      */
     public function index()
@@ -36,6 +40,7 @@ class GradingController extends Controller
      *
      * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example Grading"}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
+     *
      * @authenticated
      */
     public function create()
@@ -52,6 +57,7 @@ class GradingController extends Controller
      * @response 201 scenario="Success" {"success":true,"message":"Grading berhasil dibuat.","data":{"id":1,"name":"New Grading"}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 422 scenario="Validation Error" {"success":false,"message":"Validasi gagal.","errors":{"field":["Field wajib diisi."]}}
+     *
      * @authenticated
      */
     public function store(Request $request) {}
@@ -65,6 +71,7 @@ class GradingController extends Controller
      * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example Grading"}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 404 scenario="Not Found" {"success":false,"message":"Grading tidak ditemukan."}
+     *
      * @authenticated
      */
     public function show($id)
@@ -80,6 +87,7 @@ class GradingController extends Controller
      *
      * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example Grading"}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
+     *
      * @authenticated
      */
     public function edit($id)
@@ -97,6 +105,7 @@ class GradingController extends Controller
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 404 scenario="Not Found" {"success":false,"message":"Grading tidak ditemukan."}
      * @response 422 scenario="Validation Error" {"success":false,"message":"Validasi gagal.","errors":{"field":["Field wajib diisi."]}}
+     *
      * @authenticated
      */
     public function update(Request $request, $id) {}
@@ -110,6 +119,7 @@ class GradingController extends Controller
      * @response 200 scenario="Success" {"success":true,"message":"Grading berhasil dihapus.","data":[]}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 404 scenario="Not Found" {"success":false,"message":"Grading tidak ditemukan."}
+     *
      * @authenticated
      */
     public function destroy($id) {}

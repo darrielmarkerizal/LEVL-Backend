@@ -549,4 +549,46 @@ class AuthService implements AuthServiceInterface
 
         return ['user' => $userArray];
     }
+
+    /**
+     * Log a profile update action to the audit trail.
+     *
+     * @param  array<string,array{0:mixed,1:mixed}>  $changes  Array of changed fields with [old, new] values
+     */
+    public function logProfileUpdate(User $user, array $changes, ?string $ip, ?string $userAgent): void
+    {
+        Audit::create([
+            'action' => 'update',
+            'user_id' => $user->id,
+            'module' => 'Auth',
+            'target_table' => 'users',
+            'target_id' => $user->id,
+            'ip_address' => $ip,
+            'user_agent' => $userAgent,
+            'meta' => ['action' => 'profile.update', 'changes' => $changes],
+            'logged_at' => now(),
+        ]);
+    }
+
+    /**
+     * Log an email change request action to the audit trail.
+     */
+    public function logEmailChangeRequest(User $user, string $newEmail, string $uuid, ?string $ip, ?string $userAgent): void
+    {
+        Audit::create([
+            'action' => 'update',
+            'user_id' => $user->id,
+            'module' => 'Auth',
+            'target_table' => 'users',
+            'target_id' => $user->id,
+            'ip_address' => $ip,
+            'user_agent' => $userAgent,
+            'meta' => [
+                'action' => 'email.change.request',
+                'new_email' => $newEmail,
+                'uuid' => $uuid,
+            ],
+            'logged_at' => now(),
+        ]);
+    }
 }

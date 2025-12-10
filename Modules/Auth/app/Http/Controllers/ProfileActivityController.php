@@ -3,6 +3,7 @@
 namespace Modules\Auth\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Auth\Services\UserActivityService;
@@ -12,6 +13,8 @@ use Modules\Auth\Services\UserActivityService;
  */
 class ProfileActivityController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private UserActivityService $activityService
     ) {}
@@ -51,9 +54,6 @@ class ProfileActivityController extends Controller
 
         $activities = $this->activityService->getActivities($user, $filters);
 
-        return response()->json([
-            'success' => true,
-            'data' => $activities,
-        ]);
+        return $this->success($activities);
     }
 }

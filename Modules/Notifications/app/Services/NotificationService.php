@@ -3,7 +3,7 @@
 namespace Modules\Notifications\Services;
 
 use Modules\Auth\Models\User;
-use Modules\Notifications\Contracts\NotificationPreferenceServiceInterface;
+use Modules\Notifications\Contracts\Services\NotificationPreferenceServiceInterface;
 use Modules\Notifications\Models\Notification;
 use Modules\Notifications\Models\NotificationPreference;
 

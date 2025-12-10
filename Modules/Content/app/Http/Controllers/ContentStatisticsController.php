@@ -3,23 +3,23 @@
 namespace Modules\Content\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Content\Contracts\Services\ContentStatisticsServiceInterface;
 use Modules\Content\Models\Announcement;
 use Modules\Content\Models\News;
-use Modules\Content\Services\ContentStatisticsService;
 
 /**
  * @tags Konten & Berita
  */
 class ContentStatisticsController extends Controller
 {
-    protected ContentStatisticsService $statisticsService;
+    use ApiResponse;
 
-    public function __construct(ContentStatisticsService $statisticsService)
-    {
-        $this->statisticsService = $statisticsService;
-    }
+    public function __construct(
+        protected ContentStatisticsServiceInterface $statisticsService
+    ) {}
 
     /**
      * Mengambil statistik konten keseluruhan
@@ -70,10 +70,7 @@ class ContentStatisticsController extends Controller
             $data['dashboard'] = $this->statisticsService->getDashboardStatistics();
         }
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $data,
-        ]);
+        return $this->success($data);
     }
 
     /**
@@ -94,10 +91,7 @@ class ContentStatisticsController extends Controller
         $announcement = Announcement::findOrFail($id);
         $statistics = $this->statisticsService->getAnnouncementStatistics($announcement);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $statistics,
-        ]);
+        return $this->success($statistics);
     }
 
     /**
@@ -118,10 +112,7 @@ class ContentStatisticsController extends Controller
         $news = News::where('slug', $slug)->firstOrFail();
         $statistics = $this->statisticsService->getNewsStatistics($news);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $statistics,
-        ]);
+        return $this->success($statistics);
     }
 
     /**
@@ -140,10 +131,7 @@ class ContentStatisticsController extends Controller
         $limit = $request->input('limit', 10);
         $trending = $this->statisticsService->getTrendingNews($limit);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $trending,
-        ]);
+        return $this->success($trending);
     }
 
     /**
@@ -164,9 +152,6 @@ class ContentStatisticsController extends Controller
 
         $mostViewed = $this->statisticsService->getMostViewedNews($days, $limit);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $mostViewed,
-        ]);
+        return $this->success($mostViewed);
     }
 }

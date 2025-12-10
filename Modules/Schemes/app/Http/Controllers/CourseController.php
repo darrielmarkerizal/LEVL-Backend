@@ -163,11 +163,7 @@ class CourseController extends Controller
      */
     public function update(CourseRequest $request, Course $course)
     {
-        /** @var \Modules\Auth\Models\User $user */
-        $user = auth('api')->user();
-        if (! \Illuminate\Support\Facades\Gate::forUser($user)->allows('update', $course)) {
-            return $this->error('Anda tidak memiliki akses untuk memperbarui kursus ini.', 403);
-        }
+        $this->authorize('update', $course);
 
         $data = $request->validated();
 
@@ -229,11 +225,7 @@ class CourseController extends Controller
      */
     public function publish(Course $course)
     {
-        /** @var \Modules\Auth\Models\User $user */
-        $user = auth('api')->user();
-        if (! \Illuminate\Support\Facades\Gate::forUser($user)->allows('update', $course)) {
-            return $this->error('Anda tidak memiliki akses untuk mempublish course ini.', 403);
-        }
+        $this->authorize('update', $course);
 
         $updated = $this->service->publish($course->id);
 

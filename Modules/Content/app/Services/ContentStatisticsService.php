@@ -3,11 +3,12 @@
 namespace Modules\Content\Services;
 
 use Illuminate\Support\Collection;
+use Modules\Content\Contracts\Services\ContentStatisticsServiceInterface;
 use Modules\Content\Models\Announcement;
 use Modules\Content\Models\News;
 use Modules\Content\Repositories\ContentStatisticsRepository;
 
-class ContentStatisticsService
+class ContentStatisticsService implements ContentStatisticsServiceInterface
 {
     protected ContentStatisticsRepository $statisticsRepository;
 

@@ -3,6 +3,7 @@
 namespace Modules\Auth\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Auth\Services\ProfileStatisticsService;
@@ -12,6 +13,8 @@ use Modules\Auth\Services\ProfileStatisticsService;
  */
 class ProfileStatisticsController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private ProfileStatisticsService $statisticsService
     ) {}
@@ -24,6 +27,7 @@ class ProfileStatisticsController extends Controller
      *
      * @response 200 scenario="Success" {"success":true,"message":"Success","data":[{"id":1,"name":"Example ProfileStatistics"}],"meta":{"current_page":1,"last_page":5,"per_page":15,"total":75},"links":{"first":"...","last":"...","prev":null,"next":"..."}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
+     *
      * @authenticated
      */
     public function index(Request $request): JsonResponse
@@ -31,9 +35,6 @@ class ProfileStatisticsController extends Controller
         $user = $request->user();
         $statistics = $this->statisticsService->getStatistics($user);
 
-        return response()->json([
-            'success' => true,
-            'data' => $statistics,
-        ]);
+        return $this->success($statistics);
     }
 }

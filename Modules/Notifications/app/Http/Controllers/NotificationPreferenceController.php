@@ -3,9 +3,10 @@
 namespace Modules\Notifications\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Modules\Notifications\Contracts\NotificationPreferenceServiceInterface;
+use Modules\Notifications\Contracts\Services\NotificationPreferenceServiceInterface;
 use Modules\Notifications\Models\NotificationPreference;
 
 /**
@@ -13,6 +14,8 @@ use Modules\Notifications\Models\NotificationPreference;
  */
 class NotificationPreferenceController extends Controller
 {
+    use ApiResponse;
+
     protected NotificationPreferenceServiceInterface $preferenceService;
 
     public function __construct(NotificationPreferenceServiceInterface $preferenceService)
@@ -27,23 +30,23 @@ class NotificationPreferenceController extends Controller
      *
      *
      * @summary Mengambil preferensi notifikasi user
+     *
      * @response 200 scenario="Success" {"success": true, "data": [{"category": "course", "channel": "email", "enabled": true, "frequency": "instant"}], "meta": {"categories": ["course", "assignment", "forum", "system"], "channels": ["email", "push", "in_app"], "frequencies": ["instant", "daily", "weekly"]}}
      *
      * @authenticated
-     */    
+     */
     public function index(Request $request): JsonResponse
     {
         $preferences = $this->preferenceService->getPreferences(auth()->user());
 
-        return response()->json([
-            'success' => true,
-            'data' => $preferences,
-            'meta' => [
+        return $this->success(
+            data: $preferences,
+            meta: [
                 'categories' => NotificationPreference::getCategories(),
                 'channels' => NotificationPreference::getChannels(),
                 'frequencies' => NotificationPreference::getFrequencies(),
-            ],
-        ]);
+            ]
+        );
     }
 
     /**
@@ -53,12 +56,13 @@ class NotificationPreferenceController extends Controller
      *
      *
      * @summary Memperbarui preferensi notifikasi user
+     *
      * @response 200 scenario="Success" {"success": true, "message": "Notification preferences updated successfully", "data": [{"category": "course", "channel": "email", "enabled": true, "frequency": "instant"}]}
      * @response 422 scenario="Validation Error" {"success": false, "message": "Validation error", "errors": {"preferences.0.category": ["The selected preferences.0.category is invalid."]}}
      * @response 500 scenario="Server Error" {"success":false,"message":"Failed to update notification preferences"}
      *
      * @authenticated
-     */    
+     */
     public function update(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -77,17 +81,16 @@ class NotificationPreferenceController extends Controller
         if ($success) {
             $preferences = $this->preferenceService->getPreferences(auth()->user());
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Notification preferences updated successfully',
-                'data' => $preferences,
-            ]);
+            return $this->success(
+                data: $preferences,
+                message: 'Notification preferences updated successfully'
+            );
         }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to update notification preferences',
-        ], 500);
+        return $this->error(
+            message: 'Failed to update notification preferences',
+            status: 500
+        );
     }
 
     /**
@@ -97,11 +100,12 @@ class NotificationPreferenceController extends Controller
      *
      *
      * @summary Reset preferensi notifikasi ke default
+     *
      * @response 200 scenario="Success" {"success": true, "message": "Notification preferences reset to defaults successfully", "data": [{"category": "course", "channel": "email", "enabled": true, "frequency": "instant"}]}
      * @response 500 scenario="Server Error" {"success":false,"message":"Failed to reset notification preferences"}
      *
      * @authenticated
-     */    
+     */
     public function reset(Request $request): JsonResponse
     {
         $success = $this->preferenceService->resetToDefaults(auth()->user());
@@ -109,16 +113,15 @@ class NotificationPreferenceController extends Controller
         if ($success) {
             $preferences = $this->preferenceService->getPreferences(auth()->user());
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Notification preferences reset to defaults successfully',
-                'data' => $preferences,
-            ]);
+            return $this->success(
+                data: $preferences,
+                message: 'Notification preferences reset to defaults successfully'
+            );
         }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to reset notification preferences',
-        ], 500);
+        return $this->error(
+            message: 'Failed to reset notification preferences',
+            status: 500
+        );
     }
 }

@@ -4,6 +4,7 @@ namespace Modules\Content\Http\Controllers;
 
 use App\Contracts\Services\ContentServiceInterface;
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Content\Http\Requests\CreateAnnouncementRequest;
@@ -16,6 +17,8 @@ use Modules\Schemes\Models\Course;
  */
 class CourseAnnouncementController extends Controller
 {
+    use ApiResponse;
+
     protected ContentServiceInterface $contentService;
 
     protected AnnouncementRepository $announcementRepository;
@@ -36,6 +39,7 @@ class CourseAnnouncementController extends Controller
      *
      * @response 200 scenario="Success" {"success":true,"message":"Success","data":[{"id":1,"name":"Example CourseAnnouncement"}],"meta":{"current_page":1,"last_page":5,"per_page":15,"total":75},"links":{"first":"...","last":"...","prev":null,"next":"..."}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
+     *
      * @authenticated
      */
     public function index(Request $request, int $courseId): JsonResponse
@@ -48,10 +52,7 @@ class CourseAnnouncementController extends Controller
 
         $announcements = $this->announcementRepository->getAnnouncementsForCourse($courseId, $filters);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $announcements,
-        ]);
+        return $this->success($announcements);
     }
 
     /**
@@ -63,6 +64,7 @@ class CourseAnnouncementController extends Controller
      * @response 201 scenario="Success" {"success":true,"message":"CourseAnnouncement berhasil dibuat.","data":{"id":1,"name":"New CourseAnnouncement"}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 422 scenario="Validation Error" {"success":false,"message":"Validasi gagal.","errors":{"field":["Field wajib diisi."]}}
+     *
      * @authenticated
      */
     public function store(CreateAnnouncementRequest $request, int $courseId): JsonResponse
@@ -91,16 +93,12 @@ class CourseAnnouncementController extends Controller
                 );
             }
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Pengumuman kursus berhasil dibuat.',
-                'data' => $announcement->load(['author', 'course']),
-            ], 201);
+            return $this->created(
+                $announcement->load(['author', 'course']),
+                'Pengumuman kursus berhasil dibuat.'
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], 422);
+            return $this->error($e->getMessage(), 422);
         }
     }
 }

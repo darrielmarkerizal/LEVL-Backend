@@ -4,6 +4,7 @@ namespace Modules\Auth\Http\Controllers;
 
 use App\Contracts\Services\ProfileServiceInterface;
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Auth\Models\User;
@@ -13,6 +14,8 @@ use Modules\Auth\Models\User;
  */
 class PublicProfileController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private ProfileServiceInterface $profileService
     ) {}
@@ -25,6 +28,7 @@ class PublicProfileController extends Controller
      *
      * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example PublicProfile"}}
      * @response 404 scenario="Not Found" {"success":false,"message":"PublicProfile tidak ditemukan."}
+     *
      * @unauthenticated
      */
     public function show(Request $request, int $userId): JsonResponse
@@ -35,20 +39,11 @@ class PublicProfileController extends Controller
 
             $profileData = $this->profileService->getPublicProfile($user, $viewer);
 
-            return response()->json([
-                'success' => true,
-                'data' => $profileData,
-            ]);
+            return $this->success($profileData);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not found.',
-            ], 404);
+            return $this->notFound('User not found.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 403);
+            return $this->forbidden($e->getMessage());
         }
     }
 }

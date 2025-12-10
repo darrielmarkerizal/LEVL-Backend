@@ -53,7 +53,7 @@
 
 #### Controllers yang Perlu Ditingkatkan
 
-1. **ContentController.php** - Return view instead of JSON
+1. ~~**ContentController.php** - Return view instead of JSON~~ ✅ Removed (placeholder controller)
 2. **SearchController.php** - Perlu query parameter documentation
 3. **CategoriesController.php** - Perlu filter documentation
 4. **MasterDataController.php** - Perlu enum documentation

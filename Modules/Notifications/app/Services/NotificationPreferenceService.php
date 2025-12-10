@@ -5,7 +5,7 @@ namespace Modules\Notifications\Services;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
-use Modules\Notifications\Contracts\NotificationPreferenceServiceInterface;
+use Modules\Notifications\Contracts\Services\NotificationPreferenceServiceInterface;
 use Modules\Notifications\Models\NotificationPreference;
 
 class NotificationPreferenceService implements NotificationPreferenceServiceInterface

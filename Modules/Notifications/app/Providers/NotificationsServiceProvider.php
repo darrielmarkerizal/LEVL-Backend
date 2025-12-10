@@ -39,7 +39,7 @@ class NotificationsServiceProvider extends ServiceProvider
 
         // Register service bindings
         $this->app->bind(
-            \Modules\Notifications\Contracts\NotificationPreferenceServiceInterface::class,
+            \Modules\Notifications\Contracts\Services\NotificationPreferenceServiceInterface::class,
             \Modules\Notifications\Services\NotificationPreferenceService::class
         );
     }

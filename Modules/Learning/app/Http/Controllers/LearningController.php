@@ -3,6 +3,7 @@
 namespace Modules\Learning\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Modules\Learning\Services\LearningPageService;
 
@@ -11,6 +12,8 @@ use Modules\Learning\Services\LearningPageService;
  */
 class LearningController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(private readonly LearningPageService $service) {}
 
     /**
@@ -52,9 +55,13 @@ class LearningController extends Controller
      * @response 201 scenario="Success" {"success":true,"message":"Learning berhasil dibuat.","data":{"id":1,"name":"New Learning"}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 422 scenario="Validation Error" {"success":false,"message":"Validasi gagal.","errors":{"field":["Field wajib diisi."]}}
+     * @response 501 scenario="Not Implemented" {"success":false,"message":"Fitur belum tersedia."}
      * @authenticated
      */
-    public function store(Request $request) {}
+    public function store(Request $request)
+    {
+        return $this->error('Fitur belum tersedia.', 501);
+    }
 
     /**
      * Menampilkan data tertentu
@@ -97,9 +104,13 @@ class LearningController extends Controller
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 404 scenario="Not Found" {"success":false,"message":"Learning tidak ditemukan."}
      * @response 422 scenario="Validation Error" {"success":false,"message":"Validasi gagal.","errors":{"field":["Field wajib diisi."]}}
+     * @response 501 scenario="Not Implemented" {"success":false,"message":"Fitur belum tersedia."}
      * @authenticated
      */
-    public function update(Request $request, $id) {}
+    public function update(Request $request, $id)
+    {
+        return $this->error('Fitur belum tersedia.', 501);
+    }
 
     /**
      * Menghapus data
@@ -110,7 +121,11 @@ class LearningController extends Controller
      * @response 200 scenario="Success" {"success":true,"message":"Learning berhasil dihapus.","data":[]}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
      * @response 404 scenario="Not Found" {"success":false,"message":"Learning tidak ditemukan."}
+     * @response 501 scenario="Not Implemented" {"success":false,"message":"Fitur belum tersedia."}
      * @authenticated
      */
-    public function destroy($id) {}
+    public function destroy($id)
+    {
+        return $this->error('Fitur belum tersedia.', 501);
+    }
 }

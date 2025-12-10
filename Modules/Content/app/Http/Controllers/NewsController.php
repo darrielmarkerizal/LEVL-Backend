@@ -3,30 +3,28 @@
 namespace Modules\Content\Http\Controllers;
 
 use App\Contracts\Services\ContentServiceInterface;
+use App\Exceptions\ResourceNotFoundException;
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Content\Contracts\Services\ContentStatisticsServiceInterface;
+use Modules\Content\Contracts\Services\NewsServiceInterface;
 use Modules\Content\Http\Requests\ScheduleContentRequest;
 use Modules\Content\Http\Requests\UpdateContentRequest;
-use Modules\Content\Models\News;
-use Modules\Content\Services\ContentStatisticsService;
 
 /**
  * @tags Konten & Berita
  */
 class NewsController extends Controller
 {
-    protected ContentServiceInterface $contentService;
-
-    protected ContentStatisticsService $statisticsService;
+    use ApiResponse;
 
     public function __construct(
-        ContentServiceInterface $contentService,
-        ContentStatisticsService $statisticsService
-    ) {
-        $this->contentService = $contentService;
-        $this->statisticsService = $statisticsService;
-    }
+        private ContentServiceInterface $contentService,
+        private ContentStatisticsServiceInterface $statisticsService,
+        private NewsServiceInterface $newsService
+    ) {}
 
     /**
      * Daftar Berita
@@ -70,10 +68,7 @@ class NewsController extends Controller
 
         $news = $this->contentService->getNewsFeed($filters);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $news,
-        ]);
+        return $this->paginateResponse($news);
     }
 
     /**
@@ -91,10 +86,10 @@ class NewsController extends Controller
      * @bodyParam tag_ids array optional Array ID tags. Example: [1, 2, 3]
      * @bodyParam is_featured boolean optional Tandai sebagai featured. Example: false
      *
-     * @response 201 scenario="Success" {"status": "success", "message": "Berita berhasil dibuat.", "data": {"id": 1, "title": "Berita Baru", "slug": "berita-baru", "status": "draft"}}
-     * @response 401 scenario="Unauthorized" {"status":"error","message":"Tidak terotorisasi."}
-     * @response 403 scenario="Forbidden" {"status":"error","message":"Anda tidak memiliki akses untuk membuat berita."}
-     * @response 422 scenario="Validation Error" {"status":"error","message":"Validasi gagal."}
+     * @response 201 scenario="Success" {"success": true, "message": "Berita berhasil dibuat.", "data": {"id": 1, "title": "Berita Baru", "slug": "berita-baru", "status": "draft"}, "meta": null, "errors": null}
+     * @response 401 scenario="Unauthorized" {"success": false, "message": "Tidak terotorisasi.", "data": null, "meta": null, "errors": null}
+     * @response 403 scenario="Forbidden" {"success": false, "message": "Anda tidak memiliki akses untuk membuat berita.", "data": null, "meta": null, "errors": null}
+     * @response 422 scenario="Validation Error" {"success": false, "message": "Validasi gagal.", "data": null, "meta": null, "errors": {}}
      *
      * @authenticated
      *
@@ -107,8 +102,8 @@ class NewsController extends Controller
      *
      * Menampilkan detail berita berdasarkan slug.
      *
-     * @response 200 scenario="Success" {"status": "success", "data": {"id": 1, "title": "Berita Lengkap", "slug": "berita-lengkap", "content": "Isi berita...", "author": {"id": 1, "name": "Admin"}, "categories": [], "tags": []}}
-     * @response 404 scenario="Not Found" {"status":"error","message":"Berita tidak ditemukan."}
+     * @response 200 scenario="Success" {"success": true, "message": "Berhasil", "data": {"id": 1, "title": "Berita Lengkap", "slug": "berita-lengkap", "content": "Isi berita...", "author": {"id": 1, "name": "Admin"}, "categories": [], "tags": []}, "meta": null, "errors": null}
+     * @response 404 scenario="Not Found" {"success": false, "message": "Berita tidak ditemukan.", "data": null, "meta": null, "errors": null}
      *
      * @unauthenticated
      */
@@ -132,37 +127,33 @@ class NewsController extends Controller
      * @bodyParam tag_ids array optional Array ID tags. Example: [1, 2, 3]
      * @bodyParam is_featured boolean optional Tandai sebagai featured. Example: false
      *
-     * @response 200 scenario="Success" {"status": "success", "message": "Berita berhasil diperbarui.", "data": {"id": 1, "title": "Berita Updated"}}
-     * @response 401 scenario="Unauthorized" {"status":"error","message":"Tidak terotorisasi."}
-     * @response 403 scenario="Forbidden" {"status":"error","message":"Anda tidak memiliki akses untuk memperbarui berita ini."}
-     * @response 404 scenario="Not Found" {"status":"error","message":"Berita tidak ditemukan."}
+     * @response 200 scenario="Success" {"success": true, "message": "Berita berhasil diperbarui.", "data": {"id": 1, "title": "Berita Updated"}, "meta": null, "errors": null}
+     * @response 401 scenario="Unauthorized" {"success": false, "message": "Tidak terotorisasi.", "data": null, "meta": null, "errors": null}
+     * @response 403 scenario="Forbidden" {"success": false, "message": "Anda tidak memiliki akses untuk memperbarui berita ini.", "data": null, "meta": null, "errors": null}
+     * @response 404 scenario="Not Found" {"success": false, "message": "Berita tidak ditemukan.", "data": null, "meta": null, "errors": null}
      *
      * @authenticated
      */
     public function update(UpdateContentRequest $request, string $slug): JsonResponse
     {
-        $news = News::where('slug', $slug)->firstOrFail();
+        $news = $this->newsService->findBySlug($slug);
+
+        if (! $news) {
+            throw new ResourceNotFoundException('Berita tidak ditemukan.');
+        }
 
         $this->authorize('update', $news);
 
-        try {
-            $news = $this->contentService->updateNews(
-                $news,
-                $request->validated(),
-                auth()->user()
-            );
+        $news = $this->contentService->updateNews(
+            $news,
+            $request->validated(),
+            auth()->user()
+        );
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Berita berhasil diperbarui.',
-                'data' => $news->load(['author', 'categories', 'tags']),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], 422);
-        }
+        return $this->success(
+            $news->load(['author', 'categories', 'tags']),
+            'Berita berhasil diperbarui.'
+        );
     }
 
     /**
@@ -173,25 +164,26 @@ class NewsController extends Controller
      *
      * @summary Hapus Berita
      *
-     * @response 200 scenario="Success" {"status":"success","message":"Berita berhasil dihapus."}
-     * @response 401 scenario="Unauthorized" {"status":"error","message":"Tidak terotorisasi."}
-     * @response 403 scenario="Forbidden" {"status":"error","message":"Anda tidak memiliki akses untuk menghapus berita ini."}
-     * @response 404 scenario="Not Found" {"status":"error","message":"Berita tidak ditemukan."}
+     * @response 200 scenario="Success" {"success": true, "message": "Berita berhasil dihapus.", "data": null, "meta": null, "errors": null}
+     * @response 401 scenario="Unauthorized" {"success": false, "message": "Tidak terotorisasi.", "data": null, "meta": null, "errors": null}
+     * @response 403 scenario="Forbidden" {"success": false, "message": "Anda tidak memiliki akses untuk menghapus berita ini.", "data": null, "meta": null, "errors": null}
+     * @response 404 scenario="Not Found" {"success": false, "message": "Berita tidak ditemukan.", "data": null, "meta": null, "errors": null}
      *
      * @authenticated
      */
     public function destroy(string $slug): JsonResponse
     {
-        $news = News::where('slug', $slug)->firstOrFail();
+        $news = $this->newsService->findBySlug($slug);
+
+        if (! $news) {
+            throw new ResourceNotFoundException('Berita tidak ditemukan.');
+        }
 
         $this->authorize('delete', $news);
 
         $this->contentService->deleteContent($news, auth()->user());
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berita berhasil dihapus.',
-        ]);
+        return $this->success(null, 'Berita berhasil dihapus.');
     }
 
     /**
@@ -202,26 +194,26 @@ class NewsController extends Controller
      *
      * @summary Publikasikan Berita
      *
-     * @response 200 scenario="Success" {"status": "success", "message": "Berita berhasil dipublikasikan.", "data": {"id": 1, "status": "published", "published_at": "2024-01-15T10:00:00Z"}}
-     * @response 401 scenario="Unauthorized" {"status":"error","message":"Tidak terotorisasi."}
-     * @response 403 scenario="Forbidden" {"status":"error","message":"Anda tidak memiliki akses untuk mempublikasikan berita ini."}
-     * @response 404 scenario="Not Found" {"status":"error","message":"Berita tidak ditemukan."}
+     * @response 200 scenario="Success" {"success": true, "message": "Berita berhasil dipublikasikan.", "data": {"id": 1, "status": "published", "published_at": "2024-01-15T10:00:00Z"}, "meta": null, "errors": null}
+     * @response 401 scenario="Unauthorized" {"success": false, "message": "Tidak terotorisasi.", "data": null, "meta": null, "errors": null}
+     * @response 403 scenario="Forbidden" {"success": false, "message": "Anda tidak memiliki akses untuk mempublikasikan berita ini.", "data": null, "meta": null, "errors": null}
+     * @response 404 scenario="Not Found" {"success": false, "message": "Berita tidak ditemukan.", "data": null, "meta": null, "errors": null}
      *
      * @authenticated
      */
     public function publish(string $slug): JsonResponse
     {
-        $news = News::where('slug', $slug)->firstOrFail();
+        $news = $this->newsService->findBySlug($slug);
+
+        if (! $news) {
+            throw new ResourceNotFoundException('Berita tidak ditemukan.');
+        }
 
         $this->authorize('publish', $news);
 
         $this->contentService->publishContent($news);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Berita berhasil dipublikasikan.',
-            'data' => $news->fresh(),
-        ]);
+        return $this->success($news->fresh(), 'Berita berhasil dipublikasikan.');
     }
 
     /**
@@ -232,37 +224,30 @@ class NewsController extends Controller
      *
      * @summary Jadwalkan Berita
      *
-     * @response 200 scenario="Success" {"status": "success", "message": "Berita berhasil dijadwalkan.", "data": {"id": 1, "status": "scheduled", "scheduled_at": "2024-01-20T10:00:00Z"}}
-     * @response 401 scenario="Unauthorized" {"status":"error","message":"Tidak terotorisasi."}
-     * @response 403 scenario="Forbidden" {"status":"error","message":"Anda tidak memiliki akses untuk menjadwalkan berita ini."}
-     * @response 404 scenario="Not Found" {"status":"error","message":"Berita tidak ditemukan."}
-     * @response 422 scenario="Invalid Date" {"status":"error","message":"Waktu publikasi harus di masa depan."}
+     * @response 200 scenario="Success" {"success": true, "message": "Berita berhasil dijadwalkan.", "data": {"id": 1, "status": "scheduled", "scheduled_at": "2024-01-20T10:00:00Z"}, "meta": null, "errors": null}
+     * @response 401 scenario="Unauthorized" {"success": false, "message": "Tidak terotorisasi.", "data": null, "meta": null, "errors": null}
+     * @response 403 scenario="Forbidden" {"success": false, "message": "Anda tidak memiliki akses untuk menjadwalkan berita ini.", "data": null, "meta": null, "errors": null}
+     * @response 404 scenario="Not Found" {"success": false, "message": "Berita tidak ditemukan.", "data": null, "meta": null, "errors": null}
+     * @response 422 scenario="Invalid Date" {"success": false, "message": "Waktu publikasi harus di masa depan.", "data": null, "meta": null, "errors": null}
      *
      * @authenticated
      */
     public function schedule(ScheduleContentRequest $request, string $slug): JsonResponse
     {
-        $news = News::where('slug', $slug)->firstOrFail();
+        $news = $this->newsService->findBySlug($slug);
+
+        if (! $news) {
+            throw new ResourceNotFoundException('Berita tidak ditemukan.');
+        }
 
         $this->authorize('schedule', $news);
 
-        try {
-            $this->contentService->scheduleContent(
-                $news,
-                \Carbon\Carbon::parse($request->input('scheduled_at'))
-            );
+        $this->contentService->scheduleContent(
+            $news,
+            \Carbon\Carbon::parse($request->input('scheduled_at'))
+        );
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Berita berhasil dijadwalkan.',
-                'data' => $news->fresh(),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], 422);
-        }
+        return $this->success($news->fresh(), 'Berita berhasil dijadwalkan.');
     }
 
     /**
@@ -275,7 +260,7 @@ class NewsController extends Controller
      *
      * @queryParam limit integer Jumlah berita yang ditampilkan (default: 10). Example: 10
      *
-     * @response 200 scenario="Success" {"status": "success", "data": [{"id": 1, "title": "Berita Populer", "slug": "berita-populer", "views_count": 1500}]}
+     * @response 200 scenario="Success" {"success": true, "message": "Berhasil", "data": [{"id": 1, "title": "Berita Populer", "slug": "berita-populer", "views_count": 1500}], "meta": null, "errors": null}
      *
      * @authenticated
      */
@@ -284,9 +269,6 @@ class NewsController extends Controller
         $limit = $request->input('limit', 10);
         $trending = $this->statisticsService->getTrendingNews($limit);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $trending,
-        ]);
+        return $this->success($trending);
     }
 }

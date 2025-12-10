@@ -1,8 +1,4 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Modules\Content\Http\Controllers\ContentController;
-
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('contents', ContentController::class)->names('content');
-});
+// Web routes removed - this is an API-only module
+// All content functionality is available via API routes in api.php
