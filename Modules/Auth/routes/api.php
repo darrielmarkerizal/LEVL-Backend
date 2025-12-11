@@ -89,7 +89,7 @@ Route::prefix('v1')->as('auth.')->group(function () {
             Route::get('/auth/users/{user}', [AuthApiController::class, 'showUser'])->name('users.show');
         });
 
-        Route::middleware(['role:Admin,Superadmin'])->group(function () {
+        Route::middleware(['role:Superadmin|Admin'])->group(function () {
             Route::get('/auth/users', [AuthApiController::class, 'listUsers'])->name('users.index');
         });
     });
