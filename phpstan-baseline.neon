@@ -1,0 +1,3979 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$account_status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Auth/app/Http/Controllers/AdminProfileController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Auth\\Models\\User\>\|Modules\\Auth\\Models\\User\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Auth\\Models\\User\>\|Modules\\Auth\\Models\\User\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Auth\\Models\\User\>\|Modules\\Auth\\Models\\User\:\:\$password\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\SocialAccount\:\:\$refresh_token\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\SocialAccount\:\:\$token\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\SocialAccount\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$email_verified_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$username\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Call to an undefined method Laravel\\Socialite\\Contracts\\Provider\:\:stateless\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Call to an undefined static method Modules\\Auth\\DTOs\\LoginDTO\:\:fromRequest\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Call to an undefined static method Modules\\Auth\\DTOs\\RegisterDTO\:\:fromRequest\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/AuthApiController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\PasswordResetToken\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/PasswordResetController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\PasswordResetToken\:\:\$token\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/PasswordResetController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Auth/app/Http/Controllers/PasswordResetController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$password\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/PasswordResetController.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/Auth/app/Http/Controllers/PasswordResetController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Middleware/AllowExpiredToken.php
+
+		-
+			message: '#^Parameter \#1 \$user of method Illuminate\\Contracts\\Auth\\Guard\:\:setUser\(\) expects Illuminate\\Contracts\\Auth\\Authenticatable, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Auth/app/Http/Middleware/AllowExpiredToken.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$email_verified_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Http/Middleware/EnsureEmailVerified.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\JwtRefreshToken\:\:\$absolute_expires_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/JwtRefreshToken.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\JwtRefreshToken\:\:\$expires_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/JwtRefreshToken.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\JwtRefreshToken\:\:\$idle_expires_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/JwtRefreshToken.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\JwtRefreshToken\:\:\$replaced_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/JwtRefreshToken.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\JwtRefreshToken\:\:\$revoked_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/JwtRefreshToken.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\LoginActivity\:\:\$logged_in_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/LoginActivity.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\LoginActivity\:\:\$logged_out_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/LoginActivity.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\LoginActivity\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Auth/app/Models/LoginActivity.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\OtpCode\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/OtpCode.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\OtpCode\:\:\$consumed_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/OtpCode.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\OtpCode\:\:\$expires_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/OtpCode.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\ProfilePrivacySetting\:\:\$profile_visibility\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Auth/app/Models/ProfilePrivacySetting.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\ProfilePrivacySetting\:\:\$show_achievements\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/ProfilePrivacySetting.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\ProfilePrivacySetting\:\:\$show_activity_history\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/ProfilePrivacySetting.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\ProfilePrivacySetting\:\:\$show_email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/ProfilePrivacySetting.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\ProfilePrivacySetting\:\:\$show_phone\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/ProfilePrivacySetting.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\ProfilePrivacySetting\:\:\$show_statistics\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/ProfilePrivacySetting.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\ProfilePrivacySetting\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/ProfilePrivacySetting.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$account_status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Auth/app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$privacySettings\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Auth/app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Auth/app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$username\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Models/User.php
+
+		-
+			message: '#^Call to an undefined method Spatie\\Image\\Drivers\\ImageDriver\:\:performOnCollections\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: Modules/Auth/app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Auth\\Models\\JwtRefreshToken\>\|Modules\\Auth\\Models\\JwtRefreshToken\:\:\$replaced_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Repositories/AuthRepository.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$email_verified_at\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$password\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 6
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$username\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Access to property \$login on an unknown class Modules\\Auth\\Services\\LoginDTO\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Access to property \$password on an unknown class Modules\\Auth\\Services\\LoginDTO\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Modules\\Auth\\Models\\User\>\:\:allowedFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Modules\\Auth\\Models\\User and ''getRoleNames'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Call to method toArray\(\) on an unknown class Modules\\Auth\\Services\\RegisterDTO\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Call to static method create\(\) on an unknown class Modules\\Auth\\Services\\Audit\.$#'
+			identifier: class.notFound
+			count: 2
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Class Modules\\Auth\\Services\\LoginDTO not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Class Modules\\Auth\\Services\\RegisterDTO not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Instantiated class Modules\\Auth\\Services\\BusinessException not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:transform\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: Illuminate\\Database\\Eloquent\\Model, Closure\(mixed\)\: array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Parameter \#1 \$user of method Modules\\Auth\\Services\\AuthService\:\:transformUserForList\(\) expects Modules\\Auth\\Models\\User, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Parameter \#1 \$user of method Tymon\\JWTAuth\\JWT\:\:fromUser\(\) expects Tymon\\JWTAuth\\Contracts\\JWTSubject, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Parameter \$data of method Modules\\Auth\\Services\\AuthService\:\:register\(\) has invalid type Modules\\Auth\\Services\\RegisterDTO\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Parameter \$loginOrDto of method Modules\\Auth\\Services\\AuthService\:\:login\(\) has invalid type Modules\\Auth\\Services\\LoginDTO\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Throwing object of an unknown class Modules\\Auth\\Services\\BusinessException\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Variable \$ip on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 3
+			path: Modules/Auth/app/Services/AuthService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Auth\\Models\\User\>\|Modules\\Auth\\Models\\User\:\:\$email_verified_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Auth/app/Services/EmailVerificationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Auth\\Models\\User\>\|Modules\\Auth\\Models\\User\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Auth/app/Services/EmailVerificationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\OtpCode\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Auth/app/Services/EmailVerificationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\OtpCode\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Auth/app/Services/EmailVerificationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$email_verified_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Services/EmailVerificationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Services/EmailVerificationService.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/Auth/app/Services/EmailVerificationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$account_status\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Auth/app/Services/ProfileService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$bio\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Services/ProfileService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Services/ProfileService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Auth/app/Services/ProfileService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$email_verified_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Services/ProfileService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$last_profile_update\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/Auth/app/Services/ProfileService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Services/ProfileService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$password\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Auth/app/Services/ProfileService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Services/ProfileService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$username\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Services/ProfileService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Auth\\Models\\User\:\:restore\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Auth/app/Services/ProfileService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Auth/app/Services/UserActivityService.php
+
+		-
+			message: '#^Method Modules\\Auth\\Services\\UserActivityService\:\:getActivities\(\) should return Illuminate\\Support\\Collection but returns Illuminate\\Pagination\\LengthAwarePaginator\<int, Modules\\Auth\\Models\\UserActivity\>\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Auth/app/Services/UserActivityService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Common\\Models\\Category\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Common/app/Models/Category.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Common\\Models\\Category\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Common/app/Models/Category.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Common\\Models\\Category\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Common/app/Models/Category.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Common\\Models\\Category\:\:\$value\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Common/app/Models/Category.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Common\\Models\\SystemSetting\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Common/app/Models/SystemSetting.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Common\\Models\\SystemSetting\:\:\$value\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/Common/app/Models/SystemSetting.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: Modules/Common/app/Models/SystemSetting.php
+
+		-
+			message: '#^Method Modules\\Common\\Repositories\\CategoryRepository\:\:findById\(\) should return Modules\\Common\\Models\\Category\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Common/app/Repositories/CategoryRepository.php
+
+		-
+			message: '#^Method Modules\\Common\\Repositories\\CategoryRepository\:\:findByIdOrFail\(\) should return Modules\\Common\\Models\\Category but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Common/app/Repositories/CategoryRepository.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Common\\Repositories\\CategoryRepository\:\:find\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: Modules/Common/app/Services/CategoryService.php
+
+		-
+			message: '#^Method Modules\\Common\\Services\\CategoryService\:\:create\(\) should return Modules\\Common\\Models\\Category but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Common/app/Services/CategoryService.php
+
+		-
+			message: '#^Method Modules\\Common\\Services\\CategoryService\:\:update\(\) should return Modules\\Common\\Models\\Category\|null but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Common/app/Services/CategoryService.php
+
+		-
+			message: '#^Call to static method make\(\) on an unknown class Modules\\Content\\Http\\Controllers\\AnnouncementResource\.$#'
+			identifier: class.notFound
+			count: 2
+			path: Modules/Content/app/Http/Controllers/AnnouncementController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Content/app/Http/Controllers/ContentApprovalController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Controllers/ContentApprovalController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Controllers/ContentApprovalController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Controllers/ContentApprovalController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Controllers/ContentApprovalController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Controllers/ContentApprovalController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Controllers/ContentApprovalController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Content\\Contracts\\ContentWorkflowServiceInterface\:\:approve\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Content/app/Http/Controllers/ContentApprovalController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Content\\Contracts\\ContentWorkflowServiceInterface\:\:reject\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Content/app/Http/Controllers/ContentApprovalController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Content\\Contracts\\ContentWorkflowServiceInterface\:\:submitForReview\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Content/app/Http/Controllers/ContentApprovalController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Content\\Models\\Announcement\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/Content/app/Http/Controllers/ContentApprovalController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Content\\Models\\News\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/Content/app/Http/Controllers/ContentApprovalController.php
+
+		-
+			message: '#^Call to static method make\(\) on an unknown class Modules\\Content\\Http\\Controllers\\NewsResource\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Content/app/Http/Controllers/NewsController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$author\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$content\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$course\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$excerpt\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$priority\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$published_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$reads_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$scheduled_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$target_roles\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$target_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\AnnouncementResource\:\:\$views_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/AnnouncementResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$author\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$categories\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$content\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$excerpt\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$is_featured\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$published_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$reads_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$scheduled_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$tags\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Http\\Resources\\NewsResource\:\:\$views_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Http/Resources/NewsResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$author\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Listeners/NotifyAuthorOnContentApproved.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Listeners/NotifyAuthorOnContentApproved.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$author\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Listeners/NotifyAuthorOnContentRejected.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Listeners/NotifyAuthorOnContentRejected.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Listeners/NotifyAuthorOnContentRejected.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$enrollments\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Models/Announcement.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$published_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Models/Announcement.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$scheduled_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Models/Announcement.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Content/app/Models/Announcement.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$published_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Content/app/Models/News.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$scheduled_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Models/News.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Content/app/Models/News.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$views_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Models/News.php
+
+		-
+			message: '#^Call to an undefined method Spatie\\Image\\Drivers\\ImageDriver\:\:nonQueued\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Content/app/Models/News.php
+
+		-
+			message: '#^Call to an undefined method Spatie\\Image\\Drivers\\ImageDriver\:\:performOnCollections\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: Modules/Content/app/Models/News.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$course_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Content/app/Policies/ContentPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Policies/ContentPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$deleted_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Repositories/AnnouncementRepository.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$course_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Content/app/Repositories/ContentStatisticsRepository.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$target_type\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Content/app/Repositories/ContentStatisticsRepository.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$target_value\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Content/app/Repositories/ContentStatisticsRepository.php
+
+		-
+			message: '#^Relation ''enrollments'' is not found in Modules\\Auth\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Content/app/Repositories/ContentStatisticsRepository.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$deleted_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Repositories/NewsRepository.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$content\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/AnnouncementService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/AnnouncementService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/AnnouncementService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Modules\\Content\\Models\\Announcement\>\:\:allowedFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: Modules/Content/app/Services/AnnouncementService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Content\\DTOs\\CreateAnnouncementDTO\:\:toArrayWithoutNull\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Content/app/Services/AnnouncementService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Content\\DTOs\\UpdateAnnouncementDTO\:\:toArrayWithoutNull\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Content/app/Services/AnnouncementService.php
+
+		-
+			message: '#^Relation ''targetUsers'' is not found in Modules\\Content\\Models\\Announcement model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Content/app/Services/AnnouncementService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$course_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/ContentNotificationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$target_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/ContentNotificationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$target_value\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/ContentNotificationService.php
+
+		-
+			message: '#^Relation ''enrollments'' is not found in Modules\\Auth\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Content/app/Services/ContentNotificationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Content/app/Services/ContentSchedulingService.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: Modules/Content/app/Services/ContentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$published_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/ContentStatisticsService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/ContentStatisticsService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\Announcement\:\:\$views_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/ContentStatisticsService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$is_featured\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/ContentStatisticsService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$published_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/ContentStatisticsService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/ContentStatisticsService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$views_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/ContentStatisticsService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/ContentWorkflowService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/ContentWorkflowService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$content\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/NewsService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/NewsService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Content\\Models\\News\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Content/app/Services/NewsService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Content\\DTOs\\UpdateNewsDTO\:\:toArrayWithoutNull\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Content/app/Services/NewsService.php
+
+		-
+			message: '#^Call to an undefined static method Modules\\Content\\Models\\News\:\:search\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: Modules/Content/app/Services/NewsService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$course\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Enrollments/app/Http/Controllers/EnrollmentsController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/EnrollmentsController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/EnrollmentsController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$instructor_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/EnrollmentsController.php
+
+		-
+			message: '#^Call to an undefined static method Modules\\Enrollments\\DTOs\\CreateEnrollmentDTO\:\:fromRequest\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/EnrollmentsController.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Modules\\Schemes\\Models\\Course and ''hasAdmin'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: Modules/Enrollments/app/Http/Controllers/EnrollmentsController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$active_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$cancelled\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$cancelled_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$completed\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$completed_count\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$courseProgress\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$enrolled_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$pending\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$pending_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$total_enrolled\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$total_requests\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$instructor_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Modules\\Schemes\\Models\\Course and ''hasAdmin'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Relation ''courseProgress'' is not found in Modules\\Enrollments\\Models\\Enrollment model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Relation ''user'' is not found in Modules\\Enrollments\\Models\\Enrollment model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>progress_percent" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Enrollments/app/Http/Controllers/ReportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Listeners/InitializeProgressForEnrollment.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$course\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Listeners/InitializeProgressForEnrollment.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Listeners/InitializeProgressForEnrollment.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Mail/AdminEnrollmentNotificationMail.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Mail/AdminEnrollmentNotificationMail.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Mail/StudentEnrollmentActiveMail.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Mail/StudentEnrollmentApprovedMail.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Mail/StudentEnrollmentDeclinedMail.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Mail/StudentEnrollmentPendingMail.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\CourseProgress\:\:\$enrollment\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Models/CourseProgress.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$course\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Policies/EnrollmentPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Enrollments/app/Policies/EnrollmentPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$instructor_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Policies/EnrollmentPolicy.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Modules\\Schemes\\Models\\Course and ''hasAdmin'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: Modules/Enrollments/app/Policies/EnrollmentPolicy.php
+
+		-
+			message: '#^Call to an undefined static method Modules\\Enrollments\\Models\\Enrollment\:\:search\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 3
+			path: Modules/Enrollments/app/Repositories/EnrollmentRepository.php
+
+		-
+			message: '#^Method Modules\\Enrollments\\Repositories\\EnrollmentRepository\:\:findByCourseAndUser\(\) should return Modules\\Enrollments\\Models\\Enrollment\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Enrollments/app/Repositories/EnrollmentRepository.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 6
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$course\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$enrolled_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 7
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$enrollment_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$instructor_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Modules\\Enrollments\\Models\\Enrollment\>\:\:allowedFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Enrollments\\Contracts\\Repositories\\EnrollmentRepositoryInterface\:\:findById\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 2
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 2
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Method Modules\\Enrollments\\Services\\EnrollmentService\:\:getCourseManagers\(\) should return array\<int, Modules\\Auth\\Models\\User\> but returns list\<Illuminate\\Database\\Eloquent\\Model\>\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Parameter \#2 \$errors of class App\\Exceptions\\BusinessException constructor expects array\<string, array\<string\>\>, array\<string, string\> given\.$#'
+			identifier: argument.type
+			count: 8
+			path: Modules/Enrollments/app/Services/EnrollmentService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Forums\\Models\\Reply\>\|Modules\\Forums\\Models\\Reply\:\:\$thread_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Http/Controllers/ReplyController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$scheme_id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/Forums/app/Http/Controllers/ThreadController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Forums\\Contracts\\Services\\ForumServiceInterface\:\:getThreadDetail\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Forums/app/Http/Controllers/ThreadController.php
+
+		-
+			message: '#^Call to method validated\(\) on an unknown class Modules\\Forums\\Http\\Controllers\\CreateThreadRequest\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Forums/app/Http/Controllers/ThreadController.php
+
+		-
+			message: '#^Method Modules\\Forums\\Contracts\\Services\\ForumServiceInterface\:\:createThread\(\) invoked with 3 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: Modules/Forums/app/Http/Controllers/ThreadController.php
+
+		-
+			message: '#^Parameter \#1 \$data of method Modules\\Forums\\Contracts\\Services\\ForumServiceInterface\:\:createThread\(\) expects array, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Forums/app/Http/Controllers/ThreadController.php
+
+		-
+			message: '#^Parameter \$request of method Modules\\Forums\\Http\\Controllers\\ThreadController\:\:store\(\) has invalid type Modules\\Forums\\Http\\Controllers\\CreateThreadRequest\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Forums/app/Http/Controllers/ThreadController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReaction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReaction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReaction.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reaction\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReaction.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reaction\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReaction.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reply\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReaction.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reply\:\:\$thread_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReaction.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReaction.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReaction.php
+
+		-
+			message: '#^Parameter \#3 \$title of method Modules\\Notifications\\Services\\NotificationService\:\:send\(\) expects string, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReaction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReply.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReply.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReply.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReply.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reply\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReply.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reply\:\:\$parent_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyAuthorOnReply.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$instructor_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyInstructorOnThreadCreated.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/Forums/app/Listeners/NotifyInstructorOnThreadCreated.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyInstructorOnThreadCreated.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyInstructorOnThreadCreated.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$scheme_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyInstructorOnThreadCreated.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/Forums/app/Listeners/NotifyInstructorOnThreadCreated.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasRole\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyInstructorOnThreadCreated.php
+
+		-
+			message: '#^Parameter \#3 \$title of method Modules\\Notifications\\Services\\NotificationService\:\:send\(\) expects string, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: Modules/Forums/app/Listeners/NotifyInstructorOnThreadCreated.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyUsersOnThreadPinned.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyUsersOnThreadPinned.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyUsersOnThreadPinned.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$scheme_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyUsersOnThreadPinned.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Forums/app/Listeners/NotifyUsersOnThreadPinned.php
+
+		-
+			message: '#^Parameter \#3 \$title of method Modules\\Notifications\\Services\\NotificationService\:\:send\(\) expects string, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Forums/app/Listeners/NotifyUsersOnThreadPinned.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$scheme_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Forums/app/Listeners/UpdateForumStatistics.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reply\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/UpdateForumStatistics.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Listeners/UpdateForumStatistics.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$scheme_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Forums/app/Listeners/UpdateForumStatistics.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Forums\\Models\\Reply\>\|Modules\\Forums\\Models\\Reply\:\:\$depth\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Models/Reply.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reply\:\:\$depth\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Forums/app/Models/Reply.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reply\:\:\$is_accepted_answer\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Models/Reply.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$is_closed\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Models/Thread.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$is_pinned\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Models/Thread.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$is_resolved\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Models/Thread.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$scheme_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Forums/app/Policies/ReplyPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reply\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Forums/app/Policies/ReplyPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$scheme_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Policies/ReplyPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Forums/app/Policies/ThreadPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$scheme_id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/Forums/app/Policies/ThreadPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Repositories/ForumStatisticsRepository.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Repositories/ForumStatisticsRepository.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reply\:\:\$deleted_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Repositories/ReplyRepository.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reply\:\:\$is_accepted_answer\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Forums/app/Repositories/ReplyRepository.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Reply\:\:\$thread_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Repositories/ReplyRepository.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Models\\Thread\:\:\$deleted_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Repositories/ThreadRepository.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Modules\\Forums\\Models\\Thread\>\:\:allowedFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Forums/app/Services/ForumService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Auth\\Models\\User\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Services/ModerationService.php
+
+		-
+			message: '#^Parameter \#1 \$thread of method Modules\\Forums\\Repositories\\ThreadRepository\:\:update\(\) expects Modules\\Forums\\Models\\Thread, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: Modules/Forums/app/Services/ModerationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Challenge\:\:\$user_progress\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Http/Controllers/ChallengeController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>criteria_target" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/ChallengeController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$icon_url\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Point\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Point\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Point\:\:\$points\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Point\:\:\$reason\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Point\:\:\$source_type\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserBadge\:\:\$awarded_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserBadge\:\:\$badge_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Gamification\\Models\\UserBadge\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Modules\\Gamification\\Models\\Point\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Property Modules\\Gamification\\Http\\Controllers\\GamificationController\:\:\$gamificationService is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>current_streak" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>global_level" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>longest_streak" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>progress_to_next_level" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>total_xp" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>xp_to_next_level" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/GamificationController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\:\:getCollection\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/LeaderboardController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>avatar_url" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/LeaderboardController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Gamification/app/Http/Controllers/LeaderboardController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Listeners/AwardBadgeForCourseCompleted.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Listeners/AwardBadgeForCourseCompleted.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Gamification/app/Listeners/AwardBadgeForCourseCompleted.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$assignment_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Listeners/AwardXpForAssignmentSubmission.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Listeners/AwardXpForAssignmentSubmission.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Listeners/AwardXpForLessonCompleted.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$unit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Listeners/AwardXpForLessonCompleted.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Listeners/UpdateChallengeProgressOnSubmissionCreated.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: Modules/Gamification/app/Listeners/UpdateChallengeProgressOnSubmissionCreated.php
+
+		-
+			message: '#^Call to an undefined method Spatie\\Image\\Drivers\\ImageDriver\:\:performOnCollections\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: Modules/Gamification/app/Models/Badge.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Challenge\:\:\$end_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Models/Challenge.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Challenge\:\:\$start_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Models/Challenge.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Challenge\:\:\$target_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Models/Challenge.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Leaderboard\:\:\$course_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Models/Leaderboard.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Leaderboard\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Models/Leaderboard.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>total_xp" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Gamification/app/Models/Leaderboard.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Level\:\:\$course_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Models/Level.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Level\:\:\$current_level\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Models/Level.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Level\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Models/Level.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>total_xp" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Gamification/app/Models/Level.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserChallengeAssignment\:\:\$current_progress\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Models/UserChallengeAssignment.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserChallengeAssignment\:\:\$expires_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Models/UserChallengeAssignment.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserChallengeAssignment\:\:\$reward_claimed\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Models/UserChallengeAssignment.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserChallengeAssignment\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Models/UserChallengeAssignment.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>criteria_target" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: Modules/Gamification/app/Models/UserChallengeAssignment.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserGamificationStat\:\:\$global_level\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Models/UserGamificationStat.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserGamificationStat\:\:\$total_xp\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Models/UserGamificationStat.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$badge\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$badge_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$criteria_target\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$criteria_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$points_reward\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserChallengeAssignment\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserChallengeAssignment\:\:\$current_progress\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserChallengeAssignment\:\:\$reward_claimed\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserChallengeAssignment\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserChallengeAssignment\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of static method Illuminate\\Database\\Connection\:\:transaction\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/Gamification/app/Services/ChallengeService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserGamificationStat\:\:\$global_level\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Services/GamificationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserGamificationStat\:\:\$last_activity_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Services/GamificationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserGamificationStat\:\:\$stats_updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Services/GamificationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserGamificationStat\:\:\$total_xp\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Gamification/app/Services/GamificationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserGamificationStat\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Services/GamificationService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserGamificationStat\:\:\$global_level\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Gamification/app/Services/LeaderboardService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserGamificationStat\:\:\$total_xp\.$#'
+			identifier: property.notFound
+			count: 7
+			path: Modules/Gamification/app/Services/LeaderboardService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Gamification\\Models\\UserGamificationStat\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Gamification/app/Services/LeaderboardService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>avatar_url" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Gamification/app/Services/LeaderboardService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Gamification/app/Services/LeaderboardService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Grading\\Services\\GradingService\:\:render\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: Modules/Grading/app/Http/Controllers/GradingController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Grading\\Models\\Grade\:\:\$source_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Grading/app/Models/Grade.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Grading\\Models\\Grade\:\:\$source_type\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Grading/app/Models/Grade.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Grading\\Models\\Grade\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Grading/app/Models/Grade.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Grading\\Models\\GradingRubric\:\:\$scope_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Grading/app/Models/GradingRubric.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Grading\\Models\\Grade\:\:\$graded_by\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Grading/app/Policies/GradePolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Grading\\Models\\Grade\:\:\$submission\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Grading/app/Policies/GradePolicy.php
+
+		-
+			message: '#^Relation ''gradedBy'' is not found in Modules\\Grading\\Models\\Grade model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Grading/app/Repositories/GradingRepository.php
+
+		-
+			message: '#^Relation ''submission'' is not found in Modules\\Grading\\Models\\Grade model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Grading/app/Repositories/GradingRepository.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Learning\\Http\\Controllers\\AssignmentController\:\:authorize\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: Modules/Learning/app/Http/Controllers/AssignmentController.php
+
+		-
+			message: '#^Call to static method make\(\) on an unknown class Modules\\Learning\\Http\\Controllers\\AssignmentResource\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Controllers/AssignmentController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Controllers/SubmissionController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Learning/app/Http/Controllers/SubmissionController.php
+
+		-
+			message: '#^Call to static method make\(\) on an unknown class Modules\\Learning\\Http\\Controllers\\SubmissionResource\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Controllers/SubmissionController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$allow_resubmit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$available_from\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$creator\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$deadline_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$late_penalty_percent\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$lesson\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$max_score\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$submission_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\SubmissionResource\:\:\$answer_text\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/SubmissionResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\SubmissionResource\:\:\$assignment_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/SubmissionResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\SubmissionResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/SubmissionResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\SubmissionResource\:\:\$enrollment_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/SubmissionResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\SubmissionResource\:\:\$graded_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/SubmissionResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\SubmissionResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/SubmissionResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\SubmissionResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/SubmissionResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\SubmissionResource\:\:\$submitted_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/SubmissionResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\SubmissionResource\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/SubmissionResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\SubmissionResource\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Learning/app/Http/Resources/SubmissionResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\SubmissionResource\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Http/Resources/SubmissionResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Listeners/NotifyEnrolledUsersOnAssignmentPublished.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$lesson\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Listeners/NotifyEnrolledUsersOnAssignmentPublished.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 2
+			path: Modules/Learning/app/Listeners/NotifyEnrolledUsersOnAssignmentPublished.php
+
+		-
+			message: '#^Relation ''user'' is not found in Modules\\Enrollments\\Models\\Enrollment model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Learning/app/Listeners/NotifyEnrolledUsersOnAssignmentPublished.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Mail/AssignmentPublishedMail.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Mail/AssignmentPublishedMail.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$available_from\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Models/Assignment.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$deadline_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Models/Assignment.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Models/Assignment.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Grading\\Models\\Grade\:\:\$feedback\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Models/Submission.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Grading\\Models\\Grade\:\:\$graded_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Models/Submission.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Grading\\Models\\Grade\:\:\$score\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Models/Submission.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$assignment_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Learning/app/Models/Submission.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/Learning/app/Models/Submission.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$lesson\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Learning/app/Policies/AssignmentPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$assignment\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Learning/app/Policies/SubmissionPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Learning/app/Policies/SubmissionPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Learning/app/Policies/SubmissionPolicy.php
+
+		-
+			message: '#^Relation ''creator'' is not found in Modules\\Learning\\Models\\Assignment model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Learning/app/Repositories/AssignmentRepository.php
+
+		-
+			message: '#^Relation ''lesson'' is not found in Modules\\Learning\\Models\\Assignment model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Learning/app/Repositories/AssignmentRepository.php
+
+		-
+			message: '#^Relation ''enrollment'' is not found in Modules\\Learning\\Models\\Submission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Learning/app/Repositories/SubmissionRepository.php
+
+		-
+			message: '#^Relation ''files'' is not found in Modules\\Learning\\Models\\Submission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Learning/app/Repositories/SubmissionRepository.php
+
+		-
+			message: '#^Relation ''grade'' is not found in Modules\\Learning\\Models\\Submission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Learning/app/Repositories/SubmissionRepository.php
+
+		-
+			message: '#^Relation ''user'' is not found in Modules\\Learning\\Models\\Submission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Learning/app/Repositories/SubmissionRepository.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$allow_resubmit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/AssignmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$available_from\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/AssignmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$deadline_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/AssignmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/AssignmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$late_penalty_percent\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/AssignmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$max_score\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/AssignmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/AssignmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/AssignmentService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Learning/app/Services/AssignmentService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$allow_resubmit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/SubmissionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$lesson\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/SubmissionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$answer_text\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/SubmissionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$assignment\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/SubmissionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$attempt_number\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/SubmissionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$is_late\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/SubmissionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/SubmissionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Submission\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/SubmissionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$unit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Learning/app/Services/SubmissionService.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: Modules/Learning/app/Services/SubmissionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Notifications/app/Listeners/NotifyUserOnCourseCompleted.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Notifications/app/Listeners/NotifyUserOnCourseCompleted.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Notifications/app/Listeners/NotifyUserOnCourseCompleted.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Notifications/app/Listeners/NotifyUserOnCourseCompleted.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 2
+			path: Modules/Notifications/app/Listeners/NotifyUserOnCourseCompleted.php
+
+		-
+			message: '#^Result of \|\| is always false\.$#'
+			identifier: booleanOr.alwaysFalse
+			count: 1
+			path: Modules/Notifications/app/Listeners/NotifyUserOnCourseCompleted.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Notifications\\Models\\NotificationPreference\:\:\$enabled\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Notifications/app/Services/NotificationPreferenceService.php
+
+		-
+			message: '#^Trait Modules\\Notifications\\Traits\\SendsNotificationsWithPreferences is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: Modules/Notifications/app/Traits/SendsNotificationsWithPreferences.php
+
+		-
+			message: '#^Call to method log\(\) on an unknown class Modules\\Operations\\Services\\AuditService\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Operations/app/Http/Middleware/AuditLogMiddleware.php
+
+		-
+			message: '#^Class Modules\\Operations\\Services\\AuditService not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Operations/app/Http/Middleware/AuditLogMiddleware.php
+
+		-
+			message: '#^Parameter \$auditService of method Modules\\Operations\\Http\\Middleware\\AuditLogMiddleware\:\:__construct\(\) has invalid type Modules\\Operations\\Services\\AuditService\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Operations/app/Http/Middleware/AuditLogMiddleware.php
+
+		-
+			message: '#^Property Modules\\Operations\\Http\\Middleware\\AuditLogMiddleware\:\:\$auditService has unknown class Modules\\Operations\\Services\\AuditService as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: Modules/Operations/app/Http/Middleware/AuditLogMiddleware.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Http\\Controllers\\CourseController\:\:authorize\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: Modules/Schemes/app/Http/Controllers/CourseController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Services\\CourseService\:\:generateEnrollmentKey\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: Modules/Schemes/app/Http/Controllers/CourseController.php
+
+		-
+			message: '#^Method Modules\\Schemes\\Services\\CourseService\:\:create\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/CourseController.php
+
+		-
+			message: '#^Property Modules\\Schemes\\Http\\Controllers\\CourseController\:\:\$repository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/CourseController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$unit\.$#'
+			identifier: property.notFound
+			count: 8
+			path: Modules/Schemes/app/Http/Controllers/LessonBlockController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$unit_id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/Schemes/app/Http/Controllers/LessonBlockController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\LessonBlock\:\:\$lesson_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Schemes/app/Http/Controllers/LessonBlockController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$instructor_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Schemes/app/Http/Controllers/LessonController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Unit\:\:\$course_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Schemes/app/Http/Controllers/LessonController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Services\\LessonService\:\:listByUnit\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/LessonController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Services\\LessonService\:\:publish\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/LessonController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Services\\LessonService\:\:show\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: Modules/Schemes/app/Http/Controllers/LessonController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Services\\LessonService\:\:unpublish\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/LessonController.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Modules\\Schemes\\Models\\Course and ''hasAdmin'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 3
+			path: Modules/Schemes/app/Http/Controllers/LessonController.php
+
+		-
+			message: '#^Method Modules\\Schemes\\Services\\LessonService\:\:delete\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/LessonController.php
+
+		-
+			message: '#^Method Modules\\Schemes\\Services\\LessonService\:\:update\(\) invoked with 3 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/LessonController.php
+
+		-
+			message: '#^Parameter \#2 \$data of method Modules\\Schemes\\Services\\LessonService\:\:update\(\) expects array\|Modules\\Schemes\\DTOs\\UpdateLessonDTO, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/LessonController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/ProgressController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$unit_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/ProgressController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Unit\:\:\$course_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/ProgressController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$instructor_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Http/Controllers/UnitController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Services\\UnitService\:\:getRepository\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/UnitController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Services\\UnitService\:\:listByCourse\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/UnitController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Services\\UnitService\:\:publish\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/UnitController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Services\\UnitService\:\:show\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: Modules/Schemes/app/Http/Controllers/UnitController.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Services\\UnitService\:\:unpublish\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/UnitController.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Modules\\Schemes\\Models\\Course and ''hasAdmin'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: Modules/Schemes/app/Http/Controllers/UnitController.php
+
+		-
+			message: '#^Method Modules\\Schemes\\Services\\UnitService\:\:delete\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/UnitController.php
+
+		-
+			message: '#^Method Modules\\Schemes\\Services\\UnitService\:\:update\(\) invoked with 3 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/UnitController.php
+
+		-
+			message: '#^Parameter \#2 \$data of method Modules\\Schemes\\Services\\UnitService\:\:update\(\) expects array\|Modules\\Schemes\\DTOs\\UpdateUnitDTO, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Schemes/app/Http/Controllers/UnitController.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: Modules/Schemes/app/Http/Requests/CourseRequest.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/Schemes/app/Http/Requests/LessonBlockRequest.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Listeners/SendCourseCompletedEmail.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/Schemes/app/Listeners/SendCourseCompletedEmail.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$unit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Listeners/UpdateProgressOnLessonCompleted.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>course_id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Schemes/app/Listeners/UpdateProgressOnLessonCompleted.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Mail/CourseCompletedMail.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$category_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$duration_estimate\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$instructor_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$level_tag\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$published_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$short_desc\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$tags_json\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Call to an undefined method Spatie\\Image\\Drivers\\ImageDriver\:\:performOnCollections\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: Modules/Schemes/app/Models/Course.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$content_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Lesson.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Lesson.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$markdown_content\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Lesson.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Models/Lesson.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Lesson.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$unit\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Schemes/app/Models/Lesson.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$unit_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Lesson.php
+
+		-
+			message: '#^Call to an undefined method Spatie\\Image\\Drivers\\ImageDriver\:\:performOnCollections\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: Modules/Schemes/app/Models/LessonBlock.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Tag\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Tag.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Tag\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Tag.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Tag\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Tag.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Unit\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Unit.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Unit\:\:\$course\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Unit.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Unit\:\:\$course_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Unit.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Unit\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Unit.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Unit\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Models/Unit.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Unit\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Models/Unit.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$instructor_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Schemes/app/Policies/CoursePolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Policies/CoursePolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$unit\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Policies/LessonPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Unit\:\:\$course\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Policies/UnitPolicy.php
+
+		-
+			message: '#^Method Modules\\Schemes\\Repositories\\CourseRepository\:\:findBySlug\(\) should return Modules\\Schemes\\Models\\Course\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Schemes/app/Repositories/CourseRepository.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: Modules/Schemes/app/Repositories/LessonRepository.php
+
+		-
+			message: '#^Method Modules\\Schemes\\Repositories\\LessonRepository\:\:findByUnitAndId\(\) should return Modules\\Schemes\\Models\\Lesson\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Schemes/app/Repositories/LessonRepository.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: Modules/Schemes/app/Repositories/UnitRepository.php
+
+		-
+			message: '#^Method Modules\\Schemes\\Repositories\\UnitRepository\:\:findByCourseAndId\(\) should return Modules\\Schemes\\Models\\Unit\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Schemes/app/Repositories/UnitRepository.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\CourseRepositoryInterface\:\:create\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/CourseService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\CourseRepositoryInterface\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/CourseService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\CourseRepositoryInterface\:\:findById\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: Modules/Schemes/app/Services/CourseService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\CourseRepositoryInterface\:\:findByIdOrFail\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: Modules/Schemes/app/Services/CourseService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\CourseRepositoryInterface\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: Modules/Schemes/app/Services/CourseService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\DTOs\\CreateCourseDTO\:\:toArrayWithoutNull\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/CourseService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\DTOs\\UpdateCourseDTO\:\:toArrayWithoutNull\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/CourseService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\LessonBlock\:\:\$block_type\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Services/LessonBlockService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\LessonBlock\:\:\$content\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/LessonBlockService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Modules\\Schemes\\Models\\LessonBlock\>\:\:allowedFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/LessonBlockService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Modules\\Schemes\\Models\\Lesson\>\:\:allowedFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/LessonService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\LessonRepositoryInterface\:\:create\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/LessonService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\LessonRepositoryInterface\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/LessonService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\LessonRepositoryInterface\:\:findById\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/LessonService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\LessonRepositoryInterface\:\:findByIdOrFail\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: Modules/Schemes/app/Services/LessonService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\LessonRepositoryInterface\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/LessonService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\DTOs\\CreateLessonDTO\:\:toArrayWithoutNull\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/LessonService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\DTOs\\UpdateLessonDTO\:\:toArrayWithoutNull\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/LessonService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lessons\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\CourseProgress\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\CourseProgress\:\:\$progress_percent\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\CourseProgress\:\:\$started_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\CourseProgress\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\Enrollment\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\LessonProgress\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\LessonProgress\:\:\$progress_percent\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\LessonProgress\:\:\$started_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\LessonProgress\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\UnitProgress\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\UnitProgress\:\:\$progress_percent\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\UnitProgress\:\:\$started_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Enrollments\\Models\\UnitProgress\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$progression_mode\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$unit\.$#'
+			identifier: property.notFound
+			count: 6
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Unit\:\:\$course\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Unit\:\:\$lessons\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Parameter \#1 \$unit of method Modules\\Schemes\\Services\\ProgressionService\:\:updateUnitProgress\(\) expects Modules\\Schemes\\Models\\Unit, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between Modules\\Enrollments\\Enums\\ProgressStatus\:\:InProgress\|Modules\\Enrollments\\Enums\\ProgressStatus\:\:NotStarted and Modules\\Enrollments\\Enums\\ProgressStatus\:\:Completed will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>status" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/Schemes/app/Services/ProgressionService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$tags_json\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/TagService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Tag\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/TagService.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Tag\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/TagService.php
+
+		-
+			message: '#^Method Modules\\Schemes\\Services\\TagService\:\:ensureUniqueSlug\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: Modules/Schemes/app/Services/TagService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Modules\\Schemes\\Models\\Unit\>\:\:allowedFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/UnitService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\UnitRepositoryInterface\:\:create\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/UnitService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\UnitRepositoryInterface\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/UnitService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\UnitRepositoryInterface\:\:findById\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/UnitService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\UnitRepositoryInterface\:\:findByIdOrFail\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: Modules/Schemes/app/Services/UnitService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\Contracts\\Repositories\\UnitRepositoryInterface\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/UnitService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\DTOs\\CreateUnitDTO\:\:toArrayWithoutNull\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/UnitService.php
+
+		-
+			message: '#^Call to an undefined method Modules\\Schemes\\DTOs\\UpdateUnitDTO\:\:toArrayWithoutNull\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Schemes/app/Services/UnitService.php
+
+		-
+			message: '#^PHPDoc type array\<string\> of property Modules\\Search\\Models\\SearchHistory\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: Modules/Search/app/Models/SearchHistory.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Search\\Models\\SearchHistory\:\:\$query\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Search/app/Services/SearchService.php
+
+		-
+			message: '#^Parameter \$items of class Modules\\Search\\DTOs\\SearchResultDTO constructor expects Illuminate\\Pagination\\LengthAwarePaginator, Illuminate\\Contracts\\Pagination\\LengthAwarePaginator given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Search/app/Services/SearchService.php
+
+		-
+			message: '#^Offset 1 on array\{list\<string\>, list\<non\-empty\-string\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: app/Console/Commands/GenerateFilterDocumentation.php
+
+		-
+			message: '#^Call to an undefined static method App\\Support\\ApiResponse\:\:paginated\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Http/Controllers/Api/ActivityLogController.php
+
+		-
+			message: '#^Static call to instance method App\\Support\\ApiResponse\:\:error\(\)\.$#'
+			identifier: method.staticCall
+			count: 1
+			path: app/Http/Controllers/Api/ActivityLogController.php
+
+		-
+			message: '#^Static call to instance method App\\Support\\ApiResponse\:\:success\(\)\.$#'
+			identifier: method.staticCall
+			count: 1
+			path: app/Http/Controllers/Api/ActivityLogController.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\LeaderboardResource\:\:\$global_level\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/LeaderboardResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\LeaderboardResource\:\:\$total_xp\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/LeaderboardResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\LeaderboardResource\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/LeaderboardResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>avatar_url" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Resources/LeaderboardResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Resources/LeaderboardResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$roles\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Method App\\Models\\MasterDataItem\:\:getByTypeAndValue\(\) should return App\\Models\\MasterDataItem\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/MasterDataItem.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$instructor_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Policies/CoursePolicy.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Modules\\Schemes\\Models\\Course and ''hasAdmin'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: app/Policies/CoursePolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Lesson\:\:\$unit\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Policies/LessonPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Course\:\:\$instructor_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Policies/UnitPolicy.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Schemes\\Models\\Unit\:\:\$course\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Policies/UnitPolicy.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Modules\\Schemes\\Models\\Course and ''hasAdmin'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Policies/UnitPolicy.php
+
+		-
+			message: '#^Class Dedoc\\Scramble\\Support\\Generator\\Server constructor invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 2
+			path: app/Providers/AppServiceProvider.php
+
+		-
+			message: '#^Right side of \|\| is always false\.$#'
+			identifier: booleanOr.rightAlwaysFalse
+			count: 1
+			path: app/Providers/AuthServiceProvider.php
+
+		-
+			message: '#^Method App\\Repositories\\ActivityLogRepository\:\:find\(\) should return Spatie\\Activitylog\\Models\\Activity\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Repositories/ActivityLogRepository.php
+
+		-
+			message: '#^Parameter \#1 \$params of method App\\Repositories\\ActivityLogRepository\:\:paginate\(\) expects array, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/ActivityLogService.php
+
+		-
+			message: '#^Call to an undefined method App\\Repositories\\MasterDataRepository\:\:all\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/MasterDataService.php
+
+		-
+			message: '#^Method App\\Services\\MasterDataService\:\:create\(\) should return App\\Models\\MasterDataItem but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/MasterDataService.php
+
+		-
+			message: '#^Method App\\Services\\MasterDataService\:\:update\(\) should return App\\Models\\MasterDataItem\|null but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/MasterDataService.php
+
+		-
+			message: '#^Parameter \#1 \$params of method App\\Repositories\\BaseRepository\:\:paginate\(\) expects array, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/MasterDataService.php
+
+		-
+			message: '#^Call to an undefined static method Illuminate\\Database\\Eloquent\\Model\:\:search\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Support/QueryFilter.php
+
+		-
+			message: '#^Trait App\\Traits\\ValidatesWithCustomMessages is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: app/Traits/ValidatesWithCustomMessages.php

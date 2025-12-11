@@ -71,6 +71,16 @@ class NewsService implements NewsServiceInterface
         return $this->getFeed($filters);
     }
 
+    public function find(int $id): ?News
+    {
+        return $this->repository->findWithRelations($id);
+    }
+
+    public function findBySlug(string $slug): ?News
+    {
+        return $this->repository->findBySlugWithRelations($slug);
+    }
+
     public function create(CreateNewsDTO $dto, User $author): News
     {
         return DB::transaction(function () use ($dto, $author) {

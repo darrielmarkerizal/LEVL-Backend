@@ -1,160 +1,167 @@
 {
-    "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
-    "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": [
-        "laravel",
-        "framework"
+  "$schema": "https://getcomposer.org/schema.json",
+  "name": "laravel/laravel",
+  "type": "project",
+  "description": "The skeleton application for the Laravel framework.",
+  "keywords": [
+    "laravel",
+    "framework"
+  ],
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "dedoc/scramble": "^0.13.7",
+    "http-interop/http-factory-guzzle": "^1.2",
+    "laravel/framework": "^11.0",
+    "laravel/scout": "*",
+    "laravel/socialite": "^5.23",
+    "laravel/tinker": "^2.10.1",
+    "league/flysystem-aws-s3-v3": "*",
+    "meilisearch/meilisearch-php": "^1.16",
+    "nwidart/laravel-modules": "^11.0",
+    "scalar/laravel": "^0.2.0",
+    "spatie/laravel-activitylog": "^4.10",
+    "spatie/laravel-data": "^4.18",
+    "spatie/laravel-medialibrary": "^11.0",
+    "spatie/laravel-permission": "^6.22",
+    "spatie/laravel-query-builder": "^6.3",
+    "spatie/laravel-sluggable": "^3.7",
+    "tymon/jwt-auth": "^2.2"
+  },
+  "require-dev": {
+    "codedungeon/phpunit-result-printer": "^0.1.0",
+    "fakerphp/faker": "^1.23",
+    "larastan/larastan": "^3.8",
+    "laravel/pail": "^1.2.2",
+    "laravel/pint": "^1.24",
+    "laravel/sail": "^1.41",
+    "laravel/telescope": "^5.15",
+    "mockery/mockery": "^1.6",
+    "nunomaduro/collision": "^8.6",
+    "pestphp/pest": "^3.8",
+    "pestphp/pest-plugin-drift": "^3.0",
+    "phpunit/phpunit": "^11.5.3"
+  },
+  "autoload": {
+    "files": [
+      "app/Support/helpers.php"
     ],
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "dedoc/scramble": "^0.13.7",
-        "http-interop/http-factory-guzzle": "^1.2",
-        "laravel/framework": "^11.0",
-        "laravel/scout": "*",
-        "laravel/socialite": "^5.23",
-        "laravel/tinker": "^2.10.1",
-        "league/flysystem-aws-s3-v3": "*",
-        "meilisearch/meilisearch-php": "^1.16",
-        "nwidart/laravel-modules": "^11.0",
-        "scalar/laravel": "^0.2.0",
-        "spatie/laravel-activitylog": "^4.10",
-        "spatie/laravel-data": "^4.18",
-        "spatie/laravel-medialibrary": "^11.0",
-        "spatie/laravel-permission": "^6.22",
-        "spatie/laravel-query-builder": "^6.3",
-        "spatie/laravel-sluggable": "^3.7",
-        "tymon/jwt-auth": "^2.2"
-    },
-    "require-dev": {
-        "codedungeon/phpunit-result-printer": "^0.1.0",
-        "fakerphp/faker": "^1.23",
-        "laravel/pail": "^1.2.2",
-        "laravel/pint": "^1.24",
-        "laravel/sail": "^1.41",
-        "laravel/telescope": "^5.15",
-        "mockery/mockery": "^1.6",
-        "nunomaduro/collision": "^8.6",
-        "pestphp/pest": "^3.8",
-        "pestphp/pest-plugin-drift": "^3.0",
-        "phpunit/phpunit": "^11.5.3"
-    },
-    "autoload": {
-        "files": [
-            "app/Support/helpers.php"
-        ],
-        "psr-4": {
-            "App\\": "app/",
-            "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/",
-            "Modules\\Auth\\": "Modules/Auth/app/",
-            "Modules\\Auth\\Database\\Factories\\": "Modules/Auth/database/factories/",
-            "Modules\\Auth\\Database\\Seeders\\": "Modules/Auth/database/seeders/",
-            "Modules\\Common\\": "Modules/Common/app/",
-            "Modules\\Common\\Database\\Factories\\": "Modules/Common/database/factories/",
-            "Modules\\Common\\Database\\Seeders\\": "Modules/Common/database/seeders/",
-            "Modules\\Enrollments\\": "Modules/Enrollments/app/",
-            "Modules\\Enrollments\\Database\\Factories\\": "Modules/Enrollments/database/factories/",
-            "Modules\\Enrollments\\Database\\Seeders\\": "Modules/Enrollments/database/seeders/",
-            "Modules\\Gamification\\": "Modules/Gamification/app/",
-            "Modules\\Gamification\\Database\\Factories\\": "Modules/Gamification/database/factories/",
-            "Modules\\Gamification\\Database\\Seeders\\": "Modules/Gamification/database/seeders/",
-            "Modules\\Grading\\": "Modules/Grading/app/",
-            "Modules\\Grading\\Database\\Factories\\": "Modules/Grading/database/factories/",
-            "Modules\\Grading\\Database\\Seeders\\": "Modules/Grading/database/seeders/",
-            "Modules\\Learning\\": "Modules/Learning/app/",
-            "Modules\\Learning\\Database\\Factories\\": "Modules/Learning/database/factories/",
-            "Modules\\Learning\\Database\\Seeders\\": "Modules/Learning/database/seeders/",
-            "Modules\\Notifications\\": "Modules/Notifications/app/",
-            "Modules\\Notifications\\Database\\Factories\\": "Modules/Notifications/database/factories/",
-            "Modules\\Notifications\\Database\\Seeders\\": "Modules/Notifications/database/seeders/",
-            "Modules\\Operations\\": "Modules/Operations/app/",
-            "Modules\\Operations\\Database\\Factories\\": "Modules/Operations/database/factories/",
-            "Modules\\Operations\\Database\\Seeders\\": "Modules/Operations/database/seeders/",
-            "Modules\\Schemes\\": "Modules/Schemes/app/",
-            "Modules\\Schemes\\Database\\Factories\\": "Modules/Schemes/database/factories/",
-            "Modules\\Schemes\\Database\\Seeders\\": "Modules/Schemes/database/seeders/",
-            "Modules\\Forums\\": "Modules/Forums/app/",
-            "Modules\\Forums\\Database\\Factories\\": "Modules/Forums/database/factories/",
-            "Modules\\Forums\\Database\\Seeders\\": "Modules/Forums/database/seeders/",
-            "Modules\\Content\\": "Modules/Content/app/",
-            "Modules\\Content\\Database\\Factories\\": "Modules/Content/database/factories/",
-            "Modules\\Content\\Database\\Seeders\\": "Modules/Content/database/seeders/",
-            "Modules\\Search\\": "Modules/Search/app/",
-            "Modules\\Search\\Database\\Factories\\": "Modules/Search/database/factories/",
-            "Modules\\Search\\Database\\Seeders\\": "Modules/Search/database/seeders/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/",
-            "Modules\\Auth\\Tests\\": "Modules/Auth/tests/",
-            "Modules\\Common\\Tests\\": "Modules/Common/tests/",
-            "Modules\\Enrollments\\Tests\\": "Modules/Enrollments/tests/",
-            "Modules\\Gamification\\Tests\\": "Modules/Gamification/tests/",
-            "Modules\\Grading\\Tests\\": "Modules/Grading/tests/",
-            "Modules\\Learning\\Tests\\": "Modules/Learning/tests/",
-            "Modules\\Notifications\\Tests\\": "Modules/Notifications/tests/",
-            "Modules\\Operations\\Tests\\": "Modules/Operations/tests/",
-            "Modules\\Schemes\\Tests\\": "Modules/Schemes/tests/",
-            "Modules\\Forums\\Tests\\": "Modules/Forums/tests/",
-            "Modules\\Content\\Tests\\": "Modules/Content/tests/",
-            "Modules\\Search\\Tests\\": "Modules/Search/tests/"
-        }
-    },
-    "scripts": {
-        "setup": [
-            "composer install",
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
-            "@php artisan key:generate",
-            "@php artisan migrate --force",
-            "npm install",
-            "npm run build"
-        ],
-        "dev": [
-            "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
-        ],
-        "test": [
-            "@php artisan config:clear --ansi",
-            "@php artisan test"
-        ],
-        "post-autoload-dump": [
-            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
-        ],
-        "post-update-cmd": [
-            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
-        ],
-        "post-root-package-install": [
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
-        ],
-        "post-create-project-cmd": [
-            "@php artisan key:generate --ansi",
-            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
-            "@php artisan migrate --graceful --ansi"
-        ],
-        "pre-package-uninstall": [
-            "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
-        ]
-    },
-    "extra": {
-        "laravel": {
-            "dont-discover": []
-        }
-    },
-    "config": {
-        "optimize-autoloader": true,
-        "preferred-install": "dist",
-        "sort-packages": true,
-        "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "php-http/discovery": true,
-            "wikimedia/composer-merge-plugin": true
-        }
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true
+    "psr-4": {
+      "App\\": "app/",
+      "Database\\Factories\\": "database/factories/",
+      "Database\\Seeders\\": "database/seeders/",
+      "Modules\\Auth\\": "Modules/Auth/app/",
+      "Modules\\Auth\\Database\\Factories\\": "Modules/Auth/database/factories/",
+      "Modules\\Auth\\Database\\Seeders\\": "Modules/Auth/database/seeders/",
+      "Modules\\Common\\": "Modules/Common/app/",
+      "Modules\\Common\\Database\\Factories\\": "Modules/Common/database/factories/",
+      "Modules\\Common\\Database\\Seeders\\": "Modules/Common/database/seeders/",
+      "Modules\\Enrollments\\": "Modules/Enrollments/app/",
+      "Modules\\Enrollments\\Database\\Factories\\": "Modules/Enrollments/database/factories/",
+      "Modules\\Enrollments\\Database\\Seeders\\": "Modules/Enrollments/database/seeders/",
+      "Modules\\Gamification\\": "Modules/Gamification/app/",
+      "Modules\\Gamification\\Database\\Factories\\": "Modules/Gamification/database/factories/",
+      "Modules\\Gamification\\Database\\Seeders\\": "Modules/Gamification/database/seeders/",
+      "Modules\\Grading\\": "Modules/Grading/app/",
+      "Modules\\Grading\\Database\\Factories\\": "Modules/Grading/database/factories/",
+      "Modules\\Grading\\Database\\Seeders\\": "Modules/Grading/database/seeders/",
+      "Modules\\Learning\\": "Modules/Learning/app/",
+      "Modules\\Learning\\Database\\Factories\\": "Modules/Learning/database/factories/",
+      "Modules\\Learning\\Database\\Seeders\\": "Modules/Learning/database/seeders/",
+      "Modules\\Notifications\\": "Modules/Notifications/app/",
+      "Modules\\Notifications\\Database\\Factories\\": "Modules/Notifications/database/factories/",
+      "Modules\\Notifications\\Database\\Seeders\\": "Modules/Notifications/database/seeders/",
+      "Modules\\Operations\\": "Modules/Operations/app/",
+      "Modules\\Operations\\Database\\Factories\\": "Modules/Operations/database/factories/",
+      "Modules\\Operations\\Database\\Seeders\\": "Modules/Operations/database/seeders/",
+      "Modules\\Schemes\\": "Modules/Schemes/app/",
+      "Modules\\Schemes\\Database\\Factories\\": "Modules/Schemes/database/factories/",
+      "Modules\\Schemes\\Database\\Seeders\\": "Modules/Schemes/database/seeders/",
+      "Modules\\Forums\\": "Modules/Forums/app/",
+      "Modules\\Forums\\Database\\Factories\\": "Modules/Forums/database/factories/",
+      "Modules\\Forums\\Database\\Seeders\\": "Modules/Forums/database/seeders/",
+      "Modules\\Content\\": "Modules/Content/app/",
+      "Modules\\Content\\Database\\Factories\\": "Modules/Content/database/factories/",
+      "Modules\\Content\\Database\\Seeders\\": "Modules/Content/database/seeders/",
+      "Modules\\Search\\": "Modules/Search/app/",
+      "Modules\\Search\\Database\\Factories\\": "Modules/Search/database/factories/",
+      "Modules\\Search\\Database\\Seeders\\": "Modules/Search/database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/",
+      "Modules\\Auth\\Tests\\": "Modules/Auth/tests/",
+      "Modules\\Common\\Tests\\": "Modules/Common/tests/",
+      "Modules\\Enrollments\\Tests\\": "Modules/Enrollments/tests/",
+      "Modules\\Gamification\\Tests\\": "Modules/Gamification/tests/",
+      "Modules\\Grading\\Tests\\": "Modules/Grading/tests/",
+      "Modules\\Learning\\Tests\\": "Modules/Learning/tests/",
+      "Modules\\Notifications\\Tests\\": "Modules/Notifications/tests/",
+      "Modules\\Operations\\Tests\\": "Modules/Operations/tests/",
+      "Modules\\Schemes\\Tests\\": "Modules/Schemes/tests/",
+      "Modules\\Forums\\Tests\\": "Modules/Forums/tests/",
+      "Modules\\Content\\Tests\\": "Modules/Content/tests/",
+      "Modules\\Search\\Tests\\": "Modules/Search/tests/"
+    }
+  },
+  "scripts": {
+    "setup": [
+      "composer install",
+      "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+      "@php artisan key:generate",
+      "@php artisan migrate --force",
+      "npm install",
+      "npm run build"
+    ],
+    "dev": [
+      "Composer\\Config::disableProcessTimeout",
+      "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
+    ],
+    "test": [
+      "@php artisan config:clear --ansi",
+      "@php artisan test"
+    ],
+    "phpstan": [
+      "./vendor/bin/phpstan analyse --memory-limit=2G"
+    ],
+    "phpstan:baseline": [
+      "./vendor/bin/phpstan analyse --memory-limit=2G --generate-baseline"
+    ],
+    "post-autoload-dump": [
+      "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+      "@php artisan package:discover --ansi"
+    ],
+    "post-update-cmd": [
+      "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+    ],
+    "post-root-package-install": [
+      "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+    ],
+    "post-create-project-cmd": [
+      "@php artisan key:generate --ansi",
+      "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+      "@php artisan migrate --graceful --ansi"
+    ],
+    "pre-package-uninstall": [
+      "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+    ]
+  },
+  "extra": {
+    "laravel": {
+      "dont-discover": []
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "php-http/discovery": true,
+      "wikimedia/composer-merge-plugin": true
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
 }

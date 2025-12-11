@@ -59,12 +59,14 @@ class NewsResource extends JsonResource
     /**
      * Create a new resource instance with default relationships loaded.
      */
-    public static function make($resource)
+    public static function make(...$parameters)
     {
+        $resource = $parameters[0] ?? null;
+
         if ($resource && method_exists($resource, 'loadMissing')) {
             $resource->loadMissing(['author', 'categories', 'tags']);
         }
 
-        return parent::make($resource);
+        return parent::make(...$parameters);
     }
 }

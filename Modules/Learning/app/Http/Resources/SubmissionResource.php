@@ -45,8 +45,10 @@ class SubmissionResource extends JsonResource
     /**
      * Create a new resource instance with default relationships loaded.
      */
-    public static function make($resource)
+    public static function make(...$parameters)
     {
+        $resource = $parameters[0] ?? null;
+
         if ($resource && method_exists($resource, 'loadMissing')) {
             $resource->loadMissing([
                 'assignment',
@@ -58,6 +60,6 @@ class SubmissionResource extends JsonResource
             ]);
         }
 
-        return parent::make($resource);
+        return parent::make(...$parameters);
     }
 }

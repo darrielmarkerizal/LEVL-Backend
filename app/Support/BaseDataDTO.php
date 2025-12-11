@@ -27,4 +27,13 @@ abstract class BaseDataDTO extends Data
     {
         return $this->toArrayWithoutNull();
     }
+
+    /**
+     * Convert to model attributes (snake_case).
+     * Override this method in child classes if custom mapping is needed.
+     */
+    public function toModelArray(): array
+    {
+        return $this->toArray();
+    }
 }
