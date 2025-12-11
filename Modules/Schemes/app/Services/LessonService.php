@@ -7,6 +7,8 @@ use Modules\Schemes\Contracts\Repositories\LessonRepositoryInterface;
 use Modules\Schemes\DTOs\CreateLessonDTO;
 use Modules\Schemes\DTOs\UpdateLessonDTO;
 use Modules\Schemes\Models\Lesson;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class LessonService
 {
@@ -14,9 +16,29 @@ class LessonService
         private readonly LessonRepositoryInterface $repository
     ) {}
 
+    /**
+     * Paginate lessons for a unit.
+     *
+     * Supports:
+     * - filter[unit_id], filter[type], filter[status]
+     * - sort: order, title, created_at (prefix with - for desc)
+     * - include: unit, blocks, assignments
+     */
     public function paginate(int $unitId, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->repository->findByUnit($unitId, $perPage);
+        $perPage = max(1, $perPage);
+
+        $query = QueryBuilder::for(Lesson::class)
+            ->where('unit_id', $unitId)
+            ->allowedFilters([
+                AllowedFilter::exact('type'),
+                AllowedFilter::exact('status'),
+            ])
+            ->allowedIncludes(['unit', 'blocks', 'assignments'])
+            ->allowedSorts(['order', 'title', 'created_at'])
+            ->defaultSort('order');
+
+        return $query->paginate($perPage);
     }
 
     public function find(int $id): ?Lesson

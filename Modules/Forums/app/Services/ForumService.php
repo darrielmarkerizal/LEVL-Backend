@@ -11,6 +11,8 @@ use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 use Modules\Forums\Repositories\ReplyRepository;
 use Modules\Forums\Repositories\ThreadRepository;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class ForumService implements ForumServiceInterface
 {
@@ -83,10 +85,27 @@ class ForumService implements ForumServiceInterface
 
     /**
      * Get threads for a scheme with sorting and filters.
+     *
+     * Supports:
+     * - filter[scheme_id], filter[author_id], filter[status]
+     * - sort: last_activity_at, created_at, replies_count, views_count (prefix with - for desc)
+     * - include: author, replies, scheme
      */
     public function getThreadsForScheme(int $schemeId, array $filters = []): LengthAwarePaginator
     {
-        return $this->threadRepository->getThreadsForScheme($schemeId, $filters);
+        $perPage = $filters['per_page'] ?? 15;
+
+        $query = QueryBuilder::for(Thread::class)
+            ->where('scheme_id', $schemeId)
+            ->allowedFilters([
+                AllowedFilter::exact('author_id'),
+                AllowedFilter::exact('status'),
+            ])
+            ->allowedIncludes(['author', 'replies', 'scheme'])
+            ->allowedSorts(['last_activity_at', 'created_at', 'replies_count', 'views_count'])
+            ->defaultSort('-last_activity_at');
+
+        return $query->paginate($perPage);
     }
 
     /**

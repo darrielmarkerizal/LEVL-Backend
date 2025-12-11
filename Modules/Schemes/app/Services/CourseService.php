@@ -4,11 +4,14 @@ namespace Modules\Schemes\Services;
 
 use App\Exceptions\BusinessException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Modules\Schemes\Contracts\Repositories\CourseRepositoryInterface;
 use Modules\Schemes\DTOs\CreateCourseDTO;
 use Modules\Schemes\DTOs\UpdateCourseDTO;
 use Modules\Schemes\Models\Course;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class CourseService
 {
@@ -18,32 +21,135 @@ class CourseService
 
     /**
      * Get paginated list of all courses.
-     * Spatie Query Builder reads filter/sort from request automatically.
+     *
+     * Supports:
+     * - filter[search] (Scout/Meilisearch)
+     * - filter[status], filter[level_tag], filter[type], filter[category_id], filter[tag]
+     * - sort: id, code, title, created_at, updated_at, published_at (prefix with - for desc)
+     * - include: tags, category, instructor, units
      */
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
-        return $this->repository->paginate(max(1, $perPage));
+        $perPage = max(1, $perPage);
+        $query = $this->buildQuery();
+
+        return $query->paginate($perPage);
     }
 
     /**
      * List all courses (paginated).
-     * Spatie Query Builder reads filter/sort from request automatically.
+     *
+     * Supports same filters/sorts/includes as paginate().
      */
     public function list(int $perPage = 15): LengthAwarePaginator
     {
-        return $this->repository->paginate(max(1, $perPage));
+        return $this->paginate($perPage);
     }
 
     /**
      * List public (published) courses with pagination.
-     * Spatie Query Builder reads filter/sort from request automatically.
+     *
+     * Supports same filters/sorts/includes as paginate(), automatically filters to published status.
      */
     public function listPublic(int $perPage = 15): LengthAwarePaginator
     {
-        // For public listing, add status=published automatically
-        request()->merge(['filter' => array_merge(request('filter', []), ['status' => 'published'])]);
+        $perPage = max(1, $perPage);
+        $query = $this->buildQuery()->where('status', 'published');
 
-        return $this->repository->paginate(max(1, $perPage));
+        return $query->paginate($perPage);
+    }
+
+    /**
+     * Build query with Spatie Query Builder + Scout search + tag filtering.
+     */
+    private function buildQuery(): QueryBuilder
+    {
+        $searchQuery = request('filter.search') ?? request('search');
+
+        $builder = QueryBuilder::for(Course::class);
+
+        // Handle Scout search if search parameter is provided
+        if ($searchQuery && trim($searchQuery) !== '') {
+            $ids = Course::search($searchQuery)->keys()->toArray();
+
+            if (! empty($ids)) {
+                $builder->whereIn('id', $ids);
+            } else {
+                // No results from search, return empty
+                $builder->whereRaw('1 = 0');
+            }
+        }
+
+        // Apply tag filters if provided
+        $tagFilter = request('filter.tag');
+        if ($tagFilter) {
+            $tags = $this->parseArrayFilter($tagFilter);
+
+            if (! empty($tags)) {
+                foreach ($tags as $tagValue) {
+                    $value = trim((string) $tagValue);
+                    if ($value === '') {
+                        continue;
+                    }
+
+                    $slug = Str::slug($value);
+
+                    $builder->whereHas('tags', function (Builder $tagQuery) use ($value, $slug) {
+                        $tagQuery->where(function (Builder $inner) use ($value, $slug) {
+                            $inner->where('slug', $slug)
+                                ->orWhere('slug', $value)
+                                ->orWhereRaw('LOWER(name) = ?', [mb_strtolower($value)]);
+                        });
+                    });
+                }
+            }
+        }
+
+        return $builder
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::exact('level_tag'),
+                AllowedFilter::exact('type'),
+                AllowedFilter::exact('category_id'),
+            ])
+            ->allowedIncludes(['tags', 'category', 'instructor', 'units'])
+            ->allowedSorts(['id', 'code', 'title', 'created_at', 'updated_at', 'published_at'])
+            ->defaultSort('title');
+    }
+
+    /**
+     * Parse filter value that may be array or JSON string.
+     */
+    private function parseArrayFilter($value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            $trim = trim($value);
+
+            if ($trim === '') {
+                return [];
+            }
+
+            if ($trim[0] === '[' || str_starts_with($trim, '%5B')) {
+                $decoded = json_decode($trim, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    return $decoded;
+                }
+
+                $urldec = urldecode($trim);
+                $decoded = json_decode($urldec, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    return $decoded;
+                }
+            }
+
+            return [$trim];
+        }
+
+        return [];
     }
 
     /**

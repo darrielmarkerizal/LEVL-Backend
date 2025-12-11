@@ -14,6 +14,8 @@ use Modules\Content\DTOs\UpdateAnnouncementDTO;
 use Modules\Content\Events\AnnouncementPublished;
 use Modules\Content\Models\Announcement;
 use Modules\Content\Models\ContentRevision;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class AnnouncementService implements AnnouncementServiceInterface
 {
@@ -21,14 +23,61 @@ class AnnouncementService implements AnnouncementServiceInterface
         private AnnouncementRepositoryInterface $repository
     ) {}
 
+    /**
+     * Get announcements for user.
+     *
+     * Supports:
+     * - filter[course_id], filter[status], filter[priority], filter[target_type]
+     * - sort: published_at, created_at, priority (prefix with - for desc)
+     * - include: author, course
+     */
     public function getForUser(User $user, array $filters = []): LengthAwarePaginator
     {
-        return $this->repository->getAnnouncementsForUser($user, $filters);
+        $perPage = $filters['per_page'] ?? 15;
+
+        $query = QueryBuilder::for(Announcement::class)
+            // Filter announcements visible to the user
+            ->where(function ($q) use ($user) {
+                $q->where('target_type', 'all')
+                    ->orWhere(function ($q2) use ($user) {
+                        $q2->where('target_type', 'specific_users')
+                            ->whereHas('targetUsers', fn ($q3) => $q3->where('user_id', $user->id));
+                    });
+            })
+            ->allowedFilters([
+                AllowedFilter::exact('course_id'),
+                AllowedFilter::exact('status'),
+                AllowedFilter::exact('priority'),
+                AllowedFilter::exact('target_type'),
+            ])
+            ->allowedIncludes(['author', 'course'])
+            ->allowedSorts(['published_at', 'created_at', 'priority'])
+            ->defaultSort('-published_at');
+
+        return $query->paginate($perPage);
     }
 
+    /**
+     * Get announcements for course.
+     *
+     * Supports same filters/sorts/includes as getForUser().
+     */
     public function getForCourse(int $courseId, array $filters = []): LengthAwarePaginator
     {
-        return $this->repository->getAnnouncementsForCourse($courseId, $filters);
+        $perPage = $filters['per_page'] ?? 15;
+
+        $query = QueryBuilder::for(Announcement::class)
+            ->where('course_id', $courseId)
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::exact('priority'),
+                AllowedFilter::exact('target_type'),
+            ])
+            ->allowedIncludes(['author', 'course'])
+            ->allowedSorts(['published_at', 'created_at', 'priority'])
+            ->defaultSort('-published_at');
+
+        return $query->paginate($perPage);
     }
 
     public function find(int $id): ?Announcement

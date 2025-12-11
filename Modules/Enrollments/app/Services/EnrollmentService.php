@@ -20,6 +20,8 @@ use Modules\Enrollments\Mail\StudentEnrollmentDeclinedMail;
 use Modules\Enrollments\Mail\StudentEnrollmentPendingMail;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class EnrollmentService implements EnrollmentServiceInterface
 {
@@ -32,29 +34,74 @@ class EnrollmentService implements EnrollmentServiceInterface
 
     /**
      * Get paginated enrollments by course.
-     * Spatie Query Builder reads filter/sort from request.
+     *
+     * Supports:
+     * - filter[status], filter[user_id], filter[enrolled_from], filter[enrolled_to]
+     * - sort: enrolled_at, completed_at, created_at (prefix with - for desc)
+     * - include: user, course
      */
     public function paginateByCourse(int $courseId, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->repository->paginateByCourse($courseId, $perPage);
+        $perPage = max(1, $perPage);
+
+        $query = QueryBuilder::for(Enrollment::class)
+            ->where('course_id', $courseId)
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::exact('user_id'),
+                AllowedFilter::callback('enrolled_from', fn ($q, $value) => $q->whereDate('enrolled_at', '>=', $value)),
+                AllowedFilter::callback('enrolled_to', fn ($q, $value) => $q->whereDate('enrolled_at', '<=', $value)),
+            ])
+            ->allowedIncludes(['user', 'course'])
+            ->allowedSorts(['enrolled_at', 'completed_at', 'created_at'])
+            ->defaultSort('-enrolled_at');
+
+        return $query->paginate($perPage);
     }
 
     /**
      * Get paginated enrollments by course IDs.
-     * Spatie Query Builder reads filter/sort from request.
      */
     public function paginateByCourseIds(array $courseIds, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->repository->paginateByCourseIds($courseIds, $perPage);
+        $perPage = max(1, $perPage);
+
+        $query = QueryBuilder::for(Enrollment::class)
+            ->whereIn('course_id', $courseIds)
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::exact('user_id'),
+                AllowedFilter::exact('course_id'),
+                AllowedFilter::callback('enrolled_from', fn ($q, $value) => $q->whereDate('enrolled_at', '>=', $value)),
+                AllowedFilter::callback('enrolled_to', fn ($q, $value) => $q->whereDate('enrolled_at', '<=', $value)),
+            ])
+            ->allowedIncludes(['user', 'course'])
+            ->allowedSorts(['enrolled_at', 'completed_at', 'created_at'])
+            ->defaultSort('-enrolled_at');
+
+        return $query->paginate($perPage);
     }
 
     /**
      * Get paginated enrollments by user.
-     * Spatie Query Builder reads filter/sort from request.
      */
     public function paginateByUser(int $userId, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->repository->paginateByUser($userId, $perPage);
+        $perPage = max(1, $perPage);
+
+        $query = QueryBuilder::for(Enrollment::class)
+            ->where('user_id', $userId)
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::exact('course_id'),
+                AllowedFilter::callback('enrolled_from', fn ($q, $value) => $q->whereDate('enrolled_at', '>=', $value)),
+                AllowedFilter::callback('enrolled_to', fn ($q, $value) => $q->whereDate('enrolled_at', '<=', $value)),
+            ])
+            ->allowedIncludes(['user', 'course'])
+            ->allowedSorts(['enrolled_at', 'completed_at', 'created_at'])
+            ->defaultSort('-enrolled_at');
+
+        return $query->paginate($perPage);
     }
 
     /**

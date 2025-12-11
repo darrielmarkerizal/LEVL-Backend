@@ -2,18 +2,34 @@
 
 namespace Modules\Schemes\Services;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Schemes\Models\LessonBlock;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class LessonBlockService
 {
-    public function list(int $lessonId)
+    /**
+     * List lesson blocks for a lesson.
+     *
+     * Supports:
+     * - filter[lesson_id], filter[block_type]
+     * - sort: order, created_at (prefix with - for desc)
+     */
+    public function list(int $lessonId): Collection
     {
-        return LessonBlock::where('lesson_id', $lessonId)
-            ->orderBy('order')
-            ->get();
+        $query = QueryBuilder::for(LessonBlock::class)
+            ->where('lesson_id', $lessonId)
+            ->allowedFilters([
+                AllowedFilter::exact('block_type'),
+            ])
+            ->allowedSorts(['order', 'created_at'])
+            ->defaultSort('order');
+
+        return $query->get();
     }
 
     public function create(int $lessonId, array $data, ?UploadedFile $mediaFile): LessonBlock

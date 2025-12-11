@@ -7,6 +7,8 @@ use Modules\Schemes\Contracts\Repositories\UnitRepositoryInterface;
 use Modules\Schemes\DTOs\CreateUnitDTO;
 use Modules\Schemes\DTOs\UpdateUnitDTO;
 use Modules\Schemes\Models\Unit;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class UnitService
 {
@@ -14,9 +16,28 @@ class UnitService
         private readonly UnitRepositoryInterface $repository
     ) {}
 
+    /**
+     * Paginate units for a course.
+     *
+     * Supports:
+     * - filter[course_id], filter[status]
+     * - sort: order, title, created_at (prefix with - for desc)
+     * - include: course, lessons
+     */
     public function paginate(int $courseId, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->repository->findByCourse($courseId, $perPage);
+        $perPage = max(1, $perPage);
+
+        $query = QueryBuilder::for(Unit::class)
+            ->where('course_id', $courseId)
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+            ])
+            ->allowedIncludes(['course', 'lessons'])
+            ->allowedSorts(['order', 'title', 'created_at'])
+            ->defaultSort('order');
+
+        return $query->paginate($perPage);
     }
 
     public function find(int $id): ?Unit

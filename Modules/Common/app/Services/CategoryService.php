@@ -5,16 +5,33 @@ namespace Modules\Common\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Modules\Common\Models\Category;
 use Modules\Common\Repositories\CategoryRepository;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class CategoryService
 {
     public function __construct(private readonly CategoryRepository $repository) {}
 
+    /**
+     * Paginate categories.
+     *
+     * Supports:
+     * - filter[name], filter[search]
+     * - sort: name, created_at (prefix with - for desc)
+     */
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
 
-        return $this->repository->paginate($perPage);
+        $query = QueryBuilder::for(Category::class)
+            ->allowedFilters([
+                AllowedFilter::partial('name'),
+                AllowedFilter::partial('search'),
+            ])
+            ->allowedSorts(['name', 'created_at'])
+            ->defaultSort('name');
+
+        return $query->paginate($perPage);
     }
 
     public function create(array $data): Category

@@ -14,6 +14,8 @@ use Modules\Content\DTOs\UpdateNewsDTO;
 use Modules\Content\Events\NewsPublished;
 use Modules\Content\Models\ContentRevision;
 use Modules\Content\Models\News;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class NewsService implements NewsServiceInterface
 {
@@ -21,24 +23,52 @@ class NewsService implements NewsServiceInterface
         private NewsRepositoryInterface $repository
     ) {}
 
+    /**
+     * Get news feed.
+     *
+     * Supports:
+     * - filter[status], filter[category], filter[search] (Scout/Meilisearch)
+     * - sort: published_at, views_count, created_at (prefix with - for desc)
+     * - include: author
+     */
     public function getFeed(array $filters = []): LengthAwarePaginator
     {
-        return $this->repository->getNewsFeed($filters);
+        $perPage = $filters['per_page'] ?? 15;
+        $searchQuery = request('filter.search') ?? request('search');
+
+        $builder = QueryBuilder::for(News::class);
+
+        // Handle Scout search if search parameter is provided
+        if ($searchQuery && trim($searchQuery) !== '') {
+            $ids = News::search($searchQuery)->keys()->toArray();
+
+            if (! empty($ids)) {
+                $builder->whereIn('id', $ids);
+            } else {
+                // No results from search, return empty
+                $builder->whereRaw('1 = 0');
+            }
+        }
+
+        $builder->allowedFilters([
+            AllowedFilter::exact('status'),
+            AllowedFilter::exact('category'),
+        ])
+            ->allowedIncludes(['author'])
+            ->allowedSorts(['published_at', 'views_count', 'created_at'])
+            ->defaultSort('-published_at');
+
+        return $builder->paginate($perPage);
     }
 
+    /**
+     * Search news (uses Scout via getFeed).
+     */
     public function search(string $query, array $filters = []): LengthAwarePaginator
     {
-        return $this->repository->searchNews($query, $filters);
-    }
+        request()->merge(['filter' => array_merge(request('filter', []), ['search' => $query])]);
 
-    public function findBySlug(string $slug): ?News
-    {
-        return $this->repository->findBySlugWithRelations($slug);
-    }
-
-    public function find(int $id): ?News
-    {
-        return $this->repository->findWithRelations($id);
+        return $this->getFeed($filters);
     }
 
     public function create(CreateNewsDTO $dto, User $author): News
