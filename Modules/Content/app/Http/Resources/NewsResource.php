@@ -2,11 +2,13 @@
 
 namespace Modules\Content\Http\Resources;
 
+use App\Http\Resources\BaseResource;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
-class NewsResource extends JsonResource
+class NewsResource extends BaseResource
 {
+    protected array $defaultRelations = ['author', 'categories', 'tags'];
+
     /**
      * Transform the resource into an array.
      *
@@ -54,19 +56,5 @@ class NewsResource extends JsonResource
             }),
             'reads_count' => $this->when(isset($this->reads_count), $this->reads_count),
         ];
-    }
-
-    /**
-     * Create a new resource instance with default relationships loaded.
-     */
-    public static function make(...$parameters)
-    {
-        $resource = $parameters[0] ?? null;
-
-        if ($resource && method_exists($resource, 'loadMissing')) {
-            $resource->loadMissing(['author', 'categories', 'tags']);
-        }
-
-        return parent::make(...$parameters);
     }
 }

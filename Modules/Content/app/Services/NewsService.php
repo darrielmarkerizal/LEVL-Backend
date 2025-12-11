@@ -23,14 +23,6 @@ class NewsService implements NewsServiceInterface
         private NewsRepositoryInterface $repository
     ) {}
 
-    /**
-     * Get news feed.
-     *
-     * Supports:
-     * - filter[status], filter[category], filter[search] (Scout/Meilisearch)
-     * - sort: published_at, views_count, created_at (prefix with - for desc)
-     * - include: author
-     */
     public function getFeed(array $filters = []): LengthAwarePaginator
     {
         $perPage = $filters['per_page'] ?? 15;
@@ -38,14 +30,12 @@ class NewsService implements NewsServiceInterface
 
         $builder = QueryBuilder::for(News::class);
 
-        // Handle Scout search if search parameter is provided
         if ($searchQuery && trim($searchQuery) !== '') {
             $ids = News::search($searchQuery)->keys()->toArray();
 
             if (! empty($ids)) {
                 $builder->whereIn('id', $ids);
             } else {
-                // No results from search, return empty
                 $builder->whereRaw('1 = 0');
             }
         }
@@ -61,9 +51,6 @@ class NewsService implements NewsServiceInterface
         return $builder->paginate($perPage);
     }
 
-    /**
-     * Search news (uses Scout via getFeed).
-     */
     public function search(string $query, array $filters = []): LengthAwarePaginator
     {
         request()->merge(['filter' => array_merge(request('filter', []), ['search' => $query])]);
@@ -95,7 +82,7 @@ class NewsService implements NewsServiceInterface
     public function update(News $news, UpdateNewsDTO $dto, User $editor): News
     {
         return DB::transaction(function () use ($news, $dto, $editor) {
-            $this->saveRevision($news, $editor);
+            $news->saveRevision($editor);
 
             return $this->repository->update($news, $dto->toArrayWithoutNull());
         });
@@ -158,21 +145,5 @@ class NewsService implements NewsServiceInterface
     public function getScheduledForPublishing(): Collection
     {
         return $this->repository->getScheduledForPublishing();
-    }
-
-    public function incrementViews(News $news): void
-    {
-        $news->incrementViews();
-    }
-
-    private function saveRevision(News $news, User $editor): void
-    {
-        ContentRevision::create([
-            'content_type' => News::class,
-            'content_id' => $news->id,
-            'editor_id' => $editor->id,
-            'title' => $news->title,
-            'content' => $news->content,
-        ]);
     }
 }

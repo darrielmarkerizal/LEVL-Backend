@@ -192,7 +192,7 @@ class QueryFilter
             }
 
             if (! $hasOperator && ! empty($value)) {
-                $query->whereIn($field, array_filter(array_map('trim', $value)));
+                $query->whereIn($field, collect($value)->map('trim')->filter()->values()->all());
             } else {
                 foreach ($value as $v) {
                     $this->applyFilterWithOperator($query, $field, $v);
@@ -221,7 +221,7 @@ class QueryFilter
             [$operator, $filterValue] = explode(':', $value, 2);
             $operator = strtolower(trim($operator));
 
-            if (array_key_exists($operator, $this->filterOperators)) {
+            if (\Illuminate\Support\Arr::has($this->filterOperators, $operator)) {
                 $this->applyOperatorFilter($query, $field, $operator, $filterValue);
 
                 return;

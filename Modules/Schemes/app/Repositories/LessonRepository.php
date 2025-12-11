@@ -46,18 +46,10 @@ class LessonRepository extends BaseRepository implements LessonRepositoryInterfa
         return Lesson::class;
     }
 
-    /**
-     * Find lessons by unit with optional Scout search.
-     *
-     * Supports:
-     * - filter[status], filter[content_type], filter[search] or search parameter (Meilisearch)
-     * - sort: id, title, order, status, duration_minutes, created_at, updated_at, published_at (prefix with - for desc)
-     */
     public function findByUnit(int $unitId, array $params = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->query()->where('unit_id', $unitId);
 
-        // Handle Scout search if search parameter is provided
         $searchQuery = $params['search'] ?? request('filter.search') ?? request('search');
 
         if ($searchQuery && trim($searchQuery) !== '') {

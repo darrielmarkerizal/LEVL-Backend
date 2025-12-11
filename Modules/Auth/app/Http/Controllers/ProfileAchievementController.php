@@ -56,35 +56,31 @@ class ProfileAchievementController extends Controller
             'order' => 'sometimes|integer|min:0',
         ]);
 
-        try {
-            $user = $request->user();
+        $user = $request->user();
 
-            // Check if user has this badge
-            $hasBadge = $user->badges()->where('badge_id', $badgeId)->exists();
-            if (! $hasBadge) {
-                return $this->notFound('You do not have this badge.');
-            }
-
-            // Check if already pinned
-            $existing = PinnedBadge::where('user_id', $user->id)
-                ->where('badge_id', $badgeId)
-                ->first();
-
-            if ($existing) {
-                return $this->error('Badge is already pinned.', 422);
-            }
-
-            // Pin the badge
-            $pinnedBadge = PinnedBadge::create([
-                'user_id' => $user->id,
-                'badge_id' => $badgeId,
-                'order' => $request->input('order', 0),
-            ]);
-
-            return $this->success($pinnedBadge->load('badge'), 'Badge pinned successfully.');
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 422);
+        // Check if user has this badge
+        $hasBadge = $user->badges()->where('badge_id', $badgeId)->exists();
+        if (! $hasBadge) {
+            return $this->notFound('You do not have this badge.');
         }
+
+        // Check if already pinned
+        $existing = PinnedBadge::where('user_id', $user->id)
+            ->where('badge_id', $badgeId)
+            ->first();
+
+        if ($existing) {
+            return $this->error('Badge is already pinned.', 422);
+        }
+
+        // Pin the badge
+        $pinnedBadge = PinnedBadge::create([
+            'user_id' => $user->id,
+            'badge_id' => $badgeId,
+            'order' => $request->input('order', 0),
+        ]);
+
+        return $this->success($pinnedBadge->load('badge'), 'Badge pinned successfully.');
     }
 
     /**
@@ -100,22 +96,18 @@ class ProfileAchievementController extends Controller
      */
     public function unpinBadge(Request $request, int $badgeId): JsonResponse
     {
-        try {
-            $user = $request->user();
+        $user = $request->user();
 
-            $pinnedBadge = PinnedBadge::where('user_id', $user->id)
-                ->where('badge_id', $badgeId)
-                ->first();
+        $pinnedBadge = PinnedBadge::where('user_id', $user->id)
+            ->where('badge_id', $badgeId)
+            ->first();
 
-            if (! $pinnedBadge) {
-                return $this->notFound('Badge is not pinned.');
-            }
-
-            $pinnedBadge->delete();
-
-            return $this->success(null, 'Badge unpinned successfully.');
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 422);
+        if (! $pinnedBadge) {
+            return $this->notFound('Badge is not pinned.');
         }
+
+        $pinnedBadge->delete();
+
+        return $this->success(null, 'Badge unpinned successfully.');
     }
 }

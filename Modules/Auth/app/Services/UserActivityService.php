@@ -25,17 +25,14 @@ class UserActivityService
         $query = UserActivity::where('user_id', $user->id)
             ->orderBy('created_at', 'desc');
 
-        // Filter by activity type
         if (! empty($filters['type'])) {
             $query->where('activity_type', $filters['type']);
         }
 
-        // Filter by date range
         if (! empty($filters['start_date']) && ! empty($filters['end_date'])) {
             $query->whereBetween('created_at', [$filters['start_date'], $filters['end_date']]);
         }
 
-        // Pagination
         $perPage = $filters['per_page'] ?? 20;
 
         return $query->paginate($perPage);
@@ -49,9 +46,6 @@ class UserActivityService
             ->get();
     }
 
-    /**
-     * REUSABLE methods for other modules
-     */
     public function logEnrollment(User $user, $course): void
     {
         $this->logActivity($user, UserActivity::TYPE_ENROLLMENT, [

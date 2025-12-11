@@ -14,9 +14,6 @@ class Category extends Model
 {
     use HasFactory, LogsActivity, Searchable, SoftDeletes;
 
-    /**
-     * Get activity log options for this model.
-     */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -38,16 +35,10 @@ class Category extends Model
         'status',
     ];
 
-    /**
-     * The attributes that should be cast.
-     */
     protected $casts = [
         'status' => CategoryStatus::class,
     ];
 
-    /**
-     * Get the indexable data array for the model.
-     */
     public function toSearchableArray(): array
     {
         return [
@@ -59,17 +50,11 @@ class Category extends Model
         ];
     }
 
-    /**
-     * Get the name of the index associated with the model.
-     */
     public function searchableAs(): string
     {
         return 'categories_index';
     }
 
-    /**
-     * Determine if the model should be searchable.
-     */
     public function shouldBeSearchable(): bool
     {
         return $this->status === CategoryStatus::Active;

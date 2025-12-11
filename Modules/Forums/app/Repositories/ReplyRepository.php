@@ -2,15 +2,24 @@
 
 namespace Modules\Forums\Repositories;
 
+use App\Repositories\BaseRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 
-class ReplyRepository
+class ReplyRepository extends BaseRepository
 {
-    /**
-     * Get replies for a thread with hierarchy.
-     */
+    protected function model(): string
+    {
+        return Reply::class;
+    }
+
+    protected array $allowedFilters = ['thread_id', 'parent_id', 'is_accepted_answer'];
+    protected array $allowedSorts = ['id', 'created_at', 'is_accepted_answer'];
+    protected string $defaultSort = 'created_at';
+    protected array $with = ['author'];
+
     public function getRepliesForThread(int $threadId): Collection
     {
         return Reply::where('thread_id', $threadId)
@@ -21,9 +30,6 @@ class ReplyRepository
             ->get();
     }
 
-    /**
-     * Get top-level replies for a thread (no parent).
-     */
     public function getTopLevelReplies(int $threadId): Collection
     {
         return Reply::where('thread_id', $threadId)
@@ -35,9 +41,6 @@ class ReplyRepository
             ->get();
     }
 
-    /**
-     * Get nested replies for a parent reply.
-     */
     public function getNestedReplies(int $parentId): Collection
     {
         return Reply::where('parent_id', $parentId)
@@ -47,17 +50,11 @@ class ReplyRepository
             ->get();
     }
 
-    /**
-     * Create a new reply.
-     */
     public function create(array $data): Reply
     {
         return Reply::create($data);
     }
 
-    /**
-     * Update a reply.
-     */
     public function update(Reply $reply, array $data): Reply
     {
         $reply->update($data);
@@ -65,9 +62,6 @@ class ReplyRepository
         return $reply->fresh();
     }
 
-    /**
-     * Delete a reply (soft delete).
-     */
     public function delete(Reply $reply, ?int $deletedBy = null): bool
     {
         if ($deletedBy) {
@@ -78,9 +72,6 @@ class ReplyRepository
         return $reply->delete();
     }
 
-    /**
-     * Find a reply by ID with relationships.
-     */
     public function findWithRelations(int $replyId): ?Reply
     {
         return Reply::with(['author', 'thread', 'parent', 'children'])
@@ -88,9 +79,6 @@ class ReplyRepository
             ->find($replyId);
     }
 
-    /**
-     * Get the accepted answer for a thread.
-     */
     public function getAcceptedAnswer(int $threadId): ?Reply
     {
         return Reply::where('thread_id', $threadId)
@@ -99,25 +87,17 @@ class ReplyRepository
             ->first();
     }
 
-    /**
-     * Mark a reply as accepted answer and unmark others.
-     */
     public function markAsAccepted(Reply $reply): bool
     {
-        // Unmark any existing accepted answer for this thread
         Reply::where('thread_id', $reply->thread_id)
             ->where('is_accepted_answer', true)
             ->update(['is_accepted_answer' => false]);
 
-        // Mark this reply as accepted
         $reply->is_accepted_answer = true;
 
         return $reply->save();
     }
 
-    /**
-     * Unmark a reply as accepted answer.
-     */
     public function unmarkAsAccepted(Reply $reply): bool
     {
         $reply->is_accepted_answer = false;

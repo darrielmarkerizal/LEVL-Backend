@@ -57,13 +57,9 @@ class ProfilePrivacyController extends Controller
      */
     public function update(UpdatePrivacySettingsRequest $request): JsonResponse
     {
-        try {
-            $user = $request->user();
-            $settings = $this->privacyService->updatePrivacySettings($user, $request->validated());
+        $user = $request->user();
+        $settings = $this->privacyService->updatePrivacySettings($user, $request->validated());
 
-            return $this->success($settings, 'Privacy settings updated successfully.');
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 422);
-        }
+        return $this->success($settings, 'Privacy settings updated successfully.');
     }
 }

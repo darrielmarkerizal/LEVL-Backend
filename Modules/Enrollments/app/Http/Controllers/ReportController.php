@@ -5,6 +5,8 @@ namespace Modules\Enrollments\Http\Controllers;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Maatwebsite\Excel\Facades\Excel;
+use Modules\Enrollments\Exports\EnrollmentsExport;
 use Modules\Enrollments\Models\CourseProgress;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
@@ -173,34 +175,9 @@ class ReportController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="enrollments-'.$course->slug.'-'.now()->format('Y-m-d').'.csv"',
-        ];
+        $filename = "enrollments-{$course->slug}-".now()->format('Y-m-d').'.csv';
 
-        $callback = function () use ($enrollments) {
-            $file = fopen('php://output', 'w');
-
-            // CSV Headers
-            fputcsv($file, ['ID', 'Student Name', 'Email', 'Status', 'Progress %', 'Enrolled At', 'Completed At']);
-
-            foreach ($enrollments as $enrollment) {
-                $progress = $enrollment->courseProgress;
-                fputcsv($file, [
-                    $enrollment->id,
-                    $enrollment->user?->name ?? 'N/A',
-                    $enrollment->user?->email ?? 'N/A',
-                    $enrollment->status,
-                    $progress?->progress_percent ?? 0,
-                    $enrollment->enrolled_at?->toDateTimeString(),
-                    $enrollment->completed_at?->toDateTimeString() ?? 'N/A',
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return Excel::download(new EnrollmentsExport($enrollments), $filename);
     }
 
     private function userCanManageCourse($user, Course $course): bool

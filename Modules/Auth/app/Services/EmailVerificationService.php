@@ -30,7 +30,6 @@ class EmailVerificationService
 
         $ttlMinutes = (int) (SystemSetting::get('auth_email_verification_ttl_minutes', 3) ?? 3);
 
-        // 6-digit numeric code
         $code = (string) random_int(100000, 999999);
 
         $uuid = (string) Str::uuid();
@@ -246,12 +245,7 @@ class EmailVerificationService
 
     private function generateShortToken(): string
     {
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $token = '';
-
-        for ($i = 0; $i < 16; $i++) {
-            $token .= $characters[random_int(0, strlen($characters) - 1)];
-        }
+        $token = Str::random(16);
 
         $tokenHash = hash('sha256', $token);
         $exists = OtpCode::query()

@@ -3841,42 +3841,6 @@ parameters:
 			path: app/Http/Controllers/Api/ActivityLogController.php
 
 		-
-			message: '#^Access to an undefined property App\\Http\\Resources\\LeaderboardResource\:\:\$global_level\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Resources/LeaderboardResource.php
-
-		-
-			message: '#^Access to an undefined property App\\Http\\Resources\\LeaderboardResource\:\:\$total_xp\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Resources/LeaderboardResource.php
-
-		-
-			message: '#^Access to an undefined property App\\Http\\Resources\\LeaderboardResource\:\:\$user_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Resources/LeaderboardResource.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>avatar_url" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Resources/LeaderboardResource.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Resources/LeaderboardResource.php
-
-		-
-			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$roles\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Resources/UserResource.php
-
-		-
 			message: '#^Method App\\Models\\MasterDataItem\:\:getByTypeAndValue\(\) should return App\\Models\\MasterDataItem\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
 			identifier: return.type
 			count: 1

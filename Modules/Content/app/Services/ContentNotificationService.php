@@ -11,9 +11,6 @@ use Modules\Content\Models\News;
 
 class ContentNotificationService
 {
-    /**
-     * Notify target audience for an announcement.
-     */
     public function notifyTargetAudience(Announcement $announcement): void
     {
         $targetUsers = $this->getTargetUsers($announcement);
@@ -30,9 +27,6 @@ class ContentNotificationService
         }
     }
 
-    /**
-     * Get target users for an announcement based on targeting rules.
-     */
     public function getTargetUsers(Announcement $announcement): Collection
     {
         if ($announcement->target_type === 'all') {
@@ -54,9 +48,6 @@ class ContentNotificationService
         return collect();
     }
 
-    /**
-     * Get users enrolled in a specific course.
-     */
     protected function getCourseEnrolledUsers(int $courseId): Collection
     {
         return User::whereHas('enrollments', function ($q) use ($courseId) {
@@ -67,9 +58,6 @@ class ContentNotificationService
             ->get();
     }
 
-    /**
-     * Notify users about new news article.
-     */
     public function notifyNewNews(News $news): void
     {
         // Get all active users or specific subscribers
@@ -80,9 +68,6 @@ class ContentNotificationService
         }
     }
 
-    /**
-     * Notify specific users about scheduled content publication.
-     */
     public function notifyScheduledPublication($content): void
     {
         if ($content instanceof Announcement) {

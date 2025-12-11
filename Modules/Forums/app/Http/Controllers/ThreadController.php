@@ -87,13 +87,9 @@ class ThreadController extends Controller
      */    
     public function store(CreateThreadRequest $request, int $schemeId): JsonResponse
     {
-        try {
-            $thread = $this->forumService->createThread($schemeId, $request->validated(), auth()->id());
+        $thread = $this->forumService->createThread($schemeId, $request->validated(), auth()->id());
 
-            return $this->created($thread, __('forums.thread_created'));
-        } catch (\Exception $e) {
-            return $this->error(__('forums.thread_creation_failed'), 500);
-        }
+        return $this->created($thread, __('forums.thread_created'));
     }
 
     /**
@@ -142,13 +138,9 @@ class ThreadController extends Controller
 
         $this->authorize('update', $thread);
 
-        try {
-            $updatedThread = $this->forumService->updateThread($thread, $request->validated());
+        $updatedThread = $this->forumService->updateThread($thread, $request->validated());
 
-            return $this->success($updatedThread, __('forums.thread_updated'));
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
-        }
+        return $this->success($updatedThread, __('forums.thread_updated'));
     }
 
     /**
@@ -174,13 +166,9 @@ class ThreadController extends Controller
 
         $this->authorize('delete', $thread);
 
-        try {
-            $this->forumService->deleteThread($thread, $request->user());
+        $this->forumService->deleteThread($thread, $request->user());
 
-            return $this->success(null, __('forums.thread_deleted'));
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
-        }
+        return $this->success(null, __('forums.thread_deleted'));
     }
 
     /**
@@ -208,13 +196,9 @@ class ThreadController extends Controller
 
         $this->authorize('pin', $thread);
 
-        try {
-            $pinnedThread = $this->moderationService->pinThread($thread, $request->user());
+        $pinnedThread = $this->moderationService->pinThread($thread, $request->user());
 
-            return $this->success($pinnedThread, __('forums.thread_pinned'));
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
-        }
+        return $this->success($pinnedThread, __('forums.thread_pinned'));
     }
 
     /**
@@ -242,13 +226,9 @@ class ThreadController extends Controller
 
         $this->authorize('close', $thread);
 
-        try {
-            $closedThread = $this->moderationService->closeThread($thread, $request->user());
+        $closedThread = $this->moderationService->closeThread($thread, $request->user());
 
-            return $this->success($closedThread, __('forums.thread_closed'));
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
-        }
+        return $this->success($closedThread, __('forums.thread_closed'));
     }
 
     /**

@@ -42,8 +42,6 @@ class PublicProfileController extends Controller
             return $this->success($profileData);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFound('User not found.');
-        } catch (\Exception $e) {
-            return $this->forbidden($e->getMessage());
         }
     }
 }

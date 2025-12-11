@@ -12,11 +12,6 @@ use Modules\Schemes\Models\Course;
 
 class CourseRepository extends BaseRepository implements CourseRepositoryInterface
 {
-    /**
-     * Allowed filter keys.
-     *
-     * @var array<int, string>
-     */
     protected array $allowedFilters = [
         'status',
         'level_tag',
@@ -24,11 +19,6 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
         'category_id',
     ];
 
-    /**
-     * Allowed sort fields.
-     *
-     * @var array<int, string>
-     */
     protected array $allowedSorts = [
         'id',
         'code',
@@ -38,16 +28,8 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
         'published_at',
     ];
 
-    /**
-     * Default sort field.
-     */
     protected string $defaultSort = 'title';
 
-    /**
-     * Default relations to load.
-     *
-     * @var array<int, string>
-     */
     protected array $with = ['tags'];
 
     protected function model(): string
@@ -60,19 +42,10 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
         return $this->query()->where('slug', $slug)->first();
     }
 
-    /**
-     * Paginate courses with optional Scout search and tag filtering.
-     *
-     * Supports:
-     * - filter[search] or search parameter (Meilisearch)
-     * - filter[status], filter[level_tag], filter[type], filter[category_id], filter[tag]
-     * - sort: id, code, title, created_at, updated_at, published_at
-     */
     public function paginate(array $params = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->query();
 
-        // Handle Scout search if search parameter is provided
         $searchQuery = $params['search'] ?? request('filter.search') ?? request('search');
 
         if ($searchQuery && trim($searchQuery) !== '') {
@@ -85,7 +58,6 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
             }
         }
 
-        // Apply tag filters if provided
         $tagFilter = $params['filter']['tag'] ?? request('filter.tag');
         if ($tagFilter) {
             $this->applyTagFilters($query, $tagFilter);
@@ -101,14 +73,10 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
         );
     }
 
-    /**
-     * List all courses with optional Scout search and tag filtering.
-     */
     public function list(array $params = []): Collection
     {
         $query = $this->query();
 
-        // Handle Scout search if search parameter is provided
         $searchQuery = $params['search'] ?? request('filter.search') ?? request('search');
 
         if ($searchQuery && trim($searchQuery) !== '') {
@@ -121,7 +89,6 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
             }
         }
 
-        // Apply tag filters if provided
         $tagFilter = $params['filter']['tag'] ?? request('filter.tag');
         if ($tagFilter) {
             $this->applyTagFilters($query, $tagFilter);
@@ -132,9 +99,6 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
         return $query->get();
     }
 
-    /**
-     * Apply tag filters to query.
-     */
     private function applyTagFilters(Builder $query, $filterTag): void
     {
         $tags = $this->parseArrayFilter($filterTag);
@@ -161,9 +125,6 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
         }
     }
 
-    /**
-     * Parse filter value that may be array or JSON string.
-     */
     private function parseArrayFilter($value): array
     {
         if (is_array($value)) {

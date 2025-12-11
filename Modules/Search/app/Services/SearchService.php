@@ -27,7 +27,7 @@ class SearchService implements SearchServiceInterface
         // Apply filters using Scout's where method (field, value)
         foreach ($filters as $field => $value) {
             // Skip pagination parameters
-            if (in_array($field, ['per_page', 'page'])) {
+            if (collect(['per_page', 'page'])->contains($field)) {
                 continue;
             }
 

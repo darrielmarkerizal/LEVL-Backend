@@ -12,11 +12,12 @@ use Modules\Auth\Models\User;
 use Modules\Content\Enums\ContentStatus;
 use Modules\Content\Enums\Priority;
 use Modules\Content\Enums\TargetType;
+use Modules\Content\Traits\HasContentRevisions;
 use Modules\Schemes\Models\Course;
 
 class Announcement extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasContentRevisions, HasFactory, SoftDeletes;
 
     protected static function newFactory()
     {

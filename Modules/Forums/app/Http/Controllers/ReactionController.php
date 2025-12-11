@@ -43,33 +43,29 @@ class ReactionController extends Controller
             return $this->notFound(__('forums.thread_not_found'));
         }
 
-        try {
-            $added = Reaction::toggle(
-                $request->user()->id,
-                Thread::class,
-                $threadId,
-                $request->input('type')
-            );
+        $added = Reaction::toggle(
+            $request->user()->id,
+            Thread::class,
+            $threadId,
+            $request->input('type')
+        );
 
-            $message = $added ? __('forums.reaction_added') : __('forums.reaction_removed');
+        $message = $added ? __('forums.reaction_added') : __('forums.reaction_removed');
 
-            if ($added) {
-                $reaction = Reaction::where([
-                    'user_id' => $request->user()->id,
-                    'reactable_type' => Thread::class,
-                    'reactable_id' => $threadId,
-                    'type' => $request->input('type'),
-                ])->first();
+        if ($added) {
+            $reaction = Reaction::where([
+                'user_id' => $request->user()->id,
+                'reactable_type' => Thread::class,
+                'reactable_id' => $threadId,
+                'type' => $request->input('type'),
+            ])->first();
 
-                if ($reaction) {
-                    event(new \Modules\Forums\Events\ReactionAdded($reaction));
-                }
+            if ($reaction) {
+                event(new \Modules\Forums\Events\ReactionAdded($reaction));
             }
-
-            return $this->success(['added' => $added], $message);
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
         }
+
+        return $this->success(['added' => $added], $message);
     }
 
     /**
@@ -98,32 +94,28 @@ class ReactionController extends Controller
             return $this->notFound(__('forums.reply_not_found'));
         }
 
-        try {
-            $added = Reaction::toggle(
-                $request->user()->id,
-                Reply::class,
-                $replyId,
-                $request->input('type')
-            );
+        $added = Reaction::toggle(
+            $request->user()->id,
+            Reply::class,
+            $replyId,
+            $request->input('type')
+        );
 
-            $message = $added ? __('forums.reaction_added') : __('forums.reaction_removed');
+        $message = $added ? __('forums.reaction_added') : __('forums.reaction_removed');
 
-            if ($added) {
-                $reaction = Reaction::where([
-                    'user_id' => $request->user()->id,
-                    'reactable_type' => Reply::class,
-                    'reactable_id' => $replyId,
-                    'type' => $request->input('type'),
-                ])->first();
+        if ($added) {
+            $reaction = Reaction::where([
+                'user_id' => $request->user()->id,
+                'reactable_type' => Reply::class,
+                'reactable_id' => $replyId,
+                'type' => $request->input('type'),
+            ])->first();
 
-                if ($reaction) {
-                    event(new \Modules\Forums\Events\ReactionAdded($reaction));
-                }
+            if ($reaction) {
+                event(new \Modules\Forums\Events\ReactionAdded($reaction));
             }
-
-            return $this->success(['added' => $added], $message);
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
         }
+
+        return $this->success(['added' => $added], $message);
     }
 }

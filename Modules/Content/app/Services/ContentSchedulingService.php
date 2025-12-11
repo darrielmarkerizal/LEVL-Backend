@@ -29,8 +29,6 @@ class ContentSchedulingService
     }
 
     /**
-     * Schedule content for publication.
-     *
      * @throws \Exception
      */
     public function schedulePublication($content, Carbon $publishAt): bool
@@ -45,9 +43,6 @@ class ContentSchedulingService
         ]);
     }
 
-    /**
-     * Cancel scheduled publication.
-     */
     public function cancelSchedule($content): bool
     {
         return $content->update([
@@ -56,9 +51,6 @@ class ContentSchedulingService
         ]);
     }
 
-    /**
-     * Publish all scheduled content that is ready.
-     */
     public function publishScheduledContent(): int
     {
         $publishedCount = 0;
@@ -86,9 +78,6 @@ class ContentSchedulingService
         return $publishedCount;
     }
 
-    /**
-     * Publish a single content item.
-     */
     protected function publishContent($content): bool
     {
         return DB::transaction(function () use ($content) {
@@ -98,10 +87,8 @@ class ContentSchedulingService
                 'scheduled_at' => null,
             ]);
 
-            // Send notifications
             $this->notificationService->notifyScheduledPublication($content);
 
-            // Fire published event
             if ($content instanceof Announcement) {
                 event(new \Modules\Content\Events\AnnouncementPublished($content));
             } elseif ($content instanceof News) {
@@ -112,9 +99,6 @@ class ContentSchedulingService
         });
     }
 
-    /**
-     * Get count of scheduled content.
-     */
     public function getScheduledCount(): array
     {
         $announcementCount = Announcement::where('status', 'scheduled')

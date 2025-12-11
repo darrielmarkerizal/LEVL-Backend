@@ -13,35 +13,14 @@ abstract class BaseRepository implements BaseRepositoryInterface
 {
     use FilterableRepository;
 
-    /**
-     * Get the model class name.
-     */
     abstract protected function model(): string;
 
-    /**
-     * Allowed filter keys.
-     *
-     * @var array<int, string>
-     */
     protected array $allowedFilters = [];
 
-    /**
-     * Allowed sort fields.
-     *
-     * @var array<int, string>
-     */
     protected array $allowedSorts = ['id', 'created_at', 'updated_at'];
 
-    /**
-     * Default sort field.
-     */
     protected string $defaultSort = 'id';
 
-    /**
-     * Default relations to load.
-     *
-     * @var array<int, string>
-     */
     protected array $with = [];
 
     public function query(): Builder

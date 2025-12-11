@@ -9,16 +9,12 @@ use Modules\Content\Models\News;
 
 class NewsRepository implements NewsRepositoryInterface
 {
-    /**
-     * Get news feed with sorting and filtering.
-     */
     public function getNewsFeed(array $filters = []): LengthAwarePaginator
     {
         $query = News::published()
             ->with(['author', 'categories', 'tags'])
             ->withCount('reads');
 
-        // Apply filters
         if (isset($filters['category_id'])) {
             $query->whereHas('categories', function ($q) use ($filters) {
                 $q->where('content_categories.id', $filters['category_id']);
@@ -43,16 +39,12 @@ class NewsRepository implements NewsRepositoryInterface
             $query->where('published_at', '<=', $filters['date_to']);
         }
 
-        // Sort by published date descending
         $query->orderBy('is_featured', 'desc')
             ->orderBy('published_at', 'desc');
 
         return $query->paginate($filters['per_page'] ?? 15);
     }
 
-    /**
-     * Search news by title and content.
-     */
     public function searchNews(string $searchQuery, array $filters = []): LengthAwarePaginator
     {
         $query = News::published()
@@ -60,7 +52,6 @@ class NewsRepository implements NewsRepositoryInterface
             ->with(['author', 'categories', 'tags'])
             ->withCount('reads');
 
-        // Apply additional filters
         if (isset($filters['category_id'])) {
             $query->whereHas('categories', function ($q) use ($filters) {
                 $q->where('content_categories.id', $filters['category_id']);
@@ -73,9 +64,6 @@ class NewsRepository implements NewsRepositoryInterface
         return $query->paginate($filters['per_page'] ?? 15);
     }
 
-    /**
-     * Find news by slug with relationships.
-     */
     public function findBySlugWithRelations(string $slug): ?News
     {
         return News::where('slug', $slug)
@@ -84,9 +72,6 @@ class NewsRepository implements NewsRepositoryInterface
             ->first();
     }
 
-    /**
-     * Find news by ID with relationships.
-     */
     public function findWithRelations(int $newsId): ?News
     {
         return News::with(['author', 'categories', 'tags', 'revisions.editor'])
@@ -94,19 +79,14 @@ class NewsRepository implements NewsRepositoryInterface
             ->find($newsId);
     }
 
-    /**
-     * Create a new news article.
-     */
     public function create(array $data): News
     {
         $news = News::create($data);
 
-        // Attach categories if provided
         if (isset($data['category_ids'])) {
             $news->categories()->sync($data['category_ids']);
         }
 
-        // Attach tags if provided
         if (isset($data['tag_ids'])) {
             $news->tags()->sync($data['tag_ids']);
         }
@@ -114,19 +94,14 @@ class NewsRepository implements NewsRepositoryInterface
         return $news->fresh(['categories', 'tags']);
     }
 
-    /**
-     * Update a news article.
-     */
     public function update(News $news, array $data): News
     {
         $news->update($data);
 
-        // Update categories if provided
         if (isset($data['category_ids'])) {
             $news->categories()->sync($data['category_ids']);
         }
 
-        // Update tags if provided
         if (isset($data['tag_ids'])) {
             $news->tags()->sync($data['tag_ids']);
         }
@@ -134,9 +109,6 @@ class NewsRepository implements NewsRepositoryInterface
         return $news->fresh(['categories', 'tags']);
     }
 
-    /**
-     * Delete a news article (soft delete).
-     */
     public function delete(News $news, ?int $deletedBy = null): bool
     {
         if ($deletedBy) {
@@ -147,9 +119,6 @@ class NewsRepository implements NewsRepositoryInterface
         return $news->delete();
     }
 
-    /**
-     * Get trending news based on views and recency.
-     */
     public function getTrendingNews(int $limit = 10): Collection
     {
         return News::published()
@@ -160,9 +129,6 @@ class NewsRepository implements NewsRepositoryInterface
             ->get();
     }
 
-    /**
-     * Get featured news.
-     */
     public function getFeaturedNews(int $limit = 5): Collection
     {
         return News::published()
@@ -173,9 +139,6 @@ class NewsRepository implements NewsRepositoryInterface
             ->get();
     }
 
-    /**
-     * Get scheduled news that are ready to publish.
-     */
     public function getScheduledForPublishing(): Collection
     {
         return News::where('status', 'scheduled')

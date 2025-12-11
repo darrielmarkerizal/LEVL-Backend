@@ -63,43 +63,39 @@ class ForumStatisticsController extends Controller
 
         $userId = $request->input('filter.user_id');
 
-        try {
-            if ($userId) {
-                $statistics = $this->statisticsRepository->getUserStatistics(
+        if ($userId) {
+            $statistics = $this->statisticsRepository->getUserStatistics(
+                $schemeId,
+                $userId,
+                $periodStart,
+                $periodEnd
+            );
+
+            if (! $statistics) {
+                $statistics = $this->statisticsRepository->updateUserStatistics(
                     $schemeId,
                     $userId,
                     $periodStart,
                     $periodEnd
                 );
+            }
+        } else {
+            $statistics = $this->statisticsRepository->getSchemeStatistics(
+                $schemeId,
+                $periodStart,
+                $periodEnd
+            );
 
-                if (! $statistics) {
-                    $statistics = $this->statisticsRepository->updateUserStatistics(
-                        $schemeId,
-                        $userId,
-                        $periodStart,
-                        $periodEnd
-                    );
-                }
-            } else {
-                $statistics = $this->statisticsRepository->getSchemeStatistics(
+            if (! $statistics) {
+                $statistics = $this->statisticsRepository->updateSchemeStatistics(
                     $schemeId,
                     $periodStart,
                     $periodEnd
                 );
-
-                if (! $statistics) {
-                    $statistics = $this->statisticsRepository->updateSchemeStatistics(
-                        $schemeId,
-                        $periodStart,
-                        $periodEnd
-                    );
-                }
             }
-
-            return $this->success($statistics, __('forums.statistics_retrieved'));
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
         }
+
+        return $this->success($statistics, __('forums.statistics_retrieved'));
     }
 
     /**
@@ -135,26 +131,22 @@ class ForumStatisticsController extends Controller
             ? Carbon::parse($request->input('filter.period_end'))
             : Carbon::now()->endOfMonth();
 
-        try {
-            $statistics = $this->statisticsRepository->getUserStatistics(
+        $statistics = $this->statisticsRepository->getUserStatistics(
+            $schemeId,
+            $request->user()->id,
+            $periodStart,
+            $periodEnd
+        );
+
+        if (! $statistics) {
+            $statistics = $this->statisticsRepository->updateUserStatistics(
                 $schemeId,
                 $request->user()->id,
                 $periodStart,
                 $periodEnd
             );
-
-            if (! $statistics) {
-                $statistics = $this->statisticsRepository->updateUserStatistics(
-                    $schemeId,
-                    $request->user()->id,
-                    $periodStart,
-                    $periodEnd
-                );
-            }
-
-            return $this->success($statistics, __('forums.user_statistics_retrieved'));
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
         }
+
+        return $this->success($statistics, __('forums.user_statistics_retrieved'));
     }
 }

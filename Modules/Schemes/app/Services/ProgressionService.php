@@ -47,7 +47,6 @@ class ProgressionService
 
             $this->storeLessonCompletion($lessonModel, $enrollment);
 
-            // Emit LessonCompleted event for gamification
             \Modules\Schemes\Events\LessonCompleted::dispatch($lessonModel, $enrollment->user_id, $enrollment->id);
 
             $unitResult = $this->updateUnitProgress(
@@ -106,7 +105,6 @@ class ProgressionService
             return true;
         }
 
-        // Ensure previous units are completed
         $orderedUnits = $course->units()
             ->where('status', 'published')
             ->orderBy('order')
@@ -451,8 +449,6 @@ class ProgressionService
 
         $courseJustCompleted = $previousStatus !== ProgressStatus::Completed && $status === ProgressStatus::Completed;
 
-        // Update enrollment status and completed_at, but not progress_percent
-        // Progress is now stored in course_progress table
         if ($status === ProgressStatus::Completed) {
             $enrollment->completed_at = $enrollment->completed_at ?? Carbon::now();
             $enrollment->status = EnrollmentStatus::Completed;

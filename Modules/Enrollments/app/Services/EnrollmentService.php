@@ -30,16 +30,6 @@ class EnrollmentService implements EnrollmentServiceInterface
         private EnrollmentKeyHasherInterface $keyHasher
     ) {}
 
-    // Note: Global paginate removed - use paginateByCourse, paginateByCourseIds, or paginateByUser instead
-
-    /**
-     * Get paginated enrollments by course.
-     *
-     * Supports:
-     * - filter[status], filter[user_id], filter[enrolled_from], filter[enrolled_to]
-     * - sort: enrolled_at, completed_at, created_at (prefix with - for desc)
-     * - include: user, course
-     */
     public function paginateByCourse(int $courseId, int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
@@ -59,9 +49,6 @@ class EnrollmentService implements EnrollmentServiceInterface
         return $query->paginate($perPage);
     }
 
-    /**
-     * Get paginated enrollments by course IDs.
-     */
     public function paginateByCourseIds(array $courseIds, int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
@@ -82,9 +69,6 @@ class EnrollmentService implements EnrollmentServiceInterface
         return $query->paginate($perPage);
     }
 
-    /**
-     * Get paginated enrollments by user.
-     */
     public function paginateByUser(int $userId, int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
@@ -104,25 +88,17 @@ class EnrollmentService implements EnrollmentServiceInterface
         return $query->paginate($perPage);
     }
 
-    /**
-     * Find enrollment by ID.
-     */
     public function findById(int $id): ?Enrollment
     {
         return $this->repository->findById($id);
     }
 
-    /**
-     * Find enrollment by course and user.
-     */
     public function findByCourseAndUser(int $courseId, int $userId): ?Enrollment
     {
         return $this->repository->findByCourseAndUser($courseId, $userId);
     }
 
     /**
-     * Enroll user to a course.
-     *
      * @return array{enrollment: Enrollment, status: string, message: string}
      *
      * @throws BusinessException
@@ -131,7 +107,7 @@ class EnrollmentService implements EnrollmentServiceInterface
     {
         $existing = $this->repository->findByCourseAndUser($course->id, $user->id);
 
-        if ($existing && in_array($existing->status, [EnrollmentStatus::Active, EnrollmentStatus::Pending], true)) {
+        if ($existing && collect([EnrollmentStatus::Active, EnrollmentStatus::Pending])->contains($existing->status)) {
             throw new BusinessException('Anda sudah terdaftar pada course ini.', ['course' => 'Anda sudah terdaftar pada course ini.']);
         }
 
@@ -164,8 +140,6 @@ class EnrollmentService implements EnrollmentServiceInterface
     }
 
     /**
-     * Cancel pending enrollment request.
-     *
      * @throws BusinessException
      */
     public function cancel(Enrollment $enrollment): Enrollment
@@ -185,8 +159,6 @@ class EnrollmentService implements EnrollmentServiceInterface
     }
 
     /**
-     * Withdraw from an active course.
-     *
      * @throws BusinessException
      */
     public function withdraw(Enrollment $enrollment): Enrollment
@@ -206,8 +178,6 @@ class EnrollmentService implements EnrollmentServiceInterface
     }
 
     /**
-     * Approve a pending enrollment.
-     *
      * @throws BusinessException
      */
     public function approve(Enrollment $enrollment): Enrollment
@@ -237,8 +207,6 @@ class EnrollmentService implements EnrollmentServiceInterface
     }
 
     /**
-     * Decline a pending enrollment.
-     *
      * @throws BusinessException
      */
     public function decline(Enrollment $enrollment): Enrollment
@@ -266,13 +234,11 @@ class EnrollmentService implements EnrollmentServiceInterface
     }
 
     /**
-     * Remove an enrollment from a course.
-     *
      * @throws BusinessException
      */
     public function remove(Enrollment $enrollment): Enrollment
     {
-        if (! in_array($enrollment->status, [EnrollmentStatus::Active, EnrollmentStatus::Pending], true)) {
+        if (! collect([EnrollmentStatus::Active, EnrollmentStatus::Pending])->contains($enrollment->status)) {
             throw new BusinessException(
                 'Hanya enrollment aktif atau pending yang dapat dikeluarkan.',
                 ['enrollment' => 'Hanya enrollment aktif atau pending yang dapat dikeluarkan.']
@@ -293,7 +259,6 @@ class EnrollmentService implements EnrollmentServiceInterface
     {
         $type = $course->enrollment_type;
 
-        // Handle both enum and string values
         $typeValue = $type instanceof \Modules\Schemes\Enums\EnrollmentType ? $type->value : ($type ?? 'auto_accept');
 
         return match ($typeValue) {
@@ -324,9 +289,6 @@ class EnrollmentService implements EnrollmentServiceInterface
         return ['active', 'Enrol berhasil menggunakan kode kunci.'];
     }
 
-    /**
-     * Send enrollment notification emails to student and admins/instructors.
-     */
     private function sendEnrollmentEmails(Enrollment $enrollment, Course $course, User $student, string $status): void
     {
         if ($status === EnrollmentStatus::Active->value) {
@@ -339,9 +301,6 @@ class EnrollmentService implements EnrollmentServiceInterface
         $this->notifyCourseManagers($enrollment, $course, $student);
     }
 
-    /**
-     * Notify all course managers (admins and instructor) about new enrollment.
-     */
     private function notifyCourseManagers(Enrollment $enrollment, Course $course, User $student): void
     {
         $managers = $this->getCourseManagers($course);
@@ -357,8 +316,6 @@ class EnrollmentService implements EnrollmentServiceInterface
     }
 
     /**
-     * Get all course managers (instructor + admins).
-     *
      * @return array<int, User>
      */
     private function getCourseManagers(Course $course): array
@@ -375,7 +332,7 @@ class EnrollmentService implements EnrollmentServiceInterface
         }
 
         foreach ($course->admins as $admin) {
-            if ($admin && ! in_array($admin->id, $managerIds, true)) {
+            if ($admin && ! collect($managerIds)->contains($admin->id)) {
                 $managers[] = $admin;
                 $managerIds[] = $admin->id;
             }
@@ -384,9 +341,6 @@ class EnrollmentService implements EnrollmentServiceInterface
         return $managers;
     }
 
-    /**
-     * Generate course URL for frontend.
-     */
     private function getCourseUrl(Course $course): string
     {
         $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
@@ -394,9 +348,6 @@ class EnrollmentService implements EnrollmentServiceInterface
         return rtrim($frontendUrl, '/').'/courses/'.$course->slug;
     }
 
-    /**
-     * Generate enrollments management URL for frontend.
-     */
     private function getEnrollmentsUrl(Course $course): string
     {
         $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));

@@ -33,15 +33,11 @@ class ProfileAccountController extends Controller
      */
     public function destroy(DeleteAccountRequest $request): JsonResponse
     {
-        try {
-            $user = $request->user();
+        $user = $request->user();
 
-            $this->profileService->deleteAccount($user, $request->input('password'));
+        $this->profileService->deleteAccount($user, $request->input('password'));
 
-            return $this->success(null, 'Account deleted successfully. You have 30 days to restore it.');
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 422);
-        }
+        return $this->success(null, 'Account deleted successfully. You have 30 days to restore it.');
     }
 
     /**
@@ -58,14 +54,10 @@ class ProfileAccountController extends Controller
      */
     public function restore(DeleteAccountRequest $request): JsonResponse
     {
-        try {
-            $user = $request->user();
+        $user = $request->user();
 
-            $this->profileService->restoreAccount($user);
+        $this->profileService->restoreAccount($user);
 
-            return $this->success(null, 'Account restored successfully.');
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 422);
-        }
+        return $this->success(null, 'Account restored successfully.');
     }
 }

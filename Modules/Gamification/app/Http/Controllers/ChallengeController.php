@@ -202,15 +202,11 @@ class ChallengeController extends Controller
     {
         $userId = $request->user()->id;
 
-        try {
-            $rewards = $this->challengeService->claimReward($userId, $challengeId);
+        $rewards = $this->challengeService->claimReward($userId, $challengeId);
 
-            return $this->success([
-                'message' => 'Reward berhasil diklaim!',
-                'rewards' => $rewards,
-            ]);
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 400);
-        }
+        return $this->success([
+            'message' => 'Reward berhasil diklaim!',
+            'rewards' => $rewards,
+        ]);
     }
 }

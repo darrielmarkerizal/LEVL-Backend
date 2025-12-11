@@ -56,26 +56,22 @@ class ReplyController extends Controller
 
         $this->authorize('create', [Reply::class, $thread]);
 
-        try {
-            $parentId = $request->input('parent_id');
-            if ($parentId) {
-                $parent = Reply::find($parentId);
-                if (! $parent || $parent->thread_id != $threadId) {
-                    return $this->error(__('forums.invalid_parent_reply'), 400);
-                }
+        $parentId = $request->input('parent_id');
+        if ($parentId) {
+            $parent = Reply::find($parentId);
+            if (! $parent || $parent->thread_id != $threadId) {
+                return $this->error(__('forums.invalid_parent_reply'), 400);
             }
-
-            $reply = $this->forumService->createReply(
-                $thread,
-                $request->validated(),
-                $request->user(),
-                $parentId
-            );
-
-            return $this->created($reply, __('forums.reply_created'));
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
         }
+
+        $reply = $this->forumService->createReply(
+            $thread,
+            $request->validated(),
+            $request->user(),
+            $parentId
+        );
+
+        return $this->created($reply, __('forums.reply_created'));
     }
 
     /**
@@ -101,13 +97,9 @@ class ReplyController extends Controller
 
         $this->authorize('update', $reply);
 
-        try {
-            $updatedReply = $this->forumService->updateReply($reply, $request->validated());
+        $updatedReply = $this->forumService->updateReply($reply, $request->validated());
 
-            return $this->success($updatedReply, __('forums.reply_updated'));
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
-        }
+        return $this->success($updatedReply, __('forums.reply_updated'));
     }
 
     /**
@@ -133,13 +125,9 @@ class ReplyController extends Controller
 
         $this->authorize('delete', $reply);
 
-        try {
-            $this->forumService->deleteReply($reply, $request->user());
+        $this->forumService->deleteReply($reply, $request->user());
 
-            return $this->success(null, __('forums.reply_deleted'));
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
-        }
+        return $this->success(null, __('forums.reply_deleted'));
     }
 
     /**
@@ -165,12 +153,8 @@ class ReplyController extends Controller
 
         $this->authorize('markAsAccepted', $reply);
 
-        try {
-            $acceptedReply = $this->moderationService->markAsAcceptedAnswer($reply, $request->user());
+        $acceptedReply = $this->moderationService->markAsAcceptedAnswer($reply, $request->user());
 
-            return $this->success($acceptedReply, __('forums.reply_accepted'));
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 500);
-        }
+        return $this->success($acceptedReply, __('forums.reply_accepted'));
     }
 }

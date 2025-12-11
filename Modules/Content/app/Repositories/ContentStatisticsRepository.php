@@ -12,9 +12,6 @@ use Modules\Enrollments\Enums\EnrollmentStatus;
 
 class ContentStatisticsRepository
 {
-    /**
-     * Get view count for a specific content.
-     */
     public function getViewCount(string $contentType, int $contentId): int
     {
         $model = $contentType === 'announcement' ? Announcement::class : News::class;
@@ -22,9 +19,6 @@ class ContentStatisticsRepository
         return $model::where('id', $contentId)->value('views_count') ?? 0;
     }
 
-    /**
-     * Get read count for a specific announcement.
-     */
     public function getReadCount(int $announcementId): int
     {
         return DB::table('content_reads')
@@ -33,9 +27,6 @@ class ContentStatisticsRepository
             ->count();
     }
 
-    /**
-     * Calculate read rate for an announcement.
-     */
     public function calculateReadRate(Announcement $announcement): float
     {
         $targetUsers = $this->getTargetUsersCount($announcement);
@@ -49,9 +40,6 @@ class ContentStatisticsRepository
         return ($readCount / $targetUsers) * 100;
     }
 
-    /**
-     * Get count of target users for an announcement.
-     */
     protected function getTargetUsersCount(Announcement $announcement): int
     {
         if ($announcement->target_type === 'all') {
@@ -75,9 +63,6 @@ class ContentStatisticsRepository
         return 0;
     }
 
-    /**
-     * Get list of users who haven't read an announcement.
-     */
     public function getUnreadUsers(Announcement $announcement): Collection
     {
         $readUserIds = DB::table('content_reads')
@@ -104,9 +89,6 @@ class ContentStatisticsRepository
         return $query->select('id', 'name', 'email')->get();
     }
 
-    /**
-     * Get statistics for all announcements.
-     */
     public function getAnnouncementStatistics(array $filters = []): Collection
     {
         $query = Announcement::published()
@@ -128,9 +110,6 @@ class ContentStatisticsRepository
         return $query->orderBy('published_at', 'desc')->get();
     }
 
-    /**
-     * Get statistics for all news.
-     */
     public function getNewsStatistics(array $filters = []): Collection
     {
         $query = News::published()
@@ -154,9 +133,6 @@ class ContentStatisticsRepository
         return $query->orderBy('views_count', 'desc')->get();
     }
 
-    /**
-     * Get most viewed news in a time period.
-     */
     public function getMostViewedNews(int $days = 30, int $limit = 10): Collection
     {
         return News::published()

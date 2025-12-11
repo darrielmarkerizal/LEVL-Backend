@@ -47,35 +47,22 @@ class ProfilePrivacyService
 
     public function filterProfileData(array $data, User $user, User $viewer): array
     {
-        $visibleFields = $user->getVisibleFieldsFor($viewer);
+        $visibleFields = collect($user->getVisibleFieldsFor($viewer));
 
-        // If viewer can see all fields
-        if (in_array('*', $visibleFields)) {
+        if ($visibleFields->contains('*')) {
             return $data;
         }
 
-        // Filter data based on visible fields
-        $filtered = [];
-        foreach ($data as $key => $value) {
-            if (in_array($key, $visibleFields)) {
-                $filtered[$key] = $value;
-            }
-        }
-
-        return $filtered;
+        return collect($data)
+            ->filter(fn($value, $key) => $visibleFields->contains($key))
+            ->toArray();
     }
 
-    /**
-     * REUSABLE for other modules
-     */
     public function isFieldVisible(User $user, string $field, User $viewer): bool
     {
         return $this->canViewField($user, $field, $viewer);
     }
 
-    /**
-     * REUSABLE for other modules
-     */
     public function getVisibleFields(User $user, User $viewer): array
     {
         return $user->getVisibleFieldsFor($viewer);

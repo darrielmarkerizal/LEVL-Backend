@@ -93,11 +93,10 @@ class GamificationService implements GamificationServiceInterface
 
         DB::transaction(function () use ($stats) {
             $rank = 1;
-            $userIds = [];
+            $userIds = $stats->pluck('user_id')->toArray();
 
             /** @var \Modules\Gamification\Models\UserGamificationStat $stat */
             foreach ($stats as $stat) {
-                $userIds[] = $stat->user_id;
                 $this->repository->upsertLeaderboard(null, $stat->user_id, $rank++);
             }
 
@@ -118,19 +117,17 @@ class GamificationService implements GamificationServiceInterface
 
     private function calculateLevelFromXp(int $totalXp): int
     {
-        $level = 0;
-        $remainingXp = $totalXp;
+        return $this->calculateLevelRecursive($totalXp, 0);
+    }
 
-        while (true) {
-            $xpRequired = (int) round(100 * pow(1.1, $level));
-            if ($xpRequired <= 0 || $remainingXp < $xpRequired) {
-                break;
-            }
-
-            $remainingXp -= $xpRequired;
-            $level++;
+    private function calculateLevelRecursive(int $remainingXp, int $level): int
+    {
+        $xpRequired = (int) round(100 * pow(1.1, $level));
+        
+        if ($xpRequired <= 0 || $remainingXp < $xpRequired) {
+            return $level;
         }
 
-        return $level;
+        return $this->calculateLevelRecursive($remainingXp - $xpRequired, $level + 1);
     }
 }

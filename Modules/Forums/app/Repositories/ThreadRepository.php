@@ -2,22 +2,30 @@
 
 namespace Modules\Forums\Repositories;
 
+use App\Repositories\BaseRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Forums\Models\Thread;
 
-class ThreadRepository
+class ThreadRepository extends BaseRepository
 {
-    /**
-     * Get threads for a specific scheme with filters.
-     */
+    protected function model(): string
+    {
+        return Thread::class;
+    }
+
+    protected array $allowedFilters = ['pinned', 'resolved', 'closed', 'scheme_id'];
+    protected array $allowedSorts = ['id', 'created_at', 'last_activity_at', 'is_pinned'];
+    protected string $defaultSort = '-last_activity_at';
+    protected array $with = ['author'];
+
     public function getThreadsForScheme(int $schemeId, array $filters = []): LengthAwarePaginator
     {
         $query = Thread::forScheme($schemeId)
             ->with(['author', 'replies'])
             ->withCount('replies');
 
-        // Apply filters
         if (isset($filters['pinned']) && $filters['pinned']) {
             $query->pinned();
         }
@@ -34,17 +42,12 @@ class ThreadRepository
             }
         }
 
-        // Sort by pinned first, then by last activity
         $query->orderBy('is_pinned', 'desc')
             ->orderBy('last_activity_at', 'desc');
 
-        // Paginate with 20 items per page
         return $query->paginate($filters['per_page'] ?? 20);
     }
 
-    /**
-     * Search threads by title and content.
-     */
     public function searchThreads(string $searchQuery, int $schemeId, int $perPage = 20): LengthAwarePaginator
     {
         return Thread::forScheme($schemeId)
@@ -56,9 +59,6 @@ class ThreadRepository
             ->paginate($perPage);
     }
 
-    /**
-     * Find a thread by ID with relationships.
-     */
     public function findWithRelations(int $threadId): ?Thread
     {
         return Thread::with(['author', 'scheme', 'replies.author', 'replies.children'])
@@ -66,9 +66,6 @@ class ThreadRepository
             ->find($threadId);
     }
 
-    /**
-     * Create a new thread.
-     */
     public function create(array $data): Thread
     {
         $thread = Thread::create($data);
@@ -77,9 +74,6 @@ class ThreadRepository
         return $thread;
     }
 
-    /**
-     * Update a thread.
-     */
     public function update(Thread $thread, array $data): Thread
     {
         $thread->update($data);
@@ -87,9 +81,6 @@ class ThreadRepository
         return $thread->fresh();
     }
 
-    /**
-     * Delete a thread (soft delete).
-     */
     public function delete(Thread $thread, ?int $deletedBy = null): bool
     {
         if ($deletedBy) {
@@ -100,9 +91,6 @@ class ThreadRepository
         return $thread->delete();
     }
 
-    /**
-     * Get pinned threads for a scheme.
-     */
     public function getPinnedThreads(int $schemeId): Collection
     {
         return Thread::forScheme($schemeId)

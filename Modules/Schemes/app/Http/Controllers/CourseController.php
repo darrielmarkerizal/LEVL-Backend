@@ -3,6 +3,7 @@
 namespace Modules\Schemes\Http\Controllers;
 
 use App\Support\ApiResponse;
+use App\Support\Traits\HandlesMediaUploads;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ use Modules\Schemes\Services\CourseService;
  */
 class CourseController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, HandlesMediaUploads;
 
     public function __construct(
         private CourseService $service,
@@ -103,12 +104,10 @@ class CourseController extends Controller
             $course = $this->service->create($data, $actor);
 
             // Handle file uploads via Spatie Media Library
-            if ($request->hasFile('thumbnail')) {
-                $course->addMedia($request->file('thumbnail'))->toMediaCollection('thumbnail');
-            }
-            if ($request->hasFile('banner')) {
-                $course->addMedia($request->file('banner'))->toMediaCollection('banner');
-            }
+            $this->uploadMedia($course, $request, [
+                'thumbnail' => 'thumbnail',
+                'banner' => 'banner'
+            ]);
         } catch (UniqueConstraintViolationException|QueryException $e) {
             return $this->handleCourseUniqueConstraint($e);
         }
@@ -171,14 +170,10 @@ class CourseController extends Controller
             $updatedCourse = $this->service->update($course->id, $data);
 
             // Handle file uploads via Spatie Media Library
-            if ($request->hasFile('thumbnail')) {
-                $updatedCourse->clearMediaCollection('thumbnail');
-                $updatedCourse->addMedia($request->file('thumbnail'))->toMediaCollection('thumbnail');
-            }
-            if ($request->hasFile('banner')) {
-                $updatedCourse->clearMediaCollection('banner');
-                $updatedCourse->addMedia($request->file('banner'))->toMediaCollection('banner');
-            }
+            $this->uploadMedia($updatedCourse, $request, [
+                'thumbnail' => 'thumbnail',
+                'banner' => 'banner'
+            ]);
         } catch (UniqueConstraintViolationException|QueryException $e) {
             return $this->handleCourseUniqueConstraint($e);
         }

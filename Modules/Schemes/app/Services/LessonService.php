@@ -3,6 +3,7 @@
 namespace Modules\Schemes\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Arr;
 use Modules\Schemes\Contracts\Repositories\LessonRepositoryInterface;
 use Modules\Schemes\DTOs\CreateLessonDTO;
 use Modules\Schemes\DTOs\UpdateLessonDTO;
@@ -16,14 +17,6 @@ class LessonService
         private readonly LessonRepositoryInterface $repository
     ) {}
 
-    /**
-     * Paginate lessons for a unit.
-     *
-     * Supports:
-     * - filter[unit_id], filter[type], filter[status]
-     * - sort: order, title, created_at (prefix with - for desc)
-     * - include: unit, blocks, assignments
-     */
     public function paginate(int $unitId, int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
@@ -56,8 +49,7 @@ class LessonService
         $attributes = $data instanceof CreateLessonDTO ? $data->toArrayWithoutNull() : $data;
         $attributes['unit_id'] = $unitId;
 
-        // Remove slug - HasSlug trait auto-generates from title
-        unset($attributes['slug']);
+        $attributes = Arr::except($attributes, ['slug']);
 
         return $this->repository->create($attributes);
     }
@@ -67,8 +59,7 @@ class LessonService
         $lesson = $this->repository->findByIdOrFail($id);
         $attributes = $data instanceof UpdateLessonDTO ? $data->toArrayWithoutNull() : $data;
 
-        // Remove slug - HasSlug doesn't regenerate on update
-        unset($attributes['slug']);
+        $attributes = Arr::except($attributes, ['slug']);
 
         return $this->repository->update($lesson, $attributes);
     }

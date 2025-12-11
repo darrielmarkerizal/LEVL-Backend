@@ -9,9 +9,6 @@ use Modules\Forums\Models\Thread;
 
 class ForumStatisticsRepository
 {
-    /**
-     * Get or create statistics for a scheme and period.
-     */
     public function getOrCreate(int $schemeId, Carbon $periodStart, Carbon $periodEnd, ?int $userId = null): ForumStatistic
     {
         return ForumStatistic::firstOrCreate(
@@ -29,34 +26,26 @@ class ForumStatisticsRepository
         );
     }
 
-    /**
-     * Update statistics for a scheme.
-     */
     public function updateSchemeStatistics(int $schemeId, Carbon $periodStart, Carbon $periodEnd): ForumStatistic
     {
         $statistic = $this->getOrCreate($schemeId, $periodStart, $periodEnd);
 
-        // Count threads
         $threadsCount = Thread::forScheme($schemeId)
             ->whereBetween('created_at', [$periodStart, $periodEnd])
             ->count();
 
-        // Count replies
         $repliesCount = Reply::whereHas('thread', function ($query) use ($schemeId) {
             $query->where('scheme_id', $schemeId);
         })
             ->whereBetween('created_at', [$periodStart, $periodEnd])
             ->count();
 
-        // Sum views
         $viewsCount = Thread::forScheme($schemeId)
             ->whereBetween('created_at', [$periodStart, $periodEnd])
             ->sum('views_count');
 
-        // Calculate response rate
         $responseRate = $this->calculateResponseRate($schemeId, $periodStart, $periodEnd);
 
-        // Calculate average response time
         $avgResponseTime = $this->calculateAverageResponseTime($schemeId, $periodStart, $periodEnd);
 
         $statistic->update([
@@ -70,20 +59,15 @@ class ForumStatisticsRepository
         return $statistic;
     }
 
-    /**
-     * Update statistics for a user in a scheme.
-     */
     public function updateUserStatistics(int $schemeId, int $userId, Carbon $periodStart, Carbon $periodEnd): ForumStatistic
     {
         $statistic = $this->getOrCreate($schemeId, $periodStart, $periodEnd, $userId);
 
-        // Count user's threads
         $threadsCount = Thread::forScheme($schemeId)
             ->where('author_id', $userId)
             ->whereBetween('created_at', [$periodStart, $periodEnd])
             ->count();
 
-        // Count user's replies
         $repliesCount = Reply::whereHas('thread', function ($query) use ($schemeId) {
             $query->where('scheme_id', $schemeId);
         })
@@ -99,10 +83,6 @@ class ForumStatisticsRepository
         return $statistic;
     }
 
-    /**
-     * Calculate response rate for a scheme.
-     * Response rate = (threads with replies / total threads) * 100
-     */
     public function calculateResponseRate(int $schemeId, Carbon $periodStart, Carbon $periodEnd): float
     {
         $totalThreads = Thread::forScheme($schemeId)
@@ -121,9 +101,6 @@ class ForumStatisticsRepository
         return round(($threadsWithReplies / $totalThreads) * 100, 2);
     }
 
-    /**
-     * Calculate average response time in minutes.
-     */
     public function calculateAverageResponseTime(int $schemeId, Carbon $periodStart, Carbon $periodEnd): ?int
     {
         $threads = Thread::forScheme($schemeId)
@@ -150,9 +127,6 @@ class ForumStatisticsRepository
         return (int) round(array_sum($responseTimes) / count($responseTimes));
     }
 
-    /**
-     * Get statistics for a scheme.
-     */
     public function getSchemeStatistics(int $schemeId, Carbon $periodStart, Carbon $periodEnd): ?ForumStatistic
     {
         return ForumStatistic::forScheme($schemeId)
@@ -161,9 +135,6 @@ class ForumStatisticsRepository
             ->first();
     }
 
-    /**
-     * Get statistics for a user in a scheme.
-     */
     public function getUserStatistics(int $schemeId, int $userId, Carbon $periodStart, Carbon $periodEnd): ?ForumStatistic
     {
         return ForumStatistic::forScheme($schemeId)

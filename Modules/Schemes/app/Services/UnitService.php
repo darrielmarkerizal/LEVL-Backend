@@ -2,7 +2,9 @@
 
 namespace Modules\Schemes\Services;
 
+use App\Support\CodeGenerator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Arr;
 use Modules\Schemes\Contracts\Repositories\UnitRepositoryInterface;
 use Modules\Schemes\DTOs\CreateUnitDTO;
 use Modules\Schemes\DTOs\UpdateUnitDTO;
@@ -16,14 +18,6 @@ class UnitService
         private readonly UnitRepositoryInterface $repository
     ) {}
 
-    /**
-     * Paginate units for a course.
-     *
-     * Supports:
-     * - filter[course_id], filter[status]
-     * - sort: order, title, created_at (prefix with - for desc)
-     * - include: course, lessons
-     */
     public function paginate(int $courseId, int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
@@ -55,8 +49,11 @@ class UnitService
         $attributes = $data instanceof CreateUnitDTO ? $data->toArrayWithoutNull() : $data;
         $attributes['course_id'] = $courseId;
 
-        // Remove slug - HasSlug trait auto-generates from title
-        unset($attributes['slug']);
+        if (empty($attributes['code'])) {
+            $attributes['code'] = CodeGenerator::generate('UNIT-', 4, Unit::class);
+        }
+
+        $attributes = Arr::except($attributes, ['slug']);
 
         return $this->repository->create($attributes);
     }
@@ -66,8 +63,7 @@ class UnitService
         $unit = $this->repository->findByIdOrFail($id);
         $attributes = $data instanceof UpdateUnitDTO ? $data->toArrayWithoutNull() : $data;
 
-        // Remove slug - HasSlug doesn't regenerate on update
-        unset($attributes['slug']);
+        $attributes = Arr::except($attributes, ['slug']);
 
         return $this->repository->update($unit, $attributes);
     }

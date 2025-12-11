@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => EnsureRole::class,
             'permission' => EnsurePermission::class,
+            'cache.response' => \App\Http\Middleware\CacheResponse::class,
         ]);
 
         // Apply CORS and rate limiting to all API routes

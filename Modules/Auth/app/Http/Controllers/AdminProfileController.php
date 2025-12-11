@@ -33,20 +33,13 @@ class AdminProfileController extends Controller
      */
     public function show(Request $request, int $userId): JsonResponse
     {
-        try {
-            $user = User::findOrFail($userId);
-            $profileData = $this->profileService->getProfileData($user, $request->user());
+        $user = User::findOrFail($userId);
+        $profileData = $this->profileService->getProfileData($user, $request->user());
 
-            return response()->json([
-                'success' => true,
-                'data' => $profileData,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 404);
-        }
+        return response()->json([
+            'success' => true,
+            'data' => $profileData,
+        ]);
     }
 
     /**
@@ -71,38 +64,31 @@ class AdminProfileController extends Controller
             'account_status' => 'sometimes|in:active,suspended,deleted',
         ]);
 
-        try {
-            $user = User::findOrFail($userId);
-            $admin = $request->user();
+        $user = User::findOrFail($userId);
+        $admin = $request->user();
 
-            $oldData = $user->only(['name', 'email', 'phone', 'bio', 'account_status']);
+        $oldData = $user->only(['name', 'email', 'phone', 'bio', 'account_status']);
 
-            $updatedUser = $this->profileService->updateProfile($user, $request->all());
+        $updatedUser = $this->profileService->updateProfile($user, $request->all());
 
-            // Log admin action
-            ProfileAuditLog::create([
-                'user_id' => $user->id,
-                'admin_id' => $admin->id,
-                'action' => 'profile_updated',
-                'changes' => [
-                    'old' => $oldData,
-                    'new' => $updatedUser->only(['name', 'email', 'phone', 'bio', 'account_status']),
-                ],
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]);
+        // Log admin action
+        ProfileAuditLog::create([
+            'user_id' => $user->id,
+            'admin_id' => $admin->id,
+            'action' => 'profile_updated',
+            'changes' => [
+                'old' => $oldData,
+                'new' => $updatedUser->only(['name', 'email', 'phone', 'bio', 'account_status']),
+            ],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'User profile updated successfully.',
-                'data' => $this->profileService->getProfileData($updatedUser, $admin),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'User profile updated successfully.',
+            'data' => $this->profileService->getProfileData($updatedUser, $admin),
+        ]);
     }
 
     /**
@@ -117,33 +103,26 @@ class AdminProfileController extends Controller
      */
     public function suspend(Request $request, int $userId): JsonResponse
     {
-        try {
-            $user = User::findOrFail($userId);
-            $admin = $request->user();
+        $user = User::findOrFail($userId);
+        $admin = $request->user();
 
-            $user->account_status = 'suspended';
-            $user->save();
+        $user->account_status = 'suspended';
+        $user->save();
 
-            // Log admin action
-            ProfileAuditLog::create([
-                'user_id' => $user->id,
-                'admin_id' => $admin->id,
-                'action' => 'account_suspended',
-                'changes' => ['status' => 'suspended'],
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]);
+        // Log admin action
+        ProfileAuditLog::create([
+            'user_id' => $user->id,
+            'admin_id' => $admin->id,
+            'action' => 'account_suspended',
+            'changes' => ['status' => 'suspended'],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'User account suspended successfully.',
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'User account suspended successfully.',
+        ]);
     }
 
     /**
@@ -158,33 +137,26 @@ class AdminProfileController extends Controller
      */
     public function activate(Request $request, int $userId): JsonResponse
     {
-        try {
-            $user = User::findOrFail($userId);
-            $admin = $request->user();
+        $user = User::findOrFail($userId);
+        $admin = $request->user();
 
-            $user->account_status = 'active';
-            $user->save();
+        $user->account_status = 'active';
+        $user->save();
 
-            // Log admin action
-            ProfileAuditLog::create([
-                'user_id' => $user->id,
-                'admin_id' => $admin->id,
-                'action' => 'account_activated',
-                'changes' => ['status' => 'active'],
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]);
+        // Log admin action
+        ProfileAuditLog::create([
+            'user_id' => $user->id,
+            'admin_id' => $admin->id,
+            'action' => 'account_activated',
+            'changes' => ['status' => 'active'],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'User account activated successfully.',
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'User account activated successfully.',
+        ]);
     }
 
     /**
@@ -199,21 +171,14 @@ class AdminProfileController extends Controller
      * @queryParam per_page integer Jumlah item per halaman (default: 15, max: 100). Example: 15     */
     public function auditLogs(Request $request, int $userId): JsonResponse
     {
-        try {
-            $logs = ProfileAuditLog::where('user_id', $userId)
-                ->with('admin:id,name,email')
-                ->orderBy('created_at', 'desc')
-                ->paginate(20);
+        $logs = ProfileAuditLog::where('user_id', $userId)
+            ->with('admin:id,name,email')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
 
-            return response()->json([
-                'success' => true,
-                'data' => $logs,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
-        }
+        return response()->json([
+            'success' => true,
+            'data' => $logs,
+        ]);
     }
 }

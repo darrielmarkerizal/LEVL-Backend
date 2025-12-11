@@ -12,13 +12,6 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class LessonBlockService
 {
-    /**
-     * List lesson blocks for a lesson.
-     *
-     * Supports:
-     * - filter[lesson_id], filter[block_type]
-     * - sort: order, created_at (prefix with - for desc)
-     */
     public function list(int $lessonId): Collection
     {
         $query = QueryBuilder::for(LessonBlock::class)
@@ -46,13 +39,11 @@ class LessonBlockService
                 'order' => $data['order'] ?? $nextOrder,
             ]);
 
-            // Add media using Spatie Media Library
-            if ($mediaFile && in_array($data['type'], ['image', 'video', 'file'])) {
+            if ($mediaFile && collect(['image', 'video', 'file'])->contains($data['type'])) {
                 $media = $block
                     ->addMedia($mediaFile)
                     ->toMediaCollection('media');
 
-                // Store additional metadata for video files
                 if ($data['type'] === 'video') {
                     $this->storeVideoMetadata($media);
                 }
@@ -69,25 +60,22 @@ class LessonBlockService
 
             $update = [
                 'block_type' => $data['type'] ?? $block->block_type,
-                'content' => array_key_exists('content', $data) ? $data['content'] : $block->content,
+                'content' => data_get($data, 'content', $block->content),
             ];
 
-            if (array_key_exists('order', $data)) {
+            if (Arr::has($data, 'order')) {
                 $update['order'] = $data['order'];
             }
 
             $block->update($update);
 
-            // Handle media update using Spatie Media Library
             if ($mediaFile) {
-                // Clear existing media (singleFile handles this, but explicit is cleaner)
                 $block->clearMediaCollection('media');
 
                 $media = $block
                     ->addMedia($mediaFile)
                     ->toMediaCollection('media');
 
-                // Store additional metadata for video files
                 $blockType = $data['type'] ?? $block->block_type;
                 if ($blockType === 'video') {
                     $this->storeVideoMetadata($media);
@@ -102,13 +90,9 @@ class LessonBlockService
     {
         $block = LessonBlock::where('lesson_id', $lessonId)->findOrFail($blockId);
 
-        // Media Library automatically cleans up media when model is deleted
         return (bool) $block->delete();
     }
 
-    /**
-     * Store video metadata as custom properties on the media item.
-     */
     private function storeVideoMetadata($media): void
     {
         try {
@@ -141,7 +125,6 @@ class LessonBlockService
                 }
             }
         } catch (\Throwable $e) {
-            // Silently fail - metadata is optional
             \Log::warning('Failed to extract video metadata: '.$e->getMessage());
         }
     }

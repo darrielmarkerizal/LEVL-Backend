@@ -39,7 +39,6 @@ class ProfileService implements ProfileServiceInterface
         $user->last_profile_update = now();
         $user->save();
 
-        // If email changed, mark as unverified
         if (isset($data['email']) && $data['email'] !== $oldEmail) {
             $user->email_verified_at = null;
             $user->save();
@@ -52,10 +51,8 @@ class ProfileService implements ProfileServiceInterface
 
     public function uploadAvatar(User $user, UploadedFile $file): string
     {
-        // Clear old avatar (singleFile collection handles this, but explicit is cleaner)
         $user->clearMediaCollection('avatar');
 
-        // Add new avatar using Media Library
         $media = $user
             ->addMedia($file)
             ->toMediaCollection('avatar');
@@ -90,7 +87,6 @@ class ProfileService implements ProfileServiceInterface
             'created_at' => $user->created_at,
         ];
 
-        // If viewer is not the owner, apply privacy filtering
         if ($viewer->id !== $user->id) {
             $data = $this->privacyService->filterProfileData($data, $user, $viewer);
         }
@@ -106,23 +102,20 @@ class ProfileService implements ProfileServiceInterface
 
         $profileData = $this->getProfileData($user, $viewer);
 
-        $visibleFields = $user->getVisibleFieldsFor($viewer);
+        $visibleFields = collect($user->getVisibleFieldsFor($viewer));
 
-        // Add statistics if visible
-        if (in_array('*', $visibleFields) || in_array('statistics', $visibleFields)) {
+        if ($visibleFields->contains('*') || $visibleFields->contains('statistics')) {
             $profileData['statistics'] = $this->statisticsService->getStatistics($user);
         }
 
-        // Add achievements if visible
-        if (in_array('*', $visibleFields) || in_array('achievements', $visibleFields)) {
+        if ($visibleFields->contains('*') || $visibleFields->contains('achievements')) {
             $profileData['achievements'] = [
                 'badges' => $user->badges()->with('badge')->get(),
                 'pinned_badges' => $user->pinnedBadges()->with('badge')->orderBy('order')->get(),
             ];
         }
 
-        // Add activity history if visible
-        if (in_array('*', $visibleFields) || in_array('activity_history', $visibleFields)) {
+        if ($visibleFields->contains('*') || $visibleFields->contains('activity_history')) {
             $profileData['recent_activities'] = $this->activityService->getRecentActivities($user, 10);
         }
 
@@ -131,12 +124,10 @@ class ProfileService implements ProfileServiceInterface
 
     public function changePassword(User $user, string $currentPassword, string $newPassword): bool
     {
-        // Verify current password
         if (! Hash::check($currentPassword, $user->password)) {
             throw new \Exception('Current password is incorrect.');
         }
 
-        // Validate new password strength
         if (strlen($newPassword) < 8) {
             throw new \Exception('New password must be at least 8 characters long.');
         }
@@ -151,12 +142,10 @@ class ProfileService implements ProfileServiceInterface
 
     public function deleteAccount(User $user, string $password): bool
     {
-        // Verify password
         if (! Hash::check($password, $user->password)) {
             throw new \Exception('Password is incorrect.');
         }
 
-        // Soft delete
         $user->account_status = 'deleted';
         $user->save();
         $user->delete();

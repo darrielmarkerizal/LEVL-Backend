@@ -2,11 +2,13 @@
 
 namespace Modules\Content\Http\Resources;
 
+use App\Http\Resources\BaseResource;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
-class AnnouncementResource extends JsonResource
+class AnnouncementResource extends BaseResource
 {
+    protected array $defaultRelations = ['author', 'course'];
+
     /**
      * Transform the resource into an array.
      *
@@ -46,27 +48,5 @@ class AnnouncementResource extends JsonResource
             }),
             'reads_count' => $this->when(isset($this->reads_count), $this->reads_count),
         ];
-    }
-
-    /**
-     * Load default relationships.
-     */
-    public static function collection($resource)
-    {
-        return parent::collection($resource);
-    }
-
-    /**
-     * Create a new resource instance with default relationships loaded.
-     */
-    public static function make(...$parameters)
-    {
-        $resource = $parameters[0] ?? null;
-
-        if ($resource && method_exists($resource, 'loadMissing')) {
-            $resource->loadMissing(['author', 'course']);
-        }
-
-        return parent::make(...$parameters);
     }
 }

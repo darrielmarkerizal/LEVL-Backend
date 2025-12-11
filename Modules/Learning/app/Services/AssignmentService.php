@@ -33,7 +33,7 @@ class AssignmentService implements AssignmentServiceInterface
             'available_from' => $data['available_from'] ?? null,
             'deadline_at' => $data['deadline_at'] ?? null,
             'status' => $data['status'] ?? AssignmentStatus::Draft->value,
-            'allow_resubmit' => array_key_exists('allow_resubmit', $data) ? (bool) $data['allow_resubmit'] : null,
+            'allow_resubmit' => data_get($data, 'allow_resubmit') !== null ? (bool) $data['allow_resubmit'] : null,
             'late_penalty_percent' => $data['late_penalty_percent'] ?? null,
         ]);
 
@@ -50,8 +50,8 @@ class AssignmentService implements AssignmentServiceInterface
             'available_from' => $data['available_from'] ?? $assignment->available_from,
             'deadline_at' => $data['deadline_at'] ?? $assignment->deadline_at,
             'status' => $data['status'] ?? ($assignment->status?->value ?? AssignmentStatus::Draft->value),
-            'allow_resubmit' => array_key_exists('allow_resubmit', $data) ? (bool) $data['allow_resubmit'] : $assignment->allow_resubmit,
-            'late_penalty_percent' => array_key_exists('late_penalty_percent', $data) ? $data['late_penalty_percent'] : $assignment->late_penalty_percent,
+            'allow_resubmit' => data_get($data, 'allow_resubmit') !== null ? (bool) $data['allow_resubmit'] : $assignment->allow_resubmit,
+            'late_penalty_percent' => data_get($data, 'late_penalty_percent', $assignment->late_penalty_percent),
         ]);
 
         return $updated->fresh(['lesson', 'creator']);

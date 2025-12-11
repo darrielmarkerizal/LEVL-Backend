@@ -31,9 +31,7 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
      */
     public function updatePreferences(User $user, array $preferences): bool
     {
-        try {
-            DB::beginTransaction();
-
+        return DB::transaction(function () use ($user, $preferences) {
             foreach ($preferences as $preference) {
                 NotificationPreference::updateOrCreate(
                     [
@@ -48,14 +46,8 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
                 );
             }
 
-            DB::commit();
-
             return true;
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return false;
-        }
+        });
     }
 
     /**
@@ -110,22 +102,18 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
      */
     public function getDefaultPreferences(): array
     {
-        $defaults = [];
         $categories = NotificationPreference::getCategories();
         $channels = NotificationPreference::getChannels();
 
-        foreach ($categories as $category) {
-            foreach ($channels as $channel) {
-                $defaults[] = [
-                    'category' => $category,
-                    'channel' => $channel,
-                    'enabled' => $this->getDefaultEnabledState($category, $channel),
-                    'frequency' => $this->getDefaultFrequency($category, $channel),
-                ];
-            }
-        }
-
-        return $defaults;
+        return collect($categories)
+            ->crossJoin($channels)
+            ->map(fn($item) => [
+                'category' => $item[0],
+                'channel' => $item[1],
+                'enabled' => $this->getDefaultEnabledState($item[0], $item[1]),
+                'frequency' => $this->getDefaultFrequency($item[0], $item[1]),
+            ])
+            ->all();
     }
 
     /**
@@ -155,7 +143,7 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
             NotificationPreference::CATEGORY_SYSTEM,
         ];
 
-        return in_array($category, $criticalCategories);
+        return collect($criticalCategories)->contains($category);
     }
 
     /**
@@ -165,10 +153,10 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
     {
         // Email enabled by default for important categories
         if ($channel === NotificationPreference::CHANNEL_EMAIL) {
-            return in_array($category, [
+            return collect([
                 NotificationPreference::CATEGORY_ASSIGNMENTS,
                 NotificationPreference::CATEGORY_SYSTEM,
-            ]);
+            ])->contains($category);
         }
 
         // In-app notifications enabled for all categories

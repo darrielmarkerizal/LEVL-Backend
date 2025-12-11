@@ -84,9 +84,6 @@ class ProfileStatisticsService
         ];
     }
 
-    /**
-     * REUSABLE methods for other modules
-     */
     public function calculateCompletionRate(User $user): float
     {
         $stats = $this->getEnrollmentStats($user);

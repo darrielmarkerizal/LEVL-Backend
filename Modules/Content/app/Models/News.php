@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Auth\Models\User;
 use Modules\Content\Enums\ContentStatus;
+use Modules\Content\Traits\HasContentRevisions;
 use Modules\Schemes\Models\Tag;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -22,7 +23,7 @@ use Spatie\Sluggable\SlugOptions;
 
 class News extends Model implements HasMedia
 {
-    use HasFactory, HasSlug, InteractsWithMedia, LogsActivity, SoftDeletes;
+    use HasContentRevisions, HasFactory, HasSlug, InteractsWithMedia, LogsActivity, SoftDeletes;
 
     protected $table = 'news';
 

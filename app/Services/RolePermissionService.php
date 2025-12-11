@@ -16,14 +16,11 @@ class RolePermissionService
 
         $modules = $this->getPermissionsByModule();
 
-        $allPermissions = [];
-        foreach ($modules as $module => $permissions) {
-            foreach ($permissions as $permission) {
-                $allPermissions[] = $permission;
-                Permission::query()->firstOrCreate(
-                    ['name' => $permission, 'guard_name' => self::GUARD]
-                );
-            }
+        $allPermissions = collect($modules)->flatten()->all();
+        foreach ($allPermissions as $permission) {
+            Permission::query()->firstOrCreate(
+                ['name' => $permission, 'guard_name' => self::GUARD]
+            );
         }
 
         $superadmin = Role::query()->firstOrCreate(['name' => 'Superadmin', 'guard_name' => self::GUARD]);

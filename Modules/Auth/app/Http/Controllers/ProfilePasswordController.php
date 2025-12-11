@@ -36,18 +36,14 @@ class ProfilePasswordController extends Controller
      */
     public function update(ChangePasswordRequest $request): JsonResponse
     {
-        try {
-            $user = $request->user();
+        $user = $request->user();
 
-            $this->profileService->changePassword(
-                $user,
-                $request->input('current_password'),
-                $request->input('new_password')
-            );
+        $this->profileService->changePassword(
+            $user,
+            $request->input('current_password'),
+            $request->input('new_password')
+        );
 
-            return $this->success(null, 'Password changed successfully.');
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 422);
-        }
+        return $this->success(null, 'Password changed successfully.');
     }
 }

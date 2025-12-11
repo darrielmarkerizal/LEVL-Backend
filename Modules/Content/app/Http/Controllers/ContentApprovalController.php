@@ -140,7 +140,7 @@ class ContentApprovalController extends Controller
     {
         $type = $request->query('type', 'all');
 
-        $pendingContent = [];
+        $pendingContent = collect();
 
         if ($type === 'all' || $type === 'news') {
             $news = News::whereIn('status', ['submitted', 'in_review'])
@@ -158,7 +158,7 @@ class ContentApprovalController extends Controller
                     ];
                 });
 
-            $pendingContent = array_merge($pendingContent, $news->toArray());
+            $pendingContent = $pendingContent->merge($news);
         }
 
         if ($type === 'all' || $type === 'announcement') {
@@ -177,16 +177,14 @@ class ContentApprovalController extends Controller
                     ];
                 });
 
-            $pendingContent = array_merge($pendingContent, $announcements->toArray());
+            $pendingContent = $pendingContent->merge($announcements);
         }
 
-        usort($pendingContent, function ($a, $b) {
-            return $b['created_at'] <=> $a['created_at'];
-        });
+        $pendingContent = $pendingContent->sortByDesc('created_at')->values();
 
         return $this->success([
             'pending_content' => $pendingContent,
-            'count' => count($pendingContent),
+            'count' => $pendingContent->count(),
         ], __('content.pending_review_retrieved'));
     }
 

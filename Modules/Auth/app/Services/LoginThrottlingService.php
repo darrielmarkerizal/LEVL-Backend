@@ -103,7 +103,9 @@ class LoginThrottlingService
         return $this->rateLimiter->availableIn($key);
     }
 
-    /** @return array{max:int,decay:int} */
+    /**
+     * @return array{max:int,decay:int}
+     */
     public function getRateLimitConfig(): array
     {
         return [
@@ -118,7 +120,9 @@ class LoginThrottlingService
         return $unlockAtTs ? max(0, $unlockAtTs - time()) : 0;
     }
 
-    /** @return array{threshold:int,window:int,duration:int} */
+    /**
+     * @return array{threshold:int,window:int,duration:int}
+     */
     public function getLockConfig(): array
     {
         return [

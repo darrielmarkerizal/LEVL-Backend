@@ -23,20 +23,11 @@ class AnnouncementService implements AnnouncementServiceInterface
         private AnnouncementRepositoryInterface $repository
     ) {}
 
-    /**
-     * Get announcements for user.
-     *
-     * Supports:
-     * - filter[course_id], filter[status], filter[priority], filter[target_type]
-     * - sort: published_at, created_at, priority (prefix with - for desc)
-     * - include: author, course
-     */
     public function getForUser(User $user, array $filters = []): LengthAwarePaginator
     {
         $perPage = $filters['per_page'] ?? 15;
 
         $query = QueryBuilder::for(Announcement::class)
-            // Filter announcements visible to the user
             ->where(function ($q) use ($user) {
                 $q->where('target_type', 'all')
                     ->orWhere(function ($q2) use ($user) {
@@ -57,11 +48,6 @@ class AnnouncementService implements AnnouncementServiceInterface
         return $query->paginate($perPage);
     }
 
-    /**
-     * Get announcements for course.
-     *
-     * Supports same filters/sorts/includes as getForUser().
-     */
     public function getForCourse(int $courseId, array $filters = []): LengthAwarePaginator
     {
         $perPage = $filters['per_page'] ?? 15;
@@ -102,7 +88,7 @@ class AnnouncementService implements AnnouncementServiceInterface
     public function update(Announcement $announcement, UpdateAnnouncementDTO $dto, User $editor): Announcement
     {
         return DB::transaction(function () use ($announcement, $dto, $editor) {
-            $this->saveRevision($announcement, $editor);
+            $announcement->saveRevision($editor);
 
             return $this->repository->update($announcement, $dto->toArrayWithoutNull());
         });
@@ -160,16 +146,5 @@ class AnnouncementService implements AnnouncementServiceInterface
     public function getUnreadCount(User $user): int
     {
         return $this->repository->getUnreadCount($user);
-    }
-
-    private function saveRevision(Announcement $announcement, User $editor): void
-    {
-        ContentRevision::create([
-            'content_type' => Announcement::class,
-            'content_id' => $announcement->id,
-            'editor_id' => $editor->id,
-            'title' => $announcement->title,
-            'content' => $announcement->content,
-        ]);
     }
 }

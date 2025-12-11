@@ -10,9 +10,6 @@ use Modules\Content\Models\Announcement;
 
 class AnnouncementRepository implements AnnouncementRepositoryInterface
 {
-    /**
-     * Get announcements for a specific user with targeting logic.
-     */
     public function getAnnouncementsForUser(User $user, array $filters = []): LengthAwarePaginator
     {
         $query = Announcement::published()
@@ -20,7 +17,6 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
             ->with(['author', 'course'])
             ->withCount('reads');
 
-        // Apply filters
         if (isset($filters['course_id'])) {
             $query->forCourse($filters['course_id']);
         }
@@ -35,16 +31,12 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
             });
         }
 
-        // Sort by priority and published date
         $query->orderByRaw("FIELD(priority, 'high', 'normal', 'low')")
             ->orderBy('published_at', 'desc');
 
         return $query->paginate($filters['per_page'] ?? 15);
     }
 
-    /**
-     * Get announcements for a specific course.
-     */
     public function getAnnouncementsForCourse(int $courseId, array $filters = []): LengthAwarePaginator
     {
         $query = Announcement::published()
@@ -58,9 +50,6 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
         return $query->paginate($filters['per_page'] ?? 15);
     }
 
-    /**
-     * Find an announcement by ID with relationships.
-     */
     public function findWithRelations(int $announcementId): ?Announcement
     {
         return Announcement::with(['author', 'course', 'reads', 'revisions.editor'])
@@ -68,17 +57,11 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
             ->find($announcementId);
     }
 
-    /**
-     * Create a new announcement.
-     */
     public function create(array $data): Announcement
     {
         return Announcement::create($data);
     }
 
-    /**
-     * Update an announcement.
-     */
     public function update(Announcement $announcement, array $data): Announcement
     {
         $announcement->update($data);
@@ -86,9 +69,6 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
         return $announcement->fresh();
     }
 
-    /**
-     * Delete an announcement (soft delete).
-     */
     public function delete(Announcement $announcement, ?int $deletedBy = null): bool
     {
         if ($deletedBy) {
@@ -99,9 +79,6 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
         return $announcement->delete();
     }
 
-    /**
-     * Get scheduled announcements that are ready to publish.
-     */
     public function getScheduledForPublishing(): Collection
     {
         return Announcement::where('status', 'scheduled')
@@ -110,9 +87,6 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
             ->get();
     }
 
-    /**
-     * Get unread announcements count for a user.
-     */
     public function getUnreadCount(User $user): int
     {
         return Announcement::published()

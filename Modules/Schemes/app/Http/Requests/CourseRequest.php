@@ -74,12 +74,12 @@ class CourseRequest extends FormRequest
     public function validated($key = null, $default = null)
     {
         $data = parent::validated($key, $default);
-        if (array_key_exists('tags', $data)) {
+        if (\Illuminate\Support\Arr::has($data, 'tags')) {
             $data['tags_json'] = $data['tags'];
             $data['tags_list'] = $data['tags'];
             unset($data['tags']);
         }
-        if (array_key_exists('prereq', $data)) {
+        if (\Illuminate\Support\Arr::has($data, 'prereq')) {
             $data['prereq_text'] = $data['prereq'];
             unset($data['prereq']);
         }

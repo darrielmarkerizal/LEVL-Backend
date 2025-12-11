@@ -29,9 +29,6 @@ class AuthService implements AuthServiceInterface
         private readonly LoginThrottlingService $throttle,
     ) {}
 
-    /**
-     * Register a new user.
-     */
     public function register(RegisterDTO|array $data, string $ip, ?string $userAgent): array
     {
         $validated = $data instanceof RegisterDTO ? $data->toArray() : $data;
@@ -70,11 +67,6 @@ class AuthService implements AuthServiceInterface
         return $response;
     }
 
-    /**
-     * Login a user.
-     *
-     * @param  string|null  $password  Required if $loginOrDto is string
-     */
     public function login(LoginDTO|string $loginOrDto, ?string $password, string $ip, ?string $userAgent): array
     {
         if ($loginOrDto instanceof LoginDTO) {
@@ -108,15 +100,14 @@ class AuthService implements AuthServiceInterface
         }
 
         $roles = $user->getRoleNames();
-        $isPrivileged = $roles->contains(fn ($r) => in_array($r, ['Superadmin', 'Admin', 'Instructor']));
+        $isPrivileged = $roles->intersect(['Superadmin', 'Admin', 'Instructor'])->isNotEmpty();
 
-        // Auto-verify privileged users (Admin, Superadmin, Instructor) on first login
         $wasAutoVerified = false;
         if ($isPrivileged && (($user->status === UserStatus::Pending) || $user->email_verified_at === null)) {
             $user->email_verified_at = now();
             $user->status = UserStatus::Active;
             $user->save();
-            $user->refresh(); // Refresh to get updated attributes
+            $user->refresh();
             $wasAutoVerified = true;
         }
 
@@ -140,7 +131,6 @@ class AuthService implements AuthServiceInterface
 
         $userArray = $user->toArray();
         $userArray['roles'] = $user->getRoleNames()->values();
-        // Pastikan status dikembalikan sebagai string value, bukan instance enum
         $userArray['status'] = $user->status instanceof UserStatus ? $user->status->value : (string) $user->status;
 
         $response = ['user' => $userArray] + $pair->toArray();
@@ -292,13 +282,6 @@ class AuthService implements AuthServiceInterface
         return ['user' => $userArray];
     }
 
-    /**
-     * List users with Spatie Query Builder + Scout search.
-     *
-     * Supports:
-     * - filter[search] (Scout), filter[status], filter[role], filter[created_from], filter[created_to]
-     * - sort: name, email, username, status, created_at
-     */
     public function listUsers(User $authUser, int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
@@ -317,9 +300,6 @@ class AuthService implements AuthServiceInterface
         return $paginator;
     }
 
-    /**
-     * @throws AuthorizationException
-     */
     public function showUser(User $authUser, User $target): array
     {
         $isSuperadmin = $authUser->hasRole('Superadmin');
@@ -336,9 +316,6 @@ class AuthService implements AuthServiceInterface
         return $this->formatUserDetails($target);
     }
 
-    /**
-     * @throws ValidationException
-     */
     public function updateUserStatus(User $user, string $status): User
     {
         if ($status === UserStatus::Pending->value) {
@@ -369,7 +346,6 @@ class AuthService implements AuthServiceInterface
             ])
             ->with(['roles', 'media']);
 
-        // Use Scout/Meilisearch for full-text search
         if ($searchQuery && trim($searchQuery) !== '') {
             $ids = User::search($searchQuery)->keys()->toArray();
             $builder->whereIn('id', $ids);
@@ -379,7 +355,7 @@ class AuthService implements AuthServiceInterface
             ->allowedFilters([
                 AllowedFilter::exact('status'),
                 AllowedFilter::callback('role', function (Builder $query, $value) {
-                    $roles = is_array($value) ? $value : explode(',', $value);
+                    $roles = is_array($value) ? $value : Str::of($value)->explode(',')->map(fn($r) => trim($r))->toArray();
                     $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
                 }),
                 AllowedFilter::callback('created_from', function (Builder $query, $value) {
@@ -496,29 +472,7 @@ class AuthService implements AuthServiceInterface
 
     private function generatePasswordFromNameEmail(string $name, string $email): string
     {
-        $length = 14;
-        $upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-        $lower = 'abcdefghijkmnpqrstuvwxyz';
-        $numbers = '23456789';
-        $symbols = '!@#$%^&*()-_=+[]{}';
-
-        $passwordChars = [];
-        $passwordChars[] = $upper[random_int(0, strlen($upper) - 1)];
-        $passwordChars[] = $lower[random_int(0, strlen($lower) - 1)];
-        $passwordChars[] = $numbers[random_int(0, strlen($numbers) - 1)];
-        $passwordChars[] = $symbols[random_int(0, strlen($symbols) - 1)];
-
-        $all = $upper.$lower.$numbers.$symbols;
-        for ($i = count($passwordChars); $i < $length; $i++) {
-            $passwordChars[] = $all[random_int(0, strlen($all) - 1)];
-        }
-
-        for ($i = 0; $i < $length; $i++) {
-            $j = random_int(0, $length - 1);
-            [$passwordChars[$i], $passwordChars[$j]] = [$passwordChars[$j], $passwordChars[$i]];
-        }
-
-        return implode('', $passwordChars);
+        return Str::password(14, symbols: true);
     }
 
     private function sendGeneratedPasswordEmail(User $user, string $passwordPlain): void
@@ -550,11 +504,6 @@ class AuthService implements AuthServiceInterface
         return ['user' => $userArray];
     }
 
-    /**
-     * Log a profile update action to the audit trail.
-     *
-     * @param  array<string,array{0:mixed,1:mixed}>  $changes  Array of changed fields with [old, new] values
-     */
     public function logProfileUpdate(User $user, array $changes, ?string $ip, ?string $userAgent): void
     {
         Audit::create([
@@ -570,9 +519,6 @@ class AuthService implements AuthServiceInterface
         ]);
     }
 
-    /**
-     * Log an email change request action to the audit trail.
-     */
     public function logEmailChangeRequest(User $user, string $newEmail, string $uuid, ?string $ip, ?string $userAgent): void
     {
         Audit::create([

@@ -17,9 +17,6 @@ class ContentStatisticsService implements ContentStatisticsServiceInterface
         $this->statisticsRepository = $statisticsRepository;
     }
 
-    /**
-     * Get statistics for a specific announcement.
-     */
     public function getAnnouncementStatistics(Announcement $announcement): array
     {
         $viewCount = $announcement->views_count;
@@ -39,9 +36,6 @@ class ContentStatisticsService implements ContentStatisticsServiceInterface
         ];
     }
 
-    /**
-     * Get statistics for a specific news article.
-     */
     public function getNewsStatistics(News $news): array
     {
         $viewCount = $news->views_count;
@@ -59,41 +53,26 @@ class ContentStatisticsService implements ContentStatisticsServiceInterface
         ];
     }
 
-    /**
-     * Get overall statistics for all announcements.
-     */
     public function getAllAnnouncementStatistics(array $filters = []): Collection
     {
         return $this->statisticsRepository->getAnnouncementStatistics($filters);
     }
 
-    /**
-     * Get overall statistics for all news.
-     */
     public function getAllNewsStatistics(array $filters = []): Collection
     {
         return $this->statisticsRepository->getNewsStatistics($filters);
     }
 
-    /**
-     * Calculate read rate for an announcement.
-     */
     public function calculateReadRate(Announcement $announcement): float
     {
         return $this->statisticsRepository->calculateReadRate($announcement);
     }
 
-    /**
-     * Get list of users who haven't read an announcement.
-     */
     public function getUnreadUsers(Announcement $announcement): Collection
     {
         return $this->statisticsRepository->getUnreadUsers($announcement);
     }
 
-    /**
-     * Get trending news.
-     */
     public function getTrendingNews(int $limit = 10): Collection
     {
         $news = News::published()
@@ -106,17 +85,11 @@ class ContentStatisticsService implements ContentStatisticsServiceInterface
         })->take($limit)->values();
     }
 
-    /**
-     * Get most viewed news in a time period.
-     */
     public function getMostViewedNews(int $days = 30, int $limit = 10): Collection
     {
         return $this->statisticsRepository->getMostViewedNews($days, $limit);
     }
 
-    /**
-     * Get dashboard statistics summary.
-     */
     public function getDashboardStatistics(): array
     {
         $totalAnnouncements = Announcement::published()->count();

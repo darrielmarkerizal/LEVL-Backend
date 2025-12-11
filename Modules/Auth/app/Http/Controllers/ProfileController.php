@@ -5,6 +5,7 @@ namespace Modules\Auth\Http\Controllers;
 use App\Contracts\Services\ProfileServiceInterface;
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
+use App\Support\ValidationRules\ImageRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Auth\Http\Requests\UpdateProfileRequest;
@@ -57,17 +58,13 @@ class ProfileController extends Controller
      */
     public function update(UpdateProfileRequest $request): JsonResponse
     {
-        try {
-            $user = $request->user();
-            $updatedUser = $this->profileService->updateProfile($user, $request->validated());
+        $user = $request->user();
+        $updatedUser = $this->profileService->updateProfile($user, $request->validated());
 
-            return $this->success(
-                $this->profileService->getProfileData($updatedUser),
-                'Profile updated successfully.'
-            );
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 422);
-        }
+        return $this->success(
+            $this->profileService->getProfileData($updatedUser),
+            'Profile updated successfully.'
+        );
     }
 
     /**
@@ -87,20 +84,16 @@ class ProfileController extends Controller
     public function uploadAvatar(Request $request): JsonResponse
     {
         $request->validate([
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'avatar' => ImageRules::avatar(),
         ]);
 
-        try {
-            $user = $request->user();
-            $avatarUrl = $this->profileService->uploadAvatar($user, $request->file('avatar'));
+        $user = $request->user();
+        $avatarUrl = $this->profileService->uploadAvatar($user, $request->file('avatar'));
 
-            return $this->success(
-                ['avatar_url' => $avatarUrl],
-                'Avatar uploaded successfully.'
-            );
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 422);
-        }
+        return $this->success(
+            ['avatar_url' => $avatarUrl],
+            'Avatar uploaded successfully.'
+        );
     }
 
     /**
@@ -119,13 +112,9 @@ class ProfileController extends Controller
      */
     public function deleteAvatar(Request $request): JsonResponse
     {
-        try {
-            $user = $request->user();
-            $this->profileService->deleteAvatar($user);
+        $user = $request->user();
+        $this->profileService->deleteAvatar($user);
 
-            return $this->success(null, 'Avatar deleted successfully.');
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 422);
-        }
+        return $this->success(null, 'Avatar deleted successfully.');
     }
 }

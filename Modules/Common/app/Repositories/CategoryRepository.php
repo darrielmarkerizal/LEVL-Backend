@@ -44,19 +44,10 @@ class CategoryRepository extends BaseRepository
         return Category::class;
     }
 
-    /**
-     * Get paginated categories with optional Scout search.
-     *
-     * Supports:
-     * - filter[name], filter[value], filter[description], filter[status]
-     * - filter[search] or search parameter for Scout/Meilisearch full-text search
-     * - sort: name, value, status, created_at, updated_at (prefix with - for desc)
-     */
     public function paginate(array $params = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->query();
 
-        // Handle Scout search if search parameter is provided
         $searchQuery = $params['search'] ?? request('filter.search') ?? request('search');
 
         if ($searchQuery && trim($searchQuery) !== '') {
@@ -65,7 +56,6 @@ class CategoryRepository extends BaseRepository
             if (! empty($ids)) {
                 $query->whereIn('id', $ids);
             } else {
-                // No results from search, return empty paginator
                 $query->whereRaw('1 = 0');
             }
         }
@@ -80,14 +70,10 @@ class CategoryRepository extends BaseRepository
         );
     }
 
-    /**
-     * Get all categories (no pagination) with optional Scout search.
-     */
     public function all(array $params = []): Collection
     {
         $query = $this->query();
 
-        // Handle Scout search if search parameter is provided
         $searchQuery = $params['search'] ?? request('filter.search') ?? request('search');
 
         if ($searchQuery && trim($searchQuery) !== '') {
@@ -96,7 +82,6 @@ class CategoryRepository extends BaseRepository
             if (! empty($ids)) {
                 $query->whereIn('id', $ids);
             } else {
-                // No results from search, return empty collection
                 return new Collection;
             }
         }
@@ -104,15 +89,5 @@ class CategoryRepository extends BaseRepository
         $this->applyFiltering($query, $params, $this->allowedFilters, $this->allowedSorts, $this->defaultSort);
 
         return $query->get();
-    }
-
-    public function findById(int $id): ?Category
-    {
-        return $this->query()->find($id);
-    }
-
-    public function findByIdOrFail(int $id): Category
-    {
-        return $this->query()->findOrFail($id);
     }
 }

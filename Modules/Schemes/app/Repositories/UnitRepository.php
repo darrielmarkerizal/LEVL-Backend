@@ -44,18 +44,10 @@ class UnitRepository extends BaseRepository implements UnitRepositoryInterface
         return Unit::class;
     }
 
-    /**
-     * Find units by course with optional Scout search.
-     *
-     * Supports:
-     * - filter[status], filter[search] or search parameter (Meilisearch)
-     * - sort: id, code, title, order, status, created_at, updated_at (prefix with - for desc)
-     */
     public function findByCourse(int $courseId, array $params = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->query()->where('course_id', $courseId);
 
-        // Handle Scout search if search parameter is provided
         $searchQuery = $params['search'] ?? request('filter.search') ?? request('search');
 
         if ($searchQuery && trim($searchQuery) !== '') {

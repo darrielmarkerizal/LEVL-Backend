@@ -64,11 +64,9 @@ class LeaderboardService implements LeaderboardServiceInterface
 
         DB::transaction(function () use ($stats) {
             $rank = 1;
-            $userIds = [];
+            $userIds = $stats->pluck('user_id')->toArray();
 
             foreach ($stats as $stat) {
-                $userIds[] = $stat->user_id;
-
                 Leaderboard::updateOrCreate(
                     [
                         'course_id' => null,

@@ -26,9 +26,6 @@ class Course extends Model implements HasMedia
 {
     use HasFactory, HasSlug, InteractsWithMedia, LogsActivity, Searchable, SoftDeletes;
 
-    /**
-     * Register media collections for this model.
-     */
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('thumbnail')
@@ -42,12 +39,8 @@ class Course extends Model implements HasMedia
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
     }
 
-    /**
-     * Register media conversions for this model.
-     */
     public function registerMediaConversions(?Media $media = null): void
     {
-        // Thumbnail conversions (16:9 ratio)
         $this->addMediaConversion('thumb')
             ->width(400)
             ->height(225)
@@ -77,9 +70,6 @@ class Course extends Model implements HasMedia
             ->performOnCollections('thumbnail');
     }
 
-    /**
-     * Get the options for generating the slug.
-     */
     public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()
@@ -88,9 +78,6 @@ class Course extends Model implements HasMedia
             ->doNotGenerateSlugsOnUpdate();
     }
 
-    /**
-     * Get activity log options for this model.
-     */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -105,11 +92,6 @@ class Course extends Model implements HasMedia
             });
     }
 
-    /**
-     * Fields that support full-text search via QueryFilter.
-     *
-     * @var array<int, string>
-     */
     protected array $searchable = ['title', 'short_desc'];
 
     protected $fillable = [

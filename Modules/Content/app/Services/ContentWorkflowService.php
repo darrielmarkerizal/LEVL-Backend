@@ -17,7 +17,6 @@ use Modules\Content\Models\ContentWorkflowHistory;
 
 class ContentWorkflowService implements ContentWorkflowServiceInterface
 {
-    // Workflow states
     const STATE_DRAFT = 'draft';
 
     const STATE_SUBMITTED = 'submitted';
@@ -34,7 +33,6 @@ class ContentWorkflowService implements ContentWorkflowServiceInterface
 
     const STATE_ARCHIVED = 'archived';
 
-    // Allowed transitions
     protected array $transitions = [
         self::STATE_DRAFT => [self::STATE_SUBMITTED],
         self::STATE_SUBMITTED => [self::STATE_IN_REVIEW, self::STATE_DRAFT],
@@ -47,13 +45,10 @@ class ContentWorkflowService implements ContentWorkflowServiceInterface
     ];
 
     /**
-     * Transition content to new state.
-     *
      * @throws InvalidTransitionException
      */
     public function transition(Model $content, string $newState, User $user, ?string $note = null): bool
     {
-        // Get the current status as string for comparison
         $currentStatus = $content->status instanceof ContentStatus
             ? $content->status->value
             : $content->status;
@@ -65,7 +60,6 @@ class ContentWorkflowService implements ContentWorkflowServiceInterface
         }
 
         return DB::transaction(function () use ($content, $newState, $user, $note, $currentStatus) {
-            // Save workflow history
             ContentWorkflowHistory::create([
                 'content_type' => get_class($content),
                 'content_id' => $content->id,
@@ -75,43 +69,29 @@ class ContentWorkflowService implements ContentWorkflowServiceInterface
                 'note' => $note,
             ]);
 
-            // Update content status
             $content->update(['status' => $newState]);
 
-            // Fire appropriate event
             $this->fireTransitionEvent($content, $newState, $user);
 
             return true;
         });
     }
 
-    /**
-     * Check if transition is valid.
-     */
     public function canTransition(string|ContentStatus $currentState, string $newState): bool
     {
-        // Handle enum values by extracting the string value
         $currentStateString = $currentState instanceof ContentStatus
             ? $currentState->value
             : $currentState;
 
-        return in_array($newState, $this->transitions[$currentStateString] ?? []);
+        return collect($this->transitions[$currentStateString] ?? [])->contains($newState);
     }
 
-    /**
-     * Get allowed transitions for current state.
-     */
     public function getAllowedTransitions(string $currentState): array
     {
         return $this->transitions[$currentState] ?? [];
     }
 
     /**
-     * Fire appropriate event for transition.
-     */
-    /**
-     * Submit content for review.
-     *
      * @throws InvalidTransitionException
      */
     public function submitForReview(Model $content, User $user): bool
@@ -120,8 +100,6 @@ class ContentWorkflowService implements ContentWorkflowServiceInterface
     }
 
     /**
-     * Approve content.
-     *
      * @throws InvalidTransitionException
      */
     public function approve(Model $content, User $user, ?string $note = null): bool
@@ -130,8 +108,6 @@ class ContentWorkflowService implements ContentWorkflowServiceInterface
     }
 
     /**
-     * Reject content with reason.
-     *
      * @throws InvalidTransitionException
      */
     public function reject(Model $content, User $user, string $reason): bool
@@ -140,8 +116,6 @@ class ContentWorkflowService implements ContentWorkflowServiceInterface
     }
 
     /**
-     * Schedule content for future publication.
-     *
      * @throws InvalidTransitionException
      */
     public function schedule(Model $content, User $user, \DateTime $publishDate): bool
@@ -152,8 +126,6 @@ class ContentWorkflowService implements ContentWorkflowServiceInterface
     }
 
     /**
-     * Publish content.
-     *
      * @throws InvalidTransitionException
      */
     public function publish(Model $content, User $user): bool
