@@ -28,6 +28,15 @@ return Application::configure(basePath: dirname(__DIR__))
       "cache.response" => \App\Http\Middleware\CacheResponse::class,
     ]);
 
+    // Trust all proxies (for AWS/load balancers) - allows proper IP and header detection
+    $middleware->trustProxies(
+      at: "*",
+      headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |
+        \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST |
+        \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |
+        \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO,
+    );
+
     // Apply rate limiting to all API routes
     $middleware->api(prepend: [\Illuminate\Routing\Middleware\ThrottleRequests::class . ":api"]);
 
