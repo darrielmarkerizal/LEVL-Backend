@@ -3,7 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Support\Facades\Request;
-use Jenssegers\Agent\Agent;
+use hisorange\BrowserDetect\Parser as Browser;
 
 class BrowserLogger
 {
@@ -13,18 +13,18 @@ class BrowserLogger
   public static function getDeviceInfo(): array
   {
     try {
-      $agent = new Agent();
+      $browser = app(Browser::class);
 
       return [
         "ip_address" => Request::ip(),
-        "browser" => $agent->browser() ?? "Unknown",
-        "browser_version" => $agent->version($agent->browser()) ?? null,
-        "platform" => $agent->platform() ?? "Unknown",
-        "device" => $agent->device() ?? $agent->platform(),
-        "device_type" => self::getDeviceType($agent),
+        "browser" => $browser->browserName(),
+        "browser_version" => $browser->browserVersion(),
+        "platform" => $browser->platformName(),
+        "device" => $browser->deviceModel() ?? $browser->platformName(),
+        "device_type" => self::getDeviceType($browser),
       ];
     } catch (\Exception $e) {
-      // Fallback if browser detection fails
+      // Fallback if browser-detect fails
       return [
         "ip_address" => Request::ip(),
         "browser" => "Unknown",
@@ -39,17 +39,17 @@ class BrowserLogger
   /**
    * Determine device type
    */
-  private static function getDeviceType(Agent $agent): string
+  private static function getDeviceType(Browser $browser): string
   {
-    if ($agent->isMobile()) {
+    if ($browser->isMobile()) {
       return "mobile";
     }
 
-    if ($agent->isTablet()) {
+    if ($browser->isTablet()) {
       return "tablet";
     }
 
-    if ($agent->isDesktop()) {
+    if ($browser->isDesktop()) {
       return "desktop";
     }
 
