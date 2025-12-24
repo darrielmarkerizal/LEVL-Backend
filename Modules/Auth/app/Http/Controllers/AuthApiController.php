@@ -71,10 +71,7 @@ class AuthApiController extends Controller
 
     $data = $this->auth->register(data: $dto, ip: $request->ip(), userAgent: $request->userAgent());
 
-    return $this->created(
-      $data,
-      __('messages.auth.register_success'),
-    );
+    return $this->created($data, __("messages.auth.register_success"));
   }
 
   /**
@@ -111,7 +108,7 @@ class AuthApiController extends Controller
       return $this->success($data, $data["message"]);
     }
 
-    return $this->success($data, __('messages.auth.login_success'));
+    return $this->success($data, __("messages.auth.login_success"));
   }
 
   /**
@@ -197,10 +194,10 @@ class AuthApiController extends Controller
       $refreshToken = $request->string("refresh_token");
       $data = $this->auth->refresh($refreshToken, $request->ip(), $request->userAgent());
     } catch (ValidationException $e) {
-      return $this->error(__('messages.auth.refresh_invalid'), 401);
+      return $this->error(__("messages.auth.refresh_invalid"), 401);
     }
 
-    return $this->success($data, __('messages.auth.refresh_success'));
+    return $this->success($data, __("messages.auth.refresh_success"));
   }
 
   /**
@@ -223,17 +220,17 @@ class AuthApiController extends Controller
     /** @var \Modules\Auth\Models\User|null $user */
     $user = auth("api")->user();
     if (!$user) {
-      return $this->error(__('messages.unauthorized'), 401);
+      return $this->error(__("messages.unauthorized"), 401);
     }
 
     $currentJwt = $request->bearerToken();
     if (!$currentJwt) {
-      return $this->error(__('messages.unauthorized'), 401);
+      return $this->error(__("messages.unauthorized"), 401);
     }
 
     $this->auth->logout($user, $currentJwt, $request->input("refresh_token"));
 
-    return $this->success([], __('messages.auth.logout_success'));
+    return $this->success([], __("messages.auth.logout_success"));
   }
 
   /**
@@ -254,10 +251,10 @@ class AuthApiController extends Controller
     /** @var \Modules\Auth\Models\User|null $user */
     $user = auth("api")->user();
     if (!$user) {
-      return $this->error(__('messages.unauthorized'), 401);
+      return $this->error(__("messages.unauthorized"), 401);
     }
 
-    return $this->success($user->toArray(), __('messages.auth.profile_retrieved'));
+    return $this->success($user->toArray(), __("messages.auth.profile_retrieved"));
   }
 
   /**
@@ -283,7 +280,7 @@ class AuthApiController extends Controller
     /** @var \Modules\Auth\Models\User|null $user */
     $user = auth("api")->user();
     if (!$user) {
-      return $this->error(__('messages.unauthorized'), 401);
+      return $this->error(__("messages.unauthorized"), 401);
     }
 
     $validated = $request->validated();
@@ -310,7 +307,7 @@ class AuthApiController extends Controller
 
     $this->auth->logProfileUpdate($user, $changes, $request->ip(), $request->userAgent());
 
-    return $this->success($user->fresh()->toArray(), __('messages.auth.profile_updated'));
+    return $this->success($user->fresh()->toArray(), __("messages.auth.profile_updated"));
   }
 
   /**
@@ -338,7 +335,7 @@ class AuthApiController extends Controller
 
       return $redirectResponse;
     } catch (\Throwable $e) {
-      return $this->error(__('messages.auth.google_oauth_failed'), 400);
+      return $this->error(__("messages.auth.google_oauth_failed"), 400);
     }
   }
 
@@ -358,7 +355,9 @@ class AuthApiController extends Controller
   public function googleCallback(Request $request): RedirectResponse
   {
     $frontendUrl = env("FRONTEND_URL", "http://localhost:3000");
-    $errorUrl = $frontendUrl . "/auth/login?error=google_login_failed";
+    $errorUrl = $frontendUrl . "/login?error=google_login_failed";
+
+    \Log::info("Google OAuth callback started");
 
     try {
       /** @var SocialiteFactory $socialite */
@@ -367,8 +366,12 @@ class AuthApiController extends Controller
       /** @var SocialiteAbstractProvider $provider */
       $provider = $provider->stateless();
       $googleUser = $provider->user();
+      \Log::info("Google user retrieved", ["email" => $googleUser->getEmail()]);
     } catch (\Throwable $e) {
-      return redirect($errorUrl);
+      \Log::error("Google OAuth callback error: " . $e->getMessage(), [
+        "trace" => $e->getTraceAsString(),
+      ]);
+      return redirect($errorUrl . "&reason=oauth_error");
     }
 
     $email = $googleUser->getEmail();
@@ -379,16 +382,25 @@ class AuthApiController extends Controller
     // Find existing user by email or create a new one
     $user = User::query()->where("email", $email)->first();
     $isNewUser = !$user;
+
+    \Log::info("User lookup", ["email" => $email, "isNewUser" => $isNewUser]);
+
     if ($isNewUser) {
-      $user = User::query()->create([
-        "name" => $name,
-        "username" => null,
-        "email" => $email,
-        // random password; not used for social login
-        "password" => \Illuminate\Support\Str::random(32),
-        "status" => UserStatus::Active->value,
-        "email_verified_at" => now(),
-      ]);
+      try {
+        $user = User::query()->create([
+          "name" => $name,
+          "username" => null,
+          "email" => $email,
+          // random password; not used for social login
+          "password" => \Illuminate\Support\Str::random(32),
+          "status" => UserStatus::Active->value,
+          "email_verified_at" => now(),
+        ]);
+        \Log::info("New user created", ["user_id" => $user->id, "email" => $email]);
+      } catch (\Throwable $e) {
+        \Log::error("Failed to create user: " . $e->getMessage());
+        return redirect($errorUrl . "&reason=user_creation_failed");
+      }
     }
 
     $account = SocialAccount::query()->firstOrNew([
@@ -426,6 +438,11 @@ class AuthApiController extends Controller
         "needs_username" => $isNewUser && !$user->username ? "1" : "0",
       ]);
 
+    \Log::info("Google OAuth success, redirecting to frontend", [
+      "user_id" => $user->id,
+      "isNewUser" => $isNewUser,
+    ]);
+
     return redirect($successUrl);
   }
 
@@ -448,22 +465,19 @@ class AuthApiController extends Controller
     /** @var \Modules\Auth\Models\User|null $user */
     $user = auth("api")->user();
     if (!$user) {
-      return $this->error(__('messages.unauthorized'), 401);
+      return $this->error(__("messages.unauthorized"), 401);
     }
 
     if ($user->email_verified_at && $user->status === UserStatus::Active) {
-      return $this->success([], __('messages.auth.email_already_verified'));
+      return $this->success([], __("messages.auth.email_already_verified"));
     }
 
     $uuid = $this->emailVerification->sendVerificationLink($user);
     if ($uuid === null) {
-      return $this->success([], __('messages.auth.email_already_verified'));
+      return $this->success([], __("messages.auth.email_already_verified"));
     }
 
-    return $this->success(
-      ["uuid" => $uuid],
-      __('messages.auth.verification_sent'),
-    );
+    return $this->success(["uuid" => $uuid], __("messages.auth.verification_sent"));
   }
 
   /**
@@ -485,7 +499,7 @@ class AuthApiController extends Controller
     /** @var \Modules\Auth\Models\User|null $user */
     $user = auth("api")->user();
     if (!$user) {
-      return $this->error(__('messages.unauthorized'), 401);
+      return $this->error(__("messages.unauthorized"), 401);
     }
 
     $validated = $request->validated();
@@ -500,10 +514,7 @@ class AuthApiController extends Controller
       $request->userAgent(),
     );
 
-    return $this->success(
-      ["uuid" => $uuid],
-      __('messages.auth.email_change_sent'),
-    );
+    return $this->success(["uuid" => $uuid], __("messages.auth.email_change_sent"));
   }
 
   /**
@@ -529,22 +540,22 @@ class AuthApiController extends Controller
     $result = $this->emailVerification->verifyChangeByCode($validated["uuid"], $validated["code"]);
 
     if ($result["status"] === "ok") {
-      return $this->success([], __('messages.auth.email_changed'));
+      return $this->success([], __("messages.auth.email_changed"));
     }
     if ($result["status"] === "expired") {
-      return $this->error(__('messages.auth.verification_expired'), 422);
+      return $this->error(__("messages.auth.verification_expired"), 422);
     }
     if ($result["status"] === "invalid") {
-      return $this->error(__('messages.auth.verification_invalid'), 422);
+      return $this->error(__("messages.auth.verification_invalid"), 422);
     }
     if ($result["status"] === "email_taken") {
-      return $this->error(__('messages.auth.email_taken'), 422);
+      return $this->error(__("messages.auth.email_taken"), 422);
     }
     if ($result["status"] === "not_found") {
-      return $this->error(__('messages.auth.verification_not_found'), 404);
+      return $this->error(__("messages.auth.verification_not_found"), 404);
     }
 
-    return $this->error(__('messages.auth.verification_failed'), 422);
+    return $this->error(__("messages.auth.verification_failed"), 422);
   }
 
   /**
@@ -581,22 +592,22 @@ class AuthApiController extends Controller
     $result = $this->emailVerification->verifyByCode($uuidOrToken, $code);
 
     if ($result["status"] === "ok") {
-      return $this->success([], __('messages.auth.email_verified'));
+      return $this->success([], __("messages.auth.email_verified"));
     }
 
     if ($result["status"] === "expired") {
-      return $this->error(__('messages.auth.verification_expired'), 422);
+      return $this->error(__("messages.auth.verification_expired"), 422);
     }
 
     if ($result["status"] === "invalid") {
-      return $this->error(__('messages.auth.verification_invalid_or_token'), 422);
+      return $this->error(__("messages.auth.verification_invalid_or_token"), 422);
     }
 
     if ($result["status"] === "not_found") {
-      return $this->error(__('messages.auth.verification_not_found'), 404);
+      return $this->error(__("messages.auth.verification_not_found"), 404);
     }
 
-    return $this->error(__('messages.auth.verification_failed'), 422);
+    return $this->error(__("messages.auth.verification_failed"), 422);
   }
 
   /**
@@ -634,22 +645,22 @@ class AuthApiController extends Controller
     $result = $this->emailVerification->verifyByToken($token);
 
     if ($result["status"] === "ok") {
-      return $this->success([], __('messages.auth.email_verified'));
+      return $this->success([], __("messages.auth.email_verified"));
     }
 
     if ($result["status"] === "expired") {
-      return $this->error(__('messages.auth.link_expired'), 422);
+      return $this->error(__("messages.auth.link_expired"), 422);
     }
 
     if ($result["status"] === "invalid") {
-      return $this->error(__('messages.auth.link_invalid'), 422);
+      return $this->error(__("messages.auth.link_invalid"), 422);
     }
 
     if ($result["status"] === "not_found") {
-      return $this->error(__('messages.auth.link_not_found'), 404);
+      return $this->error(__("messages.auth.link_not_found"), 404);
     }
 
-    return $this->error(__('messages.auth.verification_failed'), 422);
+    return $this->error(__("messages.auth.verification_failed"), 422);
   }
 
   /**
@@ -673,17 +684,14 @@ class AuthApiController extends Controller
     $validated = $request->validated();
     $target = User::query()->find($validated["user_id"]);
     if (!$target) {
-      return $this->error(__('messages.auth.user_not_found'), 404);
+      return $this->error(__("messages.auth.user_not_found"), 404);
     }
 
     $isAllowedRole =
       $target->hasRole("Admin") || $target->hasRole("Superadmin") || $target->hasRole("Instructor");
     $isPending = ($target->status ?? null) === UserStatus::Pending;
     if (!($isAllowedRole && $isPending)) {
-      return $this->error(
-        __('messages.auth.admin_only'),
-        422,
-      );
+      return $this->error(__("messages.auth.admin_only"), 422);
     }
 
     $reflection = new \ReflectionClass($this->auth);
@@ -697,7 +705,7 @@ class AuthApiController extends Controller
       ->getMethod("sendGeneratedPasswordEmail")
       ->invoke($this->auth, $target, $passwordPlain);
 
-    return $this->success(["user" => $target->toArray()], __('messages.auth.credentials_resent'));
+    return $this->success(["user" => $target->toArray()], __("messages.auth.credentials_resent"));
   }
 
   /**
@@ -723,7 +731,7 @@ class AuthApiController extends Controller
       return $this->validationError($e->errors());
     }
 
-    return $this->success(["user" => $updated->toArray()], __('messages.auth.status_updated'));
+    return $this->success(["user" => $updated->toArray()], __("messages.auth.status_updated"));
   }
 
   /**

@@ -62,7 +62,7 @@ class PasswordResetController extends Controller
 
     $ttlMinutes = (int) (config("auth.passwords.users.expire", 60) ?? 60);
     $frontendUrl = rtrim(env("FRONTEND_URL", config("app.url")), "/");
-    $resetUrl = $frontendUrl . "/auth/reset-password?token=" . $plainToken;
+    $resetUrl = $frontendUrl . "/atur-ulang-kata-sandi?token=" . $plainToken;
 
     Mail::to($user)->send(new ResetPasswordMail($user, $resetUrl, $ttlMinutes, $plainToken));
 

@@ -121,9 +121,7 @@
         }
     },
     "errors": null
-}<?php
-
-namespace Modules\Gamification\Http\Controllers;
+}<?php namespace Modules\Gamification\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
@@ -213,7 +211,7 @@ class ChallengeController extends Controller
     $challenge = Challenge::with("badge")->find($challengeId);
 
     if (!$challenge) {
-      return $this->notFound(__('messages.challenges.not_found'));
+      return $this->notFound(__("messages.challenges.not_found"));
     }
 
     $userId = $request->user()?->id;
@@ -332,7 +330,7 @@ class ChallengeController extends Controller
     $rewards = $this->challengeService->claimReward($userId, $challengeId);
 
     return $this->success([
-      "message" => __('messages.challenges.reward_claimed'),
+      "message" => __("messages.challenges.reward_claimed"),
       "rewards" => $rewards,
     ]);
   }
