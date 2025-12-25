@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Repositories;
+namespace Modules\Common\Repositories;
 
-use App\Models\MasterDataItem;
+use Modules\Common\Models\MasterDataItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
 use Spatie\QueryBuilder\AllowedSort;
 
-class MasterDataRepository extends BaseRepository
+class MasterDataRepository extends \App\Repositories\BaseRepository implements \Modules\Common\Contracts\Repositories\MasterDataRepositoryInterface
 {
   /**
    * Allowed filter keys.

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services;
+namespace Modules\Common\Services;
 
-use App\Models\MasterDataItem;
-use App\Repositories\MasterDataRepository;
+use Modules\Common\Models\MasterDataItem;
+use Modules\Common\Repositories\MasterDataRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;

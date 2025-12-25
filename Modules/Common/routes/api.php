@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\ActivityLogController;
-use App\Http\Controllers\Api\MasterDataCrudController;
 use Illuminate\Support\Facades\Route;
 use Modules\Common\Http\Controllers\CategoriesController;
 use Modules\Common\Http\Controllers\MasterDataController;
@@ -19,21 +18,21 @@ Route::prefix("v1")->group(function () {
   Route::prefix("master-data")
     ->name("master-data.")
     ->group(function () {
-      Route::get("/", [MasterDataCrudController::class, "types"])->name("index");
-      Route::get("{type}/items", [MasterDataCrudController::class, "index"])->name("items.index");
-      Route::get("{type}/items/{id}", [MasterDataCrudController::class, "show"])->name(
+      Route::get("/", [MasterDataController::class, "types"])->name("index");
+      Route::get("{type}/items", [MasterDataController::class, "index"])->name("items.index");
+      Route::get("{type}/items/{id}", [MasterDataController::class, "show"])->name(
         "items.show",
       );
 
       // Routes that require Superadmin
       Route::middleware(["auth:api", "role:Superadmin"])->group(function () {
-        Route::post("{type}/items", [MasterDataCrudController::class, "store"])->name(
+        Route::post("{type}/items", [MasterDataController::class, "store"])->name(
           "items.store",
         );
-        Route::put("{type}/items/{id}", [MasterDataCrudController::class, "update"])->name(
+        Route::put("{type}/items/{id}", [MasterDataController::class, "update"])->name(
           "items.update",
         );
-        Route::delete("{type}/items/{id}", [MasterDataCrudController::class, "destroy"])->name(
+        Route::delete("{type}/items/{id}", [MasterDataController::class, "destroy"])->name(
           "items.destroy",
         );
 
