@@ -129,7 +129,7 @@ class CodeGenerator
         string $prefix,
         string $dateFormat = 'Ymd',
         int $length = 4,
-        string $modelClass = null,
+        ?string $modelClass = null,
         string $column = 'code'
     ): string {
         $datePart = date($dateFormat);

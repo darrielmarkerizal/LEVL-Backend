@@ -38,7 +38,7 @@ class SearchServiceProvider extends ServiceProvider
 
         // Bind SearchService interface
         $this->app->bind(
-            \Modules\Search\Contracts\SearchServiceInterface::class,
+            \Modules\Search\Contracts\Services\SearchServiceInterface::class,
             \Modules\Search\Services\SearchService::class
         );
 
