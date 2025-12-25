@@ -154,6 +154,14 @@ jobs:
             echo "::notice::Code updated to latest version."
             echo "::endgroup::"
 
+            echo "::group::Installing dependencies (with dev for testing)"
+            if ! composer install --no-interaction --prefer-dist --optimize-autoloader; then
+              echo "::error::Composer install failed"
+              exit 76
+            fi
+            echo "::notice::Dependencies installed successfully."
+            echo "::endgroup::"
+
             echo "::group::Creating database backup"
             BACKUP_DIR="storage/app/backups"
             mkdir -p "$BACKUP_DIR"
@@ -167,14 +175,6 @@ jobs:
             else
               echo "::warning::Backup command not available (install spatie/laravel-backup for automatic backups)"
             fi
-            echo "::endgroup::"
-
-            echo "::group::Installing dependencies (with dev for testing)"
-            if ! composer install --no-interaction --prefer-dist --optimize-autoloader; then
-              echo "::error::Composer install failed"
-              exit 76
-            fi
-            echo "::notice::Dependencies installed successfully."
             echo "::endgroup::"
 
             echo "::group::Running database migrations"
