@@ -35,6 +35,12 @@ class CommonServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+
+        // Register repository bindings
+        $this->app->bind(
+            \Modules\Common\Contracts\Repositories\MasterDataRepositoryInterface::class,
+            \Modules\Common\Repositories\MasterDataRepository::class
+        );
     }
 
     /**
