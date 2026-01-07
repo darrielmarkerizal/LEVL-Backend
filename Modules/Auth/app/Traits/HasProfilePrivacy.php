@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace Modules\Auth\Traits;
 
 use Modules\Auth\Models\ProfilePrivacySetting;

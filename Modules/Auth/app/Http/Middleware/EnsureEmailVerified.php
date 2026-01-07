@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace Modules\Auth\Http\Middleware;
 
 use Closure;
@@ -19,7 +22,7 @@ class EnsureEmailVerified
         if ($request->expectsJson()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Email belum terverifikasi. Silakan verifikasi email Anda terlebih dahulu.',
+                'message' => __('messages.auth.email_not_verified'),
             ], 403);
         }
 

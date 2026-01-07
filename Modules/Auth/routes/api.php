@@ -30,10 +30,6 @@ Route::prefix("v1")
       Route::post("/auth/email/verify", [AuthApiController::class, "verifyEmail"])->name(
         "email.verify",
       );
-      Route::post("/auth/email/verify/by-token", [
-        AuthApiController::class,
-        "verifyEmailByToken",
-      ])->name("email.verify.by-token");
     });
 
     Route::post("/auth/refresh", [AuthApiController::class, "refresh"])
@@ -51,11 +47,11 @@ Route::prefix("v1")
         AuthApiController::class,
         "sendEmailVerification",
       ])->name("email.verify.send");
-      Route::post("/profile/email/verify", [AuthApiController::class, "verifyEmailChange"])->name(
-        "email.change.verify",
-      );
-      Route::post("/profile/email/request", [AuthApiController::class, "requestEmailChange"])->name(
+      Route::post("/profile/email/change", [ProfileController::class, "requestEmailChange"])->name(
         "email.change.request",
+      );
+      Route::post("/profile/email/change/verify", [ProfileController::class, "verifyEmailChange"])->name(
+        "email.change.verify",
       );
 
       // Profile Management Routes
@@ -104,9 +100,14 @@ Route::prefix("v1")
           );
 
           // Account Management
-          Route::delete("/account", [ProfileAccountController::class, "destroy"])->name(
-            "account.delete",
-          );
+          Route::post("/account/delete/request", [
+            ProfileAccountController::class,
+            "deleteRequest",
+          ])->name("account.delete.request");
+          Route::post("/account/delete/confirm", [
+            ProfileAccountController::class,
+            "deleteConfirm",
+          ])->name("account.delete.confirm");
           Route::post("/account/restore", [ProfileAccountController::class, "restore"])->name(
             "account.restore",
           );
@@ -117,36 +118,13 @@ Route::prefix("v1")
         "users.profile.show",
       );
 
-      // Admin Profile Management
-      Route::prefix("admin/users/{user}")
-        ->as("admin.users.")
-        ->middleware("role:Admin")
-        ->group(function () {
-          Route::get("/profile", [AdminProfileController::class, "show"])->name("profile.show");
-          Route::put("/profile", [AdminProfileController::class, "update"])->name("profile.update");
-          Route::post("/suspend", [AdminProfileController::class, "suspend"])->name("suspend");
-          Route::post("/activate", [AdminProfileController::class, "activate"])->name("activate");
-          Route::get("/audit-logs", [AdminProfileController::class, "auditLogs"])->name(
-            "audit-logs",
-          );
-        });
+      // User status management (Admin/Superadmin only)
+      Route::middleware("role:Admin,Superadmin")
+        ->put("/users/{user}/status", [AuthApiController::class, "updateUserStatus"])
+        ->name("users.status.update");
 
       Route::middleware(["role:Superadmin"])->group(function () {
-        Route::post("/auth/instructor", [AuthApiController::class, "createInstructor"])->name(
-          "instructor.create",
-        );
-        Route::post("/auth/admin", [AuthApiController::class, "createAdmin"])->name("admin.create");
-        Route::post("/auth/super-admin", [AuthApiController::class, "createSuperAdmin"])->name(
-          "super.create",
-        );
-        Route::post("/auth/credentials/resend", [
-          AuthApiController::class,
-          "resendCredentials",
-        ])->name("credentials.resend");
-        Route::put("/auth/users/{user}/status", [
-          AuthApiController::class,
-          "updateUserStatus",
-        ])->name("users.status.update");
+        Route::post("/auth/users", [AuthApiController::class, "createUser"])->name("users.create");
         Route::get("/auth/users/{user}", [AuthApiController::class, "showUser"])->name(
           "users.show",
         );
@@ -190,6 +168,11 @@ Route::prefix("v1")
       ])->name("password.forgot.confirm");
     });
     Route::middleware(["auth:api", "throttle:api"])
-      ->post("/auth/password/reset", [PasswordResetController::class, "reset"])
+      ->post("/auth/password/reset", [PasswordResetController::class, "changePassword"])
       ->name("password.reset");
+
+    // Development Only: Token Generator for Testing (REMOVE BEFORE PRODUCTION!)
+    Route::get('/dev/tokens', [AuthApiController::class, 'generateDevTokens'])
+      ->name('dev.tokens');
   });
+

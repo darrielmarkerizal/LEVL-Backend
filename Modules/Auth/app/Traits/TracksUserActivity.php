@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace Modules\Auth\Traits;
 
 use Illuminate\Database\Eloquent\Model;

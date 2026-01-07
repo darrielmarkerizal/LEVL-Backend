@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace Modules\Auth\Http\Middleware;
 
 use Closure;
@@ -16,7 +19,7 @@ class AllowExpiredToken
             return response()->json(
                 [
                     'status' => 'error',
-                    'message' => 'Middleware ini hanya untuk endpoint refresh.',
+                    'message' => __('messages.auth.middleware_refresh_only'),
                 ],
                 403,
             );
@@ -30,7 +33,7 @@ class AllowExpiredToken
             return response()->json(
                 [
                     'status' => 'error',
-                    'message' => 'Refresh token diperlukan.',
+                    'message' => __('messages.auth.refresh_token_required'),
                 ],
                 400,
             );
@@ -43,7 +46,7 @@ class AllowExpiredToken
             return response()->json(
                 [
                     'status' => 'error',
-                    'message' => 'Refresh token tidak valid atau kadaluarsa.',
+                    'message' => __('messages.auth.refresh_token_invalid'),
                 ],
                 401,
             );
@@ -54,19 +57,17 @@ class AllowExpiredToken
             return response()->json(
                 [
                     'status' => 'error',
-                    'message' => 'User tidak ditemukan.',
+                    'message' => __('messages.user.not_found'),
                 ],
                 401,
             );
         }
 
-        // Pastikan hanya user dengan status aktif yang bisa refresh token.
-        // Kolom `status` di-cast ke enum `UserStatus`, jadi harus dibandingkan dengan enum, bukan string.
         if ($user->status !== UserStatus::Active) {
             return response()->json(
                 [
                     'status' => 'error',
-                    'message' => 'Akun tidak aktif.',
+                    'message' => __('messages.auth.account_not_active'),
                 ],
                 403,
             );

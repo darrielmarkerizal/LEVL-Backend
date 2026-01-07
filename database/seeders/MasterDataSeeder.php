@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\MasterDataItem;
+use Modules\Common\Models\MasterDataItem;
 use Illuminate\Database\Seeder;
 
 class MasterDataSeeder extends Seeder

@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace Modules\Auth\Mail;
 
 use Illuminate\Bus\Queueable;
@@ -14,8 +17,7 @@ class VerifyEmailLinkMail extends Mailable
     public function __construct(
         public readonly User $user,
         public readonly string $verifyUrl,
-        public readonly int $ttlMinutes,
-        public readonly string $code
+        public readonly int $ttlMinutes
     ) {}
 
     public function build(): self
@@ -26,7 +28,6 @@ class VerifyEmailLinkMail extends Mailable
                 'user' => $this->user,
                 'verifyUrl' => $this->verifyUrl,
                 'ttlMinutes' => $this->ttlMinutes,
-                'code' => $this->code,
             ]);
     }
 }

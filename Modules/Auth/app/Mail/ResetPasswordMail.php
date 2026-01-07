@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace Modules\Auth\Mail;
 
 use Illuminate\Bus\Queueable;
@@ -15,7 +18,6 @@ class ResetPasswordMail extends Mailable
         public readonly User $user,
         public readonly string $resetUrl,
         public readonly int $ttlMinutes,
-        public readonly string $code
     ) {}
 
     public function build(): self
@@ -26,7 +28,6 @@ class ResetPasswordMail extends Mailable
                 'user' => $this->user,
                 'resetUrl' => $this->resetUrl,
                 'ttlMinutes' => $this->ttlMinutes,
-                'code' => $this->code,
             ]);
     }
 }

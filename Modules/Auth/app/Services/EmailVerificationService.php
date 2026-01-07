@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Services;
 
 use Illuminate\Support\Facades\Mail;
@@ -23,18 +25,16 @@ class EmailVerificationService implements EmailVerificationServiceInterface
         if ($user->email_verified_at && $user->status === UserStatus::Active) {
             return null;
         }
+
         OtpCode::query()
             ->forUser($user)
             ->forPurpose(self::PURPOSE)
             ->valid()
             ->update(['consumed_at' => now()]);
 
-        $ttlMinutes = (int) (SystemSetting::get('auth_email_verification_ttl_minutes', 3) ?? 3);
-
-        $code = (string) random_int(100000, 999999);
+        $ttlMinutes = (int) (SystemSetting::get('auth_email_verification_ttl_minutes', 60) ?? 60);
 
         $uuid = (string) Str::uuid();
-
         $token = $this->generateShortToken();
         $tokenHash = hash('sha256', $token);
 
@@ -44,7 +44,7 @@ class EmailVerificationService implements EmailVerificationServiceInterface
             'channel' => 'email',
             'provider' => 'mailhog',
             'purpose' => self::PURPOSE,
-            'code' => $code,
+            'code' => 'magic',
             'meta' => ['token_hash' => $tokenHash],
             'expires_at' => now()->addMinutes($ttlMinutes),
         ]);
@@ -52,7 +52,7 @@ class EmailVerificationService implements EmailVerificationServiceInterface
         $frontendUrl = config('app.frontend_url');
         $verifyUrl = $frontendUrl.'/auth/verify-email?token='.$token.'&uuid='.$uuid;
 
-        Mail::to($user)->send(new VerifyEmailLinkMail($user, $verifyUrl, $ttlMinutes, $code));
+        Mail::to($user)->send(new VerifyEmailLinkMail($user, $verifyUrl, $ttlMinutes));
 
         return $uuid;
     }
@@ -117,7 +117,7 @@ class EmailVerificationService implements EmailVerificationServiceInterface
         return ['status' => 'ok'];
     }
 
-    public function verifyByToken(string $token): array
+    public function verifyByToken(string $token, string $uuid): array
     {
         if (strlen($token) !== 16) {
             return ['status' => 'invalid'];
@@ -127,14 +127,11 @@ class EmailVerificationService implements EmailVerificationServiceInterface
 
         $otp = OtpCode::query()
             ->forPurpose(self::PURPOSE)
+            ->where('uuid', $uuid)
             ->valid()
-            ->get()
-            ->first(function ($record) use ($tokenHash) {
-                return isset($record->meta['token_hash']) &&
-                       hash_equals($record->meta['token_hash'], $tokenHash);
-            });
+            ->first();
 
-        if (! $otp) {
+        if (! $otp || ! isset($otp->meta['token_hash']) || ! hash_equals($otp->meta['token_hash'], $tokenHash)) {
             return ['status' => 'not_found'];
         }
 
@@ -171,10 +168,11 @@ class EmailVerificationService implements EmailVerificationServiceInterface
             ->valid()
             ->update(['consumed_at' => now()]);
 
-        $ttlMinutes = 3;
+        $ttlMinutes = (int) (SystemSetting::get('auth_email_verification_ttl_minutes', 60) ?? 60);
 
-        $code = (string) random_int(100000, 999999);
         $uuid = (string) Str::uuid();
+        $token = $this->generateShortToken();
+        $tokenHash = hash('sha256', $token);
 
         $otp = OtpCode::create([
             'uuid' => $uuid,
@@ -182,28 +180,37 @@ class EmailVerificationService implements EmailVerificationServiceInterface
             'channel' => 'email',
             'provider' => 'mailhog',
             'purpose' => self::PURPOSE_CHANGE_EMAIL,
-            'code' => $code,
-            'meta' => ['new_email' => $newEmail],
+            'code' => 'magic',
+            'meta' => [
+                'token_hash' => $tokenHash,
+                'new_email' => $newEmail
+            ],
             'expires_at' => now()->addMinutes($ttlMinutes),
         ]);
 
-        $baseUrl = rtrim(config('app.url'), '/');
-        $verifyUrl = $baseUrl.'/api/v1/profile/email/verify?uuid='.$uuid.'&code='.$otp->code;
+        $frontendUrl = config('app.frontend_url');
+        $verifyUrl = $frontendUrl.'/profile/email/verify?token='.$token.'&uuid='.$uuid;
 
-        Mail::to($newEmail)->send(new ChangeEmailVerificationMail($user, $newEmail, $verifyUrl, $ttlMinutes, $code));
+        Mail::to($newEmail)->send(new ChangeEmailVerificationMail($user, $newEmail, $verifyUrl, $ttlMinutes));
 
         return $uuid;
     }
 
-    public function verifyChangeByCode(string $uuid, string $code): array
+    public function verifyChangeByToken(string $token, string $uuid): array
     {
+        if (strlen($token) !== 16) {
+            return ['status' => 'invalid'];
+        }
+
+        $tokenHash = hash('sha256', $token);
+
         $otp = OtpCode::query()
             ->forPurpose(self::PURPOSE_CHANGE_EMAIL)
             ->where('uuid', $uuid)
-            ->latest('id')
+            ->valid()
             ->first();
 
-        if (! $otp) {
+        if (! $otp || ! isset($otp->meta['token_hash']) || ! hash_equals($otp->meta['token_hash'], $tokenHash)) {
             return ['status' => 'not_found'];
         }
 
@@ -213,10 +220,6 @@ class EmailVerificationService implements EmailVerificationServiceInterface
 
         if ($otp->isExpired()) {
             return ['status' => 'expired'];
-        }
-
-        if (! hash_equals($otp->code, $code)) {
-            return ['status' => 'invalid'];
         }
 
         $user = User::query()->find($otp->user_id);
@@ -229,7 +232,6 @@ class EmailVerificationService implements EmailVerificationServiceInterface
             return ['status' => 'invalid'];
         }
 
-        // ensure uniqueness
         if (User::query()->where('email', $newEmail)->where('id', '!=', $user->id)->exists()) {
             return ['status' => 'email_taken'];
         }

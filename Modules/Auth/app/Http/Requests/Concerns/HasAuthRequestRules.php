@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace Modules\Auth\Http\Requests\Concerns;
 
 use Modules\Common\Http\Requests\Concerns\HasCommonValidationMessages;
@@ -66,7 +69,7 @@ trait HasAuthRequestRules
     ]);
   }
 
-  protected function rulesCreateManagedUser(): array
+  protected function rulesCreateUser(): array
   {
     return [
       "name" => ["required", "string", "max:255"],
@@ -79,6 +82,7 @@ trait HasAuthRequestRules
         "unique:users,username",
       ],
       "email" => ["required", "email", "max:255", "unique:users,email"],
+      "role" => ["required", "string", "in:Student,Instructor,Admin,Superadmin"],
     ];
   }
 
@@ -97,8 +101,9 @@ trait HasAuthRequestRules
       "username.unique" => "Username sudah digunakan.",
       "email.required" => "Email wajib diisi.",
       "email.email" => "Format email tidak valid.",
-      "email.max" => "Email maksimal 255 karakter.",
       "email.unique" => "Email sudah digunakan.",
+      "role.required" => "Role wajib diisi.",
+      "role.in" => "Role tidak valid.",
     ];
   }
 
@@ -120,7 +125,7 @@ trait HasAuthRequestRules
   protected function rulesResetPassword(): array
   {
     return [
-      "token" => ["required", 'regex:/^\d{6}$/'],
+      "token" => ["required", "string", "min:32"],
       "password" => $this->passwordRulesStrong(),
     ];
   }
@@ -128,8 +133,9 @@ trait HasAuthRequestRules
   protected function messagesResetPassword(): array
   {
     return array_merge($this->passwordMessages(), [
-      "token.required" => "Kode reset wajib diisi.",
-      "token.regex" => "Kode reset harus 6 digit angka.",
+      "token.required" => "Token reset wajib diisi.",
+      "token.string" => "Token reset harus berupa string.",
+      "token.min" => "Token reset tidak valid.",
     ]);
   }
 
@@ -254,8 +260,8 @@ trait HasAuthRequestRules
   protected function rulesVerifyEmailChange(): array
   {
     return [
-      "uuid" => ["required", "string"],
-      "code" => ["required", "string"],
+      "uuid" => ["required", "string", "uuid"],
+      "token" => ["required", "string", "size:16"],
     ];
   }
 
@@ -263,7 +269,24 @@ trait HasAuthRequestRules
   {
     return [
       "uuid.required" => "UUID wajib diisi.",
-      "code.required" => "Kode wajib diisi.",
+      "uuid.uuid" => "UUID tidak valid.",
+      "token.required" => "Token wajib diisi.",
+      "token.size" => "Token harus 16 karakter.",
+    ];
+  }
+
+  protected function rulesRequestAccountDeletion(): array
+  {
+    return [
+      "password" => ["required", "string"],
+    ];
+  }
+
+  protected function rulesConfirmAccountDeletion(): array
+  {
+    return [
+      "uuid" => ["required", "string", "uuid"],
+      "token" => ["required", "string", "size:16"],
     ];
   }
 

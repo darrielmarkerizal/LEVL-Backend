@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -18,21 +19,43 @@ return new class extends Migration
         $this->validateExistingData();
 
         // Convert category column to enum
-        DB::statement("ALTER TABLE notification_preferences 
-            MODIFY COLUMN category ENUM(
-                'system', 'assignment', 'assessment', 'grading', 'gamification', 
-                'news', 'custom', 'course_completed', 'enrollment', 
-                'forum_reply_to_thread', 'forum_reply_to_reply'
-            ) NOT NULL");
+        Schema::table('notification_preferences', function (Blueprint $table) {
+            if (DB::getDriverName() === 'pgsql') {
+                 // For PostgreSQL, changing string to enum logic involves adding check constraints. 
+                 // Since they were strings, there likely isn't an existing check constraint to drop, unless this migration ran before.
+                 // But this migration keeps them as TYPE VARCHAR (string) in PG basically, just adds constraint to mimic enum.
+                 // OR we can explicitly cast them. Laravel schema builder `enum` on PG creates a check constraint on a text column usually.
+                 
+                 // Category
+                 DB::statement("ALTER TABLE notification_preferences DROP CONSTRAINT IF EXISTS notification_preferences_category_check");
+                 DB::statement("ALTER TABLE notification_preferences ADD CONSTRAINT notification_preferences_category_check CHECK (category::text IN ('system', 'assignment', 'assessment', 'grading', 'gamification', 'news', 'custom', 'course_completed', 'enrollment', 'forum_reply_to_thread', 'forum_reply_to_reply'))");
 
-        // Convert channel column to enum
-        DB::statement("ALTER TABLE notification_preferences 
-            MODIFY COLUMN channel ENUM('in_app', 'email', 'push') NOT NULL");
+                 // Channel
+                 DB::statement("ALTER TABLE notification_preferences DROP CONSTRAINT IF EXISTS notification_preferences_channel_check");
+                 DB::statement("ALTER TABLE notification_preferences ADD CONSTRAINT notification_preferences_channel_check CHECK (channel::text IN ('in_app', 'email', 'push'))");
 
-        // Convert frequency column to enum
-        DB::statement("ALTER TABLE notification_preferences 
-            MODIFY COLUMN frequency ENUM('immediate', 'daily', 'weekly', 'never') 
-            NOT NULL DEFAULT 'immediate'");
+                 // Frequency
+                 DB::statement("ALTER TABLE notification_preferences DROP CONSTRAINT IF EXISTS notification_preferences_frequency_check");
+                 DB::statement("ALTER TABLE notification_preferences ADD CONSTRAINT notification_preferences_frequency_check CHECK (frequency::text IN ('immediate', 'daily', 'weekly', 'never'))");
+                 
+                 // Set defaults if needed, though they were string before so defaults might be preserved or lost depending on original schema.
+                 // The base migration sets defaults. Here we are changing type.
+                 // If previous type was string, we don't need to change type in PG as enum is implemented as text+check often, OR as a custom TYPE.
+                 // Laravel defaults to check constraint.
+            } else {
+                $table->enum('category', [
+                    'system', 'assignment', 'assessment', 'grading', 'gamification',
+                    'news', 'custom', 'course_completed', 'enrollment',
+                    'forum_reply_to_thread', 'forum_reply_to_reply'
+                ])->change();
+
+                $table->enum('channel', ['in_app', 'email', 'push'])->change();
+
+                $table->enum('frequency', ['immediate', 'daily', 'weekly', 'never'])
+                    ->default('immediate')
+                    ->change();
+            }
+        });
     }
 
     /**
@@ -40,17 +63,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revert category column to string
-        DB::statement('ALTER TABLE notification_preferences 
-            MODIFY COLUMN category VARCHAR(50) NOT NULL');
+        Schema::table('notification_preferences', function (Blueprint $table) {
+            // Revert category column to string
+            $table->string('category', 50)->change();
 
-        // Revert channel column to string
-        DB::statement('ALTER TABLE notification_preferences 
-            MODIFY COLUMN channel VARCHAR(50) NOT NULL');
+            // Revert channel column to string
+            $table->string('channel', 50)->change();
 
-        // Revert frequency column to string
-        DB::statement("ALTER TABLE notification_preferences 
-            MODIFY COLUMN frequency VARCHAR(50) NOT NULL DEFAULT 'immediate'");
+            // Revert frequency column to string
+            $table->string('frequency', 50)->default('immediate')->change();
+        });
     }
 
     /**

@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -10,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement('ALTER TABLE `social_accounts` MODIFY `token` TEXT NULL');
-        DB::statement('ALTER TABLE `social_accounts` MODIFY `refresh_token` TEXT NULL');
+        Schema::table('social_accounts', function (Blueprint $table) {
+            $table->text('token')->nullable()->change();
+            $table->text('refresh_token')->nullable()->change();
+        });
     }
 
     /**
@@ -19,8 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-
-        DB::statement('ALTER TABLE `social_accounts` MODIFY `token` VARCHAR(255) NULL');
-        DB::statement('ALTER TABLE `social_accounts` MODIFY `refresh_token` VARCHAR(255) NULL');
+        Schema::table('social_accounts', function (Blueprint $table) {
+            $table->string('token', 255)->nullable()->change();
+            $table->string('refresh_token', 255)->nullable()->change();
+        });
     }
 };

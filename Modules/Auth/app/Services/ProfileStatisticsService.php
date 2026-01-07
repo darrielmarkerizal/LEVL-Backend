@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Services;
 
 use Illuminate\Support\Facades\Cache;
@@ -25,11 +27,11 @@ class ProfileStatisticsService implements ProfileStatisticsServiceInterface
     {
         $enrollments = DB::table('enrollments')
             ->where('user_id', $user->id)
-            ->selectRaw('
+            ->selectRaw("
                 COUNT(*) as total_enrolled,
-                SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as total_completed,
-                SUM(CASE WHEN status = "in_progress" THEN 1 ELSE 0 END) as in_progress
-            ')
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as total_completed,
+                SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress
+            ")
             ->first();
 
         return [

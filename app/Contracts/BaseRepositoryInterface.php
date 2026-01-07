@@ -26,13 +26,15 @@ interface BaseRepositoryInterface
 
     /**
      * Create new record.
+     * @return Model
      */
-    public function create(array $attributes): Model;
+    public function create(array $attributes);
 
     /**
      * Update existing record.
+     * @return Model
      */
-    public function update(Model $model, array $attributes): Model;
+    public function update(Model $model, array $attributes);
 
     /**
      * Delete record.

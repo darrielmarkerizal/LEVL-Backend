@@ -36,13 +36,15 @@ interface MasterDataRepositoryInterface
 
     /**
      * Create a new master data item.
+     * @return MasterDataItem
      */
-    public function create(array $data): MasterDataItem;
+    public function create(array $data);
 
     /**
      * Update a master data item.
+     * @return MasterDataItem
      */
-    public function update(MasterDataItem $item, array $data): MasterDataItem;
+    public function update(MasterDataItem $item, array $data);
 
     /**
      * Delete a master data item.

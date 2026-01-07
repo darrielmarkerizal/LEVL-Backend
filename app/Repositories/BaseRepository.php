@@ -38,12 +38,18 @@ abstract class BaseRepository implements BaseRepositoryInterface
         return $this->query()->findOrFail($id);
     }
 
-    public function create(array $attributes): Model
+    /**
+     * @return Model
+     */
+    public function create(array $attributes)
     {
         return $this->model()::create($attributes);
     }
 
-    public function update(Model $model, array $attributes): Model
+    /**
+     * @return Model
+     */
+    public function update(Model $model, array $attributes)
     {
         $model->fill($attributes);
         $model->save();

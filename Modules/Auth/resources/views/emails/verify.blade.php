@@ -142,11 +142,6 @@
             <div class="url-box">
                 <a href="{{ $verifyUrl }}" target="_blank" rel="noopener">{{ $verifyUrl }}</a>
             </div>
-
-            <div class="code-box">
-                <div class="code-label">Atau gunakan kode verifikasi:</div>
-                <div class="code-value">{{ $code }}</div>
-            </div>
         </div>
 
         <!-- Footer -->

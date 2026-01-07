@@ -178,6 +178,10 @@ return [
     "link_expired" => "Verification link has expired.",
     "link_invalid" => "Verification link is invalid or already used.",
     "link_not_found" => "Verification link not found.",
+    "email_change_not_found" => "Verification link for email change not found.",
+    "email_change_invalid" => "Verification link for email change is invalid or already used.",
+    "email_change_expired" => "Verification link for email change has expired.",
+    "email_change_success" => "Your email has been successfully changed.",
     "credentials_resent" => "Credentials successfully resent.",
     "user_not_found" => "User not found",
     "admin_only" => "Only for Admin, Superadmin, or Instructor accounts with pending status.",
@@ -193,6 +197,12 @@ return [
     "password_min_length" => "New password must be at least 8 characters long.",
     "password_incorrect" => "Password is incorrect.",
     "profile_retrieved" => "Profile retrieved successfully.",
+    "refresh_success" => "Token refreshed successfully.",
+    "email_not_verified" => "Email not verified. Please verify your email first.",
+    "middleware_refresh_only" => "This middleware is only for refresh endpoint.",
+    "refresh_token_required" => "Refresh token is required.",
+    "refresh_token_invalid" => "Refresh token is invalid or expired.",
+    "account_not_active" => "Account is not active.",
   ],
 
   // User Module
@@ -210,6 +220,13 @@ return [
     "unauthorized" => "Unauthorized.",
     "old_password_mismatch" => "Old password is incorrect.",
     "updated" => "Password updated successfully.",
+    "current_required" => "Current password is required.",
+    "new_required" => "New password is required.",
+    "min_length" => "New password must be at least 8 characters.",
+    "confirmation_mismatch" => "Password confirmation does not match.",
+    "strength_requirements" => "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#).",
+    "token_invalid" => "Reset token is invalid.",
+    "token_expired" => "Reset token has expired.",
   ],
 
   // Profile Module

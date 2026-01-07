@@ -9,6 +9,8 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
+    public $withinTransaction = false;
+
     public function up(): void
     {
         $teams = config('permission.teams');
@@ -17,10 +19,7 @@ return new class extends Migration
         $pivotRole = $columnNames['role_pivot_key'] ?? 'role_id';
         $pivotPermission = $columnNames['permission_pivot_key'] ?? 'permission_id';
 
-        throw_if(empty($tableNames), Exception::class, 'Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.');
-        throw_if($teams && empty($columnNames['team_foreign_key'] ?? null), Exception::class, 'Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
-
-        if (! Schema::hasTable($tableNames['permissions'])) {
+        if (true) {
             Schema::create($tableNames['permissions'], static function (Blueprint $table) {
                 // $table->engine('InnoDB');
                 $table->bigIncrements('id'); // permission id
@@ -32,7 +31,7 @@ return new class extends Migration
             });
         }
 
-        if (! Schema::hasTable($tableNames['roles'])) {
+        if (true) {
             Schema::create($tableNames['roles'], static function (Blueprint $table) use ($teams, $columnNames) {
                 // $table->engine('InnoDB');
                 $table->bigIncrements('id'); // role id
@@ -51,7 +50,7 @@ return new class extends Migration
             });
         }
 
-        if (! Schema::hasTable($tableNames['model_has_permissions'])) {
+        if (true) {
             Schema::create($tableNames['model_has_permissions'], static function (Blueprint $table) use ($tableNames, $columnNames, $pivotPermission, $teams) {
                 $table->unsignedBigInteger($pivotPermission);
 
@@ -77,7 +76,7 @@ return new class extends Migration
             });
         }
 
-        if (! Schema::hasTable($tableNames['model_has_roles'])) {
+        if (true) {
             Schema::create($tableNames['model_has_roles'], static function (Blueprint $table) use ($tableNames, $columnNames, $pivotRole, $teams) {
                 $table->unsignedBigInteger($pivotRole);
 
@@ -102,7 +101,7 @@ return new class extends Migration
             });
         }
 
-        if (! Schema::hasTable($tableNames['role_has_permissions'])) {
+        if (true) {
             Schema::create($tableNames['role_has_permissions'], static function (Blueprint $table) use ($tableNames, $pivotRole, $pivotPermission) {
                 $table->unsignedBigInteger($pivotPermission);
                 $table->unsignedBigInteger($pivotRole);
@@ -139,10 +138,10 @@ return new class extends Migration
 
         throw_if(empty($tableNames), Exception::class, 'Error: config/permission.php not found and defaults could not be merged. Please publish the package configuration before proceeding, or drop the tables manually.');
 
-        Schema::drop($tableNames['role_has_permissions']);
-        Schema::drop($tableNames['model_has_roles']);
-        Schema::drop($tableNames['model_has_permissions']);
-        Schema::drop($tableNames['roles']);
-        Schema::drop($tableNames['permissions']);
+        Schema::dropIfExists($tableNames['role_has_permissions']);
+        Schema::dropIfExists($tableNames['model_has_roles']);
+        Schema::dropIfExists($tableNames['model_has_permissions']);
+        Schema::dropIfExists($tableNames['roles']);
+        Schema::dropIfExists($tableNames['permissions']);
     }
 };

@@ -1,18 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Repositories;
 
+use App\Repositories\BaseRepository;
 use Illuminate\Support\Str;
 use Modules\Auth\Contracts\Repositories\AuthRepositoryInterface;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\JwtRefreshToken;
 use Modules\Auth\Models\User;
 
-class AuthRepository implements AuthRepositoryInterface
+class AuthRepository extends BaseRepository implements AuthRepositoryInterface
 {
+    protected function model(): string
+    {
+        return User::class;
+    }
+
     public function findActiveUserByLogin(string $login): ?User
     {
-        return User::query()
+        return $this->query()
             ->where(fn ($q) => $q->where('email', $login)->orWhere('username', $login))
             ->where('status', UserStatus::Active)
             ->first();
@@ -20,19 +28,20 @@ class AuthRepository implements AuthRepositoryInterface
 
     public function findByLogin(string $login): ?User
     {
-        return User::query()
+        return $this->query()
             ->where(fn ($q) => $q->where('email', $login)->orWhere('username', $login))
             ->first();
     }
 
     public function createUser(array $data): User
     {
-        return User::create([
+        return $this->create([
             'name' => $data['name'],
-            'username' => $data['username'],
+            'username' => $data['username'] ?? null,
             'email' => $data['email'],
             'password' => $data['password'],
-            'status' => UserStatus::Pending->value,
+            'status' => $data['status'] ?? UserStatus::Pending->value,
+            'email_verified_at' => $data['email_verified_at'] ?? null,
         ]);
     }
 

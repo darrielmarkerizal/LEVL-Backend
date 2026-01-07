@@ -7,22 +7,12 @@ use Illuminate\Http\JsonResponse;
 
 trait ApiResponse
 {
-    /**
-     * Translate a message key or return the string as-is for backward compatibility
-     *
-     * @param  string  $message  Translation key or plain string
-     * @param  array  $params  Parameters for translation substitution
-     */
-    private function translateMessage(string $message, array $params = []): string
+    private static function translate(string $message, array $params = []): string
     {
-        // Check if the message looks like a translation key (contains a dot)
-        // and if the translation exists
         if (str_contains($message, '.') && trans()->has($message)) {
             return __($message, $params);
         }
 
-        // For backward compatibility, return the message as-is if it's not a translation key
-        // or if the translation doesn't exist
         return $message;
     }
 
@@ -36,7 +26,7 @@ trait ApiResponse
         return response()->json(
             [
                 'success' => true,
-                'message' => $this->translateMessage($message, $params),
+                'message' => self::translate($message, $params),
                 'data' => $data,
                 'meta' => $meta,
                 'errors' => null,
@@ -65,7 +55,7 @@ trait ApiResponse
         return response()->json(
             [
                 'success' => false,
-                'message' => $this->translateMessage($message, $params),
+                'message' => self::translate($message, $params),
                 'data' => $data,
                 'meta' => $meta,
                 'errors' => $errors,
@@ -96,7 +86,6 @@ trait ApiResponse
             ],
         ];
 
-        // Add sorting info if present
         if ($request->has('sort')) {
             $meta['sorting'] = [
                 'sort_by' => $request->get('sort'),
@@ -104,29 +93,25 @@ trait ApiResponse
             ];
         }
 
-        // Add filtering info if present
-        $filterKeys = ['filter', 'filters'];
-        foreach ($filterKeys as $key) {
+        foreach (['filter', 'filters'] as $key) {
             if ($request->has($key)) {
                 $meta['filtering'] = $request->get($key);
                 break;
             }
         }
 
-        // Add search info if present
-        if ($request->has('search') && $request->search) {
+        if ($request->filled('search')) {
             $meta['search'] = [
                 'query' => $request->get('search'),
             ];
         }
 
-        // Merge additional meta if provided
         if ($additionalMeta) {
-            $meta = array_merge($meta, $additionalMeta);
+            $meta = array_replace_recursive($meta, $additionalMeta);
         }
 
         return $this->success(
-            data: $paginator->items(),
+            data: $paginator->getCollection(),
             message: $message,
             params: $params,
             status: $status,
@@ -170,26 +155,7 @@ trait ApiResponse
 
     protected function noContent(): JsonResponse
     {
-        return response()->json([], 204);
-    }
-
-    /**
-     * Static helper to translate a message key or return the string as-is
-     *
-     * @param  string  $message  Translation key or plain string
-     * @param  array  $params  Parameters for translation substitution
-     */
-    private static function translateMessageStatic(string $message, array $params = []): string
-    {
-        // Check if the message looks like a translation key (contains a dot)
-        // and if the translation exists
-        if (str_contains($message, '.') && trans()->has($message)) {
-            return __($message, $params);
-        }
-
-        // For backward compatibility, return the message as-is if it's not a translation key
-        // or if the translation doesn't exist
-        return $message;
+        return response()->noContent();
     }
 
     public static function successStatic(
@@ -202,7 +168,7 @@ trait ApiResponse
         return response()->json(
             [
                 'success' => true,
-                'message' => self::translateMessageStatic($message, $params),
+                'message' => self::translate($message, $params),
                 'data' => $data,
                 'meta' => $meta,
                 'errors' => null,
@@ -222,7 +188,7 @@ trait ApiResponse
         return response()->json(
             [
                 'success' => false,
-                'message' => self::translateMessageStatic($message, $params),
+                'message' => self::translate($message, $params),
                 'data' => $data,
                 'meta' => $meta,
                 'errors' => $errors,

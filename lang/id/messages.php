@@ -179,6 +179,10 @@ return [
     "link_expired" => "Link verifikasi telah kedaluwarsa.",
     "link_invalid" => "Link verifikasi tidak valid atau sudah digunakan.",
     "link_not_found" => "Link verifikasi tidak ditemukan.",
+    "email_change_not_found" => "Link verifikasi perubahan email tidak ditemukan.",
+    "email_change_invalid" => "Link verifikasi perubahan email tidak valid atau sudah digunakan.",
+    "email_change_expired" => "Link verifikasi perubahan email telah kedaluwarsa.",
+    "email_change_success" => "Email Anda berhasil diubah.",
     "credentials_resent" => "Kredensial berhasil dikirim ulang.",
     "user_not_found" => "User tidak ditemukan",
     "admin_only" => "Hanya untuk akun Admin, Superadmin, atau Instructor dengan status pending.",
@@ -194,6 +198,12 @@ return [
     "password_min_length" => "Password baru harus minimal 8 karakter.",
     "password_incorrect" => "Password salah.",
     "profile_retrieved" => "Profil berhasil diambil.",
+    "refresh_success" => "Token berhasil diperbarui.",
+    "email_not_verified" => "Email belum terverifikasi. Silakan verifikasi email Anda terlebih dahulu.",
+    "middleware_refresh_only" => "Middleware ini hanya untuk endpoint refresh.",
+    "refresh_token_required" => "Refresh token diperlukan.",
+    "refresh_token_invalid" => "Refresh token tidak valid atau kadaluarsa.",
+    "account_not_active" => "Akun tidak aktif.",
   ],
 
   // User Module
@@ -211,6 +221,13 @@ return [
     "unauthorized" => "Tidak terotorisasi.",
     "old_password_mismatch" => "Password lama salah.",
     "updated" => "Password berhasil diperbarui.",
+    "current_required" => "Kata sandi saat ini wajib diisi.",
+    "new_required" => "Kata sandi baru wajib diisi.",
+    "min_length" => "Kata sandi baru harus minimal 8 karakter.",
+    "confirmation_mismatch" => "Konfirmasi kata sandi tidak cocok.",
+    "strength_requirements" => "Kata sandi harus mengandung minimal satu huruf besar, satu huruf kecil, satu angka, dan satu karakter spesial (@$!%*?&#).",
+    "token_invalid" => "Token reset tidak valid.",
+    "token_expired" => "Token reset telah kadaluarsa.",
   ],
 
   // Profile Module

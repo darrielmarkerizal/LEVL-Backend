@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace Modules\Auth\Contracts\Services;
 
 use Modules\Auth\Models\User;
@@ -30,4 +33,38 @@ interface AuthServiceInterface
      * Log an email change request action to the audit trail.
      */
     public function logEmailChangeRequest(User $user, string $newEmail, string $uuid, ?string $ip, ?string $userAgent): void;
+
+    public function createUserFromGoogle($googleUser): User;
+
+    /** @return array<string,mixed> */
+    public function generateDevTokens(string $ip, ?string $userAgent): array;
+
+    public function updateProfile(User $user, array $validated): User;
+
+    public function updateUserStatus(User $user, string $status): User;
+
+    /** @return array<string,mixed> */
+    public function setUsername(User $user, string $username): array;
+
+    /** @return array<string,mixed> */
+    public function verifyEmail(string $token, string $uuid): array;
+
+    public function sendEmailVerificationLink(User $user): ?string;
+
+    /** @return array<string,mixed> */
+    public function createInstructor(array $validated): array;
+
+    /** @return array<string,mixed> */
+    public function createAdmin(array $validated): array;
+
+    /** @return array<string,mixed> */
+    public function createSuperAdmin(array $validated): array;
+
+    /** @return array<string,mixed> */
+    public function createStudent(array $validated): array;
+
+    public function listUsers(User $authUser, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
+
+    /** @return array<string,mixed> */
+    public function showUser(User $authUser, User $target): array;
 }

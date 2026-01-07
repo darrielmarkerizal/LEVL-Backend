@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace Modules\Auth\Providers;
 
 use App\Support\Traits\RegistersModuleConfig;
@@ -103,6 +106,11 @@ class AuthServiceProvider extends ServiceProvider
         $this->app->bind(
             \Modules\Auth\Contracts\Services\UserBulkServiceInterface::class,
             \Modules\Auth\Services\UserBulkService::class,
+        );
+
+        $this->app->bind(
+            \Modules\Auth\Contracts\UserAccessPolicyInterface::class,
+            \Modules\Auth\Policies\UserAccessPolicy::class,
         );
     }
 

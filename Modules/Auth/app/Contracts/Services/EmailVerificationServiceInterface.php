@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace Modules\Auth\Contracts\Services;
 
 use Modules\Auth\Models\User;
@@ -10,9 +13,9 @@ interface EmailVerificationServiceInterface
 
     public function verifyByCode(string $uuidOrToken, string $code): array;
 
-    public function verifyByToken(string $token): array;
+    public function verifyByToken(string $token, string $uuid): array;
 
     public function sendChangeEmailLink(User $user, string $newEmail): ?string;
 
-    public function verifyChangeByCode(string $uuid, string $code): array;
+    public function verifyChangeByToken(string $token, string $uuid): array;
 }

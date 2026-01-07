@@ -138,11 +138,6 @@
             <div class="url-box">
                 <a href="{{ $resetUrl }}" target="_blank" rel="noopener">{{ $resetUrl }}</a>
             </div>
-
-            <div class="code-box">
-                <div class="code-label">Atau gunakan kode reset:</div>
-                <div class="code-value">{{ $code }}</div>
-            </div>
         </div>
         <div class="email-footer">
             <p>Jika Anda tidak meminta reset kata sandi, Anda dapat mengabaikan email ini dengan aman.</p>

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Services;
 
 use App\Contracts\Services\ProfileServiceInterface;
@@ -10,6 +12,8 @@ use Illuminate\Validation\ValidationException;
 use Modules\Auth\Events\AccountDeleted;
 use Modules\Auth\Events\PasswordChanged;
 use Modules\Auth\Events\ProfileUpdated;
+use Modules\Auth\Contracts\Services\AuthServiceInterface;
+use Modules\Auth\Contracts\Services\EmailVerificationServiceInterface;
 use Modules\Auth\Models\User;
 
 class ProfileService implements ProfileServiceInterface
@@ -17,7 +21,9 @@ class ProfileService implements ProfileServiceInterface
     public function __construct(
         private ProfileStatisticsService $statisticsService,
         private ProfilePrivacyService $privacyService,
-        private UserActivityService $activityService
+        private UserActivityService $activityService,
+        private EmailVerificationServiceInterface $emailVerification,
+        private AuthServiceInterface $authService
     ) {}
 
     public function updateProfile(User $user, array $data): User
@@ -89,6 +95,14 @@ class ProfileService implements ProfileServiceInterface
 
         if ($viewer->id !== $user->id) {
             $data = $this->privacyService->filterProfileData($data, $user, $viewer);
+        } else {
+            // Self viewing, include all related data
+            $data['statistics'] = $this->statisticsService->getStatistics($user);
+            $data['achievements'] = [
+                'badges' => $user->badges()->with('badge')->get(),
+                'pinned_badges' => $user->pinnedBadges()->with('badge')->orderBy('order')->get(),
+            ];
+            $data['recent_activities'] = $this->activityService->getRecentActivities($user, 10);
         }
 
         return $data;
@@ -138,6 +152,21 @@ class ProfileService implements ProfileServiceInterface
         event(new PasswordChanged($user));
 
         return true;
+    }
+
+    public function requestEmailChange(User $user, string $newEmail, ?string $ip, ?string $userAgent): ?string
+    {
+        $uuid = $this->emailVerification->sendChangeEmailLink($user, $newEmail);
+        
+        // Audit log
+        $this->authService->logEmailChangeRequest($user, $newEmail, $uuid, $ip, $userAgent);
+
+        return $uuid;
+    }
+
+    public function verifyEmailChange(User $user, string $token, string $uuid): array
+    {
+        return $this->emailVerification->verifyChangeByToken($token, $uuid);
     }
 
     public function deleteAccount(User $user, string $password): bool

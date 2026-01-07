@@ -1,113 +1,77 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Auth;
-use Modules\Auth\Models\User;
-use Modules\Auth\Services\UserBulkService;
+use Illuminate\Http\JsonResponse;
+use Modules\Auth\Contracts\Repositories\UserBulkRepositoryInterface;
+use Modules\Auth\Contracts\Services\UserBulkServiceInterface;
+use Modules\Auth\Http\Requests\BulkActivateRequest;
+use Modules\Auth\Http\Requests\BulkDeactivateRequest;
+use Modules\Auth\Http\Requests\BulkDeleteRequest;
+use Modules\Auth\Http\Requests\BulkExportRequest;
 
-/**
- * @tags Manajemen Pengguna
- */
 class UserBulkController extends Controller
 {
   use ApiResponse;
 
-  public function __construct(private UserBulkService $service) {}
+  public function __construct(
+    private UserBulkServiceInterface $bulkService,
+    private UserBulkRepositoryInterface $bulkRepository
+  ) {
+    $this->middleware('role:Superadmin,Admin');
+  }
 
-  public function export(Request $request)
+  public function exportToEmail(BulkExportRequest $request): JsonResponse
   {
-    /** @var User $user */
-    $user = Auth::user();
-
-    if (!$user->hasAnyRole(["Superadmin", "Admin"])) {
-      return $this->error(__("messages.users.no_export_access"), 403);
-    }
-
-    $validated = $request->validate([
-      "user_ids" => "required|array|min:1|max:1000",
-      "user_ids.*" => "required|integer|exists:users,id",
-    ]);
-
-    $this->service->exportToEmail($validated["user_ids"], $user->email);
+    $this->bulkService->exportToEmail(
+      $request->input('user_ids'),
+      $request->input('email')
+    );
 
     return $this->success(null, __("messages.users.bulk_export_queued"));
   }
 
-  public function activate(Request $request)
+  public function bulkActivate(BulkActivateRequest $request): JsonResponse
   {
-    /** @var User $user */
-    $user = Auth::user();
-
-    if (!$user->hasAnyRole(["Superadmin", "Admin"])) {
-      return $this->error(__("messages.users.no_activate_access"), 403);
-    }
-
-    $validated = $request->validate([
-      "user_ids" => "required|array|min:1|max:100",
-      "user_ids.*" => "required|integer|exists:users,id",
-    ]);
-
-    $updated = $this->service->bulkActivate($validated["user_ids"], $user->id);
+    $count = $this->bulkService->bulkActivate(
+      $request->input('user_ids'),
+      $request->user()->id
+    );
 
     return $this->success(
-      ["updated" => $updated],
-      __("messages.users.bulk_activated", ["count" => $updated]),
+      ['activated_count' => $count],
+      __("messages.users.bulk_activated", ['count' => $count])
     );
   }
 
-  public function deactivate(Request $request)
+  public function bulkDeactivate(BulkDeactivateRequest $request): JsonResponse
   {
-    /** @var User $user */
-    $user = Auth::user();
-
-    if (!$user->hasAnyRole(["Superadmin", "Admin"])) {
-      return $this->error(__("messages.users.no_deactivate_access"), 403);
-    }
-
-    $validated = $request->validate([
-      "user_ids" => "required|array|min:1|max:100",
-      "user_ids.*" => "required|integer|exists:users,id",
-    ]);
-
-    try {
-      $updated = $this->service->bulkDeactivate($validated["user_ids"], $user->id, $user->id);
+      $count = $this->bulkService->bulkDeactivate(
+        $request->input('user_ids'),
+        $request->user()->id,
+        $request->user()->id
+      );
 
       return $this->success(
-        ["updated" => $updated],
-        __("messages.users.bulk_deactivated", ["count" => $updated]),
+        ['deactivated_count' => $count],
+        __("messages.users.bulk_deactivated", ['count' => $count])
       );
-    } catch (\InvalidArgumentException $e) {
-      return $this->error(__("messages.users.cannot_deactivate_self"), 422);
-    }
   }
 
-  public function delete(Request $request)
+  public function bulkDelete(BulkDeleteRequest $request): JsonResponse
   {
-    /** @var User $user */
-    $user = Auth::user();
-
-    if (!$user->hasRole("Superadmin")) {
-      return $this->error(__("messages.users.no_delete_access"), 403);
-    }
-
-    $validated = $request->validate([
-      "user_ids" => "required|array|min:1|max:100",
-      "user_ids.*" => "required|integer|exists:users,id",
-    ]);
-
-    try {
-      $deleted = $this->service->bulkDelete($validated["user_ids"], $user->id);
+      $count = $this->bulkService->bulkDelete(
+        $request->input('user_ids'),
+        $request->user()->id
+      );
 
       return $this->success(
-        ["deleted" => $deleted],
-        __("messages.users.bulk_deleted", ["count" => $deleted]),
+        ['deleted_count' => $count],
+        __("messages.users.bulk_deleted", ['count' => $count])
       );
-    } catch (\InvalidArgumentException $e) {
-      return $this->error(__("messages.users.cannot_delete_self"), 422);
-    }
   }
 }

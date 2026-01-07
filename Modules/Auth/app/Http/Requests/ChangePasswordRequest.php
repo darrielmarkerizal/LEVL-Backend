@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace Modules\Auth\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -15,17 +18,24 @@ class ChangePasswordRequest extends FormRequest
     {
         return [
             'current_password' => 'required|string',
-            'new_password' => 'required|string|min:8|confirmed',
+            'new_password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]+$/'
+            ],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'current_password.required' => 'Current password is required.',
-            'new_password.required' => 'New password is required.',
-            'new_password.min' => 'New password must be at least 8 characters.',
-            'new_password.confirmed' => 'Password confirmation does not match.',
+            'current_password.required' => __('messages.password.current_required'),
+            'new_password.required' => __('messages.password.new_required'),
+            'new_password.min' => __('messages.password.min_length'),
+            'new_password.confirmed' => __('messages.password.confirmation_mismatch'),
+            'new_password.regex' => __('messages.password.strength_requirements'),
         ];
     }
 }

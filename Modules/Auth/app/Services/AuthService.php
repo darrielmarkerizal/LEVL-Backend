@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Services;
 
 use App\Exceptions\BusinessException;
@@ -319,6 +321,34 @@ class AuthService implements AuthServiceInterface
         return ['user' => $userArray];
     }
 
+    public function verifyEmail(string $token, string $uuid): array
+    {
+        return $this->emailVerification->verifyByToken($token, $uuid);
+    }
+
+    public function sendEmailVerificationLink(User $user): ?string
+    {
+        return $this->emailVerification->sendVerificationLink($user);
+    }
+
+    public function createStudent(array $validated): array
+    {
+        $passwordPlain = $this->generatePasswordFromNameEmail(
+            $validated['name'] ?? '',
+            $validated['email'] ?? '',
+        );
+        $validated['password'] = Hash::make($passwordPlain);
+        $user = $this->authRepository->createUser($validated);
+        $user->assignRole('Student');
+
+        $this->sendGeneratedPasswordEmail($user, $passwordPlain);
+
+        $userArray = $user->toArray();
+        $userArray['roles'] = $user->getRoleNames()->values();
+
+        return ['user' => $userArray];
+    }
+
     public function listUsers(User $authUser, int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
@@ -364,6 +394,13 @@ class AuthService implements AuthServiceInterface
         $user->status = UserStatus::from($status);
         $user->save();
 
+        return $user->fresh();
+    }
+
+    public function updateProfile(User $user, array $validated): User
+    {
+        $user->update($validated);
+        
         return $user->fresh();
     }
 
@@ -576,5 +613,73 @@ class AuthService implements AuthServiceInterface
             ],
             'logged_at' => now(),
         ]);
+    }
+
+    public function createUserFromGoogle($googleUser): User
+    {
+        $user = $this->authRepository->createUser([
+            'name' => $googleUser->getName(),
+            'email' => $googleUser->getEmail(),
+            'username' => null,
+            'password' => Hash::make(Str::random(32)),
+            'email_verified_at' => now(),
+            'status' => UserStatus::Active,
+        ]);
+
+        $user->assignRole('Student');
+
+        return $user;
+    }
+
+    public function generateDevTokens(string $ip, ?string $userAgent): array
+    {
+        $roles = ['Student', 'Instructor', 'Admin', 'Superadmin'];
+        $tokens = [];
+
+        foreach ($roles as $role) {
+            $user = User::where('email', strtolower($role).'@example.com')->first();
+
+            if (!$user) {
+                $user = $this->authRepository->createUser([
+                    'name' => $role,
+                    'email' => strtolower($role).'@example.com',
+                    'username' => strtolower($role),
+                    'password' => Hash::make('password'),
+                    'email_verified_at' => now(),
+                    'status' => UserStatus::Active,
+                ]);
+
+                $user->assignRole($role);
+            }
+
+            $originalTTL = $this->jwt->factory()->getTTL();
+            $this->jwt->factory()->setTTL(525600);
+
+            $token = $this->jwt->fromUser($user);
+            $deviceId = hash('sha256', ($ip ?? '').($userAgent ?? '').$user->id);
+            $refresh = $this->authRepository->createRefreshToken(
+                userId: $user->id,
+                ip: $ip,
+                userAgent: $userAgent,
+                deviceId: $deviceId,
+            );
+
+            $this->jwt->factory()->setTTL($originalTTL);
+
+            $tokens[$role] = [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'username' => $user->username,
+                    'role' => $role,
+                ],
+                'access_token' => $token,
+                'refresh_token' => $refresh->getAttribute('plain_token'),
+                'expires_in' => 525600 * 60,
+            ];
+        }
+
+        return $tokens;
     }
 }

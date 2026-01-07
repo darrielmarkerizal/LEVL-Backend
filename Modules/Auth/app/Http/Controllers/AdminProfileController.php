@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Http\Controllers;
 
 use App\Contracts\Services\ProfileServiceInterface;
@@ -10,12 +12,10 @@ use Illuminate\Http\Request;
 use Modules\Auth\Contracts\Repositories\ProfileAuditLogRepositoryInterface;
 use Modules\Auth\Models\User;
 
-/**
- * @tags Manajemen Pengguna
- */
 class AdminProfileController extends Controller
 {
     use ApiResponse;
+
     public function __construct(
         private ProfileServiceInterface $profileService,
         private ProfileAuditLogRepositoryInterface $auditLogRepository
@@ -23,39 +23,17 @@ class AdminProfileController extends Controller
         $this->middleware('role:Admin');
     }
 
-    /**
-     * Lihat Profil Pengguna (Admin)
-     *
-     *
-     * @summary Lihat Profil Pengguna (Admin)
-     *
-     * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example AdminProfile"}}
-     * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-     * @response 404 scenario="Not Found" {"success":false,"message":"AdminProfile tidak ditemukan."}
-     *
-     * @authenticated
-     */
     public function show(Request $request, int $userId): JsonResponse
     {
         $user = User::findOrFail($userId);
         $profileData = $this->profileService->getProfileData($user, $request->user());
 
-        return $this->success($profileData, __('messages.success'));
+        return $this->success(
+            new \Modules\Auth\Http\Resources\ProfileResource($profileData),
+            __('messages.success')
+        );
     }
 
-    /**
-     * Perbarui Profil Pengguna (Admin)
-     *
-     *
-     * @summary Perbarui Profil Pengguna (Admin)
-     *
-     * @response 200 scenario="Success" {"success":true,"message":"AdminProfile berhasil diperbarui.","data":{"id":1,"name":"Updated AdminProfile"}}
-     * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-     * @response 404 scenario="Not Found" {"success":false,"message":"AdminProfile tidak ditemukan."}
-     * @response 422 scenario="Validation Error" {"success":false,"message":"Validasi gagal.","errors":{"field":["Field wajib diisi."]}}
-     *
-     * @authenticated
-     */
     public function update(Request $request, int $userId): JsonResponse
     {
         $request->validate([
@@ -68,12 +46,10 @@ class AdminProfileController extends Controller
 
         $user = User::findOrFail($userId);
         $admin = $request->user();
-
         $oldData = $user->only(['name', 'email', 'phone', 'bio', 'account_status']);
 
         $updatedUser = $this->profileService->updateProfile($user, $request->all());
 
-        // Log admin action
         $this->auditLogRepository->create([
             'user_id' => $user->id,
             'admin_id' => $admin->id,
@@ -92,17 +68,6 @@ class AdminProfileController extends Controller
         );
     }
 
-    /**
-     * Tangguhkan Akun Pengguna
-     *
-     *
-     * @summary Tangguhkan Akun Pengguna
-     *
-     * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example AdminProfile"}}
-     * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-     *
-     * @authenticated
-     */
     public function suspend(Request $request, int $userId): JsonResponse
     {
         $user = User::findOrFail($userId);
@@ -111,7 +76,6 @@ class AdminProfileController extends Controller
         $user->account_status = 'suspended';
         $user->save();
 
-        // Log admin action
         $this->auditLogRepository->create([
             'user_id' => $user->id,
             'admin_id' => $admin->id,
@@ -124,17 +88,6 @@ class AdminProfileController extends Controller
         return $this->success([], __('messages.profile.suspended_success'));
     }
 
-    /**
-     * Aktifkan Akun Pengguna
-     *
-     *
-     * @summary Aktifkan Akun Pengguna
-     *
-     * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example AdminProfile"}}
-     * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-     *
-     * @authenticated
-     */
     public function activate(Request $request, int $userId): JsonResponse
     {
         $user = User::findOrFail($userId);
@@ -143,7 +96,6 @@ class AdminProfileController extends Controller
         $user->account_status = 'active';
         $user->save();
 
-        // Log admin action
         $this->auditLogRepository->create([
             'user_id' => $user->id,
             'admin_id' => $admin->id,
@@ -156,17 +108,6 @@ class AdminProfileController extends Controller
         return $this->success([], __('messages.profile.activated_success'));
     }
 
-    /**
-     * Riwayat Audit Pengguna
-     *
-     *
-     * @summary Riwayat Audit Pengguna
-     *
-     * @authenticated
-
-     *
-     * @queryParam page integer Halaman yang ingin ditampilkan. Example: 1
-     * @queryParam per_page integer Jumlah item per halaman (default: 15, max: 100). Example: 15     */
     public function auditLogs(Request $request, int $userId): JsonResponse
     {
         $logs = $this->auditLogRepository->findByUserId($userId, 20);

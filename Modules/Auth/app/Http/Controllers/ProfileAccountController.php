@@ -1,63 +1,55 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Http\Controllers;
 
-use App\Contracts\Services\ProfileServiceInterface;
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Modules\Auth\Http\Requests\DeleteAccountRequest;
+use Modules\Auth\Http\Requests\RequestAccountDeletionRequest;
+use Modules\Auth\Http\Requests\ConfirmAccountDeletionRequest;
+use Modules\Auth\Services\AccountDeletionService;
 
-/**
- * @tags Profil Pengguna
- */
 class ProfileAccountController extends Controller
 {
   use ApiResponse;
 
-  public function __construct(private ProfileServiceInterface $profileService) {}
+  public function __construct(private AccountDeletionService $accountDeletionService) {}
 
-  /**
-   * Hapus Akun Sendiri
-   *
-   *
-   * @summary Hapus Akun Sendiri
-   *
-   * @response 200 scenario="Success" {"success":true,"message":"ProfileAccount berhasil dihapus.","data":[]}
-   * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-   * @response 404 scenario="Not Found" {"success":false,"message":"ProfileAccount tidak ditemukan."}
-   *
-   * @authenticated
-   */
-  public function destroy(DeleteAccountRequest $request): JsonResponse
+  public function deleteRequest(RequestAccountDeletionRequest $request): JsonResponse
   {
-    $user = $request->user();
-
-    $this->profileService->deleteAccount($user, $request->input("password"));
+    $uuid = $this->accountDeletionService->requestDeletion(
+      $request->user(),
+      $request->input('password')
+    );
 
     return $this->success(
-      null,
-      __('messages.profile.account_deleted'),
+      ['uuid' => $uuid],
+      __("messages.auth.deletion_request_sent")
     );
   }
 
-  /**
-   * Pulihkan Akun yang Dihapus
-   *
-   *
-   * @summary Pulihkan Akun yang Dihapus
-   *
-   * @response 201 scenario="Success" {"success":true,"message":"ProfileAccount berhasil dibuat.","data":{"id":1,"name":"New ProfileAccount"}}
-   * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-   * @response 422 scenario="Validation Error" {"success":false,"message":"Validasi gagal.","errors":{"field":["Field wajib diisi."]}}
-   *
-   * @authenticated
-   */
-  public function restore(DeleteAccountRequest $request): JsonResponse
+  public function deleteConfirm(ConfirmAccountDeletionRequest $request): JsonResponse
   {
-    $user = $request->user();
+    $success = $this->accountDeletionService->confirmDeletion(
+      $request->input('token'),
+      $request->input('uuid')
+    );
 
-    $this->profileService->restoreAccount($user);
+    if (!$success) {
+      return $this->error(__("messages.auth.deletion_failed"), [], 422);
+    }
+
+    return $this->success(
+      [],
+      __("messages.auth.account_deleted_success")
+    );
+  }
+
+  public function restore(): JsonResponse
+  {
+    $this->accountService->restoreAccount(auth()->user());
 
     return $this->success(null, __("messages.account.restore_success"));
   }

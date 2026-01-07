@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Http\Controllers;
 
 use App\Http\Controllers\Controller;
@@ -14,9 +16,6 @@ use Modules\Auth\Http\Requests\ResetPasswordRequest;
 use Modules\Auth\Mail\ResetPasswordMail;
 use Modules\Auth\Models\User;
 
-/**
- * @tags Autentikasi
- */
 class PasswordResetController extends Controller
 {
     use ApiResponse;
@@ -25,38 +24,22 @@ class PasswordResetController extends Controller
         private PasswordResetTokenRepositoryInterface $passwordResetTokenRepository
     ) {}
 
-    /**
-     * Minta Reset Kata Sandi
-     *
-     * Mengirim email berisi kode OTP dan link untuk reset kata sandi. Response selalu sukses untuk mencegah enumeration attack.
-     *
-     *
-     * @summary Minta Reset Kata Sandi
-     *
-     * @response 200 scenario="Success" {"success":true,"message":"Jika email atau username terdaftar, kami telah mengirimkan instruksi reset kata sandi.","data":[]}
-     * @response 422 scenario="Validation Error" {"success": false, "message": "Validasi gagal.", "errors": {"login": ["Field login wajib diisi."]}}
-     * @response 429 scenario="Rate Limited" {"success":false,"message":"Terlalu banyak percobaan. Silakan coba lagi dalam 60 detik."}
-     *
-     * @unauthenticated
-     */
     public function forgot(ForgotPasswordRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
         /** @var User|null $user */
         $user = User::query()
-            ->where(
-                fn ($q) => $q->where('email', $validated['login'])->orWhere('username', $validated['login']),
-            )
+            ->where(fn ($q) => $q->where('email', $validated['login'])->orWhere('username', $validated['login']))
             ->first();
+
         if (! $user) {
             return $this->success([], __('messages.password.reset_sent'));
         }
 
         $this->passwordResetTokenRepository->deleteByEmail($user->email);
 
-        // 6-digit numeric code
-        $plainToken = (string) random_int(100000, 999999);
+        $plainToken = bin2hex(random_bytes(32));
         $hashed = Hash::make($plainToken);
 
         $this->passwordResetTokenRepository->create([
@@ -69,107 +52,72 @@ class PasswordResetController extends Controller
         $frontendUrl = config('app.frontend_url');
         $resetUrl = $frontendUrl.'/atur-ulang-kata-sandi?token='.$plainToken;
 
-        Mail::to($user)->send(new ResetPasswordMail($user, $resetUrl, $ttlMinutes, $plainToken));
+        Mail::to($user)->send(new ResetPasswordMail($user, $resetUrl, $ttlMinutes));
 
-        return $this->success(
-            [],
-            'Jika email atau username terdaftar, kami telah mengirimkan instruksi reset kata sandi.',
-        );
+        return $this->success([], __('messages.password.reset_sent'));
     }
 
-    /**
-     * Konfirmasi Reset Kata Sandi
-     *
-     * Mengkonfirmasi reset kata sandi menggunakan token OTP yang dikirim via email.
-     *
-     *
-     * @summary Konfirmasi Reset Kata Sandi
-     *
-     * @response 200 scenario="Success" {"success":true,"message":"Kata sandi berhasil direset.","data":[]}
-     * @response 404 scenario="User Not Found" {"success":false,"message":"Pengguna tidak ditemukan."}
-     * @response 422 scenario="Invalid Token" {"success":false,"message":"Token reset tidak valid atau telah kedaluwarsa."}
-     * @response 422 scenario="Expired Token" {"success":false,"message":"Token reset telah kedaluwarsa."}
-     * @response 429 scenario="Rate Limited" {"success":false,"message":"Terlalu banyak percobaan. Silakan coba lagi dalam 60 detik."}
-     *
-     * @unauthenticated
-     */
-    public function confirmForgot(ResetPasswordRequest $request): JsonResponse
+    public function reset(ResetPasswordRequest $request): JsonResponse
     {
-        $token = $request->string('token');
-        $password = $request->string('password');
+        $token = $request->input('token');
+        $newPassword = $request->input('password');
 
+        $records = $this->passwordResetTokenRepository->findAll();
         $ttlMinutes = (int) (config('auth.passwords.users.expire', 60) ?? 60);
-        $candidateRecords = $this->passwordResetTokenRepository->findValidTokens($ttlMinutes);
-
         $matched = null;
-        foreach ($candidateRecords as $rec) {
+        $email = null;
+
+        foreach ($records as $rec) {
             if (Hash::check($token, $rec->token)) {
                 $matched = $rec;
+                $email = $rec->email;
                 break;
             }
         }
 
-        if (! $matched) {
-            return $this->error(__('messages.password.invalid_reset_token'), 422);
+        if (! $matched || ! $email) {
+            return $this->error(__('messages.password.token_invalid'), [], 422);
         }
 
-        /** @var User|null $user */
-        $user = User::query()->where('email', $matched->email)->first();
-        if (! $user) {
-            $this->passwordResetTokenRepository->deleteByEmail($matched->email);
+        $user = User::where('email', $email)->first();
 
-            return $this->error(__('messages.password.user_not_found'), 404);
+        if (! $user) {
+            return $this->error(__('messages.user.not_found'), [], 404);
         }
 
         if (now()->diffInMinutes($matched->created_at) > $ttlMinutes) {
-            $this->passwordResetTokenRepository->deleteByEmail($matched->email);
-
-            return $this->error(__('messages.password.expired_reset_token'), 422);
+            return $this->error(__('messages.password.token_expired'), [], 422);
         }
 
-        $user
-            ->forceFill([
-                'password' => Hash::make($password),
-            ])
-            ->save();
+        $user->password = Hash::make($newPassword);
+        $user->save();
 
-        $this->passwordResetTokenRepository->deleteByEmail($matched->email);
+        $this->passwordResetTokenRepository->delete($matched);
 
         return $this->success([], __('messages.password.reset_success'));
     }
 
-    /**
-     * Ubah Kata Sandi
-     *
-     * Mengubah kata sandi pengguna yang sedang login. Memerlukan password lama untuk verifikasi.
-     *
-     *
-     * @summary Ubah Kata Sandi
-     *
-     * @response 200 scenario="Success" {"success":true,"message":"Kata sandi berhasil diperbarui.","data":[]}
-     * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-     * @response 422 scenario="Wrong Password" {"success":false,"message":"Password lama tidak cocok."}
-     * @response 422 scenario="Validation Error" {"success": false, "message": "Validasi gagal.", "errors": {"new_password": ["Password minimal 8 karakter."]}}
-     *
-     * @authenticated
-     */
-    public function reset(ChangePasswordRequest $request): JsonResponse
+    public function confirmForgot(ResetPasswordRequest $request): JsonResponse
     {
-        /** @var User|null $user */
-        $user = auth('api')->user();
+        return $this->reset($request);
+    }
+
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        $user = $request->user();
+
         if (! $user) {
-            return $this->error(__('messages.password.unauthorized'), 401);
+            return $this->error(__('messages.user.not_found'), [], 404);
         }
 
         if (! Hash::check($request->string('current_password'), $user->password)) {
-            return $this->error(__('messages.password.old_password_mismatch'), 422);
+            return $this->error(__('messages.auth.current_password_incorrect'), [], 422);
         }
 
-        $user
-            ->forceFill([
-                'password' => Hash::make($request->string('new_password')),
-            ])
-            ->save();
+        $user->password = Hash::make($request->input('new_password'));
+        $user->save();
+
+        event(new \Modules\Auth\Events\PasswordChanged($user));
 
         return $this->success([], __('messages.password.updated'));
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -18,10 +20,5 @@ class RequestEmailChangeRequest extends FormRequest
     public function rules(): array
     {
         return $this->rulesRequestEmailChange();
-    }
-
-    public function messages(): array
-    {
-        return $this->messagesRequestEmailChange();
     }
 }
