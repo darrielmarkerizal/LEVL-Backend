@@ -2,7 +2,7 @@
 
 namespace Modules\Auth\Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Modules\Auth\Models\User;
@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 class ProfileApiTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     protected User $user;
 

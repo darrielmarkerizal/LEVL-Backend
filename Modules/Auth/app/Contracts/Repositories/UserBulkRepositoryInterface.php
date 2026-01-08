@@ -11,7 +11,9 @@ interface UserBulkRepositoryInterface
 {
     public function findByIds(array $userIds): Collection;
 
-    public function bulkUpdateStatus(array $userIds, string $status): int;
+    public function bulkDeactivate(array $userIds, int $changedBy, int $currentUserId): int;
 
-    public function bulkDelete(array $userIds): int;
+    public function findById(int $userId): ?\Modules\Auth\Models\User;
+
+    public function bulkDelete(array $userIds, int $currentUserId): int;
 }

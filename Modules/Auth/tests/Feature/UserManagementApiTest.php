@@ -2,14 +2,14 @@
 
 namespace Modules\Auth\Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Modules\Auth\Models\User;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class UserManagementApiTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     protected function setUp(): void
     {

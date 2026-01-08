@@ -9,7 +9,7 @@ use Modules\Auth\Models\User;
 
 interface UserManagementServiceInterface
 {
-    public function listUsers(User $authUser, int $perPage = 15): LengthAwarePaginator;
+    public function listUsers(User $authUser, int $perPage = 15, ?string $search = null): LengthAwarePaginator;
 
     public function showUser(User $authUser, int $userId): User;
 

@@ -27,7 +27,7 @@ class UserManagementService implements UserManagementServiceInterface
         private readonly UserAccessPolicyInterface $userAccessPolicy,
     ) {}
 
-    public function listUsers(User $authUser, int $perPage = 15): LengthAwarePaginator
+    public function listUsers(User $authUser, int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
         $isSuperadmin = $authUser->hasRole('Superadmin');
         $isAdmin = $authUser->hasRole('Admin');
@@ -40,9 +40,8 @@ class UserManagementService implements UserManagementServiceInterface
             ->select(['id', 'name', 'email', 'username', 'status', 'account_status', 'created_at', 'email_verified_at'])
             ->with(['roles', 'media']);
 
-        $searchQuery = request('search');
-        if ($searchQuery && trim($searchQuery) !== '') {
-            $ids = User::search($searchQuery)->keys()->toArray();
+        if ($search && trim($search) !== '') {
+            $ids = User::search($search)->keys()->toArray();
             $query->whereIn('id', $ids);
         }
 

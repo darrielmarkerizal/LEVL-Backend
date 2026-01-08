@@ -25,7 +25,7 @@ class BulkExportRequest extends FormRequest
             'filter' => ['nullable', 'array'],
             'filter.status' => ['nullable', 'string'],
             'filter.role' => ['nullable', 'string'],
-            'filter.search' => ['nullable', 'string'],
+            'search' => ['nullable', 'string'],
         ];
     }
 }

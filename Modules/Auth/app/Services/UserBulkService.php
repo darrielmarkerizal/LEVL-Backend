@@ -26,7 +26,7 @@ class UserBulkService implements UserBulkServiceInterface
         $recipientEmail = $data['email'] ?? $authUser->email;
 
         if (empty($userIds)) {
-            $userIds = $this->resolveUserIdsFromFilters($authUser, $data['filter'] ?? []);
+            $userIds = $this->resolveUserIdsFromFilters($authUser, $data['filter'] ?? [], $data['search'] ?? null);
         }
 
         if (!empty($userIds)) {
@@ -34,7 +34,7 @@ class UserBulkService implements UserBulkServiceInterface
         }
     }
 
-    private function resolveUserIdsFromFilters(User $authUser, array $filters): array
+    private function resolveUserIdsFromFilters(User $authUser, array $filters, ?string $search = null): array
     {
         $isSuperadmin = $authUser->hasRole('Superadmin');
         $isAdmin = $authUser->hasRole('Admin');
@@ -42,6 +42,11 @@ class UserBulkService implements UserBulkServiceInterface
         // Reuse the scope logic from listUsers but only select IDs
         $query = QueryBuilder::for(User::class, new Request(['filter' => $filters]))
             ->select('id');
+
+        if ($search && trim($search) !== '') {
+            $ids = User::search($search)->keys()->toArray();
+            $query->whereIn('id', $ids);
+        }
 
         if ($isAdmin && !$isSuperadmin) {
             $managedCourseIds = CourseAdmin::query()
@@ -71,12 +76,6 @@ class UserBulkService implements UserBulkServiceInterface
                       ? $value
                       : Str::of($value)->explode(',')->map(fn ($r) => trim($r))->toArray();
                     $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
-                }),
-                AllowedFilter::callback('search', function (Builder $query, $value) {
-                    if (is_string($value) && trim($value) !== '') {
-                        $ids = User::search($value)->keys()->toArray();
-                        $query->whereIn($query->getModel()->getTable().'.id', $ids);
-                    }
                 }),
             ])
             ->pluck('id')
@@ -121,7 +120,7 @@ class UserBulkService implements UserBulkServiceInterface
     private function logStatusChanges(array $userIds, int $changedBy, string $newStatus): void
     {
         foreach ($userIds as $userId) {
-            $targetUser = User::find($userId);
+            $targetUser = $this->repository->findById($userId);
             if ($targetUser) {
                 $targetUser->logActivity('status_changed', [
                     'changed_by' => $changedBy,

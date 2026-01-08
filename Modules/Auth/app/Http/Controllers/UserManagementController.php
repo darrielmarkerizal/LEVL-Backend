@@ -25,7 +25,8 @@ class UserManagementController extends Controller
     {
         $users = $this->userManagementService->listUsers(
             $request->user(),
-            (int) $request->query('per_page', 15)
+            (int) $request->query('per_page', 15),
+            $request->query('search')
         );
 
         $users->getCollection()->transform(fn($user) => new UserResource($user));
