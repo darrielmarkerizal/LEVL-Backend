@@ -3,15 +3,24 @@
 return [
   // HTTP status messages
   "success" => "Sukses",
+  "data_retrieved" => "Data berhasil diambil.",
   "error" => "Terjadi kesalahan.",
   "not_found" => "Resource tidak ditemukan.",
   "unauthorized" => "Akses tidak terotorisasi.",
+  "unauthenticated" => "Sesi anda telah berakhir. Silakan login kembali.",
   "forbidden" => "Terlarang.",
   "validation_error" => "Validasi gagal.",
+  "validation_failed" => "Data yang dikirim tidak valid.",
   "server_error" => "Terjadi kesalahan server.",
   "bad_request" => "Permintaan tidak valid.",
   "conflict" => "Permintaan Anda bertentangan dengan state resource yang ada.",
   "gone" => "Resource yang Anda minta telah dihapus secara permanen.",
+  "session_expired" => "Sesi Anda telah kedaluwarsa. Silakan login kembali.",
+  "session_invalid" => "Sesi tidak valid. Silakan login kembali.",
+  "session_blacklisted" => "Sesi telah diblokir. Silakan login kembali.",
+  "session_not_found" => "Sesi tidak ditemukan. Silakan login kembali.",
+  "user_data_not_found" => "Data pengguna tidak ditemukan.",
+  "invalid_credentials" => "Kredensial tidak valid.",
 
   // Common Module
   "categories" => [
@@ -159,6 +168,7 @@ return [
     "login_success" => "Login berhasil.",
     "logout_success" => "Logout berhasil.",
     "register_success" => "Registrasi berhasil. Silakan cek email Anda untuk verifikasi.",
+    "user_created_success" => "User berhasil dibuat.",
     "invalid_credentials" => "Kredensial tidak valid.",
     "account_inactive" => "Akun Anda tidak aktif.",
     "account_suspended" => "Akun Anda telah ditangguhkan.",
@@ -187,7 +197,12 @@ return [
     "user_not_found" => "User tidak ditemukan",
     "admin_only" => "Hanya untuk akun Admin, Superadmin, atau Instructor dengan status pending.",
     "status_updated" => "Status user berhasil diperbarui.",
+    "student_creation_forbidden" => "Pendaftaran Student tidak diperbolehkan melalui Admin API. Student harus melakukan registrasi secara mandiri.",
+    "status_cannot_be_pending" => "Mengubah status ke pending tidak diperbolehkan.",
+    "status_cannot_be_changed_from_pending" => "Status user yang masih 'pending' tidak dapat diubah secara manual.",
     "password_changed" => "Password berhasil diubah.",
+    "password_set_success" => "Password berhasil diatur.",
+    "password_already_set" => "Password sudah diatur sebelumnya.",
     "avatar_deleted" => "Avatar berhasil dihapus.",
     "username_already_set" => "Username sudah diatur untuk akun Anda.",
     "username_set_success" => "Username berhasil diatur.",
@@ -204,6 +219,20 @@ return [
     "refresh_token_required" => "Refresh token diperlukan.",
     "refresh_token_invalid" => "Refresh token tidak valid atau kadaluarsa.",
     "account_not_active" => "Akun tidak aktif.",
+    "avatar_upload_failed" => "Avatar gagal diunggah. Pastikan format file benar (JPG, PNG, GIF) dan ukuran tidak melebihi 2MB.",
+    "avatar_single_file" => "Hanya boleh mengunggah 1 avatar.",
+    "deletion_request_sent" => "Link konfirmasi penghapusan akun telah dikirim ke email Anda.",
+    "account_deleted_success" => "Akun Anda telah berhasil dihapus.",
+    "deletion_failed" => "Gagal menghapus akun. Link konfirmasi tidak valid atau sudah kadaluarsa.",
+    "bulk_export_queued" => "Ekspor user sedang diproses dan akan dikirim ke email Anda.",
+  ],
+
+  "account" => [
+    "restore_success" => "Akun berhasil dipulihkan.",
+    "deletion_in_progress" => "Akun Anda sudah dalam proses penghapusan.",
+    "restore_not_deleted" => "Hanya akun dengan status terhapus yang dapat dipulihkan.",
+    "restore_expired" => "Masa tenggang pemulihan akun (:days hari) telah berakhir.",
+    "cleanup_success" => "Berhasil menghapus :count akun secara permanen.",
   ],
 
   // User Module

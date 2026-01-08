@@ -24,5 +24,4 @@ interface UserActivityServiceInterface
 
     public function logSubmission(User $user, $assignment): void;
 
-    public function logAchievement(User $user, $badge): void;
 }

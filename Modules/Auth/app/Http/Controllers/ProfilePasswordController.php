@@ -15,14 +15,14 @@ class ProfilePasswordController extends Controller
     use ApiResponse;
 
     public function __construct(
-        private PasswordService $passwordService
+        private \App\Contracts\Services\ProfileServiceInterface $profileService
     ) {}
 
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
         $user = $request->user();
 
-        $this->passwordService->changePassword(
+        $this->profileService->changePassword(
             $user,
             $request->input('current_password'),
             $request->input('new_password')

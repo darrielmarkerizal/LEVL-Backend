@@ -73,11 +73,5 @@ class UserActivityService implements UserActivityServiceInterface
         ], $assignment);
     }
 
-    public function logAchievement(User $user, $badge): void
-    {
-        $this->logActivity($user, UserActivity::TYPE_BADGE_EARNED, [
-            'badge_id' => $badge->id,
-            'badge_name' => $badge->name,
-        ], $badge);
-    }
+
 }

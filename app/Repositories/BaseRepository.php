@@ -3,15 +3,14 @@
 namespace App\Repositories;
 
 use App\Contracts\BaseRepositoryInterface;
-use App\Support\FilterableRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\QueryBuilder\QueryBuilder;
 
 abstract class BaseRepository implements BaseRepositoryInterface
 {
-    use FilterableRepository;
 
     abstract protected function model(): string;
 
@@ -22,6 +21,24 @@ abstract class BaseRepository implements BaseRepositoryInterface
     protected string $defaultSort = 'id';
 
     protected array $with = [];
+
+    public function applyFiltering(Builder $query, array $params, array $allowedFilters = [], array $allowedSorts = [], string $defaultSort = 'id'): Builder
+    {
+        return QueryBuilder::for($query)
+            ->allowedFilters($allowedFilters ?: $this->allowedFilters)
+            ->allowedSorts($allowedSorts ?: $this->allowedSorts)
+            ->defaultSort($defaultSort ?: $this->defaultSort)
+            ->getSubject();
+    }
+
+    public function filteredPaginate(Builder $query, array $params, array $allowedFilters = [], array $allowedSorts = [], string $defaultSort = 'id', int $perPage = 15)
+    {
+        return QueryBuilder::for($query)
+            ->allowedFilters($allowedFilters ?: $this->allowedFilters)
+            ->allowedSorts($allowedSorts ?: $this->allowedSorts)
+            ->defaultSort($defaultSort ?: $this->defaultSort)
+            ->paginate($perPage);
+    }
 
     public function query(): Builder
     {
@@ -64,39 +81,22 @@ abstract class BaseRepository implements BaseRepositoryInterface
 
     public function paginate(array $params, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->filteredPaginate(
-            $this->query(),
-            $params,
-            $this->allowedFilters,
-            $this->allowedSorts,
-            $this->defaultSort,
-            $perPage
-        );
+        return QueryBuilder::for($this->model())
+            ->allowedFilters($this->allowedFilters)
+            ->allowedSorts($this->allowedSorts)
+            ->defaultSort($this->defaultSort)
+            ->paginate($perPage);
     }
 
     public function list(array $params): Collection
     {
-        $query = $this->query();
-        $this->applyFiltering($query, $params, $this->allowedFilters, $this->allowedSorts, $this->defaultSort);
-
-        return $query->get();
+        return QueryBuilder::for($this->model())
+            ->allowedFilters($this->allowedFilters)
+            ->allowedSorts($this->allowedSorts)
+            ->defaultSort($this->defaultSort)
+            ->get();
     }
 
-    /**
-     * Check if this repository supports filtering.
-     */
-    public function supportsFiltering(): bool
-    {
-        return ! empty($this->allowedFilters);
-    }
-
-    /**
-     * Check if this repository supports sorting.
-     */
-    public function supportsSorting(): bool
-    {
-        return ! empty($this->allowedSorts);
-    }
 
     /**
      * Get allowed filters for this repository.

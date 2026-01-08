@@ -19,7 +19,6 @@ use Modules\Auth\Models\User;
 class ProfileService implements ProfileServiceInterface
 {
     public function __construct(
-        private ProfileStatisticsService $statisticsService,
         private ProfilePrivacyService $privacyService,
         private UserActivityService $activityService,
         private EmailVerificationServiceInterface $emailVerification,
@@ -95,14 +94,6 @@ class ProfileService implements ProfileServiceInterface
 
         if ($viewer->id !== $user->id) {
             $data = $this->privacyService->filterProfileData($data, $user, $viewer);
-        } else {
-            // Self viewing, include all related data
-            $data['statistics'] = $this->statisticsService->getStatistics($user);
-            $data['achievements'] = [
-                'badges' => $user->badges()->with('badge')->get(),
-                'pinned_badges' => $user->pinnedBadges()->with('badge')->orderBy('order')->get(),
-            ];
-            $data['recent_activities'] = $this->activityService->getRecentActivities($user, 10);
         }
 
         return $data;
@@ -117,21 +108,6 @@ class ProfileService implements ProfileServiceInterface
         $profileData = $this->getProfileData($user, $viewer);
 
         $visibleFields = collect($user->getVisibleFieldsFor($viewer));
-
-        if ($visibleFields->contains('*') || $visibleFields->contains('statistics')) {
-            $profileData['statistics'] = $this->statisticsService->getStatistics($user);
-        }
-
-        if ($visibleFields->contains('*') || $visibleFields->contains('achievements')) {
-            $profileData['achievements'] = [
-                'badges' => $user->badges()->with('badge')->get(),
-                'pinned_badges' => $user->pinnedBadges()->with('badge')->orderBy('order')->get(),
-            ];
-        }
-
-        if ($visibleFields->contains('*') || $visibleFields->contains('activity_history')) {
-            $profileData['recent_activities'] = $this->activityService->getRecentActivities($user, 10);
-        }
 
         return $profileData;
     }
@@ -186,6 +162,20 @@ class ProfileService implements ProfileServiceInterface
 
     public function restoreAccount(User $user): bool
     {
+        if ($user->account_status !== 'deleted' || !$user->trashed()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'account' => [__('messages.account.restore_not_deleted')],
+            ]);
+        }
+
+        $days = (int) ((\Modules\Common\Models\SystemSetting::get('auth_account_retention_days', 30)) ?? 30);
+        
+        if ($user->deleted_at->addDays($days)->isPast()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'account' => [__('messages.account.restore_expired', ['days' => $days])],
+            ]);
+        }
+
         $user->restore();
         $user->account_status = 'active';
         $user->save();

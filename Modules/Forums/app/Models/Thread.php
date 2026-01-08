@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Scout\Searchable;
 use Modules\Schemes\Models\Course;
 
 class Thread extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, Searchable;
 
     /**
      * Create a new factory instance for the model.
@@ -168,5 +169,19 @@ class Thread extends Model
     public function updateLastActivity(): void
     {
         $this->update(['last_activity_at' => now()]);
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'content' => $this->content,
+            'scheme_id' => $this->scheme_id,
+            'author_id' => $this->author_id,
+        ];
     }
 }

@@ -16,7 +16,6 @@ class ProfileStatisticsService implements ProfileStatisticsServiceInterface
         return Cache::remember("user_statistics_{$user->id}", 300, function () use ($user) {
             return [
                 'enrollments' => $this->getEnrollmentStats($user),
-                'gamification' => $this->getGamificationStats($user),
                 'performance' => $this->getPerformanceStats($user),
                 'activity' => $this->getActivityStats($user),
             ];
@@ -41,28 +40,7 @@ class ProfileStatisticsService implements ProfileStatisticsServiceInterface
         ];
     }
 
-    public function getGamificationStats(User $user): array
-    {
-        $stats = DB::table('user_gamification_stats')
-            ->where('user_id', $user->id)
-            ->first();
 
-        $badgesCount = DB::table('user_badges')
-            ->where('user_id', $user->id)
-            ->count();
-
-        $streak = DB::table('learning_streaks')
-            ->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->first();
-
-        return [
-            'total_points' => $stats->total_points ?? 0,
-            'current_level' => $stats->current_level ?? 1,
-            'badges_earned' => $badgesCount,
-            'learning_streak' => $streak->current_streak ?? 0,
-        ];
-    }
 
     public function getPerformanceStats(User $user): array
     {
@@ -100,29 +78,13 @@ class ProfileStatisticsService implements ProfileStatisticsServiceInterface
 
     public function calculateAverageScore(User $user): float
     {
-        $averageScore = DB::table('attempts')
+        $averageScore = DB::table('submissions')
             ->where('user_id', $user->id)
-            ->where('status', 'completed')
+            ->where('status', 'graded')
             ->avg('score');
 
-        return round($averageScore ?? 0, 2);
+        return (float) round($averageScore ?? 0, 2);
     }
 
-    public function getTotalPoints(User $user): int
-    {
-        $stats = DB::table('user_gamification_stats')
-            ->where('user_id', $user->id)
-            ->first();
 
-        return $stats->total_points ?? 0;
-    }
-
-    public function getCurrentLevel(User $user): int
-    {
-        $stats = DB::table('user_gamification_stats')
-            ->where('user_id', $user->id)
-            ->first();
-
-        return $stats->current_level ?? 1;
-    }
 }

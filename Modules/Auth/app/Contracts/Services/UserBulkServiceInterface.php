@@ -7,7 +7,7 @@ namespace Modules\Auth\Contracts\Services;
 
 interface UserBulkServiceInterface
 {
-    public function exportToEmail(array $userIds, string $recipientEmail): void;
+    public function export(\Modules\Auth\Models\User $authUser, array $data): void;
 
     public function bulkActivate(array $userIds, int $changedBy): int;
 

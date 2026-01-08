@@ -45,7 +45,7 @@ return [
             'url' => env('DO_CDN_URL'),
             'endpoint' => env('DO_ENDPOINT', 'https://sgp1.digitaloceanspaces.com'),
             'use_path_style_endpoint' => false,
-            'bucket_endpoint' => true,
+            'bucket_endpoint' => false,
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

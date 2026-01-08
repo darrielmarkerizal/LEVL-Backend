@@ -1,92 +1,195 @@
+# PROJECT RULESET — STABLE VERSION (UNIVERSAL)
 
-You are an expert Senior Laravel Backend Developer.
-
-Tech Stack:
+## Tech Stack
 - Laravel 10/11
 - PHP 8.2+
-- PostgreSQL (Database utama)
-- Laravel Modules (nWidart/laravel-modules)
+- PostgreSQL
+- Laravel Modules (nWidart)
 - Spatie Permission
 - Pest PHP (Testing Framework)
+- Spatie Query Builder (Filtering/Sorting)
+- Spatie Media Library (Media Management)
 
-Architectural Guidelines:
-- **Modular Monolith**: Aplikasi ini menggunakan arsitektur modular. Semua fitur baru HARUS dibuat di dalam direktori `Modules/`.
-- **Service Pattern**: Gunakan Service Pattern untuk bisnis logic. Jangan menaruh bisnis logic yang kompleks di Controller.
-  - Service class harus diletakkan di `Modules/{ModuleName}/app/Services`.
-- **Repository Pattern**: Gunakan Repository untuk logic database query yang kompleks atau reusability.
-  - Repository harus meng-extend `App\Repositories\BaseRepository`.
-  - Service memanggil Repository, bukan memanggil Model langsung untuk query kompleks.
-- **Dependency Injection**: Gunakan Dependency Injection dan jangan menggunakan Facade secara berlebihan jika bisa dihindari.
-- **Strict Types**: Selalu gunakan `declare(strict_types=1);` di baris pertama setiap file PHP.
+---
 
-Domain Rules (Service & Business Logic):
-- **Single Responsibility**: Satu Service HARUS merepresentasikan SATU use-case (Command Style).
-  - Contoh: `CreateUserService`, `UpdateUserProfileService`, `AssignRoleToUserService`.
-  - DILARANG membuat "God Service" (misal: `UserService` dengan method `create`, `update`, `delete`, `export`, `report` sekaligus).
-  - Satu Service idealnya hanya memiliki satu public method utama (`execute()` atau `handle()`).
-- **Boundaries**:
-  - Service TIDAK menerima Object `Request` atau `FormRequest`. Hanya menerima Array atau DTO.
-  - DILARANG akses antar-module langsung ke Model atau Database. Gunakan Public Service atau Contracts.
-- **Contracts (Interfaces)**:
-  - Public Service antar-module SEBAIKNYA expose Interface (Contract/Interface).
-  - Gunakan Service Provider untuk binding implementation. Hal ini memudahkan testing dan decoupling.
-- **CQRS Lite (Recommended)**:
-  - Query kompleks (read-heavy) BOLEH dipisah ke `QueryService` atau `QueryRepository` khusus.
-  - Command (write logic) tetap di Service utama.
+# Architectural Guidelines
 
-Event & Side Effects:
-- **Separation of Concerns**: Logic utama (core business transaction) tetap di Service.
-- **Async Processing**: Side effects (kirim email, notification, logging ke external service, audit trail, webhook) HARUS dipindah ke Event & Listener.
-- **Implementation**: Service hanya mentrigger event: `event(new UserRegistered($user));`.
+## Modular Monolith
+- Semua fitur baru HARUS di dalam `Modules/`
+- Cross-module communication hanya via Public Service + Contract
 
-Database Transaction Rules:
-- **Mandatory**: Semua operasi write (create/update/delete) yang melibatkan LEBIH DARI SATU table WAJIB menggunakan Database Transaction.
-- **Placement**: Transaction HARUS diletakkan di Service layer.
-  - Gunakan `DB::transaction(function () { ... });`.
+## Service Pattern
+- Business logic TIDAK boleh di Controller
+- Satu Service = satu use-case (Command Style)
+- Satu Service hanya punya 1 public method (`execute()`/`handle()`)
+- Service menerima Array atau DTO (bukan Request)
 
-Security Rules:
-- **Validation**: Pastikan $fillable di Model dikonfigurasi dengan ketat untuk mencegah Mass Assignment vulnerability.
-- **Rate Limiting**: Terapkan rate limiting pada endpoint sensitif (login, register, OTP).
-- **Audit**: Log akses user ke data sensitif atau aksi admin via Event/Listener.
+## Repository Pattern
+- Query kompleks + reusable → Repository
+- Repository meng-extend `App\Repositories\BaseRepository`
+- Service memanggil Repository, bukan Model langsung
 
-Data Exposure & API Resources:
-- **API Resources**: Semua response data model HARUS menggunakan Laravel API Resource (`JsonResource`).
-  - DILARANG return Model langsung dari Controller atau Service.
-- **Responsibility**: Resource class bertanggung jawab terhadap formatting, type casting, dan exposure control (menyembunyikan field internal/sensitif).
+## Dependency Injection
+- Gunakan DI untuk Service, Repository, Event
+- Minimalkan penggunaan Facade jika bisa DI
 
-Caching Rules:
-- **Placement**: Caching hanya boleh dilakukan di Service atau Repository layer, TIDAK BOLEH di Controller.
-- **Naming**: Cache key HARUS memiliki prefix module dan entity (misal: `course:detail:{id}`).
-- **Strategy**: Gunakan `Cache::remember()` untuk read-heavy data. Pastikan ada mekanisme cache invalidation (forget/refresh) saat data berubah (di Observer atau after-commit event).
+## Strict Types
+- `declare(strict_types=1);` Wajib untuk semua file
 
-Logging & Audit:
-- **Audit Logic**: Semua aksi kritikal (create/update/delete data sensitif) HARUS dicatat.
-- **Decoupling**: Gunakan Event + Listener untuk mencatat audit trail, jangan campur logic audit di dalam Service/Controller utama.
+---
 
-API Versioning:
-- **Prefixing**: Semua route API HARUS berada di dalam prefix versi (contoh: `api/v1/`).
-- **Stability**: Breaking change (perubahan response shape, penghapusan field) WAJIB melalui versi endpoint baru (v2).
+# Domain Rules
 
-Error Handling Strategy:
-- **Custom Exceptions**: Gunakan custom Exception untuk error bisnis (extends `RuntimeException` atau `Exception`).
-- **Global Handler**: JANGAN return array error manual. Throw exception dan biarkan `App\Exceptions\Handler` mapping ke JSON response standar.
-- **Standard Response**: Gunakan trait `App\Support\ApiResponse`.
-  - Format konsisten: `{ success, message, data, meta, errors }`.
+## Single Responsibility
+- Dilarang membuat God-Service/God-Class
+- Pisahkan Command dan Query jika diperlukan (CQRS-lite)
 
-Search, Filter, Sort & Pagination:
-- **Repository Implementation**: Implementasikan di Repository dengan meng-extend `BaseRepository`.
-- **Params**: Gunakan property `$allowedFilters`, `$allowedSorts`, dan `$defaultSort`.
-- **Usage**: Panggil `$this->filteredPaginate($query, $params)` dari Repository.
+## Boundaries
+- Cross-module dilarang akses Model/DB module lain
+- Hanya boleh via Contract Public Service
 
-Testing Strategy:
-- **Service**: WAJIB memiliki Unit Test (Mock dependencies).
-- **Repository**: WAJIB memiliki Integration Test (Real DB interaction).
-- **Controller**: Cukup diuji via Feature Test (End-to-End request/response).
-- **Custom Exception**: WAJIB memiliki test minimal 1 case untuk memastikan exception ter-throw dengan benar.
+## Contracts (Interfaces)
+- Public Service expose Contract
+- Gunakan Provider untuk binding implementation
+- **Interface Consistency Rule**: Implementation wajib cocok 1:1 dengan Interface.
+- **Contract First**: Update interface dahulu baru implementasi.
 
-Module Ownership:
-- **Review**: Setiap perubahan signifikan pada module WAJIB melalui review dari owner module tersebut.
-- **Dependencies**: Module TIDAK BOLEH mengakses Model module lain secara langsung.
+---
 
-Bahasa:
-- Gunakan **Bahasa Indonesia** untuk berkomunikasi dengan user dalam chat ini, kecuali istilah teknis (seperti "Service Pattern", "Dependency Injection") boleh tetap dalam bahasa Inggris.
+# Event & Side Effects
+- Core transaction di Service
+- Side Effects (email, notif, webhook, audit, logging) via Event + Listener
+
+---
+
+# Database Transaction Rules
+- Write operation multi-table wajib pakai DB Transaction
+- Transaction berada di Service layer
+
+---
+
+# Security Rules
+- $fillable wajib ketat (hindari mass assignment)
+- Endpoint sensitif wajib rate limiting
+- Audit dilakukan via Event/Listener
+
+---
+
+# Media Management (Spatie Media Library)
+- Model yang memiliki media wajib implement `HasMedia` dan use `InteractsWithMedia`.
+- Definisikan `registerMediaCollections()` untuk setiap model.
+- Gunakan `singleFile()` untuk koleksi avatar atau gambar profil tunggal.
+- Upload ditangani di Controller/Request, lalu path/file diteruskan ke Service.
+
+---
+
+# API Resource & Exposure Rules
+- Response API wajib menggunakan `JsonResource`.
+- Dilarang return Model langsung.
+- Resource mengatur formatting, type casting, dan exposure control.
+- **Translatable Keys**: Gunakan key translatable untuk pesan response (`messages.xxx`).
+
+---
+
+# Caching Rules
+- Caching hanya boleh di Service/Repository
+- Key format: `{module}:{entity}:{id}`
+- Wajib memiliki invalidation
+
+---
+
+# Logging & Audit
+- Aksi sensitif wajib audit
+- Audit via Event, bukan inline logic
+
+---
+
+# API Versioning
+- Semua route API menggunakan prefix versi (`api/v1`)
+- Breaking change → versi baru (`v2`)
+
+---
+
+# Error Handling Strategy
+- Domain error → Custom Exception
+- Validation error → ValidationException
+- Dilarang return array error manual
+- Global handler memetakan error ke response standar
+
+---
+
+# Search / Filter / Sort / Pagination
+- Gunakan `Spatie\QueryBuilder\QueryBuilder`.
+- **Search**: Wajib menggunakan Meilisearch via Laravel Scout (`Model::search()`) untuk semua fitur pencarian teks. Gunakan parameter `search` secara langsung (top-level), bukan `filter[search]`.
+- **No LIKE Queries**: Dilarang menggunakan `where('field', 'like', '%...%')` untuk fitur pencarian yang bersifat user-facing.
+- Definisikan `allowedFilters`, `allowedSorts`, dan `defaultSort` secara eksplisit.
+- Gunakan helper `paginateResponse()` dari `ApiResponse` trait untuk format pagination yang konsisten (`meta.pagination`).
+
+---
+
+# Modular Path Enforcement
+- Controller: `Modules/{Module}/app/Http/Controllers`
+- Request/DTO: `Modules/{Module}/app/Http/Requests`
+- Service: `Modules/{Module}/app/Services`
+- Repository: `Modules/{Module}/app/Repositories`
+- Contract: `Modules/{Module}/app/Contracts`
+- Query: `Modules/{Module}/app/Queries`
+- Provider: `Modules/{Module}/app/Providers`
+
+---
+
+# Refactor & Safety Rules
+- **Duplicate method forbidden**: Dilarang ada deklarasi method ganda dalam satu file.
+- **Import Hygiene**: Unused import dilarang. Urutkan import secara logis (Laravel, Module, Vendor).
+- **Namespace consistency**: Namespace wajib mengikuti struktur folder PSR-4.
+- Cross-module direct Model access forbidden.
+
+---
+
+# Error Prevention
+- **Type Hinting**: Wajib gunakan type hinting untuk semua parameter dan return type.
+- **Null Safety**: Hindari `null` sebisa mungkin. Gunakan `Optional` atau `default values`.
+- **Immutable Objects**: Gunakan DTO/Value Objects yang immutable untuk mencegah side effects yang tidak diinginkan.
+
+---
+
+# Testing Strategy (Universal)
+
+## 1. Service Tests (Unit)
+Wajib menguji:
+- Positive & Negative case
+- Business validation & Exception case
+- Dependencies wajib MOCK
+
+## 2. Repository Tests (Integration)
+Wajib menguji:
+- Filter, Sort, Search, Pagination
+- Soft-delete & Eager loading
+
+## 3. Controller Tests (Feature)
+Wajib menguji:
+- HTTP Response & JSON format
+- Validation errors & Auth/Permission guard
+
+## 4. Validation Tests
+Wajib menguji:
+- Required, Type, Format
+- Boundary & Forbidden values
+- Conflict domain values (ex: duplicate)
+
+## 5. Custom Exception Tests
+Minimal 1 case untuk mapping & throw
+
+## 6. Coverage Expectation
+- Service = 100% behavior coverage
+- Repository = 100% query behavior coverage
+- Controller = major flow coverage
+
+## 7. CI Enforcement
+- Merge ke `main/master` dilarang jika test gagal
+
+---
+
+# Communication Language
+- Bahasa Indonesia untuk dokumentasi & komunikasi.
+- English untuk istilah teknis tetap diperbolehkan.

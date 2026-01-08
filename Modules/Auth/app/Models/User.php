@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Modules\Auth\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Scout\Searchable;
@@ -29,6 +30,7 @@ class User extends Authenticatable implements HasMedia, JWTSubject
     LogsActivity,
     Notifiable,
     Searchable,
+    SoftDeletes,
     TracksUserActivity;
 
   /**
@@ -92,6 +94,7 @@ class User extends Authenticatable implements HasMedia, JWTSubject
     "phone",
     "account_status",
     "last_profile_update",
+    "is_password_set",
   ];
 
   protected $hidden = ["password", "remember_token"];
@@ -101,6 +104,7 @@ class User extends Authenticatable implements HasMedia, JWTSubject
     "password" => "hashed",
     "last_profile_update" => "datetime",
     "status" => UserStatus::class,
+    "is_password_set" => "boolean",
   ];
 
   protected $appends = ["avatar_url", "last_active_relative"];
@@ -119,15 +123,7 @@ class User extends Authenticatable implements HasMedia, JWTSubject
     return $media?->getUrl("thumb");
   }
 
-  public function gamificationStats()
-  {
-    return $this->hasOne(\Modules\Gamification\Models\UserGamificationStat::class);
-  }
 
-  public function badges()
-  {
-    return $this->hasMany(\Modules\Gamification\Models\UserBadge::class);
-  }
 
   public function privacySettings()
   {
@@ -139,10 +135,7 @@ class User extends Authenticatable implements HasMedia, JWTSubject
     return $this->hasMany(UserActivity::class);
   }
 
-  public function pinnedBadges()
-  {
-    return $this->hasMany(PinnedBadge::class);
-  }
+
 
   public function auditLogs()
   {

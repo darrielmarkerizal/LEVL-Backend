@@ -41,15 +41,15 @@ trait HasPasswordRules
     protected function passwordMessages(): array
     {
         return [
-            'password.required' => 'Password wajib diisi.',
-            'password.string' => 'Password harus berupa teks.',
-            'password.confirmed' => 'Konfirmasi password tidak sama.',
-            'password.min' => 'Password minimal :min karakter.',
-            'password.letters' => 'Password harus mengandung huruf.',
-            'password.mixed' => 'Password harus mengandung huruf besar dan huruf kecil.',
-            'password.numbers' => 'Password harus mengandung angka.',
-            'password.symbols' => 'Password harus mengandung simbol.',
-            'password.uncompromised' => 'Password terdeteksi dalam kebocoran data. Gunakan password lain.',
+            'password.required' => __('validation.required', ['attribute' => 'password']),
+            'password.string' => __('validation.string', ['attribute' => 'password']),
+            'password.confirmed' => __('validation.confirmed', ['attribute' => 'password']),
+            'password.min' => __('validation.min.string', ['attribute' => 'password']),
+            'password.letters' => __('validation.password.letters'),
+            'password.mixed' => __('validation.password.mixed'),
+            'password.numbers' => __('validation.password.numbers'),
+            'password.symbols' => __('validation.password.symbols'),
+            'password.uncompromised' => __('validation.password.uncompromised'),
         ];
     }
 }

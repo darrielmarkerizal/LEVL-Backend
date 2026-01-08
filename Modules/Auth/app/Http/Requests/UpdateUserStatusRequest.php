@@ -26,8 +26,8 @@ class UpdateUserStatusRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'status.required' => 'Status wajib diisi.',
-            'status.in' => 'Status hanya boleh salah satu dari: active, inactive, atau banned.',
+            'status.required' => __('validation.required', ['attribute' => 'status']),
+            'status.enum' => __('validation.enum', ['attribute' => 'status']),
         ];
     }
 }

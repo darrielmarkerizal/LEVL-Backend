@@ -38,10 +38,8 @@ class ProfileController extends Controller
         );
     }
 
-    public function uploadAvatar(Request $request): JsonResponse
+    public function uploadAvatar(\Modules\Auth\Http\Requests\UploadAvatarRequest $request): JsonResponse
     {
-        $request->validate(['avatar' => \App\Support\ValidationRules\ImageRules::avatar()]);
-
         $user = $request->user();
         $avatarUrl = $this->profileService->uploadAvatar($user, $request->file('avatar'));
 

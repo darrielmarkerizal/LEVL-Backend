@@ -11,9 +11,16 @@ use Modules\Auth\Contracts\Repositories\AuthRepositoryInterface;
 use Modules\Auth\Contracts\UserAccessPolicyInterface;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\User;
+use Modules\Auth\Contracts\Services\UserManagementServiceInterface;
 use Modules\Common\Models\Audit;
+use Modules\Enrollments\Models\Enrollment;
+use Modules\Schemes\Models\CourseAdmin;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
-class UserManagementService
+class UserManagementService implements UserManagementServiceInterface
 {
     public function __construct(
         private readonly AuthRepositoryInterface $authRepository,
@@ -22,47 +29,69 @@ class UserManagementService
 
     public function listUsers(User $authUser, int $perPage = 15): LengthAwarePaginator
     {
-        // Logic filtering based on Role is handled in Repository or here via scope
-        // If Admin, we need to apply scope using Course IDs.
-        // But AuthService had complex logic building query.
-        // Ideally, we move `applyAdminUserScope` logic to a Repository Scope or utilize the Policy Interface to get "allowed course IDs".
-        
-        // For now, let's delegate to Repository, but if Repo needs course IDs, we fetch them via Interface if needed.
-        // Or cleaner: The Repository `list` method handles basics, but complex row-level security for Admin is tough.
-        
-        // Let's assume the AuthRepository has a method 'listUsersForAdmin' or similar, 
-        // OR we pass the $authUser to repo and let it decide (less clean).
-        // Best approach: UserAccessPolicyInterface can return "ManagedCourseIds" 
-        // AND Repository accepts "course_ids" filter.
-        
-        // Refactoring strictly: `AuthRepository` should have `scopeAccessibleBy($user)`.
-        // But `Auth` module shouldn't know about `Courses`.
-        // So `AuthService` (UserManagementService) asks `UserAccessPolicyInterface`: "Get accessible user IDs" or "Get allowed course IDs"?
-        
-        // Since `User` is in `Auth` module, and `Enrollment` connects User to Course.
-        // We probably need to verify how `AuthService` did it: used `CourseAdmin` model directly.
-        // Checking `AuthService.php`, it used `applyAdminUserScope` which joined `enrollments`.
-        
-        // This confirms `Enrollment` model usage inside `AuthService`.
-        // To fix boundary:
-        // 1. `UserManagementService` calls `UserAccessPolicyInterface->getAccessibleUserQueryScope($query, $user)`.
-        
-        // But `Interface` is in `Auth/Contracts`. Implementation in `AppProvider` (or similar).
-        // Implementation will reside closer to `Common`.
-        
-        // For this file, I will leave a TODO or simple call, assuming the Repo handles Standard filtering.
-        // The complexity of "Admin sees Students of their Courses" is the main boundary violation.
-        
-        $query = $this->authRepository->query()->with(['roles', 'media']);
-        
-        // Apply Global Scope Logic via Policy if possible, or manual here if we accept keeping logic here but abstracting the DB calls.
-        
-        // Let's use standard pagination for now to keep it compilable.
-        return $this->authRepository->paginate(request()->all(), $perPage);
+        $isSuperadmin = $authUser->hasRole('Superadmin');
+        $isAdmin = $authUser->hasRole('Admin');
+
+        if (!$isSuperadmin && !$isAdmin) {
+            throw new AuthorizationException(__('messages.unauthorized'));
+        }
+
+        $query = QueryBuilder::for(User::class)
+            ->select(['id', 'name', 'email', 'username', 'status', 'account_status', 'created_at', 'email_verified_at'])
+            ->with(['roles', 'media']);
+
+        $searchQuery = request('search');
+        if ($searchQuery && trim($searchQuery) !== '') {
+            $ids = User::search($searchQuery)->keys()->toArray();
+            $query->whereIn('id', $ids);
+        }
+
+        if ($isAdmin && !$isSuperadmin) {
+            $managedCourseIds = CourseAdmin::query()
+                ->where('user_id', $authUser->id)
+                ->pluck('course_id')
+                ->unique();
+
+            $query->where(function (Builder $q) use ($managedCourseIds) {
+                // See all Admins (except Superadmin, though Superadmin is usually separate)
+                $q->whereHas('roles', function ($roleQuery) {
+                    $roleQuery->where('name', 'Admin');
+                })
+                // OR see Instructors/Students in managed courses
+                ->orWhere(function ($subQuery) use ($managedCourseIds) {
+                    $subQuery->whereHas('roles', function ($roleQuery) {
+                        $roleQuery->whereIn('name', ['Instructor', 'Student']);
+                    })
+                    ->whereHas('enrollments', function ($enrollmentQuery) use ($managedCourseIds) {
+                        $enrollmentQuery->whereIn('course_id', $managedCourseIds);
+                    });
+                });
+            });
+        }
+
+        return $query->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::callback('role', function (Builder $query, $value) {
+                    $roles = is_array($value)
+                      ? $value
+                      : Str::of($value)->explode(',')->map(fn ($r) => trim($r))->toArray();
+                    $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
+                }),
+                AllowedFilter::callback('search', function (Builder $query, $value) {
+                    if (is_string($value) && trim($value) !== '') {
+                        $ids = User::search($value)->keys()->toArray();
+                        $query->whereIn($query->getModel()->getTable().'.id', $ids);
+                    }
+                }),
+            ])
+            ->allowedSorts(['name', 'email', 'username', 'status', 'created_at'])
+            ->defaultSort('-created_at')
+            ->paginate($perPage);
     }
 
-    public function showUser(User $authUser, User $target): User
+    public function showUser(User $authUser, int $userId): User
     {
+        $target = User::findOrFail($userId);
         $isSuperadmin = $authUser->hasRole('Superadmin');
         $isAdmin = $authUser->hasRole('Admin');
 
@@ -71,7 +100,23 @@ class UserManagementService
         }
 
         if ($isAdmin && !$isSuperadmin) {
-            if (!$this->userAccessPolicy->canAdminViewUser($authUser, $target)) {
+            $managedCourseIds = CourseAdmin::query()
+                ->where('user_id', $authUser->id)
+                ->pluck('course_id')
+                ->unique();
+
+            $isAccessible = false;
+
+            if ($target->hasRole('Admin') && !$target->hasRole('Superadmin')) {
+                $isAccessible = true;
+            } elseif ($target->hasRole(['Instructor', 'Student'])) {
+                $isAccessible = Enrollment::query()
+                    ->where('user_id', $target->id)
+                    ->whereIn('course_id', $managedCourseIds)
+                    ->exists();
+            }
+
+            if (!$isAccessible) {
                 throw new AuthorizationException(__('messages.auth.no_access_to_user'));
             }
         }
@@ -79,13 +124,86 @@ class UserManagementService
         return $target;
     }
 
-    public function updateUserStatus(User $user, string $status): User
+    public function updateUserStatus(User $authUser, int $userId, string $status): User
     {
+        $user = $this->showUser($authUser, $userId);
+
+        if ($status === UserStatus::Pending->value) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'status' => [__('messages.auth.status_cannot_be_pending')],
+            ]);
+        }
+
+        if ($user->status === UserStatus::Pending) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'status' => [__('messages.auth.status_cannot_be_changed_from_pending')],
+            ]);
+        }
+
         return DB::transaction(function () use ($user, $status) {
             $user->status = UserStatus::from($status);
             $user->save();
             return $user->fresh();
         });
+    }
+
+    public function deleteUser(User $authUser, int $userId): void
+    {
+        $user = $this->showUser($authUser, $userId);
+
+        if ($user->id === $authUser->id) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'account' => [__('messages.auth.cannot_delete_self')],
+            ]);
+        }
+
+        if (!$authUser->hasRole('Superadmin')) {
+            // Admin can only delete fellow Admins or managed Instructors/Students
+            // (showUser already handles the scope check)
+            if ($user->hasRole('Superadmin')) {
+                throw new AuthorizationException(__('messages.forbidden'));
+            }
+        }
+
+        $user->delete();
+    }
+
+    public function createUser(User $authUser, array $validated): User
+    {
+        $role = $validated['role'];
+
+        // 1. Student can ONLY be created via registration, NOT via Admin API
+        if ($role === 'Student') {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'role' => [__('messages.auth.student_creation_forbidden')],
+            ]);
+        }
+
+        // 2. Role-based restrictions
+        if ($authUser->hasRole('Admin') && !$authUser->hasRole('Superadmin')) {
+            // Admin can ONLY create Admin or Instructor
+            if (!in_array($role, ['Admin', 'Instructor'])) {
+                throw new AuthorizationException(__('messages.forbidden'));
+            }
+        } elseif ($authUser->hasRole('Superadmin')) {
+            // Superadmin can create Superadmin, Admin, Instructor
+            if (!in_array($role, ['Superadmin', 'Admin', 'Instructor'])) {
+                throw new AuthorizationException(__('messages.forbidden'));
+            }
+        } else {
+            throw new AuthorizationException(__('messages.unauthorized'));
+        }
+
+        $passwordPlain = Str::random(12);
+        unset($validated['role']);
+        $validated['password'] = \Illuminate\Support\Facades\Hash::make($passwordPlain);
+        
+        $user = $this->authRepository->createUser($validated + ['is_password_set' => false]);
+        $user->assignRole($role);
+
+        // TODO: Send credentials email...
+        
+        return $user;
     }
 
     public function updateProfile(User $user, array $validated, ?string $ip, ?string $userAgent): User

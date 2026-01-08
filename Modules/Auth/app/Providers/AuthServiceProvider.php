@@ -38,6 +38,11 @@ class AuthServiceProvider extends ServiceProvider
 
         // Register observers
         User::observe(UserObserver::class);
+
+        // Register custom user provider
+        $this->app['auth']->provider('trashable-eloquent', function ($app, array $config) {
+            return new \Modules\Auth\Support\TrashableEloquentUserProvider($app['hash'], $config['model']);
+        });
     }
 
     /**
@@ -68,11 +73,6 @@ class AuthServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            \Modules\Auth\Contracts\Repositories\PinnedBadgeRepositoryInterface::class,
-            \Modules\Auth\Repositories\PinnedBadgeRepository::class,
-        );
-
-        $this->app->bind(
             \Modules\Auth\Contracts\Repositories\PasswordResetTokenRepositoryInterface::class,
             \Modules\Auth\Repositories\PasswordResetTokenRepository::class,
         );
@@ -94,11 +94,6 @@ class AuthServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            \Modules\Auth\Contracts\Services\ProfileStatisticsServiceInterface::class,
-            \Modules\Auth\Services\ProfileStatisticsService::class,
-        );
-
-        $this->app->bind(
             \Modules\Auth\Contracts\Services\UserActivityServiceInterface::class,
             \Modules\Auth\Services\UserActivityService::class,
         );
@@ -106,6 +101,11 @@ class AuthServiceProvider extends ServiceProvider
         $this->app->bind(
             \Modules\Auth\Contracts\Services\UserBulkServiceInterface::class,
             \Modules\Auth\Services\UserBulkService::class,
+        );
+
+        $this->app->bind(
+            \Modules\Auth\Contracts\Services\UserManagementServiceInterface::class,
+            \Modules\Auth\Services\UserManagementService::class,
         );
 
         $this->app->bind(
