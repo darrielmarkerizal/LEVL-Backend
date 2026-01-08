@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Schedule Content Publishing
 Schedule::job(new \Modules\Content\Jobs\PublishScheduledContent)->everyFiveMinutes();
+
+// Schedule Account Cleanup (Daily)
+Schedule::command('auth:cleanup-deleted-accounts')->daily();

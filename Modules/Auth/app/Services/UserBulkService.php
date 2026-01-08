@@ -4,19 +4,83 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Services;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Modules\Auth\Contracts\Repositories\UserBulkRepositoryInterface;
 use Modules\Auth\Contracts\Services\UserBulkServiceInterface;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Jobs\ExportUsersToEmailJob;
 use Modules\Auth\Models\User;
+use Modules\Schemes\Models\CourseAdmin;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class UserBulkService implements UserBulkServiceInterface
 {
     public function __construct(private UserBulkRepositoryInterface $repository) {}
 
-    public function exportToEmail(array $userIds, string $recipientEmail): void
+    public function export(User $authUser, array $data): void
     {
-        ExportUsersToEmailJob::dispatch($userIds, $recipientEmail);
+        $userIds = $data['user_ids'] ?? [];
+        $recipientEmail = $data['email'] ?? $authUser->email;
+
+        if (empty($userIds)) {
+            $userIds = $this->resolveUserIdsFromFilters($authUser, $data['filter'] ?? []);
+        }
+
+        if (!empty($userIds)) {
+            ExportUsersToEmailJob::dispatch($userIds, $recipientEmail);
+        }
+    }
+
+    private function resolveUserIdsFromFilters(User $authUser, array $filters): array
+    {
+        $isSuperadmin = $authUser->hasRole('Superadmin');
+        $isAdmin = $authUser->hasRole('Admin');
+
+        // Reuse the scope logic from listUsers but only select IDs
+        $query = QueryBuilder::for(User::class, new Request(['filter' => $filters]))
+            ->select('id');
+
+        if ($isAdmin && !$isSuperadmin) {
+            $managedCourseIds = CourseAdmin::query()
+                ->where('user_id', $authUser->id)
+                ->pluck('course_id')
+                ->unique();
+
+            $query->where(function (Builder $q) use ($managedCourseIds) {
+                $q->whereHas('roles', function ($roleQuery) {
+                    $roleQuery->where('name', 'Admin');
+                })
+                ->orWhere(function ($subQuery) use ($managedCourseIds) {
+                    $subQuery->whereHas('roles', function ($roleQuery) {
+                        $roleQuery->whereIn('name', ['Instructor', 'Student']);
+                    })
+                    ->whereHas('enrollments', function ($enrollmentQuery) use ($managedCourseIds) {
+                        $enrollmentQuery->whereIn('course_id', $managedCourseIds);
+                    });
+                });
+            });
+        }
+
+        return $query->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::callback('role', function (Builder $query, $value) {
+                    $roles = is_array($value)
+                      ? $value
+                      : Str::of($value)->explode(',')->map(fn ($r) => trim($r))->toArray();
+                    $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
+                }),
+                AllowedFilter::callback('search', function (Builder $query, $value) {
+                    if (is_string($value) && trim($value) !== '') {
+                        $ids = User::search($value)->keys()->toArray();
+                        $query->whereIn($query->getModel()->getTable().'.id', $ids);
+                    }
+                }),
+            ])
+            ->pluck('id')
+            ->toArray();
     }
 
     public function bulkActivate(array $userIds, int $changedBy): int

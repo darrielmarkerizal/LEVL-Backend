@@ -5,13 +5,13 @@ use Modules\Auth\Http\Controllers\AdminProfileController;
 use Modules\Auth\Http\Controllers\AuthApiController;
 use Modules\Auth\Http\Controllers\PasswordResetController;
 use Modules\Auth\Http\Controllers\ProfileAccountController;
-use Modules\Auth\Http\Controllers\ProfileAchievementController;
 use Modules\Auth\Http\Controllers\ProfileActivityController;
 use Modules\Auth\Http\Controllers\ProfileController;
 use Modules\Auth\Http\Controllers\ProfilePasswordController;
 use Modules\Auth\Http\Controllers\ProfilePrivacyController;
-use Modules\Auth\Http\Controllers\ProfileStatisticsController;
 use Modules\Auth\Http\Controllers\PublicProfileController;
+use Modules\Auth\Http\Controllers\UserManagementController;
+use Modules\Auth\Http\Controllers\UserBulkController;
 
 Route::prefix("v1")
   ->as("auth.")
@@ -20,6 +20,9 @@ Route::prefix("v1")
     Route::middleware(["throttle:auth"])->group(function () {
       Route::post("/auth/register", [AuthApiController::class, "register"])->name("register");
       Route::post("/auth/login", [AuthApiController::class, "login"])->name("login");
+      Route::post("/auth/set-password", [AuthApiController::class, "setPassword"])
+        ->middleware("auth:api")
+        ->name("auth.set-password");
       Route::get("/auth/google/redirect", [AuthApiController::class, "googleRedirect"])->name(
         "google.redirect",
       );
@@ -38,8 +41,6 @@ Route::prefix("v1")
 
     Route::middleware(["auth:api", "throttle:api"])->group(function () {
       Route::post("/auth/logout", [AuthApiController::class, "logout"])->name("logout");
-      Route::get("/profile", [AuthApiController::class, "profile"])->name("profile");
-      Route::put("/profile", [AuthApiController::class, "updateProfile"])->name("profile.update");
       Route::post("/auth/set-username", [AuthApiController::class, "setUsername"])->name(
         "set.username",
       );
@@ -76,24 +77,6 @@ Route::prefix("v1")
             "activities.index",
           );
 
-          // Achievements
-          Route::get("/achievements", [ProfileAchievementController::class, "index"])->name(
-            "achievements.index",
-          );
-          Route::post("/badges/{badge}/pin", [
-            ProfileAchievementController::class,
-            "pinBadge",
-          ])->name("badges.pin");
-          Route::delete("/badges/{badge}/unpin", [
-            ProfileAchievementController::class,
-            "unpinBadge",
-          ])->name("badges.unpin");
-
-          // Statistics
-          Route::get("/statistics", [ProfileStatisticsController::class, "index"])->name(
-            "statistics.index",
-          );
-
           // Password Management
           Route::put("/password", [ProfilePasswordController::class, "update"])->name(
             "password.update",
@@ -108,52 +91,38 @@ Route::prefix("v1")
             ProfileAccountController::class,
             "deleteConfirm",
           ])->name("account.delete.confirm");
-          Route::post("/account/restore", [ProfileAccountController::class, "restore"])->name(
-            "account.restore",
-          );
         });
+
+      // Account Restoration (Slightly different to allow finding soft-deleted users)
+      Route::post("/profile/account/restore", [ProfileAccountController::class, "restore"])
+        ->name("profile.account.restore");
 
       // Public Profile
       Route::get("/users/{user}/profile", [PublicProfileController::class, "show"])->name(
         "users.profile.show",
       );
 
-      // User status management (Admin/Superadmin only)
-      Route::middleware("role:Admin,Superadmin")
-        ->put("/users/{user}/status", [AuthApiController::class, "updateUserStatus"])
-        ->name("users.status.update");
+      // User Management (Refactored)
+      Route::middleware(["role:Admin,Superadmin"])->group(function () {
+        Route::get("/users", [UserManagementController::class, "index"])->name("users.index");
+        Route::get("/users/{user}", [UserManagementController::class, "show"])->name("users.show");
+        Route::post("/users", [UserManagementController::class, "store"])->name("users.store");
+        Route::put("/users/{user}", [UserManagementController::class, "update"])->name("users.update");
+        
+        // Superadmin only: Delete
+        Route::middleware(["role:Superadmin"])->group(function () {
+          Route::delete("/users/{user}", [UserManagementController::class, "destroy"])->name("users.destroy");
+        });
 
-      Route::middleware(["role:Superadmin"])->group(function () {
-        Route::post("/auth/users", [AuthApiController::class, "createUser"])->name("users.create");
-        Route::get("/auth/users/{user}", [AuthApiController::class, "showUser"])->name(
-          "users.show",
-        );
-      });
+        // Bulk operations
+        Route::post("/users/bulk/export", [UserBulkController::class, "export"])->name("users.bulk.export");
+        Route::post("/users/bulk/activate", [UserBulkController::class, "activate"])->name("users.bulk.activate");
+        Route::post("/users/bulk/deactivate", [UserBulkController::class, "deactivate"])->name("users.bulk.deactivate");
 
-      Route::middleware(["role:Superadmin|Admin"])->group(function () {
-        Route::get("/auth/users", [AuthApiController::class, "listUsers"])->name("users.index");
-
-        // Bulk operations (Superadmin & Admin only)
-        Route::post("/users/bulk/export", [
-          \Modules\Auth\Http\Controllers\UserBulkController::class,
-          "export",
-        ])->name("users.bulk.export");
-        Route::post("/users/bulk/activate", [
-          \Modules\Auth\Http\Controllers\UserBulkController::class,
-          "activate",
-        ])->name("users.bulk.activate");
-        Route::post("/users/bulk/deactivate", [
-          \Modules\Auth\Http\Controllers\UserBulkController::class,
-          "deactivate",
-        ])->name("users.bulk.deactivate");
-      });
-
-      // Bulk delete (Superadmin only)
-      Route::middleware(["role:Superadmin"])->group(function () {
-        Route::delete("/users/bulk/delete", [
-          \Modules\Auth\Http\Controllers\UserBulkController::class,
-          "delete",
-        ])->name("users.bulk.delete");
+        // Superadmin only: Bulk delete
+        Route::middleware(["role:Superadmin"])->group(function () {
+          Route::delete("/users/bulk/delete", [UserBulkController::class, "delete"])->name("users.bulk.delete");
+        });
       });
     });
 

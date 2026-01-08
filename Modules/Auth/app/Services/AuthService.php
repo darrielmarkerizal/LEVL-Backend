@@ -21,10 +21,7 @@ use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\User;
 use Modules\Auth\Support\TokenPairDTO;
 use Modules\Common\Models\Audit;
-use Modules\Enrollments\Models\Enrollment;
-use Modules\Schemes\Models\CourseAdmin;
-use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
+use Laravel\Socialite\Facades\Socialite;
 use Tymon\JWTAuth\JWTAuth;
 
 class AuthService implements AuthServiceInterface
@@ -267,60 +264,6 @@ class AuthService implements AuthServiceInterface
         return $user;
     }
 
-    public function createInstructor(array $validated): array
-    {
-        $passwordPlain = $this->generatePasswordFromNameEmail(
-            $validated['name'] ?? '',
-            $validated['email'] ?? '',
-        );
-        $validated['password'] = Hash::make($passwordPlain);
-        $user = $this->authRepository->createUser($validated);
-        $user->assignRole('Instructor');
-
-        $this->sendGeneratedPasswordEmail($user, $passwordPlain);
-
-        $userArray = $user->toArray();
-        $userArray['roles'] = $user->getRoleNames()->values();
-
-        return ['user' => $userArray];
-    }
-
-    public function createAdmin(array $validated): array
-    {
-        $passwordPlain = $this->generatePasswordFromNameEmail(
-            $validated['name'] ?? '',
-            $validated['email'] ?? '',
-        );
-        $validated['password'] = Hash::make($passwordPlain);
-        $user = $this->authRepository->createUser($validated);
-        $user->assignRole('Admin');
-
-        $this->sendGeneratedPasswordEmail($user, $passwordPlain);
-
-        $userArray = $user->toArray();
-        $userArray['roles'] = $user->getRoleNames()->values();
-
-        return ['user' => $userArray];
-    }
-
-    public function createSuperAdmin(array $validated): array
-    {
-        $passwordPlain = $this->generatePasswordFromNameEmail(
-            $validated['name'] ?? '',
-            $validated['email'] ?? '',
-        );
-        $validated['password'] = Hash::make($passwordPlain);
-        $user = $this->authRepository->createUser($validated);
-        $user->assignRole('Superadmin');
-
-        $this->sendGeneratedPasswordEmail($user, $passwordPlain);
-
-        $userArray = $user->toArray();
-        $userArray['roles'] = $user->getRoleNames()->values();
-
-        return ['user' => $userArray];
-    }
-
     public function verifyEmail(string $token, string $uuid): array
     {
         return $this->emailVerification->verifyByToken($token, $uuid);
@@ -331,17 +274,10 @@ class AuthService implements AuthServiceInterface
         return $this->emailVerification->sendVerificationLink($user);
     }
 
-    public function createStudent(array $validated): array
+    public function setUsername(User $user, string $username): array
     {
-        $passwordPlain = $this->generatePasswordFromNameEmail(
-            $validated['name'] ?? '',
-            $validated['email'] ?? '',
-        );
-        $validated['password'] = Hash::make($passwordPlain);
-        $user = $this->authRepository->createUser($validated);
-        $user->assignRole('Student');
-
-        $this->sendGeneratedPasswordEmail($user, $passwordPlain);
+        $user->update(['username' => $username]);
+        $user->refresh();
 
         $userArray = $user->toArray();
         $userArray['roles'] = $user->getRoleNames()->values();
@@ -349,221 +285,12 @@ class AuthService implements AuthServiceInterface
         return ['user' => $userArray];
     }
 
-    public function listUsers(User $authUser, int $perPage = 15): LengthAwarePaginator
+    public function setPassword(User $user, string $password): array
     {
-        $perPage = max(1, $perPage);
-        $query = $this->buildUserListQuery();
-
-        $isSuperadmin = $authUser->hasRole('Superadmin');
-        $isAdmin = $authUser->hasRole('Admin');
-
-        if ($isAdmin && ! $isSuperadmin) {
-            $this->applyAdminUserScope($query->getEloquentBuilder(), $authUser);
-        }
-
-        $paginator = $query->paginate($perPage);
-        $paginator->getCollection()->transform(fn ($u) => $this->transformUserForList($u));
-
-        return $paginator;
-    }
-
-    public function showUser(User $authUser, User $target): array
-    {
-        $isSuperadmin = $authUser->hasRole('Superadmin');
-        $isAdmin = $authUser->hasRole('Admin');
-
-        if (! $isSuperadmin && ! $isAdmin) {
-            throw new AuthorizationException(__('messages.unauthorized'));
-        }
-
-        if ($isAdmin && ! $isSuperadmin && ! $this->adminCanSeeUser($authUser, $target)) {
-            throw new AuthorizationException(__('messages.auth.no_access_to_user'));
-        }
-
-        return $this->formatUserDetails($target);
-    }
-
-    public function updateUserStatus(User $user, string $status): User
-    {
-        if ($status === UserStatus::Pending->value) {
-            throw ValidationException::withMessages([
-                'status' => 'Mengubah status ke pending tidak diperbolehkan.',
-            ]);
-        }
-
-        $user->status = UserStatus::from($status);
-        $user->save();
-
-        return $user->fresh();
-    }
-
-    public function updateProfile(User $user, array $validated): User
-    {
-        $user->update($validated);
-        
-        return $user->fresh();
-    }
-
-    private function buildUserListQuery(): QueryBuilder
-    {
-        $searchQuery = request('filter.search');
-
-        $builder = QueryBuilder::for(User::class)
-            ->select(['id', 'name', 'email', 'username', 'status', 'created_at', 'email_verified_at'])
-            ->with(['roles', 'media']);
-
-        if ($searchQuery && trim($searchQuery) !== '') {
-            $ids = User::search($searchQuery)->keys()->toArray();
-            $builder->whereIn('id', $ids);
-        }
-
-        return $builder
-            ->allowedFilters([
-                AllowedFilter::exact('status'),
-                AllowedFilter::callback('role', function (Builder $query, $value) {
-                    $roles = is_array($value)
-                      ? $value
-                      : Str::of($value)->explode(',')->map(fn ($r) => trim($r))->toArray();
-                    $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
-                }),
-                AllowedFilter::callback('created_from', function (Builder $query, $value) {
-                    $query->whereDate('created_at', '>=', $value);
-                }),
-                AllowedFilter::callback('created_to', function (Builder $query, $value) {
-                    $query->whereDate('created_at', '<=', $value);
-                }),
-            ])
-            ->allowedSorts(['name', 'email', 'username', 'status', 'created_at'])
-            ->defaultSort('-created_at');
-    }
-
-    private function transformUserForList(User $user): array
-    {
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'username' => $user->username,
-            'avatar' => $user->avatar_url,
-            'status' => $user->status,
-            'created_at' => $user->created_at?->toISOString(),
-            'email_verified_at' => $user->email_verified_at?->toISOString(),
-            'roles' => method_exists($user, 'getRoleNames')
-              ? $user->getRoleNames()->values()
-              : $user->roles?->pluck('name')->values() ?? [],
-        ];
-    }
-
-    private function formatUserDetails(User $user): array
-    {
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'username' => $user->username,
-            'avatar' => $user->avatar_url,
-            'status' => $user->status,
-            'created_at' => $user->created_at?->toISOString(),
-            'email_verified_at' => $user->email_verified_at?->toISOString(),
-            'roles' => method_exists($user, 'getRoleNames')
-              ? $user->getRoleNames()->values()
-              : $user->roles?->pluck('name')->values() ?? [],
-        ];
-    }
-
-    private function applyAdminUserScope(Builder $query, User $admin): void
-    {
-        $managedCourseIds = $this->managedCourseIds($admin);
-
-        $query->where(function (Builder $visibility) use ($managedCourseIds) {
-            $visibility
-                ->where(function (Builder $studentScope) use ($managedCourseIds) {
-                    if ($managedCourseIds->isEmpty()) {
-                        $studentScope->whereRaw('0 = 1');
-
-                        return;
-                    }
-
-                    $studentScope
-                        ->whereHas('roles', function ($roleQuery) {
-                            $roleQuery->where('name', 'Student');
-                        })
-                        ->whereHas('enrollments', function ($enrollmentQuery) use ($managedCourseIds) {
-                            $enrollmentQuery->whereIn('course_id', $managedCourseIds);
-                        });
-                })
-                ->orWhere(function (Builder $adminScope) {
-                    $adminScope
-                        ->whereHas('roles', function ($roleQuery) {
-                            $roleQuery->where('name', 'Admin');
-                        })
-                        ->whereDoesntHave('roles', function ($roleQuery) {
-                            $roleQuery->where('name', 'Superadmin');
-                        });
-                });
-        });
-    }
-
-    private function adminCanSeeUser(User $admin, User $target): bool
-    {
-        if ($target->hasRole('Superadmin')) {
-            return false;
-        }
-
-        if ($target->hasRole('Admin')) {
-            return true;
-        }
-
-        if (! $target->hasRole('Student')) {
-            return false;
-        }
-
-        $managedCourseIds = $this->managedCourseIds($admin);
-        if ($managedCourseIds->isEmpty()) {
-            return false;
-        }
-
-        return Enrollment::query()
-            ->where('user_id', $target->id)
-            ->whereIn('course_id', $managedCourseIds)
-            ->exists();
-    }
-
-    private function managedCourseIds(User $admin): Collection
-    {
-        return CourseAdmin::query()
-            ->where('user_id', $admin->id)
-            ->pluck('course_id')
-            ->unique()
-            ->values();
-    }
-
-    private function generatePasswordFromNameEmail(string $name, string $email): string
-    {
-        return Str::password(14, symbols: true);
-    }
-
-    private function sendGeneratedPasswordEmail(User $user, string $passwordPlain): void
-    {
-        try {
-            Mail::send(
-                'auth::emails.credentials',
-                [
-                    'user' => $user,
-                    'password' => $passwordPlain,
-                    'loginUrl' => rtrim(config('app.frontend_url'), '/').'/auth/login',
-                ],
-                function ($message) use ($user) {
-                    $message->to($user->email)->subject('Akun Anda Telah Dibuat');
-                },
-            );
-        } catch (\Throwable $e) {
-        }
-    }
-
-    public function setUsername(User $user, string $username): array
-    {
-        $user->update(['username' => $username]);
+        $user->update([
+            'password' => Hash::make($password),
+            'is_password_set' => true,
+        ]);
         $user->refresh();
 
         $userArray = $user->toArray();

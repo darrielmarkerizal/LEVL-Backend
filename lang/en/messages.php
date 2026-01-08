@@ -3,15 +3,24 @@
 return [
   // HTTP status messages
   "success" => "Success",
+  "data_retrieved" => "Data retrieved successfully.",
   "error" => "An error occurred.",
   "not_found" => "Resource not found.",
   "unauthorized" => "Unauthorized access.",
+  "unauthenticated" => "Your session has expired. Please login again.",
   "forbidden" => "Forbidden.",
   "validation_error" => "Validation failed.",
+  "validation_failed" => "The given data was invalid.",
   "server_error" => "Internal server error.",
   "bad_request" => "Bad request.",
   "conflict" => "Your request conflicts with the current state of the resource.",
   "gone" => "The resource you requested has been permanently deleted.",
+  "session_expired" => "Your session has expired. Please login again.",
+  "session_invalid" => "Invalid session. Please login again.",
+  "session_blacklisted" => "Session blacklisted. Please login again.",
+  "session_not_found" => "Session not found. Please login again.",
+  "user_data_not_found" => "User data not found.",
+  "invalid_credentials" => "Invalid credentials.",
 
   // Common Module
   "categories" => [
@@ -158,6 +167,7 @@ return [
     "login_success" => "Login successful.",
     "logout_success" => "Logout successful.",
     "register_success" => "Registration successful. Please check your email for verification.",
+    "user_created_success" => "User created successfully.",
     "invalid_credentials" => "Invalid credentials.",
     "account_inactive" => "Your account is inactive.",
     "account_suspended" => "Your account has been suspended.",
@@ -186,7 +196,12 @@ return [
     "user_not_found" => "User not found",
     "admin_only" => "Only for Admin, Superadmin, or Instructor accounts with pending status.",
     "status_updated" => "User status updated successfully.",
+    "student_creation_forbidden" => "Student creation is forbidden via Admin API. Students must register themselves.",
+    "status_cannot_be_pending" => "Changing status to pending is not allowed.",
+    "status_cannot_be_changed_from_pending" => "User status that is still 'pending' cannot be changed manually.",
     "password_changed" => "Password changed successfully.",
+    "password_set_success" => "Password set successfully.",
+    "password_already_set" => "Password has already been set.",
     "avatar_deleted" => "Avatar deleted successfully.",
     "username_already_set" => "Username is already set for your account.",
     "username_set_success" => "Username successfully set.",
@@ -203,6 +218,20 @@ return [
     "refresh_token_required" => "Refresh token is required.",
     "refresh_token_invalid" => "Refresh token is invalid or expired.",
     "account_not_active" => "Account is not active.",
+    "avatar_upload_failed" => "Avatar failed to upload. Please ensure the file is an image (JPG, PNG, GIF) and size does not exceed 2MB.",
+    "avatar_single_file" => "Only 1 avatar can be uploaded.",
+    "deletion_request_sent" => "Account deletion confirmation link has been sent to your email.",
+    "account_deleted_success" => "Your account has been successfully deleted.",
+    "deletion_failed" => "Failed to delete account. Invalid or expired confirmation link.",
+    "bulk_export_queued" => "User export is being processed and will be sent to your email.",
+  ],
+
+  "account" => [
+    "restore_success" => "Account successfully restored.",
+    "deletion_in_progress" => "Your account is already in the deletion process.",
+    "restore_not_deleted" => "Only accounts with deleted status can be restored.",
+    "restore_expired" => "Account restoration grace period (:days days) has expired.",
+    "cleanup_success" => "Successfully permanently deleted :count accounts.",
   ],
 
   // User Module

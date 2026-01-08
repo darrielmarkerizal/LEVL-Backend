@@ -23,12 +23,12 @@ trait HasAuthRequestRules
   protected function messagesLogin(): array
   {
     return array_merge($this->commonMessages(), [
-      "login.required" => "Login wajib diisi (email atau username).",
-      "login.string" => "Login harus berupa teks.",
-      "login.max" => "Login maksimal 255 karakter.",
-      "password.required" => "Password wajib diisi.",
-      "password.string" => "Password harus berupa teks.",
-      "password.min" => "Password minimal 8 karakter.",
+      "login.required" => __("validation.required", ["attribute" => "login"]),
+      "login.string" => __("validation.string", ["attribute" => "login"]),
+      "login.max" => __("validation.max.string", ["attribute" => "login"]),
+      "password.required" => __("validation.required", ["attribute" => "password"]),
+      "password.string" => __("validation.string", ["attribute" => "password"]),
+      "password.min" => __("validation.min.string", ["attribute" => "password"]),
     ]);
   }
 
@@ -52,20 +52,19 @@ trait HasAuthRequestRules
   protected function messagesRegister(): array
   {
     return array_merge($this->commonMessages(), $this->passwordMessages(), [
-      "name.required" => "Nama wajib diisi.",
-      "name.string" => "Nama harus berupa teks.",
-      "name.max" => "Nama maksimal 255 karakter.",
-      "username.required" => "Username wajib diisi.",
-      "username.string" => "Username harus berupa teks.",
-      "username.min" => "Username minimal 3 karakter.",
-      "username.max" => "Username maksimal 50 karakter.",
-      "username.regex" =>
-        "Username hanya boleh mengandung huruf, angka, titik, garis bawah, dan garis sambung. Tidak boleh mengandung spasi.",
-      "username.unique" => "Username sudah digunakan.",
-      "email.required" => "Email wajib diisi.",
-      "email.email" => "Format email tidak valid.",
-      "email.max" => "Email maksimal 255 karakter.",
-      "email.unique" => "Email sudah digunakan.",
+      "name.required" => __("validation.required", ["attribute" => "name"]),
+      "name.string" => __("validation.string", ["attribute" => "name"]),
+      "name.max" => __("validation.max.string", ["attribute" => "name"]),
+      "username.required" => __("validation.required", ["attribute" => "username"]),
+      "username.string" => __("validation.string", ["attribute" => "username"]),
+      "username.min" => __("validation.min.string", ["attribute" => "username"]),
+      "username.max" => __("validation.max.string", ["attribute" => "username"]),
+      "username.regex" => __("validation.regex", ["attribute" => "username"]),
+      "username.unique" => __("validation.unique", ["attribute" => "username"]),
+      "email.required" => __("validation.required", ["attribute" => "email"]),
+      "email.email" => __("validation.email", ["attribute" => "email"]),
+      "email.max" => __("validation.max.string", ["attribute" => "email"]),
+      "email.unique" => __("validation.unique", ["attribute" => "email"]),
     ]);
   }
 
@@ -86,24 +85,23 @@ trait HasAuthRequestRules
     ];
   }
 
-  protected function messagesCreateManagedUser(): array
+  protected function messagesCreateUser(): array
   {
     return [
-      "name.required" => "Nama wajib diisi.",
-      "name.string" => "Nama harus berupa teks.",
-      "name.max" => "Nama maksimal 255 karakter.",
-      "username.required" => "Username wajib diisi.",
-      "username.string" => "Username harus berupa teks.",
-      "username.min" => "Username minimal 3 karakter.",
-      "username.max" => "Username maksimal 255 karakter.",
-      "username.regex" =>
-        "Username hanya boleh mengandung huruf, angka, titik, garis bawah, dan garis sambung. Tidak boleh mengandung spasi.",
-      "username.unique" => "Username sudah digunakan.",
-      "email.required" => "Email wajib diisi.",
-      "email.email" => "Format email tidak valid.",
-      "email.unique" => "Email sudah digunakan.",
-      "role.required" => "Role wajib diisi.",
-      "role.in" => "Role tidak valid.",
+      "name.required" => __("validation.required", ["attribute" => "name"]),
+      "name.string" => __("validation.string", ["attribute" => "name"]),
+      "name.max" => __("validation.max.string", ["attribute" => "name"]),
+      "username.required" => __("validation.required", ["attribute" => "username"]),
+      "username.string" => __("validation.string", ["attribute" => "username"]),
+      "username.min" => __("validation.min.string", ["attribute" => "username"]),
+      "username.max" => __("validation.max.string", ["attribute" => "username"]),
+      "username.regex" => __("validation.regex", ["attribute" => "username"]),
+      "username.unique" => __("validation.unique", ["attribute" => "username"]),
+      "email.required" => __("validation.required", ["attribute" => "email"]),
+      "email.email" => __("validation.email", ["attribute" => "email"]),
+      "email.unique" => __("validation.unique", ["attribute" => "email"]),
+      "role.required" => __("validation.required", ["attribute" => "role"]),
+      "role.in" => __("validation.in", ["attribute" => "role"]),
     ];
   }
 
@@ -118,7 +116,7 @@ trait HasAuthRequestRules
   protected function messagesChangePassword(): array
   {
     return array_merge($this->passwordMessages(), [
-      "current_password.required" => "Password lama wajib diisi.",
+      "current_password.required" => __("validation.required", ["attribute" => "current password"]),
     ]);
   }
 
@@ -133,9 +131,9 @@ trait HasAuthRequestRules
   protected function messagesResetPassword(): array
   {
     return array_merge($this->passwordMessages(), [
-      "token.required" => "Token reset wajib diisi.",
-      "token.string" => "Token reset harus berupa string.",
-      "token.min" => "Token reset tidak valid.",
+      "token.required" => __("validation.required", ["attribute" => "token"]),
+      "token.string" => __("validation.string", ["attribute" => "token"]),
+      "token.min" => __("validation.min.string", ["attribute" => "token"]),
     ]);
   }
 
@@ -149,8 +147,8 @@ trait HasAuthRequestRules
   protected function messagesRefresh(): array
   {
     return [
-      "refresh_token.required" => "Refresh token wajib diisi.",
-      "refresh_token.string" => "Refresh token harus berupa teks.",
+      "refresh_token.required" => __("validation.required", ["attribute" => "refresh token"]),
+      "refresh_token.string" => __("validation.string", ["attribute" => "refresh token"]),
     ];
   }
 
@@ -164,7 +162,7 @@ trait HasAuthRequestRules
   protected function messagesLogout(): array
   {
     return [
-      "refresh_token.string" => "Refresh token harus berupa teks.",
+      "refresh_token.string" => __("validation.string", ["attribute" => "refresh token"]),
     ];
   }
 
@@ -178,9 +176,9 @@ trait HasAuthRequestRules
   protected function messagesResendCredentials(): array
   {
     return [
-      "user_id.required" => "User ID wajib diisi.",
-      "user_id.integer" => "User ID harus berupa angka.",
-      "user_id.exists" => "User ID tidak ditemukan.",
+      "user_id.required" => __("validation.required", ["attribute" => "user id"]),
+      "user_id.integer" => __("validation.integer", ["attribute" => "user id"]),
+      "user_id.exists" => __("validation.exists", ["attribute" => "user id"]),
     ];
   }
 
@@ -194,8 +192,8 @@ trait HasAuthRequestRules
   protected function messagesForgotPassword(): array
   {
     return [
-      "login.required" => "Email atau username wajib diisi.",
-      "login.string" => "Email atau username harus berupa teks.",
+      "login.required" => __("validation.required", ["attribute" => "login"]),
+      "login.string" => __("validation.string", ["attribute" => "login"]),
     ];
   }
 
@@ -220,17 +218,16 @@ trait HasAuthRequestRules
   protected function messagesUpdateProfile(): array
   {
     return [
-      "name.required" => "Nama wajib diisi.",
-      "username.required" => "Username wajib diisi.",
-      "username.string" => "Username harus berupa teks.",
-      "username.min" => "Username minimal 3 karakter.",
-      "username.max" => "Username maksimal 50 karakter.",
-      "username.regex" =>
-        "Username hanya boleh mengandung huruf, angka, titik, garis bawah, dan garis sambung. Tidak boleh mengandung spasi.",
-      "username.unique" => "Username sudah digunakan.",
-      "avatar.image" => "Avatar harus berupa gambar.",
-      "avatar.mimes" => "Avatar harus berformat jpg, jpeg, png, atau webp.",
-      "avatar.max" => "Ukuran avatar maksimal 2MB.",
+      "name.required" => __("validation.required", ["attribute" => "name"]),
+      "username.required" => __("validation.required", ["attribute" => "username"]),
+      "username.string" => __("validation.string", ["attribute" => "username"]),
+      "username.min" => __("validation.min.string", ["attribute" => "username"]),
+      "username.max" => __("validation.max.string", ["attribute" => "username"]),
+      "username.regex" => __("validation.regex", ["attribute" => "username"]),
+      "username.unique" => __("validation.unique", ["attribute" => "username"]),
+      "avatar.image" => __("validation.image", ["attribute" => "avatar"]),
+      "avatar.mimes" => __("validation.mimes", ["attribute" => "avatar"]),
+      "avatar.max" => __("validation.max.file", ["attribute" => "avatar"]),
     ];
   }
 
@@ -251,9 +248,9 @@ trait HasAuthRequestRules
   protected function messagesRequestEmailChange(): array
   {
     return [
-      "new_email.required" => "Email baru wajib diisi.",
-      "new_email.email" => "Format email tidak valid.",
-      "new_email.unique" => "Email tersebut sudah digunakan.",
+      "new_email.required" => __("validation.required", ["attribute" => "email"]),
+      "new_email.email" => __("validation.email", ["attribute" => "email"]),
+      "new_email.unique" => __("validation.unique", ["attribute" => "email"]),
     ];
   }
 
@@ -268,10 +265,10 @@ trait HasAuthRequestRules
   protected function messagesVerifyEmailChange(): array
   {
     return [
-      "uuid.required" => "UUID wajib diisi.",
-      "uuid.uuid" => "UUID tidak valid.",
-      "token.required" => "Token wajib diisi.",
-      "token.size" => "Token harus 16 karakter.",
+      "uuid.required" => __("validation.required", ["attribute" => "uuid"]),
+      "uuid.uuid" => __("validation.uuid", ["attribute" => "uuid"]),
+      "token.required" => __("validation.required", ["attribute" => "token"]),
+      "token.size" => __("validation.size.string", ["attribute" => "token"]),
     ];
   }
 
@@ -302,9 +299,9 @@ trait HasAuthRequestRules
   protected function messagesVerifyEmail(): array
   {
     return [
-      "uuid.required_without" => "UUID atau token wajib diisi.",
-      "token.required_without" => "Token atau UUID wajib diisi.",
-      "code.required" => "Kode wajib diisi.",
+      "uuid.required_without" => __("validation.required_without", ["attribute" => "uuid", "values" => "token"]),
+      "token.required_without" => __("validation.required_without", ["attribute" => "token", "values" => "uuid"]),
+      "code.required" => __("validation.required", ["attribute" => "code"]),
     ];
   }
 }

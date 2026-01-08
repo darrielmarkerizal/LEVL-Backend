@@ -39,10 +39,6 @@ interface AuthServiceInterface
     /** @return array<string,mixed> */
     public function generateDevTokens(string $ip, ?string $userAgent): array;
 
-    public function updateProfile(User $user, array $validated): User;
-
-    public function updateUserStatus(User $user, string $status): User;
-
     /** @return array<string,mixed> */
     public function setUsername(User $user, string $username): array;
 
@@ -50,21 +46,7 @@ interface AuthServiceInterface
     public function verifyEmail(string $token, string $uuid): array;
 
     public function sendEmailVerificationLink(User $user): ?string;
-
+    
     /** @return array<string,mixed> */
-    public function createInstructor(array $validated): array;
-
-    /** @return array<string,mixed> */
-    public function createAdmin(array $validated): array;
-
-    /** @return array<string,mixed> */
-    public function createSuperAdmin(array $validated): array;
-
-    /** @return array<string,mixed> */
-    public function createStudent(array $validated): array;
-
-    public function listUsers(User $authUser, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
-
-    /** @return array<string,mixed> */
-    public function showUser(User $authUser, User $target): array;
+    public function setPassword(User $user, string $password): array;
 }

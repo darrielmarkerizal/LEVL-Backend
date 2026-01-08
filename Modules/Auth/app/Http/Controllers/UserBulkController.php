@@ -25,14 +25,14 @@ class UserBulkController extends Controller
     $this->middleware('role:Superadmin,Admin');
   }
 
-  public function exportToEmail(BulkExportRequest $request): JsonResponse
+  public function export(BulkExportRequest $request): JsonResponse
   {
-    $this->bulkService->exportToEmail(
-      $request->input('user_ids'),
-      $request->input('email')
+    $this->bulkService->export(
+      $request->user(),
+      $request->validated()
     );
 
-    return $this->success(null, __("messages.users.bulk_export_queued"));
+    return $this->success(null, __("messages.auth.bulk_export_queued"));
   }
 
   public function bulkActivate(BulkActivateRequest $request): JsonResponse

@@ -129,8 +129,13 @@ class ThreadRepository extends BaseRepository
 
     public function searchThreads(string $searchQuery, int $schemeId, int $perPage = 20): LengthAwarePaginator
     {
-        return Thread::forScheme($schemeId)
-            ->whereRaw('MATCH(title, content) AGAINST(? IN NATURAL LANGUAGE MODE)', [$searchQuery])
+        $ids = Thread::search($searchQuery)
+            ->where('scheme_id', $schemeId)
+            ->keys()
+            ->toArray();
+
+        return Thread::query()
+            ->whereIn('id', $ids)
             ->with(['author', 'replies'])
             ->withCount('replies')
             ->orderBy('is_pinned', 'desc')

@@ -140,6 +140,7 @@ $base = [
         'feedback' => 'umpan balik',
         'score_awarded' => 'skor yang diberikan',
         'score' => 'skor',
+        'enum' => ':attribute yang dipilih tidak valid.',
     ],
 ];
 
@@ -160,6 +161,7 @@ $overrides = [
     'array' => ':attribute harus berupa array.',
     'date' => ':attribute bukan tanggal yang valid.',
     'in' => ':attribute yang dipilih tidak valid.',
+    'enum' => ':attribute yang dipilih tidak valid.',
     'regex' => 'Format :attribute tidak valid.',
     'exists' => ':attribute yang dipilih tidak ada.',
     'after' => ':attribute harus tanggal setelah :date.',
@@ -243,6 +245,7 @@ $overrides = [
         'selected_option_id' => 'Opsi yang Dipilih',
         'answer_text' => 'Teks Jawaban',
         'question_id' => 'ID Pertanyaan',
+        'avatar' => 'Avatar',
     ],
 ];
 

@@ -27,24 +27,6 @@ class ProfileResource extends JsonResource
             'account_status' => $this->resource['account_status'] ?? null,
             'last_profile_update' => $this->resource['last_profile_update'] ?? null,
             'created_at' => $this->resource['created_at'] ?? null,
-            
-            // Conditionally include statistics if present
-            'statistics' => $this->when(
-                isset($this->resource['statistics']),
-                $this->resource['statistics']
-            ),
-            
-            // Conditionally include achievements if present
-            'achievements' => $this->when(
-                isset($this->resource['achievements']),
-                $this->resource['achievements']
-            ),
-            
-            // Conditionally include recent activities if present
-            'recent_activities' => $this->when(
-                isset($this->resource['recent_activities']),
-                $this->resource['recent_activities']
-            ),
         ];
     }
 }

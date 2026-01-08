@@ -19,9 +19,8 @@ class PublicProfileController extends Controller
         private ProfileServiceInterface $profileService
     ) {}
 
-    public function show(Request $request, int $userId): JsonResponse
+    public function show(Request $request, User $user): JsonResponse
     {
-        $user = User::findOrFail($userId);
         $viewer = $request->user();
         $profileData = $this->profileService->getPublicProfile($user, $viewer);
 

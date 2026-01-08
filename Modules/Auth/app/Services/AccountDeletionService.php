@@ -18,8 +18,16 @@ class AccountDeletionService
 
     public function requestDeletion(User $user, string $password): string
     {
+        if ($user->account_status === 'deleted') {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'account' => [__('messages.account.deletion_in_progress')],
+            ]);
+        }
+
         if (! Hash::check($password, $user->password)) {
-            throw new \App\Exceptions\BusinessException(__('messages.auth.password_mismatch'), 422);
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'password' => [__('messages.auth.password_incorrect')],
+            ]);
         }
 
         // Invalidate old requests
@@ -41,7 +49,7 @@ class AccountDeletionService
             'channel' => 'email',
             'provider' => 'mailhog',
             'purpose' => self::PURPOSE,
-            'code' => null,
+            'code' => 'magic',
             'meta' => ['token_hash' => $tokenHash],
             'expires_at' => now()->addMinutes($ttlMinutes),
         ]);
@@ -78,6 +86,8 @@ class AccountDeletionService
         }
 
         $otp->markAsConsumed();
+        $user->account_status = 'deleted';
+        $user->save();
 
         // Perform soft delete or force delete as per business rule.
         // Usually soft delete is better.

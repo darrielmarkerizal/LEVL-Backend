@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
 use Modules\Auth\Contracts\Services\AuthServiceInterface;
 use Modules\Auth\Http\Requests\LoginRequest;
@@ -17,8 +16,6 @@ use Modules\Auth\Http\Requests\RefreshTokenRequest;
 use Modules\Auth\Http\Requests\RegisterRequest;
 use Modules\Auth\Http\Requests\SetUsernameRequest;
 use Modules\Auth\Http\Requests\UpdateProfileRequest;
-use Modules\Auth\Http\Requests\UpdateUserStatusRequest;
-use Modules\Auth\Http\Requests\CreateUserRequest;
 use Modules\Auth\Http\Requests\VerifyEmailByTokenRequest;
 use Modules\Auth\Http\Resources\LoginResource;
 use Modules\Auth\Http\Resources\RegisterResource;
@@ -91,6 +88,11 @@ class AuthApiController extends Controller
         return $this->success(new UserResource($user), __('messages.auth.profile_retrieved'));
     }
 
+    public function profile(): JsonResponse
+    {
+        return $this->me();
+    }
+
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
         /** @var User $user */
@@ -99,28 +101,6 @@ class AuthApiController extends Controller
         $updatedUser = $this->authService->updateProfile($user, $request->validated());
 
         return $this->success(new UserResource($updatedUser), __('messages.auth.profile_updated'));
-    }
-
-    public function updateUserStatus(UpdateUserStatusRequest $request, int $userId): JsonResponse
-    {
-        $user = User::findOrFail($userId);
-        $updatedUser = $this->authService->updateUserStatus($user, $request->input('status'));
-
-        return $this->success(new UserResource($updatedUser), __('messages.auth.status_updated'));
-    }
-
-    public function createUser(CreateUserRequest $request): JsonResponse
-    {
-        $role = $request->input('role');
-        
-        $method = 'create' . $role;
-        if (!method_exists($this->authService, $method)) {
-            return $this->error('Invalid role specified.', [], 422);
-        }
-
-        $user = $this->authService->$method($request->validated());
-
-        return $this->success(new UserResource($user), __('messages.auth.user_created_success'));
     }
 
     public function verifyEmail(VerifyEmailByTokenRequest $request): JsonResponse
@@ -146,26 +126,6 @@ class AuthApiController extends Controller
         }
 
         return $this->success(['uuid' => $uuid], __('messages.auth.verification_link_sent'));
-    }
-
-    public function listUsers(): JsonResponse
-    {
-        /** @var User $user */
-        $user = auth()->user();
-        $users = $this->authService->listUsers($user);
-
-        return $this->success($users, __('messages.auth.users_retrieved'));
-    }
-
-    public function showUser(int $userId): JsonResponse
-    {
-        /** @var User $authUser */
-        $authUser = auth()->user();
-        $target = User::findOrFail($userId);
-
-        $user = $this->authService->showUser($authUser, $target);
-
-        return $this->success(new UserResource($user), __('messages.auth.user_retrieved'));
     }
 
     public function googleRedirect(): JsonResponse
@@ -209,6 +169,22 @@ class AuthApiController extends Controller
         $result = $this->authService->setUsername($user, $request->input('username'));
 
         return $this->success(new UserResource($result['user']), __('messages.auth.username_set_success'));
+    }
+
+    public function setPassword(\Modules\Auth\Http\Requests\SetPasswordRequest $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        if ($user->is_password_set) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'password' => [__('messages.auth.password_already_set')],
+            ]);
+        }
+
+        $result = $this->authService->setPassword($user, $request->input('password'));
+
+        return $this->success(new UserResource($result['user']), __('messages.auth.password_set_success'));
     }
 
     public function generateDevTokens(): JsonResponse

@@ -15,7 +15,10 @@ class ProfileAccountController extends Controller
 {
   use ApiResponse;
 
-  public function __construct(private AccountDeletionService $accountDeletionService) {}
+  public function __construct(
+    private AccountDeletionService $accountDeletionService,
+    private \App\Contracts\Services\ProfileServiceInterface $profileService
+  ) {}
 
   public function deleteRequest(RequestAccountDeletionRequest $request): JsonResponse
   {
@@ -49,7 +52,7 @@ class ProfileAccountController extends Controller
 
   public function restore(): JsonResponse
   {
-    $this->accountService->restoreAccount(auth()->user());
+    $this->profileService->restoreAccount(auth()->user());
 
     return $this->success(null, __("messages.account.restore_success"));
   }

@@ -65,7 +65,7 @@ return [
 
     'providers' => [
         'users' => [
-            'driver' => 'eloquent',
+            'driver' => 'trashable-eloquent',
             'model' => env('AUTH_MODEL', Modules\Auth\Models\User::class),
         ],
 
