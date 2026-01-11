@@ -2,14 +2,14 @@
 
 namespace Modules\Auth\Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Modules\Auth\Models\User;
 use Tests\TestCase;
 
 class ProfilePasswordApiTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     protected User $user;
 
@@ -27,8 +27,8 @@ class ProfilePasswordApiTest extends TestCase
         $response = $this->actingAs($this->user, 'api')
             ->putJson('/api/v1/profile/password', [
                 'current_password' => 'oldpassword123',
-                'new_password' => 'newpassword123',
-                'new_password_confirmation' => 'newpassword123',
+                'new_password' => 'NewPassword123!',
+                'new_password_confirmation' => 'NewPassword123!',
             ]);
 
         $response->assertStatus(200)
@@ -38,7 +38,7 @@ class ProfilePasswordApiTest extends TestCase
             ]);
 
         $this->user->refresh();
-        $this->assertTrue(Hash::check('newpassword123', $this->user->password));
+        $this->assertTrue(Hash::check('NewPassword123!', $this->user->password));
     }
 
     public function test_cannot_change_password_with_incorrect_current_password(): void

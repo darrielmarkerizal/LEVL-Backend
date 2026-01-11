@@ -55,4 +55,18 @@ class UserFactory extends Factory
             'status' => 'inactive',
         ]);
     }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            // Gamification stats are not created by observer, so we create them here
+            $user->gamificationStats()->create([
+                'total_points' => 0,
+                'current_streak' => 0,
+                'longest_streak' => 0,
+                'total_badges' => 0,
+                'completed_challenges' => 0,
+            ]);
+        });
+    }
 }

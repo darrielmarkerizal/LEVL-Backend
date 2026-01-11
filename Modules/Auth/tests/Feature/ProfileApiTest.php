@@ -75,7 +75,7 @@ class ProfileApiTest extends TestCase
 
     public function test_can_upload_avatar(): void
     {
-        Storage::fake('public');
+        Storage::fake('do');
 
         $file = UploadedFile::fake()->image('avatar.jpg');
 
@@ -93,7 +93,7 @@ class ProfileApiTest extends TestCase
 
     public function test_cannot_upload_non_image_file_as_avatar(): void
     {
-        Storage::fake('public');
+        Storage::fake('do');
 
         $file = UploadedFile::fake()->create('document.pdf', 100);
 

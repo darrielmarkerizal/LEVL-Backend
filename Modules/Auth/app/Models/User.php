@@ -142,6 +142,11 @@ class User extends Authenticatable implements HasMedia, JWTSubject
     return $this->hasMany(ProfileAuditLog::class, "user_id");
   }
 
+  public function gamificationStats()
+  {
+      return $this->hasOne(\Modules\Gamification\Models\UserGamificationStat::class);
+  }
+
   public function scopeActive($query)
   {
     return $query->where("account_status", "active");

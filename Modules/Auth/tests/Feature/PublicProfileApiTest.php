@@ -2,14 +2,14 @@
 
 namespace Modules\Auth\Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Modules\Auth\Models\ProfilePrivacySetting;
 use Modules\Auth\Models\User;
 use Tests\TestCase;
 
 class PublicProfileApiTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     protected User $user;
 

@@ -33,8 +33,13 @@ class UserBulkRepository extends BaseRepository implements UserBulkRepositoryInt
         return $this->model()::whereIn('id', $userIds)->update(['status' => UserStatus::from($status)]);
     }
 
-    public function bulkDelete(array $userIds): int
+    public function bulkDelete(array $userIds, int $currentUserId): int
     {
         return $this->model()::whereIn('id', $userIds)->delete();
+    }
+
+    public function bulkDeactivate(array $userIds, int $changedBy, int $currentUserId): int
+    {
+        return $this->model()::whereIn('id', $userIds)->update(['status' => UserStatus::Inactive]);
     }
 }
