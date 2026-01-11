@@ -13,15 +13,12 @@ class SearchApiTest extends TestCase
 
     protected User $user;
 
-    protected string $token;
-
     protected function setUp(): void
     {
         parent::setUp();
 
         // Create a user for authenticated tests
         $this->user = User::factory()->create();
-        $this->token = auth('api')->login($this->user);
     }
 
     /** @test */
@@ -96,9 +93,8 @@ class SearchApiTest extends TestCase
     /** @test */
     public function search_saves_history_for_authenticated_users()
     {
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->getJson('/api/v1/search/courses?search=Laravel');
+        $response = $this->actingAs($this->user, 'api')
+            ->getJson('/api/v1/search/courses?search=Laravel');
 
         $response->assertStatus(200);
 
@@ -112,9 +108,8 @@ class SearchApiTest extends TestCase
     /** @test */
     public function search_does_not_save_empty_queries_to_history()
     {
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->getJson('/api/v1/search/courses?search=');
+        $response = $this->actingAs($this->user, 'api')
+            ->getJson('/api/v1/search/courses?search=');
 
         $response->assertStatus(200);
 
@@ -193,9 +188,8 @@ class SearchApiTest extends TestCase
             'results_count' => 3,
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->getJson('/api/v1/search/history');
+        $response = $this->actingAs($this->user, 'api')
+            ->getJson('/api/v1/search/history');
 
         $response->assertStatus(200)
             ->assertJson(['success' => true])
@@ -236,9 +230,8 @@ class SearchApiTest extends TestCase
             ]);
         }
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->getJson('/api/v1/search/history?limit=10');
+        $response = $this->actingAs($this->user, 'api')
+            ->getJson('/api/v1/search/history?limit=10');
 
         $response->assertStatus(200);
 
@@ -262,9 +255,8 @@ class SearchApiTest extends TestCase
             'results_count' => 3,
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->deleteJson('/api/v1/search/history');
+        $response = $this->actingAs($this->user, 'api')
+            ->deleteJson('/api/v1/search/history');
 
         $response->assertStatus(200)
             ->assertJson([
@@ -295,9 +287,8 @@ class SearchApiTest extends TestCase
             'results_count' => 3,
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->deleteJson("/api/v1/search/history?id={$history1->id}");
+        $response = $this->actingAs($this->user, 'api')
+            ->deleteJson("/api/v1/search/history?id={$history1->id}");
 
         $response->assertStatus(200)
             ->assertJson([
@@ -342,9 +333,8 @@ class SearchApiTest extends TestCase
             'results_count' => 3,
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->getJson('/api/v1/search/history');
+        $response = $this->actingAs($this->user, 'api')
+            ->getJson('/api/v1/search/history');
 
         $response->assertStatus(200);
 
