@@ -394,7 +394,6 @@ rollback:production:
   when: manual
   environment:
     name: production
-    action: rollback
   only:
     - main
     - master
