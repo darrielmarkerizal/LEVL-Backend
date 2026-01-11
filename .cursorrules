@@ -1,4 +1,4 @@
-# PROJECT RULESET — STABLE VERSION (UNIVERSAL)
+# PROJECT RULESET — LLM-OPTIMIZED VERSION
 
 ## Tech Stack
 - Laravel 10/11
@@ -9,125 +9,390 @@
 - Pest PHP (Testing Framework)
 - Spatie Query Builder (Filtering/Sorting)
 - Spatie Media Library (Media Management)
+- Meilisearch (via Laravel Scout)
 
 ---
 
 # Architectural Guidelines
 
 ## Modular Monolith
-- Semua fitur baru HARUS di dalam `Modules/`
-- Cross-module communication hanya via Public Service + Contract
+- All new features MUST be inside `Modules/`
+- Cross-module communication ONLY via Public Service + Contract
+- No direct Model/DB access across modules
+- Use Contract/Interface for cross-module communication
 
 ## Service Pattern
-- Business logic TIDAK boleh di Controller
-- Satu Service = satu use-case (Command Style)
-- Satu Service hanya punya 1 public method (`execute()`/`handle()`)
-- Service menerima Array atau DTO (bukan Request)
+- Business logic MUST NOT be in Controller
+- One Service = one use-case (Command Style)
+- One Service has ONLY 1 public method (`execute()`/`handle()`)
+- Service receives Array or DTO (NOT Request)
+- Service handles transaction management
+- Side effects (email, notification, webhook, audit) via Event + Listener
 
 ## Repository Pattern
-- Query kompleks + reusable → Repository
-- Repository meng-extend `App\Repositories\BaseRepository`
-- Service memanggil Repository, bukan Model langsung
+- Complex queries + reusable queries → Repository
+- Repository MUST extend `App\Repositories\BaseRepository`
+- Service calls Repository, NOT Model directly
+- No business logic in Repository
+- Query methods must be pure (no side effects)
 
 ## Dependency Injection
-- Gunakan DI untuk Service, Repository, Event
-- Minimalkan penggunaan Facade jika bisa DI
+- Use DI for Service, Repository, Event, Listener
+- Minimize Facade usage if DI is possible
+- All dependencies MUST be injected (for testability/mockability)
 
 ## Strict Types
-- `declare(strict_types=1);` Wajib untuk semua file
+- `declare(strict_types=1);` REQUIRED for all files
+- Full type hints REQUIRED for all parameters and return types
 
 ---
 
 # Domain Rules
 
 ## Single Responsibility
-- Dilarang membuat God-Service/God-Class
-- Pisahkan Command dan Query jika diperlukan (CQRS-lite)
+- God-Service/God-Class FORBIDDEN
+- Separate Command and Query if needed (CQRS-lite)
+- One class = one responsibility
 
 ## Boundaries
-- Cross-module dilarang akses Model/DB module lain
-- Hanya boleh via Contract Public Service
+- Cross-module direct Model/DB access FORBIDDEN
+- Cross-module communication ONLY via Contract Public Service
+- Module boundaries must be respected
 
 ## Contracts (Interfaces)
-- Public Service expose Contract
-- Gunakan Provider untuk binding implementation
-- **Interface Consistency Rule**: Implementation wajib cocok 1:1 dengan Interface.
-- **Contract First**: Update interface dahulu baru implementasi.
-
----
-
-# Event & Side Effects
-- Core transaction di Service
-- Side Effects (email, notif, webhook, audit, logging) via Event + Listener
+- Public Service MUST expose Contract/Interface
+- Use Provider for binding implementation
+- **Interface Consistency Rule**: Implementation MUST match Interface 1:1
+- **Contract First**: Update interface FIRST, then implementation
+- Cross-module dependencies MUST use interfaces
 
 ---
 
 # Database Transaction Rules
-- Write operation multi-table wajib pakai DB Transaction
-- Transaction berada di Service layer
+
+## Transaction Management
+- Multi-table write operations MUST use DB Transaction
+- Transaction boundary: Service layer (NOT Repository)
+- Rollback strategy: Exception handling MUST perform rollback correctly
+- Nested transactions: Avoid nested transactions. Use transaction callback if needed
+
+## Transaction Correctness
+- All operations involving multiple table writes MUST use DB Transaction
+- Transaction MUST be in Service layer, not Repository
+- Exception handling MUST ensure proper rollback
+- Use transaction callbacks instead of nested transactions
+
+---
+
+# Migration Discipline
+
+## Naming Convention
+- Format: `{YYYY}_{MM}_{DD}_{HHMMSS}_{description}.php`
+- Use snake_case for description
+- Prefix with action: `create_`, `add_`, `modify_`, `drop_`
+- Examples:
+  - `2025_12_19_020755_create_users_table.php`
+  - `2025_12_19_030000_add_email_verified_at_to_users_table.php`
+  - `2025_12_19_040000_modify_users_table_add_role_id.php`
+
+## No Destructive Migration Without Guard
+- **Destructive operations FORBIDDEN** without explicit guard/check
+- Destructive operations include: `dropTable()`, `dropColumn()`, `dropIndex()`, `dropForeign()`
+- Before destructive operation, MUST check if table/column/index exists
+- Use environment guard for production: `if (app()->environment('production')) { throw new Exception(...) }`
+- OR use config flag: `if (config('app.allow_destructive_migrations')) { ... }`
+- Migration MUST be reversible (proper `down()` method)
+
+## Zero-Downtime Migration
+- For production deployments, migrations MUST be zero-downtime compatible
+- **Additive first**: Add new columns as nullable FIRST, then backfill data, then make required
+- **Split migrations**: Split complex migrations into multiple steps
+- **Index creation**: Create indexes CONCURRENTLY in PostgreSQL (use raw SQL if needed)
+- **Foreign key**: Add foreign keys AFTER data migration, use `deferrable` if possible
+- **Column removal**: Mark column as deprecated first, remove in separate migration after deployment
+
+## Foreign Key Naming Rule
+- Format: `{table}_{column}_foreign`
+- Examples:
+  - `users_role_id_foreign` (table: users, column: role_id)
+  - `courses_category_id_foreign` (table: courses, column: category_id)
+- Use explicit naming in migration: `$table->foreign('role_id')->references('id')->on('roles')->name('users_role_id_foreign');`
+- Consistent naming makes rollback and schema management easier
+
+## Seeder Separation
+- **Development seeders**: `database/seeders/Dev/` - Seed fake data for development
+- **Test seeders**: `database/seeders/Test/` - Seed minimal data for testing
+- **Production seeders**: `database/seeders/Prod/` - Seed only essential reference data (roles, permissions, etc.)
+- NEVER run dev/test seeders in production
+- Use environment check: `if (app()->environment('production')) { return; }`
+- Module seeders: `Modules/{Module}/database/seeders/`
+
+---
+
+# Rollback Policy
+
+## Production Deployment
+- **Rollback strategy REQUIRED**: Every migration MUST have working `down()` method
+- **Test rollback**: Test migration rollback in staging environment before production
+- **Backup before migration**: Database backup MUST be taken before production migration
+- **Reversible migrations**: All migrations MUST be reversible (data loss acceptable only for new tables)
+- **Rollback order**: Rollbacks MUST be executed in reverse order
+- **Documentation**: Document any irreversible operations and migration order
+
+## Rollback Execution
+- Use `php artisan migrate:rollback --step={n}` for controlled rollback
+- Verify application functionality after rollback
+- Monitor database state after rollback
+- Document rollback procedure for each deployment
+
+## Irreversible Operations
+- Data deletion migrations SHOULD be avoided (prefer soft deletes)
+- If data deletion is necessary, document clearly and require approval
+- Use separate "cleanup" migrations that can be run independently
+- Never mix schema changes with data deletion
 
 ---
 
 # Security Rules
-- $fillable wajib ketat (hindari mass assignment)
-- Endpoint sensitif wajib rate limiting
-- Audit dilakukan via Event/Listener
+
+## Authentication & Authorization
+- Use Laravel Sanctum or Passport for API authentication
+- Token security: Tokens MUST be stored securely, expired with proper TTL
+- Policy enforcement: All actions requiring authorization MUST use Policy
+- Permission check: Cross-module actions MUST check permission via Spatie Permission
+- Authorization checks MUST be in Controller (via Policy) or Service (via Permission)
+
+## Input Security
+- CSRF protection: Web routes MUST use CSRF protection
+- XSS prevention: All user input MUST be sanitized before display
+- SQL injection prevention: Use Eloquent/Query Builder, FORBIDDEN raw SQL without binding
+- Mass assignment protection: `$fillable`/`$guarded` MUST be strict. No wildcard assignment
+
+## Resource Leakage Prevention
+- Model leakage: Cross-module FORBIDDEN to expose Model directly. ONLY via Contract/Interface
+- Database leakage: Complex cross-module queries ONLY via Repository Contract
+- Response leakage: API responses MUST NOT expose internal fields (use JsonResource)
+
+## Rate Limiting
+- Sensitive endpoints: Login, register, reset password MUST have rate limiting
+- API endpoints: All API endpoints MUST have rate limiting (default: 60 requests/minute)
+- Custom limits: Heavy operation endpoints (search, export) can have stricter limits
+- Rate limiting MUST be configured in route middleware
+
+## Audit & Logging
+- Sensitive actions MUST be audited
+- Audit MUST be via Event, NOT inline logic
+- Use activity log for tracking sensitive operations
 
 ---
 
 # Media Management (Spatie Media Library)
-- Model yang memiliki media wajib implement `HasMedia` dan use `InteractsWithMedia`.
-- Definisikan `registerMediaCollections()` untuk setiap model.
-- Gunakan `singleFile()` untuk koleksi avatar atau gambar profil tunggal.
-- Upload ditangani di Controller/Request, lalu path/file diteruskan ke Service.
+
+## Implementation Requirements
+- Models with media MUST implement `HasMedia` and use `InteractsWithMedia`
+- MUST define `registerMediaCollections()` for each model
+- Use `singleFile()` for avatar or single profile image collections
+- Use `registerMediaConversions()` for image transformations
+
+## Upload Handling
+- Upload handled in Controller/Request, then path/file passed to Service
+- Media operations MUST be in Service layer
+- Media cleanup MUST be handled via Events/Listeners
 
 ---
 
 # API Resource & Exposure Rules
-- Response API wajib menggunakan `JsonResource`.
-- Dilarang return Model langsung.
-- Resource mengatur formatting, type casting, dan exposure control.
-- **Translatable Keys**: Gunakan key translatable untuk pesan response (`messages.xxx`).
+
+## Response Format
+- API responses MUST use `JsonResource`
+- FORBIDDEN to return Model directly
+- Resource handles formatting, type casting, and exposure control
+- Response structure: `{success, message, data, meta, errors}`
+
+## Resource Serialization
+- All data responses MUST use JsonResource
+- Resource MUST control field exposure
+- Resource MUST handle type casting
+- Resource MUST format dates, numbers, etc.
+
+---
+
+# Internationalization (i18n)
+
+## Translation Keys
+- **MUST use translation keys** for all API messages and responses
+- Format: Use dot notation (e.g., `messages.success`, `messages.validation_failed`)
+- Translation keys MUST be organized by domain (e.g., `users.*`, `courses.*`)
+- Translation files location: `lang/{locale}/` (e.g., `lang/en/messages.php`, `lang/id/messages.php`)
+
+## Supported Locales
+- Default locales: `en` (English), `id` (Indonesian)
+- Locale detection: Via `lang` query parameter or `Accept-Language` header
+- Priority: Query parameter > Accept-Language header > Default locale
+
+## Usage in Code
+- Use `ApiResponse` trait methods with translation keys
+- Example: `$this->success($data, 'messages.resource_created', ['resource' => 'User'])`
+- Use `__('messages.key', $params)` for custom messages
+- Exception messages MUST use translation keys: `throw new ResourceNotFoundException(__('messages.not_found'))`
+
+## Translation File Structure
+- Organize by domain: `users.php`, `courses.php`, `messages.php`
+- Use descriptive keys: `user_created_successfully` (NOT `msg1`)
+- Use parameters for dynamic content: `'user_created' => 'User :name created successfully'`
+- All locales MUST have same keys structure
+
+## Translation Best Practices
+- NEVER hardcode messages in controllers/services
+- Use parameter substitution for dynamic content
+- Keep translation keys consistent across locales
+- Test with different locales
+- Clear cache after translation updates: `php artisan config:cache`
+
+---
+
+# API Consumability
+
+## Client Support
+- API MUST support web clients (Next.js) and mobile apps (iOS/Android)
+- API MUST be stateless (use token-based authentication)
+- API MUST follow RESTful conventions
+
+## Response Consistency
+- Response format MUST be consistent across all endpoints
+- Structure: `{success: boolean, message: string, data: mixed, meta: object|null, errors: object|null}`
+- Status codes MUST follow HTTP standards (200, 201, 400, 401, 403, 404, 422, 500)
+
+## Pagination
+- Pagination format: Use `meta.pagination` structure from `ApiResponse` trait
+- Pagination MUST include: `current_page`, `per_page`, `total`, `last_page`, `from`, `to`, `has_next`, `has_prev`
+- Default page size: Configurable (recommended: 15-50 items per page)
+
+## Error Handling
+- Error responses MUST follow consistent format
+- Validation errors: Use `errors` object with field-level errors
+- Error messages MUST be user-friendly and actionable
+- Error messages MUST use translation keys (i18n support)
+
+## Versioning
+- API versioning: All routes MUST use version prefix (`api/v1`)
+- Breaking changes: Create new version (`api/v2`)
+- Version negotiation: Via URL path (NOT header)
+- Deprecation: Deprecate old versions before removal
+
+## Data Format
+- Dates: ISO 8601 format (e.g., `2025-12-19T10:30:00Z`)
+- Numbers: Use consistent precision
+- Nullable fields: MUST be `null` (NOT omitted or empty string)
+- Boolean: Use `true`/`false` (NOT `1`/`0` or `"true"`/`"false"`)
+
+## Mobile Optimization
+- Minimize payload size (use pagination, sparse fieldsets if needed)
+- Support conditional requests (ETag, If-Modified-Since) for caching
+- Batch operations: Support batch endpoints where applicable
+- Offline support: Design with eventual consistency in mind
+
+## Documentation
+- API documentation MUST be available (Swagger/OpenAPI recommended)
+- Examples MUST be provided for all endpoints
+- Error responses MUST be documented
+- Authentication flow MUST be documented
 
 ---
 
 # Caching Rules
-- Caching hanya boleh di Service/Repository
-- Key format: `{module}:{entity}:{id}`
-- Wajib memiliki invalidation
+
+## Cache Layer
+- Caching ONLY in Service/Repository layer (NOT Controller)
+- Cache key format: `{module}:{entity}:{id}` or `{module}:{entity}:{operation}:{params_hash}`
+- Cache invalidation: MUST have invalidation strategy (tag-based, event-based, or TTL)
+- Cache tags: Use cache tags for group invalidation if possible
+
+## Cache Strategy
+- Cache frequently accessed data
+- Cache expensive queries/operations
+- Cache invalidation MUST be handled properly
+- Use cache tags for related data invalidation
 
 ---
 
-# Logging & Audit
-- Aksi sensitif wajib audit
-- Audit via Event, bukan inline logic
+# Queue Discipline
 
----
+## Async Operations
+- Heavy operations (email, export, notification) MUST be via Queue
+- Job naming: `{Action}{Entity}Job` (e.g., `SendWelcomeEmailJob`)
+- Job failure: Every Job MUST have failure handling (retry strategy or log)
+- Queue priority: Define queue priority for important vs background jobs
 
-# API Versioning
-- Semua route API menggunakan prefix versi (`api/v1`)
-- Breaking change → versi baru (`v2`)
-
----
-
-# Error Handling Strategy
-- Domain error → Custom Exception
-- Validation error → ValidationException
-- Dilarang return array error manual
-- Global handler memetakan error ke response standar
+## Job Implementation
+- Jobs MUST be idempotent (safe to retry)
+- Jobs MUST handle failures gracefully
+- Jobs MUST log important operations
+- Jobs MUST use proper queue connection/driver
 
 ---
 
 # Search / Filter / Sort / Pagination
-- Gunakan `Spatie\QueryBuilder\QueryBuilder`.
-- **Search**: Wajib menggunakan Meilisearch via Laravel Scout (`Model::search()`) untuk semua fitur pencarian teks. Gunakan parameter `search` secara langsung (top-level), bukan `filter[search]`.
-- **No LIKE Queries**: Dilarang menggunakan `where('field', 'like', '%...%')` untuk fitur pencarian yang bersifat user-facing.
-- Definisikan `allowedFilters`, `allowedSorts`, dan `defaultSort` secara eksplisit.
-- Gunakan helper `paginateResponse()` dari `ApiResponse` trait untuk format pagination yang konsisten (`meta.pagination`).
+
+## Search Implementation
+- Use `Spatie\QueryBuilder\QueryBuilder` for filtering/sorting
+- **Search**: MUST use Meilisearch via Laravel Scout (`Model::search()`) for all text search features
+- Search parameter: Use `search` directly (top-level), NOT `filter[search]`
+- **No LIKE Queries**: FORBIDDEN to use `where('field', 'like', '%...%')` for user-facing search
+
+## Query Builder Configuration
+- MUST define `allowedFilters` explicitly
+- MUST define `allowedSorts` explicitly
+- MUST define `defaultSort` explicitly
+- Use `paginateResponse()` helper from `ApiResponse` trait for consistent pagination format (`meta.pagination`)
+
+---
+
+# Indexing & Performance
+
+## Database Indexes
+- Foreign keys MUST have indexes
+- Search fields MUST have indexes
+- Sort fields MUST have indexes
+- Review query performance using EXPLAIN
+
+## Query Optimization
+- Use eager loading for required relationships (avoid N+1 queries)
+- Complex queries MUST be reviewed for performance
+- Use EXPLAIN to analyze query performance
+- Search MUST use Meilisearch/Scout, NOT LIKE queries for user-facing search
+
+---
+
+# Error Handling Strategy
+
+## Exception Hierarchy
+- Domain errors → Custom Exception (extends `BusinessException`)
+- Validation errors → `ValidationException`
+- FORBIDDEN to return error arrays manually
+- Global handler maps errors to standard response format
+
+## Exception Design
+- Custom exceptions MUST extend appropriate base exception
+- Exception messages MUST use translation keys (`messages.xxx`)
+- Exception response format MUST follow `ApiResponse` trait standard
+- Exception hierarchy MUST be consistent
+
+---
+
+# API Versioning
+
+## Version Management
+- All API routes MUST use version prefix (`api/v1`)
+- Breaking changes → create new version (`api/v2`)
+- Version negotiation via URL path
+- Deprecation policy MUST be documented
 
 ---
 
 # Modular Path Enforcement
+
+## Path Structure
 - Controller: `Modules/{Module}/app/Http/Controllers`
 - Request/DTO: `Modules/{Module}/app/Http/Requests`
 - Service: `Modules/{Module}/app/Services`
@@ -135,61 +400,194 @@
 - Contract: `Modules/{Module}/app/Contracts`
 - Query: `Modules/{Module}/app/Queries`
 - Provider: `Modules/{Module}/app/Providers`
+- Policy: `Modules/{Module}/app/Policies`
+- Resource: `Modules/{Module}/app/Http/Resources`
 
 ---
 
 # Refactor & Safety Rules
-- **Duplicate method forbidden**: Dilarang ada deklarasi method ganda dalam satu file.
-- **Import Hygiene**: Unused import dilarang. Urutkan import secara logis (Laravel, Module, Vendor).
-- **Namespace consistency**: Namespace wajib mengikuti struktur folder PSR-4.
-- Cross-module direct Model access forbidden.
+
+## Code Quality
+- **Duplicate method FORBIDDEN**: No duplicate method declarations in one file
+- **Import Hygiene**: Unused imports FORBIDDEN. Sort imports logically (Laravel, Module, Vendor)
+- **Namespace consistency**: Namespace MUST follow PSR-4 folder structure
+- Cross-module direct Model access FORBIDDEN
+
+## Code Standards
+- Follow PSR-12 coding standards
+- One class per file
+- File name = Class name
+- No duplicate methods in class
 
 ---
 
 # Error Prevention
-- **Type Hinting**: Wajib gunakan type hinting untuk semua parameter dan return type.
-- **Null Safety**: Hindari `null` sebisa mungkin. Gunakan `Optional` atau `default values`.
-- **Immutable Objects**: Gunakan DTO/Value Objects yang immutable untuk mencegah side effects yang tidak diinginkan.
+
+## Type Safety
+- **Type Hinting**: REQUIRED for all parameters and return types
+- **Null Safety**: Avoid `null` as much as possible. Use `Optional` or default values
+- **Immutable Objects**: Use DTO/Value Objects that are immutable to prevent unwanted side effects
+
+## Code Safety
+- Full type hints for all methods/functions
+- Null safety considerations
+- Immutable DTOs (using Spatie Laravel Data)
 
 ---
 
-# Testing Strategy (Universal)
+# Testing Strategy
 
-## 1. Service Tests (Unit)
-Wajib menguji:
-- Positive & Negative case
-- Business validation & Exception case
-- Dependencies wajib MOCK
+## Service Tests (Unit)
+- MUST test: Positive & Negative cases
+- MUST test: Business validation & Exception cases
+- Dependencies MUST be MOCKED
+- Service tests = unit tests (dependencies MOCKED)
 
-## 2. Repository Tests (Integration)
-Wajib menguji:
-- Filter, Sort, Search, Pagination
-- Soft-delete & Eager loading
+## Repository Tests (Integration)
+- MUST test: Filter, Sort, Search, Pagination
+- MUST test: Soft-delete & Eager loading
+- Repository tests = integration tests (real database, no mocking)
 
-## 3. Controller Tests (Feature)
-Wajib menguji:
-- HTTP Response & JSON format
-- Validation errors & Auth/Permission guard
+## Controller Tests (Feature)
+- MUST test: HTTP Response & JSON format
+- MUST test: Validation errors & Auth/Permission guard
+- Controller tests = feature tests (full HTTP request/response cycle)
 
-## 4. Validation Tests
-Wajib menguji:
-- Required, Type, Format
-- Boundary & Forbidden values
-- Conflict domain values (ex: duplicate)
+## Validation Tests
+- MUST test: Required, Type, Format
+- MUST test: Boundary & Forbidden values
+- MUST test: Conflict domain values (e.g., duplicate)
 
-## 5. Custom Exception Tests
-Minimal 1 case untuk mapping & throw
+## Custom Exception Tests
+- Minimum 1 case for mapping & throw
+- Test exception message and status code
 
-## 6. Coverage Expectation
-- Service = 100% behavior coverage
-- Repository = 100% query behavior coverage
-- Controller = major flow coverage
+## Resource/API Contract Tests
+- Test JsonResource to ensure response format matches contract
+- Test API response structure (success, message, data, meta format)
+- Verify response schema consistency for same endpoint
 
-## 7. CI Enforcement
-- Merge ke `main/master` dilarang jika test gagal
+## Domain Invariants Tests
+- Test domain invariants/business rules in Service tests
+- Test to ensure model state is always valid (no invalid state)
+- Test boundary conditions (min/max values, edge cases)
+
+## Factories & Seeders Discipline
+- **Factory REQUIRED**: Every Model MUST have Factory for testing
+- **Factory States**: Use factory states for various scenarios (active, inactive, etc.)
+- **Seeder Organization**: Seeders MUST be organized per module
+- **Test Data**: Tests use factories, NOT seeders (faster, isolated)
+
+## Coverage Expectation
+- Service: 100% behavior coverage (all branches, all exceptions)
+- Repository: 100% query behavior coverage (all filters, sorts, pagination, search)
+- Controller: Major flow coverage (happy path + error cases)
+- Resource: 100% transformation coverage (all fields, all relations)
+- Policy: All authorization rules covered
+
+## Testability as Design Constraint
+- Dependency Injection: All dependencies MUST be injected (for mockability)
+- Interface Segregation: Use interfaces for dependencies to be mocked
+- No Static Calls: Minimize static calls that are hard to mock (prefer DI)
+- Testable Architecture: Design code for testability (loose coupling, high cohesion)
+
+## CI Enforcement
+- Merge to `main/master` FORBIDDEN if tests fail
+- All tests MUST pass before merge
+- Coverage thresholds MUST be maintained
 
 ---
 
-# Communication Language
-- Bahasa Indonesia untuk dokumentasi & komunikasi.
-- English untuk istilah teknis tetap diperbolehkan.
+# Agent Strict Rules (Anti-Hallucination & Code Generation)
+
+## Format Enforcement
+- **Must Compile**: All generated code MUST compile without errors
+- **No Pseudo Code**: FORBIDDEN to create pseudo-code, placeholders, or unclear TODOs
+- **Deterministic Formatting**: Use PSR-12 for PHP formatting. Consistent with existing style
+- **Complete Implementation**: If creating method/class, implementation MUST be complete, NOT stub
+
+## Code Completeness
+- **Never Invent Details**: If unsure about domain/business rule, MUST query/search codebase first
+- **Domain Query Required**: Before creating new feature, MUST search to understand existing patterns
+- **No Assumptions**: Do NOT assume implementation details. Look at existing examples in codebase
+- **Full Type Hints**: All methods/functions MUST have complete type hints (parameters + return type)
+
+## Execution Priority
+- **Read Before Write**: Always read file to be modified first
+- **Context Awareness**: Understand module/domain context before generating code
+- **Incremental Changes**: Make small verifiable changes, NOT large changes at once
+- **Verify Compatibility**: Ensure new code is compatible with existing code (no breaking changes unless required)
+
+## Delivery Mode Rules
+- **Direct Implementation**: Implement directly, NOT just suggest
+- **Test After Implementation**: After implementation, verify with linter/tests if available
+- **Error Handling First**: Ensure error handling is handled from the start, NOT added later
+
+---
+
+# Enterprise Quality Rules
+
+## Exception Design & Error Contract
+- Custom exceptions: Domain errors use Custom Exception (extends `BusinessException`)
+- Exception hierarchy: Exceptions MUST follow existing hierarchy (`BusinessException`, `ValidationException`, etc.)
+- Error response format: All error responses follow standard format from `ApiResponse` trait
+- Exception message: Exception messages use translation keys (`messages.xxx`)
+
+## Response Format Strict
+- JSON Structure: All API responses follow format: `{success, message, data, meta, errors}`
+- Status Code: Use appropriate HTTP status codes (200, 201, 400, 401, 403, 404, 422, 500)
+- Pagination Format: Pagination uses `meta.pagination` format from `ApiResponse` trait
+- Resource Serialization: Data responses MUST use JsonResource, NOT Model directly
+
+---
+
+# Machine Optimization (LLM-Friendly)
+
+## Code Structure
+- **PSR-4 Compliance**: Namespace MUST follow PSR-4 structure
+- **File Organization**: One class per file. File name = Class name
+- **Import Organization**: Sort imports: Laravel core → Module classes → Vendor packages
+- **No Duplicate Methods**: FORBIDDEN to have duplicate methods in one class
+
+## Deterministic Behavior
+- **No Side Effects in Queries**: Query methods must NOT have side effects (pure functions)
+- **Immutable DTOs**: DTOs use Spatie Laravel Data (immutable by default)
+- **Idempotent Operations**: Operations that can be retried must be idempotent
+- **Predictable Naming**: Naming convention consistent (camelCase for methods, PascalCase for classes)
+
+## Documentation & Clarity
+- **PHPDoc Required**: Public methods MUST have PHPDoc with @param and @return
+- **Type Information**: Type information must be explicit (type hints + PHPDoc)
+- **No Magic Values**: No magic numbers/strings. Use constants or config
+- **Self-Documenting Code**: Code must be self-documenting (meaningful names, clear structure)
+
+---
+
+# Code Generation Priority & Execution
+
+## Generation Priority Order
+1. **Contract/Interface First**: Define interface/contract before implementation
+2. **Model & Migration**: Model and migration first for data structure
+3. **Repository**: Repository for data access layer
+4. **Service**: Service for business logic
+5. **Controller & Request**: Controller and FormRequest for HTTP layer
+6. **Policy**: Policy for authorization
+7. **Resource**: JsonResource for response format
+8. **Tests**: Tests for all layers (Service, Repository, Controller)
+9. **Routes**: Routes registration in module
+10. **Event & Listener**: Events and listeners for side effects
+
+## Verification Checklist
+After generating code, verify:
+- [ ] Code compiles without errors
+- [ ] Import statements complete and correct
+- [ ] Type hints complete (parameters + return type)
+- [ ] Namespace follows PSR-4
+- [ ] Naming convention consistent
+- [ ] Error handling present
+- [ ] Authorization check present (if required)
+- [ ] Response format uses JsonResource
+- [ ] Tests added (if required)
+- [ ] Migration is reversible (down() method)
+- [ ] Translation keys used for messages
+- [ ] API response format follows standard structure
