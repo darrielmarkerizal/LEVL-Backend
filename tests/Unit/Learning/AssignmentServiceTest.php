@@ -26,7 +26,7 @@ test('create creates assignment with defaults', function () {
 
     expect($assignment)->not->toBeNull();
     expect($assignment->title)->toEqual('Test Assignment');
-    expect($assignment->submission_type)->toEqual('text');
+    expect($assignment->submission_type->value)->toEqual('text');
     expect($assignment->max_score)->toEqual(100);
     expect($assignment->status->value)->toEqual('draft');
 });
@@ -49,7 +49,7 @@ test('create uses provided values', function () {
     ], $user->id);
 
     expect($assignment->description)->toEqual('Test Description');
-    expect($assignment->submission_type)->toEqual('file');
+    expect($assignment->submission_type->value)->toEqual('file');
     expect($assignment->max_score)->toEqual(50);
     expect($assignment->status->value)->toEqual('published');
     expect($assignment->allow_resubmit)->toBeFalse();
