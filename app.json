@@ -14,15 +14,10 @@
       ],
       "env": {
         "APP_ENV": "testing",
-        "APP_DEBUG": "true",
-        "DB_CONNECTION": "pgsql",
-        "DB_HOST": "127.0.0.1",
-        "DB_PORT": "5432",
-        "DB_DATABASE": "test_db",
-        "DB_USERNAME": "u",
-        "DB_PASSWORD": ""
+        "APP_DEBUG": "true"
       },
       "scripts": {
+        "test-setup": "php -r \"putenv('DB_URL=' . getenv('DATABASE_URL'));\"",
         "test": "php artisan test --parallel"
       }
     }
