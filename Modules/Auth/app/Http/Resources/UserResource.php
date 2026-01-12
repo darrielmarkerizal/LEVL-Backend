@@ -15,21 +15,21 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this['id'] ?? $this->id,
-            'name' => $this['name'] ?? $this->name,
-            'email' => $this['email'] ?? $this->email,
-            'username' => $this['username'] ?? $this->username,
+            'id' => $this['id'] ?? (is_object($this->resource) ? $this->id : null),
+            'name' => $this['name'] ?? (is_object($this->resource) ? $this->name : null),
+            'email' => $this['email'] ?? (is_object($this->resource) ? $this->email : null),
+            'username' => $this['username'] ?? (is_object($this->resource) ? $this->username : null),
             'avatar_url' => $this['avatar_url'] ?? (is_object($this->resource) ? $this->resource->avatar_url ?? null : null),
             'status' => isset($this['status']) && $this['status'] instanceof UserStatus 
                 ? $this['status']->value 
-                : (string) ($this['status'] ?? $this->status),
-            'account_status' => $this['account_status'] ?? $this->account_status,
-            'created_at' => $this->formatDate($this['created_at'] ?? $this->created_at),
-            'email_verified_at' => $this->formatDate($this['email_verified_at'] ?? $this->email_verified_at),
-            'last_active_relative' => $this['last_active_relative'] ?? $this->last_active_relative,
-            'is_password_set' => $this['is_password_set'] ?? $this->is_password_set,
+                : (string) ($this['status'] ?? (is_object($this->resource) ? $this->status : null)),
+            'account_status' => $this['account_status'] ?? (is_object($this->resource) ? $this->account_status : null),
+            'created_at' => $this->formatDate($this['created_at'] ?? (is_object($this->resource) ? $this->created_at : null)),
+            'email_verified_at' => $this->formatDate($this['email_verified_at'] ?? (is_object($this->resource) ? $this->email_verified_at : null)),
+            'last_active_relative' => $this['last_active_relative'] ?? (is_object($this->resource) ? $this->last_active_relative : null),
+            'is_password_set' => $this['is_password_set'] ?? (is_object($this->resource) ? $this->is_password_set : null),
             'roles' => $this->getRoles(),
-            'media' => $this['media'] ?? $this->media ?? [],
+            'media' => $this['media'] ?? (is_object($this->resource) ? $this->media : []),
         ];
     }
 
