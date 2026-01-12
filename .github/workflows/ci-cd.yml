@@ -69,7 +69,7 @@ jobs:
           DB_PASSWORD: postgres
       
       - name: Run Tests
-        run: php -d memory_limit=2G artisan test --processes=2
+        run: php -d memory_limit=2G artisan test --parallel --processes=2
         env:
           DB_CONNECTION: pgsql
           DB_HOST: localhost
