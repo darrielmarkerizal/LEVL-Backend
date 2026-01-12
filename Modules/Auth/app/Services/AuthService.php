@@ -92,9 +92,10 @@ class AuthService implements AuthServiceInterface
             $cfg = $this->throttle->getRateLimitConfig();
             $m = intdiv($retryAfter, 60);
             $s = $retryAfter % 60;
-            $retryIn = $m > 0 ? $m.' menit'.($s > 0 ? ' '.$s.' detik' : '') : $s.' detik';
+            $retryIn = $m > 0 ? $m.' '.trans_choice('messages.minutes', $m).($s > 0 ? ' '.$s.' '.trans_choice('messages.seconds', $s) : '') : $s.' '.trans_choice('messages.seconds', $s);
+            $retryIn = $m > 0 ? $m.' menit'.($s > 0 ? ' '.$s.' detik' : '') : $s.' detik'; 
             throw ValidationException::withMessages([
-                'login' => "Terlalu banyak percobaan login. Maksimal {$cfg['max']} kali dalam {$cfg['decay']} menit. Coba lagi dalam {$retryIn}.",
+                'login' => __('messages.auth.throttle_message', ['max' => $cfg['max'], 'decay' => $cfg['decay'], 'retryIn' => $retryIn]),
             ]);
         }
 
@@ -103,8 +104,8 @@ class AuthService implements AuthServiceInterface
             $this->throttle->hitAttempt($login, $ip);
             $this->throttle->recordFailureAndMaybeLock($login);
             throw new BusinessException(
-                'Username/email atau password salah.',
-                ['login' => ['Username/email atau password salah.']],
+                __('messages.auth.invalid_credentials'),
+                ['login' => [__('messages.auth.invalid_credentials')]],
                 401,
             );
         }
@@ -151,7 +152,7 @@ class AuthService implements AuthServiceInterface
                 'auto_verified' => $wasAutoVerified,
                 'status' => $user->status instanceof UserStatus ? $user->status->value : (string) $user->status,
             ])
-            ->log('Pengguna berhasil login');
+            ->log(__('messages.auth.log_user_login'));
 
         $userArray = $user->toArray();
         $userArray['roles'] = $user->getRoleNames()->values();
@@ -167,18 +168,18 @@ class AuthService implements AuthServiceInterface
         ) {
             $verificationUuid = $this->emailVerification->sendVerificationLink($user);
             $response['status'] = UserStatus::Pending->value;
-            $response['message'] = 'Akun Anda belum aktif. Silakan verifikasi email terlebih dahulu.';
+            $response['message'] = __('messages.auth.email_not_verified');
             if ($verificationUuid) {
                 $response['verification_uuid'] = $verificationUuid;
             }
         } elseif ($user->status === UserStatus::Inactive) {
             $response['status'] = UserStatus::Inactive->value;
-            $response['message'] = 'Akun Anda tidak aktif. Hubungi administrator.';
+            $response['message'] = __('messages.auth.account_not_active_contact_admin');
         } elseif ($user->status === UserStatus::Banned) {
             $response['status'] = UserStatus::Banned->value;
-            $response['message'] = 'Akun Anda telah dibanned. Hubungi administrator.';
+            $response['message'] = __('messages.auth.account_banned_contact_admin');
         } elseif ($wasAutoVerified) {
-            $response['message'] = 'Login berhasil. Akun Anda telah otomatis diverifikasi.';
+            $response['message'] = __('messages.auth.login_success_auto_verified');
         }
 
         return $response;
@@ -189,20 +190,20 @@ class AuthService implements AuthServiceInterface
         $record = $this->authRepository->findValidRefreshRecord($refreshToken);
         if (! $record) {
             throw ValidationException::withMessages([
-                'refresh_token' => 'Refresh token tidak valid atau kadaluarsa.',
+                'refresh_token' => __('messages.auth.refresh_token_invalid'),
             ]);
         }
 
         $user = $record->user;
         if (! $user) {
             throw ValidationException::withMessages([
-                'refresh_token' => 'User tidak ditemukan untuk refresh token ini.',
+                'refresh_token' => __('messages.auth.refresh_token_user_not_found'),
             ]);
         }
 
         if ($user->status !== UserStatus::Active) {
             throw ValidationException::withMessages([
-                'refresh_token' => 'Akun tidak aktif.',
+                'refresh_token' => __('messages.auth.account_not_active'),
             ]);
         }
 
@@ -215,7 +216,7 @@ class AuthService implements AuthServiceInterface
             }
 
             throw ValidationException::withMessages([
-                'refresh_token' => 'Refresh token telah digunakan sebelumnya. Semua sesi perangkat telah dicabut karena potensi keamanan.',
+                'refresh_token' => __('messages.auth.refresh_token_compromised'),
             ]);
         }
 
@@ -253,7 +254,7 @@ class AuthService implements AuthServiceInterface
                 'action' => 'logout',
                 'refresh_token_revoked' => $refreshToken !== null,
             ])
-            ->log('Pengguna logout');
+            ->log(__('messages.auth.log_user_logout'));
 
         $this->jwt->setToken($currentJwt)->invalidate();
         if ($refreshToken) {

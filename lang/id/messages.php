@@ -234,6 +234,14 @@ return [
     "account_deleted_success" => "Akun Anda telah berhasil dihapus.",
     "deletion_failed" => "Gagal menghapus akun. Link konfirmasi tidak valid atau sudah kadaluarsa.",
     "bulk_export_queued" => "Ekspor user sedang diproses dan akan dikirim ke email Anda.",
+    "refresh_token_user_not_found" => "User tidak ditemukan untuk refresh token ini.",
+    "refresh_token_compromised" => "Refresh token telah digunakan sebelumnya. Semua sesi perangkat telah dicabut karena potensi keamanan.",
+    "throttle_message" => "Terlalu banyak percobaan login. Maksimal :max kali dalam :decay menit. Coba lagi dalam :retryIn.",
+    "login_success_auto_verified" => "Login berhasil. Akun Anda telah otomatis diverifikasi.",
+    "account_not_active_contact_admin" => "Akun Anda tidak aktif. Hubungi administrator.",
+    "account_banned_contact_admin" => "Akun Anda telah dibanned. Hubungi administrator.",
+    "log_user_login" => "Pengguna berhasil login",
+    "log_user_logout" => "Pengguna logout",
   ],
 
   "account" => [
