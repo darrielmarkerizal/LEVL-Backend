@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Forums\Repositories\ThreadRepository;
 use Modules\Forums\Contracts\Services\ForumServiceInterface;
+use Modules\Forums\Http\Requests\CreateThreadRequest;
 use Modules\Forums\Http\Requests\UpdateThreadRequest;
 use Modules\Forums\Services\ModerationService;
 
@@ -83,7 +84,10 @@ class ThreadController extends Controller
      */
     public function store(CreateThreadRequest $request, int $schemeId): JsonResponse
     {
-        $thread = $this->forumService->createThread($schemeId, $request->validated(), auth()->id());
+        $data = $request->validated();
+        $data['scheme_id'] = $schemeId;
+
+        $thread = $this->forumService->createThread($data, auth()->user());
 
         return $this->created($thread, __('forums.thread_created'));
     }

@@ -187,14 +187,14 @@ class ReportingTest extends TestCase
     );
 
     $response->assertStatus(200);
-    $response->assertHeader("content-type", "text/csv; charset=UTF-8");
+    $response->assertHeader("content-type", "text/csv; charset=utf-8");
     $this->assertStringContainsString(
       "attachment; filename=",
       $response->headers->get("content-disposition"),
     );
 
     // Check CSV content
-    $content = $response->streamedContent();
+    $content = file_get_contents($response->baseResponse->getFile()->getPathname());
     $this->assertStringContainsString("Student Name", $content);
     $this->assertStringContainsString("Email", $content);
     $this->assertStringContainsString("Status", $content);

@@ -29,9 +29,12 @@ class UserBulkApiTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('Admin');
 
+        $users = User::factory()->count(3)->create();
+        $userIds = $users->pluck('id')->toArray();
+
         $response = $this->actingAs($admin, 'api')
             ->postJson('/api/v1/users/bulk/export', [
-                'user_ids' => [1, 2, 3],
+                'user_ids' => $userIds,
                 'email' => 'test@example.com'
             ]);
 

@@ -67,9 +67,10 @@ class ThreadManagementTest extends TestCase
             ->assertJsonStructure([
                 'success',
                 'data' => [
-                    'data' => [
-                        '*' => ['id', 'title', 'content', 'author_id'],
-                    ],
+                    '*' => ['id', 'title', 'content', 'author_id'],
+                ],
+                'meta' => [
+                    'pagination',
                 ],
             ]);
     }

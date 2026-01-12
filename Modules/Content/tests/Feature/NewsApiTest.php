@@ -26,19 +26,19 @@ class NewsApiTest extends TestCase
         parent::setUp();
 
         // Create roles
-        Role::create(['name' => 'admin', 'guard_name' => 'api']);
-        Role::create(['name' => 'instructor', 'guard_name' => 'api']);
-        Role::create(['name' => 'student', 'guard_name' => 'api']);
+        Role::create(['name' => 'Admin', 'guard_name' => 'api']);
+        Role::create(['name' => 'Instructor', 'guard_name' => 'api']);
+        Role::create(['name' => 'Student', 'guard_name' => 'api']);
 
         // Create users
         $this->admin = User::factory()->create();
-        $this->admin->assignRole('admin');
+        $this->admin->assignRole('Admin');
 
         $this->instructor = User::factory()->create();
-        $this->instructor->assignRole('instructor');
+        $this->instructor->assignRole('Instructor');
 
         $this->student = User::factory()->create();
-        $this->student->assignRole('student');
+        $this->student->assignRole('Student');
 
         // Get token for admin
         $this->token = auth('api')->login($this->admin);
@@ -61,8 +61,8 @@ class NewsApiTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJson([
-                'status' => 'success',
-                'message' => 'Berita berhasil dibuat.',
+                'success' => true,
+                'message' => 'News created successfully.',
             ])
             ->assertJsonStructure([
                 'data' => ['id', 'title', 'slug', 'content'],
@@ -206,12 +206,10 @@ class NewsApiTest extends TestCase
         ])->getJson('/api/v1/news');
 
         $response->assertStatus(200)
-            ->assertJson(['status' => 'success'])
+            ->assertJson(['success' => true])
             ->assertJsonStructure([
                 'data' => [
-                    'data' => [
                         '*' => ['id', 'title', 'slug', 'excerpt'],
-                    ],
                 ],
             ]);
     }
@@ -227,7 +225,7 @@ class NewsApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'status' => 'success',
+                'success' => true,
                 'data' => [
                     'id' => $news->id,
                     'slug' => $news->slug,
@@ -273,8 +271,8 @@ class NewsApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'status' => 'success',
-                'message' => 'Berita berhasil diperbarui.',
+                'success' => true,
+                'message' => 'News updated successfully.',
             ]);
 
         $this->assertDatabaseHas('news', [
@@ -294,8 +292,8 @@ class NewsApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'status' => 'success',
-                'message' => 'Berita berhasil dihapus.',
+                'success' => true,
+                'message' => 'News deleted successfully.',
             ]);
 
         $this->assertSoftDeleted('news', ['id' => $news->id]);
@@ -315,8 +313,8 @@ class NewsApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'status' => 'success',
-                'message' => 'Berita berhasil dipublikasikan.',
+                'success' => true,
+                'message' => 'News published successfully.',
             ]);
 
         $this->assertDatabaseHas('news', [
@@ -338,7 +336,7 @@ class NewsApiTest extends TestCase
         ])->getJson('/api/v1/news/trending');
 
         $response->assertStatus(200)
-            ->assertJson(['status' => 'success'])
+            ->assertJson(['success' => true])
             ->assertJsonStructure([
                 'data' => [
                     '*' => ['id', 'title', 'views_count'],
@@ -357,11 +355,11 @@ class NewsApiTest extends TestCase
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->token,
-        ])->getJson("/api/v1/news?category_id={$category->id}");
+        ])->getJson("/api/v1/news?filter[category_id]={$category->id}");
 
         $response->assertStatus(200);
 
-        $data = $response->json('data.data');
+        $data = $response->json('data');
         $this->assertCount(1, $data);
     }
 
@@ -373,11 +371,11 @@ class NewsApiTest extends TestCase
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->token,
-        ])->getJson('/api/v1/news?featured=1');
+        ])->getJson('/api/v1/news?filter[featured]=1');
 
         $response->assertStatus(200);
 
-        $data = $response->json('data.data');
+        $data = $response->json('data');
         $this->assertCount(2, $data);
     }
 

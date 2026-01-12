@@ -31,7 +31,12 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
             });
         }
 
-        $query->orderByRaw("FIELD(priority, 'high', 'normal', 'low')")
+        $query->orderByRaw("CASE 
+                WHEN priority = 'high' THEN 1 
+                WHEN priority = 'normal' THEN 2 
+                WHEN priority = 'low' THEN 3 
+                ELSE 4 
+            END")
             ->orderBy('published_at', 'desc');
 
         return $query->paginate($filters['per_page'] ?? 15);
@@ -44,7 +49,12 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
             ->with(['author'])
             ->withCount('reads');
 
-        $query->orderByRaw("FIELD(priority, 'high', 'normal', 'low')")
+        $query->orderByRaw("CASE 
+                WHEN priority = 'high' THEN 1 
+                WHEN priority = 'normal' THEN 2 
+                WHEN priority = 'low' THEN 3 
+                ELSE 4 
+            END")
             ->orderBy('published_at', 'desc');
 
         return $query->paginate($filters['per_page'] ?? 15);

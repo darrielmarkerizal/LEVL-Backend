@@ -62,6 +62,7 @@ class NotificationPreferenceApiTest extends TestCase
     /** @test */
     public function unauthenticated_user_cannot_get_notification_preferences()
     {
+        auth('api')->logout();
         $response = $this->getJson('/api/v1/notification-preferences');
 
         $response->assertStatus(401);
@@ -156,6 +157,7 @@ class NotificationPreferenceApiTest extends TestCase
     /** @test */
     public function unauthenticated_user_cannot_update_notification_preferences()
     {
+        auth('api')->logout();
         $preferences = [
             [
                 'category' => 'course_updates',
@@ -310,12 +312,13 @@ class NotificationPreferenceApiTest extends TestCase
 
         $this->assertNotNull($preference);
         $this->assertTrue($preference->enabled);
-        $this->assertEquals('immediate', $preference->frequency);
+        $this->assertEquals('immediate', $preference->frequency->value);
     }
 
     /** @test */
     public function unauthenticated_user_cannot_reset_preferences()
     {
+        auth('api')->logout();
         $response = $this->postJson('/api/v1/notification-preferences/reset');
 
         $response->assertStatus(401);
@@ -414,6 +417,6 @@ class NotificationPreferenceApiTest extends TestCase
             ->first();
 
         $this->assertTrue($otherUserPreference->enabled);
-        $this->assertEquals('immediate', $otherUserPreference->frequency);
+        $this->assertEquals('immediate', $otherUserPreference->frequency->value);
     }
 }

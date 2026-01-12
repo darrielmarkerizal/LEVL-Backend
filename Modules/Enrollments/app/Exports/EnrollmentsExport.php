@@ -53,7 +53,7 @@ class EnrollmentsExport implements FromQuery, WithHeadings, WithMapping, WithTit
             $enrollment->id,
             $enrollment->user?->name ?? 'N/A',
             $enrollment->user?->email ?? 'N/A',
-            $enrollment->status,
+            $enrollment->status?->value,
             $progress?->progress_percent ?? 0,
             $enrollment->enrolled_at?->toDateTimeString(),
             $enrollment->completed_at?->toDateTimeString() ?? 'N/A',

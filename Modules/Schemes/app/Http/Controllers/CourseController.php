@@ -6,6 +6,7 @@ use App\Support\ApiResponse;
 use App\Support\Traits\HandlesMediaUploads;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Schemes\Contracts\Services\CourseServiceInterface;
@@ -18,7 +19,7 @@ use Modules\Schemes\Models\Course;
  */
 class CourseController extends Controller
 {
-    use ApiResponse, HandlesMediaUploads;
+    use ApiResponse, AuthorizesRequests, HandlesMediaUploads;
 
     public function __construct(
         private CourseServiceInterface $service,

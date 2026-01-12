@@ -377,8 +377,8 @@ return [
   "notifications" => [
     "list_retrieved" => "Notifications retrieved successfully.",
     "marked_read" => "Notification marked as read.",
-    "preferences_updated" => "Notification preferences updated successfully.",
-    "preferences_reset" => "Notification preferences reset to default successfully.",
+    "preferences_updated" => "Notification preferences updated successfully",
+    "preferences_reset" => "Notification preferences reset to defaults successfully",
     "failed_update_preferences" => "Failed to update notification preferences.",
     "failed_reset_preferences" => "Failed to reset notification preferences.",
   ],

@@ -12,15 +12,19 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->unique()->constrained('users')->onDelete('cascade');
             $table->unsignedBigInteger('total_xp')->default(0);
+            $table->unsignedBigInteger('total_points')->default(0);
             $table->unsignedInteger('global_level')->default(1);
             $table->unsignedInteger('current_streak')->default(0);
             $table->unsignedInteger('longest_streak')->default(0);
+            $table->unsignedInteger('total_badges')->default(0);
+            $table->unsignedInteger('completed_challenges')->default(0);
             $table->date('last_activity_date')->nullable();
             $table->timestamp('stats_updated_at')->useCurrent();
             
             $table->timestamps();
             
             $table->index('total_xp');
+            $table->index('total_points');
             $table->index('global_level');
             $table->index('current_streak');
             $table->index(['global_level', 'total_xp']);

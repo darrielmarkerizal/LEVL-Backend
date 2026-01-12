@@ -30,4 +30,12 @@ class ProfilePasswordController extends Controller
 
         return $this->success(null, __('messages.auth.password_changed'));
     }
+
+    /**
+     * Alias for changePassword to match route expectations
+     */
+    public function update(ChangePasswordRequest $request): JsonResponse
+    {
+        return $this->changePassword($request);
+    }
 }

@@ -14,10 +14,12 @@ use Modules\Content\Enums\Priority;
 use Modules\Content\Enums\TargetType;
 use Modules\Content\Traits\HasContentRevisions;
 use Modules\Schemes\Models\Course;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 class Announcement extends Model
 {
-    use HasContentRevisions, HasFactory, SoftDeletes;
+    use HasContentRevisions, HasFactory, HasSlug, SoftDeletes;
 
     protected static function newFactory()
     {
@@ -28,6 +30,7 @@ class Announcement extends Model
         'author_id',
         'course_id',
         'title',
+        'slug',
         'content',
         'status',
         'target_type',
@@ -75,6 +78,17 @@ class Announcement extends Model
     {
         return $this->hasMany(ContentRevision::class, 'content_id')
             ->where('content_type', self::class);
+    }
+
+    /**
+     * Get the options for generating the slug.
+     */
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom("title")
+            ->saveSlugsTo("slug")
+            ->doNotGenerateSlugsOnUpdate();
     }
 
     public function scopePublished($query)

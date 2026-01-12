@@ -12,6 +12,10 @@ enum NotificationType: string
     case News = 'news';
     case Custom = 'custom';
     case CourseCompleted = 'course_completed';
+    case CourseUpdates = 'course_updates';
+    case Assignments = 'assignments';
+    case Forum = 'forum';
+    case Achievements = 'achievements';
     case Enrollment = 'enrollment';
     case ForumReplyToThread = 'forum_reply_to_thread';
     case ForumReplyToReply = 'forum_reply_to_reply';
@@ -46,6 +50,10 @@ enum NotificationType: string
             self::News => __('enums.notification_type.news'),
             self::Custom => __('enums.notification_type.custom'),
             self::CourseCompleted => __('enums.notification_type.course_completed'),
+            self::CourseUpdates => __('enums.notification_type.course_updates'),
+            self::Assignments => __('enums.notification_type.assignments'),
+            self::Forum => __('enums.notification_type.forum'),
+            self::Achievements => __('enums.notification_type.achievements'),
             self::Enrollment => __('enums.notification_type.enrollment'),
             self::ForumReplyToThread => __('enums.notification_type.forum_reply_to_thread'),
             self::ForumReplyToReply => __('enums.notification_type.forum_reply_to_reply'),

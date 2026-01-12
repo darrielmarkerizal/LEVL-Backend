@@ -11,7 +11,7 @@ class CreateThreadRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization is handled by policy
+        return true; // Authorization is handled by policy or controller
     }
 
     /**

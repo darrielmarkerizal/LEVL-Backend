@@ -30,7 +30,7 @@ class UserBulkServiceTest extends TestCase
     {
         Queue::fake();
 
-        $authUser = Mockery::mock(User::class);
+        $authUser = Mockery::mock(User::class)->makePartial();
         $authUser->email = 'admin@example.com';
         
         $data = [

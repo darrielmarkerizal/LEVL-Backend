@@ -13,6 +13,9 @@ use Modules\Content\Contracts\Services\ContentStatisticsServiceInterface;
 use Modules\Content\Contracts\Services\NewsServiceInterface;
 use Modules\Content\Http\Requests\ScheduleContentRequest;
 use Modules\Content\Http\Requests\UpdateContentRequest;
+use Modules\Content\Http\Requests\CreateNewsRequest;
+use Modules\Content\Http\Resources\NewsResource;
+use Modules\Content\Models\News;
 
 /**
  * @tags Konten & Berita
@@ -66,7 +69,12 @@ class NewsController extends Controller
       $params["filter"]["featured"] = $request->boolean("filter.featured");
     }
 
-    $news = $this->contentService->getNewsFeed($params);
+    $filters = array_merge($params['filter'], [
+        'per_page' => $params['per_page'],
+        'sort' => $params['sort'] ?? null,
+    ]);
+
+    $news = $this->contentService->getNewsFeed($filters);
 
     return $this->paginateResponse($news);
   }
@@ -95,7 +103,13 @@ class NewsController extends Controller
    *
    * @role Admin
    */
-  // public function store(StoreContentRequest $request): JsonResponse { ... } // Missing store method
+  public function store(CreateNewsRequest $request): JsonResponse
+  {
+    $this->authorize('create', News::class);
+    $news = $this->contentService->createNews($request->validated(), auth()->user());
+
+    return $this->created(NewsResource::make($news), __('messages.news.created'));
+  }
 
   /**
    * Tampilkan Detail Berita
@@ -107,7 +121,18 @@ class NewsController extends Controller
    *
    * @unauthenticated
    */
-  // public function show(string $slug): JsonResponse { ... } // Missing show method
+  public function show(string $slug): JsonResponse
+  {
+    $news = $this->newsService->findBySlug($slug);
+
+    if (!$news) {
+        throw new ResourceNotFoundException(__('messages.news.not_found'));
+    }
+
+    $this->contentService->incrementViews($news);
+
+    return $this->success(NewsResource::make($news));
+  }
 
   /**
    * Perbarui Berita

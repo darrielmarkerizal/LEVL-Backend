@@ -59,6 +59,10 @@ trait HasProfilePrivacy
             return ['name', 'avatar_url', 'bio']; // Default visible fields
         }
 
+        if (! $privacySettings) {
+            return ['name', 'avatar_url', 'bio']; // Default visible fields
+        }
+
         $visibleFields = ['name', 'avatar_url', 'bio'];
 
         if ($privacySettings->show_email) {

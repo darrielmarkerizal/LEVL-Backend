@@ -11,6 +11,8 @@ use Modules\Content\Contracts\Services\ContentWorkflowServiceInterface;
 use Modules\Content\Contracts\Repositories\AnnouncementRepositoryInterface;
 use Modules\Content\Contracts\Repositories\NewsRepositoryInterface;
 use Modules\Content\Exceptions\InvalidTransitionException;
+use Modules\Content\Models\News;
+use Modules\Content\Models\Announcement;
 
 /**
  * @tags Konten & Berita
@@ -51,7 +53,7 @@ class ContentApprovalController extends Controller
                 'content' => $content->fresh(),
             ], __('content.submitted_for_review'));
         } catch (InvalidTransitionException $e) {
-            return $this->error($e->getMessage(), 422);
+            return $this->error($e->getMessage(), [], 422);
         }
     }
 
@@ -89,7 +91,7 @@ class ContentApprovalController extends Controller
                 'content' => $content->fresh(),
             ], __('content.approved'));
         } catch (InvalidTransitionException $e) {
-            return $this->error($e->getMessage(), 422);
+            return $this->error($e->getMessage(), [], 422);
         }
     }
 

@@ -46,6 +46,8 @@ class ContentService implements ContentServiceInterface
             $announcementData = array_merge($data->toModelArray(), [
                 'author_id' => $author->id,
             ]);
+            
+            // dd($announcementData);
 
             return $this->announcementRepository->create($announcementData);
         });

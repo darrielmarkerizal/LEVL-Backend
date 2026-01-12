@@ -68,7 +68,7 @@ class NotificationPreferenceServiceTest extends TestCase
 
         $this->assertNotNull($savedPreference);
         $this->assertFalse($savedPreference->enabled);
-        $this->assertEquals(NotificationPreference::FREQUENCY_DAILY, $savedPreference->frequency);
+        $this->assertEquals(NotificationPreference::FREQUENCY_DAILY, $savedPreference->frequency->value);
     }
 
     public function test_should_send_notification_respects_preferences(): void

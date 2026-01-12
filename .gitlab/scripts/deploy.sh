@@ -138,10 +138,8 @@ execute_remote "cd ${RELEASE_PATH} && composer install --no-dev --prefer-dist --
 # Build Assets (if not built in CI)
 ################################################################################
 
-# Assets sudah di-build di CI stage, jadi tinggal verify
-log_info "Verifying built assets..."
-
-execute_remote "if [ ! -d ${RELEASE_PATH}/public/build ]; then echo 'WARNING: No built assets found'; fi"
+# Assets verification skipped for API-only deployment
+# execute_remote "if [ ! -d ${RELEASE_PATH}/public/build ]; then echo 'WARNING: No built assets found'; fi"
 
 ################################################################################
 # Database Backup & Migrations

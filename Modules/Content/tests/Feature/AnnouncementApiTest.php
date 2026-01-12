@@ -26,22 +26,23 @@ class AnnouncementApiTest extends TestCase
         parent::setUp();
 
         // Create roles
-        Role::create(['name' => 'admin', 'guard_name' => 'api']);
-        Role::create(['name' => 'instructor', 'guard_name' => 'api']);
-        Role::create(['name' => 'student', 'guard_name' => 'api']);
+        Role::create(['name' => 'Admin', 'guard_name' => 'api']);
+        Role::create(['name' => 'Instructor', 'guard_name' => 'api']);
+        Role::create(['name' => 'Student', 'guard_name' => 'api']);
 
         // Create users
         $this->admin = User::factory()->create();
-        $this->admin->assignRole('admin');
+        $this->admin->assignRole('Admin');
 
         $this->instructor = User::factory()->create();
-        $this->instructor->assignRole('instructor');
+        $this->instructor->assignRole('Instructor');
 
         $this->student = User::factory()->create();
-        $this->student->assignRole('student');
+        $this->student->assignRole('Student');
 
-        // Get token for admin
-        $this->token = auth('api')->login($this->admin);
+        $this->student->assignRole('Student');
+
+        \Illuminate\Support\Facades\Gate::policy(\Modules\Content\Models\Announcement::class, \Modules\Content\Policies\AnnouncementPolicy::class);
     }
 
     /** @test */
@@ -55,17 +56,18 @@ class AnnouncementApiTest extends TestCase
             'status' => 'draft',
         ];
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->postJson('/api/v1/announcements', $data);
+        $response = $this->actingAs($this->admin, 'api')
+            ->postJson('/api/v1/announcements', $data);
 
         $response->assertStatus(201)
             ->assertJson([
-                'status' => 'success',
-                'message' => 'Pengumuman berhasil dibuat.',
+                'success' => true,
+                'message' => 'Announcement created successfully.',
             ])
             ->assertJsonStructure([
-                'data' => ['id', 'title', 'content', 'status'],
+                'data' => [
+                    'announcement' => ['id', 'title', 'content', 'status'],
+                ],
             ]);
 
         $this->assertDatabaseHas('announcements', [
@@ -82,9 +84,8 @@ class AnnouncementApiTest extends TestCase
             'target_type' => 'all',
         ];
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->postJson('/api/v1/announcements', $data);
+        $response = $this->actingAs($this->admin, 'api')
+            ->postJson('/api/v1/announcements', $data);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['title']);
@@ -98,9 +99,8 @@ class AnnouncementApiTest extends TestCase
             'target_type' => 'all',
         ];
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->postJson('/api/v1/announcements', $data);
+        $response = $this->actingAs($this->admin, 'api')
+            ->postJson('/api/v1/announcements', $data);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['content']);
@@ -115,9 +115,8 @@ class AnnouncementApiTest extends TestCase
             'target_type' => 'invalid_type',
         ];
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->postJson('/api/v1/announcements', $data);
+        $response = $this->actingAs($this->admin, 'api')
+            ->postJson('/api/v1/announcements', $data);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['target_type']);
@@ -133,9 +132,8 @@ class AnnouncementApiTest extends TestCase
             'priority' => 'invalid_priority',
         ];
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->postJson('/api/v1/announcements', $data);
+        $response = $this->actingAs($this->admin, 'api')
+            ->postJson('/api/v1/announcements', $data);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['priority']);
@@ -151,9 +149,8 @@ class AnnouncementApiTest extends TestCase
             'scheduled_at' => now()->subDay()->toIso8601String(),
         ];
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->postJson('/api/v1/announcements', $data);
+        $response = $this->actingAs($this->admin, 'api')
+            ->postJson('/api/v1/announcements', $data);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['scheduled_at']);
@@ -182,17 +179,14 @@ class AnnouncementApiTest extends TestCase
     {
         Announcement::factory()->published()->count(5)->create();
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->getJson('/api/v1/announcements');
+        $response = $this->actingAs($this->admin, 'api')
+            ->getJson('/api/v1/announcements');
 
         $response->assertStatus(200)
-            ->assertJson(['status' => 'success'])
+            ->assertJson(['success' => true])
             ->assertJsonStructure([
                 'data' => [
-                    'data' => [
                         '*' => ['id', 'title', 'content', 'status'],
-                    ],
                 ],
             ]);
     }
@@ -202,16 +196,17 @@ class AnnouncementApiTest extends TestCase
     {
         $announcement = Announcement::factory()->published()->create();
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->getJson("/api/v1/announcements/{$announcement->id}");
+        $response = $this->actingAs($this->admin, 'api')
+            ->getJson("/api/v1/announcements/{$announcement->id}");
 
         $response->assertStatus(200)
             ->assertJson([
-                'status' => 'success',
+                'success' => true,
                 'data' => [
-                    'id' => $announcement->id,
-                    'title' => $announcement->title,
+                    'announcement' => [
+                        'id' => $announcement->id,
+                        'title' => $announcement->title,
+                    ],
                 ],
             ]);
     }
@@ -219,9 +214,8 @@ class AnnouncementApiTest extends TestCase
     /** @test */
     public function cannot_get_nonexistent_announcement()
     {
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->getJson('/api/v1/announcements/99999');
+        $response = $this->actingAs($this->admin, 'api')
+            ->getJson('/api/v1/announcements/99999');
 
         $response->assertStatus(404);
     }
@@ -236,14 +230,13 @@ class AnnouncementApiTest extends TestCase
             'content' => 'Updated Content',
         ];
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->putJson("/api/v1/announcements/{$announcement->id}", $data);
+        $response = $this->actingAs($this->admin, 'api')
+            ->putJson("/api/v1/announcements/{$announcement->id}", $data);
 
         $response->assertStatus(200)
             ->assertJson([
-                'status' => 'success',
-                'message' => 'Pengumuman berhasil diperbarui.',
+                'success' => true,
+                'message' => 'Announcement updated successfully.',
             ]);
 
         $this->assertDatabaseHas('announcements', [
@@ -258,14 +251,13 @@ class AnnouncementApiTest extends TestCase
     {
         $announcement = Announcement::factory()->create(['author_id' => $this->admin->id]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->deleteJson("/api/v1/announcements/{$announcement->id}");
+        $response = $this->actingAs($this->admin, 'api')
+            ->deleteJson("/api/v1/announcements/{$announcement->id}");
 
         $response->assertStatus(200)
             ->assertJson([
-                'status' => 'success',
-                'message' => 'Pengumuman berhasil dihapus.',
+                'success' => true,
+                'message' => 'Announcement deleted successfully.',
             ]);
 
         $this->assertSoftDeleted('announcements', ['id' => $announcement->id]);
@@ -279,14 +271,13 @@ class AnnouncementApiTest extends TestCase
             'status' => 'draft',
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->postJson("/api/v1/announcements/{$announcement->id}/publish");
+        $response = $this->actingAs($this->admin, 'api')
+            ->postJson("/api/v1/announcements/{$announcement->id}/publish");
 
         $response->assertStatus(200)
             ->assertJson([
-                'status' => 'success',
-                'message' => 'Pengumuman berhasil dipublikasikan.',
+                'success' => true,
+                'message' => 'Announcement published successfully.',
             ]);
 
         $this->assertDatabaseHas('announcements', [
@@ -307,16 +298,15 @@ class AnnouncementApiTest extends TestCase
 
         $scheduledAt = now()->addDays(2)->toIso8601String();
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->postJson("/api/v1/announcements/{$announcement->id}/schedule", [
+        $response = $this->actingAs($this->admin, 'api')
+            ->postJson("/api/v1/announcements/{$announcement->id}/schedule", [
             'scheduled_at' => $scheduledAt,
         ]);
 
         $response->assertStatus(200)
             ->assertJson([
-                'status' => 'success',
-                'message' => 'Pengumuman berhasil dijadwalkan.',
+                'success' => true,
+                'message' => 'Announcement scheduled successfully.',
             ]);
 
         $this->assertDatabaseHas('announcements', [
@@ -330,18 +320,17 @@ class AnnouncementApiTest extends TestCase
     {
         $announcement = Announcement::factory()->published()->create();
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->postJson("/api/v1/announcements/{$announcement->id}/read");
+        $response = $this->actingAs($this->student, 'api')
+            ->postJson("/api/v1/announcements/{$announcement->id}/read");
 
         $response->assertStatus(200)
             ->assertJson([
-                'status' => 'success',
-                'message' => 'Pengumuman ditandai sudah dibaca.',
+                'success' => true,
+                'message' => 'Announcement marked as read.',
             ]);
 
         $this->assertDatabaseHas('content_reads', [
-            'user_id' => $this->admin->id,
+            'user_id' => $this->student->id,
             'readable_type' => Announcement::class,
             'readable_id' => $announcement->id,
         ]);
@@ -354,7 +343,7 @@ class AnnouncementApiTest extends TestCase
         $response = $this->getJson('/api/v1/announcements');
 
         // If route requires auth, expect 401; if public, expect 200
-        $response->assertStatus(200);
+        $response->assertStatus(401);
     }
 
     /** @test */
@@ -363,13 +352,12 @@ class AnnouncementApiTest extends TestCase
         Announcement::factory()->published()->highPriority()->count(2)->create();
         Announcement::factory()->published()->count(3)->create(['priority' => 'normal']);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->getJson('/api/v1/announcements?priority=high');
+        $response = $this->actingAs($this->admin, 'api')
+            ->getJson('/api/v1/announcements?filter[priority]=high');
 
         $response->assertStatus(200);
 
-        $data = $response->json('data.data');
+        $data = $response->json('data');
         $this->assertCount(2, $data);
     }
 
@@ -387,13 +375,12 @@ class AnnouncementApiTest extends TestCase
             'target_type' => 'all',
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->token,
-        ])->getJson("/api/v1/announcements?course_id={$course->id}");
+        $response = $this->actingAs($this->admin, 'api')
+            ->getJson("/api/v1/announcements?filter[course_id]={$course->id}");
 
         $response->assertStatus(200);
 
-        $data = $response->json('data.data');
+        $data = $response->json('data');
         $this->assertCount(2, $data);
     }
 }

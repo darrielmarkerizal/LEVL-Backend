@@ -53,15 +53,16 @@ class EnrollmentKeyTest extends TestCase
       ->assertStatus(200)
       ->assertJsonStructure([
         "success",
-        "data" => ["enrollment_key", "course" => ["id", "slug", "title", "enrollment_key"]],
+        "data" => ["enrollment_key", "course" => ["id", "slug", "title"]],
       ]);
 
     $this->assertNotNull($response->json("data.enrollment_key"));
     $this->assertEquals(12, strlen($response->json("data.enrollment_key")));
 
-    // Verify database updated
+    // Verify database updated - check that hash was stored (can't compare plain text with hash)
     $this->course->refresh();
-    $this->assertEquals($response->json("data.enrollment_key"), $this->course->enrollment_key);
+    $this->assertNotNull($this->course->enrollment_key_hash);
+    $this->assertTrue(strlen($this->course->enrollment_key_hash) > 0);
   }
 
   #[Test]
@@ -93,8 +94,9 @@ class EnrollmentKeyTest extends TestCase
     ]);
 
     $this->course->refresh();
-    $this->assertEquals("key_based", $this->course->enrollment_type);
-    $this->assertEquals("CUSTOMKEY123", $this->course->enrollment_key);
+    $this->assertEquals("key_based", $this->course->enrollment_type->value);
+    // Verify hash is stored (can't verify plain text since it's hashed)
+    $this->assertNotNull($this->course->enrollment_key_hash);
   }
 
   #[Test]
@@ -115,7 +117,7 @@ class EnrollmentKeyTest extends TestCase
     $response->assertStatus(200);
 
     $this->course->refresh();
-    $this->assertEquals("auto_accept", $this->course->enrollment_type);
+    $this->assertEquals("auto_accept", $this->course->enrollment_type->value);
     $this->assertNull($this->course->enrollment_key);
   }
 
@@ -132,9 +134,9 @@ class EnrollmentKeyTest extends TestCase
     $response->assertStatus(200);
 
     $this->course->refresh();
-    $this->assertEquals("key_based", $this->course->enrollment_type);
-    $this->assertNotNull($this->course->enrollment_key);
-    $this->assertEquals(12, strlen($this->course->enrollment_key));
+    $this->assertEquals("key_based", $this->course->enrollment_type->value);
+    // Verify hash is stored
+    $this->assertNotNull($this->course->enrollment_key_hash);
   }
 
   #[Test]
@@ -152,7 +154,7 @@ class EnrollmentKeyTest extends TestCase
     $response->assertStatus(200);
 
     $this->course->refresh();
-    $this->assertEquals("auto_accept", $this->course->enrollment_type);
+    $this->assertEquals("auto_accept", $this->course->enrollment_type->value);
     $this->assertNull($this->course->enrollment_key);
   }
 

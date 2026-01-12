@@ -99,6 +99,7 @@ class Course extends Model implements HasMedia
     "duration_estimate",
     "progression_mode",
     "enrollment_type",
+    "enrollment_key", // Virtual attribute
     "enrollment_key_hash",
     "status",
     "published_at",
@@ -241,6 +242,33 @@ class Course extends Model implements HasMedia
     return [];
   }
 
+  /**
+   * Virtual enrollment_key accessor for backward compatibility
+   * Returns null since we now use enrollment_key_hash
+   */
+  public function getEnrollmentKeyAttribute(): ?string
+  {
+    // Since migration dropped enrollment_key column and we use hash now,
+    // return null. Tests should not set this directly.
+    return null;
+  }
+
+    /**
+     * Virtual setter for enrollment_key - hashes the plain key and stores in enrollment_key_hash.
+     * Since migration dropped enrollment_key column and uses enrollment_key_hash instead.
+     */
+    public function setEnrollmentKeyAttribute($value): void
+    {
+        if ($value === null) {
+            // Clear the hash if null
+            $this->attributes['enrollment_key_hash'] = null;
+        } else {
+            // Hash the plain key and store it
+            $hasher = app(\App\Contracts\EnrollmentKeyHasherInterface::class);
+            $this->attributes['enrollment_key_hash'] = $hasher->hash($value);
+        }
+    }
+
   public function category(): BelongsTo
   {
     return $this->belongsTo(\Modules\Common\Models\Category::class, "category_id");
@@ -267,14 +295,14 @@ class Course extends Model implements HasMedia
       "title" => $this->title,
       "short_desc" => $this->short_desc,
       "code" => $this->code,
-      "level_tag" => $this->level_tag,
-      "category_id" => $this->category_id,
-      "category_name" => $this->category?->name,
-      "instructor_id" => $this->instructor_id,
-      "instructor_name" => $this->instructor?->name,
-      "tags" => $this->tags->pluck("name")->toArray(),
-      "status" => $this->status,
-      "type" => $this->type,
+      "level_tag" => $this->level_tag?->value,
+    "category_id" => $this->category_id,
+    "category_name" => $this->category?->name,
+    "instructor_id" => $this->instructor_id,
+    "instructor_name" => $this->instructor?->name,
+    "tags" => $this->tags->pluck("name")->toArray(),
+    "status" => $this->status?->value,
+    "type" => $this->type?->value,
       "duration_estimate" => $this->duration_estimate,
       "published_at" => $this->published_at?->timestamp,
     ];

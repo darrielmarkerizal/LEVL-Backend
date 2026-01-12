@@ -12,10 +12,13 @@ use Modules\Auth\Events\UserRegistered;
 use Modules\Auth\Models\User;
 use Modules\Auth\Services\AuthenticationService;
 use Modules\Auth\Services\RegistrationService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class RegistrationServiceTest extends TestCase
 {
+    use RefreshDatabase;
     private RegistrationService $service;
     private $authRepository;
     private $authenticationService;
@@ -28,6 +31,8 @@ class RegistrationServiceTest extends TestCase
         $this->authenticationService = $this->mock(AuthenticationService::class);
         
         $this->service = new RegistrationService($this->authRepository, $this->authenticationService);
+
+        Role::create(['name' => 'Student', 'guard_name' => 'api']);
     }
 
     public function test_register_student_successfully()
@@ -41,23 +46,16 @@ class RegistrationServiceTest extends TestCase
             password: 'password123'
         );
 
-        $user = new User();
+        // Create mock user first
+        $user = \Mockery::mock(User::class)->makePartial();
+        $user->shouldReceive('assignRole')->with('Student')->once();
+        $user->shouldReceive('getAttribute')->with('id')->andReturn(1);
+        // Also allow setting id if needed or just use getAttribute
         $user->id = 1;
-        
+
         $this->authRepository->shouldReceive('createUser')
             ->once()
             ->andReturn($user);
-
-        // Mock User::assignRole (might need Partial Mocking on User if it's an Eloquent Model with strict checks)
-        // Ideally we mock the logic or use an in-memory DB for Unit Tests, 
-        // But for strict Unit Test with Mocks:
-        $user = \Mockery::mock(User::class)->makePartial();
-        $user->shouldReceive('assignRole')->with('Student')->once();
-        $user->shouldReceive('getAttribute')->andReturn(1); // for ID access
-        
-        // Re-mock repository to return our partial mock
-        // $this->authRepository... (Wait, complex mocking of Eloquent models is brittle. 
-        // Better to use repository that returns a simple object or assume success)
 
         // Simpler approach: Verify interactions
         $this->authenticationService->shouldReceive('generateTokens')

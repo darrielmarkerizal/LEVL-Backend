@@ -52,7 +52,7 @@ class ProfilePasswordApiTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJson([
-                'success' => false,
+                'status' => 'error',
             ]);
     }
 

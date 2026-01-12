@@ -12,6 +12,7 @@ use Modules\Content\Http\Requests\CreateAnnouncementRequest;
 use Modules\Content\Http\Requests\ScheduleContentRequest;
 use Modules\Content\Http\Requests\UpdateContentRequest;
 use Modules\Content\Models\Announcement;
+use Modules\Content\Http\Resources\AnnouncementResource;
 
 /**
  * @tags Konten & Berita
@@ -65,7 +66,12 @@ class AnnouncementController extends Controller
       $params["filter"]["unread"] = $request->boolean("filter.unread");
     }
 
-    $announcements = $this->contentService->getAnnouncementsForUser($user, $params);
+    $filters = array_merge($params['filter'], [
+        'per_page' => $params['per_page'],
+        'sort' => $params['sort'] ?? null,
+    ]);
+
+    $announcements = $this->contentService->getAnnouncementsForUser($user, $filters);
 
     return $this->paginateResponse($announcements);
   }
@@ -87,7 +93,7 @@ class AnnouncementController extends Controller
    */
   public function store(CreateAnnouncementRequest $request): JsonResponse
   {
-    $this->authorize("createAnnouncement", Announcement::class);
+    $this->authorize("create", Announcement::class);
 
     $announcement = $this->contentService->createAnnouncement(
       $request->validated(),

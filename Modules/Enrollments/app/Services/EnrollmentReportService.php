@@ -14,13 +14,13 @@ class EnrollmentReportService implements EnrollmentReportServiceInterface
     {
         $stats = Enrollment::query()
             ->where('course_id', $course->id)
-            ->selectRaw('
+            ->selectRaw("
                 COUNT(*) as total_enrolled,
-                SUM(CASE WHEN status = "active" THEN 1 ELSE 0 END) as active_count,
-                SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed_count,
-                SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending_count,
-                SUM(CASE WHEN status = "cancelled" THEN 1 ELSE 0 END) as cancelled_count
-            ')
+                SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_count,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_count,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+                SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_count
+            ")
             ->first();
 
         $totalEnrolled = max(1, $stats->total_enrolled);
@@ -60,13 +60,13 @@ class EnrollmentReportService implements EnrollmentReportServiceInterface
             $query->whereIn('course_id', $courseIds);
         }
 
-        $stats = $query->selectRaw('
+        $stats = $query->selectRaw("
             COUNT(*) as total_requests,
-            SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending,
-            SUM(CASE WHEN status = "active" THEN 1 ELSE 0 END) as active,
-            SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed,
-            SUM(CASE WHEN status = "cancelled" THEN 1 ELSE 0 END) as cancelled
-        ')->first();
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+            SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled
+        ")->first();
 
         $total = max(1, $stats->total_requests);
 

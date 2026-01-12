@@ -35,7 +35,7 @@ class ContentWorkflowService implements ContentWorkflowServiceInterface
 
     protected array $transitions = [
         self::STATE_DRAFT => [self::STATE_SUBMITTED],
-        self::STATE_SUBMITTED => [self::STATE_IN_REVIEW, self::STATE_DRAFT],
+        self::STATE_SUBMITTED => [self::STATE_IN_REVIEW, self::STATE_DRAFT, self::STATE_APPROVED, self::STATE_REJECTED],
         self::STATE_IN_REVIEW => [self::STATE_APPROVED, self::STATE_REJECTED, self::STATE_DRAFT],
         self::STATE_APPROVED => [self::STATE_SCHEDULED, self::STATE_PUBLISHED, self::STATE_DRAFT],
         self::STATE_REJECTED => [self::STATE_DRAFT],

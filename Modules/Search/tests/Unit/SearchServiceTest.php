@@ -8,6 +8,7 @@ use Modules\Common\Models\Category;
 use Modules\Schemes\Models\Course;
 use Modules\Search\Contracts\Services\SearchServiceInterface;
 use Modules\Search\Models\SearchHistory;
+use Modules\Search\Repositories\SearchHistoryRepository;
 use Modules\Search\Services\SearchService;
 use Tests\TestCase;
 
@@ -24,7 +25,8 @@ class SearchServiceTest extends TestCase
         // Use collection driver for testing to avoid Meilisearch connection
         config(['scout.driver' => 'collection']);
 
-        $this->searchService = new SearchService;
+        $repository = new SearchHistoryRepository();
+        $this->searchService = new SearchService($repository);
     }
 
     public function test_search_with_filters_returns_correct_results(): void

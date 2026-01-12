@@ -40,7 +40,7 @@ class ReportController extends Controller
         $user = auth('api')->user();
 
         if (! $this->reportService->canUserManageCourse($user, $course)) {
-            return $this->error(__('messages.enrollments.no_report_access'), 403);
+            return $this->forbidden(__('messages.enrollments.no_report_access'));
         }
 
         $statistics = $this->reportService->getCourseStatistics($course);
@@ -78,7 +78,7 @@ class ReportController extends Controller
             ! $user->hasRole('Instructor') &&
             ! $user->hasRole('Superadmin')
         ) {
-            return $this->error(__('messages.enrollments.no_report_view_access'), 403);
+            return $this->forbidden(__('messages.enrollments.no_report_view_access'));
         }
 
         $courseId = $request->query('course_id');
@@ -106,7 +106,7 @@ class ReportController extends Controller
         $user = auth('api')->user();
 
         if (! $this->reportService->canUserManageCourse($user, $course)) {
-            return $this->error(__('messages.enrollments.no_export_access'), 403);
+            return $this->forbidden(__('messages.enrollments.no_export_access'));
         }
 
         $query = $this->reportService->getDetailedEnrollmentsQuery($course);

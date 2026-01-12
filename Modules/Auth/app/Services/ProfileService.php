@@ -102,7 +102,7 @@ class ProfileService implements ProfileServiceInterface
     public function getPublicProfile(User $user, User $viewer): array
     {
         if (! $this->privacyService->canViewProfile($user, $viewer)) {
-            throw new \Exception(__('messages.profile.no_permission'));
+            throw new \Illuminate\Auth\Access\AuthorizationException(__('messages.profile.no_permission'));
         }
 
         $profileData = $this->getProfileData($user, $viewer);

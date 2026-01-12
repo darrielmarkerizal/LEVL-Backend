@@ -34,25 +34,22 @@ class ContentApprovalWorkflowTest extends TestCase
         parent::setUp();
 
         // Create roles
-        Role::create(['name' => 'admin', 'guard_name' => 'api']);
-        Role::create(['name' => 'reviewer', 'guard_name' => 'api']);
-        Role::create(['name' => 'instructor', 'guard_name' => 'api']);
-        Role::create(['name' => 'student', 'guard_name' => 'api']);
+        Role::create(['name' => 'Admin', 'guard_name' => 'api']);
+        Role::create(['name' => 'Instructor', 'guard_name' => 'api']);
+        Role::create(['name' => 'Student', 'guard_name' => 'api']);
 
         // Create users
         $this->admin = User::factory()->create();
-        $this->admin->assignRole('admin');
+        $this->admin->assignRole('Admin');
 
         $this->reviewer = User::factory()->create();
-        $this->reviewer->assignRole('reviewer');
+        $this->reviewer->assignRole('Instructor');
 
         $this->author = User::factory()->create();
-        $this->author->assignRole('instructor');
+        $this->author->assignRole('Instructor');
 
-        // Get tokens
-        $this->adminToken = auth('api')->login($this->admin);
-        $this->reviewerToken = auth('api')->login($this->reviewer);
-        $this->authorToken = auth('api')->login($this->author);
+        // Disable activity log to prevent missing table error
+        config(['activitylog.enabled' => false]);
     }
 
     /** @test */
@@ -65,9 +62,8 @@ class ContentApprovalWorkflowTest extends TestCase
             'status' => 'draft',
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->authorToken,
-        ])->postJson("/api/v1/content/news/{$news->id}/submit");
+        $response = $this->actingAs($this->author, 'api')
+            ->postJson("/api/v1/content/news/{$news->id}/submit");
 
         $response->assertStatus(200)
             ->assertJson([
@@ -101,9 +97,8 @@ class ContentApprovalWorkflowTest extends TestCase
             'status' => 'draft',
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->authorToken,
-        ])->postJson("/api/v1/content/announcement/{$announcement->id}/submit");
+        $response = $this->actingAs($this->author, 'api')
+            ->postJson("/api/v1/content/announcement/{$announcement->id}/submit");
 
         $response->assertStatus(200)
             ->assertJson([
@@ -128,9 +123,8 @@ class ContentApprovalWorkflowTest extends TestCase
             'status' => 'submitted',
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->reviewerToken,
-        ])->postJson("/api/v1/content/news/{$news->id}/approve", [
+        $response = $this->actingAs($this->reviewer, 'api')
+            ->postJson("/api/v1/content/news/{$news->id}/approve", [
             'note' => 'Looks good!',
         ]);
 
@@ -167,9 +161,8 @@ class ContentApprovalWorkflowTest extends TestCase
             'status' => 'submitted',
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->reviewerToken,
-        ])->postJson("/api/v1/content/news/{$news->id}/reject", [
+        $response = $this->actingAs($this->reviewer, 'api')
+            ->postJson("/api/v1/content/news/{$news->id}/reject", [
             'reason' => 'Content needs more detail and better formatting.',
         ]);
 
@@ -204,9 +197,8 @@ class ContentApprovalWorkflowTest extends TestCase
             'status' => 'submitted',
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->reviewerToken,
-        ])->postJson("/api/v1/content/news/{$news->id}/reject", [
+        $response = $this->actingAs($this->reviewer, 'api')
+            ->postJson("/api/v1/content/news/{$news->id}/reject", [
             // Missing reason
         ]);
 
@@ -222,9 +214,8 @@ class ContentApprovalWorkflowTest extends TestCase
             'status' => 'submitted',
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->authorToken,
-        ])->postJson("/api/v1/content/news/{$news->id}/submit");
+        $response = $this->actingAs($this->author, 'api')
+            ->postJson("/api/v1/content/news/{$news->id}/submit");
 
         $response->assertStatus(422)
             ->assertJson([
@@ -240,9 +231,8 @@ class ContentApprovalWorkflowTest extends TestCase
             'status' => 'draft',
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->reviewerToken,
-        ])->postJson("/api/v1/content/news/{$news->id}/approve");
+        $response = $this->actingAs($this->reviewer, 'api')
+            ->postJson("/api/v1/content/news/{$news->id}/approve");
 
         $response->assertStatus(422)
             ->assertJson([
@@ -278,9 +268,8 @@ class ContentApprovalWorkflowTest extends TestCase
             'title' => 'Submitted Announcement',
         ]);
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->reviewerToken,
-        ])->getJson('/api/v1/content/pending-review');
+        $response = $this->actingAs($this->reviewer, 'api')
+          ->getJson('/api/v1/content/pending-review');
 
         $response->assertStatus(200)
             ->assertJson([
@@ -312,9 +301,8 @@ class ContentApprovalWorkflowTest extends TestCase
         ]);
 
         // Filter for news only
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->reviewerToken,
-        ])->getJson('/api/v1/content/pending-review?type=news');
+        $response = $this->actingAs($this->reviewer, 'api')
+            ->getJson('/api/v1/content/pending-review?type=news');
 
         $response->assertStatus(200);
 
@@ -333,9 +321,8 @@ class ContentApprovalWorkflowTest extends TestCase
             'status' => 'draft',
         ]);
 
-        $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->authorToken,
-        ])->postJson("/api/v1/content/news/{$news->id}/submit");
+        $this->actingAs($this->author, 'api')
+            ->postJson("/api/v1/content/news/{$news->id}/submit");
 
         Event::assertDispatched(ContentSubmitted::class, function ($event) use ($news) {
             return $event->content->id === $news->id &&
@@ -353,9 +340,8 @@ class ContentApprovalWorkflowTest extends TestCase
             'status' => 'submitted',
         ]);
 
-        $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->reviewerToken,
-        ])->postJson("/api/v1/content/news/{$news->id}/approve");
+        $this->actingAs($this->reviewer, 'api')
+            ->postJson("/api/v1/content/news/{$news->id}/approve");
 
         Event::assertDispatched(ContentApproved::class, function ($event) use ($news) {
             return $event->content->id === $news->id &&
@@ -373,9 +359,8 @@ class ContentApprovalWorkflowTest extends TestCase
             'status' => 'submitted',
         ]);
 
-        $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->reviewerToken,
-        ])->postJson("/api/v1/content/news/{$news->id}/reject", [
+        $this->actingAs($this->reviewer, 'api')
+            ->postJson("/api/v1/content/news/{$news->id}/reject", [
             'reason' => 'Needs improvement',
         ]);
 
@@ -388,9 +373,8 @@ class ContentApprovalWorkflowTest extends TestCase
     /** @test */
     public function returns_404_for_nonexistent_content()
     {
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->reviewerToken,
-        ])->postJson('/api/v1/content/news/99999/approve');
+        $response = $this->actingAs($this->reviewer, 'api')
+            ->postJson('/api/v1/content/news/99999/approve');
 
         $response->assertStatus(404);
     }
@@ -398,9 +382,8 @@ class ContentApprovalWorkflowTest extends TestCase
     /** @test */
     public function returns_404_for_invalid_content_type()
     {
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$this->reviewerToken,
-        ])->postJson('/api/v1/content/invalid_type/1/approve');
+        $response = $this->actingAs($this->reviewer, 'api')
+            ->postJson('/api/v1/content/invalid_type/1/approve');
 
         $response->assertStatus(404);
     }

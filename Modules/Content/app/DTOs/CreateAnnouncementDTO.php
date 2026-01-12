@@ -18,6 +18,14 @@ final class CreateAnnouncementDTO extends Data
         public ?string $status = 'draft',
 
         public ?string $priority = null,
+
+        public ?string $target_type = 'all',
+
+        public ?string $target_value = null,
+
+        public ?int $course_id = null,
+
+        public ?string $scheduled_at = null,
     ) {}
 
     public function toModelArray(): array
@@ -27,6 +35,10 @@ final class CreateAnnouncementDTO extends Data
             'content' => $this->content,
             'status' => $this->status,
             'priority' => $this->priority,
+            'target_type' => $this->target_type,
+            'target_value' => $this->target_value,
+            'course_id' => $this->course_id,
+            'scheduled_at' => $this->scheduled_at,
         ];
     }
 }

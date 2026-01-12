@@ -34,8 +34,8 @@ class ContentServiceProvider extends ServiceProvider
      */
     protected function registerPolicies(): void
     {
-        \Illuminate\Support\Facades\Gate::policy(\Modules\Content\Models\Announcement::class, \Modules\Content\Policies\ContentPolicy::class);
-        \Illuminate\Support\Facades\Gate::policy(\Modules\Content\Models\News::class, \Modules\Content\Policies\ContentPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\Modules\Content\Models\Announcement::class, \Modules\Content\Policies\AnnouncementPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\Modules\Content\Models\News::class, \Modules\Content\Policies\NewsPolicy::class);
     }
 
     /**

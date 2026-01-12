@@ -68,7 +68,7 @@ class NotificationServiceWithPreferencesTest extends TestCase
 
         $this->assertInstanceOf(Notification::class, $result);
         $this->assertEquals('New Assignment', $result->title);
-        $this->assertEquals(NotificationPreference::CATEGORY_ASSIGNMENTS, $result->type);
+        $this->assertEquals(NotificationPreference::CATEGORY_ASSIGNMENTS, $result->type->value);
     }
 
     public function test_critical_notifications_bypass_preferences(): void
@@ -120,7 +120,7 @@ class NotificationServiceWithPreferencesTest extends TestCase
         );
 
         $this->assertInstanceOf(Notification::class, $result);
-        $this->assertEquals(NotificationPreference::CHANNEL_IN_APP, $result->channel);
+        $this->assertEquals(NotificationPreference::CHANNEL_IN_APP, $result->channel->value);
     }
 
     public function test_notification_with_data_payload(): void

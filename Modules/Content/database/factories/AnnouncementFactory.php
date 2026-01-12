@@ -23,7 +23,7 @@ class AnnouncementFactory extends Factory
             'status' => 'published',
             'priority' => 'normal',
             'published_at' => now(),
-            'expires_at' => now()->addDays(30),
+            'target_type' => 'all',
             'views_count' => fake()->numberBetween(0, 500),
         ];
     }
@@ -36,6 +36,14 @@ class AnnouncementFactory extends Factory
         ]);
     }
 
+    public function scheduled(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'scheduled',
+            'scheduled_at' => now()->addDay(),
+        ]);
+    }
+
     public function highPriority(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -43,10 +51,27 @@ class AnnouncementFactory extends Factory
         ]);
     }
 
-    public function expired(): static
+    public function published(): static
     {
         return $this->state(fn (array $attributes) => [
-            'expires_at' => now()->subDays(1),
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+    }
+
+    public function forRole(string $role): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'target_type' => 'role',
+            'target_value' => $role,
+        ]);
+    }
+
+    public function forCourse(?\Modules\Schemes\Models\Course $course = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'target_type' => 'course',
+            'course_id' => $course?->id ?? \Modules\Schemes\Models\Course::factory(),
         ]);
     }
 }
