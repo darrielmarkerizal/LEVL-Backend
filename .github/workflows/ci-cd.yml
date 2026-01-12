@@ -36,7 +36,7 @@ jobs:
           php-version: '8.4'
           extensions: pdo, pdo_pgsql, pgsql, zip, gd, bcmath, exif, intl
           coverage: none
-          ini-values: memory_limit=2G
+          ini-values: memory_limit=2G, max_execution_time=300
       
       - name: Get Composer Cache Directory
         id: composer-cache
@@ -50,13 +50,21 @@ jobs:
           restore-keys: ${{ runner.os }}-composer-
       
       - name: Install Composer Dependencies
-        run: composer install --prefer-dist --no-progress --optimize-autoloader --no-interaction
+        run: composer install --prefer-dist --no-progress --optimize-autoloader --no-interaction --classmap-authoritative
+        env:
+          COMPOSER_MEMORY_LIMIT: -1
       
       - name: Copy Environment File
         run: cp .env.example .env
       
       - name: Generate Application Key
         run: php artisan key:generate
+      
+      - name: Clear All Caches
+        run: |
+          php artisan config:clear
+          php artisan cache:clear
+          php artisan view:clear
       
       - name: Run Database Migrations
         run: php artisan migrate --force
@@ -69,7 +77,7 @@ jobs:
           DB_PASSWORD: postgres
       
       - name: Run Unit Tests
-        run: php artisan test --testsuite=Unit
+        run: php artisan test --testsuite=Unit --parallel --processes=2
         env:
           DB_CONNECTION: pgsql
           DB_HOST: localhost
@@ -79,7 +87,7 @@ jobs:
           DB_PASSWORD: postgres
       
       - name: Run Feature Tests
-        run: php artisan test --testsuite=Feature
+        run: php artisan test --testsuite=Feature --stop-on-failure
         env:
           DB_CONNECTION: pgsql
           DB_HOST: localhost
@@ -89,7 +97,7 @@ jobs:
           DB_PASSWORD: postgres
       
       - name: Run Module Tests
-        run: php artisan test --testsuite=Modules
+        run: php artisan test --testsuite=Modules --stop-on-failure
         env:
           DB_CONNECTION: pgsql
           DB_HOST: localhost
@@ -97,29 +105,3 @@ jobs:
           DB_DATABASE: levl_test
           DB_USERNAME: postgres
           DB_PASSWORD: postgres
-  
-  deploy:
-    name: Deploy to VPS
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      
-      - name: Deploy to VPS via SSH
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.DEPLOY_SERVER }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd ${{ secrets.DEPLOY_PATH }}
-            git pull origin main
-            composer install --no-dev --optimize-autoloader --no-interaction
-            php artisan migrate --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            sudo systemctl reload ${{ secrets.PHP_FPM_SERVICE }}
