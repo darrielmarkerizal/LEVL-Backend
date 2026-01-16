@@ -150,8 +150,7 @@ return [
     "setting_types" => "Daftar tipe pengaturan",
   ],
 
-  // Courses Module
-  "courses" => [
+    "courses" => [
     "created" => "Course berhasil dibuat.",
     "updated" => "Course berhasil diperbarui.",
     "deleted" => "Course berhasil dihapus.",
@@ -161,15 +160,17 @@ return [
     "not_found" => "Course tidak ditemukan.",
     "no_unpublish_access" => "Anda tidak memiliki akses untuk unpublish course ini.",
     "no_update_key_access" => "Anda tidak memiliki akses untuk mengubah enrollment key course ini.",
-    "no_remove_key_access" =>
-      "Anda tidak memiliki akses untuk menghapus enrollment key course ini.",
-    "no_generate_key_access" =>
-      "Anda tidak memiliki akses untuk generate enrollment key course ini.",
+    "no_remove_key_access" => "Anda tidak memiliki akses untuk menghapus enrollment key course ini.",
+    "no_generate_key_access" => "Anda tidak memiliki akses untuk generate enrollment key course ini.",
     "key_generated" => "Enrollment key berhasil di-generate.",
     "key_removed" => "Enrollment key dihapus dan tipe enrollment diubah ke auto_accept.",
     "code_exists" => "Kode sudah digunakan.",
     "slug_exists" => "Slug sudah digunakan.",
     "duplicate_data" => "Data duplikat. Silakan periksa input Anda.",
+    "cannot_publish_without_units" => "Kursus tidak dapat dipublikasikan karena belum memiliki unit.",
+    "must_have_one_unit" => "Kursus harus memiliki minimal satu unit.",
+    "cannot_publish_without_lessons" => "Kursus tidak dapat dipublikasikan karena belum memiliki lesson.",
+    "must_have_one_lesson" => "Kursus harus memiliki minimal satu lesson.",
   ],
 
   // Auth Module

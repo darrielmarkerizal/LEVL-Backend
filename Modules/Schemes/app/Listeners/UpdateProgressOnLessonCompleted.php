@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Schemes\Listeners;
 
 use Modules\Enrollments\Models\Enrollment;

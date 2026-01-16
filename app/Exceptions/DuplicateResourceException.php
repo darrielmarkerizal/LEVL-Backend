@@ -22,8 +22,12 @@ class DuplicateResourceException extends BusinessException
     /**
      * Create a new exception instance.
      */
-    public function __construct(string $message = '')
+    public function __construct(string|array $data = [])
     {
-        parent::__construct($message ?: __('messages.conflict'));
+        if (is_array($data)) {
+            parent::__construct(__('messages.conflict'), $data, 409);
+        } else {
+            parent::__construct($data ?: __('messages.conflict'), [], 409);
+        }
     }
 }

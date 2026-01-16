@@ -1,138 +1,59 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Schemes\Http\Controllers;
 
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Schemes\Http\Requests\TagRequest;
+use Modules\Schemes\Http\Resources\TagResource;
 use Modules\Schemes\Models\Tag;
 use Modules\Schemes\Services\TagService;
 
-/**
- * @tags Skema & Kursus
- */
 class TagController extends Controller
 {
-  use ApiResponse;
+    use ApiResponse;
 
-  public function __construct(private TagService $service) {}
+    public function __construct(private readonly TagService $service) {}
 
-  /**
-   * Daftar Tag
-   *
-   *
-   * @summary Daftar Tag
-   *
-   * @response 200 scenario="Success" {"success":true,"message":"Success","data":[{"id":1,"name":"Example Tag"}],"meta":{"current_page":1,"last_page":5,"per_page":15,"total":75},"links":{"first":"...","last":"...","prev":null,"next":"..."}}
-   * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-   * @authenticated
-   */
-  public function index(Request $request)
-  {
-    $perPage = (int) $request->query("per_page", 0);
+    public function index(Request $request)
+    {
+        $paginator = $this->service->list(
+            $request->query('filter', []),
+            (int) $request->query('per_page', 15)
+        );
 
-    $result = $this->service->list($perPage);
-
-    if ($result instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) {
-      return $this->paginateResponse($result, __('messages.tags.list_retrieved'));
+        return $this->paginateResponse($paginator, TagResource::class);
     }
 
-    return $this->success(
-      [
-        "items" => $result,
-      ],
-      __('messages.tags.list_retrieved'),
-    );
-  }
+    public function store(TagRequest $request)
+    {
+        $this->authorize('create', Tag::class);
+        $tag = $this->service->create($request->validated());
 
-  /**
-   * Buat Tag Baru
-   *
-   *
-   * @summary Buat Tag Baru
-   *
-   * @response 201 scenario="Success" {"success":true,"message":"Tag berhasil dibuat.","data":{"id":1,"name":"New Tag"}}
-   * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-   * @response 422 scenario="Validation Error" {"success":false,"message":"Validasi gagal.","errors":{"field":["Field wajib diisi."]}}
-   * @authenticated
-   */
-  public function store(TagRequest $request)
-  {
-    $validated = $request->validated();
-
-    if (!empty($validated["names"])) {
-      $tags = $this->service->createMany($validated["names"]);
-
-      return $this->created(["tags" => $tags], __("messages.tags.created"));
+        return $this->created(new TagResource($tag), __('messages.tags.created'));
     }
 
-    $tag = $this->service->create($validated);
-
-    return $this->created(["tag" => $tag], __("messages.tags.created"));
-  }
-
-  /**
-   * Detail Tag
-   *
-   *
-   * @summary Detail Tag
-   *
-   * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example Tag"}}
-   * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-   * @response 404 scenario="Not Found" {"success":false,"message":"Tag tidak ditemukan."}
-   * @authenticated
-   */
-  public function show(Tag $tag)
-  {
-    return $this->success(["tag" => $tag]);
-  }
-
-  /**
-   * Perbarui Tag
-   *
-   *
-   * @summary Perbarui Tag
-   *
-   * @response 200 scenario="Success" {"success":true,"message":"Tag berhasil diperbarui.","data":{"id":1,"name":"Updated Tag"}}
-   * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-   * @response 404 scenario="Not Found" {"success":false,"message":"Tag tidak ditemukan."}
-   * @response 422 scenario="Validation Error" {"success":false,"message":"Validasi gagal.","errors":{"field":["Field wajib diisi."]}}
-   * @authenticated
-   */
-  public function update(TagRequest $request, Tag $tag)
-  {
-    $validated = $request->validated();
-    unset($validated["names"]);
-
-    $updated = $this->service->update($tag->id, $validated);
-
-    if (!$updated) {
-      return $this->error(__("messages.tags.not_found"), 404);
+    public function show(Tag $tag)
+    {
+        return $this->success(new TagResource($tag));
     }
 
-    return $this->success(["tag" => $updated], __("messages.tags.updated"));
-  }
+    public function update(TagRequest $request, Tag $tag)
+    {
+        $this->authorize('update', $tag);
+        $updated = $this->service->update($tag->id, $request->validated());
 
-  /**
-   * Hapus Tag
-   *
-   *
-   * @summary Hapus Tag
-   *
-   * @response 200 scenario="Success" {"success":true,"message":"Tag berhasil dihapus.","data":[]}
-   * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-   * @response 404 scenario="Not Found" {"success":false,"message":"Tag tidak ditemukan."}
-   * @authenticated
-   */
-  public function destroy(Tag $tag)
-  {
-    $deleted = $this->service->delete($tag->id);
-
-    if (!$deleted) {
-      return $this->error(__("messages.tags.not_found"), 404);
+        return $this->success(new TagResource($updated), __('messages.tags.updated'));
     }
 
-    return $this->success([], __("messages.tags.deleted"));
-  }
+    public function destroy(Tag $tag)
+    {
+        $this->authorize('delete', $tag);
+        $this->service->delete($tag->id);
+
+        return $this->success([], __('messages.tags.deleted'));
+    }
 }

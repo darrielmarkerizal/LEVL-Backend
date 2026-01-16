@@ -23,11 +23,19 @@
 
 ## Service Pattern
 - Business logic MUST NOT be in Controller
-- One Service = one use-case (Command Style)
-- One Service has ONLY 1 public method (`execute()`/`handle()`)
+- One Service per domain entity/aggregate (e.g., CourseService, UserService)
+- Service can have multiple public methods for related operations
 - Service receives Array or DTO (NOT Request)
+- **Service receives uploaded files (array) if needed, NOT Request object**
 - Service handles transaction management
+- **Service handles ALL media/file operations**
 - Side effects (email, notification, webhook, audit) via Event + Listener
+- Controller should inject ONE service interface and call methods directly
+- Example: `$this->courseService->create($data)`, `$this->courseService->publish($id)`
+
+**Rationale**: While single-method services (Command Pattern) provide maximum separation,
+multiple-method services are more pragmatic for CRUD operations and reduce boilerplate.
+The key is keeping services focused on ONE domain entity.
 
 ## Repository Pattern
 - Complex queries + reusable queries → Repository
@@ -37,9 +45,19 @@
 - Query methods must be pure (no side effects)
 
 ## Dependency Injection
-- Use DI for Service, Repository, Event, Listener
-- Minimize Facade usage if DI is possible
+- ✅ REQUIRED: Service injection via constructor
+- ✅ REQUIRED: Use `readonly` keyword for injected dependencies
+- ✅ REQUIRED: Inject Service Interface, NOT concrete implementation
+- ❌ FORBIDDEN: Inject Repository directly into Controller
+- ❌ FORBIDDEN: Inject Model directly into Controller
 - All dependencies MUST be injected (for testability/mockability)
+
+```php
+// ✅ CORRECT
+public function __construct(
+    private readonly CourseServiceInterface $service,
+) {}
+```
 
 ## Strict Types
 - `declare(strict_types=1);` REQUIRED for all files
@@ -47,12 +65,311 @@
 
 ---
 
+# Controller Discipline (STRICT)
+
+## Controller Responsibilities (ONLY)
+Controllers are THIN coordinators. They MUST ONLY:
+1. **Authorize**: Check permissions via `$this->authorize()` or Policy
+2. **Validate**: Accept validated data from FormRequest
+3. **Extract**: Extract primitive data from Request (pagination params, filters)
+4. **Delegate**: Call ONE service method with primitives/DTO/array
+5. **Transform**: Transform service result using JsonResource
+6. **Respond**: Return standardized response via ApiResponse trait
+
+## Controller FORBIDDEN Actions
+Controllers MUST NOT contain any of the following:
+
+### Business Logic FORBIDDEN
+- ❌ Conditional business logic (if/else for business rules)
+- ❌ Data transformation/manipulation
+- ❌ Calculations or computations
+- ❌ State transitions (status changes, workflow logic)
+- ❌ Domain validation beyond FormRequest
+- ❌ Decision making based on domain state
+
+**Example of FORBIDDEN logic:**
+```php
+// ❌ FORBIDDEN - Business logic in controller
+if ($validated['enrollment_type'] === 'key_based' && empty($validated['enrollment_key'])) {
+    $plainKey = $this->service->generateEnrollmentKey(12);
+    $validated['enrollment_key'] = $plainKey;
+}
+```
+
+**Correct approach:**
+```php
+// ✅ CORRECT - Delegate to service
+$result = $this->service->updateEnrollmentSettings($course->id, $validated);
+```
+
+### Data Access FORBIDDEN
+- ❌ Direct Model access (create, update, delete, query)
+- ❌ Direct Repository calls
+- ❌ Direct Query Builder usage
+- ❌ Raw SQL queries
+- ❌ Database transaction management
+
+### File/Media Handling FORBIDDEN
+- ❌ File upload processing
+- ❌ Media library operations
+- ❌ File validation beyond FormRequest
+- ❌ File storage operations
+- ❌ Image manipulation
+
+**Example of FORBIDDEN media handling:**
+```php
+// ❌ FORBIDDEN - Media handling in controller
+$this->uploadMedia($course, $request, [
+    'thumbnail' => 'thumbnail',
+    'banner' => 'banner',
+]);
+```
+
+**Correct approach:**
+```php
+// ✅ CORRECT - Pass files to service
+$course = $this->service->create($validated, $actor, $request->allFiles());
+```
+
+### Error Handling Logic FORBIDDEN
+- ❌ Complex try-catch with business logic
+- ❌ Error message construction/parsing
+- ❌ Exception type checking with conditional logic
+- ❌ Database constraint violation parsing
+
+**Example of FORBIDDEN error handling:**
+```php
+// ❌ FORBIDDEN - Error parsing in controller
+private function handleCourseUniqueConstraint(QueryException $e)
+{
+    $message = $e->getMessage();
+    $errors = [];
+    if (str_contains($message, 'courses_code_unique')) {
+        $errors['code'][] = __('messages.courses.code_exists');
+    }
+    // ...
+}
+```
+
+**Correct approach:**
+```php
+// ✅ CORRECT - Service throws proper exception
+// Controller just catches and returns response
+try {
+    $course = $this->service->create($validated, $actor);
+} catch (DuplicateCourseException $e) {
+    return $this->validationError($e->getErrors());
+}
+```
+
+### Query/Filter Logic FORBIDDEN
+- ❌ Filter parameter interpretation
+- ❌ Conditional query building
+- ❌ Search parameter processing
+- ❌ Sort parameter handling
+- ❌ Pagination logic beyond extracting `per_page`
+
+**Example of FORBIDDEN filter logic:**
+```php
+// ❌ FORBIDDEN - Filter logic in controller
+$status = $request->input('filter.status');
+$paginator = $status === 'published'
+    ? $this->service->listPublic($perPage)
+    : $this->service->list($perPage);
+```
+
+**Correct approach:**
+```php
+// ✅ CORRECT - Service handles filter interpretation
+$paginator = $this->service->list(
+    $request->input('filter', []),
+    $perPage
+);
+```
+
+## Controller Method Structure (ENFORCED)
+
+Every controller method MUST follow this EXACT structure:
+
+```php
+public function methodName(FormRequest $request, ?Model $model = null)
+{
+    // Step 1: Authorization (if needed)
+    $this->authorize('action', $model);
+    
+    // Step 2: Extract primitives ONLY (no logic)
+    $data = $request->validated();
+    $perPage = (int) $request->query('per_page', 15);
+    $actor = auth('api')->user();
+    
+    // Step 3: Single service call (no conditional, no try-catch with logic)
+    $result = $this->service->methodName($data, $actor);
+    
+    // Step 4: Transform & respond
+    return $this->success(
+        new ResourceClass($result),
+        __('messages.key')
+    );
+}
+```
+
+**Maximum lines per controller method: 10 lines** (excluding PHPDoc)
+**If exceeding 10 lines: Logic MUST move to Service**
+
+## Response Format STRICT
+- ❌ FORBIDDEN: Return Model directly
+- ❌ FORBIDDEN: Return array with raw Model
+- ✅ REQUIRED: Always use JsonResource for data responses
+- ✅ REQUIRED: Use ApiResponse trait methods
+
+**Example of FORBIDDEN response:**
+```php
+// ❌ FORBIDDEN
+return $this->success(['course' => $course]);
+return $this->success(['course' => $course->load('tags')]);
+```
+
+**Correct response:**
+```php
+// ✅ CORRECT
+return $this->success(new CourseResource($course));
+return $this->success(CourseResource::collection($courses));
+```
+
+## Private Methods in Controller
+- ❌ FORBIDDEN: Private helper methods with business logic
+- ❌ FORBIDDEN: Private methods for data manipulation
+- ⚠️ ALLOWED (with caution): Private methods for response formatting ONLY
+- ✅ PREFERRED: Move logic to Service instead of private methods
+
+**If you need a private method in Controller → You're doing it WRONG**
+
+## Controller Traits
+- ✅ ALLOWED: `ApiResponse` (response formatting)
+- ✅ ALLOWED: `AuthorizesRequests` (authorization)
+- ❌ FORBIDDEN: `HandlesMediaUploads` (business logic belongs in Service)
+- ❌ FORBIDDEN: `ValidatesRequests` (use FormRequest instead)
+- ❌ FORBIDDEN: Any custom trait with business logic
+
+---
+
+# Service Pattern (ENHANCED)
+
+## Service Responsibilities
+Services MUST handle ALL business logic including:
+- ✅ Data validation (business rules, not HTTP validation)
+- ✅ Data transformation/manipulation
+- ✅ State transitions and workflows
+- ✅ Database transactions
+- ✅ Model CRUD operations (via Repository)
+- ✅ **Media/File operations (upload, delete, conversion)**
+- ✅ Complex query orchestration
+- ✅ Cross-entity coordination
+- ✅ Business rule enforcement
+- ✅ **Exception handling and throwing custom exceptions**
+- ✅ Event dispatching (for side effects)
+
+## Service Method Signature
+- ✅ REQUIRED: Accept primitives, arrays, or DTOs (NOT Request)
+- ✅ REQUIRED: Accept uploaded files as array parameter if needed
+- ✅ REQUIRED: Return Model, Collection, or primitive types
+- ✅ REQUIRED: Throw custom exceptions for business errors
+
+```php
+// ✅ CORRECT - Service method signature
+public function create(
+    array $data, 
+    User $actor, 
+    array $files = []
+): Course;
+
+public function updateEnrollmentSettings(
+    int $courseId, 
+    array $settings
+): array; // Returns ['course' => Course, 'enrollment_key' => string|null]
+
+// ❌ FORBIDDEN
+public function create(Request $request): Course;  // No Request object
+public function create(array $data): Course;       // Missing $files parameter if needed
+```
+
+## Media/File Handling in Service
+- ✅ Service MUST handle ALL media operations
+- ✅ Service receives files as array from Controller
+- ✅ Service uses Spatie Media Library directly
+- ✅ Service handles media cleanup via Events
+
+```php
+// ✅ CORRECT - Media handling in Service
+public function create(array $data, User $actor, array $files = []): Course
+{
+    return DB::transaction(function () use ($data, $actor, $files) {
+        $course = $this->repository->create($data);
+        
+        if (!empty($files['thumbnail'])) {
+            $course->addMedia($files['thumbnail'])
+                ->toMediaCollection('thumbnail');
+        }
+        
+        if (!empty($files['banner'])) {
+            $course->addMedia($files['banner'])
+                ->toMediaCollection('banner');
+        }
+        
+        event(new CourseCreated($course, $actor));
+        
+        return $course->fresh();
+    });
+}
+```
+
+## Exception Handling in Service
+- ✅ Service MUST catch database exceptions
+- ✅ Service MUST throw domain-specific custom exceptions
+- ✅ Custom exceptions contain structured error data
+- ❌ Controller MUST NOT parse exception messages
+
+```php
+// ✅ CORRECT - Service throws custom exception
+public function create(array $data, User $actor, array $files = []): Course
+{
+    try {
+        return DB::transaction(function () use ($data, $actor, $files) {
+            // ... business logic
+        });
+    } catch (UniqueConstraintViolationException $e) {
+        throw new DuplicateCourseException(
+            $this->parseDuplicateConstraint($e)
+        );
+    }
+}
+
+private function parseDuplicateConstraint(QueryException $e): array
+{
+    $message = $e->getMessage();
+    $errors = [];
+    
+    if (str_contains($message, 'courses_code_unique')) {
+        $errors['code'] = [__('messages.courses.code_exists')];
+    }
+    if (str_contains($message, 'courses_slug_unique')) {
+        $errors['slug'] = [__('messages.courses.slug_exists')];
+    }
+    
+    return $errors ?: ['general' => [__('messages.courses.duplicate_data')]];
+}
+
+---
+
+
 # Domain Rules
 
 ## Single Responsibility
-- God-Service/God-Class FORBIDDEN
-- Separate Command and Query if needed (CQRS-lite)
-- One class = one responsibility
+- One Service per domain entity/aggregate (NOT one method per service)
+- Service should handle all operations for its entity (CRUD + business logic)
+- Avoid God-Service: Don't mix unrelated entities in one service
+- Separate Command and Query if service becomes too complex (CQRS-lite)
+- One class = one clear responsibility
 
 ## Boundaries
 - Cross-module direct Model/DB access FORBIDDEN
@@ -186,8 +503,6 @@
 
 ---
 
-# Media Management (Spatie Media Library)
-
 ## Implementation Requirements
 - Models with media MUST implement `HasMedia` and use `InteractsWithMedia`
 - MUST define `registerMediaCollections()` for each model
@@ -195,9 +510,9 @@
 - Use `registerMediaConversions()` for image transformations
 
 ## Upload Handling
-- Upload handled in Controller/Request, then path/file passed to Service
-- Media operations MUST be in Service layer
-- Media cleanup MUST be handled via Events/Listeners
+- Media operations (upload, delete, conversion) MUST be in Service layer
+- Controller extracts files using `$request->allFiles()` or similar and passes to Service
+- Media cleanup MUST be handled via Events/Listeners or directly in Service transaction
 
 ---
 
@@ -499,6 +814,37 @@
 ---
 
 # Agent Strict Rules (Anti-Hallucination & Code Generation)
+
+## Controller Generation Rules
+When generating Controller code, ENFORCE:
+
+1. **Line Count Check**: If controller method > 10 lines → STOP and refactor to Service
+2. **Logic Check**: If method contains `if/else/switch` for business rules → MOVE to Service
+3. **Model Check**: If method uses Model directly → MOVE to Service via Repository
+4. **Media Check**: If method handles files/media → MOVE to Service
+5. **Error Check**: If method parses exceptions → MOVE to Service and throw custom exception
+6. **Resource Check**: If method returns raw Model → USE JsonResource
+
+## Generation Checklist
+Before delivering Controller code, verify:
+- [ ] No business logic (no if/else for domain rules)
+- [ ] No direct Model/Repository access
+- [ ] No media/file handling
+- [ ] No exception message parsing
+- [ ] No filter/query interpretation
+- [ ] All responses use JsonResource
+- [ ] Service injection uses `readonly`
+- [ ] Method ≤ 10 lines
+- [ ] Only ApiResponse trait (no HandlesMediaUploads)
+
+## Auto-Refactor Triggers
+If generated code contains ANY of these → AUTO-REFACTOR to Service:
+- `if ($data['field'] === 'value')` (business conditional)
+- `Model::create()` or `Model::where()` (direct Model access)
+- `$this->uploadMedia()` (media handling)
+- `str_contains($e->getMessage())` (exception parsing)
+- `$request->input('filter.status')` (filter logic)
+- Try-catch with conditional logic inside catch block
 
 ## Format Enforcement
 - **Must Compile**: All generated code MUST compile without errors

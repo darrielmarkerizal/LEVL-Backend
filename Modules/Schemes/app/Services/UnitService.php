@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Schemes\Services;
 
 use App\Support\CodeGenerator;
@@ -17,6 +19,15 @@ class UnitService
     public function __construct(
         private readonly UnitRepositoryInterface $repository
     ) {}
+
+    public function validateHierarchy(int $courseId, int $unitId): void
+    {
+        $unit = Unit::findOrFail($unitId);
+        
+        if ((int) $unit->course_id !== $courseId) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.units.not_in_course'));
+        }
+    }
 
     public function paginate(int $courseId, int $perPage = 15): LengthAwarePaginator
     {
@@ -81,10 +92,25 @@ class UnitService
             $unitId = $item['id'];
             $newOrder = $item['order'];
 
-            // Use repository method instead of direct model query
             $this->repository->updateOrder($unitId, $newOrder);
         }
 
         return true;
+    }
+
+    public function publish(int $id): Unit
+    {
+        $unit = $this->repository->findByIdOrFail($id);
+        $unit->update(['status' => 'published']);
+
+        return $unit->fresh();
+    }
+
+    public function unpublish(int $id): Unit
+    {
+        $unit = $this->repository->findByIdOrFail($id);
+        $unit->update(['status' => 'draft']);
+
+        return $unit->fresh();
     }
 }
