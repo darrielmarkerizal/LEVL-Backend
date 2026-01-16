@@ -38,6 +38,10 @@
                             <option value="10">10 (Parallel)</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Hourly Server Cost ($)</label>
+                        <input type="number" id="cost" value="0.03571" step="0.00001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                    </div>
                     <button id="startBtn" onclick="runBenchmark()" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         Start Benchmark
                     </button>
@@ -61,9 +65,33 @@
                         <span class="text-indigo-800 font-medium">Requests / Sec</span>
                         <span id="res-rps" class="font-mono font-bold text-xl text-indigo-700">-</span>
                     </div>
+                     <div class="flex justify-between items-center bg-green-50 p-2 rounded border border-green-100">
+                        <div>
+                            <span class="text-green-800 font-medium block">Est. Cost (1M Reqs)</span>
+                            <span class="text-xs text-green-600">Based on throughput</span>
+                        </div>
+                        <span id="res-cost" class="font-mono font-bold text-xl text-green-700">-</span>
+                    </div>
                     <div class="mt-4 pt-4 border-t border-gray-200">
-                        <h3 class="text-sm font-medium text-gray-500 mb-2">Server Info (Last Req)</h3>
-                        <p id="server-software" class="text-xs text-gray-400 break-all font-mono">-</p>
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">Detailed Metrics (Last Req)</h3>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div class="text-gray-600">Memory:</div>
+                            <div class="font-mono font-bold" id="res-mem">-</div>
+                            <div class="text-gray-600">Peak Memory:</div>
+                            <div class="font-mono font-bold" id="res-mem-peak">-</div>
+                            <div class="text-gray-600">CPU Load (1m):</div>
+                            <div class="font-mono font-bold" id="res-cpu">-</div>
+                             <div class="text-gray-600">PID:</div>
+                            <div class="font-mono font-bold" id="res-pid">-</div>
+                        </div>
+                        <p id="server-software" class="text-xs text-gray-400 mt-2 break-all font-mono">-</p>
+                    </div>
+
+                    <!-- Terminal Suggestion -->
+                    <div id="terminal-section" class="hidden mt-4 pt-4 border-t border-gray-200 bg-gray-100 p-3 rounded">
+                        <h3 class="text-sm font-medium text-gray-600 mb-1">🚀 For Maximum Speed (True Server Capacity)</h3>
+                        <p class="text-xs text-gray-500 mb-2">Browsers are limited to ~6 concurrent connections. Run this in your terminal to test true server concurrency:</p>
+                        <code id="terminal-cmd" class="block bg-gray-800 text-green-400 p-2 rounded text-xs overflow-x-auto select-all cursor-pointer"></code>
                     </div>
                 </div>
             </div>
@@ -75,6 +103,7 @@
             const mode = document.getElementById('mode').value;
             const totalRequests = parseInt(document.getElementById('requests').value);
             const concurrency = parseInt(document.getElementById('concurrency').value);
+            const hourlyCost = parseFloat(document.getElementById('cost').value);
             const btn = document.getElementById('startBtn');
             const status = document.getElementById('status');
 
@@ -84,17 +113,24 @@
             status.classList.remove('hidden');
             status.textContent = 'Running...';
             
-            ['res-time', 'res-latency', 'res-rps'].forEach(id => document.getElementById(id).textContent = '-');
+            ['res-time', 'res-latency', 'res-rps', 'res-mem', 'res-mem-peak', 'res-cpu', 'res-pid', 'res-cost'].forEach(id => document.getElementById(id).textContent = '-');
 
             const start = performance.now();
             let completed = 0;
             let lastServerInfo = '-';
+            let lastMetrics = {};
 
             async function makeRequest() {
                 try {
                     const res = await fetch(`/dev/benchmark-api?mode=${mode}`);
                     const data = await res.json();
-                    lastServerInfo = data.server + ' (PID: ' + data.pid + ')';
+                    lastServerInfo = data.server;
+                    lastMetrics = {
+                        mem: data.memory_human,
+                        memPeak: (data.memory_peak / 1024 / 1024).toFixed(2) + ' MB',
+                        cpu: data.cpu_load ? data.cpu_load[0] : 'N/A',
+                        pid: data.pid
+                    };
                 } catch (e) {
                     console.error(e);
                 } finally {
@@ -121,12 +157,32 @@
             const durationSec = durationMs / 1000;
             const rps = totalRequests / durationSec;
             const avgLatency = durationMs / totalRequests;
+            
+            // Calculate Cost for 1M requests
+            // Hours needed for 1M requests = 1,000,000 / (RPS * 3600)
+            const hoursFor1M = 1000000 / (rps * 3600);
+            const costFor1M = hoursFor1M * hourlyCost;
 
             // Update UI
             document.getElementById('res-time').textContent = durationMs.toFixed(2) + ' ms';
             document.getElementById('res-latency').textContent = avgLatency.toFixed(2) + ' ms';
             document.getElementById('res-rps').textContent = rps.toFixed(2);
+            document.getElementById('res-cost').textContent = '$' + costFor1M.toFixed(6);
             document.getElementById('server-software').textContent = lastServerInfo;
+            
+            // Detailed stats
+            if (lastMetrics.mem) {
+                document.getElementById('res-mem').textContent = lastMetrics.mem;
+                document.getElementById('res-mem-peak').textContent = lastMetrics.memPeak;
+                document.getElementById('res-cpu').textContent = lastMetrics.cpu;
+                document.getElementById('res-pid').textContent = lastMetrics.pid;
+            }
+
+            // Show Terminal Command Recommendation
+            const port = window.location.port;
+            const cmd = `ab -n ${totalRequests} -c 50 http://127.0.0.1:${port}/dev/benchmark-api?mode=${mode}`;
+            document.getElementById('terminal-cmd').textContent = cmd;
+            document.getElementById('terminal-section').classList.remove('hidden');
 
             btn.disabled = false;
             btn.classList.remove('opacity-50');
