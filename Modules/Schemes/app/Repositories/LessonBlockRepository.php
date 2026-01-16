@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Schemes\Repositories;
 
 use App\Repositories\BaseRepository;

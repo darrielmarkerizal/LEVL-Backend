@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Schemes\Services;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -19,6 +21,30 @@ use Modules\Schemes\Models\Unit;
 
 class ProgressionService
 {
+    public function validateLessonAccess(Course $course, Unit $unit, Lesson $lesson, int $userId): Enrollment
+    {
+        if ($unit->course_id !== $course->id || $lesson->unit_id !== $unit->id) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.progress.lesson_not_in_unit'));
+        }
+
+        $enrollment = $this->getEnrollmentForCourse($course->id, $userId);
+        
+        if (!$enrollment || !$this->canAccessLesson($lesson, $enrollment)) {
+            throw new \App\Exceptions\BusinessException(__('messages.progress.locked_prerequisite'), 403);
+        }
+
+        return $enrollment;
+    }
+
+    public function getProgressForUser(Course $course, int $userId): array
+    {
+        $enrollment = $this->getEnrollmentForCourse($course->id, $userId);
+        if (!$enrollment) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.progress.enrollment_not_found'));
+        }
+
+        return $this->getCourseProgressData($course, $enrollment);
+    }
     public function getEnrollmentForCourse(int $courseId, int $userId): ?Enrollment
     {
         return Enrollment::query()

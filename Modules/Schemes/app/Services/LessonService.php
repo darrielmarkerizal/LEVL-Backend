@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Schemes\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -16,6 +18,21 @@ class LessonService
     public function __construct(
         private readonly LessonRepositoryInterface $repository
     ) {}
+
+    public function validateHierarchy(int $courseId, int $unitId, ?int $lessonId = null): void
+    {
+        if ($lessonId) {
+            $lesson = Lesson::with('unit')->findOrFail($lessonId);
+            if ((int) $lesson->unit?->course_id !== $courseId || (int) $lesson->unit_id !== $unitId) {
+                throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.lessons.not_found'));
+            }
+        } else {
+            $unit = Unit::findOrFail($unitId);
+            if ((int) $unit->course_id !== $courseId) {
+                throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.units.not_in_course'));
+            }
+        }
+    }
 
     public function paginate(int $unitId, int $perPage = 15): LengthAwarePaginator
     {
@@ -37,6 +54,19 @@ class LessonService
     public function find(int $id): ?Lesson
     {
         return $this->repository->findById($id);
+    }
+
+    public function getLessonForUser(Lesson $lesson, Course $course, ?\Modules\Auth\Models\User $user): Lesson
+    {
+        if ($user?->hasRole('Student')) {
+            $progression = app(ProgressionService::class);
+            $enrollment = $progression->getEnrollmentForCourse($course->id, $user->id);
+            if (!$enrollment || !$progression->canAccessLesson($lesson, $enrollment)) {
+                throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), 403);
+            }
+        }
+
+        return $lesson->load('blocks');
     }
 
     public function findOrFail(int $id): Lesson
@@ -69,5 +99,21 @@ class LessonService
         $lesson = $this->repository->findByIdOrFail($id);
 
         return $this->repository->delete($lesson);
+    }
+
+    public function publish(int $id): Lesson
+    {
+        $lesson = $this->repository->findByIdOrFail($id);
+        $lesson->update(['status' => 'published']);
+
+        return $lesson->fresh();
+    }
+
+    public function unpublish(int $id): Lesson
+    {
+        $lesson = $this->repository->findByIdOrFail($id);
+        $lesson->update(['status' => 'draft']);
+
+        return $lesson->fresh();
     }
 }

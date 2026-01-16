@@ -173,13 +173,16 @@ return [
     "no_unpublish_access" => "You do not have access to unpublish this course.",
     "no_update_key_access" => "You do not have access to update enrollment key for this course.",
     "no_remove_key_access" => "You do not have access to remove enrollment key for this course.",
-    "no_generate_key_access" =>
-      "You do not have access to generate enrollment key for this course.",
+    "no_generate_key_access" => "You do not have access to generate enrollment key for this course.",
     "key_generated" => "Enrollment key generated successfully.",
     "key_removed" => "Enrollment key removed and enrollment type changed to auto_accept.",
     "code_exists" => "Code already in use.",
     "slug_exists" => "Slug already in use.",
     "duplicate_data" => "Duplicate data. Please check your input.",
+    "cannot_publish_without_units" => "Course cannot be published without units.",
+    "must_have_one_unit" => "Course must have at least one unit.",
+    "cannot_publish_without_lessons" => "Course cannot be published without lessons.",
+    "must_have_one_lesson" => "Course must have at least one lesson.",
   ],
 
   // Auth Module

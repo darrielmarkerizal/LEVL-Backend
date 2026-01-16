@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Schemes\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -19,9 +21,9 @@ class TagService
         private TagRepositoryInterface $repository
     ) {}
 
-    public function list(int $perPage = 0): LengthAwarePaginator|Collection
+    public function list(array $filters = [], int $perPage = 0): LengthAwarePaginator|Collection
     {
-        $query = $this->buildQuery();
+        $query = $this->buildQuery($filters);
 
         if ($perPage > 0) {
             return $query->paginate($perPage);
@@ -30,15 +32,14 @@ class TagService
         return $query->get();
     }
 
-    private function buildQuery(): QueryBuilder
+    private function buildQuery(array $filters = []): QueryBuilder
     {
-        $searchQuery = request('filter.search');
+        $searchQuery = data_get($filters, 'search');
+        $builder = QueryBuilder::for(Tag::class, new \Illuminate\Http\Request($filters));
 
-        $builder = QueryBuilder::for(Tag::class);
-
-        if ($searchQuery && trim($searchQuery) !== '') {
+        if ($searchQuery && trim((string) $searchQuery) !== '') {
             $ids = Tag::search($searchQuery)->keys()->toArray();
-            $builder->whereIn('id', $ids);
+            $builder->whereIn('id', $ids ?: [0]);
         }
 
         return $builder

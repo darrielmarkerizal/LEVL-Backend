@@ -1,13 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Schemes\Services;
 
 use App\Exceptions\BusinessException;
+use App\Exceptions\DuplicateResourceException;
 use App\Support\CodeGenerator;
 use App\Support\Helpers\ArrayParser;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Schemes\Contracts\Repositories\CourseRepositoryInterface;
 use Modules\Schemes\Contracts\Services\CourseServiceInterface;
@@ -23,64 +28,48 @@ class CourseService implements CourseServiceInterface
         private readonly CourseRepositoryInterface $repository
     ) {}
 
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $query = $this->buildQuery();
+        $query = $this->buildQuery($filters);
 
         return $query->paginate($perPage);
     }
 
-    public function list(int $perPage = 15): LengthAwarePaginator
+    public function list(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        return $this->paginate($perPage);
-    }
-
-    public function listPublic(int $perPage = 15): LengthAwarePaginator
-    {
-        $perPage = max(1, $perPage);
-        $query = $this->buildQuery()->where('status', 'published');
-
-        return $query->paginate($perPage);
-    }
-
-    private function buildQuery(): QueryBuilder
-    {
-        $searchQuery = request('filter.search') ?? request('search');
-
-        $builder = QueryBuilder::for(Course::class);
-
-        if ($searchQuery && trim($searchQuery) !== '') {
-            $ids = Course::search($searchQuery)->keys()->toArray();
-
-            if (! empty($ids)) {
-                $builder->whereIn('id', $ids);
-            } else {
-                $builder->whereRaw('1 = 0');
-            }
+        if (data_get($filters, 'status') === 'published') {
+            return $this->listPublic($perPage, $filters);
         }
 
-        $tagFilter = request('filter.tag');
-        if ($tagFilter) {
+        return $this->paginate($filters, $perPage);
+    }
+
+    public function listPublic(int $perPage = 15, array $filters = []): LengthAwarePaginator
+    {
+        $perPage = max(1, $perPage);
+        $query = $this->buildQuery($filters)->where('status', 'published');
+
+        return $query->paginate($perPage);
+    }
+
+    private function buildQuery(array $filters = []): QueryBuilder
+    {
+        $searchQuery = data_get($filters, 'search');
+        $builder = QueryBuilder::for(Course::class, new \Illuminate\Http\Request($filters));
+
+        if ($searchQuery && trim((string) $searchQuery) !== '') {
+            $ids = Course::search($searchQuery)->keys()->toArray();
+            $builder->whereIn('id', $ids ?: [0]);
+        }
+
+        if ($tagFilter = data_get($filters, 'tag')) {
             $tags = ArrayParser::parseFilter($tagFilter);
-
-            if (! empty($tags)) {
-                foreach ($tags as $tagValue) {
-                    $value = trim((string) $tagValue);
-                    if ($value === '') {
-                        continue;
-                    }
-
-                    $slug = Str::slug($value);
-
-                    $builder->whereHas('tags', function (Builder $tagQuery) use ($value, $slug) {
-                        $tagQuery->where(function (Builder $inner) use ($value, $slug) {
-                            $inner->where('slug', $slug)
-                                ->orWhere('slug', $value)
-                                ->orWhereRaw('LOWER(name) = ?', [mb_strtolower($value)]);
-                        });
-                    });
-                }
+            foreach ($tags as $tagValue) {
+                $value = trim((string) $tagValue);
+                if ($value === '') continue;
+                $slug = Str::slug($value);
+                $builder->whereHas('tags', fn ($q) => $q->where(fn ($iq) => $iq->where('slug', $slug)->orWhere('slug', $value)->orWhereRaw('LOWER(name) = ?', [mb_strtolower($value)])));
             }
         }
 
@@ -116,46 +105,61 @@ class CourseService implements CourseServiceInterface
         return $this->repository->findBySlug($slug);
     }
 
-    public function create(CreateCourseDTO|array $data, ?\Modules\Auth\Models\User $actor = null): Course
+    public function create(CreateCourseDTO|array $data, ?\Modules\Auth\Models\User $actor = null, array $files = []): Course
     {
-        $attributes = $data instanceof CreateCourseDTO ? $data->toArrayWithoutNull() : $data;
+        try {
+            return DB::transaction(function () use ($data, $actor, $files) {
+                $attributes = $data instanceof CreateCourseDTO ? $data->toArrayWithoutNull() : $data;
 
-        if (! isset($attributes['code'])) {
-            $attributes['code'] = $this->generateCourseCode();
+                if (! isset($attributes['code'])) {
+                    $attributes['code'] = $this->generateCourseCode();
+                }
+
+                if ($actor && ! isset($attributes['instructor_id'])) {
+                    $attributes['instructor_id'] = $actor->id;
+                }
+
+                $tags = $attributes['tags'] ?? null;
+                $attributes = Arr::except($attributes, ['slug', 'tags']);
+
+                $course = $this->repository->create($attributes);
+
+                if ($tags) {
+                    $course->tags()->sync($tags);
+                }
+
+                $this->handleMedia($course, $files);
+
+                return $course->fresh(['tags']);
+            });
+        } catch (QueryException $e) {
+            throw new DuplicateResourceException($this->parseCourseDuplicates($e));
         }
-
-        // Set instructor_id from actor if provided and not already set
-        if ($actor && ! isset($attributes['instructor_id'])) {
-            $attributes['instructor_id'] = $actor->id;
-        }
-
-        $tags = $attributes['tags'] ?? null;
-        $attributes = Arr::except($attributes, ['slug', 'tags']);
-
-        $course = $this->repository->create($attributes);
-
-        if ($tags) {
-            $course->tags()->sync($tags);
-        }
-
-        return $course->fresh(['tags']);
     }
 
-    public function update(int $id, UpdateCourseDTO|array $data): Course
+    public function update(int $id, UpdateCourseDTO|array $data, array $files = []): Course
     {
-        $course = $this->repository->findByIdOrFail($id);
-        $attributes = $data instanceof UpdateCourseDTO ? $data->toArrayWithoutNull() : $data;
+        try {
+            return DB::transaction(function () use ($id, $data, $files) {
+                $course = $this->repository->findByIdOrFail($id);
+                $attributes = $data instanceof UpdateCourseDTO ? $data->toArrayWithoutNull() : $data;
 
-        $tags = $attributes['tags'] ?? null;
-        $attributes = Arr::except($attributes, ['slug', 'tags']);
+                $tags = $attributes['tags'] ?? null;
+                $attributes = Arr::except($attributes, ['slug', 'tags']);
 
-        $this->repository->update($course, $attributes);
+                $this->repository->update($course, $attributes);
 
-        if ($tags !== null) {
-            $course->tags()->sync($tags);
+                if ($tags !== null) {
+                    $course->tags()->sync($tags);
+                }
+
+                $this->handleMedia($course, $files);
+
+                return $course->fresh(['tags']);
+            });
+        } catch (QueryException $e) {
+            throw new DuplicateResourceException($this->parseCourseDuplicates($e));
         }
-
-        return $course->fresh(['tags']);
     }
 
     public function delete(int $id): bool
@@ -174,16 +178,16 @@ class CourseService implements CourseServiceInterface
 
         if ($course->units()->count() === 0) {
             throw new BusinessException(
-                'Kursus tidak dapat dipublikasikan karena belum memiliki unit.',
-                ['units' => ['Kursus harus memiliki minimal satu unit.']]
+                __('messages.courses.cannot_publish_without_units'),
+                ['units' => [__('messages.courses.must_have_one_unit')]]
             );
         }
 
         $hasLessons = $course->units()->whereHas('lessons')->exists();
         if (! $hasLessons) {
             throw new BusinessException(
-                'Kursus tidak dapat dipublikasikan karena belum memiliki lesson.',
-                ['lessons' => ['Kursus harus memiliki minimal satu lesson.']]
+                __('messages.courses.cannot_publish_without_lessons'),
+                ['lessons' => [__('messages.courses.must_have_one_lesson')]]
             );
         }
 
@@ -205,6 +209,54 @@ class CourseService implements CourseServiceInterface
         ]);
 
         return $course->fresh();
+    }
+
+    public function updateEnrollmentSettings(int $id, array $data): array
+    {
+        $plainKey = null;
+
+        if ($data['enrollment_type'] === 'key_based' && empty($data['enrollment_key'])) {
+            $plainKey = $this->generateEnrollmentKey(12);
+            $data['enrollment_key'] = $plainKey;
+        } elseif ($data['enrollment_type'] === 'key_based' && ! empty($data['enrollment_key'])) {
+            $plainKey = $data['enrollment_key'];
+        }
+
+        if ($data['enrollment_type'] !== 'key_based') {
+            $data['enrollment_key'] = null;
+        }
+
+        $updated = $this->update($id, $data);
+
+        return [
+            'course' => $updated,
+            'enrollment_key' => $plainKey,
+        ];
+    }
+
+    private function handleMedia(Course $course, array $files): void
+    {
+        foreach (['thumbnail', 'banner'] as $collection) {
+            if (! empty($files[$collection])) {
+                $course->clearMediaCollection($collection);
+                $course->addMedia($files[$collection])->toMediaCollection($collection);
+            }
+        }
+    }
+
+    private function parseCourseDuplicates(QueryException $e): array
+    {
+        $message = $e->getMessage();
+        $errors = [];
+
+        if (str_contains($message, 'courses_code_unique')) {
+            $errors['code'] = [__('messages.courses.code_exists')];
+        }
+        if (str_contains($message, 'courses_slug_unique')) {
+            $errors['slug'] = [__('messages.courses.slug_exists')];
+        }
+
+        return $errors ?: ['general' => [__('messages.courses.duplicate_data')]];
     }
 
     private function generateCourseCode(): string

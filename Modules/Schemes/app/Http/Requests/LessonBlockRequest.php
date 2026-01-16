@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Schemes\Http\Requests;
 
 use App\Support\ApiResponse;

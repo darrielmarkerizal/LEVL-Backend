@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Schemes\Services;
 
 use Illuminate\Database\Eloquent\Collection;
@@ -14,8 +16,20 @@ use Spatie\QueryBuilder\QueryBuilder;
 class LessonBlockService
 {
     public function __construct(
-        private LessonBlockRepositoryInterface $repository
+        private readonly LessonBlockRepositoryInterface $repository
     ) {}
+
+    public function validateHierarchy(int $courseId, int $unitId, int $lessonId): void
+    {
+        $lesson = \Modules\Schemes\Models\Lesson::with('unit')->findOrFail($lessonId);
+        
+        if (
+            (int) $lesson->unit?->course_id !== $courseId ||
+            (int) $lesson->unit_id !== $unitId
+        ) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.lesson_blocks.lesson_not_in_course'));
+        }
+    }
 
     public function list(int $lessonId): Collection
     {
@@ -58,7 +72,7 @@ class LessonBlockService
         });
     }
 
-    public function update(int $lessonId, int $blockId, array $data, ?UploadedFile $mediaFile): LessonBlock
+    public function update(int $lessonId, int $blockId, array $data, ?UploadedFile $mediaFile = null): LessonBlock
     {
         return DB::transaction(function () use ($lessonId, $blockId, $data, $mediaFile) {
             $block = $this->repository->findByLessonAndId($lessonId, $blockId);
@@ -72,7 +86,7 @@ class LessonBlockService
                 'content' => data_get($data, 'content', $block->content),
             ];
 
-            if (Arr::has($data, 'order')) {
+            if (isset($data['order'])) {
                 $update['order'] = $data['order'];
             }
 
