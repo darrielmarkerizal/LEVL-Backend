@@ -9,7 +9,7 @@ class DevController extends Controller
 {
     public function checkOctane(Request $request)
     {
-        $isOctane = isset($_SERVER['LARAVEL_OCTANE']) || App::bound('octane');
+        $isOctane = isset($_SERVER['LARAVEL_OCTANE']);
         
         $data = [
             'is_octane' => $isOctane,
@@ -44,6 +44,10 @@ class DevController extends Controller
             'duration' => microtime(true) - $start,
             'server' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
             'pid' => getmypid(),
+            'memory' => memory_get_usage(),
+            'memory_human' => round(memory_get_usage() / 1024 / 1024, 2) . ' MB',
+            'memory_peak' => memory_get_peak_usage(),
+            'cpu_load' => sys_getloadavg(),
         ]);
     }
 }
