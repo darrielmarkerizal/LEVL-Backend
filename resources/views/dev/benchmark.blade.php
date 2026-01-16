@@ -49,7 +49,6 @@
                 </div>
             </div>
 
-            <!-- Results -->
             <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <h2 class="text-xl font-semibold mb-4 text-gray-800">Results</h2>
                 <div class="space-y-4">
