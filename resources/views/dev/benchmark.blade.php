@@ -22,8 +22,22 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Test Mode</label>
                         <select id="mode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
-                            <option value="simple">Simple (Framework Boot only)</option>
-                            <option value="db">Database (Select 1)</option>
+                            <optgroup label="Simple Tests">
+                                <option value="simple">Simple (Framework Boot only)</option>
+                                <option value="db">Database (Select 1)</option>
+                            </optgroup>
+                            <optgroup label="Production APIs (Real Endpoints)">
+                                <option value="auth_login">Auth - Login</option>
+                                <option value="auth_profile">Auth - Get Profile</option>
+                                <option value="courses_list">Courses - List</option>
+                                <option value="courses_detail">Courses - Detail</option>
+                                <option value="users_list">Users - List (Admin)</option>
+                            </optgroup>
+                            <optgroup label="Database Queries (Direct)">
+                                <option value="dashboard">Student Dashboard Query</option>
+                                <option value="courses">Course Listing Query</option>
+                                <option value="enrollment">Enrollment Check Query</option>
+                            </optgroup>
                         </select>
                     </div>
                     <div>
