@@ -10,6 +10,7 @@
   "license": "MIT",
   "require": {
     "php": "^8.2",
+    "beyondcode/laravel-query-detector": "*",
     "darkaonline/l5-swagger": "^10.0",
     "dedoc/scramble": "^0.13.10",
     "hisorange/browser-detect": "^5.0",
@@ -18,6 +19,7 @@
     "laravel/octane": "^2.13",
     "laravel/scout": "^10.0",
     "laravel/socialite": "^5.23",
+    "laravel/telescope": "^5.15",
     "laravel/tinker": "^2.10.1",
     "league/flysystem-aws-s3-v3": "^3.0",
     "maatwebsite/excel": "^3.1",
@@ -32,8 +34,7 @@
     "spatie/laravel-permission": "^6.22",
     "spatie/laravel-query-builder": "^6.3",
     "spatie/laravel-sluggable": "^3.7",
-    "tymon/jwt-auth": "^2.2",
-    "laravel/telescope": "^5.15"
+    "tymon/jwt-auth": "^2.2"
   },
   "require-dev": {
     "barryvdh/laravel-ide-helper": "^3.6",
