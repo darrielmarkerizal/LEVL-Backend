@@ -134,7 +134,7 @@
 
             async function makeRequest() {
                 try {
-                    const res = await fetch(`/dev/benchmark-api?mode=${mode}`);
+                    const res = await fetch(`/api/benchmark-api?mode=${mode}`);
                     const data = await res.json();
                     lastServerInfo = data.server;
                     lastMetrics = {
@@ -202,8 +202,10 @@
             }
 
             // Show Terminal Command Recommendation
-            const port = window.location.port;
-            const cmd = `ab -n ${totalRequests} -c 50 http://127.0.0.1:${port}/dev/benchmark-api?mode=${mode}`;
+            const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+            const host = window.location.hostname;
+            const protocol = window.location.protocol.replace(':', '');
+            const cmd = `ab -n ${totalRequests} -c 50 ${protocol}://${host}:${port}/api/benchmark-api?mode=${mode}`;
             document.getElementById('terminal-cmd').textContent = cmd;
             document.getElementById('terminal-section').classList.remove('hidden');
 
