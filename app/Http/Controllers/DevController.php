@@ -36,19 +36,20 @@ class DevController extends Controller
         $mode = $request->query('mode', 'simple');
         
         $result = match($mode) {
-            // Scenario 1: Student Dashboard - Most common query
+            // Production API Benchmarks (using HTTP client for realistic testing)
+            'auth_login' => $this->benchmarkAuthLogin(),
+            'auth_profile' => $this->benchmarkAuthProfile(),
+            'courses_list' => $this->benchmarkCoursesList(),
+            'courses_detail' => $this->benchmarkCoursesDetail(),
+            'users_list' => $this->benchmarkUsersList(),
+            
+            // Database Query Benchmarks (direct DB queries)
             'dashboard' => $this->benchmarkStudentDashboard(),
-            
-            // Scenario 2: Course Listing with filters
             'courses' => $this->benchmarkCourseList(),
-            
-            // Scenario 3: Enrollment check (frequent operation)
             'enrollment' => $this->benchmarkEnrollmentCheck(),
-            
-            // Scenario 4: Database connection test (baseline)
             'db' => \DB::select('select 1'),
             
-            // Scenario 5: Simple response (no DB)
+            // Simple response (no DB)
             default => ['simple' => true],
         };
 
@@ -150,5 +151,117 @@ class DevController extends Controller
             ->whereIn('status', ['active', 'completed'])
             ->exists();
     }
-}
 
+    /**
+     * Benchmark: Auth Login (Production API)
+     * Tests the full login flow including validation, authentication, and token generation
+     */
+    private function benchmarkAuthLogin()
+    {
+        try {
+            $response = \Http::post(url('/api/v1/auth/login'), [
+                'login' => 'admin@example.com',
+                'password' => 'password',
+            ]);
+            
+            return ['success' => $response->successful()];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Benchmark: Auth Profile (Production API)
+     * Tests authenticated request with JWT token
+     */
+    private function benchmarkAuthProfile()
+    {
+        try {
+            // Get a valid token first (cached for performance)
+            static $token = null;
+            if (!$token) {
+                $loginResponse = \Http::post(url('/api/v1/auth/login'), [
+                    'login' => 'admin@example.com',
+                    'password' => 'password',
+                ]);
+                $token = $loginResponse->json('data.token');
+            }
+
+            $response = \Http::withToken($token)->get(url('/api/v1/auth/me'));
+            
+            return ['success' => $response->successful()];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Benchmark: Courses List (Production API)
+     * Tests the courses listing endpoint with pagination
+     */
+    private function benchmarkCoursesList()
+    {
+        try {
+            $response = \Http::get(url('/api/v1/courses'), [
+                'per_page' => 15,
+            ]);
+            
+            return ['success' => $response->successful()];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Benchmark: Courses Detail (Production API)
+     * Tests getting a single course detail
+     */
+    private function benchmarkCoursesDetail()
+    {
+        try {
+            // Get a random course slug
+            $slug = \DB::table('courses')
+                ->whereNull('deleted_at')
+                ->where('status', 'published')
+                ->inRandomOrder()
+                ->value('slug');
+
+            if (!$slug) {
+                return ['error' => 'No published courses found'];
+            }
+
+            $response = \Http::get(url("/api/v1/courses/{$slug}"));
+            
+            return ['success' => $response->successful()];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Benchmark: Users List (Production API)
+     * Tests the users listing endpoint (admin only)
+     */
+    private function benchmarkUsersList()
+    {
+        try {
+            // Get admin token (cached)
+            static $token = null;
+            if (!$token) {
+                $loginResponse = \Http::post(url('/api/v1/auth/login'), [
+                    'login' => 'admin@example.com',
+                    'password' => 'password',
+                ]);
+                $token = $loginResponse->json('data.token');
+            }
+
+            $response = \Http::withToken($token)->get(url('/api/v1/users'), [
+                'per_page' => 15,
+            ]);
+            
+            return ['success' => $response->successful()];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+}
