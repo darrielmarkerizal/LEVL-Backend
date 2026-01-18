@@ -19,7 +19,8 @@ class UnitService
     use \App\Support\Traits\BuildsQueryBuilderRequest;
 
     public function __construct(
-        private readonly UnitRepositoryInterface $repository
+        private readonly UnitRepositoryInterface $repository,
+        private readonly SchemesCacheService $cacheService
     ) {}
 
     public function validateHierarchy(int $courseId, int $unitId): void
@@ -104,6 +105,9 @@ class UnitService
     {
         $unit = $this->repository->findByIdOrFail($id);
         $unit->update(['status' => 'published']);
+        
+        // Invalidate course cache
+        $this->cacheService->invalidateCourse($unit->course_id);
 
         return $unit->fresh();
     }
@@ -112,6 +116,9 @@ class UnitService
     {
         $unit = $this->repository->findByIdOrFail($id);
         $unit->update(['status' => 'draft']);
+        
+        // Invalidate course cache
+        $this->cacheService->invalidateCourse($unit->course_id);
 
         return $unit->fresh();
     }
