@@ -41,16 +41,13 @@ class SchemesCacheService
     /**
      * Get public course listing (cached by page & filters)
      */
-    public function getPublicCourses(int $page, int $perPage, array $filters): LengthAwarePaginator
+    public function getPublicCourses(int $page, int $perPage, array $filters, callable $callback): LengthAwarePaginator
     {
         // Create a unique cache key based on filters
         $filterKey = md5(json_encode($filters));
         
         return Cache::tags(['schemes', 'courses', 'listing'])
-            ->remember("courses.public.{$page}.{$perPage}.{$filterKey}", self::TTL_LISTING, function () use ($page, $perPage, $filters) {
-                // Return null here to indicate cache miss (Service will handle query)
-                return null;
-            });
+            ->remember("courses.public.{$page}.{$perPage}.{$filterKey}", self::TTL_LISTING, $callback);
     }
     
     /**

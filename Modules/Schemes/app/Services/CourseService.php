@@ -53,15 +53,14 @@ class CourseService implements CourseServiceInterface
         $perPage = max(1, $perPage);
         $page = request()->get('page', 1);
 
-        // Try to get from cache first
-        $cached = $this->cacheService->getPublicCourses($page, $perPage, $filters);
-        if ($cached) {
-            return $cached;
-        }
+        // Try to get from cache first (with closure)
+        return $this->cacheService->getPublicCourses($page, $perPage, $filters, function () use ($filters, $perPage) {
+            return $this->buildQuery($filters)
+                ->where('status', 'published')
+                ->paginate($perPage);
+        });
 
-        $query = $this->buildQuery($filters)->where('status', 'published');
 
-        return $query->paginate($perPage);
     }
 
     private function buildQuery(array $filters = []): QueryBuilder
@@ -151,7 +150,19 @@ class CourseService implements CourseServiceInterface
                 // Invalidate listing cache
                 $this->cacheService->invalidateListings();
 
-                return $course->fresh(['tags']);
+                $course = $course->fresh(['tags']);
+
+                // Audit Log
+                if ($actor) {
+                    dispatch(new \App\Jobs\LogActivityJob([
+                        'log_name' => 'schemes',
+                        'causer_id' => $actor->id,
+                        'description' => "Created course: {$course->title} ({$course->code})",
+                        'properties' => ['course_id' => $course->id, 'action' => 'create'],
+                    ]));
+                }
+
+                return $course;
             });
         } catch (QueryException $e) {
             throw new DuplicateResourceException($this->parseCourseDuplicates($e));
@@ -179,7 +190,20 @@ class CourseService implements CourseServiceInterface
                 // Invalidate specific course cache + listings
                 $this->cacheService->invalidateCourse($course->id, $course->slug);
 
-                return $course->fresh(['tags']);
+                $updatedCourse = $course->fresh(['tags']);
+
+                // Audit Log
+                $actor = auth()->user(); // Assuming auth context
+                if ($actor) {
+                     dispatch(new \App\Jobs\LogActivityJob([
+                        'log_name' => 'schemes',
+                        'causer_id' => $actor->id,
+                        'description' => "Updated course: {$updatedCourse->title}",
+                        'properties' => ['course_id' => $course->id, 'action' => 'update', 'changes' => $attributes],
+                    ]));
+                }
+
+                return $updatedCourse;
             });
         } catch (QueryException $e) {
             throw new DuplicateResourceException($this->parseCourseDuplicates($e));
@@ -190,7 +214,21 @@ class CourseService implements CourseServiceInterface
     {
         $course = $this->findOrFail($id);
 
-        return $this->repository->delete($course);
+        $deleted = $this->repository->delete($course);
+        
+        if ($deleted) {
+             $actor = auth()->user();
+             if ($actor) {
+                 dispatch(new \App\Jobs\LogActivityJob([
+                    'log_name' => 'schemes',
+                    'causer_id' => $actor->id, // If admin deletes
+                    'description' => "Deleted course: {$course->title}",
+                    'properties' => ['course_id' => $course->id, 'action' => 'delete'],
+                 ]));
+             }
+        }
+
+        return $deleted;
     }
 
     /**
@@ -220,6 +258,18 @@ class CourseService implements CourseServiceInterface
             'published_at' => now(),
         ]);
 
+        $this->cacheService->invalidateCourse($course->id, $course->slug);
+
+        $actor = auth()->user();
+        if ($actor) {
+             dispatch(new \App\Jobs\LogActivityJob([
+                'log_name' => 'schemes',
+                'causer_id' => $actor->id,
+                'description' => "Published course: {$course->title}",
+                'properties' => ['course_id' => $course->id, 'action' => 'publish'],
+             ]));
+        }
+
         return $course->fresh();
     }
 
@@ -231,6 +281,18 @@ class CourseService implements CourseServiceInterface
             'status' => 'draft',
             'published_at' => null,
         ]);
+
+        $this->cacheService->invalidateCourse($course->id, $course->slug);
+
+        $actor = auth()->user();
+        if ($actor) {
+             dispatch(new \App\Jobs\LogActivityJob([
+                'log_name' => 'schemes',
+                'causer_id' => $actor->id,
+                'description' => "Unpublished course: {$course->title}",
+                'properties' => ['course_id' => $course->id, 'action' => 'unpublish'],
+             ]));
+        }
 
         return $course->fresh();
     }
