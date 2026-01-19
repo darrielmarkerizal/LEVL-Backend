@@ -106,13 +106,28 @@ class SystemSetting extends Model
     }
 
     /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (SystemSetting $setting) {
+            \Illuminate\Support\Facades\Cache::forget('system_setting:' . $setting->key);
+        });
+
+        static::deleted(function (SystemSetting $setting) {
+            \Illuminate\Support\Facades\Cache::forget('system_setting:' . $setting->key);
+        });
+    }
+
+    /**
      * Get a setting by key.
      */
     public static function get(string $key, $default = null): mixed
     {
-        $setting = static::find($key);
-
-        return $setting ? $setting->typed_value : $default;
+        return \Illuminate\Support\Facades\Cache::rememberForever('system_setting:' . $key, function () use ($key, $default) {
+            $setting = static::find($key);
+            return $setting ? $setting->typed_value : $default;
+        });
     }
 
     /**
@@ -128,6 +143,7 @@ class SystemSetting extends Model
         if ($setting) {
             $setting->setValue($value);
             $setting->save();
+            // Cache is cleared by the saved event observer
         }
     }
 }

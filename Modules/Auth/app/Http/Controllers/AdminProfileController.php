@@ -25,7 +25,7 @@ class AdminProfileController extends Controller
 
     public function show(Request $request, int $userId): JsonResponse
     {
-        $user = User::findOrFail($userId);
+        $user = User::with(['roles', 'media'])->findOrFail($userId);
         $profileData = $this->profileService->getProfileData($user, $request->user());
 
         return $this->success(
@@ -44,7 +44,7 @@ class AdminProfileController extends Controller
             'account_status' => 'sometimes|in:active,suspended,deleted',
         ]);
 
-        $user = User::findOrFail($userId);
+        $user = User::with(['roles', 'media'])->findOrFail($userId);
         $admin = $request->user();
         $oldData = $user->only(['name', 'email', 'phone', 'bio', 'account_status']);
 
@@ -70,7 +70,7 @@ class AdminProfileController extends Controller
 
     public function suspend(Request $request, int $userId): JsonResponse
     {
-        $user = User::findOrFail($userId);
+        $user = User::with('roles')->findOrFail($userId);
         $admin = $request->user();
 
         $user->account_status = 'suspended';
@@ -90,7 +90,7 @@ class AdminProfileController extends Controller
 
     public function activate(Request $request, int $userId): JsonResponse
     {
-        $user = User::findOrFail($userId);
+        $user = User::with('roles')->findOrFail($userId);
         $admin = $request->user();
 
         $user->account_status = 'active';
