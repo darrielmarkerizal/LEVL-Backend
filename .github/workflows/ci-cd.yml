@@ -71,4 +71,4 @@ jobs:
             php artisan view:cache
             
             # Restart Octane via systemd
-            sudo systemctl restart laravel-frankenphp
+            sudo systemctl restart laravel-octane

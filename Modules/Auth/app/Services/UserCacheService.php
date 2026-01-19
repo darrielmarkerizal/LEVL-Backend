@@ -62,7 +62,7 @@ class UserCacheService
     {
         return Cache::tags(['users', 'roles'])
             ->remember("user.{$userId}.roles", self::TTL_ROLES, function () use ($userId) {
-                return User::find($userId)?->roles->pluck('name')->toArray() ?? [];
+                return User::with('roles:id,name')->find($userId)?->roles->pluck('name')->toArray() ?? [];
             });
     }
     
@@ -73,7 +73,7 @@ class UserCacheService
     {
         return Cache::tags(['users', 'permissions'])
             ->remember("user.{$userId}.permissions", self::TTL_PERMISSIONS, function () use ($userId) {
-                return User::find($userId)?->getAllPermissions()->pluck('name')->toArray() ?? [];
+                return User::with('permissions')->find($userId)?->getAllPermissions()->pluck('name')->toArray() ?? [];
             });
     }
     
