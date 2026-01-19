@@ -85,7 +85,12 @@ class AuthApiController extends Controller
         /** @var User $user */
         $user = auth()->user();
 
-        return $this->success(new UserResource($user), __('messages.auth.profile_retrieved'));
+        $data = \Illuminate\Support\Facades\Cache::tags(['user_profile'])->remember('user_profile:'.$user->id, 3600, function () use ($user) {
+            $user->load(['roles', 'media']);
+            return (new UserResource($user))->resolve();
+        });
+
+        return $this->success($data, __('messages.auth.profile_retrieved'));
     }
 
     public function profile(): JsonResponse

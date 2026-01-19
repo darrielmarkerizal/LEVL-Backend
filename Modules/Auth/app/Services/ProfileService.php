@@ -49,6 +49,8 @@ class ProfileService implements ProfileServiceInterface
             $user->save();
         }
 
+        \Illuminate\Support\Facades\Cache::tags(['user_profile'])->forget('user_profile:'.$user->id);
+
         event(new ProfileUpdated($user, $oldEmail !== $user->email));
 
         return $user->fresh();
@@ -65,6 +67,8 @@ class ProfileService implements ProfileServiceInterface
         $user->last_profile_update = now();
         $user->save();
 
+        \Illuminate\Support\Facades\Cache::tags(['user_profile'])->forget('user_profile:'.$user->id);
+
         return $media->getUrl();
     }
 
@@ -73,6 +77,8 @@ class ProfileService implements ProfileServiceInterface
         $user->clearMediaCollection('avatar');
         $user->last_profile_update = now();
         $user->save();
+
+        \Illuminate\Support\Facades\Cache::tags(['user_profile'])->forget('user_profile:'.$user->id);
     }
 
     public function getProfileData(User $user, ?User $viewer = null): array
@@ -124,6 +130,8 @@ class ProfileService implements ProfileServiceInterface
 
         $user->password = Hash::make($newPassword);
         $user->save();
+
+        \Illuminate\Support\Facades\Cache::tags(['user_profile'])->forget('user_profile:'.$user->id);
 
         event(new PasswordChanged($user));
 

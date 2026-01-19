@@ -290,6 +290,8 @@ class AuthService implements AuthServiceInterface
         $user->update(['username' => $username]);
         $user->refresh();
 
+        \Illuminate\Support\Facades\Cache::tags(['user_profile'])->forget('user_profile:'.$user->id);
+
         $userArray = $user->toArray();
         $userArray['roles'] = $user->getRoleNames()->values();
         $userArray['avatar_url'] = $user->avatar_url;
@@ -304,6 +306,8 @@ class AuthService implements AuthServiceInterface
             'is_password_set' => true,
         ]);
         $user->refresh();
+
+        \Illuminate\Support\Facades\Cache::tags(['user_profile'])->forget('user_profile:'.$user->id);
 
         $userArray = $user->toArray();
         $userArray['roles'] = $user->getRoleNames()->values();
