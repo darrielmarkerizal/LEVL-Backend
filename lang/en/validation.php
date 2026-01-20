@@ -116,6 +116,50 @@ return [
     'uuid' => 'The :attribute must be a valid UUID.',
 
     'custom' => [
+        'score_awarded' => [
+            'required' => 'The score_awarded field is required.',
+        ],
+        'feedback' => [
+            'required' => 'The feedback field is required.',
+        ],
+        'question_text' => [
+            'required' => 'The question_text field is required.',
+        ],
+        'type' => [
+            'required' => 'The type field is required.',
+            'in' => 'The type must be one of: :values.',
+        ],
+        'score_weight' => [
+            'required' => 'The score_weight field is required.',
+            'numeric' => 'The score_weight must be a number.',
+        ],
+        'option_text' => [
+            'required' => 'The option_text field is required.',
+        ],
+        'is_correct' => [
+            'required' => 'The is_correct field is required.',
+        ],
+        'title' => [
+            'required' => 'The title field is required.',
+        ],
+        'scope_type' => [
+            'required' => 'The scope_type field is required.',
+        ],
+        'scope_id' => [
+            'required' => 'The scope_id field is required.',
+        ],
+        'max_score' => [
+            'required' => 'The max_score field is required.',
+        ],
+        'selected_option_id' => [
+            'required' => 'The selected_option_id field is required.',
+        ],
+        'answer_text' => [
+            'required' => 'The answer_text field is required.',
+        ],
+        'question_id' => [
+            'required' => 'The question_id field is required.',
+        ],
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
@@ -147,5 +191,6 @@ return [
         'password' => 'password',
         'name' => 'name',
         'avatar' => 'avatar',
+        'enum' => 'enum',
     ],
 ];

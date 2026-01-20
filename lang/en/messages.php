@@ -79,6 +79,10 @@ return [
     "no_unpublish_access" => "You do not have access to unpublish this unit.",
     "no_reorder_access" => "You do not have access to reorder units for this course.",
     "some_not_found" => "Some units not found in this course.",
+    "code_required" => "Unit code is required.",
+    "code_unique" => "Unit code is already in use.",
+    "title_required" => "Unit title is required.",
+    "order_unique" => "Unit order is already used in this course.",
   ],
 
   // Lessons Module
@@ -188,6 +192,12 @@ return [
     "must_have_one_unit" => "Course must have at least one unit.",
     "cannot_publish_without_lessons" => "Course cannot be published without lessons.",
     "must_have_one_lesson" => "Course must have at least one lesson.",
+    "cannot_publish_without_published_units" => "Course cannot be published without published units.",
+    "must_have_one_published_unit" => "Course must have at least one published unit.",
+    "cannot_publish_without_published_lessons" => "Course cannot be published without published lessons.",
+    "must_have_one_published_lesson" => "Course must have at least one published lesson.",
+    "cannot_publish_without_enrollment_key" => "Key-based course must have an enrollment key.",
+    "must_have_enrollment_key" => "Enrollment key is required for key-based courses.",
   ],
 
   // Auth Module
@@ -369,6 +379,20 @@ return [
     "rejected" => "Enrollment request rejected.",
     "key_required" => "Enrollment key is required.",
     "key_invalid" => "Enrollment key is invalid.",
+    "already_enrolled_or_cancelled" => "You have already enrolled or cancelled enrollment for this course. You cannot enroll again.",
+    "cannot_cancel_pending" => "Only pending enrollments can be cancelled.",
+    "cannot_withdraw_active" => "Only active enrollments can be withdrawn.",
+    "cannot_approve_pending" => "Only pending enrollment requests can be approved.",
+    "cannot_decline_pending" => "Only pending enrollment requests can be declined.",
+    "cannot_remove_active_pending" => "Only active or pending enrollments can be removed.",
+    "auto_accept_success" => "Enroll succeeded. You are now enrolled in this course.",
+    "approval_sent" => "Enrollment request submitted. Awaiting approval.",
+    "enrolled_success" => "Enroll succeeded.",
+    "key_based_success" => "Enroll succeeded using enrollment key.",
+    "course_not_published" => "Course is not published.",
+    "enrollment_pending" => "Your enrollment is being processed and awaiting approval.",
+    "enrollment_success" => "Enrollment successful.",
+    "enrollment_failed" => "Enrollment failed. Please try again.",
   ],
 
   // Assignments Module
@@ -386,6 +410,14 @@ return [
   // Learning Module
   "learning" => [
     "progress_saved" => "Learning progress saved successfully.",
+  ],
+
+  // Progress Module
+  "progress" => [
+    "locked_prerequisite" => "This lesson is locked. Complete prerequisite lessons first.",
+    "lesson_not_in_unit" => "Lesson not found in this unit.",
+    "enrollment_not_found" => "Enrollment not found.",
+    "updated" => "Progress updated successfully.",
   ],
 
   // Challenges Module
