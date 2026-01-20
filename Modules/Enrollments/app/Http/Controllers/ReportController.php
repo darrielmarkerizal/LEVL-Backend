@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Enrollments\Http\Controllers;
 
 use App\Support\ApiResponse;

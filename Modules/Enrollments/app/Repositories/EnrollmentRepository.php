@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Enrollments\Repositories;
 
 use App\Repositories\BaseRepository;
@@ -42,7 +44,7 @@ class EnrollmentRepository extends BaseRepository implements EnrollmentRepositor
             ->where('course_id', $courseId)
             ->with(['user:id,name,email']);
 
-        $searchQuery = $params['search'] ?? request('filter.search') ?? request('search');
+        $searchQuery = $params['search'] ?? null;
 
         if ($searchQuery && trim($searchQuery) !== '') {
             $ids = Enrollment::search($searchQuery)
@@ -78,7 +80,7 @@ class EnrollmentRepository extends BaseRepository implements EnrollmentRepositor
             $query->whereRaw('1 = 0');
         }
 
-        $searchQuery = $params['search'] ?? request('filter.search') ?? request('search');
+        $searchQuery = $params['search'] ?? null;
 
         if ($searchQuery && trim($searchQuery) !== '') {
             $ids = Enrollment::search($searchQuery)
@@ -109,7 +111,7 @@ class EnrollmentRepository extends BaseRepository implements EnrollmentRepositor
             ->where('user_id', $userId)
             ->with(['course:id,slug,title,status']);
 
-        $searchQuery = $params['search'] ?? request('filter.search') ?? request('search');
+        $searchQuery = $params['search'] ?? null;
 
         if ($searchQuery && trim($searchQuery) !== '') {
             $ids = Enrollment::search($searchQuery)

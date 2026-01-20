@@ -9,7 +9,7 @@ use Modules\Schemes\Models\Course;
 
 interface CourseServiceInterface
 {
-    public function listPublic(int $perPage = 15): LengthAwarePaginator;
+    public function listPublic(int $perPage = 15, array $filters = []): LengthAwarePaginator;
     public function list(array $filters = [], int $perPage = 15): LengthAwarePaginator;
     public function create(array $data, ?\Modules\Auth\Models\User $actor = null, array $files = []): Course;
     public function update(int $id, array $data, array $files = []): ?Course;

@@ -9,6 +9,7 @@ use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
+use Modules\Auth\Contracts\Services\AuthenticationServiceInterface;
 use Modules\Auth\Contracts\Services\AuthServiceInterface;
 use Modules\Auth\Http\Requests\LoginRequest;
 use Modules\Auth\Http\Requests\LogoutRequest;
@@ -21,15 +22,14 @@ use Modules\Auth\Http\Resources\LoginResource;
 use Modules\Auth\Http\Resources\RegisterResource;
 use Modules\Auth\Http\Resources\UserResource;
 use Modules\Auth\Models\User;
-use Modules\Auth\Services\AuthenticationService;
 
 class AuthApiController extends Controller
 {
     use ApiResponse;
 
     public function __construct(
-        private AuthServiceInterface $authService,
-        private AuthenticationService $authenticationService
+        private readonly AuthServiceInterface $authService,
+        private readonly AuthenticationServiceInterface $authenticationService
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse

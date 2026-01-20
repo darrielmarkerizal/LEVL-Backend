@@ -12,13 +12,13 @@ use Modules\Schemes\Models\Course;
 
 interface EnrollmentServiceInterface
 {
-    public function paginateByCourse(int $courseId, int $perPage = 15): LengthAwarePaginator;
+    public function paginateByCourse(int $courseId, int $perPage = 15, array $filters = []): LengthAwarePaginator;
 
-    public function paginateByCourseIds(array $courseIds, int $perPage = 15): LengthAwarePaginator;
+    public function paginateByCourseIds(array $courseIds, int $perPage = 15, array $filters = []): LengthAwarePaginator;
 
-    public function paginateByUser(int $userId, int $perPage = 15): LengthAwarePaginator;
+    public function paginateByUser(int $userId, int $perPage = 15, array $filters = []): LengthAwarePaginator;
 
-    public function paginateAll(int $perPage = 15): LengthAwarePaginator;
+    public function paginateAll(int $perPage = 15, array $filters = []): LengthAwarePaginator;
 
     public function findById(int $id): ?Enrollment;
 
@@ -38,15 +38,13 @@ interface EnrollmentServiceInterface
 
     public function getActiveEnrollment(int $userId, int $courseId): ?Enrollment;
 
-    public function listEnrollments(User $user, int $perPage, ?string $courseSlug): LengthAwarePaginator;
+    public function listEnrollments(User $user, int $perPage, array $filters = []): LengthAwarePaginator;
 
-    public function getManagedEnrollments(User $user, int $perPage, ?string $courseSlug): array;
+    public function getManagedEnrollments(User $user, int $perPage, ?string $courseSlug, array $filters = []): array;
 
-    public function cancelEnrollment(Course $course, User $user, ?int $targetUserId): Enrollment;
+    public function findEnrollmentForAction(Course $course, User $user, array $data): Enrollment;
 
-    public function withdrawEnrollment(Course $course, User $user, ?int $targetUserId): Enrollment;
+    public function getEnrollmentStatus(Course $course, User $user, array $data): array;
 
-    public function getEnrollmentStatus(Course $course, User $user, ?int $targetUserId): array;
-
-    public function enroll(User $user, Course $course, ?string $enrollmentKey = null): Enrollment;
+    public function enroll(User $user, Course $course, array $data): array;
 }
