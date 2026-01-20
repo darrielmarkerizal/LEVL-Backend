@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Modules\Auth\Contracts\Repositories\AuthRepositoryInterface;
+use Modules\Auth\Contracts\Services\AuthenticationServiceInterface;
 use Modules\Auth\DTOs\LoginDTO;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Events\UserLoggedIn;
@@ -16,7 +17,7 @@ use Modules\Auth\Models\User;
 use Modules\Auth\Support\TokenPairDTO;
 use Tymon\JWTAuth\JWTAuth;
 
-class AuthenticationService
+class AuthenticationService implements AuthenticationServiceInterface
 {
     public function __construct(
         private readonly AuthRepositoryInterface $authRepository,

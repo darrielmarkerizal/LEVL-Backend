@@ -55,6 +55,10 @@ class AuthServiceProvider extends ServiceProvider
 
         $this->app->bind(AuthRepositoryInterface::class, AuthRepository::class);
         $this->app->bind(AuthServiceInterface::class, AuthService::class);
+        $this->app->bind(
+            \Modules\Auth\Contracts\Services\AuthenticationServiceInterface::class,
+            \Modules\Auth\Services\AuthenticationService::class,
+        );
 
         $this->app->bind(
             \Modules\Auth\Contracts\Repositories\UserBulkRepositoryInterface::class,

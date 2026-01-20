@@ -31,14 +31,14 @@ use Spatie\QueryBuilder\QueryBuilder;
 class EnrollmentService implements EnrollmentServiceInterface
 {
     public function __construct(
-        private EnrollmentRepositoryInterface $repository,
-        private EnrollmentKeyHasherInterface $keyHasher
+        private readonly EnrollmentRepositoryInterface $repository,
+        private readonly EnrollmentKeyHasherInterface $keyHasher
     ) {}
 
-    public function paginateByCourse(int $courseId, int $perPage = 15): LengthAwarePaginator
+    public function paginateByCourse(int $courseId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $searchQuery = request()->input('search');
+        $searchQuery = $filters['search'] ?? null;
 
         $builder = QueryBuilder::for(Enrollment::class)
             ->with(['user', 'course'])
@@ -72,10 +72,10 @@ class EnrollmentService implements EnrollmentServiceInterface
             ->paginate($perPage);
     }
 
-    public function paginateByCourseIds(array $courseIds, int $perPage = 15): LengthAwarePaginator
+    public function paginateByCourseIds(array $courseIds, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $searchQuery = request()->input('search');
+        $searchQuery = $filters['search'] ?? null;
 
         $builder = QueryBuilder::for(Enrollment::class)
             ->with(['user', 'course'])
@@ -117,10 +117,10 @@ class EnrollmentService implements EnrollmentServiceInterface
             ->paginate($perPage);
     }
 
-    public function paginateByUser(int $userId, int $perPage = 15): LengthAwarePaginator
+    public function paginateByUser(int $userId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $searchQuery = request()->input('search');
+        $searchQuery = $filters['search'] ?? null;
 
         $builder = QueryBuilder::for(Enrollment::class)
             ->with(['user', 'course'])
@@ -151,10 +151,10 @@ class EnrollmentService implements EnrollmentServiceInterface
             ->paginate($perPage);
     }
 
-    public function paginateAll(int $perPage = 15): LengthAwarePaginator
+    public function paginateAll(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $searchQuery = request()->input('search');
+        $searchQuery = $filters['search'] ?? null;
 
         $builder = QueryBuilder::for(Enrollment::class)
             ->with(['user', 'course']);
@@ -198,7 +198,7 @@ class EnrollmentService implements EnrollmentServiceInterface
     /**
      * Get managed enrollments for a user (courses they manage)
      */
-    public function getManagedEnrollments(User $user, int $perPage = 15, ?string $courseSlug = null): array
+    public function getManagedEnrollments(User $user, int $perPage = 15, ?string $courseSlug = null, array $filters = []): array
     {
         $courses = Course::query()
             ->select(['id', 'slug', 'title'])
@@ -221,9 +221,9 @@ class EnrollmentService implements EnrollmentServiceInterface
                     'paginator' => null,
                 ];
             }
-            $paginator = $this->paginateByCourse($course->id, $perPage);
+            $paginator = $this->paginateByCourse($course->id, $perPage, $filters);
         } else {
-            $paginator = $this->paginateByCourseIds($courseIds, $perPage);
+            $paginator = $this->paginateByCourseIds($courseIds, $perPage, $filters);
         }
 
         return [
@@ -445,14 +445,16 @@ class EnrollmentService implements EnrollmentServiceInterface
     /**
      * List enrollments based on user role (context-aware)
      */
-    public function listEnrollments(User $user, int $perPage, ?string $courseSlug): LengthAwarePaginator
+    public function listEnrollments(User $user, int $perPage, array $filters = []): LengthAwarePaginator
     {
+        $courseSlug = $filters['filter']['course_slug'] ?? $filters['course_slug'] ?? null;
+        
         if ($user->hasRole('Superadmin')) {
-            return $this->paginateAll($perPage);
+            return $this->paginateAll($perPage, $filters);
         }
 
         if ($user->hasRole('Admin') || $user->hasRole('Instructor')) {
-            $result = $this->getManagedEnrollments($user, $perPage, $courseSlug);
+            $result = $this->getManagedEnrollments($user, $perPage, $courseSlug, $filters);
             
             if (! $result['found']) {
                 throw new BusinessException(
@@ -464,34 +466,19 @@ class EnrollmentService implements EnrollmentServiceInterface
             return $result['paginator'];
         }
 
-        return $this->paginateByUser($user->id, $perPage);
+        return $this->paginateByUser($user->id, $perPage, $filters);
     }
 
     /**
-     * Cancel enrollment with find logic
+     * Find enrollment for cancel/withdraw actions (with role-based logic)
      */
-    public function cancelEnrollment(Course $course, User $user, ?int $targetUserId): Enrollment
+    public function findEnrollmentForAction(Course $course, User $user, array $data): Enrollment
     {
-        $userId = $targetUserId ?? $user->id;
-        $enrollment = $this->findByCourseAndUser($course->id, $userId);
-
-        if (!$enrollment) {
-            throw new BusinessException(
-                __('messages.enrollments.request_not_found'),
-                []
-            );
-        }
-
-        return $enrollment;
-    }
-
-    /**
-     * Withdraw from enrollment with find logic
-     */
-    public function withdrawEnrollment(Course $course, User $user, ?int $targetUserId): Enrollment
-    {
-        $userId = $targetUserId ?? $user->id;
-        $enrollment = $this->findByCourseAndUser($course->id, $userId);
+        $targetUserId = $user->hasRole('Superadmin') && isset($data['user_id']) 
+            ? (int) $data['user_id'] 
+            : $user->id;
+            
+        $enrollment = $this->findByCourseAndUser($course->id, $targetUserId);
 
         if (!$enrollment) {
             throw new BusinessException(
@@ -506,11 +493,31 @@ class EnrollmentService implements EnrollmentServiceInterface
     /**
      * Get enrollment status with find logic
      */
+    public function getEnrollmentStatus(Course $course, User $user, array $data): array
+    {
+        $targetUserId = $user->hasRole('Superadmin') && isset($data['user_id'])
+            ? (int) $data['user_id']
+            : $user->id;
+            
+        $enrollment = $this->findByCourseAndUser($course->id, $targetUserId);
+
+        if ($enrollment) {
+            $enrollment = $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+        }
+
+        return [
+            'found' => (bool) $enrollment,
+            'enrollment' => $enrollment,
+        ];
+    }
+
     /**
      * @throws BusinessException
      */
-    public function enroll(User $user, Course $course, ?string $enrollmentKey = null): Enrollment
+    public function enroll(User $user, Course $course, array $data): array
     {
+        $enrollmentKey = $data['enrollment_key'] ?? null;
+        
         // 1. Check Course Status
         if ($course->status !== \Modules\Schemes\Enums\CourseStatus::Published) {
             throw new BusinessException(
@@ -601,18 +608,17 @@ class EnrollmentService implements EnrollmentServiceInterface
             // Dispatch Event
             event(new EnrollmentCreated($enrollment));
 
-            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+            $freshEnrollment = $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+            
+            // Generate message based on status
+            $message = $initialStatus === EnrollmentStatus::Pending
+                ? __('messages.enrollments.approval_sent')
+                : __('messages.enrollments.auto_accept_success');
+
+            return [
+                'enrollment' => $freshEnrollment,
+                'message' => $message,
+            ];
         });
-    }
-
-    public function getEnrollmentStatus(Course $course, User $user, ?int $targetUserId): array
-    {
-        $userId = $targetUserId ?? $user->id;
-        $enrollment = $this->findByCourseAndUser($course->id, $userId);
-
-        return [
-            'found' => (bool) $enrollment,
-            'enrollment' => $enrollment,
-        ];
     }
 }

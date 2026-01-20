@@ -24,9 +24,8 @@ class EnrollmentsController extends Controller
     {
         $user = auth('api')->user();
         $perPage = max(1, (int) $request->query('per_page', 15));
-        $courseSlug = $request->input('filter.course_slug');
         
-        $paginator = $this->service->listEnrollments($user, $perPage, $courseSlug);
+        $paginator = $this->service->listEnrollments($user, $perPage, $request->all());
         
         $paginator->getCollection()->transform(fn($item) => new EnrollmentResource($item));
         return $this->paginateResponse($paginator, __('messages.enrollments.list_retrieved'));
@@ -46,23 +45,20 @@ class EnrollmentsController extends Controller
     public function store(Request $request, Course $course)
     {
         $user = auth('api')->user();
-        $enrollmentKey = $request->input('enrollment_key');
+        
+        $result = $this->service->enroll($user, $course, $request->all());
 
-        $enrollment = $this->service->enroll($user, $course, $enrollmentKey);
-
-        $message = $enrollment->status === EnrollmentStatus::Pending
-            ? __('messages.enrollments.approval_sent')
-            : __('messages.enrollments.auto_accept_success');
-
-        return $this->created(new EnrollmentResource($enrollment), $message);
+        return $this->created(
+            new EnrollmentResource($result['enrollment']), 
+            $result['message']
+        );
     }
 
     public function cancel(Request $request, Course $course)
     {
         $user = auth('api')->user();
-        $targetUserId = $user->hasRole('Superadmin') ? $request->input('user_id') : null;
         
-        $enrollment = $this->service->cancelEnrollment($course, $user, $targetUserId);
+        $enrollment = $this->service->findEnrollmentForAction($course, $user, $request->all());
         $this->authorize('cancel', $enrollment);
         
         $updated = $this->service->cancel($enrollment);
@@ -73,9 +69,8 @@ class EnrollmentsController extends Controller
     public function withdraw(Request $request, Course $course)
     {
         $user = auth('api')->user();
-        $targetUserId = $user->hasRole('Superadmin') ? $request->input('user_id') : null;
         
-        $enrollment = $this->service->withdrawEnrollment($course, $user, $targetUserId);
+        $enrollment = $this->service->findEnrollmentForAction($course, $user, $request->all());
         $this->authorize('withdraw', $enrollment);
         
         $updated = $this->service->withdraw($enrollment);
@@ -86,9 +81,8 @@ class EnrollmentsController extends Controller
     public function status(Request $request, Course $course)
     {
         $user = auth('api')->user();
-        $targetUserId = $user->hasRole('Superadmin') ? $request->query('user_id') : null;
         
-        $result = $this->service->getEnrollmentStatus($course, $user, $targetUserId);
+        $result = $this->service->getEnrollmentStatus($course, $user, $request->all());
         
         if (! $result['found']) {
             return $this->success(
@@ -99,10 +93,11 @@ class EnrollmentsController extends Controller
         
         $this->authorize('view', $result['enrollment']);
         
-        $enrollment = $result['enrollment']->fresh(['course:id,title,slug', 'user:id,name,email']);
-        
         return $this->success(
-            ['status' => $enrollment->status, 'enrollment' => new EnrollmentResource($enrollment)],
+            [
+                'status' => $result['enrollment']->status, 
+                'enrollment' => new EnrollmentResource($result['enrollment'])
+            ],
             __('messages.enrollments.status_retrieved'),
         );
     }
