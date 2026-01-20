@@ -18,8 +18,6 @@ class EnrollmentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user_id' => $this->user_id,
-            'course_id' => $this->course_id,
             'status' => $this->status,
             'enrolled_at' => $this->enrolled_at?->toISOString(),
             'completed_at' => $this->completed_at?->toISOString(),

@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Mail;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Contracts\Repositories\EnrollmentRepositoryInterface;
 use Modules\Enrollments\Contracts\Services\EnrollmentServiceInterface;
-use Modules\Enrollments\DTOs\CreateEnrollmentDTO;
 use Modules\Enrollments\Enums\EnrollmentStatus;
 use Modules\Enrollments\Events\EnrollmentCreated;
 use Modules\Enrollments\Mail\AdminEnrollmentNotificationMail;
@@ -23,6 +22,7 @@ use Modules\Enrollments\Mail\StudentEnrollmentApprovedMail;
 use Modules\Enrollments\Mail\StudentEnrollmentDeclinedMail;
 use Modules\Enrollments\Mail\StudentEnrollmentPendingMail;
 use Modules\Enrollments\Models\Enrollment;
+use Modules\Enrollments\Jobs\HandleEnrollmentCreatedJob;
 use Modules\Schemes\Models\Course;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;
@@ -41,12 +41,18 @@ class EnrollmentService implements EnrollmentServiceInterface
         $searchQuery = request()->input('search');
 
         $builder = QueryBuilder::for(Enrollment::class)
+            ->with(['user', 'course'])
             ->where('course_id', $courseId);
 
         if ($searchQuery && trim((string) $searchQuery) !== '') {
             $ids = Enrollment::search($searchQuery)->take(1000)->keys()->toArray();
             $builder->whereIn('id', $ids ?: [0]);
         }
+
+        $prioritySort = AllowedSort::callback('priority', function ($query, $descending) {
+            $query->orderByRaw("CASE WHEN status = 'pending' THEN 1 ELSE 2 END")
+                  ->orderBy('created_at', 'desc');
+        });
 
         return $builder
             ->allowedFilters([
@@ -60,12 +66,9 @@ class EnrollmentService implements EnrollmentServiceInterface
                 'enrolled_at', 
                 'completed_at', 
                 'created_at',
-                AllowedSort::callback('priority', function ($query, $descending) {
-                    $query->orderByRaw("CASE WHEN status = 'pending' THEN 1 ELSE 2 END")
-                          ->orderBy('created_at', 'desc');
-                }),
+                $prioritySort,
             ])
-            ->defaultSort('priority')
+            ->defaultSort($prioritySort)
             ->paginate($perPage);
     }
 
@@ -75,12 +78,18 @@ class EnrollmentService implements EnrollmentServiceInterface
         $searchQuery = request()->input('search');
 
         $builder = QueryBuilder::for(Enrollment::class)
+            ->with(['user', 'course'])
             ->whereIn('course_id', $courseIds);
 
         if ($searchQuery && trim((string) $searchQuery) !== '') {
             $ids = Enrollment::search($searchQuery)->take(1000)->keys()->toArray();
             $builder->whereIn('id', $ids ?: [0]);
         }
+
+        $prioritySort = AllowedSort::callback('priority', function ($query, $descending) {
+            $query->orderByRaw("CASE WHEN status = 'pending' THEN 1 ELSE 2 END")
+                  ->orderBy('created_at', 'desc');
+        });
 
         return $builder
             ->allowedFilters([
@@ -102,12 +111,9 @@ class EnrollmentService implements EnrollmentServiceInterface
                 'enrolled_at', 
                 'completed_at', 
                 'created_at',
-                AllowedSort::callback('priority', function ($query, $descending) {
-                    $query->orderByRaw("CASE WHEN status = 'pending' THEN 1 ELSE 2 END")
-                          ->orderBy('created_at', 'desc');
-                }),
+                $prioritySort,
             ])
-            ->defaultSort('priority')
+            ->defaultSort($prioritySort)
             ->paginate($perPage);
     }
 
@@ -117,6 +123,7 @@ class EnrollmentService implements EnrollmentServiceInterface
         $searchQuery = request()->input('search');
 
         $builder = QueryBuilder::for(Enrollment::class)
+            ->with(['user', 'course'])
             ->where('user_id', $userId);
 
         if ($searchQuery && trim((string) $searchQuery) !== '') {
@@ -149,12 +156,18 @@ class EnrollmentService implements EnrollmentServiceInterface
         $perPage = max(1, $perPage);
         $searchQuery = request()->input('search');
 
-        $builder = QueryBuilder::for(Enrollment::class);
+        $builder = QueryBuilder::for(Enrollment::class)
+            ->with(['user', 'course']);
 
         if ($searchQuery && trim((string) $searchQuery) !== '') {
             $ids = Enrollment::search($searchQuery)->take(1000)->keys()->toArray();
             $builder->whereIn('id', $ids ?: [0]);
         }
+
+        $prioritySort = AllowedSort::callback('priority', function ($query, $descending) {
+            $query->orderByRaw("CASE WHEN status = 'pending' THEN 1 ELSE 2 END")
+                  ->orderBy('created_at', 'desc');
+        });
 
         return $builder
             ->allowedFilters([
@@ -176,12 +189,9 @@ class EnrollmentService implements EnrollmentServiceInterface
                 'enrolled_at',
                 'completed_at',
                 'created_at',
-                AllowedSort::callback('priority', function ($query, $descending) {
-                    $query->orderByRaw("CASE WHEN status = 'pending' THEN 1 ELSE 2 END")
-                          ->orderBy('created_at', 'desc');
-                }),
+                $prioritySort,
             ])
-            ->defaultSort('priority')
+            ->defaultSort($prioritySort)
             ->paginate($perPage);
     }
 
@@ -230,65 +240,6 @@ class EnrollmentService implements EnrollmentServiceInterface
     public function findByCourseAndUser(int $courseId, int $userId): ?Enrollment
     {
         return $this->repository->findByCourseAndUser($courseId, $userId);
-    }
-
-    /**
-     * @return array{enrollment: Enrollment, status: string, message: string}
-     *
-     * @throws BusinessException
-     */
-    public function enroll(Course $course, User $user, CreateEnrollmentDTO $dto): array
-    {
-        return DB::transaction(function () use ($course, $user, $dto) {
-            $existing = $this->repository->findByCourseAndUser($course->id, $user->id);
-
-            if ($existing) {
-                throw new BusinessException(
-                    __('messages.enrollments.already_enrolled_or_cancelled'),
-                    ['course' => __('messages.enrollments.already_enrolled_or_cancelled')]
-                );
-            }
-
-            $enrollment = new Enrollment([
-                'user_id' => $user->id,
-                'course_id' => $course->id,
-            ]);
-
-            [$status, $message] = $this->determineStatusAndMessage($course, $dto);
-
-            $enrollment->status = EnrollmentStatus::from($status);
-            $enrollment->enrolled_at = Carbon::now();
-
-            if ($status !== EnrollmentStatus::Completed->value) {
-                $enrollment->completed_at = null;
-            }
-
-            // Save without syncing to Meilisearch
-            Enrollment::withoutSyncingToSearch(fn () => $enrollment->save());
-            
-            // Load relations instead of fresh() to avoid extra queries
-            $enrollment->load(['course:id,title,slug,code', 'user:id,name,email']);
-
-            // Dispatch event and send emails asynchronously after response
-            $enrollmentId = $enrollment->id;
-            $courseId = $course->id;
-            $userId = $user->id;
-            $enrollStatus = $status;
-            
-            dispatch(function () use ($enrollmentId, $courseId, $userId, $enrollStatus) {
-                $enrollment = Enrollment::with(['course:id,title,slug,code', 'user:id,name,email'])->find($enrollmentId);
-                if ($enrollment) {
-                    EnrollmentCreated::dispatch($enrollment);
-                    $this->sendEnrollmentEmails($enrollment, $enrollment->course, $enrollment->user, $enrollStatus);
-                }
-            })->afterResponse();
-
-            return [
-                'enrollment' => $enrollment,
-                'status' => $status,
-                'message' => $message,
-            ];
-        });
     }
 
     /**
@@ -417,49 +368,6 @@ class EnrollmentService implements EnrollmentServiceInterface
 
             return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
         });
-    }
-
-    /**
-     * @return array{0: string, 1: string}
-     */
-    private function determineStatusAndMessage(Course $course, CreateEnrollmentDTO $dto): array
-    {
-        $type = $course->enrollment_type;
-
-        $typeValue = $type instanceof \Modules\Schemes\Enums\EnrollmentType ? $type->value : ($type ?? 'auto_accept');
-
-        return match ($typeValue) {
-            'auto_accept' => ['active', __('messages.enrollments.auto_accept_success')],
-            'key_based' => $this->handleKeyBasedEnrollment($course, $dto),
-            'approval' => ['pending', __('messages.enrollments.approval_sent')],
-            default => ['active', __('messages.enrollments.enrolled_success')],
-        };
-    }
-
-    /**
-     * @return array{0: string, 1: string}
-     *
-     * @throws BusinessException
-     */
-    private function handleKeyBasedEnrollment(Course $course, CreateEnrollmentDTO $dto): array
-    {
-        $providedKey = trim((string) ($dto->enrollmentKey ?? ''));
-
-        if ($providedKey === '') {
-            throw new BusinessException(
-                __('messages.enrollments.key_required'),
-                ['enrollment_key' => __('messages.enrollments.key_required')]
-            );
-        }
-
-        if (empty($course->enrollment_key_hash) || ! $this->keyHasher->verify($providedKey, $course->enrollment_key_hash)) {
-            throw new BusinessException(
-                __('messages.enrollments.key_invalid'),
-                ['enrollment_key' => __('messages.enrollments.key_invalid')]
-            );
-        }
-
-        return ['active', __('messages.enrollments.key_based_success')];
     }
 
     private function sendEnrollmentEmails(Enrollment $enrollment, Course $course, User $student, string $status): void
@@ -598,6 +506,105 @@ class EnrollmentService implements EnrollmentServiceInterface
     /**
      * Get enrollment status with find logic
      */
+    /**
+     * @throws BusinessException
+     */
+    public function enroll(User $user, Course $course, ?string $enrollmentKey = null): Enrollment
+    {
+        // 1. Check Course Status
+        if ($course->status !== \Modules\Schemes\Enums\CourseStatus::Published) {
+            throw new BusinessException(
+                __('messages.enrollments.course_not_published'),
+                ['course' => __('messages.enrollments.course_not_published')]
+            );
+        }
+
+        // 2. Check Enrollment Type & Key
+        if ($course->enrollment_type === \Modules\Schemes\Enums\EnrollmentType::KeyBased) {
+            if (empty($enrollmentKey)) {
+                throw new BusinessException(
+                    __('messages.enrollments.key_required'),
+                    ['enrollment_key' => __('messages.enrollments.key_required')]
+                );
+            }
+
+            if (! $this->keyHasher->check($enrollmentKey, $course->enrollment_key_hash)) {
+                throw new BusinessException(
+                    __('messages.enrollments.invalid_key'),
+                    ['enrollment_key' => __('messages.enrollments.invalid_key')]
+                );
+            }
+        }
+
+        // 3. Check Duplicate Enrollment
+        // Optimized: Check efficient index query first
+        $existingEnrollment = $this->repository->findByCourseAndUser($course->id, $user->id);
+        
+        if ($existingEnrollment) {
+            if ($existingEnrollment->status === EnrollmentStatus::Active) {
+                throw new BusinessException(
+                    __('messages.enrollments.already_enrolled'),
+                    []
+                );
+            }
+            if ($existingEnrollment->status === EnrollmentStatus::Pending) {
+                throw new BusinessException(
+                    __('messages.enrollments.enrollment_pending'),
+                    []
+                );
+            }
+            // If Cancelled/Rejected/Expelled, we might allow re-enrollment logic here?
+            // For now, let's assume if they were expelled/rejected, they can re-apply if logic allows.
+            // But per 'Enrollment Flow' in plan, we just check Active/Pending.
+            // If they have a Cancelled one, we should probably CREATE A NEW ONE or UPDATE THE EXISTING?
+            // "Create record" implies new or update. 
+            // Better to update status of existing record if it exists but cancelled?
+            // Or create new? 
+            // Plan said "Insert into enrollments". 
+            // Let's stick to simple "Create new" logic but since unique constraint usually exists on (user_id, course_id)...
+            // Wait, does `enrollments` table have unique(user_id, course_id)?
+            // If strict unique constraint, we MUST update.
+            // Let's assume we update existing if found, or create new.
+            // Actually, best practice for historial data is keeping old one?
+            // But if unique index exists, we can't.
+            // Let's assume we reuse the record if it exists.
+        }
+
+        return DB::transaction(function () use ($user, $course, $existingEnrollment) {
+            // Determine initial status
+            $initialStatus = match ($course->enrollment_type) {
+                \Modules\Schemes\Enums\EnrollmentType::AutoAccept, 
+                \Modules\Schemes\Enums\EnrollmentType::KeyBased => EnrollmentStatus::Active,
+                \Modules\Schemes\Enums\EnrollmentType::Approval => EnrollmentStatus::Pending,
+                default => EnrollmentStatus::Pending,
+            };
+
+            $enrolledAt = Carbon::now();
+
+            if ($existingEnrollment) {
+                 $existingEnrollment->status = $initialStatus;
+                 $existingEnrollment->enrolled_at = $enrolledAt;
+                 $existingEnrollment->completed_at = null; // Reset if re-taking?
+                 
+                 Enrollment::withoutSyncingToSearch(fn () => $existingEnrollment->save());
+                 $enrollment = $existingEnrollment;
+            } else {
+                $enrollment = new Enrollment();
+                $enrollment->user_id = $user->id;
+                $enrollment->course_id = $course->id;
+                $enrollment->status = $initialStatus;
+                $enrollment->enrolled_at = $enrolledAt;
+                
+                Enrollment::withoutSyncingToSearch(fn () => $enrollment->save());
+            }
+
+            // Dispatch Event
+            event(new EnrollmentCreated($enrollment));
+
+            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+        });
+    }
+
     public function getEnrollmentStatus(Course $course, User $user, ?int $targetUserId): array
     {
         $userId = $targetUserId ?? $user->id;

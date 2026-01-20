@@ -12,11 +12,9 @@ class EventServiceProvider extends ServiceProvider
      * @var array<string, array<int, string>>
      */
     protected $listen = [
-        // Progress initialization is now handled via Model::created() boot method
-        // which dispatches InitializeEnrollmentProgressJob asynchronously
-        // \Modules\Enrollments\Events\EnrollmentCreated::class => [
-        //     \Modules\Enrollments\Listeners\InitializeProgressForEnrollment::class,
-        // ],
+        // EnrollmentCreated listener intentionally disabled to avoid duplicate
+        // progress initialization. Progress is handled via the model boot hook
+        // dispatching InitializeEnrollmentProgressJob.
     ];
 
     /**

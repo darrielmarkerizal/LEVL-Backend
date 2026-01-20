@@ -7,9 +7,8 @@ namespace Modules\Enrollments\Http\Controllers;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Modules\Enrollments\DTOs\CreateEnrollmentDTO;
-use Modules\Enrollments\Http\Requests\EnrollRequest;
 use Modules\Enrollments\Contracts\Services\EnrollmentServiceInterface;
+use Modules\Enrollments\Enums\EnrollmentStatus;
 use Modules\Enrollments\Http\Resources\EnrollmentResource;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
@@ -44,18 +43,18 @@ class EnrollmentsController extends Controller
         return $this->paginateResponse($paginator, __('messages.enrollments.course_list_retrieved'));
     }
 
-    public function enroll(EnrollRequest $request, Course $course)
+    public function store(Request $request, Course $course)
     {
         $user = auth('api')->user();
-        
-        $dto = CreateEnrollmentDTO::fromRequest([
-            'course_id' => $course->id,
-            'enrollment_key' => $request->input('enrollment_key'),
-        ]);
-        
-        $result = $this->service->enroll($course, $user, $dto);
-        
-        return $this->success(new EnrollmentResource($result['enrollment']), $result['message']);
+        $enrollmentKey = $request->input('enrollment_key');
+
+        $enrollment = $this->service->enroll($user, $course, $enrollmentKey);
+
+        $message = $enrollment->status === EnrollmentStatus::Pending
+            ? __('messages.enrollments.approval_sent')
+            : __('messages.enrollments.auto_accept_success');
+
+        return $this->created(new EnrollmentResource($enrollment), $message);
     }
 
     public function cancel(Request $request, Course $course)

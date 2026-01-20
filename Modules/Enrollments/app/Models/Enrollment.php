@@ -37,14 +37,6 @@ class Enrollment extends Model
     protected static function boot()
     {
         parent::boot();
-        
-        // Dispatch async job to initialize progress without blocking request
-        static::created(function ($enrollment) {
-            \Modules\Enrollments\Jobs\InitializeEnrollmentProgressJob::dispatch(
-                $enrollment->id,
-                $enrollment->course_id
-            );
-        });
     }
 
     protected $fillable = [

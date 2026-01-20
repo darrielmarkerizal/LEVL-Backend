@@ -24,8 +24,6 @@ interface EnrollmentServiceInterface
 
     public function findByCourseAndUser(int $courseId, int $userId): ?Enrollment;
 
-    public function enroll(Course $course, User $user, CreateEnrollmentDTO $dto): array;
-
     public function cancel(Enrollment $enrollment): Enrollment;
 
     public function withdraw(Enrollment $enrollment): Enrollment;
@@ -49,4 +47,6 @@ interface EnrollmentServiceInterface
     public function withdrawEnrollment(Course $course, User $user, ?int $targetUserId): Enrollment;
 
     public function getEnrollmentStatus(Course $course, User $user, ?int $targetUserId): array;
+
+    public function enroll(User $user, Course $course, ?string $enrollmentKey = null): Enrollment;
 }

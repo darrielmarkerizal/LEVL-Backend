@@ -27,7 +27,7 @@ class EnsureRole
         if (!$user->hasAnyRole($roles)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Forbidden: insufficient role.',
+                'message' => __('messages.forbidden'),
             ], 403);
         }
 
