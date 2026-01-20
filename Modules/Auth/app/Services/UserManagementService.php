@@ -158,7 +158,7 @@ class UserManagementService implements UserManagementServiceInterface
         $role = $validated['role'];
 
         // 1. Student can ONLY be created via registration, NOT via Admin API
-        if ($role === 'Student') {
+        if ($role === config('auth.default_role', 'Student')) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'role' => [__('messages.auth.student_creation_forbidden')],
             ]);

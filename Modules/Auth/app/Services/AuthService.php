@@ -40,7 +40,7 @@ class AuthService implements AuthServiceInterface
             $validated['password'] = Hash::make($validated['password']);
             $user = $this->authRepository->createUser($validated);
 
-            $user->assignRole('Student');
+            $user->assignRole(config('auth.default_role', 'Student'));
 
             $token = $this->jwt->fromUser($user);
 
@@ -370,7 +370,7 @@ class AuthService implements AuthServiceInterface
             'status' => UserStatus::Active,
         ]);
 
-        $user->assignRole('Student');
+        $user->assignRole(config('auth.default_role', 'Student'));
 
         return $user;
     }
