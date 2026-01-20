@@ -6,8 +6,8 @@ use Modules\Enrollments\Http\Controllers\EnrollmentsController;
 Route::middleware(['auth:api'])->prefix('v1')->group(function () {
     // Enrollment state change endpoints with enrollment rate limiting (5 requests per minute)
     Route::middleware(['throttle:enrollment'])->group(function () {
-        Route::post('courses/{course:slug}/enrollments', [EnrollmentsController::class, 'enroll'])
-            ->name('courses.enrollments.enroll')
+        Route::post('courses/{course:slug}/enroll', [EnrollmentsController::class, 'store'])
+            ->name('courses.enrollments.store')
             ->middleware('role:Student');
         Route::post('courses/{course:slug}/cancel', [EnrollmentsController::class, 'cancel'])->name('courses.enrollments.cancel');
         Route::post('courses/{course:slug}/withdraw', [EnrollmentsController::class, 'withdraw'])->name('courses.enrollments.withdraw');

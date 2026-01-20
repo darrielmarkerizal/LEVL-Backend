@@ -40,7 +40,7 @@ class CourseController extends Controller
 
         try {
             $course = $this->service->create($data, $actor, $request->allFiles());
-            $course->load(['tags', 'instructor.media', 'category', 'admins.media', 'media']);
+            $course->load(['tags', 'instructor.media', 'instructor.roles', 'category', 'admins.media', 'admins.roles', 'media']);
             return $this->created(new CourseResource($course), __('messages.courses.created'));
         } catch (DuplicateResourceException $e) {
             return $this->validationError($e->getErrors());
@@ -49,11 +49,12 @@ class CourseController extends Controller
 
     public function show(Course $course)
     {
-        return $this->success(new CourseResource($course->load(['tags', 'category', 'instructor.media', 'admins.media', 'units', 'media'])));
+        return $this->success(new CourseResource($course->load(['tags', 'category', 'instructor.media', 'instructor.roles', 'admins.media', 'admins.roles', 'units', 'media'])));
     }
 
     public function update(CourseRequest $request, Course $course)
     {
+        $course->load('admins');
         $this->authorize('update', $course);
 
         try {
@@ -66,6 +67,7 @@ class CourseController extends Controller
 
     public function destroy(Course $course)
     {
+        $course->load('admins');
         $this->authorize('delete', $course);
         $this->service->delete($course->id);
 
@@ -74,6 +76,7 @@ class CourseController extends Controller
 
     public function publish(Course $course)
     {
+        $course->load('admins');
         $this->authorize('update', $course);
 
         $updated = $this->service->publish($course->id);
@@ -83,6 +86,7 @@ class CourseController extends Controller
 
     public function unpublish(Course $course)
     {
+        $course->load('admins');
         $this->authorize('update', $course);
 
         $updated = $this->service->unpublish($course->id);
@@ -92,6 +96,7 @@ class CourseController extends Controller
 
     public function generateEnrollmentKey(Course $course)
     {
+        $course->load('admins');
         $this->authorize('update', $course);
         $result = $this->service->updateEnrollmentSettings($course->id, ['enrollment_type' => 'key_based']);
 
@@ -103,6 +108,7 @@ class CourseController extends Controller
 
     public function updateEnrollmentKey(PublishCourseRequest $request, Course $course)
     {
+        $course->load('admins');
         $this->authorize('update', $course);
         $result = $this->service->updateEnrollmentSettings($course->id, $request->validated());
 
@@ -114,6 +120,7 @@ class CourseController extends Controller
 
     public function removeEnrollmentKey(Course $course)
     {
+        $course->load('admins');
         $this->authorize('update', $course);
         $result = $this->service->updateEnrollmentSettings($course->id, ['enrollment_type' => 'auto_accept']);
 

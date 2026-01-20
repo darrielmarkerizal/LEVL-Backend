@@ -251,7 +251,7 @@ Check if user is enrolled in a specific course.
 
 Enroll the authenticated student in a course.
 
-**Endpoint:** `POST /courses/{slug}/enrollments`
+**Endpoint:** `POST /api/v1/courses/{slug}/enroll`
 
 **Authorization:** Requires `Student` role (enforced by middleware)
 
@@ -273,7 +273,7 @@ Enroll the authenticated student in a course.
 | `key_based` | Immediate enrollment with valid key | Yes |
 | `approval` | Creates pending enrollment | No |
 
-**Response - Auto Accept:** `200 OK`
+**Response - Auto Accept:** `201 Created`
 ```json
 {
   "success": true,
@@ -292,7 +292,7 @@ Enroll the authenticated student in a course.
 }
 ```
 
-**Response - Approval Required:** `200 OK`
+**Response - Approval Required:** `201 Created`
 ```json
 {
   "success": true,
@@ -679,7 +679,7 @@ curl -X GET "https://api.example.com/api/v1/enrollments?filter[enrolled_from]=20
 
 ### Enroll in Course (Auto-Accept)
 ```bash
-curl -X POST "https://api.example.com/api/v1/courses/junior-web-programmer/enrollments" \
+curl -X POST "https://api.example.com/api/v1/courses/junior-web-programmer/enroll" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json"
@@ -687,7 +687,7 @@ curl -X POST "https://api.example.com/api/v1/courses/junior-web-programmer/enrol
 
 ### Enroll in Course (With Key)
 ```bash
-curl -X POST "https://api.example.com/api/v1/courses/junior-web-programmer/enrollments" \
+curl -X POST "https://api.example.com/api/v1/courses/junior-web-programmer/enroll" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \

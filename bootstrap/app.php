@@ -15,7 +15,7 @@ use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Exceptions\UserNotDefinedException;
 
 // Naikkan memory limit untuk debugging di Telescope
-ini_set('memory_limit', env('PHP_MEMORY_LIMIT', '512M'));
+ini_set('memory_limit', env('PHP_MEMORY_LIMIT', '2048M'));
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(

@@ -181,6 +181,12 @@ return [
     "must_have_one_unit" => "Kursus harus memiliki minimal satu unit.",
     "cannot_publish_without_lessons" => "Kursus tidak dapat dipublikasikan karena belum memiliki lesson.",
     "must_have_one_lesson" => "Kursus harus memiliki minimal satu lesson.",
+    "cannot_publish_without_published_units" => "Kursus tidak dapat dipublikasikan karena belum memiliki unit yang dipublikasikan.",
+    "must_have_one_published_unit" => "Kursus harus memiliki minimal satu unit yang dipublikasikan.",
+    "cannot_publish_without_published_lessons" => "Kursus tidak dapat dipublikasikan karena belum memiliki lesson yang dipublikasikan.",
+    "must_have_one_published_lesson" => "Kursus harus memiliki minimal satu lesson yang dipublikasikan.",
+    "cannot_publish_without_enrollment_key" => "Kursus tipe key-based harus memiliki enrollment key.",
+    "must_have_enrollment_key" => "Enrollment key wajib diisi untuk tipe key-based.",
   ],
 
   // Auth Module
@@ -373,6 +379,10 @@ return [
     "approval_sent" => "Permintaan enrollment berhasil dikirim. Menunggu persetujuan.",
     "enrolled_success" => "Enrol berhasil.",
     "key_based_success" => "Enrol berhasil menggunakan kode kunci.",
+    "course_not_published" => "Course belum dipublikasikan.",
+    "enrollment_pending" => "Pendaftaran Anda sedang diproses dan menunggu persetujuan.",
+    "enrollment_success" => "Pendaftaran berhasil.",
+    "enrollment_failed" => "Pendaftaran gagal. Silakan coba lagi.",
   ],
 
   // Assignments Module
