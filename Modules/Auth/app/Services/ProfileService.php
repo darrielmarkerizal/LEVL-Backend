@@ -7,7 +7,6 @@ namespace Modules\Auth\Services;
 use App\Contracts\Services\ProfileServiceInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Modules\Auth\Events\AccountDeleted;
 use Modules\Auth\Events\PasswordChanged;
@@ -27,17 +26,6 @@ class ProfileService implements ProfileServiceInterface
 
     public function updateProfile(User $user, array $data): User
     {
-        $validator = Validator::make($data, [
-            'name' => 'sometimes|string|max:100',
-            'email' => 'sometimes|email|unique:users,email,'.$user->id,
-            'phone' => 'sometimes|nullable|string|max:20',
-            'bio' => 'sometimes|nullable|string|max:1000',
-        ]);
-
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
-        }
-
         $oldEmail = $user->email;
 
         $user->fill($data);

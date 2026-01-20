@@ -3,6 +3,8 @@
 namespace Modules\Enrollments\Services;
 
 use App\Contracts\EnrollmentKeyHasherInterface;
+use App\Support\Helpers\UrlHelper;
+use Illuminate\Support\Facades\DB;
 use App\Exceptions\BusinessException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
@@ -21,6 +23,7 @@ use Modules\Enrollments\Mail\StudentEnrollmentPendingMail;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
 use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\AllowedSort;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class EnrollmentService implements EnrollmentServiceInterface
@@ -41,10 +44,24 @@ class EnrollmentService implements EnrollmentServiceInterface
                 AllowedFilter::exact('user_id'),
                 AllowedFilter::callback('enrolled_from', fn ($q, $value) => $q->whereDate('enrolled_at', '>=', $value)),
                 AllowedFilter::callback('enrolled_to', fn ($q, $value) => $q->whereDate('enrolled_at', '<=', $value)),
+                AllowedFilter::callback('search', function ($query, $value) {
+                    $query->whereHas('user', function ($q) use ($value) {
+                        $q->where('name', 'ilike', "%{$value}%")
+                            ->orWhere('email', 'ilike', "%{$value}%");
+                    });
+                }),
             ])
             ->allowedIncludes(['user', 'course'])
-            ->allowedSorts(['enrolled_at', 'completed_at', 'created_at'])
-            ->defaultSort('-enrolled_at');
+            ->allowedSorts([
+                'enrolled_at', 
+                'completed_at', 
+                'created_at',
+                AllowedSort::callback('priority', function ($query, $descending) {
+                    $query->orderByRaw("CASE WHEN status = 'pending' THEN 1 ELSE 2 END")
+                          ->orderBy('created_at', 'desc');
+                }),
+            ])
+            ->defaultSort('priority');
 
         return $query->paginate($perPage);
     }
@@ -61,10 +78,24 @@ class EnrollmentService implements EnrollmentServiceInterface
                 AllowedFilter::exact('course_id'),
                 AllowedFilter::callback('enrolled_from', fn ($q, $value) => $q->whereDate('enrolled_at', '>=', $value)),
                 AllowedFilter::callback('enrolled_to', fn ($q, $value) => $q->whereDate('enrolled_at', '<=', $value)),
+                AllowedFilter::callback('search', function ($query, $value) {
+                    $query->whereHas('user', function ($q) use ($value) {
+                        $q->where('name', 'ilike', "%{$value}%")
+                            ->orWhere('email', 'ilike', "%{$value}%");
+                    });
+                }),
             ])
             ->allowedIncludes(['user', 'course'])
-            ->allowedSorts(['enrolled_at', 'completed_at', 'created_at'])
-            ->defaultSort('-enrolled_at');
+            ->allowedSorts([
+                'enrolled_at', 
+                'completed_at', 
+                'created_at',
+                AllowedSort::callback('priority', function ($query, $descending) {
+                    $query->orderByRaw("CASE WHEN status = 'pending' THEN 1 ELSE 2 END")
+                          ->orderBy('created_at', 'desc');
+                }),
+            ])
+            ->defaultSort('priority');
 
         return $query->paginate($perPage);
     }
@@ -80,6 +111,12 @@ class EnrollmentService implements EnrollmentServiceInterface
                 AllowedFilter::exact('course_id'),
                 AllowedFilter::callback('enrolled_from', fn ($q, $value) => $q->whereDate('enrolled_at', '>=', $value)),
                 AllowedFilter::callback('enrolled_to', fn ($q, $value) => $q->whereDate('enrolled_at', '<=', $value)),
+                AllowedFilter::callback('search', function ($query, $value) {
+                    $query->whereHas('course', function ($q) use ($value) {
+                        $q->where('title', 'ilike', "%{$value}%")
+                            ->orWhere('slug', 'ilike', "%{$value}%");
+                    });
+                }),
             ])
             ->allowedIncludes(['user', 'course'])
             ->allowedSorts(['enrolled_at', 'completed_at', 'created_at'])
@@ -144,41 +181,43 @@ class EnrollmentService implements EnrollmentServiceInterface
      */
     public function enroll(Course $course, User $user, CreateEnrollmentDTO $dto): array
     {
-        $existing = $this->repository->findByCourseAndUser($course->id, $user->id);
+        return DB::transaction(function () use ($course, $user, $dto) {
+            $existing = $this->repository->findByCourseAndUser($course->id, $user->id);
 
-        if ($existing && collect([EnrollmentStatus::Active, EnrollmentStatus::Pending])->contains($existing->status)) {
-            throw new BusinessException(
-                __('messages.enrollments.already_enrolled'),
-                ['course' => __('messages.enrollments.already_enrolled')]
-            );
-        }
+            if ($existing && collect([EnrollmentStatus::Active, EnrollmentStatus::Pending])->contains($existing->status)) {
+                throw new BusinessException(
+                    __('messages.enrollments.already_enrolled'),
+                    ['course' => __('messages.enrollments.already_enrolled')]
+                );
+            }
 
-        $enrollment = $existing ?? new Enrollment([
-            'user_id' => $user->id,
-            'course_id' => $course->id,
-        ]);
+            $enrollment = $existing ?? new Enrollment([
+                'user_id' => $user->id,
+                'course_id' => $course->id,
+            ]);
 
-        [$status, $message] = $this->determineStatusAndMessage($course, $dto);
+            [$status, $message] = $this->determineStatusAndMessage($course, $dto);
 
-        $enrollment->status = EnrollmentStatus::from($status);
-        $enrollment->enrolled_at = $enrollment->enrolled_at ?? Carbon::now();
+            $enrollment->status = EnrollmentStatus::from($status);
+            $enrollment->enrolled_at = $enrollment->enrolled_at ?? Carbon::now();
 
-        if ($status !== EnrollmentStatus::Completed->value) {
-            $enrollment->completed_at = null;
-        }
+            if ($status !== EnrollmentStatus::Completed->value) {
+                $enrollment->completed_at = null;
+            }
 
-        $enrollment->save();
+            $enrollment->save();
 
-        $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
+            $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
 
-        EnrollmentCreated::dispatch($freshEnrollment);
-        $this->sendEnrollmentEmails($freshEnrollment, $course, $user, $status);
+            EnrollmentCreated::dispatch($freshEnrollment);
+            $this->sendEnrollmentEmails($freshEnrollment, $course, $user, $status);
 
-        return [
-            'enrollment' => $freshEnrollment,
-            'status' => $status,
-            'message' => $message,
-        ];
+            return [
+                'enrollment' => $freshEnrollment,
+                'status' => $status,
+                'message' => $message,
+            ];
+        });
     }
 
     /**
@@ -186,18 +225,20 @@ class EnrollmentService implements EnrollmentServiceInterface
      */
     public function cancel(Enrollment $enrollment): Enrollment
     {
-        if ($enrollment->status !== EnrollmentStatus::Pending) {
-            throw new BusinessException(
-                'Hanya enrollment dengan status pending yang dapat dibatalkan.',
-                ['enrollment' => 'Hanya enrollment dengan status pending yang dapat dibatalkan.']
-            );
-        }
+        return DB::transaction(function () use ($enrollment) {
+            if ($enrollment->status !== EnrollmentStatus::Pending) {
+                throw new BusinessException(
+                    'Hanya enrollment dengan status pending yang dapat dibatalkan.',
+                    ['enrollment' => 'Hanya enrollment dengan status pending yang dapat dibatalkan.']
+                );
+            }
 
-        $enrollment->status = EnrollmentStatus::Cancelled;
-        $enrollment->completed_at = null;
-        $enrollment->save();
+            $enrollment->status = EnrollmentStatus::Cancelled;
+            $enrollment->completed_at = null;
+            $enrollment->save();
 
-        return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+        });
     }
 
     /**
@@ -205,18 +246,20 @@ class EnrollmentService implements EnrollmentServiceInterface
      */
     public function withdraw(Enrollment $enrollment): Enrollment
     {
-        if ($enrollment->status !== EnrollmentStatus::Active) {
-            throw new BusinessException(
-                'Hanya enrollment aktif yang dapat mengundurkan diri.',
-                ['enrollment' => 'Hanya enrollment aktif yang dapat mengundurkan diri.']
-            );
-        }
+        return DB::transaction(function () use ($enrollment) {
+            if ($enrollment->status !== EnrollmentStatus::Active) {
+                throw new BusinessException(
+                    'Hanya enrollment aktif yang dapat mengundurkan diri.',
+                    ['enrollment' => 'Hanya enrollment aktif yang dapat mengundurkan diri.']
+                );
+            }
 
-        $enrollment->status = EnrollmentStatus::Cancelled;
-        $enrollment->completed_at = null;
-        $enrollment->save();
+            $enrollment->status = EnrollmentStatus::Cancelled;
+            $enrollment->completed_at = null;
+            $enrollment->save();
 
-        return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+        });
     }
 
     /**
@@ -224,28 +267,30 @@ class EnrollmentService implements EnrollmentServiceInterface
      */
     public function approve(Enrollment $enrollment): Enrollment
     {
-        if ($enrollment->status !== EnrollmentStatus::Pending) {
-            throw new BusinessException(
-                'Hanya permintaan enrollment pending yang dapat disetujui.',
-                ['enrollment' => 'Hanya permintaan enrollment pending yang dapat disetujui.']
-            );
-        }
+        return DB::transaction(function () use ($enrollment) {
+            if ($enrollment->status !== EnrollmentStatus::Pending) {
+                throw new BusinessException(
+                    'Hanya permintaan enrollment pending yang dapat disetujui.',
+                    ['enrollment' => 'Hanya permintaan enrollment pending yang dapat disetujui.']
+                );
+            }
 
-        $enrollment->status = EnrollmentStatus::Active;
-        $enrollment->enrolled_at = Carbon::now();
-        $enrollment->completed_at = null;
-        $enrollment->save();
+            $enrollment->status = EnrollmentStatus::Active;
+            $enrollment->enrolled_at = Carbon::now();
+            $enrollment->completed_at = null;
+            $enrollment->save();
 
-        $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
-        $course = $freshEnrollment->course;
-        $student = $freshEnrollment->user;
+            $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
+            $course = $freshEnrollment->course;
+            $student = $freshEnrollment->user;
 
-        if ($student && $course) {
-            $courseUrl = $this->getCourseUrl($course);
-            Mail::to($student->email)->send(new StudentEnrollmentApprovedMail($student, $course, $courseUrl));
-        }
+            if ($student && $course) {
+                $courseUrl = $this->getCourseUrl($course);
+                Mail::to($student->email)->send(new StudentEnrollmentApprovedMail($student, $course, $courseUrl));
+            }
 
-        return $freshEnrollment;
+            return $freshEnrollment;
+        });
     }
 
     /**
@@ -253,26 +298,28 @@ class EnrollmentService implements EnrollmentServiceInterface
      */
     public function decline(Enrollment $enrollment): Enrollment
     {
-        if ($enrollment->status !== EnrollmentStatus::Pending) {
-            throw new BusinessException(
-                'Hanya permintaan enrollment pending yang dapat ditolak.',
-                ['enrollment' => 'Hanya permintaan enrollment pending yang dapat ditolak.']
-            );
-        }
+        return DB::transaction(function () use ($enrollment) {
+            if ($enrollment->status !== EnrollmentStatus::Pending) {
+                throw new BusinessException(
+                    'Hanya permintaan enrollment pending yang dapat ditolak.',
+                    ['enrollment' => 'Hanya permintaan enrollment pending yang dapat ditolak.']
+                );
+            }
 
-        $enrollment->status = EnrollmentStatus::Cancelled;
-        $enrollment->completed_at = null;
-        $enrollment->save();
+            $enrollment->status = EnrollmentStatus::Cancelled;
+            $enrollment->completed_at = null;
+            $enrollment->save();
 
-        $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
-        $course = $freshEnrollment->course;
-        $student = $freshEnrollment->user;
+            $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
+            $course = $freshEnrollment->course;
+            $student = $freshEnrollment->user;
 
-        if ($student && $course) {
-            Mail::to($student->email)->send(new StudentEnrollmentDeclinedMail($student, $course));
-        }
+            if ($student && $course) {
+                Mail::to($student->email)->send(new StudentEnrollmentDeclinedMail($student, $course));
+            }
 
-        return $freshEnrollment;
+            return $freshEnrollment;
+        });
     }
 
     /**
@@ -280,18 +327,20 @@ class EnrollmentService implements EnrollmentServiceInterface
      */
     public function remove(Enrollment $enrollment): Enrollment
     {
-        if (! collect([EnrollmentStatus::Active, EnrollmentStatus::Pending])->contains($enrollment->status)) {
-            throw new BusinessException(
-                'Hanya enrollment aktif atau pending yang dapat dikeluarkan.',
-                ['enrollment' => 'Hanya enrollment aktif atau pending yang dapat dikeluarkan.']
-            );
-        }
+        return DB::transaction(function () use ($enrollment) {
+            if (! collect([EnrollmentStatus::Active, EnrollmentStatus::Pending])->contains($enrollment->status)) {
+                throw new BusinessException(
+                    'Hanya enrollment aktif atau pending yang dapat dikeluarkan.',
+                    ['enrollment' => 'Hanya enrollment aktif atau pending yang dapat dikeluarkan.']
+                );
+            }
 
-        $enrollment->status = EnrollmentStatus::Cancelled;
-        $enrollment->completed_at = null;
-        $enrollment->save();
+            $enrollment->status = EnrollmentStatus::Cancelled;
+            $enrollment->completed_at = null;
+            $enrollment->save();
 
-        return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+        });
     }
 
     /**
