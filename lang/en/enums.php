@@ -189,4 +189,24 @@ return [
         'active' => 'Active',
         'inactive' => 'Inactive',
     ],
+
+    // Questions
+    'question_type' => [
+        'multiple_choice' => 'Multiple Choice',
+        'essay' => 'Essay',
+        'file_upload' => 'File Upload',
+        'true_false' => 'True/False',
+    ],
+
+    'question_difficulty' => [
+        'easy' => 'Easy',
+        'medium' => 'Medium',
+        'hard' => 'Hard',
+    ],
+
+    'question_status' => [
+        'active' => 'Active',
+        'inactive' => 'Inactive',
+        'archived' => 'Archived',
+    ],
 ];
