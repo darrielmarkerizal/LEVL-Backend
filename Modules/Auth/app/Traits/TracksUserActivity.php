@@ -26,9 +26,14 @@ trait TracksUserActivity
     return $this->activities()->orderBy("created_at", "desc")->limit($limit)->get();
   }
 
+  public function latestActivity()
+  {
+    return $this->hasOne(UserActivity::class)->latestOfMany();
+  }
+
   public function getLastActivityAttribute(): ?UserActivity
   {
-    return $this->activities()->latest("created_at")->first();
+    return $this->latestActivity;
   }
 
   public function getLastActiveRelativeAttribute(): ?string

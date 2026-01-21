@@ -81,21 +81,101 @@ class MasterDataService
     }
 
     /**
+     * Check if CRUD is allowed for a type.
+     */
+    public function isCrudAllowed(string $type): bool
+    {
+        return !array_key_exists($type, $this->getMap());
+    }
+
+    /**
      * Get all available types (Enums + Database types).
      */
-    public function getAvailableTypes(): array
+    /**
+     * Get all available types (Enums + Database types) with pagination, search, and sorting.
+     */
+    public function getAvailableTypes(array $params = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        $staticTypes = array_map(function ($key) {
+        $map = $this->getMap();
+        
+        $staticTypes = collect(array_keys($map))->map(function ($key) use ($map) {
+            $data = $map[$key]();
+            $count = is_array($data) ? count($data) : $data->count();
+            
             return [
                 'type' => $key,
                 'label' => __("messages.master_data.{$key}") ?? ucwords(str_replace('-', ' ', $key)),
                 'is_crud' => false,
+                'count' => $count,
+                'last_updated' => null,
             ];
-        }, array_keys($this->getMap()));
+        });
 
-        $dbTypes = $this->repository->getTypes()->toArray();
+        $dbTypes = $this->repository->getTypes()->map(function ($item) {
+            $item = is_array($item) ? $item : $item->toArray();
+            if (isset($item['key']) && !isset($item['type'])) {
+                $item['type'] = $item['key'];
+                unset($item['key']);
+            }
+            return $item;
+        });
 
-        return array_merge($staticTypes, $dbTypes);
+        $merged = $staticTypes->concat($dbTypes);
+
+        if (isset($params['filter']['is_crud'])) {
+            $isCrud = filter_var($params['filter']['is_crud'], FILTER_VALIDATE_BOOLEAN);
+            $merged = $merged->filter(function ($item) use ($isCrud) {
+                return $item['is_crud'] === $isCrud;
+            });
+        }
+
+        if (!empty($params['search'])) {
+            $search = strtolower($params['search']);
+            $merged = $merged->filter(function ($item) use ($search) {
+                return str_contains(strtolower($item['type']), $search) ||
+                       str_contains(strtolower($item['label']), $search);
+            });
+        }
+
+            $allowedSorts = ['type', 'label', 'count', 'last_updated'];
+            $defaultSort = 'label';
+            $sortParam = $params['sort'] ?? $defaultSort;
+            $requestedSorts = is_array($sortParam) ? $sortParam : explode(',', (string) $sortParam);
+        
+            $validSorts = [];
+            foreach ($requestedSorts as $sort) {
+                $sort = trim($sort);
+                $descending = str_starts_with($sort, '-');
+                $field = $descending ? substr($sort, 1) : $sort;
+
+                if (in_array($field, $allowedSorts, true)) {
+                    $validSorts[] = $descending ? '-' . $field : $field;
+                }
+            }
+
+            if (empty($validSorts)) {
+                $validSorts[] = $defaultSort;
+            }
+
+            foreach (array_reverse($validSorts) as $sort) {
+                $descending = str_starts_with($sort, '-');
+                $field = $descending ? substr($sort, 1) : $sort;
+
+                $merged = $descending
+                    ? $merged->sortByDesc($field, SORT_NATURAL | SORT_FLAG_CASE)
+                    : $merged->sortBy($field, SORT_NATURAL | SORT_FLAG_CASE);
+            }
+
+        $page = (int) ($params['page'] ?? 1);
+        $perPage = (int) ($params['per_page'] ?? 15);
+        
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+                $merged->forPage($page, $perPage)->values(),
+            $merged->count(),
+            $perPage,
+            $page,
+            ['path' => \Illuminate\Support\Facades\Request::url(), 'query' => $params]
+        );
     }
 
     /**
@@ -105,7 +185,6 @@ class MasterDataService
     {
         $data['type'] = $type;
         $item = $this->repository->create($data);
-        $this->clearCache($type);
         return $item;
     }
 
@@ -121,7 +200,6 @@ class MasterDataService
         }
 
         $updated = $this->repository->update($item, $data);
-        $this->clearCache($type);
         return $updated;
     }
 
@@ -137,14 +215,10 @@ class MasterDataService
         }
 
         $deleted = $this->repository->delete($item);
-        $this->clearCache($type);
         return $deleted;
     }
 
-    private function clearCache(string $type): void
-    {
-        Cache::forget(self::CACHE_PREFIX . $type);
-    }
+
 
     /**
      * Transform Enum to value/label array.

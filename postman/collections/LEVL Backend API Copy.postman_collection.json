@@ -1,0 +1,4895 @@
+{
+  "info": {
+    "_postman_id": "2dcd9a6f-083b-4ff5-8633-590ae47e862e",
+    "name": "LEVL Backend API Copy",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Autentikasi",
+      "item": [
+        {
+          "name": "Lupa Password",
+          "item": [
+            {
+              "name": "Request Reset Password",
+              "id": "e4afdcd8-0889-4318-86a8-e2ea99c77d07",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"login\": \"string\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/auth/password/forgot",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "password",
+                    "forgot"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Konfirmasi Reset Password",
+              "id": "c3446ea3-264a-4ea9-94bd-a331e4434b3a",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"string\",\n  \"password\": \"string\",\n  \"password_confirmation\": \"string\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/auth/password/forgot/confirm",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "password",
+                    "forgot",
+                    "confirm"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ganti Password",
+              "id": "ace0baf8-8171-4dba-b879-ffc83401df15",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc3NzU3MzksImV4cCI6MTc5OTMxMTczOSwibmJmIjoxNzY3Nzc1NzM5LCJqdGkiOiIyMFlvSHI4d3hCQnV0TFZSIiwic3ViIjoiMiIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJBZG1pbiJdfQ.LbaoUeqKg9broQThHpLcPJwO6n1wlIQ30tmMQv5_RFM",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"current_password\": \"string\",\n  \"new_password\": \"stringst\",\n  \"new_password_confirmation\": \"stringst\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/auth/password/reset",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "password",
+                    "reset"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "d51ae96f-44e0-405a-95f7-994ccd3bc52c"
+        },
+        {
+          "name": "Google",
+          "item": [
+            {
+              "name": "Google OAUTH Redirect",
+              "id": "d0cb812b-7dc7-49c5-822c-849ef56e3dcf",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/auth/google/redirect",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "google",
+                    "redirect"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Google OAuth Callback",
+              "id": "11a61a66-4439-4a7d-a408-638d69052496",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/auth/google/callback",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "google",
+                    "callback"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "d442839f-40cf-4f3f-8f7f-6945afadafb2"
+        },
+        {
+          "name": "Verifikasi Email",
+          "item": [
+            {
+              "name": "Verifikasi Email",
+              "id": "d5165f34-ba8a-446e-8a00-470be32239b1",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"16-character-token\",\n  \"uuid\": \"uuid-v4-string\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/auth/email/verify",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "email",
+                    "verify"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Kirim Ulang Verifikasi Email",
+              "id": "e99c2781-34f3-4617-9a69-cf7a35f08dd6",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{login_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/auth/email/verify/send",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "email",
+                    "verify",
+                    "send"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "1fd86a4d-ab75-444d-ac5b-7e2e692bcd29"
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "8083cbf6-738d-485e-a2b6-a36d8df433d0",
+                "exec": [
+                  "// pastikan response sukses",
+                  "pm.test(\"Login berhasil\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "// simpan access_token ke environment variable",
+                  "var jsonData = pm.response.json();",
+                  "if(jsonData.success && jsonData.data && jsonData.data.access_token){",
+                  "    pm.environment.set(\"login_token\", jsonData.data.access_token);",
+                  "    console.log(\"Access token tersimpan:\", jsonData.data.access_token);",
+                  "} else {",
+                  "    console.log(\"Login gagal, token tidak ditemukan\");",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "4a62cea5-29d7-40c1-9349-73ba8b8c9478",
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "id": "d0f3e420-64c0-417e-a855-72ef2e2f2559",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"admin\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/auth/login",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "25a8b227-24f2-4310-96f2-fcf6aea38388",
+              "name": "Login 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"login\": \"student@example.com\",\n  \"password\": \"password\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/auth/login",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Server",
+                  "value": "nginx"
+                },
+                {
+                  "key": "Date",
+                  "value": "Sun, 18 Jan 2026 13:01:47 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "607"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "Content-Encoding",
+                  "value": "br"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Accept-Encoding"
+                },
+                {
+                  "key": "X-Powered-By",
+                  "value": "PHP/8.4.17"
+                },
+                {
+                  "key": "X-Ratelimit-Limit",
+                  "value": "10"
+                },
+                {
+                  "key": "X-Ratelimit-Remaining",
+                  "value": "7"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Login berhasil.\",\n    \"data\": {\n        \"user\": {\n            \"id\": 4,\n            \"name\": \"Student\",\n            \"email\": \"student@example.com\",\n            \"username\": \"student\",\n            \"avatar_url\": null,\n            \"status\": \"active\",\n            \"account_status\": \"active\",\n            \"created_at\": \"2026-01-11T19:44:13.000000Z\",\n            \"email_verified_at\": \"2026-01-11T19:44:13.000000Z\",\n            \"is_password_set\": true,\n            \"roles\": [\n                \"Student\"\n            ],\n            \"media\": []\n        },\n        \"access_token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2xldmwtYmFja2VuZC5zaXRlL2FwaS92MS9hdXRoL2xvZ2luIiwiaWF0IjoxNzY4NzQxMzA3LCJleHAiOjE3Njg3NDIyMDcsIm5iZiI6MTc2ODc0MTMwNywianRpIjoiRTRCeldBVHJuWldkYm9VZSIsInN1YiI6IjQiLCJwcnYiOiJmMWQzNGFiZDQyNDczNTM4MjEyMzZiNDgxODk3MmE4NTI4NDM4M2I3Iiwic3RhdHVzIjoiYWN0aXZlIiwicm9sZXMiOlsiU3R1ZGVudCJdfQ.TYxrSEeA-PZcxq-8ONC5uLFFDXCrfoSzhxSYe6wod0c\",\n        \"refresh_token\": \"Ylk89taYxPNaoOXVwnY3tYnF3kguIb99e7Pp65A64kVtLnyECyeau3ywMyUim7W9\",\n        \"expires_in\": 900,\n        \"message\": null\n    },\n    \"meta\": null,\n    \"errors\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "Daftar (Student)",
+          "id": "66f8292a-9274-4641-9837-c4b7a4d612cb",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Budi Santoso\",\n  \"username\": \"budisantoso\",\n  \"email\": \"budi.santoso@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"password_confirmation\": \"SecurePassword123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/auth/register",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "id": "37eeb155-b07e-48ad-a0e5-cfa4154732bd",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"def502004e8f...\"\n  // Optional, kalau tidak disertakan logout all device\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/auth/logout",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "id": "155b7e75-98c8-4c12-8f65-3703e1c905d0",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"aA7UfcIjehGnI2JrYG1kmaHL49ZkfZXkfw4E5D2UFFcd4B1zjTVAqPd0103flwfv\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/auth/refresh",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set Username",
+          "id": "ae4ef528-e1e6-4e90-9441-ac5533891110",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"johndoe\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/auth/set-username",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "auth",
+                "set-username"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set Password",
+          "id": "a0a285cc-872f-44e1-9b31-665c35a1f16a",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"password_baru_anda\",\n  \"password_confirmation\": \"password_baru_anda\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/auth/set-password",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "auth",
+                "set-password"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "fdb794de-1bae-4d11-9d18-3ae6b69ee260"
+    },
+    {
+      "name": "Profil",
+      "item": [
+        {
+          "name": "Public",
+          "item": [
+            {
+              "name": "Lihat Profile Publik",
+              "id": "615d92d8-3051-4f63-9052-6fbe04eb954a",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc4NDA3MjEsImV4cCI6MTc5OTM3NjcyMSwibmJmIjoxNzY3ODQwNzIxLCJqdGkiOiJSb1lWYW02bGNQZFBGdUp5Iiwic3ViIjoiMSIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJTdXBlcmFkbWluIl19.s70OUMX010TcOvFCNRPcwpntFhrg-a9Mm-ngIB-FQBc",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/users/:userId/profile",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "users",
+                    ":userId",
+                    "profile"
+                  ],
+                  "variable": [
+                    {
+                      "key": "userId",
+                      "value": "4"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "088a73a1-24b0-4b77-83ad-c5f1065614d7"
+        },
+        {
+          "name": "Request Ganti Email",
+          "id": "759a2d97-dac7-49e9-961e-584015e915f3",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2F1dGgvbG9naW4iLCJpYXQiOjE3Njc3ODE5OTgsImV4cCI6MTc2Nzc4Mjg5OCwibmJmIjoxNzY3NzgxOTk4LCJqdGkiOiJhSEExNUxwT2JEU2p6QmJmIiwic3ViIjoiMiIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJBZG1pbiJdfQ.wrss7Api9ln3LsE0WP4vSNUEdcwA8rQOK8l5SQ6rA7M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"new_email\": \"newemail@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/profile/email/change",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "profile",
+                "email",
+                "change"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verifikasi Ganti Email",
+          "id": "74d69efd-c30a-46aa-8d86-224de44adeea",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{login_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"ca761232-ed42-11ce-bacd-00aa0057b223\",\n  \"token\": \"1234567812345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/profile/email/change/verify",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "profile",
+                "email",
+                "change",
+                "verify"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lihat Profil",
+          "id": "3206db11-458e-4735-8bee-9ff123c48dbc",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{login_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/profile",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ubah Profil",
+          "id": "cb6bd4d1-9c22-476f-bf24-12eecb685fe7",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2F1dGgvbG9naW4iLCJpYXQiOjE3Njc3ODQwMTQsImV4cCI6MTc2Nzc4NDkxNCwibmJmIjoxNzY3Nzg0MDE0LCJqdGkiOiJJUEc5RGN0OWxQUmtxTlF6Iiwic3ViIjoiMiIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJBZG1pbiJdfQ.2aQV3_H26PSPlRquuERvO4_vG6kJASXlz3PD4XCkQHs",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Smith\",\n  \"bio\": \"Full-stack developer\",\n  \"phone\": \"+6281234567890\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/profile",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ubah Avatar",
+          "id": "9cfee1b8-7e89-48a6-8f29-6dcda3961b39",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{login_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "uuid": "70899260-3140-4cda-a312-ad6b65ccb064",
+                  "src": [
+                    "/Users/darrielmarkerizal/Downloads/IMG_6169.JPG"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{url}}/profile/avatar",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "profile",
+                "avatar"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Avatar",
+          "id": "b5566bbb-f5a9-452e-8559-703fae974d92",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc3ODI4ODgsImV4cCI6MTc5OTMxODg4OCwibmJmIjoxNzY3NzgyODg4LCJqdGkiOiJhTEhocGlYc3pNbnhud3VNIiwic3ViIjoiNCIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJTdHVkZW50Il19.IzNoD0azMJ6Z0uTTc9FnAn_9uJWsqzJpUuYHLzC2Aqo",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "uuid": "70899260-3140-4cda-a312-ad6b65ccb064",
+                  "src": [
+                    "/Users/darrielmarkerizal/Downloads/WhatsApp Image 2025-12-25 at 15.43.33.jpeg"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{url}}/profile/avatar",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "profile",
+                "avatar"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lihat Pengaturan Privasi",
+          "id": "4a78edce-84dd-4e35-aa29-ab9d2d0524bb",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc3ODI4ODgsImV4cCI6MTc5OTMxODg4OCwibmJmIjoxNzY3NzgyODg4LCJqdGkiOiJhTEhocGlYc3pNbnhud3VNIiwic3ViIjoiNCIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJTdHVkZW50Il19.IzNoD0azMJ6Z0uTTc9FnAn_9uJWsqzJpUuYHLzC2Aqo",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{url}}/profile/privacy",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "profile",
+                "privacy"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ubah Pengaturan Privasi",
+          "id": "edcbf2d6-46bd-44cd-876a-da9df47cdbe3",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc3ODI4ODgsImV4cCI6MTc5OTMxODg4OCwibmJmIjoxNzY3NzgyODg4LCJqdGkiOiJhTEhocGlYc3pNbnhud3VNIiwic3ViIjoiNCIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJTdHVkZW50Il19.IzNoD0azMJ6Z0uTTc9FnAn_9uJWsqzJpUuYHLzC2Aqo",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"show_email\": false,\n  \"show_phone\": false,\n  \"show_profile\": true,\n  \"show_activity\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/profile/privacy",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "profile",
+                "privacy"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Request Hapus Akun",
+          "id": "fa8e36fa-3572-4f82-94f5-a615b064d33e",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc3ODI4ODgsImV4cCI6MTc5OTMxODg4OCwibmJmIjoxNzY3NzgyODg4LCJqdGkiOiJhTEhocGlYc3pNbnhud3VNIiwic3ViIjoiNCIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJTdHVkZW50Il19.IzNoD0azMJ6Z0uTTc9FnAn_9uJWsqzJpUuYHLzC2Aqo",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/profile/account/delete/request",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "profile",
+                "account",
+                "delete",
+                "request"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Konfirmasi Hapus Akun",
+          "id": "83ea4365-3eb8-4e86-a2a7-5ae82c2c4396",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc3ODI4ODgsImV4cCI6MTc5OTMxODg4OCwibmJmIjoxNzY3NzgyODg4LCJqdGkiOiJhTEhocGlYc3pNbnhud3VNIiwic3ViIjoiNCIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJTdHVkZW50Il19.IzNoD0azMJ6Z0uTTc9FnAn_9uJWsqzJpUuYHLzC2Aqo",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"1234567812345678\",\n  \"uuid\": \"37fb0d58-ed7d-4fbe-92f7-0dfd722d5670\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/profile/account/delete/confirm",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "profile",
+                "account",
+                "delete",
+                "confirm"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Restore Akun",
+          "id": "20e6fd5a-2294-4041-a7a6-f5df8f7c473c",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc3ODI4ODgsImV4cCI6MTc5OTMxODg4OCwibmJmIjoxNzY3NzgyODg4LCJqdGkiOiJhTEhocGlYc3pNbnhud3VNIiwic3ViIjoiNCIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJTdHVkZW50Il19.IzNoD0azMJ6Z0uTTc9FnAn_9uJWsqzJpUuYHLzC2Aqo",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/profile/account/restore",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "profile",
+                "account",
+                "restore"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "79a7c27f-e690-4c3c-88a3-b4546bad537d"
+    },
+    {
+      "name": "Development Only",
+      "item": [
+        {
+          "name": "Lifetime Tokens",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "49faccaa-4315-4ebc-bd35-e4e006247c02",
+                "exec": [
+                  "let jsonData = pm.response.json();",
+                  "",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.environment.set(\"access_token_student\", jsonData.data.Student.access_token);",
+                  "    pm.environment.set(\"access_token_instructor\", jsonData.data.Instructor.access_token);",
+                  "    pm.environment.set(\"access_token_admin\", jsonData.data.Admin.access_token);",
+                  "    pm.environment.set(\"access_token_superadmin\", jsonData.data.Superadmin.access_token);",
+                  "    ",
+                  "    console.log(\"Access tokens berhasil disimpan ke environment variables!\");",
+                  "} else {",
+                  "    console.error(\"Gagal menyimpan access token, response tidak sesuai format.\");",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "bcd03cb4-77d5-4907-9b51-cb3e090bc55d",
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "id": "afe0358c-e726-4b87-923a-2c63f64b658b",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/dev/tokens",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "dev",
+                "tokens"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "b07b4158-3aa8-41f2-9a9d-eabda97535f0"
+    },
+    {
+      "name": "Pengguna",
+      "item": [
+        {
+          "name": "Bulk",
+          "item": [
+            {
+              "name": "Export User",
+              "id": "b6254a64-b8c3-4152-92ba-8f286790d119",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc4NDA3MjEsImV4cCI6MTc5OTM3NjcyMSwibmJmIjoxNzY3ODQwNzIxLCJqdGkiOiJSb1lWYW02bGNQZFBGdUp5Iiwic3ViIjoiMSIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJTdXBlcmFkbWluIl19.s70OUMX010TcOvFCNRPcwpntFhrg-a9Mm-ngIB-FQBc",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_ids\": [1, 2, 3], // Optional\n  \"email\": \"recipient@example.com\", // Optional, default: current user email\n  \"filter\": { // Digunakan jika user_ids kosong\n    \"status\": \"active\",\n    \"role\": \"Student\",\n    \"search\": \"john\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/users/bulk/export",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "users",
+                    "bulk",
+                    "export"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Bulk Aktivasi User",
+              "id": "02df5b4b-c9d9-4c17-802a-0df3204b24d3",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc4NDA3MjEsImV4cCI6MTc5OTM3NjcyMSwibmJmIjoxNzY3ODQwNzIxLCJqdGkiOiJSb1lWYW02bGNQZFBGdUp5Iiwic3ViIjoiMSIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJTdXBlcmFkbWluIl19.s70OUMX010TcOvFCNRPcwpntFhrg-a9Mm-ngIB-FQBc",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_ids\": [1, 2, 3]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/users/bulk/activate",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "users",
+                    "bulk",
+                    "activate"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Bulk Deaktivasi User",
+              "id": "0597ae27-9199-438d-9ee6-319ccb02a430",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc4NDA3MjEsImV4cCI6MTc5OTM3NjcyMSwibmJmIjoxNzY3ODQwNzIxLCJqdGkiOiJSb1lWYW02bGNQZFBGdUp5Iiwic3ViIjoiMSIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJTdXBlcmFkbWluIl19.s70OUMX010TcOvFCNRPcwpntFhrg-a9Mm-ngIB-FQBc",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_ids\": [1, 2, 3]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/users/bulk/deactivate",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "users",
+                    "bulk",
+                    "deactivate"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Bulk Delete User",
+              "id": "5a6d7953-eab4-473e-893d-62f08edfc885",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc4NDA3MjEsImV4cCI6MTc5OTM3NjcyMSwibmJmIjoxNzY3ODQwNzIxLCJqdGkiOiJSb1lWYW02bGNQZFBGdUp5Iiwic3ViIjoiMSIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJTdXBlcmFkbWluIl19.s70OUMX010TcOvFCNRPcwpntFhrg-a9Mm-ngIB-FQBc",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_ids\": [1, 2, 3]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/users/bulk/delete",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "users",
+                    "bulk",
+                    "delete"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "489fd39e-a92f-49da-863f-e8e8ee400fe3"
+        },
+        {
+          "name": "Semua User",
+          "id": "a31c3c46-df57-409a-9dd3-19cb3a82ad8b",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_superadmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/users",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "",
+                  "description": "min:15, max:100",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[status]",
+                  "value": "active",
+                  "description": "active, suspended, deleted, pending",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[role]",
+                  "value": "Student",
+                  "description": "Student, Instructor, Admin, Superadmin",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "student",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detail User",
+          "id": "95959837-cf7a-4da8-9ece-755e5876020f",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_superadmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/users/:userId",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "users",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "437"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ubah Status User",
+          "id": "47272833-66e2-4477-9874-d532f1ded2fe",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_superadmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"inactive\" // active, inactive, banned\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/users/:userId",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "users",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "4"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buat User",
+          "id": "553a6627-b7e8-4f4f-9830-d4226e45d7f4",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_superadmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@example2.com\",\n  \"username\": \"janedoe2\",\n  \"role\": \"Instructor\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/users",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus User",
+          "id": "a829281a-b00d-45cf-bae4-915e936763f3",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL3YxL2Rldi90b2tlbnMiLCJpYXQiOjE3Njc4NDA3MjEsImV4cCI6MTc5OTM3NjcyMSwibmJmIjoxNzY3ODQwNzIxLCJqdGkiOiJSb1lWYW02bGNQZFBGdUp5Iiwic3ViIjoiMSIsInBydiI6ImYxZDM0YWJkNDI0NzM1MzgyMTIzNmI0ODE4OTcyYTg1Mjg0MzgzYjciLCJzdGF0dXMiOiJhY3RpdmUiLCJyb2xlcyI6WyJTdXBlcmFkbWluIl19.s70OUMX010TcOvFCNRPcwpntFhrg-a9Mm-ngIB-FQBc",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/users/:userId",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "users",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "11"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "df7f2d85-f74f-46ae-a53e-8ba3589dd085"
+    },
+    {
+      "name": "Pendaftaran",
+      "item": [
+        {
+          "name": "Manajemen",
+          "item": [
+            {
+              "name": "Ambil Pendaftaran Per Course",
+              "id": "4acff9db-887f-4009-b99d-cde7dfff9f29",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/courses/:slug/enrollments",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "enrollments"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "type": "text",
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "",
+                      "description": "min:15, max:100",
+                      "type": "text",
+                      "disabled": true
+                    },
+                    {
+                      "key": "search",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": "",
+                      "description": "priority,enrolled_at, completed_at, created_at",
+                      "type": "text",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[status]",
+                      "value": "",
+                      "description": "active, pending, completed, cancelled",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[enrolled_from]",
+                      "value": "",
+                      "description": "YYYY-MM-DD",
+                      "type": "text",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[enrolled_to]",
+                      "value": "",
+                      "description": "YYYY-MM-DD",
+                      "type": "text",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[user_id]",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "include",
+                      "value": "",
+                      "description": "user, userCount, userExists, course, courseCount, courseExists",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Terima Pendaftaran",
+              "id": "b5b42217-5612-4758-a390-7923c8d8570c",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/enrollments/:enrollmentId/approve",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "enrollments",
+                    ":enrollmentId",
+                    "approve"
+                  ],
+                  "variable": [
+                    {
+                      "key": "enrollmentId",
+                      "value": "3"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Tolak Pendaftaran",
+              "id": "b143b621-7c20-4050-9df5-cab0395e1372",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/enrollments/:enrollmentId/decline",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "enrollments",
+                    ":enrollmentId",
+                    "decline"
+                  ],
+                  "variable": [
+                    {
+                      "key": "enrollmentId",
+                      "value": "3"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Hapus Peserta",
+              "id": "7f25fdae-b9d3-486f-84de-21abc354591f",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/enrollments/:enrollmentId/remove",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "enrollments",
+                    ":enrollmentId",
+                    "remove"
+                  ],
+                  "variable": [
+                    {
+                      "key": "enrollmentId",
+                      "value": "3"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "6acc8e45-1174-440d-8f29-fe58cbf8d7c8"
+        },
+        {
+          "name": "Student",
+          "item": [
+            {
+              "name": "Cek Status Enrollment",
+              "id": "6e56a5e4-503b-45e9-a90e-ea07bd668319",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/courses/:slug/enrollment-status",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "enrollment-status"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Daftar Course",
+              "id": "c38e9ec8-62c6-413d-8f7c-ea2c6bd78dcc",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "// hanya jika enrollment_type key based\n// {\n//     \"enrollment_key\": \"contoh\"\n// }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/enroll",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "enroll"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Batalkan Enrollment",
+              "id": "23539e5b-c274-46b8-9d29-15556f1be10f",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "// hanya jika enrollment_type key based\n// {\n//     \"enrollment_key\": \"contoh\"\n// }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/cancel",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "cancel"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Mengundurkan Diri dari Course",
+              "id": "c12cea61-36cb-4b22-80c5-fd58e7e81e9d",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "// hanya jika enrollment_type key based\n// {\n//     \"enrollment_key\": \"contoh\"\n// }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/withdraw",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "withdraw"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "4601bfaa-df10-412f-9e85-829360bc7eb0"
+        },
+        {
+          "name": "Ambil Semua Pendaftaran",
+          "id": "f91a76ed-a20c-4f92-875f-e8c2f099626c",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_superadmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/enrollments",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "enrollments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "",
+                  "description": "min:15, max:100",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "",
+                  "description": "priority,enrolled_at, completed_at, created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[status]",
+                  "value": "",
+                  "description": "active, pending, completed, cancelled",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[enrolled_from]",
+                  "value": "",
+                  "description": "YYYY-MM-DD",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[enrolled_to]",
+                  "value": "",
+                  "description": "YYYY-MM-DD",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[user_id]",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[course_slug]",
+                  "value": null,
+                  "disabled": true
+                },
+                {
+                  "key": "include",
+                  "value": "",
+                  "description": "user, userCount, userExists, course, courseCount, courseExists",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "e7746fbd-dd78-4938-a489-b51107298785"
+    },
+    {
+      "name": "Skema",
+      "item": [
+        {
+          "name": "Enrollment Key",
+          "item": [
+            {
+              "name": "Generate Enrollment Key",
+              "id": "67186335-7db9-40ee-9580-b5f56bc05632",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/courses/:slug/enrollment-key/generate",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "enrollment-key",
+                    "generate"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Enrollment Key",
+              "id": "8d0555e0-06be-46e7-9bec-accba7b4e8c4",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"enrollment_type\": \"key_based\",\n    \"enrollment_key\": \"WZ8YYVWD29GN\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/enrollment-key",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "enrollment-key"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Hapus Enrollment Key",
+              "id": "c8ac0022-c7c7-469d-aa89-2411c6194cda",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/enrollment-key",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "enrollment-key"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "22ca868e-b373-4faf-9bd4-69461353dbc1"
+        },
+        {
+          "name": "Unit",
+          "item": [
+            {
+              "name": "Semua Unit per Skema",
+              "id": "6b2623d2-54ca-476f-b600-72d336a847c4",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units"
+                  ],
+                  "query": [
+                    {
+                      "key": "include",
+                      "value": null,
+                      "description": "course, lessons",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Lihat Unit Detail",
+              "id": "ee9c1720-c5b3-4ad5-bf18-85dc466cbdc3",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_admin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug"
+                  ],
+                  "query": [
+                    {
+                      "key": "include",
+                      "value": null,
+                      "description": "course, lessons",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Buat Unit",
+              "id": "251aa05d-cd73-4756-8ffc-c20781aa570c",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"code\": \"JWP-0121\",\n    // \"slug\" : \"mengenal-html\", \\\\Opsional\n    \"title\": \"Mengenal HTML/CSS1\",\n    \"description\": \"Disini adik adik akan belajar HTML/CSS\",\n    // \"order\": 1 //optional auto inc\n    \"status\": \"draft\" // opsional draft/publish\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units"
+                  ],
+                  "query": [
+                    {
+                      "key": "include",
+                      "value": null,
+                      "description": "course, lessons",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ubah Unit",
+              "id": "898d224a-a0e8-44d7-90aa-357688b8af85",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"code\": \"JWP-01211\",\n    // \"slug\" : \"mengenal-html\", \\\\Opsional\n    \"title\": \"Mengenal HTML/CSS\",\n    \"description\": \"Disini adik adik akan belajar HTML/CSS\",\n    // \"order\": 2, //optional auto inc\n    \"status\": \"draft\" // opsional draft/publish\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug"
+                  ],
+                  "query": [
+                    {
+                      "key": "include",
+                      "value": null,
+                      "description": "course, lessons",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Hapus Unit",
+              "id": "51fa47a6-ca11-444e-b1c8-6628aae0c70e",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"code\": \"JWP-01211\",\n    // \"slug\" : \"mengenal-html\", \\\\Opsional\n    \"title\": \"Mengenal HTML/CSS\",\n    \"description\": \"Disini adik adik akan belajar HTML/CSS\",\n    // \"order\": 2, //optional auto inc\n    \"status\": \"draft\" // opsional draft/publish\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug"
+                  ],
+                  "query": [
+                    {
+                      "key": "include",
+                      "value": null,
+                      "description": "course, lessons",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Publish Unit",
+              "id": "82f09391-5bf4-491b-bddb-7c53224dc511",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"code\": \"JWP-01211\",\n    // \"slug\" : \"mengenal-html\", \\\\Opsional\n    \"title\": \"Mengenal HTML/CSS\",\n    \"description\": \"Disini adik adik akan belajar HTML/CSS\",\n    // \"order\": 2, //optional auto inc\n    \"status\": \"draft\" // opsional draft/publish\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug/publish",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug",
+                    "publish"
+                  ],
+                  "query": [
+                    {
+                      "key": "include",
+                      "value": null,
+                      "description": "course, lessons",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Unpublish Unit",
+              "id": "ee74d749-049c-48fc-924f-cee30139eb6d",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"code\": \"JWP-01211\",\n    // \"slug\" : \"mengenal-html\", \\\\Opsional\n    \"title\": \"Mengenal HTML/CSS\",\n    \"description\": \"Disini adik adik akan belajar HTML/CSS\",\n    // \"order\": 2, //optional auto inc\n    \"status\": \"draft\" // opsional draft/publish\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug/unpublish",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug",
+                    "unpublish"
+                  ],
+                  "query": [
+                    {
+                      "key": "include",
+                      "value": null,
+                      "description": "course, lessons",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ubah Urutan Unit",
+              "id": "84de3d6e-1073-4f37-aaba-62935c09a66d",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"units\": [3, 1, 2]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/reorder",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    "reorder"
+                  ],
+                  "query": [
+                    {
+                      "key": "include",
+                      "value": null,
+                      "description": "course, lessons",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "b4c2fab0-8b4b-4d45-981e-788e9cd2c0d1"
+        },
+        {
+          "name": "Lesson",
+          "item": [
+            {
+              "name": "Lesson Blocks",
+              "item": [
+                {
+                  "name": "Semua Lesson Blocks",
+                  "id": "e010945b-3fcd-4057-a4c3-6fa98e896e4b",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{access_token_superadmin}}",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"code\": \"JWP-01211\",\n    // \"slug\" : \"mengenal-html\", \\\\Opsional\n    \"title\": \"Mengenal HTML/CSS\",\n    \"description\": \"Disini adik adik akan belajar HTML/CSS\",\n    // \"order\": 2, //optional auto inc\n    \"status\": \"draft\" // opsional draft/publish\n}"
+                    },
+                    "url": {
+                      "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons/:lessonSlug/blocks",
+                      "host": [
+                        "{{url}}"
+                      ],
+                      "path": [
+                        "courses",
+                        ":slug",
+                        "units",
+                        ":unitSlug",
+                        "lessons",
+                        ":lessonSlug",
+                        "blocks"
+                      ],
+                      "query": [
+                        {
+                          "key": "filter[block_type]",
+                          "value": "",
+                          "description": "text, video, image, file",
+                          "disabled": true
+                        },
+                        {
+                          "key": "sort",
+                          "value": null,
+                          "description": "order, created_at",
+                          "type": "text",
+                          "disabled": true
+                        }
+                      ],
+                      "variable": [
+                        {
+                          "key": "slug",
+                          "value": "junior-web-programmer"
+                        },
+                        {
+                          "key": "unitSlug",
+                          "value": "mengenal-htmlcss1"
+                        },
+                        {
+                          "key": "lessonSlug",
+                          "value": "laravel-routing"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "Lihat Lesson Block",
+                  "id": "fc08c0ca-111f-4167-98b4-b1b9024148c1",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{access_token_superadmin}}",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"code\": \"JWP-01211\",\n    // \"slug\" : \"mengenal-html\", \\\\Opsional\n    \"title\": \"Mengenal HTML/CSS\",\n    \"description\": \"Disini adik adik akan belajar HTML/CSS\",\n    // \"order\": 2, //optional auto inc\n    \"status\": \"draft\" // opsional draft/publish\n}"
+                    },
+                    "url": {
+                      "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons/:lessonSlug/blocks/:blockSlug",
+                      "host": [
+                        "{{url}}"
+                      ],
+                      "path": [
+                        "courses",
+                        ":slug",
+                        "units",
+                        ":unitSlug",
+                        "lessons",
+                        ":lessonSlug",
+                        "blocks",
+                        ":blockSlug"
+                      ],
+                      "query": [
+                        {
+                          "key": "filter[block_type]",
+                          "value": "",
+                          "description": "text, video, image, file",
+                          "disabled": true
+                        },
+                        {
+                          "key": "sort",
+                          "value": null,
+                          "description": "order, created_at",
+                          "type": "text",
+                          "disabled": true
+                        }
+                      ],
+                      "variable": [
+                        {
+                          "key": "slug",
+                          "value": "junior-web-programmer"
+                        },
+                        {
+                          "key": "unitSlug",
+                          "value": "mengenal-htmlcss1"
+                        },
+                        {
+                          "key": "lessonSlug",
+                          "value": "laravel-routing"
+                        },
+                        {
+                          "key": "blockSlug",
+                          "value": "913a5232-29b3-4bbc-a563-ccc4fb4b2509"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "Buat Lesson Block",
+                  "id": "ecb04cfc-6336-457d-886d-5f1ea105b17e",
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{access_token_superadmin}}",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "formdata",
+                      "formdata": [
+                        {
+                          "key": "type",
+                          "value": "file",
+                          "description": "text, video, image, file",
+                          "type": "text",
+                          "uuid": "f6fa8e5c-f8e3-41c9-8e37-31794fe37d17"
+                        },
+                        {
+                          "key": "content",
+                          "value": "Routing di Laravel digunakan untuk menghubungkan URL dengan controller atau closure. Contohnya:\\nRoute::get('/users', [UserController::class, 'index']);",
+                          "description": "wajib jika pake text",
+                          "type": "text",
+                          "uuid": "ef2cdf16-0b8e-40c2-8da4-04be3bde0b44",
+                          "disabled": true
+                        },
+                        {
+                          "key": "order",
+                          "value": "1",
+                          "description": "opsional",
+                          "type": "text",
+                          "uuid": "3485aa01-7875-4c2b-8a1f-e57cddc047db"
+                        },
+                        {
+                          "key": "media",
+                          "description": "wajib if video/image/file",
+                          "type": "file",
+                          "uuid": "ae740d78-12ef-49bd-acae-3dcb476549e6",
+                          "src": [
+                            "/Users/darrielmarkerizal/Downloads/saldo-alokasi-dana-01_01_4555_000_001_SAD-2026-01-19.xlsx"
+                          ]
+                        }
+                      ]
+                    },
+                    "url": {
+                      "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons/:lessonSlug/blocks",
+                      "host": [
+                        "{{url}}"
+                      ],
+                      "path": [
+                        "courses",
+                        ":slug",
+                        "units",
+                        ":unitSlug",
+                        "lessons",
+                        ":lessonSlug",
+                        "blocks"
+                      ],
+                      "query": [
+                        {
+                          "key": "filter[block_type]",
+                          "value": "",
+                          "description": "text, video, image, file",
+                          "disabled": true
+                        },
+                        {
+                          "key": "sort",
+                          "value": null,
+                          "description": "order, created_at",
+                          "type": "text",
+                          "disabled": true
+                        }
+                      ],
+                      "variable": [
+                        {
+                          "key": "slug",
+                          "value": "junior-web-programmer"
+                        },
+                        {
+                          "key": "unitSlug",
+                          "value": "mengenal-htmlcss1"
+                        },
+                        {
+                          "key": "lessonSlug",
+                          "value": "laravel-routing"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "Ubah Lesson Block",
+                  "id": "059fcab8-ba2e-4222-b4a1-687321a64ce0",
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{access_token_superadmin}}",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "formdata",
+                      "formdata": [
+                        {
+                          "key": "type",
+                          "value": "file",
+                          "description": "text, video, image, file",
+                          "type": "text",
+                          "uuid": "f6fa8e5c-f8e3-41c9-8e37-31794fe37d17"
+                        },
+                        {
+                          "key": "content",
+                          "value": "Routing di Laravel digunakan untuk menghubungkan URL dengan controller atau closure. Contohnya:\\nRoute::get('/users', [UserController::class, 'index']);",
+                          "description": "wajib jika pake text",
+                          "type": "text",
+                          "uuid": "ef2cdf16-0b8e-40c2-8da4-04be3bde0b44",
+                          "disabled": true
+                        },
+                        {
+                          "key": "order",
+                          "value": "1",
+                          "description": "opsional",
+                          "type": "text",
+                          "uuid": "3485aa01-7875-4c2b-8a1f-e57cddc047db"
+                        },
+                        {
+                          "key": "media",
+                          "description": "wajib if video/image/file",
+                          "type": "file",
+                          "uuid": "ae740d78-12ef-49bd-acae-3dcb476549e6",
+                          "src": [
+                            "/Users/darrielmarkerizal/Downloads/Chen_2017_J._Phys.__Conf._Ser._910_012016.pdf"
+                          ]
+                        },
+                        {
+                          "key": "",
+                          "value": "",
+                          "type": "text",
+                          "uuid": "09d513b4-f3cf-4c9a-b520-ac8ed93d0c2d"
+                        }
+                      ]
+                    },
+                    "url": {
+                      "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons/:lessonSlug/blocks/:blockSlug",
+                      "host": [
+                        "{{url}}"
+                      ],
+                      "path": [
+                        "courses",
+                        ":slug",
+                        "units",
+                        ":unitSlug",
+                        "lessons",
+                        ":lessonSlug",
+                        "blocks",
+                        ":blockSlug"
+                      ],
+                      "query": [
+                        {
+                          "key": "filter[block_type]",
+                          "value": "",
+                          "description": "text, video, image, file",
+                          "disabled": true
+                        },
+                        {
+                          "key": "sort",
+                          "value": null,
+                          "description": "order, created_at",
+                          "type": "text",
+                          "disabled": true
+                        }
+                      ],
+                      "variable": [
+                        {
+                          "key": "slug",
+                          "value": "junior-web-programmer"
+                        },
+                        {
+                          "key": "unitSlug",
+                          "value": "mengenal-htmlcss1"
+                        },
+                        {
+                          "key": "lessonSlug",
+                          "value": "laravel-routing"
+                        },
+                        {
+                          "key": "blockSlug",
+                          "value": "913a5232-29b3-4bbc-a563-ccc4fb4b2509"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "Hapus Lesson Block",
+                  "id": "e5a2c56e-aa50-4598-ac79-2b279233381a",
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{access_token_superadmin}}",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "method": "DELETE",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "formdata",
+                      "formdata": [
+                        {
+                          "key": "type",
+                          "value": "file",
+                          "description": "text, video, image, file",
+                          "type": "text",
+                          "uuid": "f6fa8e5c-f8e3-41c9-8e37-31794fe37d17"
+                        },
+                        {
+                          "key": "content",
+                          "value": "Routing di Laravel digunakan untuk menghubungkan URL dengan controller atau closure. Contohnya:\\nRoute::get('/users', [UserController::class, 'index']);",
+                          "description": "wajib jika pake text",
+                          "type": "text",
+                          "uuid": "ef2cdf16-0b8e-40c2-8da4-04be3bde0b44",
+                          "disabled": true
+                        },
+                        {
+                          "key": "order",
+                          "value": "1",
+                          "description": "opsional",
+                          "type": "text",
+                          "uuid": "3485aa01-7875-4c2b-8a1f-e57cddc047db"
+                        },
+                        {
+                          "key": "media",
+                          "description": "wajib if video/image/file",
+                          "type": "file",
+                          "uuid": "ae740d78-12ef-49bd-acae-3dcb476549e6",
+                          "src": [
+                            "/Users/darrielmarkerizal/Downloads/Chen_2017_J._Phys.__Conf._Ser._910_012016.pdf"
+                          ]
+                        },
+                        {
+                          "key": "",
+                          "value": "",
+                          "type": "text",
+                          "uuid": "09d513b4-f3cf-4c9a-b520-ac8ed93d0c2d"
+                        }
+                      ]
+                    },
+                    "url": {
+                      "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons/:lessonSlug/blocks/:blockSlug",
+                      "host": [
+                        "{{url}}"
+                      ],
+                      "path": [
+                        "courses",
+                        ":slug",
+                        "units",
+                        ":unitSlug",
+                        "lessons",
+                        ":lessonSlug",
+                        "blocks",
+                        ":blockSlug"
+                      ],
+                      "query": [
+                        {
+                          "key": "filter[block_type]",
+                          "value": "",
+                          "description": "text, video, image, file",
+                          "disabled": true
+                        },
+                        {
+                          "key": "sort",
+                          "value": null,
+                          "description": "order, created_at",
+                          "type": "text",
+                          "disabled": true
+                        }
+                      ],
+                      "variable": [
+                        {
+                          "key": "slug",
+                          "value": "junior-web-programmer"
+                        },
+                        {
+                          "key": "unitSlug",
+                          "value": "mengenal-htmlcss1"
+                        },
+                        {
+                          "key": "lessonSlug",
+                          "value": "laravel-routing"
+                        },
+                        {
+                          "key": "blockSlug",
+                          "value": "913a5232-29b3-4bbc-a563-ccc4fb4b2509"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ],
+              "id": "0885b966-14e2-4542-acd8-1f06f5b4a0e5"
+            },
+            {
+              "name": "Semua Lesson",
+              "id": "b0ab8261-01a2-4fb8-8bc9-2cfce7032e51",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"code\": \"JWP-01211\",\n    // \"slug\" : \"mengenal-html\", \\\\Opsional\n    \"title\": \"Mengenal HTML/CSS\",\n    \"description\": \"Disini adik adik akan belajar HTML/CSS\",\n    // \"order\": 2, //optional auto inc\n    \"status\": \"draft\" // opsional draft/publish\n}"
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons?include=blocks&page&per_page",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug",
+                    "lessons"
+                  ],
+                  "query": [
+                    {
+                      "key": "include",
+                      "value": "blocks",
+                      "description": "unit, unitCount, unitExists, blocks, blocksCount, blocksExists, assignments, assignmentsCount, assignmentsExists"
+                    },
+                    {
+                      "key": "filter[content_type]",
+                      "value": null,
+                      "description": "markdown, video, link",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[status]",
+                      "value": null,
+                      "description": "draft, published",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": null,
+                      "description": "order, title, created_at ",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": null
+                    },
+                    {
+                      "key": "per_page",
+                      "value": null
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Detail Lesson",
+              "id": "1c0d5829-50ff-4c4e-ad33-c66328a664a8",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"code\": \"JWP-01211\",\n    // \"slug\" : \"mengenal-html\", \\\\Opsional\n    \"title\": \"Mengenal HTML/CSS\",\n    \"description\": \"Disini adik adik akan belajar HTML/CSS\",\n    // \"order\": 2, //optional auto inc\n    \"status\": \"draft\" // opsional draft/publish\n}"
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons/:lessonSlug?include=blocks",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug",
+                    "lessons",
+                    ":lessonSlug"
+                  ],
+                  "query": [
+                    {
+                      "key": "include",
+                      "value": "blocks",
+                      "description": "unit, unitCount, unitExists, blocks, blocksCount, blocksExists, assignments, assignmentsCount, assignmentsExists"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss1"
+                    },
+                    {
+                      "key": "lessonSlug",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Buat Lesson",
+              "id": "e438b52f-51ac-4265-b7e6-313156d4d8b9",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Laravel Controllers\",\n    \"description\": \"Belajar membuat dan menggunakan controller untuk mengatur logika aplikasi di Laravel.\",\n    \"markdown_content\": \"# Laravel Controllers\\n\\nController memisahkan logika aplikasi dari routing.\\n\\nContoh:\\n```php\\nphp artisan make:controller PostController\\n```\",\n    \"order\": 1,\n    \"duration_minutes\": 50,\n    \"status\": \"draft\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug",
+                    "lessons"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ubah Lesson",
+              "id": "2ddbd061-884d-4cdc-a316-eb5224ce33a8",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Laravel Routing\",\n  \"description\": \"Mempelajari cara kerja routing di Laravel untuk menghubungkan URL dengan controller.\",\n  \"markdown_content\": \"# Laravel Routing\\n\\nRouting di Laravel digunakan untuk mengarahkan permintaan HTTP ke controller atau closure yang sesuai.\\n\\nContoh:\\n```php\\nRoute::get('/users', [UserController::class, 'index']);\\n```\",\n  \"order\": 2, // Opsional\n  \"duration_minutes\": 45,\n  \"status\": \"draft\"\n}\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons/:lessonSlug",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug",
+                    "lessons",
+                    ":lessonSlug"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss1"
+                    },
+                    {
+                      "key": "lessonSlug",
+                      "value": "laravel-routing"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Hapus Lesson",
+              "id": "4a96084e-8c7e-4c2e-aa21-19eb739c1772",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons/:lessonSlug",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug",
+                    "lessons",
+                    ":lessonSlug"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss1"
+                    },
+                    {
+                      "key": "lessonSlug",
+                      "value": "laravel-controllers"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Publish Lesson",
+              "id": "42501839-ec58-41f7-8bff-e23086c3b858",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons/:lessonSlug/publish",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug",
+                    "lessons",
+                    ":lessonSlug",
+                    "publish"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss1"
+                    },
+                    {
+                      "key": "lessonSlug",
+                      "value": "laravel-routing"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Unpublish Lesson",
+              "id": "6f6ef4aa-0634-459e-bddc-c345be556fda",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons/:lessonSlug/unpublish",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug",
+                    "lessons",
+                    ":lessonSlug",
+                    "unpublish"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss1"
+                    },
+                    {
+                      "key": "lessonSlug",
+                      "value": "laravel-controllers"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Complete Lesson",
+              "id": "804ad8f6-3196-4bb4-86c6-8f9fb81cb890",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons/:lessonSlug/complete",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug",
+                    "lessons",
+                    ":lessonSlug",
+                    "complete"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss1"
+                    },
+                    {
+                      "key": "lessonSlug",
+                      "value": "laravel-controllers"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Uncomplete Lesson",
+              "id": "6dbe9456-ebf4-4930-8046-ee66ab4af513",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/courses/:slug/units/:unitSlug/lessons/:lessonSlug/uncomplete",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "units",
+                    ":unitSlug",
+                    "lessons",
+                    ":lessonSlug",
+                    "uncomplete"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer"
+                    },
+                    {
+                      "key": "unitSlug",
+                      "value": "mengenal-htmlcss1"
+                    },
+                    {
+                      "key": "lessonSlug",
+                      "value": "laravel-controllers"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "8a2c9f31-0f27-40c7-9cdb-625398206bcc"
+        },
+        {
+          "name": "Progres Belajar",
+          "item": [
+            {
+              "name": "Lihat Progres (Student)",
+              "id": "6afd4899-712a-49f9-9b44-7e8a6c0f7d6f",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/courses/:slug/progress",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "progress"
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer-1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Lihat Semua Progress (Admin)",
+              "id": "bdb96bb7-e50f-41de-bd50-f4f7f826862b",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/courses/:slug/progress",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "courses",
+                    ":slug",
+                    "progress"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_id",
+                      "value": null,
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": "junior-web-programmer-1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "348b6817-5cee-472f-8bd6-8177d69cb1cd"
+        },
+        {
+          "name": "Semua Course",
+          "id": "86ba11ff-2633-4633-bc31-a5d2d7765d67",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_superadmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/courses",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "courses"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "description": "min:15, max:100",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[status]",
+                  "value": "",
+                  "description": "draft, published, archieved",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[level_tag]",
+                  "value": "",
+                  "description": "dasar, menengah, mahir",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[category_id]",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "include",
+                  "value": "nisa",
+                  "description": "tags, tagsCount, tagsExists, category, categoryCount, categoryExists, instructor, instructorCount, instructorExists, units, unitsCount, unitsExists, admins, adminsCount, adminsExists",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "",
+                  "description": "id, code, title, created_at, updated_at, published_at",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detail Course",
+          "id": "8795b6a5-314e-40f0-86fd-66728d7c265d",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/courses/:slug",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "courses",
+                ":slug"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "description": "min:15, max:100",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[status]",
+                  "value": "",
+                  "description": "draft, published, archieved",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[level_tag]",
+                  "value": null,
+                  "description": "dasar, menengah, mahir",
+                  "disabled": true
+                },
+                {
+                  "key": "filter[category_id]",
+                  "value": null,
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": null,
+                  "disabled": true
+                },
+                {
+                  "key": "include",
+                  "value": "",
+                  "description": "tags, tagsCount, tagsExists, category, categoryCount, categoryExists, instructor, instructorCount, instructorExists, units, unitsCount, unitsExists",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "",
+                  "description": "id, code, title, created_at, updated_at, published_at",
+                  "type": "text",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "junior-web-programmer-2"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buat Course",
+          "id": "0690ce2e-ab45-4c66-9841-632c3b52aa09",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "code",
+                  "value": " CODE-02621112112",
+                  "type": "text",
+                  "description": "wajib",
+                  "uuid": "ce9b7369-6ba8-4b7a-b5dd-33f5ccda4f00"
+                },
+                {
+                  "key": "title",
+                  "value": " Junior Web Programmer",
+                  "type": "text",
+                  "description": "wajib",
+                  "uuid": "641dda36-90e1-4464-a7d8-662a8ae9dc98"
+                },
+                {
+                  "key": "short_desc",
+                  "value": " Skema sertifikasi Junior Web Programmer adalah skema sertifikasi okupasi yang dikembangkan untuk memenuhi kebutuhan sertifikasi kompetensi kerja di bidang web development berdasarkan standar SKKNI Informasi dan Komunikasi.",
+                  "type": "text",
+                  "description": "opsional",
+                  "uuid": "eff276cb-31c7-43ff-8c30-6fca67d03661"
+                },
+                {
+                  "key": "level_tag",
+                  "value": " dasar",
+                  "type": "text",
+                  "description": "dasar, menengah, mahir (wajib)",
+                  "uuid": "18895d19-0cd4-4cc4-b64a-3d3b394cb2a0"
+                },
+                {
+                  "key": "type",
+                  "value": " okupasi",
+                  "type": "text",
+                  "description": "okupasi, kluster (wajib)",
+                  "uuid": "3fd9c7ac-be1e-46c1-80de-db4fdfda51dc"
+                },
+                {
+                  "key": "enrollment_type",
+                  "value": "auto_accept",
+                  "type": "text",
+                  "description": "auto_accept, key_based, approval (wajib)",
+                  "uuid": "715ccbc5-5d71-407f-bf49-5d8719896b3f"
+                },
+                {
+                  "key": "progression_mode",
+                  "value": " sequential",
+                  "type": "text",
+                  "description": "wajib jika key_based",
+                  "uuid": "10841756-50b5-4302-9c8f-4666e02609dc"
+                },
+                {
+                  "key": "category_id",
+                  "value": "1",
+                  "type": "text",
+                  "description": "sequential, free (wajib)",
+                  "uuid": "a1f30dba-fade-4391-9783-ed11bdfcc539"
+                },
+                {
+                  "key": "tags[0]",
+                  "value": " Web Programming",
+                  "type": "text",
+                  "description": "wajib"
+                },
+                {
+                  "key": "tags[1]",
+                  "value": " Frontend",
+                  "type": "text",
+                  "description": "['Web', 'Laravel'])"
+                },
+                {
+                  "key": "tags[2]",
+                  "value": " Backend",
+                  "type": "text"
+                },
+                {
+                  "key": "tags[3]",
+                  "value": " JavaScript",
+                  "type": "text"
+                },
+                {
+                  "key": "tags[4]",
+                  "value": " HTML",
+                  "type": "text",
+                  "description": "image, maks 4mb"
+                },
+                {
+                  "key": "tags[5]",
+                  "value": " CSS",
+                  "type": "text"
+                },
+                {
+                  "key": "tags[6]",
+                  "value": " Programming",
+                  "type": "text",
+                  "description": "opsional"
+                },
+                {
+                  "key": "outcomes[0]",
+                  "value": " Menggunakan struktur data sesuai SKKNI",
+                  "type": "text",
+                  "description": "opsional"
+                },
+                {
+                  "key": "outcomes[1]",
+                  "value": " Mengimplementasikan user interface",
+                  "type": "text"
+                },
+                {
+                  "key": "outcomes[2]",
+                  "value": " Melakukan instalasi software tools pemrograman",
+                  "type": "text"
+                },
+                {
+                  "key": "outcomes[3]",
+                  "value": " Menulis kode dengan best practices",
+                  "type": "text"
+                },
+                {
+                  "key": "outcomes[4]",
+                  "value": " Mengimplementasikan pemrograman terstruktur",
+                  "type": "text"
+                },
+                {
+                  "key": "outcomes[5]",
+                  "value": " Menggunakan library atau komponen pre-existing",
+                  "type": "text"
+                },
+                {
+                  "key": "outcomes[6]",
+                  "value": " Membuat dokumentasi kode program",
+                  "type": "text"
+                },
+                {
+                  "key": "outcomes[7]",
+                  "value": " Melakukan debugging",
+                  "type": "text"
+                },
+                {
+                  "key": "prereq",
+                  "value": " Ijazah terakhir minimal SMA/D3. Pengalaman kerja minimal 1 tahun atau portfolio relevan.",
+                  "type": "text",
+                  "uuid": "2d70d9c6-afbf-4a54-8bce-05ad868e7bde"
+                },
+                {
+                  "key": "thumbnail",
+                  "description": "image, maks 4mb",
+                  "type": "file",
+                  "uuid": "566666d1-9d3e-47f6-897f-a61d0c626f56",
+                  "src": [
+                    "/Users/darrielmarkerizal/Downloads/IMG_9243.JPG"
+                  ]
+                },
+                {
+                  "key": "banner",
+                  "type": "file",
+                  "uuid": "1b8be014-1407-477b-a7eb-95e3fa217cbe",
+                  "src": [
+                    "/Users/darrielmarkerizal/Downloads/cursor-2025.png"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{url}}/courses",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "courses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Edit Course",
+          "id": "4ae58b4c-5a0d-4ff3-856d-669425208a9b",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "code",
+                  "value": "CODE-01",
+                  "description": "wajib",
+                  "type": "text",
+                  "uuid": "ce9b7369-6ba8-4b7a-b5dd-33f5ccda4f00"
+                },
+                {
+                  "key": "title",
+                  "value": "Junior Web Programmer",
+                  "description": "wajib",
+                  "type": "text",
+                  "uuid": "641dda36-90e1-4464-a7d8-662a8ae9dc98"
+                },
+                {
+                  "key": "short_desc",
+                  "value": "Skema sertifikasi Junior Web Programmer adalah skema sertifikasi okupasi yang dikembangkan untuk memenuhi kebutuhan sertifikasi kompetensi kerja di bidang web development berdasarkan standar SKKNI Informasi dan Komunikasi.",
+                  "description": "opsional",
+                  "type": "text",
+                  "uuid": "eff276cb-31c7-43ff-8c30-6fca67d03661"
+                },
+                {
+                  "key": "level_tag",
+                  "value": "dasar",
+                  "description": "dasar, menengah, mahir (wajib)",
+                  "type": "text",
+                  "uuid": "18895d19-0cd4-4cc4-b64a-3d3b394cb2a0"
+                },
+                {
+                  "key": "type",
+                  "value": "okupasi",
+                  "description": "okupasi, kluster (wajib)",
+                  "type": "text",
+                  "uuid": "3fd9c7ac-be1e-46c1-80de-db4fdfda51dc"
+                },
+                {
+                  "key": "enrollment_type",
+                  "value": "approval",
+                  "description": "auto_accept, key_based, approval (wajib)",
+                  "type": "text",
+                  "uuid": "715ccbc5-5d71-407f-bf49-5d8719896b3f"
+                },
+                {
+                  "key": "enrollment_key",
+                  "value": "",
+                  "description": "wajib jika key_based",
+                  "type": "text",
+                  "uuid": "91393452-91e4-480e-8487-c5e51c97e92e",
+                  "disabled": true
+                },
+                {
+                  "key": "progression_mode",
+                  "value": "sequential",
+                  "description": "sequential, free (wajib)",
+                  "type": "text",
+                  "uuid": "10841756-50b5-4302-9c8f-4666e02609dc"
+                },
+                {
+                  "key": "category_id",
+                  "value": "1",
+                  "description": "wajib",
+                  "type": "text",
+                  "uuid": "a1f30dba-fade-4391-9783-ed11bdfcc539"
+                },
+                {
+                  "key": "tags[]",
+                  "value": "[\"Web Programming\", \"Frontend\", \"Backend\", \"JavaScript\", \"HTML\", \"CSS\", \"Programming\"]",
+                  "description": "['Web', 'Laravel'])",
+                  "type": "text",
+                  "uuid": "4241a230-d88a-402d-8f13-6f025ecc1906"
+                },
+                {
+                  "key": "outcomes[]",
+                  "value": "[\"Menggunakan struktur data sesuai SKKNI\", \"Mengimplementasikan user interface\", \"Melakukan instalasi software tools pemrograman\", \"Menulis kode dengan best practices\", \"Mengimplementasikan pemrograman terstruktur\", \"Menggunakan library atau komponen pre-existing\", \"Membuat dokumentasi kode program\", \"Melakukan debugging\"]",
+                  "type": "text",
+                  "uuid": "11cbb444-b64d-4a80-91b6-db05a46ef6e1"
+                },
+                {
+                  "key": "prereq",
+                  "value": "[\"Ijazah terakhir minimal SMA/D3\", \"Pengalaman kerja minimal 1 tahun atau portfolio relevan\"]",
+                  "type": "text",
+                  "uuid": "2d70d9c6-afbf-4a54-8bce-05ad868e7bde"
+                },
+                {
+                  "key": "thumbnail",
+                  "description": "image, maks 4mb",
+                  "type": "file",
+                  "uuid": "566666d1-9d3e-47f6-897f-a61d0c626f56",
+                  "src": [
+                    "/Users/darrielmarkerizal/Downloads/logo-iso.png"
+                  ]
+                },
+                {
+                  "key": "banner",
+                  "type": "file",
+                  "uuid": "1b8be014-1407-477b-a7eb-95e3fa217cbe",
+                  "src": [
+                    "/Users/darrielmarkerizal/Downloads/file_example_JPG_100kB (1).jpg"
+                  ]
+                },
+                {
+                  "key": "instructor_id",
+                  "value": "",
+                  "description": "opsional",
+                  "type": "text",
+                  "uuid": "38dea370-3e14-405d-8042-089116905d0c",
+                  "disabled": true
+                },
+                {
+                  "key": "course_admins[]",
+                  "value": "",
+                  "description": "opsional",
+                  "type": "text",
+                  "uuid": "b99e9846-04d4-4424-9b21-af3765e75c05",
+                  "disabled": true
+                },
+                {
+                  "key": "_method",
+                  "value": "PUT",
+                  "type": "text",
+                  "uuid": "fc2b110e-c0e1-4f48-9810-b8c151b5bbe9",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{url}}/courses/:courseSlug",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "courses",
+                ":courseSlug"
+              ],
+              "variable": [
+                {
+                  "key": "courseSlug",
+                  "value": "junior-web-programmer"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Course",
+          "id": "b7768785-a3e8-43e4-82a2-5543c5b1cf37",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_superadmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/courses/:slug",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "courses",
+                ":slug"
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "junior-web-programmer-4"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Publish Course",
+          "id": "e2afbda9-c24b-4722-81d8-46103b4183c8",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/courses/:slug/publish",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "courses",
+                ":slug",
+                "publish"
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "junior-web-programmer"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unpublish Course",
+          "id": "c7ada66f-e09f-4d1e-933c-4e0a4e262310",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/courses/:slug/unpublish",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "courses",
+                ":slug",
+                "unpublish"
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "junior-web-programmer"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "869467af-951f-4017-be4b-97d13d759d61"
+    },
+    {
+      "name": "Master Data",
+      "item": [
+        {
+          "name": "Tag",
+          "item": [
+            {
+              "name": "Ambil Semua Tag",
+              "id": "3cd6f03a-b01e-4383-a1da-47b04a347f58",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/master-data/tags?page&per_page&search",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "master-data",
+                    "tags"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": null,
+                      "uuid": "1938d1ed-089f-4fd8-a29b-20f950969b29"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": null,
+                      "uuid": "46ddfa7e-0c8d-4731-82f7-e590906b86d6"
+                    },
+                    {
+                      "key": "search",
+                      "value": null,
+                      "uuid": "078e952a-1850-4da8-90a7-b445d5f85439"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Detail Tag",
+              "id": "219cca36-7de2-400a-a30e-2cd3c7a6443a",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/master-data/tags/:tagSlug",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "master-data",
+                    "tags",
+                    ":tagSlug"
+                  ],
+                  "variable": [
+                    {
+                      "key": "tagSlug",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Buat Tag",
+              "id": "c06a4721-83d9-4074-ad09-208d0bfb0008",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "// Single\n// {\n//   \"name\": \"HTML\"\n// }\n\n// Bisa Bulk\n{\n  \"names\": [\"PHP\", \"Backend\", \"Web Development\"]\n}\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/master-data/tags/",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "master-data",
+                    "tags",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ubah Tag",
+              "id": "f4bce2f4-a70a-496a-b7f3-216eaf69eb32",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"HTML\"\n}\n\n// Bisa Bulk\n// {\n//   \"names\": [\"PHP\", \"Backend\", \"Web Development\"]\n// }\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/master-data/tags/:tagSlug",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "master-data",
+                    "tags",
+                    ":tagSlug"
+                  ],
+                  "variable": [
+                    {
+                      "key": "tagSlug",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Hapus Tag",
+              "id": "cfdad043-98a0-4739-b4f0-82d9a5bdf392",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"HTML\"\n}\n\n// Bisa Bulk\n// {\n//   \"names\": [\"PHP\", \"Backend\", \"Web Development\"]\n// }\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/master-data/tags/:tagSlug",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "master-data",
+                    "tags",
+                    ":tagSlug"
+                  ],
+                  "variable": [
+                    {
+                      "key": "tagSlug",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "b48405ab-7379-4dba-bd2d-19cf1ddabea2"
+        },
+        {
+          "name": "Lihat Semua Master Data",
+          "id": "8b44be8c-5f99-4ddb-ba03-ab9a63abbbe8",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/master-data?page&per_page=100&sort=",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "master-data"
+              ],
+              "query": [
+                {
+                  "key": "filter[is_crud]",
+                  "value": "",
+                  "uuid": "bebc3c48-8b3b-47e6-bcf9-c9dcf4e72e11",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": null,
+                  "type": "text",
+                  "uuid": "c3cbfba1-9d30-4d36-8535-ee133547fd59"
+                },
+                {
+                  "key": "per_page",
+                  "value": "100",
+                  "type": "text",
+                  "uuid": "f50bdd06-c7e3-4e64-80f7-bca786eea35d"
+                },
+                {
+                  "key": "sort",
+                  "value": "",
+                  "description": "type, key, label, count, last_updated",
+                  "type": "text",
+                  "uuid": "18d193f2-3e09-4701-9e21-f659aea2930c"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ambil Item Master Data",
+          "id": "09b9c8a3-f493-47e1-ad12-24d63b49e6e0",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/master-data/:type",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "master-data",
+                ":type"
+              ],
+              "variable": [
+                {
+                  "key": "type",
+                  "value": "categories"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buat Item Master Data Baru",
+          "id": "63cff644-2f2b-4bd0-a014-6f27edcbe105",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_superadmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"value\": \"civil\",\n    \"label\": \"Teknik Sipil\",\n    \"is_active\": true //optional\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/master-data/:type/items",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "master-data",
+                ":type",
+                "items"
+              ],
+              "variable": [
+                {
+                  "key": "type",
+                  "value": "categories"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ubah Item Master Data",
+          "id": "2b3dd767-f0a7-4585-ac7e-6fcfe98b831d",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_superadmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/master-data/:type/items/:id",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "master-data",
+                ":type",
+                "items",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "type",
+                  "value": "categories"
+                },
+                {
+                  "key": "id",
+                  "value": "15"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Item Master Data",
+          "id": "48e182aa-c476-4642-ac9f-f339e3850867",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_superadmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/master-data/:type/items/:id",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "master-data",
+                ":type",
+                "items",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "type",
+                  "value": "categories"
+                },
+                {
+                  "key": "id",
+                  "value": "15"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "97ba5c6d-5ff5-41e2-8e7b-e392ce8022e7"
+    },
+    {
+      "name": "Log",
+      "item": [
+        {
+          "name": "Ambil Semua Log",
+          "id": "0de681ab-695e-4b3d-8041-21b48fbcd5be",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_superadmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/activity-logs?page&per_page&search&filter[log_name]&filter[event]&filter[subject_type]&filter[subject_id]&filter[causer_type]&filter[created_at][from]&filter[created_at][to]&sort&f",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "activity-logs"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": null,
+                  "uuid": "59342e24-f5da-4988-9b3e-066905baa917"
+                },
+                {
+                  "key": "per_page",
+                  "value": null,
+                  "uuid": "a9212dfe-56b8-43d2-b9c4-51247a741d55"
+                },
+                {
+                  "key": "search",
+                  "value": null,
+                  "uuid": "a4304578-a98e-4075-b797-68c970a3c6a6"
+                },
+                {
+                  "key": "filter[log_name]",
+                  "value": null,
+                  "uuid": "9247aa73-4c7b-4cc0-b257-cf81d24bd737"
+                },
+                {
+                  "key": "filter[event]",
+                  "value": null,
+                  "description": "created, updated, deleted",
+                  "uuid": "830437ab-711d-4e68-8ce4-9029f4ef5c6a"
+                },
+                {
+                  "key": "filter[subject_type]",
+                  "value": null,
+                  "uuid": "09479829-8315-4268-8bd7-59a344680735"
+                },
+                {
+                  "key": "filter[subject_id]",
+                  "value": null,
+                  "uuid": "ebada284-450d-48d3-a515-bc19af264fa8"
+                },
+                {
+                  "key": "filter[causer_type]",
+                  "value": null,
+                  "uuid": "5349e036-58f9-42ea-8be5-87f4fb8406d9"
+                },
+                {
+                  "key": "filter[created_at][from]",
+                  "value": null,
+                  "uuid": "8111a5f2-ef58-47a7-96dd-1a3b01066c3c"
+                },
+                {
+                  "key": "filter[created_at][to]",
+                  "value": null,
+                  "uuid": "5e40440d-10cd-4219-b1d0-83186e96b483"
+                },
+                {
+                  "key": "sort",
+                  "value": null,
+                  "description": "id, created_at, event, log_name",
+                  "uuid": "3c57d9f5-3eb0-4483-b479-e2929d99ca3b"
+                },
+                {
+                  "key": "f",
+                  "value": null,
+                  "uuid": "68e62dec-a662-4974-ac5b-330fa4e3a346"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lihat Detail Log",
+          "id": "9a42444e-2ce4-4347-85cd-4bce4bad98cf",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token_superadmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/activity-logs/:id",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "activity-logs",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "44"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "30627243-9433-4013-9415-d32c41dcb920"
+    }
+  ]
+}

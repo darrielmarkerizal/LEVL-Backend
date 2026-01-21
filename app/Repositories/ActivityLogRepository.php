@@ -4,6 +4,10 @@ namespace App\Repositories;
 
 use App\Models\ActivityLog;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class ActivityLogRepository extends BaseRepository
 {
@@ -20,9 +24,9 @@ class ActivityLogRepository extends BaseRepository
     "causer_type",
     "causer_id",
     "device_type",
-    "ip_address",
     "browser",
     "platform",
+    "ip_address",
   ];
 
   /**
@@ -58,17 +62,46 @@ class ActivityLogRepository extends BaseRepository
    * - filter[device_type], filter[ip_address], filter[browser], filter[platform]
    * - sort: id, created_at, event, log_name (prefix with - for desc)
    */
-  public function paginate(array $params = [], int $perPage = 15): LengthAwarePaginator
-  {
-    return $this->filteredPaginate(
-      $this->query(),
-      $params,
-      $this->allowedFilters,
-      $this->allowedSorts,
-      $this->defaultSort,
-      $perPage,
-    );
-  }
+    public function paginate(array $params = [], int $perPage = 15): LengthAwarePaginator
+    {
+      $request = new Request($params);
+      $search = trim((string) ($params['search'] ?? ''));
+
+      $query = $this->query()->with(['causer' => function ($morphTo) {
+        $morphTo->morphWith([
+          \Modules\Auth\Models\User::class => ['latestActivity'],
+        ]);
+      }]);
+
+      if ($search !== '' && config('scout.driver')) {
+        $ids = ActivityLog::search($search)->keys()->toArray();
+        $query->whereIn('id', $ids ?: [0]);
+      }
+
+      $allowedFilters = array_merge(
+        $this->allowedFilters,
+        [
+          AllowedFilter::callback('created_at', function ($builder, $value) {
+            $from = Arr::get($value, 'from');
+            $to = Arr::get($value, 'to');
+
+            if ($from) {
+              $builder->whereDate('created_at', '>=', Carbon::parse($from)->startOfDay());
+            }
+
+            if ($to) {
+              $builder->whereDate('created_at', '<=', Carbon::parse($to)->endOfDay());
+            }
+          }),
+        ],
+      );
+
+      return \Spatie\QueryBuilder\QueryBuilder::for($query, $request)
+        ->allowedFilters($allowedFilters)
+        ->allowedSorts($this->allowedSorts)
+        ->defaultSort($this->defaultSort)
+        ->paginate($perPage);
+    }
 
   /**
    * Find activity log by ID.

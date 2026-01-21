@@ -107,14 +107,4 @@ Route::prefix('v1')->scopeBindings()->group(function () {
         Route::delete('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/blocks/{block:slug}', [LessonBlockController::class, 'destroy'])
             ->name('courses.units.lessons.blocks.destroy');
     });
-
-    // Tag routes
-    Route::get('tags', [TagController::class, 'index'])->name('tags.index');
-    Route::get('tags/{tag:slug}', [TagController::class, 'show'])->name('tags.show');
-    
-    Route::middleware(['auth:api', 'role:Superadmin'])->group(function () {
-        Route::post('tags', [TagController::class, 'store'])->name('tags.store');
-        Route::put('tags/{tag:slug}', [TagController::class, 'update'])->name('tags.update');
-        Route::delete('tags/{tag:slug}', [TagController::class, 'destroy'])->name('tags.destroy');
-    });
 });

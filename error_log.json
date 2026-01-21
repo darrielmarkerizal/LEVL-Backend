@@ -1,0 +1,453 @@
+{
+    "message": "Undefined array key \"type\"",
+    "exception": "ErrorException",
+    "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/Modules/Common/app/Services/MasterDataService.php",
+    "line": 121,
+    "trace": [
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php",
+            "line": 258,
+            "function": "handleError",
+            "class": "Illuminate\\Foundation\\Bootstrap\\HandleExceptions",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/Modules/Common/app/Services/MasterDataService.php",
+            "line": 121,
+            "function": "{closure:Illuminate\\Foundation\\Bootstrap\\HandleExceptions::forwardsTo():257}",
+            "class": "Illuminate\\Foundation\\Bootstrap\\HandleExceptions",
+            "type": "->"
+        },
+        {
+            "function": "{closure:Modules\\Common\\Services\\MasterDataService::getAvailableTypes():120}",
+            "class": "Modules\\Common\\Services\\MasterDataService",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Collections/Arr.php",
+            "line": 930,
+            "function": "array_filter"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Collections/Collection.php",
+            "line": 399,
+            "function": "where",
+            "class": "Illuminate\\Support\\Arr",
+            "type": "::"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/Modules/Common/app/Services/MasterDataService.php",
+            "line": 120,
+            "function": "filter",
+            "class": "Illuminate\\Support\\Collection",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/Modules/Common/app/Http/Controllers/MasterDataController.php",
+            "line": 51,
+            "function": "getAvailableTypes",
+            "class": "Modules\\Common\\Services\\MasterDataService",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/Controller.php",
+            "line": 54,
+            "function": "types",
+            "class": "Modules\\Common\\Http\\Controllers\\MasterDataController",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php",
+            "line": 44,
+            "function": "callAction",
+            "class": "Illuminate\\Routing\\Controller",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/Route.php",
+            "line": 266,
+            "function": "dispatch",
+            "class": "Illuminate\\Routing\\ControllerDispatcher",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/Route.php",
+            "line": 212,
+            "function": "runController",
+            "class": "Illuminate\\Routing\\Route",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/Router.php",
+            "line": 808,
+            "function": "run",
+            "class": "Illuminate\\Routing\\Route",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 170,
+            "function": "{closure:Illuminate\\Routing\\Router::runRouteWithinStack():807}",
+            "class": "Illuminate\\Routing\\Router",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/nightwatch/src/Hooks/RouteMiddleware.php",
+            "line": 34,
+            "function": "{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():168}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "Laravel\\Nightwatch\\Hooks\\RouteMiddleware",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/app/Http/Middleware/InjectQueryDetectorStatus.php",
+            "line": 19,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "App\\Http\\Middleware\\InjectQueryDetectorStatus",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php",
+            "line": 51,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/app/Http/Middleware/SetLocale.php",
+            "line": 30,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "App\\Http\\Middleware\\SetLocale",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php",
+            "line": 161,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php",
+            "line": 127,
+            "function": "handleRequest",
+            "class": "Illuminate\\Routing\\Middleware\\ThrottleRequests",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php",
+            "line": 89,
+            "function": "handleRequestUsingNamedLimiter",
+            "class": "Illuminate\\Routing\\Middleware\\ThrottleRequests",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "Illuminate\\Routing\\Middleware\\ThrottleRequests",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php",
+            "line": 62,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "Illuminate\\Http\\Middleware\\HandleCors",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 127,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/Router.php",
+            "line": 807,
+            "function": "then",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/Router.php",
+            "line": 786,
+            "function": "runRouteWithinStack",
+            "class": "Illuminate\\Routing\\Router",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/Router.php",
+            "line": 750,
+            "function": "runRoute",
+            "class": "Illuminate\\Routing\\Router",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Routing/Router.php",
+            "line": 739,
+            "function": "dispatchToRoute",
+            "class": "Illuminate\\Routing\\Router",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php",
+            "line": 201,
+            "function": "dispatch",
+            "class": "Illuminate\\Routing\\Router",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 170,
+            "function": "{closure:Illuminate\\Foundation\\Http\\Kernel::dispatchToRouter():198}",
+            "class": "Illuminate\\Foundation\\Http\\Kernel",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/beyondcode/laravel-query-detector/src/QueryDetectorMiddleware.php",
+            "line": 33,
+            "function": "{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():168}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "BeyondCode\\QueryDetector\\QueryDetectorMiddleware",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/app/Http/Middleware/LogApiAction.php",
+            "line": 15,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "App\\Http\\Middleware\\LogApiAction",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php",
+            "line": 21,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php",
+            "line": 31,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php",
+            "line": 21,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php",
+            "line": 51,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Middleware\\TrimStrings",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php",
+            "line": 27,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "Illuminate\\Http\\Middleware\\ValidatePostSize",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php",
+            "line": 110,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php",
+            "line": 62,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "Illuminate\\Http\\Middleware\\HandleCors",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php",
+            "line": 58,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "Illuminate\\Http\\Middleware\\TrustProxies",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php",
+            "line": 22,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/nightwatch/src/Hooks/GlobalMiddleware.php",
+            "line": 53,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 209,
+            "function": "handle",
+            "class": "Laravel\\Nightwatch\\Hooks\\GlobalMiddleware",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",
+            "line": 127,
+            "function": "{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():184}:185}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php",
+            "line": 176,
+            "function": "then",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php",
+            "line": 145,
+            "function": "sendRequestThroughRouter",
+            "class": "Illuminate\\Foundation\\Http\\Kernel",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/octane/src/ApplicationGateway.php",
+            "line": 36,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Kernel",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/octane/src/Worker.php",
+            "line": 84,
+            "function": "handle",
+            "class": "Laravel\\Octane\\ApplicationGateway",
+            "type": "->"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/octane/bin/swoole-server",
+            "line": 122,
+            "function": "handle",
+            "class": "Laravel\\Octane\\Worker",
+            "type": "->"
+        },
+        {
+            "function": "{closure:/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/octane/bin/swoole-server:111}"
+        },
+        {
+            "file": "/Users/darrielmarkerizal/Coding/prep-lsp/ta-prep-lsp-be/vendor/laravel/octane/bin/swoole-server",
+            "line": 172,
+            "function": "start",
+            "class": "Swoole\\Server",
+            "type": "->"
+        }
+    ],
+    "query_detector": {
+        "status": "clean",
+        "message": "No N+1 queries detected",
+        "queries_count": 0
+    }
+}

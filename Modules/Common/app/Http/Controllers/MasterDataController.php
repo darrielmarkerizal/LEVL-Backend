@@ -19,6 +19,16 @@ class MasterDataController extends Controller
         private readonly MasterDataService $service
     ) {}
 
+    private function ensureCrudAllowed(string $type): void
+    {
+        if (!$this->service->isCrudAllowed($type)) {
+            $message = __("messages.master_data.crud_not_allowed");
+            throw new \Illuminate\Http\Exceptions\HttpResponseException(
+                $this->forbidden($message)
+            );
+        }
+    }
+
     /**
      * Daftar Tipe Master Data
      *
@@ -28,10 +38,21 @@ class MasterDataController extends Controller
      * @response 200 scenario="Success" {"success":true,"message":"Daftar tipe master data","data":[{"type":"user-status","label":"Status Pengguna"}]}
      * @unauthenticated
      */
-    public function types(): JsonResponse
+    public function types(Request $request): JsonResponse
     {
-        $types = $this->service->getAvailableTypes();
-        return $this->success($types, __("messages.master_data.types_retrieved"));
+        $params = [
+            'search' => $request->query('search'),
+            'sort' => $request->query('sort'),
+            'sort_order' => $request->query('sort_order'),
+            'page' => $request->query('page'),
+            'per_page' => $request->query('per_page'),
+            'filter' => $request->query('filter'),
+        ];
+        
+        $paginator = $this->service->getAvailableTypes($params);
+        $paginator->getCollection()->transform(fn($item) => new \Modules\Common\Http\Resources\MasterDataTypeResource($item));
+        
+        return $this->paginateResponse($paginator, __("messages.master_data.types_retrieved"));
     }
 
     /**
@@ -91,6 +112,8 @@ class MasterDataController extends Controller
      */
     public function store(Request $request, string $type): JsonResponse
     {
+        $this->ensureCrudAllowed($type);
+
         $data = $request->validate([
             'value' => 'required|string|max:255',
             'label' => 'required|string|max:255',
@@ -110,6 +133,8 @@ class MasterDataController extends Controller
      */
     public function update(Request $request, string $type, int $id): JsonResponse
     {
+        $this->ensureCrudAllowed($type);
+
         $data = $request->validate([
             'value' => 'sometimes|string|max:255',
             'label' => 'sometimes|string|max:255',
@@ -129,6 +154,8 @@ class MasterDataController extends Controller
      */
     public function destroy(string $type, int $id): JsonResponse
     {
+        $this->ensureCrudAllowed($type);
+
         $this->service->delete($type, $id);
         return $this->success(null, __("messages.master_data.deleted"));
     }
