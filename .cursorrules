@@ -1432,6 +1432,11 @@ if (app()->environment('local')) {
 - Jobs MUST log important operations
 - Jobs MUST use proper queue connection/driver
 
+## Scout/Search Queue
+- **Async Indexing REQUIRED**: `SCOUT_QUEUE=true` MUST be enabled in `.env` or config.
+- **Synchronous Indexing FORBIDDEN**: In production, synchronous indexing performance is unacceptable.
+- **Queue Worker**: Ensure a worker is running for the default or configured Scout queue.
+
 ---
 
 # Search / Filter / Sort / Pagination

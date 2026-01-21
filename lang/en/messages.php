@@ -133,6 +133,13 @@ return [
     "not_found" => "Data not found.",
   ],
 
+  // Activity Logs
+  "activity_logs" => [
+    "retrieved" => "Activity logs retrieved successfully.",
+    "item_retrieved" => "Activity log retrieved successfully.",
+    "not_found" => "Activity log not found.",
+  ],
+
   "master_data" => [
     "types_retrieved" => "Master data types retrieved successfully.",
     "categories" => "Category list",

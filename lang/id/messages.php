@@ -121,7 +121,22 @@ return [
   "common" => [
     "master_data_retrieved" => "Master data berhasil diambil.",
     "not_found" => "Data tidak ditemukan.",
+  ],
 
+  // Activity Logs
+  "activity_logs" => [
+    "retrieved" => "Log aktivitas berhasil diambil.",
+    "item_retrieved" => "Detail log aktivitas berhasil diambil.",
+    "not_found" => "Log aktivitas tidak ditemukan.",
+  ],
+
+  "master_data" => [
+    "retrieved" => "Master data berhasil diambil.",
+    "not_found" => "Data tidak ditemukan.",
+    "created" => "Master data berhasil dibuat.",
+    "updated" => "Master data berhasil diperbarui.",
+    "deleted" => "Master data berhasil dihapus.",
+    "crud_not_allowed" => "Aksi ini tidak diperbolehkan untuk tipe master data ini.",
     "types_retrieved" => "Daftar tipe master data berhasil diambil.",
     "categories" => "Daftar kategori",
     "roles" => "Daftar peran",
