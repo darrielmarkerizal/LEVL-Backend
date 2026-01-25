@@ -155,18 +155,14 @@ class QuestionService implements QuestionServiceInterface
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
 
-        if (isset($filters['search']) && $filters['search'] !== '') {
-            if ($user && $user->hasAnyRole(['Superadmin', 'Admin', 'Instructor'])) {
-                return Question::search($filters['search'])
-                    ->where('assignment_id', $assignmentId)
-                    ->paginate($perPage);
-            }
-        }
-
         return \Spatie\QueryBuilder\QueryBuilder::for(Question::class)
             ->where('assignment_id', $assignmentId)
             ->allowedFilters([
                 \Spatie\QueryBuilder\AllowedFilter::exact('type'),
+                \Spatie\QueryBuilder\AllowedFilter::callback('search', function ($query, $value) {
+                    $ids = Question::search($value)->keys();
+                    $query->whereIn('id', $ids);
+                }),
             ])
             ->allowedSorts(['order', 'weight', 'created_at'])
             ->defaultSort('order')

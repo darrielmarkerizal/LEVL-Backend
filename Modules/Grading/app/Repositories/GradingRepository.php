@@ -83,10 +83,22 @@ class GradingRepository implements GradingRepositoryInterface
 
     public function findPendingManualGrading(array $filters = []): Collection
     {
-        $query = $this->model
+        return \Spatie\QueryBuilder\QueryBuilder::for($this->model, new \Illuminate\Http\Request($filters))
             ->whereHas('submission', function ($q) {
                 $q->where('state', 'pending_manual_grading');
             })
+            ->allowedFilters([
+                \Spatie\QueryBuilder\AllowedFilter::callback('assignment_id', function ($query, $value) {
+                    $query->whereHas('submission', function ($q) use ($value) {
+                        $q->where('assignment_id', $value);
+                    });
+                }),
+                \Spatie\QueryBuilder\AllowedFilter::callback('student_id', function ($query, $value) {
+                    $query->whereHas('submission', function ($q) use ($value) {
+                        $q->where('user_id', $value);
+                    });
+                }),
+            ])
             ->with([
                 'submission.user:id,name,email',
                 'submission.assignment:id,title,deadline_at',
@@ -99,21 +111,8 @@ class GradingRepository implements GradingRepositoryInterface
                 'submission.answers.question:id,type,content,weight',
                 'grader:id,name,email',
             ])
-            ->orderBy('created_at', 'asc');
-
-        if (isset($filters['assignment_id'])) {
-            $query->whereHas('submission', function ($q) use ($filters) {
-                $q->where('assignment_id', $filters['assignment_id']);
-            });
-        }
-
-        if (isset($filters['student_id'])) {
-            $query->whereHas('submission', function ($q) use ($filters) {
-                $q->where('user_id', $filters['student_id']);
-            });
-        }
-
-        return $query->get();
+            ->defaultSort('created_at')
+            ->get();
     }
 
     public function saveDraft(int $submissionId, array $data): void

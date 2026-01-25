@@ -300,7 +300,8 @@ class GradingService implements GradingServiceInterface
             ->allowedSorts(['submitted_at', 'created_at']);
 
         // Default filter untuk state = pending_manual_grading jika tidak ada filter state
-        if (!isset($filters['filter']['state'])) {
+        $request = new \Illuminate\Http\Request($filters);
+        if (!$request->has('filter.state')) {
             $query->where('state', SubmissionState::PendingManualGrading->value);
         }
 
