@@ -39,6 +39,7 @@ class SubmissionService implements SubmissionServiceInterface
         private readonly QuestionRepositoryInterface $questionRepository,
         private readonly ?QuestionServiceInterface $questionService = null,
         private readonly ?OverrideRepositoryInterface $overrideRepository = null,
+        private readonly ?\Modules\Learning\Contracts\Services\ReviewModeServiceInterface $reviewModeService = null,
     ) {}
 
     public function listForAssignment(Assignment $assignment, User $user, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
@@ -706,5 +707,27 @@ class SubmissionService implements SubmissionServiceInterface
         public function listByAssignment(Assignment $assignment, array $filters = [])
     {
         return $this->repository->listForAssignment($assignment, null, $filters);
+    }
+
+    public function getSubmissionDetail(Submission $submission, ?int $userId): array
+    {
+        $submission = $this->getSubmission($submission->id, []);
+        $submission->loadMissing(['assignment', 'answers.question']);
+
+        $visibility = $this->reviewModeService?->getVisibilityStatus($submission, $userId) ?? [];
+
+        return [
+            'submission' => $submission,
+            'visibility' => $visibility,
+        ];
+    }
+
+    public function getDeadlineStatus(Assignment $assignment, int $userId): array
+    {
+         return [
+            'allowed' => $this->checkDeadlineWithOverride($assignment, $userId),
+            'deadline' => $assignment->deadline_at?->toIso8601String(),
+            'tolerance_minutes' => $assignment->tolerance_minutes,
+        ];
     }
 }

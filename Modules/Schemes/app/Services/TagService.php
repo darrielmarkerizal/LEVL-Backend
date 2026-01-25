@@ -61,6 +61,15 @@ class TagService
         return $this->firstOrCreateByName($name);
     }
 
+    public function handleCreate(array $data): BaseCollection|Tag
+    {
+        if (isset($data['names']) && is_array($data['names'])) {
+            return $this->createMany($data['names']);
+        }
+
+        return $this->create($data);
+    }
+
     
     public function createMany(array $names): BaseCollection
     {

@@ -64,6 +64,25 @@ class ProgressionService
 
         return $this->getCourseProgressData($course, $enrollment);
     }
+
+    public function validateAndGetProgress(Course $course, int $targetUserId, int $requestingUserId): array
+    {
+        $targetUser = \Modules\Auth\Models\User::find($targetUserId);
+        if (!$targetUser) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.users.not_found'));
+        }
+
+        $enrollment = Enrollment::where('user_id', $targetUserId)
+            ->where('course_id', $course->id)
+            ->whereIn('status', ['active', 'completed'])
+            ->first();
+
+        if (!$enrollment) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.progress.enrollment_not_found'));
+        }
+
+        return $this->getCourseProgressData($course, $enrollment);
+    }
     public function getEnrollmentForCourse(int $courseId, int $userId): ?Enrollment
     {
         return Enrollment::query()

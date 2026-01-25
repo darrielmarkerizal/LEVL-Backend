@@ -9,7 +9,9 @@ use Modules\Grading\Models\Appeal;
 
 interface AppealServiceInterface
 {
-    public function submitAppeal(int $submissionId, string $reason, array $documents = []): Appeal;
+    public function submitAppeal(int $submissionId, int $studentId, string $reason, array $files = []): Appeal;
+
+    public function getAppealForUser(Appeal $appeal, int $userId): Appeal;
 
     public function approveAppeal(int $appealId, int $instructorId): void;
 

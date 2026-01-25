@@ -46,6 +46,24 @@ class AssignmentService implements AssignmentServiceInterface
         };
     }
 
+    public function resolveCourseFromScopeOrFail(?array $scope): \Modules\Schemes\Models\Course
+    {
+        if (! $scope) {
+            throw new \InvalidArgumentException(__('messages.assignments.invalid_scope'));
+        }
+
+        $course = $this->resolveCourseFromScope(
+            $scope['assignable_type'],
+            $scope['assignable_id']
+        );
+
+        if (! $course) {
+            throw new \InvalidArgumentException(__('messages.assignments.invalid_scope'));
+        }
+
+        return $course;
+    }
+
     public function list(\Modules\Schemes\Models\Course $course, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $unitSlug = data_get($filters, 'unit_slug');
@@ -662,9 +680,10 @@ class AssignmentService implements AssignmentServiceInterface
         ];
     }
 
-        public function duplicateAssignment(int $assignmentId, ?array $overrides = null): Assignment
+        public function duplicateAssignment(int $assignmentId, int $userId, array $overrides = []): Assignment
     {
-        return DB::transaction(function () use ($assignmentId, $overrides) {
+        return DB::transaction(function () use ($assignmentId, $userId, $overrides) {
+            $overrides['created_by'] = $userId;
             $original = $this->repository->findForDuplication($assignmentId);
             
             if (!$original) {
