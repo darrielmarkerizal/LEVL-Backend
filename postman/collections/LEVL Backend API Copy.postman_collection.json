@@ -4924,6 +4924,11 @@
           "name": "Tugas",
           "item": [
             {
+              "name": "New Folder",
+              "item": [],
+              "id": "82b88387-76f3-491f-9d8d-9f6704908a6d"
+            },
+            {
               "name": "Semua Tugas",
               "id": "ae10343f-f7af-4926-88a1-d8e8da6d0449",
               "request": {
@@ -8088,783 +8093,511 @@
           "name": "Pengerjaan",
           "item": [
             {
-              "name": "Siswa",
-              "item": [
-                {
-                  "name": "Lihat Pengumpulan",
-                  "id": "0d4cfceb-3b3d-492c-87f4-8b641d1df55e",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "GET",
-                    "header": [],
-                    "url": {
-                      "raw": "{{url}}/assignments/:assignmentId/submissions/me",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "assignments",
-                        ":assignmentId",
-                        "submissions",
-                        "me"
-                      ],
-                      "variable": [
-                        {
-                          "key": "assignmentId",
-                          "value": "25"
-                        }
-                      ]
+              "name": "Lihat Pengumpulan",
+              "id": "0d4cfceb-3b3d-492c-87f4-8b641d1df55e",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
                     }
-                  },
-                  "response": []
+                  ]
                 },
-                {
-                  "name": "Lihat Detail Pengumpulan",
-                  "id": "b42020a2-9a56-4dea-a4ed-2378c6a97f21",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "GET",
-                    "header": [],
-                    "url": {
-                      "raw": "{{url}}/assignments/:assignmentId/submissions/:submissionId",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "assignments",
-                        ":assignmentId",
-                        "submissions",
-                        ":submissionId"
-                      ],
-                      "variable": [
-                        {
-                          "key": "assignmentId",
-                          "value": "25"
-                        },
-                        {
-                          "key": "submissionId",
-                          "value": "5",
-                          "uuid": "e7b97b93-fcdd-47b3-9652-296e1faccfe2"
-                        }
-                      ]
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/assignments/:assignmentId/submissions/me",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "assignments",
+                    ":assignmentId",
+                    "submissions",
+                    "me"
+                  ],
+                  "variable": [
+                    {
+                      "key": "assignmentId",
+                      "value": "25"
                     }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "Lihat Percobaan",
-                  "id": "538b152c-67ff-4938-8a13-3f82a9800da5",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "GET",
-                    "header": [],
-                    "url": {
-                      "raw": "{{url}}/assignments/:assignmentId/attempts/check",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "assignments",
-                        ":assignmentId",
-                        "attempts",
-                        "check"
-                      ],
-                      "variable": [
-                        {
-                          "key": "assignmentId",
-                          "value": "25"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "Lihat Deadline",
-                  "id": "ad9449f9-3e4a-4ae6-a1ff-f9a921c61c07",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "GET",
-                    "header": [],
-                    "url": {
-                      "raw": "{{url}}/assignments/:assignmentId/deadline/check",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "assignments",
-                        ":assignmentId",
-                        "deadline",
-                        "check"
-                      ],
-                      "variable": [
-                        {
-                          "key": "assignmentId",
-                          "value": "25"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "Mulai Percobaan",
-                  "id": "484d194c-2a96-42f9-9c43-253ce622e170",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "url": {
-                      "raw": "{{url}}/assignments/:assignmentId/submissions/start",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "assignments",
-                        ":assignmentId",
-                        "submissions",
-                        "start"
-                      ],
-                      "variable": [
-                        {
-                          "key": "assignmentId",
-                          "value": "25"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "Ambil Soal",
-                  "id": "e543d20b-aa96-4d17-84bf-9965c92f840f",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "GET",
-                    "header": [],
-                    "url": {
-                      "raw": "{{url}}/submissions/:submissionId/questions",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "submissions",
-                        ":submissionId",
-                        "questions"
-                      ],
-                      "query": [
-                        {
-                          "key": "per_page",
-                          "value": "1",
-                          "uuid": "332b1c2c-fe98-4364-ba13-16a5f2f92507",
-                          "disabled": true
-                        },
-                        {
-                          "key": "page",
-                          "value": "16",
-                          "uuid": "02a5d470-1989-4d46-8c4b-c92eee006e98",
-                          "disabled": true
-                        }
-                      ],
-                      "variable": [
-                        {
-                          "key": "submissionId",
-                          "value": "5"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "[Essai] - Simpan Jawaban",
-                  "id": "cf7b1a15-3778-4a22-9f49-c203f5f2e7ca",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n  \"question_id\": 18,\n  \"answer\": \"PHP dibuat oleh Rasmus Lerdorf pada tahun 1994 sebagai sekumpulan skrip sederhana bernama Personal Home Page Tools. Seiring waktu, komunitas mengembangkan PHP menjadi bahasa pemrograman server-side yang lebih lengkap dan open source. Versi-versi berikutnya menghadirkan fitur modern seperti Zend Engine, dukungan OOP, dan ekosistem framework, menjadikan PHP salah satu teknologi utama dalam pengembangan web dan fondasi dari platform besar seperti WordPress.\"\n}\n",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": {
-                      "raw": "{{url}}/submissions/:submissionId/answers",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "submissions",
-                        ":submissionId",
-                        "answers"
-                      ],
-                      "variable": [
-                        {
-                          "key": "submissionId",
-                          "value": "5"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "[Pilihan Ganda] - Simpan Jawaban",
-                  "id": "06202570-8a2d-4477-b6ef-a311d03c4be3",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n  \"question_id\": 10,\n  \"answer\": 0\n}\n",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": {
-                      "raw": "{{url}}/submissions/:submissionId/answers",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "submissions",
-                        ":submissionId",
-                        "answers"
-                      ],
-                      "variable": [
-                        {
-                          "key": "submissionId",
-                          "value": "5"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "[Checkbox] - Simpan Jawaban",
-                  "id": "294cd48d-4a8a-4047-9f3b-707b216f532b",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n  \"question_id\": 20,\n  \"answer\": [0, 1]\n}\n",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": {
-                      "raw": "{{url}}/submissions/:submissionId/answers",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "submissions",
-                        ":submissionId",
-                        "answers"
-                      ],
-                      "variable": [
-                        {
-                          "key": "submissionId",
-                          "value": "5"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "[File Upload] - Simpan Jawaban",
-                  "id": "7f2ba4bf-3b60-4f97-bc54-4db8c906a199",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "formdata",
-                      "formdata": [
-                        {
-                          "key": "question_id",
-                          "value": "17",
-                          "type": "text",
-                          "uuid": "f4418809-30a9-4361-88a6-09704747dee4"
-                        },
-                        {
-                          "key": "answer",
-                          "type": "file",
-                          "uuid": "ff2ec064-015f-4631-baf4-21e31fd134aa",
-                          "src": [
-                            "/Users/darrielmarkerizal/Downloads/11zon_compressed.zip"
-                          ]
-                        }
-                      ],
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": {
-                      "raw": "{{url}}/submissions/:submissionId/answers",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "submissions",
-                        ":submissionId",
-                        "answers"
-                      ],
-                      "variable": [
-                        {
-                          "key": "submissionId",
-                          "value": "5"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "Kirim Percobaan",
-                  "id": "7319f96d-8ba0-47d8-8e93-35c83994cf1f",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "url": {
-                      "raw": "{{url}}/submissions/:submissionId/submit",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "submissions",
-                        ":submissionId",
-                        "submit"
-                      ],
-                      "variable": [
-                        {
-                          "key": "submissionId",
-                          "value": "5"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "Cek Prasyarat",
-                  "id": "481ed928-31d3-4b29-b520-3b60fd7c1e57",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "GET",
-                    "header": [],
-                    "url": {
-                      "raw": "{{url}}/assignments/:assignmentId/prerequisites/check",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "assignments",
-                        ":assignmentId",
-                        "prerequisites",
-                        "check"
-                      ],
-                      "variable": [
-                        {
-                          "key": "assignmentId",
-                          "value": "25"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "Cek Prasyarat Copy",
-                  "id": "0673cd88-e41d-4320-a40a-3fa91c45a24c",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_student}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "GET",
-                    "header": [],
-                    "url": {
-                      "raw": "{{url}}/assignments/:assignmentId/prerequisites/check",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "assignments",
-                        ":assignmentId",
-                        "prerequisites",
-                        "check"
-                      ],
-                      "variable": [
-                        {
-                          "key": "assignmentId",
-                          "value": "25"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
+                  ]
                 }
-              ],
-              "id": "4540af3f-1fa6-4ec5-a54c-2b22e5124f3f"
+              },
+              "response": []
             },
             {
-              "name": "Manajemen",
-              "item": [
-                {
-                  "name": "Lihat Daftar Pengumpulan",
-                  "id": "9bc5dda6-3074-4ced-8571-1b79605f3067",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_admin}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "GET",
-                    "header": [],
-                    "url": {
-                      "raw": "{{url}}/assignments/:assignmentId/submissions?search=",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "assignments",
-                        ":assignmentId",
-                        "submissions"
-                      ],
-                      "query": [
-                        {
-                          "key": "filter[status]",
-                          "value": null,
-                          "description": "draft, submitted, graded, late, missing",
-                          "uuid": "1be70830-ccb7-4d4f-93c6-539a363f473c",
-                          "disabled": true
-                        },
-                        {
-                          "key": "filter[is_late]",
-                          "value": null,
-                          "description": "true, false",
-                          "uuid": "80273e12-fc6b-4df8-82d7-d7f78bbf4369",
-                          "disabled": true
-                        },
-                        {
-                          "key": "filter[score_range]",
-                          "value": null,
-                          "description": "Format: min,max (Contoh: 0,50)",
-                          "uuid": "47622c21-121c-43b4-ba4d-0fd613d5e30f",
-                          "disabled": true
-                        },
-                        {
-                          "key": "sort",
-                          "value": null,
-                          "description": "submitted_at, -submitted_at, created_at, -created_at, score, -score, status",
-                          "uuid": "03c8c0a9-dc0f-44f4-b8c3-258ca61656ca",
-                          "disabled": true
-                        },
-                        {
-                          "key": "page",
-                          "value": null,
-                          "uuid": "dad18378-1d95-4cda-9763-ca444222a082",
-                          "disabled": true
-                        },
-                        {
-                          "key": "per_page",
-                          "value": null,
-                          "uuid": "f1d73002-6809-47a5-85f0-671a697ba18e",
-                          "disabled": true
-                        },
-                        {
-                          "key": "search",
-                          "value": "",
-                          "uuid": "5188b5b4-8a47-4f58-91c8-13e47c386809"
-                        }
-                      ],
-                      "variable": [
-                        {
-                          "key": "assignmentId",
-                          "value": "25",
-                          "uuid": "57f6881c-d4e1-454a-90b8-f372af23ef07"
-                        }
-                      ]
+              "name": "Lihat Detail Pengumpulan",
+              "id": "b42020a2-9a56-4dea-a4ed-2378c6a97f21",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
                     }
-                  },
-                  "response": []
+                  ]
                 },
-                {
-                  "name": "Nilai Pengumpulan",
-                  "id": "d01d6dbb-78ed-48cc-a272-dd5ef6f736d8",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_superadmin}}",
-                          "type": "string"
-                        }
-                      ]
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/assignments/:assignmentId/submissions/:submissionId",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "assignments",
+                    ":assignmentId",
+                    "submissions",
+                    ":submissionId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "assignmentId",
+                      "value": "25"
                     },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n  \"score\": 90,\n  \"feedback\": \"Kerja yang bagus. Perhatikan penjelasan di nomor 3.\",\n  \"status\": \"graded\" // graded (Dinilai) / needs_revision (Perlu revisi)\n}",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": {
-                      "raw": "{{url}}/submissions/:submissionId/grade",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "submissions",
-                        ":submissionId",
-                        "grade"
-                      ],
-                      "variable": [
-                        {
-                          "key": "submissionId",
-                          "value": "5",
-                          "uuid": "a84b57f2-589d-47b5-ad09-8ee82367beea"
-                        }
-                      ]
+                    {
+                      "key": "submissionId",
+                      "value": "5"
                     }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "Lihat Daftar Pengumpulan Copy",
-                  "id": "637fb2d0-dfad-4750-a12a-7a7ecaf8b8a4",
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": [
-                        {
-                          "key": "token",
-                          "value": "{{access_token_admin}}",
-                          "type": "string"
-                        }
-                      ]
-                    },
-                    "method": "GET",
-                    "header": [],
-                    "url": {
-                      "raw": "{{url}}/assignments/:assignmentId/submissions/5?include=answers",
-                      "host": [
-                        "{{url}}"
-                      ],
-                      "path": [
-                        "assignments",
-                        ":assignmentId",
-                        "submissions",
-                        "5"
-                      ],
-                      "query": [
-                        {
-                          "key": "filter[status]",
-                          "value": null,
-                          "description": "draft, submitted, graded, late, missing",
-                          "uuid": "1be70830-ccb7-4d4f-93c6-539a363f473c",
-                          "disabled": true
-                        },
-                        {
-                          "key": "filter[is_late]",
-                          "value": null,
-                          "description": "true, false",
-                          "uuid": "80273e12-fc6b-4df8-82d7-d7f78bbf4369",
-                          "disabled": true
-                        },
-                        {
-                          "key": "filter[score_range]",
-                          "value": null,
-                          "description": "Format: min,max (Contoh: 0,50)",
-                          "uuid": "47622c21-121c-43b4-ba4d-0fd613d5e30f",
-                          "disabled": true
-                        },
-                        {
-                          "key": "sort",
-                          "value": null,
-                          "description": "submitted_at, -submitted_at, created_at, -created_at, score, -score, status",
-                          "uuid": "03c8c0a9-dc0f-44f4-b8c3-258ca61656ca",
-                          "disabled": true
-                        },
-                        {
-                          "key": "page",
-                          "value": null,
-                          "uuid": "dad18378-1d95-4cda-9763-ca444222a082",
-                          "disabled": true
-                        },
-                        {
-                          "key": "per_page",
-                          "value": null,
-                          "uuid": "f1d73002-6809-47a5-85f0-671a697ba18e",
-                          "disabled": true
-                        },
-                        {
-                          "key": "search",
-                          "value": "",
-                          "uuid": "5188b5b4-8a47-4f58-91c8-13e47c386809",
-                          "disabled": true
-                        },
-                        {
-                          "key": "include",
-                          "value": "answers",
-                          "type": "text",
-                          "uuid": "e36c699f-db1e-4b30-a25b-3c9a24a5d26d"
-                        }
-                      ],
-                      "variable": [
-                        {
-                          "key": "assignmentId",
-                          "value": "25",
-                          "uuid": "57f6881c-d4e1-454a-90b8-f372af23ef07"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
+                  ]
                 }
-              ],
-              "id": "0cd575a1-574e-4941-851c-e913d3336637"
+              },
+              "response": []
+            },
+            {
+              "name": "Lihat Percobaan",
+              "id": "538b152c-67ff-4938-8a13-3f82a9800da5",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/assignments/:assignmentId/attempts/check",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "assignments",
+                    ":assignmentId",
+                    "attempts",
+                    "check"
+                  ],
+                  "variable": [
+                    {
+                      "key": "assignmentId",
+                      "value": "25"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Lihat Deadline",
+              "id": "ad9449f9-3e4a-4ae6-a1ff-f9a921c61c07",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/assignments/:assignmentId/deadline/check",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "assignments",
+                    ":assignmentId",
+                    "deadline",
+                    "check"
+                  ],
+                  "variable": [
+                    {
+                      "key": "assignmentId",
+                      "value": "25"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Mulai Percobaan",
+              "id": "484d194c-2a96-42f9-9c43-253ce622e170",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/assignments/:assignmentId/submissions/start",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "assignments",
+                    ":assignmentId",
+                    "submissions",
+                    "start"
+                  ],
+                  "variable": [
+                    {
+                      "key": "assignmentId",
+                      "value": "25"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ambil Soal",
+              "id": "e543d20b-aa96-4d17-84bf-9965c92f840f",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/questions",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "questions"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "1",
+                      "uuid": "332b1c2c-fe98-4364-ba13-16a5f2f92507",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "16",
+                      "uuid": "02a5d470-1989-4d46-8c4b-c92eee006e98",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[Essai] - Simpan Jawaban",
+              "id": "cf7b1a15-3778-4a22-9f49-c203f5f2e7ca",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"question_id\": 18,\n  \"answer\": \"PHP dibuat oleh Rasmus Lerdorf pada tahun 1994 sebagai sekumpulan skrip sederhana bernama Personal Home Page Tools. Seiring waktu, komunitas mengembangkan PHP menjadi bahasa pemrograman server-side yang lebih lengkap dan open source. Versi-versi berikutnya menghadirkan fitur modern seperti Zend Engine, dukungan OOP, dan ekosistem framework, menjadikan PHP salah satu teknologi utama dalam pengembangan web dan fondasi dari platform besar seperti WordPress.\"\n}\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/answers",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "answers"
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[Pilihan Ganda] - Simpan Jawaban",
+              "id": "06202570-8a2d-4477-b6ef-a311d03c4be3",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"question_id\": 10,\n  \"answer\": 0\n}\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/answers",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "answers"
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[Checkbox] - Simpan Jawaban",
+              "id": "294cd48d-4a8a-4047-9f3b-707b216f532b",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"question_id\": 20,\n  \"answer\": [0, 1]\n}\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/answers",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "answers"
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[File Upload] - Simpan Jawaban",
+              "id": "7f2ba4bf-3b60-4f97-bc54-4db8c906a199",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "question_id",
+                      "value": "17",
+                      "type": "text",
+                      "uuid": "f4418809-30a9-4361-88a6-09704747dee4"
+                    },
+                    {
+                      "key": "answer",
+                      "type": "file",
+                      "uuid": "ff2ec064-015f-4631-baf4-21e31fd134aa",
+                      "src": [
+                        "/Users/darrielmarkerizal/Downloads/11zon_compressed.zip"
+                      ]
+                    }
+                  ],
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/answers",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "answers"
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Kirim Percobaan",
+              "id": "7319f96d-8ba0-47d8-8e93-35c83994cf1f",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/submit",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "submit"
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Cek Prasyarat",
+              "id": "481ed928-31d3-4b29-b520-3b60fd7c1e57",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/assignments/:assignmentId/prerequisites/check",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "assignments",
+                    ":assignmentId",
+                    "prerequisites",
+                    "check"
+                  ],
+                  "variable": [
+                    {
+                      "key": "assignmentId",
+                      "value": "25"
+                    }
+                  ]
+                }
+              },
+              "response": []
             }
           ],
           "id": "8163931e-7931-4a90-ace9-f964cc2083a2"
@@ -8997,6 +8730,388 @@
           ],
           "id": "4aec6140-4872-4340-a7bb-a0f3d562588f",
           "description": "untuk memberikan **pengecualian akses** khusus kepada siswa tertentu dalam sebuah tugas."
+        },
+        {
+          "name": "Penilaian",
+          "item": [
+            {
+              "name": "Lihat Antrean Penilaian",
+              "id": "0aecadd4-7808-41a5-8882-935a75a176d4",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/grading",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "grading"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "type": "text",
+                      "uuid": "4b0a38bc-834f-4bca-a10a-f1e5a8ee26c3",
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "0a287753-82bc-4e29-927e-7a14050bb1ca",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[assignment_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "907e0871-b062-465c-bf3c-62df73905997",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[user_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "6fe6322e-7bb7-4bde-8e57-2153b655f642",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_from]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "626f8883-97a6-48c5-9b33-30b6307ac1f0",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_to]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "95c26751-de3e-4d3b-8e5e-85e78773865b",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": "",
+                      "description": "submitted_at, created_at",
+                      "type": "text",
+                      "uuid": "9f098a6a-8bea-4f5a-a7b7-e1794057a4ed",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Nilai Manual",
+              "id": "9ea02958-2c09-4d04-9b81-77a0eb8eb808",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"grades\": [            \n    {\n      \"question_id\": 101,  \n      \"score\": 10,\n      \"feedback\": \"Jawaban sangat tepat.\"\n    },\n    {\n      \"question_id\": 102,\n      \"score\": 5,\n      \"feedback\": \"Kurang lengkap.\"\n    }\n  ],\n  \"feedback\": \"Secara keseluruhan sudah baik.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/grades",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "grades"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "type": "text",
+                      "uuid": "4b0a38bc-834f-4bca-a10a-f1e5a8ee26c3",
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "0a287753-82bc-4e29-927e-7a14050bb1ca",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[assignment_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "907e0871-b062-465c-bf3c-62df73905997",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[user_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "6fe6322e-7bb7-4bde-8e57-2153b655f642",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_from]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "626f8883-97a6-48c5-9b33-30b6307ac1f0",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_to]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "95c26751-de3e-4d3b-8e5e-85e78773865b",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": "",
+                      "description": "submitted_at, created_at",
+                      "type": "text",
+                      "uuid": "9f098a6a-8bea-4f5a-a7b7-e1794057a4ed",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "2",
+                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Draft Nilai",
+              "id": "84b4c7d9-0e70-49b1-80b6-2eebc266e4b4",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"grades\": [\n    {\n      \"question_id\": 101,\n      \"score\": 10,\n      \"feedback\": \"Draf awal\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/grades/draft",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "grades",
+                    "draft"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "type": "text",
+                      "uuid": "4b0a38bc-834f-4bca-a10a-f1e5a8ee26c3",
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "0a287753-82bc-4e29-927e-7a14050bb1ca",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[assignment_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "907e0871-b062-465c-bf3c-62df73905997",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[user_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "6fe6322e-7bb7-4bde-8e57-2153b655f642",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_from]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "626f8883-97a6-48c5-9b33-30b6307ac1f0",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_to]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "95c26751-de3e-4d3b-8e5e-85e78773865b",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": "",
+                      "description": "submitted_at, created_at",
+                      "type": "text",
+                      "uuid": "9f098a6a-8bea-4f5a-a7b7-e1794057a4ed",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "2",
+                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Lihat Draft Nilai",
+              "id": "efc23578-1098-4ac8-b7ff-d1114e9bb054",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"grades\": [            \n    {\n      \"question_id\": 101,  \n      \"score\": 10,\n      \"feedback\": \"Jawaban sangat tepat.\"\n    },\n    {\n      \"question_id\": 102,\n      \"score\": 5,\n      \"feedback\": \"Kurang lengkap.\"\n    }\n  ],\n  \"feedback\": \"Secara keseluruhan sudah baik.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/grades/draft",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "grades",
+                    "draft"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "type": "text",
+                      "uuid": "4b0a38bc-834f-4bca-a10a-f1e5a8ee26c3",
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "0a287753-82bc-4e29-927e-7a14050bb1ca",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[assignment_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "907e0871-b062-465c-bf3c-62df73905997",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[user_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "6fe6322e-7bb7-4bde-8e57-2153b655f642",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_from]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "626f8883-97a6-48c5-9b33-30b6307ac1f0",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_to]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "95c26751-de3e-4d3b-8e5e-85e78773865b",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": "",
+                      "description": "submitted_at, created_at",
+                      "type": "text",
+                      "uuid": "9f098a6a-8bea-4f5a-a7b7-e1794057a4ed",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "2",
+                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "da5d1a70-59ca-44da-850b-fffa0f6410be"
         }
       ],
       "id": "562886a9-f6b9-4aba-b6da-7e439ffd574e"

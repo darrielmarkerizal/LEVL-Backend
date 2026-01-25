@@ -12,7 +12,7 @@ use Modules\Learning\Models\Submission;
 
 interface SubmissionRepositoryInterface
 {
-    public function listForAssignment(Assignment $assignment, ?User $user = null, array $filters = []): Collection;
+    public function listForAssignment(Assignment $assignment, ?User $user = null, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
     public function findByUserAndAssignment(int $userId, int $assignmentId): ?Submission;
 

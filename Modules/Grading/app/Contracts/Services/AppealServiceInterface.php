@@ -16,4 +16,6 @@ interface AppealServiceInterface
     public function denyAppeal(int $appealId, int $instructorId, string $reason): void;
 
     public function getPendingAppeals(int $instructorId): Collection;
+
+    public function getAppeals(array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
 }

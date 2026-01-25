@@ -21,6 +21,8 @@ interface SubmissionServiceInterface
 
     public function update(Submission $submission, array $data): Submission;
 
+    public function getSubmission(int $submissionId, array $filters = []): Submission;
+
     public function delete(Submission $submission): bool;
 
     public function grade(Submission $submission, int $score, int $gradedBy, ?string $feedback = null): Submission;
@@ -50,4 +52,6 @@ interface SubmissionServiceInterface
     public function getSubmissionsWithHighestMarked(int $assignmentId, int $studentId): Collection;
 
     public function searchSubmissions(string $query, array $filters = [], array $options = []): array;
+
+    public function checkAndDispatchNewHighScore(Submission $submission): void;
 }

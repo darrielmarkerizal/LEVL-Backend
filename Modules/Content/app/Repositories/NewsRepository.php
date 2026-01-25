@@ -4,64 +4,52 @@ namespace Modules\Content\Repositories;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Modules\Content\Contracts\Repositories\NewsRepositoryInterface;
 use Modules\Content\Models\News;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class NewsRepository implements NewsRepositoryInterface
 {
     public function getNewsFeed(array $filters = []): LengthAwarePaginator
     {
-        $query = News::published()
+        $perPage = (int) ($filters['per_page'] ?? 15);
+        $request = new Request(['filter' => $filters]);
+
+        return QueryBuilder::for(News::published()->class, $request)
             ->with(['author', 'categories', 'tags'])
-            ->withCount('reads');
-
-        if (isset($filters['category_id'])) {
-            $query->whereHas('categories', function ($q) use ($filters) {
-                $q->where('content_categories.id', $filters['category_id']);
-            });
-        }
-
-        if (isset($filters['tag_id'])) {
-            $query->whereHas('tags', function ($q) use ($filters) {
-                $q->where('tags.id', $filters['tag_id']);
-            });
-        }
-
-        if (isset($filters['featured']) && $filters['featured']) {
-            $query->featured();
-        }
-
-        if (isset($filters['date_from'])) {
-            $query->where('published_at', '>=', $filters['date_from']);
-        }
-
-        if (isset($filters['date_to'])) {
-            $query->where('published_at', '<=', $filters['date_to']);
-        }
-
-        $query->orderBy('is_featured', 'desc')
-            ->orderBy('published_at', 'desc');
-
-        return $query->paginate($filters['per_page'] ?? 15);
+            ->withCount('reads')
+            ->allowedFilters([
+                AllowedFilter::exact('category_id'),
+                AllowedFilter::exact('tag_id'),
+                AllowedFilter::exact('featured'),
+                AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('published_at', '>=', $v)),
+                AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('published_at', '<=', $v)),
+            ])
+            ->allowedSorts(['published_at', 'views_count', 'created_at'])
+            ->defaultSort('-published_at')
+            ->paginate($perPage)
+            ->appends($filters);
     }
 
     public function searchNews(string $searchQuery, array $filters = []): LengthAwarePaginator
     {
-        $query = News::published()
-            ->whereRaw('MATCH(title, excerpt, content) AGAINST(? IN NATURAL LANGUAGE MODE)', [$searchQuery])
+        $perPage = (int) ($filters['per_page'] ?? 15);
+
+        return News::published()
+            ->search($searchQuery)
             ->with(['author', 'categories', 'tags'])
-            ->withCount('reads');
-
-        if (isset($filters['category_id'])) {
-            $query->whereHas('categories', function ($q) use ($filters) {
-                $q->where('content_categories.id', $filters['category_id']);
-            });
-        }
-
-        $query->orderBy('is_featured', 'desc')
-            ->orderBy('published_at', 'desc');
-
-        return $query->paginate($filters['per_page'] ?? 15);
+            ->withCount('reads')
+            ->query(function ($q) use ($filters) {
+                if (!empty($filters['category_id'])) {
+                    $q->whereHas('categories', fn ($q2) => $q2->where('content_categories.id', (int) $filters['category_id']));
+                }
+            })
+            ->orderBy('is_featured', 'desc')
+            ->orderBy('published_at', 'desc')
+            ->paginate($perPage)
+            ->appends($filters);
     }
 
     public function findBySlugWithRelations(string $slug): ?News

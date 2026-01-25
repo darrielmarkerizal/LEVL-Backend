@@ -57,25 +57,15 @@ class GradingController extends Controller
 
     public function queue(GradingQueueRequest $request): JsonResponse
     {
-        $validated = $request->validated();
+        $filters = $request->validated();
+        
+        $filters = array_merge($request->query(), $filters);
 
-        $filters = array_filter([
-            'assignment_id' => $validated['assignment_id'] ?? null,
-            'user_id' => $validated['user_id'] ?? null,
-            'date_from' => $validated['date_from'] ?? null,
-            'date_to' => $validated['date_to'] ?? null,
-        ], fn ($value) => $value !== null);
+        $paginator = $this->gradingService->getGradingQueue($filters);
 
-        $queue = $this->gradingService->getGradingQueue($filters);
-        $page = (int) ($validated['page'] ?? 1);
-        $perPage = (int) ($validated['per_page'] ?? 15);
+        $paginator->getCollection()->transform(fn($item) => new GradingQueueItemResource($item));
 
-        $items = $queue->slice(($page - 1) * $perPage, $perPage)->values();
-
-        return $this->success(
-            GradingQueueItemResource::collection($items),
-            __('messages.grading.queue_fetched')
-        );
+        return $this->paginateResponse($paginator, 'messages.grading.queue_fetched');
     }
 
     public function returnToQueue(Submission $submission): JsonResponse

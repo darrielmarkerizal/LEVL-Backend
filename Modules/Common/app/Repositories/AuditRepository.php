@@ -5,103 +5,37 @@ declare(strict_types=1);
 namespace Modules\Common\Repositories;
 
 use Illuminate\Support\Collection;
+use Illuminate\Http\Request;
 use Modules\Common\Contracts\Repositories\AuditRepositoryInterface;
 use Modules\Common\Models\AuditLog;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
 
-/**
- * Repository for audit log operations.
- *
- * This repository provides access to the immutable audit log storage.
- * Only create and search operations are supported to maintain audit trail integrity.
- *
- * Requirements: 20.6, 20.7
- */
 class AuditRepository implements AuditRepositoryInterface
 {
-    /**
-     * Create a new audit log entry.
-     *
-     * @param  array  $data  The audit log data
-     * @return AuditLog The created audit log entry
-     */
     public function create(array $data): AuditLog
     {
         return AuditLog::create($data);
     }
 
-    /**
-     * Search audit logs with filters.
-     *
-     * Requirements: 20.7
-     *
-     * @param  array  $filters  Search filters
-     * @return Collection<int, AuditLog> Collection of matching audit logs
-     */
     public function search(array $filters): Collection
     {
-        $query = AuditLog::query();
+        $request = new Request(['filter' => $filters]);
 
-        // Filter by action
-        if (isset($filters['action']) && ! empty($filters['action'])) {
-            $query->where('action', $filters['action']);
-        }
-
-        // Filter by multiple actions
-        if (isset($filters['actions']) && is_array($filters['actions']) && ! empty($filters['actions'])) {
-            $query->whereIn('action', $filters['actions']);
-        }
-
-        // Filter by actor
-        if (isset($filters['actor_id']) && ! empty($filters['actor_id'])) {
-            $query->where('actor_id', $filters['actor_id']);
-        }
-
-        if (isset($filters['actor_type']) && ! empty($filters['actor_type'])) {
-            $query->where('actor_type', $filters['actor_type']);
-        }
-
-        // Filter by subject
-        if (isset($filters['subject_id']) && ! empty($filters['subject_id'])) {
-            $query->where('subject_id', $filters['subject_id']);
-        }
-
-        if (isset($filters['subject_type']) && ! empty($filters['subject_type'])) {
-            $query->where('subject_type', $filters['subject_type']);
-        }
-
-        // Filter by date range
-        if (isset($filters['start_date']) && ! empty($filters['start_date'])) {
-            $query->where('created_at', '>=', $filters['start_date']);
-        }
-
-        if (isset($filters['end_date']) && ! empty($filters['end_date'])) {
-            $query->where('created_at', '<=', $filters['end_date']);
-        }
-
-        // Search in context JSON field
-        if (isset($filters['context_search']) && ! empty($filters['context_search'])) {
-            $query->where('context', 'like', '%'.$filters['context_search'].'%');
-        }
-
-        // Filter by assignment_id in context
-        if (isset($filters['assignment_id']) && ! empty($filters['assignment_id'])) {
-            $query->whereJsonContains('context->assignment_id', (int) $filters['assignment_id']);
-        }
-
-        // Filter by student_id in context
-        if (isset($filters['student_id']) && ! empty($filters['student_id'])) {
-            $query->whereJsonContains('context->student_id', (int) $filters['student_id']);
-        }
-
-        // Order by created_at descending (most recent first)
-        $query->orderBy('created_at', 'desc');
-
-        // Apply limit if specified
-        if (isset($filters['limit']) && is_numeric($filters['limit'])) {
-            $query->limit((int) $filters['limit']);
-        }
-
-        return $query->get();
+        return QueryBuilder::for(AuditLog::class, $request)
+            ->allowedFilters([
+                AllowedFilter::exact('action'),
+                AllowedFilter::exact('actor_id'),
+                AllowedFilter::exact('actor_type'),
+                AllowedFilter::exact('subject_id'),
+                AllowedFilter::exact('subject_type'),
+                AllowedFilter::callback('start_date', fn ($q, $v) => $q->where('created_at', '>=', $v)),
+                AllowedFilter::callback('end_date', fn ($q, $v) => $q->where('created_at', '<=', $v)),
+                AllowedFilter::callback('context_search', fn ($q, $v) => $q->where('context', 'like', "%{$v}%")),
+            ])
+            ->allowedSorts(['created_at', 'action', 'actor_id'])
+            ->defaultSort('-created_at')
+            ->get();
     }
 
     /**
