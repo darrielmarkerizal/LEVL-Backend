@@ -205,19 +205,7 @@ class SubmissionController extends Controller
              return $this->error(__('messages.common.unauthorized'), [], 403);
         }
 
-        $submission = \Spatie\QueryBuilder\QueryBuilder::for(
-            Submission::where('id', $submission->id)
-        )
-            ->allowedIncludes([
-                'assignment',
-                'answers',
-                'answers.question',
-                'user',
-                'enrollment',
-                'grade',
-                'files'
-            ])
-            ->first();
+        $submission = $this->service->getSubmission($submission->id, $request->all());
 
         // Ensure default relations are loaded if not requested
         $submission->loadMissing(['assignment', 'answers.question']);

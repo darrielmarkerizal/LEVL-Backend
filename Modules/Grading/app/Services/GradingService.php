@@ -20,9 +20,6 @@ use Modules\Learning\Models\Submission;
 
 class GradingService implements GradingServiceInterface
 {
-    /**
-     * Auto-grade a submission.
-     */
     public function autoGrade(int $submissionId): void
     {
         $submission = Submission::with(['answers.question', 'assignment.questions'])->findOrFail($submissionId);
@@ -49,41 +46,38 @@ class GradingService implements GradingServiceInterface
             }
         }
 
-        // Calculate and update submission score
         $score = $this->calculateScore($submissionId);
         $submission->update(['score' => $score]);
 
-        // Transition state based on whether manual grading is needed
         $newState = $hasManualQuestions
             ? SubmissionState::PendingManualGrading
             : SubmissionState::AutoGraded;
 
         $submission->transitionTo($newState, $submission->user_id);
-
-        // Check for new high score and trigger course grade recalculation (Requirements 22.4, 22.5)
-        if (! $hasManualQuestions) {
-            $this->checkAndDispatchNewHighScore($submission->fresh());
-        }
     }
 
-    /**
-     * Manual grade a submission.
-     *
-     * @throws InvalidArgumentException if score is out of range or grading is incomplete
-     */
     public function manualGrade(int $submissionId, array $grades, ?string $feedback = null): Grade
     {
         $submission = Submission::with(['answers.question', 'assignment'])->findOrFail($submissionId);
 
-        // Check for global override score
         $globalScoreOverride = null;
         if (isset($grades['score'])) {
             $globalScoreOverride = (float) $grades['score'];
         }
 
-        // Validate and update answer scores
+        if ($globalScoreOverride !== null && $submission->is_late) {
+            $assignmentPenalty = $submission->assignment->late_penalty_percent;
+            $latePenaltyPercent = $assignmentPenalty !== null
+                ? (int) $assignmentPenalty
+                : (int) \Modules\Common\Models\SystemSetting::get('learning.late_penalty_percent', 0);
+            
+            if ($latePenaltyPercent > 0) {
+                $penalty = ($globalScoreOverride * $latePenaltyPercent) / 100;
+                $globalScoreOverride = max(0, $globalScoreOverride - $penalty);
+            }
+        }
+
         foreach ($grades as $questionId => $gradeData) {
-            // Skip if it's the global score key
             if ($questionId === 'score') {
                 continue;
             }
@@ -97,7 +91,6 @@ class GradingService implements GradingServiceInterface
             $question = $answer->question;
             $score = $gradeData['score'] ?? 0;
 
-            // Validate score range (Requirements 12.1)
             $maxScore = $question->max_score ?? 100;
             if ($score < 0 || $score > $maxScore) {
                 throw \Modules\Learning\Exceptions\SubmissionException::invalidScore(
@@ -115,25 +108,20 @@ class GradingService implements GradingServiceInterface
             ]);
         }
 
-        // If no global score override, enforce strict granular grading validation
         if ($globalScoreOverride === null) {
-            // Validate all required questions have scores (Requirements 11.4, 11.5)
             if (! $this->validateGradingComplete($submissionId)) {
                 throw \Modules\Learning\Exceptions\SubmissionException::notAllowed(
                     __('messages.submissions.grading_incomplete')
                 );
             }
 
-             // Calculate final score from answers
             $score = $this->calculateScore($submissionId);
         } else {
-            // Use global override score
             $score = $globalScoreOverride;
         }
 
         $submission->update(['score' => $score]);
 
-        // Create or update grade record
         $grade = Grade::updateOrCreate(
             ['submission_id' => $submissionId],
             [
@@ -149,30 +137,26 @@ class GradingService implements GradingServiceInterface
             ]
         );
 
-        // Dispatch event for audit logging (Requirements 20.2)
         $instructorId = auth('api')->id();
         if ($instructorId !== null) {
             GradeCreated::dispatch($grade, (int) $instructorId);
         }
 
-        // Transition to graded state
         $submission->transitionTo(SubmissionState::Graded, (int) auth('api')->id());
-
-        // Check for new high score and trigger course grade recalculation (Requirements 22.4, 22.5)
-        $this->checkAndDispatchNewHighScore($submission->fresh());
 
         return $grade;
     }
 
-    /**
-     * Save draft grades without finalizing.
-     * Does not change submission state (Requirements 11.1, 11.2).
-     */
     public function saveDraftGrade(int $submissionId, array $partialGrades): void
     {
-        $submission = Submission::with(['answers.question', 'assignment'])->findOrFail($submissionId);
+        $submission = Submission::with(['answers.question', 'grade'])->findOrFail($submissionId);
 
-        // Update answer scores with validation
+        if ($submission->grade && !$submission->grade->is_draft) {
+            throw new \InvalidArgumentException(
+                __('messages.grading.cannot_draft_finalized')
+            );
+        }
+
         foreach ($partialGrades as $questionId => $gradeData) {
             $answer = $submission->answers->where('question_id', $questionId)->first();
 
@@ -183,7 +167,6 @@ class GradingService implements GradingServiceInterface
             $question = $answer->question;
             $score = $gradeData['score'] ?? null;
 
-            // Validate score range if provided (Requirements 12.1)
             if ($score !== null) {
                 $maxScore = $question->max_score ?? 100;
                 if ($score < 0 || $score > $maxScore) {
@@ -199,7 +182,6 @@ class GradingService implements GradingServiceInterface
             ]);
         }
 
-        // Create or update draft grade record
         Grade::updateOrCreate(
             ['submission_id' => $submissionId],
             [
@@ -212,9 +194,6 @@ class GradingService implements GradingServiceInterface
         );
     }
 
-    /**
-     * Get draft grades for a submission (Requirements 11.3).
-     */
     public function getDraftGrade(int $submissionId): ?array
     {
         $submission = Submission::with(['answers.question', 'grade'])->findOrFail($submissionId);
@@ -239,9 +218,6 @@ class GradingService implements GradingServiceInterface
         ];
     }
 
-    /**
-     * Calculate weighted score for a submission.
-     */
     public function calculateScore(int $submissionId): float
     {
         $submission = Submission::with(['answers.question'])->findOrFail($submissionId);
@@ -271,16 +247,10 @@ class GradingService implements GradingServiceInterface
         return round($totalWeightedScore / $totalWeight, 2);
     }
 
-    /**
-     * Recalculate grades after answer key change.
-     * Dispatches a background job to handle the recalculation.
-     * Manual grades are preserved during recalculation (Requirements 15.6).
-     */
     public function recalculateAfterAnswerKeyChange(int $questionId): void
     {
         $question = Question::findOrFail($questionId);
 
-        // Dispatch job to handle recalculation in background (Requirements 15.1, 15.2, 15.3)
         RecalculateGradesJob::dispatch(
             $questionId,
             $question->answer_key ?? [],
@@ -289,9 +259,6 @@ class GradingService implements GradingServiceInterface
         );
     }
 
-    /**
-     * Override a grade with justification.
-     */
     public function overrideGrade(int $submissionId, float $score, string $reason): void
     {
         if (empty($reason)) {
@@ -301,7 +268,6 @@ class GradingService implements GradingServiceInterface
         $submission = Submission::findOrFail($submissionId);
         $grade = Grade::where('submission_id', $submissionId)->firstOrFail();
 
-        // Store old score for audit logging
         $oldScore = (float) $grade->score;
 
         $instructorId = auth('api')->id();
@@ -309,113 +275,60 @@ class GradingService implements GradingServiceInterface
 
         $submission->update(['score' => $score]);
 
-        // Dispatch event for audit logging (Requirements 20.4)
         if ($instructorId !== null) {
             GradeOverridden::dispatch($grade, $oldScore, $score, $reason, (int) $instructorId);
         }
     }
 
-    /**
-     * Get submissions pending manual grading with metadata (Requirements 10.1-10.4).
-     */
-    public function getGradingQueue(array $filters = []): Collection
+    public function getGradingQueue(array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        $query = Submission::with([
-            'user:id,name,email',
-            'assignment:id,title,max_score',
-            'answers' => function ($q) {
-                $q->with(['question' => function ($q) {
-                    $q->select('id', 'type', 'content', 'max_score');
-                }]);
-            },
-        ])
+        $perPage = (int) ($filters['per_page'] ?? 15);
+
+        return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class)
+            ->with([
+                'user:id,name,email',
+                'assignment:id,title,max_score',
+                'answers.question'
+            ])
             ->where('state', SubmissionState::PendingManualGrading->value)
-            ->orderBy('submitted_at', 'asc'); // Oldest first (Requirements 10.2)
-
-        // Apply filters (Requirements 10.3)
-        if (isset($filters['assignment_id'])) {
-            $query->where('assignment_id', $filters['assignment_id']);
-        }
-
-        if (isset($filters['user_id'])) {
-            $query->where('user_id', $filters['user_id']);
-        }
-
-        if (isset($filters['date_from'])) {
-            $query->where('submitted_at', '>=', $filters['date_from']);
-        }
-
-        if (isset($filters['date_to'])) {
-            $query->where('submitted_at', '<=', $filters['date_to']);
-        }
-
-        $submissions = $query->get();
-
-        // Add metadata for each submission (Requirements 10.4)
-        return $submissions->map(function ($submission) {
-            $questionsRequiringGrading = $submission->answers
-                ->filter(fn ($answer) => $answer->score === null && ! $answer->question?->canAutoGrade())
-                ->map(fn ($answer) => [
-                    'question_id' => $answer->question_id,
-                    'question_type' => $answer->question?->type?->value,
-                    'question_content' => $answer->question?->content,
-                ])
-                ->values();
-
-            return [
-                'submission_id' => $submission->id,
-                'student_name' => $submission->user?->name,
-                'student_email' => $submission->user?->email,
-                'assignment_id' => $submission->assignment_id,
-                'assignment_title' => $submission->assignment?->title,
-                'submitted_at' => $submission->submitted_at,
-                'is_late' => $submission->is_late,
-                'questions_requiring_grading' => $questionsRequiringGrading,
-                'total_questions' => $submission->answers->count(),
-                'graded_questions' => $submission->answers->filter(fn ($a) => $a->score !== null)->count(),
-            ];
-        });
+            ->allowedFilters([
+                \Spatie\QueryBuilder\AllowedFilter::exact('assignment_id'),
+                \Spatie\QueryBuilder\AllowedFilter::exact('user_id'),
+                \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
+                \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
+            ])
+            ->allowedSorts(['submitted_at', 'created_at'])
+            ->defaultSort('submitted_at')
+            ->paginate($perPage)
+            ->appends($filters);
     }
 
-    /**
-     * Return a submission to the grading queue (Requirements 10.6).
-     */
     public function returnToQueue(int $submissionId): void
     {
         $submission = Submission::findOrFail($submissionId);
 
-        // Can only return from Graded state back to PendingManualGrading
         if ($submission->state !== SubmissionState::Graded) {
-            throw new InvalidArgumentException(
-                'Can only return graded submissions to the queue'
-            );
+            throw new InvalidArgumentException('Can only return graded submissions to the queue');
         }
 
-        // Update the state directly since this is a special case
         $submission->update(['state' => SubmissionState::PendingManualGrading->value]);
 
-        // Mark the grade as draft again
         $grade = Grade::where('submission_id', $submissionId)->first();
         if ($grade) {
             $grade->update(['is_draft' => true]);
         }
     }
 
-    /**
-     * Validate that all required questions have been graded (Requirements 11.4, 11.5).
-     */
     public function validateGradingComplete(int $submissionId): bool
     {
         $submission = Submission::with(['answers.question'])->findOrFail($submissionId);
         $questionSet = $submission->question_set;
 
         foreach ($submission->answers as $answer) {
-             // If question_set is defined, skip answers not in the set
             if (! empty($questionSet) && ! in_array($answer->question_id, $questionSet)) {
                 continue;
             }
-            
-            // All answers must have a score
+
             if ($answer->score === null) {
                 return false;
             }
@@ -424,39 +337,28 @@ class GradingService implements GradingServiceInterface
         return true;
     }
 
-    /**
-     * Release a grade to make it visible to the student.
-     *
-     * Dispatches GradesReleased event to trigger notifications.
-     * Requirements: 14.6 - WHEN instructor releases grades in deferred mode, THE System SHALL notify students
-     */
     public function releaseGrade(int $submissionId): void
     {
         $submission = Submission::with('grade')->findOrFail($submissionId);
 
-        if (! $submission->grade) {
-            throw new InvalidArgumentException('No grade exists for this submission');
+        if (!$submission->grade) {
+            throw new \InvalidArgumentException(__('messages.grading.no_grade_exists'));
         }
 
         if ($submission->grade->is_draft) {
-            throw new InvalidArgumentException('Cannot release a draft grade');
+            throw new \InvalidArgumentException(__('messages.grading.cannot_release_draft'));
+        }
+
+        if ($submission->state !== SubmissionState::Graded) {
+            throw new \InvalidArgumentException(__('messages.grading.submission_not_graded'));
         }
 
         $submission->grade->release();
         $submission->transitionTo(SubmissionState::Released, (int) auth('api')->id());
 
-        // Dispatch event to trigger notifications (Requirements 14.6)
         GradesReleased::dispatch(collect([$submission]), auth('api')->id());
     }
 
-    /**
-     * Validate submissions before bulk grade release.
-     *
-     * Requirements: 26.5 - THE System SHALL validate bulk operations before execution and report any errors
-     *
-     * @param  array<int>  $submissionIds  Array of submission IDs to validate
-     * @return array{valid: bool, errors: array<string>} Validation result with errors if any
-     */
     public function validateBulkReleaseGrades(array $submissionIds): array
     {
         $errors = [];
@@ -465,11 +367,7 @@ class GradingService implements GradingServiceInterface
             return ['valid' => false, 'errors' => ['No submission IDs provided']];
         }
 
-        $submissions = Submission::with('grade')
-            ->whereIn('id', $submissionIds)
-            ->get();
-
-        // Check if all requested submissions were found
+        $submissions = Submission::with('grade')->whereIn('id', $submissionIds)->get();
         $foundIds = $submissions->pluck('id')->toArray();
         $missingIds = array_diff($submissionIds, $foundIds);
 
@@ -477,21 +375,17 @@ class GradingService implements GradingServiceInterface
             $errors[] = "Submission {$missingId} not found";
         }
 
-        // Validate each submission
         foreach ($submissions as $submission) {
             if (! $submission->grade) {
                 $errors[] = "Submission {$submission->id} has no grade to release";
-
                 continue;
             }
 
             if ($submission->grade->is_draft) {
                 $errors[] = "Submission {$submission->id} has a draft grade that cannot be released";
-
                 continue;
             }
 
-            // Check if already released
             if ($submission->state === SubmissionState::Released) {
                 $errors[] = "Submission {$submission->id} is already released";
             }
@@ -503,71 +397,46 @@ class GradingService implements GradingServiceInterface
         ];
     }
 
-    /**
-     * Bulk release grades for multiple submissions.
-     *
-     * Dispatches GradesReleased event to trigger notifications for all released submissions.
-     * Requirements: 14.6 - WHEN instructor releases grades in deferred mode, THE System SHALL notify students
-     * Requirements: 26.2 - THE System SHALL support bulk grade release for submissions in deferred review mode
-     * Requirements: 26.5 - THE System SHALL validate bulk operations before execution and report any errors
-     *
-     * @param  array<int>  $submissionIds  Array of submission IDs to release
-     * @return array{success: int, failed: int, submissions: Collection<int, Submission>, errors: array<string>} Result with success/failure counts
-     *
-     * @throws InvalidArgumentException if validation fails for all submissions
-     */
     public function bulkReleaseGrades(array $submissionIds): array
     {
-        // Validate before execution (Requirements 26.5)
         $validation = $this->validateBulkReleaseGrades($submissionIds);
 
         if (! $validation['valid'] && count($validation['errors']) === count($submissionIds)) {
-            throw new InvalidArgumentException(
-                'Bulk release validation failed: '.implode('; ', $validation['errors'])
-            );
+            throw new InvalidArgumentException('Bulk release validation failed: '.implode('; ', $validation['errors']));
         }
 
-        $submissions = Submission::with('grade')
-            ->whereIn('id', $submissionIds)
-            ->get();
+        $submissions = Submission::with('grade')->whereIn('id', $submissionIds)->get();
 
         $successCount = 0;
         $failedCount = 0;
         $errors = [];
         $releasedSubmissions = collect();
 
-        // Release grades for valid submissions
         foreach ($submissions as $submission) {
-            // Skip submissions that can't be released
             if (! $submission->grade) {
                 $failedCount++;
                 $errors[] = "Submission {$submission->id} has no grade to release";
-
                 continue;
             }
 
             if ($submission->grade->is_draft) {
                 $failedCount++;
                 $errors[] = "Submission {$submission->id} has a draft grade that cannot be released";
-
                 continue;
             }
 
             if ($submission->state === SubmissionState::Released) {
                 $failedCount++;
                 $errors[] = "Submission {$submission->id} is already released";
-
                 continue;
             }
 
-            // Release the grade
             $submission->grade->release();
             $submission->transitionTo(SubmissionState::Released, (int) auth('api')->id());
             $releasedSubmissions->push($submission);
             $successCount++;
         }
 
-        // Add missing submission errors
         $foundIds = $submissions->pluck('id')->toArray();
         $missingIds = array_diff($submissionIds, $foundIds);
         foreach ($missingIds as $missingId) {
@@ -575,7 +444,6 @@ class GradingService implements GradingServiceInterface
             $errors[] = "Submission {$missingId} not found";
         }
 
-        // Dispatch single event for all released submissions (Requirements 14.6)
         if ($releasedSubmissions->isNotEmpty()) {
             GradesReleased::dispatch($releasedSubmissions, auth('api')->id());
         }
@@ -588,14 +456,6 @@ class GradingService implements GradingServiceInterface
         ];
     }
 
-    /**
-     * Validate submissions before bulk feedback application.
-     *
-     * Requirements: 26.5 - THE System SHALL validate bulk operations before execution and report any errors
-     *
-     * @param  array<int>  $submissionIds  Array of submission IDs to validate
-     * @return array{valid: bool, errors: array<string>} Validation result with errors if any
-     */
     public function validateBulkApplyFeedback(array $submissionIds): array
     {
         $errors = [];
@@ -605,8 +465,6 @@ class GradingService implements GradingServiceInterface
         }
 
         $submissions = Submission::whereIn('id', $submissionIds)->get();
-
-        // Check if all requested submissions were found
         $foundIds = $submissions->pluck('id')->toArray();
         $missingIds = array_diff($submissionIds, $foundIds);
 
@@ -614,8 +472,6 @@ class GradingService implements GradingServiceInterface
             $errors[] = "Submission {$missingId} not found";
         }
 
-        // Validate each submission exists (basic validation)
-        // Feedback can be applied to submissions in any state except in_progress
         foreach ($submissions as $submission) {
             if ($submission->state === SubmissionState::InProgress) {
                 $errors[] = "Submission {$submission->id} is still in progress and cannot receive feedback";
@@ -628,53 +484,32 @@ class GradingService implements GradingServiceInterface
         ];
     }
 
-    /**
-     * Bulk apply feedback to multiple submissions.
-     *
-     * Requirements: 26.4 - THE System SHALL support bulk feedback application to selected submissions
-     * Requirements: 26.5 - THE System SHALL validate bulk operations before execution and report any errors
-     *
-     * @param  array<int>  $submissionIds  Array of submission IDs to apply feedback to
-     * @param  string  $feedback  The feedback text to apply to all submissions
-     * @return array{success: int, failed: int, submissions: Collection<int, Submission>, errors: array<string>} Result with success/failure counts
-     *
-     * @throws InvalidArgumentException if validation fails for all submissions or feedback is empty
-     */
     public function bulkApplyFeedback(array $submissionIds, string $feedback): array
     {
         if (empty(trim($feedback))) {
             throw new InvalidArgumentException('Feedback cannot be empty');
         }
 
-        // Validate before execution (Requirements 26.5)
         $validation = $this->validateBulkApplyFeedback($submissionIds);
 
         if (! $validation['valid'] && count($validation['errors']) === count($submissionIds)) {
-            throw new InvalidArgumentException(
-                'Bulk feedback validation failed: '.implode('; ', $validation['errors'])
-            );
+            throw new InvalidArgumentException('Bulk feedback validation failed: '.implode('; ', $validation['errors']));
         }
 
-        $submissions = Submission::with('grade')
-            ->whereIn('id', $submissionIds)
-            ->get();
+        $submissions = Submission::with('grade')->whereIn('id', $submissionIds)->get();
 
         $successCount = 0;
         $failedCount = 0;
         $errors = [];
         $updatedSubmissions = collect();
 
-        // Apply feedback to valid submissions
         foreach ($submissions as $submission) {
-            // Skip submissions that can't receive feedback
             if ($submission->state === SubmissionState::InProgress) {
                 $failedCount++;
                 $errors[] = "Submission {$submission->id} is still in progress and cannot receive feedback";
-
                 continue;
             }
 
-            // Update or create grade record with feedback
             Grade::updateOrCreate(
                 ['submission_id' => $submission->id],
                 [
@@ -689,7 +524,6 @@ class GradingService implements GradingServiceInterface
             $successCount++;
         }
 
-        // Add missing submission errors
         $foundIds = $submissions->pluck('id')->toArray();
         $missingIds = array_diff($submissionIds, $foundIds);
         foreach ($missingIds as $missingId) {
@@ -705,11 +539,6 @@ class GradingService implements GradingServiceInterface
         ];
     }
 
-    /**
-     * Recalculate course grade for a student.
-     * Uses highest scores from all assignments in the course.
-     * Requirements: 22.2, 22.5
-     */
     public function recalculateCourseGrade(int $studentId, int $courseId): ?float
     {
         if (! $courseId) {
@@ -717,20 +546,13 @@ class GradingService implements GradingServiceInterface
         }
 
         $courseGrade = $this->calculateCourseGrade($studentId, $courseId);
-
-        // Update or create course grade record
         $this->updateCourseGradeRecord($studentId, $courseId, $courseGrade);
 
         return $courseGrade;
     }
 
-    /**
-     * Calculate course grade using highest scores for each assignment.
-     * Requirements: 22.2
-     */
     public function calculateCourseGrade(int $studentId, int $courseId): float
     {
-        // Get all assignments for the course (including those attached to lessons and units)
         $assignments = $this->getAssignmentsForCourse($courseId);
 
         if ($assignments->isEmpty()) {
@@ -741,12 +563,12 @@ class GradingService implements GradingServiceInterface
         $totalWeight = 0.0;
 
         foreach ($assignments as $assignment) {
-            // Get highest score submission for this assignment (Requirements 22.1, 22.2)
             $highestSubmission = Submission::query()
                 ->where('assignment_id', $assignment->id)
                 ->where('user_id', $studentId)
                 ->whereNotNull('score')
                 ->whereNotIn('state', [SubmissionState::InProgress->value])
+                ->whereHas('grade', fn ($q) => $q->where('is_draft', false))
                 ->orderByDesc('score')
                 ->first();
 
@@ -765,9 +587,6 @@ class GradingService implements GradingServiceInterface
         return round(($totalWeightedScore / $totalWeight) * 100, 2);
     }
 
-    /**
-     * Get all assignments for a course (including those attached to lessons and units).
-     */
     private function getAssignmentsForCourse(int $courseId): \Illuminate\Support\Collection
     {
         $course = \Modules\Schemes\Models\Course::with(['units.lessons'])->find($courseId);
@@ -778,14 +597,12 @@ class GradingService implements GradingServiceInterface
 
         $assignmentIds = collect();
 
-        // Get assignments directly attached to the course
         $courseAssignments = \Modules\Learning\Models\Assignment::query()
             ->where('assignable_type', \Modules\Schemes\Models\Course::class)
             ->where('assignable_id', $courseId)
             ->pluck('id');
         $assignmentIds = $assignmentIds->merge($courseAssignments);
 
-        // Get assignments attached to units
         foreach ($course->units as $unit) {
             $unitAssignments = \Modules\Learning\Models\Assignment::query()
                 ->where('assignable_type', \Modules\Schemes\Models\Unit::class)
@@ -793,7 +610,6 @@ class GradingService implements GradingServiceInterface
                 ->pluck('id');
             $assignmentIds = $assignmentIds->merge($unitAssignments);
 
-            // Get assignments attached to lessons
             foreach ($unit->lessons as $lesson) {
                 $lessonAssignments = \Modules\Learning\Models\Assignment::query()
                     ->where(function ($q) use ($lesson) {
@@ -809,9 +625,6 @@ class GradingService implements GradingServiceInterface
         return \Modules\Learning\Models\Assignment::whereIn('id', $assignmentIds->unique())->get();
     }
 
-    /**
-     * Update or create course grade record.
-     */
     private function updateCourseGradeRecord(int $studentId, int $courseId, float $grade): void
     {
         Grade::updateOrCreate(
@@ -829,35 +642,5 @@ class GradingService implements GradingServiceInterface
         );
     }
 
-    /**
-     * Check if a submission is a new high score and dispatch event if so.
-     * Requirements: 22.4, 22.5
-     */
-    private function checkAndDispatchNewHighScore(Submission $submission): void
-    {
-        if ($submission->score === null) {
-            return;
-        }
 
-        // Get all other submissions for this student/assignment
-        $otherSubmissions = Submission::query()
-            ->where('assignment_id', $submission->assignment_id)
-            ->where('user_id', $submission->user_id)
-            ->where('id', '!=', $submission->id)
-            ->whereNotNull('score')
-            ->whereNotIn('state', [SubmissionState::InProgress->value])
-            ->get();
-
-        // Find the previous highest score
-        $previousHighScore = $otherSubmissions->max('score');
-
-        // If this submission's score is higher than all previous scores, dispatch event
-        if ($previousHighScore === null || $submission->score > $previousHighScore) {
-            \Modules\Learning\Events\NewHighScoreAchieved::dispatch(
-                $submission,
-                $previousHighScore,
-                $submission->score
-            );
-        }
-    }
 }

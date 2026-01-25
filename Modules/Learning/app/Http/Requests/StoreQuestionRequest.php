@@ -27,7 +27,7 @@ class StoreQuestionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'attachments.*.max' => 'Ukuran file tidak boleh lebih dari 2 MB.',
+            'attachments.*.max' => __('messages.validations.attachments_max_size'),
         ];
     }
 
@@ -102,8 +102,8 @@ class StoreQuestionRequest extends FormRequest
             'max_file_size' => __('validation.attributes.max_file_size'),
             'allowed_file_types' => __('validation.attributes.allowed_file_types'),
             'allow_multiple_files' => __('validation.attributes.allow_multiple_files'),
-            'attachments' => 'Lampiran',
-            'attachments.*' => 'Lampiran',
+            'attachments' => __('validation.attributes.attachments'),
+            'attachments.*' => __('validation.attributes.attachments'),
         ];
     }
 }

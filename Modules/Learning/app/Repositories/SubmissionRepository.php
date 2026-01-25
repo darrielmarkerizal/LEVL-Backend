@@ -49,10 +49,21 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
 
     protected array $with = ['user', 'enrollment'];
 
-        public function listForAssignment(Assignment $assignment, ?User $user = null, array $filters = []): Collection
+        public function listForAssignment(Assignment $assignment, ?User $user = null, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        $query = Submission::query()
+        $perPage = (int) ($filters['per_page'] ?? 15);
+
+        $query = \Spatie\QueryBuilder\QueryBuilder::for(Submission::class)
             ->where('assignment_id', $assignment->id)
+            ->allowedFilters([
+                'status',
+                \Spatie\QueryBuilder\AllowedFilter::exact('user_id'),
+                \Spatie\QueryBuilder\AllowedFilter::exact('is_late'),
+                \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
+                \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
+            ])
+            ->allowedSorts(['submitted_at', 'created_at', 'score', 'status'])
+            ->defaultSort('-created_at')
             ->with([
                 'user:id,name,email',
                 'enrollment:id,status',
@@ -67,7 +78,59 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             $query->where('user_id', $filters['user_id']);
         }
 
-        return $query->orderBy('created_at', 'desc')->get();
+        return $query->paginate($perPage)->appends($filters);
+    }
+
+    public function search(string $query, array $filters = [], array $options = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $perPage = (int) ($options['per_page'] ?? 15);
+        $sortBy = $options['sort_by'] ?? 'submitted_at';
+        $sortDirection = strtolower($options['sort_direction'] ?? 'desc');
+
+        $builder = Submission::search($query);
+
+        if (isset($filters['state']) && $filters['state'] !== '') {
+            $builder->where('state', $filters['state']);
+        }
+
+        if (isset($filters['assignment_id'])) {
+            $builder->where('assignment_id', (int) $filters['assignment_id']);
+        }
+
+        // Apply complex filters via callback for Meilisearch
+        $builder->callback(function ($meilisearch, $query, $options) use ($filters, $sortBy, $sortDirection) {
+            $filterStrings = [];
+
+            if (isset($filters['score_min'])) {
+                $filterStrings[] = 'score >= ' . $filters['score_min'];
+            }
+            if (isset($filters['score_max'])) {
+                $filterStrings[] = 'score <= ' . $filters['score_max'];
+            }
+            if (isset($filters['date_from'])) {
+                $ts = Carbon::parse($filters['date_from'])->startOfDay()->timestamp;
+                $filterStrings[] = 'submitted_at >= ' . $ts;
+            }
+            if (isset($filters['date_to'])) {
+                $ts = Carbon::parse($filters['date_to'])->endOfDay()->timestamp;
+                $filterStrings[] = 'submitted_at <= ' . $ts;
+            }
+
+            if (!empty($filterStrings)) {
+                $options['filter'] = implode(' AND ', $filterStrings);
+            }
+
+            $options['sort'] = ["{$sortBy}:{$sortDirection}"];
+
+            return $meilisearch->search($query, $options);
+        });
+
+        return $builder->query(fn ($q) => $q->with([
+            'user:id,name,email',
+            'assignment:id,title,deadline_at',
+            'grade.grader:id,name,email',
+            'answers.question:id,type,content,weight',
+        ]))->paginate($perPage);
     }
 
     public function create(array $attributes): Submission
@@ -225,75 +288,6 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
         }
 
         return $query->get();
-    }
-
-        public function search(string $query, array $filters = [], array $options = []): array
-    {
-        
-        $page = (int) ($options['page'] ?? 1);
-        $perPage = (int) ($options['per_page'] ?? 15);
-        $sortBy = $options['sort_by'] ?? 'submitted_at';
-        $sortDirection = strtolower($options['sort_direction'] ?? 'desc');
-
-        
-        if (! in_array($sortDirection, ['asc', 'desc'])) {
-            $sortDirection = 'desc';
-        }
-
-        
-        $searchBuilder = Submission::search($query);
-
-        
-        $searchBuilder = $this->applyScoutFilters($searchBuilder, $filters);
-
-        
-        $paginatedResults = $searchBuilder->paginate($perPage, 'page', $page);
-
-        
-        $ids = collect($paginatedResults->items())->pluck('id')->toArray();
-
-        
-        if (empty($ids)) {
-            return [
-                'data' => new Collection,
-                'total' => 0,
-                'per_page' => $perPage,
-                'current_page' => $page,
-                'last_page' => 1,
-            ];
-        }
-
-        
-        
-        $submissions = Submission::query()
-            ->whereIn('id', $ids)
-            ->with([
-                'user:id,name,email',
-                'assignment:id,title,deadline_at',
-                'grade.grader:id,name,email',
-                'answers.question:id,type,content,weight',
-            ])
-            ->get()
-            ->sortBy(function ($submission) use ($ids) {
-                
-                return array_search($submission->id, $ids);
-            })
-            ->values();
-
-        
-        if (isset($options['sort_by'])) {
-            $submissions = $sortDirection === 'asc'
-                ? $submissions->sortBy($sortBy)->values()
-                : $submissions->sortByDesc($sortBy)->values();
-        }
-
-        return [
-            'data' => $submissions,
-            'total' => $paginatedResults->total(),
-            'per_page' => $perPage,
-            'current_page' => $page,
-            'last_page' => $paginatedResults->lastPage(),
-        ];
     }
 
         protected function applyScoutFilters(ScoutBuilder $builder, array $filters): ScoutBuilder

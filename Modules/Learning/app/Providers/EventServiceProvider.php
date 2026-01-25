@@ -9,8 +9,10 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 class EventServiceProvider extends ServiceProvider
 {
     protected $listen = [
+        \Modules\Learning\Events\SubmissionStateChanged::class => [
+            \Modules\Learning\Listeners\CheckHighScoreOnSubmissionStateChanged::class,
+        ],
         \Modules\Learning\Events\SubmissionCreated::class => [
-            
             
             
         ],

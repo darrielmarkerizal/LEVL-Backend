@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Grading\Contracts\Services;
 
-use Illuminate\Support\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Modules\Grading\Models\Grade;
 
 interface GradingServiceInterface
@@ -23,7 +23,7 @@ interface GradingServiceInterface
 
     public function overrideGrade(int $submissionId, float $score, string $reason): void;
 
-    public function getGradingQueue(array $filters = []): Collection;
+    public function getGradingQueue(array $filters = []): LengthAwarePaginator;
 
     public function returnToQueue(int $submissionId): void;
 

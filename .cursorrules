@@ -1441,18 +1441,51 @@ if (app()->environment('local')) {
 
 # Search / Filter / Sort / Pagination
 
-## Search Implementation
+## Search Implementation (CRITICAL)
 - Use `Spatie\QueryBuilder\QueryBuilder` for filtering/sorting
 - **Search**: MUST use Meilisearch via Laravel Scout (`Model::search()`) for all text search features
 - Search parameter: Use `search` directly (top-level), NOT `filter[search]`
-- **No LIKE Queries**: FORBIDDEN to use `where('field', 'like', '%...%')` for user-facing search
+- **No LIKE Queries**: FORBIDDEN to use `where('field', 'like', '%...%')` for user-facing search (use Scout instead)
+- **No Raw SQL Search**: FORBIDDEN `MATCH/AGAINST` full-text search (use Scout)
 
-## Query Builder Configuration
-- MUST define `allowedFilters` explicitly
+## Filter Implementation (STRICT)
+- MUST define `allowedFilters` explicitly (strict validation)
+- FORBIDDEN: Manual `if isset($filters['field'])` logic in Repository/Service
+- Use Spatie `AllowedFilter` types:
+  - `AllowedFilter::exact('field')` - Exact match
+  - `AllowedFilter::partial('field')` - LIKE wildcard search
+  - `AllowedFilter::callback('field', fn ($q, $v) => ...)` - Custom logic (date ranges, computed fields)
+  - `AllowedFilter::scope('field')` - Model query scope
+- Filter validation: Wrap filters in Request object for strict validation: `QueryBuilder::for(Model::class, new Request(['filter' => $filters]))`
+- **Strict Filtering Enforcement**: Unknown filters MUST trigger `InvalidFilterQuery` exception
+
+## Sort Implementation
 - MUST define `allowedSorts` explicitly
 - MUST define `defaultSort` explicitly
-- Use `paginateResponse()` (for JsonResource) or `paginateQueryBuilder()` (for Fractal) helper from `ApiResponse` trait for consistent pagination format (`meta.pagination`).
-- **Strict Filtering Enforcement**: To trigger strict filtering validation (triggering `InvalidFilterQuery` exception for unknown filters), Service MUST wrap filter array in a mock Request object: `QueryBuilder::for(Model::class, new Request(['filter' => $filters]))`.
+- Sort format: `-field` for DESC, `field` for ASC
+- Complex sorting: Use Model scopes, NOT raw SQL
+
+## Pagination Implementation
+- MUST use QueryBuilder `paginate()` (NOT `get()` + manual pagination)
+- MUST use `paginateResponse()` helper from `ApiResponse` trait
+- Response format: `meta.pagination` with standard structure (current_page, per_page, total, last_page, from, to, has_next, has_prev)
+- MUST append filters to pagination links: `.appends($filters)`
+
+## Service/Repository Pattern
+- Service layers MUST use QueryBuilder for all listing operations
+- Repositories with complex queries MUST use QueryBuilder
+- FORBIDDEN: Manual filter logic in Service/Repository (use AllowedFilter instead)
+- All pagination operations MUST return `LengthAwarePaginator` (NOT Collection)
+
+## Query Builder Configuration (REQUIRED)
+```php
+QueryBuilder::for(Model::class, new Request(['filter' => $filters]))
+    ->allowedFilters([...])
+    ->allowedSorts([...])
+    ->defaultSort('-created_at')
+    ->paginate($perPage)
+    ->appends($filters);
+```
 
 ---
 

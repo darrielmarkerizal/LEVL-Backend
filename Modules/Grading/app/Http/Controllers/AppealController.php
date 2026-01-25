@@ -25,6 +25,17 @@ class AppealController extends Controller
         private readonly AppealServiceInterface $appealService
     ) {}
 
+    public function index(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $filters = $request->all();
+        $appeals = $this->appealService->getAppeals($filters);
+
+        return $this->paginateResponse(
+            $appeals, 
+            __('messages.appeals.list_retrieved')
+        );
+    }
+
     public function submit(SubmitAppealRequest $request, Submission $submission): JsonResponse
     {
         $user = auth('api')->user();

@@ -115,11 +115,11 @@ class QuestionService implements QuestionServiceInterface
         $question = $this->questionRepository->find($questionId);
 
         if (! $question) {
-            throw new \InvalidArgumentException("Question not found: {$questionId}");
+            throw new \InvalidArgumentException(__('messages.questions.not_found_with_id', ['id' => $questionId]));
         }
 
         if (! $question->canAutoGrade()) {
-            throw new \InvalidArgumentException('Cannot set answer key for manual grading questions');
+            throw new \InvalidArgumentException(__('messages.questions.cannot_set_answer_key_manual'));
         }
 
         $oldAnswerKey = $question->answer_key ?? [];
@@ -151,14 +151,16 @@ class QuestionService implements QuestionServiceInterface
         };
     }
 
-    public function getQuestionsByAssignment(int $assignmentId, ?\Modules\Auth\Models\User $user = null, array $filters = []): Collection
+    public function getQuestionsByAssignment(int $assignmentId, ?\Modules\Auth\Models\User $user = null, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        if (! $user || ! $user->hasAnyRole(['Superadmin', 'Admin', 'Instructor'])) {
-            return $this->questionRepository->findByAssignment($assignmentId);
-        }
+        $perPage = (int) ($filters['per_page'] ?? 15);
 
         if (isset($filters['search']) && $filters['search'] !== '') {
-            return $this->questionRepository->searchByAssignment($assignmentId, $filters['search']);
+            if ($user && $user->hasAnyRole(['Superadmin', 'Admin', 'Instructor'])) {
+                return Question::search($filters['search'])
+                    ->where('assignment_id', $assignmentId)
+                    ->paginate($perPage);
+            }
         }
 
         return \Spatie\QueryBuilder\QueryBuilder::for(Question::class)
@@ -168,7 +170,8 @@ class QuestionService implements QuestionServiceInterface
             ])
             ->allowedSorts(['order', 'weight', 'created_at'])
             ->defaultSort('order')
-            ->get();
+            ->paginate($perPage)
+            ->appends($filters);
     }
 
     public function reorderQuestions(int $assignmentId, array $questionIds): void
@@ -180,7 +183,7 @@ class QuestionService implements QuestionServiceInterface
     {
         
         if (isset($data['weight']) && $data['weight'] <= 0) {
-            throw new \InvalidArgumentException('Question weight must be a positive number');
+            throw new \InvalidArgumentException(__('messages.questions.weight_must_be_positive'));
         }
 
         
@@ -191,7 +194,7 @@ class QuestionService implements QuestionServiceInterface
 
             
             if ($type->requiresOptions() && empty($data['options'])) {
-                throw new \InvalidArgumentException('Options are required for this question type');
+                throw new \InvalidArgumentException(__('messages.questions.options_required'));
             }
         }
     }

@@ -151,6 +151,26 @@ class SubmissionService implements SubmissionServiceInterface
         });
     }
 
+    public function getSubmission(int $submissionId, array $filters = []): Submission
+    {
+        // Use Spatie Query Builder for eager loading and field selection
+        // We can pass the base query or class
+        $submission = \Spatie\QueryBuilder\QueryBuilder::for(Submission::class)
+            ->where('id', $submissionId)
+            ->allowedIncludes([
+                'assignment',
+                'answers',
+                'answers.question',
+                'user',
+                'enrollment',
+                'grade',
+                'files'
+            ])
+            ->firstOrFail();
+
+        return $submission;
+    }
+
     public function grade(Submission $submission, int $score, int $gradedBy, ?string $feedback = null): Submission
     {
         return DB::transaction(function () use ($submission, $score, $gradedBy, $feedback) {
@@ -161,21 +181,9 @@ class SubmissionService implements SubmissionServiceInterface
                 throw SubmissionException::invalidScore(__('messages.submissions.score_out_of_range', ['max' => $maxScore]));
             }
 
-            $finalScore = $score;
-            if ($submission->is_late) {
-                $assignmentPenalty = $assignment->late_penalty_percent;
-                $latePenaltyPercent = $assignmentPenalty !== null
-                    ? (int) $assignmentPenalty
-                    : (int) SystemSetting::get('learning.late_penalty_percent', 0);
-                if ($latePenaltyPercent > 0) {
-                    $penalty = ($score * $latePenaltyPercent) / 100;
-                    $finalScore = max(0, $score - $penalty);
-                }
-            }
-
             $grade = $this->gradingService->manualGrade(
                 $submission->id,
-                ['score' => $finalScore],
+                ['score' => $score],
                 $feedback
             );
 
@@ -226,16 +234,7 @@ class SubmissionService implements SubmissionServiceInterface
             );
         }
 
-        if (! $assignment->retake_enabled) {
-            $existingSubmission = Submission::where('assignment_id', $assignmentId)
-                ->where('user_id', $studentId)
-                ->whereNotIn('state', [SubmissionState::InProgress->value])
-                ->exists();
 
-            if ($existingSubmission) {
-                throw SubmissionException::notAllowed(__('messages.submissions.retake_not_enabled'));
-            }
-        }
 
         $questionSet = null;
         if ($this->questionService) {
@@ -625,6 +624,21 @@ class SubmissionService implements SubmissionServiceInterface
 
         public function checkAttemptLimitsWithOverride(Assignment $assignment, int $studentId): array
     {
+        if (! $assignment->retake_enabled) {
+            $hasSubmitted = Submission::where('assignment_id', $assignment->id)
+                ->where('user_id', $studentId)
+                ->whereNotIn('state', [SubmissionState::InProgress->value])
+                ->exists();
+
+            if ($hasSubmitted) {
+                return [
+                    'allowed' => false,
+                    'remaining' => 0,
+                    'message' => __('messages.submissions.retake_not_enabled'),
+                ];
+            }
+        }
+
         if ($assignment->max_attempts === null) {
             return ['allowed' => true, 'remaining' => null];
         }

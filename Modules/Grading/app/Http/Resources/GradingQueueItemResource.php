@@ -16,16 +16,33 @@ class GradingQueueItemResource extends JsonResource
         }
 
         return [
-            'submission_id' => $this->submission_id ?? $this->id,
-            'student_name' => $this->student_name ?? $this->user?->name,
-            'student_email' => $this->student_email ?? $this->user?->email,
+            'submission_id' => $this->id,
+            'student_name' => $this->user?->name,
+            'student_email' => $this->user?->email,
             'assignment_id' => $this->assignment_id,
-            'assignment_title' => $this->assignment_title ?? $this->assignment?->title,
+            'assignment_title' => $this->assignment?->title,
             'submitted_at' => $this->submitted_at,
             'is_late' => $this->is_late,
-            'questions_requiring_grading' => $this->questions_requiring_grading ?? [],
-            'total_questions' => $this->total_questions ?? 0,
-            'graded_questions' => $this->graded_questions ?? 0,
+            'questions_requiring_grading' => $this->getQuestionsRequiringGrading(),
+            'total_questions' => $this->answers->count(),
+            'graded_questions' => $this->answers->filter(fn ($a) => $a->score !== null)->count(),
         ];
+    }
+
+    private function getQuestionsRequiringGrading(): array
+    {
+        if (! $this->relationLoaded('answers')) {
+            return [];
+        }
+
+        return $this->answers
+            ->filter(fn ($answer) => $answer->score === null && ! $answer->question?->canAutoGrade())
+            ->map(fn ($answer) => [
+                'question_id' => $answer->question_id,
+                'question_type' => $answer->question?->type?->value,
+                'question_content' => $answer->question?->content,
+            ])
+            ->values()
+            ->toArray();
     }
 }
