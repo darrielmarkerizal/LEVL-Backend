@@ -9,12 +9,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Learning\Enums\QuestionType;
 
+use Laravel\Scout\Searchable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Question extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use InteractsWithMedia, Searchable;
     protected $table = 'assignment_questions';
     protected $fillable = [
         'assignment_id',
@@ -110,5 +111,23 @@ class Question extends Model implements HasMedia
             QuestionType::Essay->value,
             QuestionType::FileUpload->value,
         ]);
+    }
+
+    public function searchableAs(): string
+    {
+        return 'questions_index';
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'assignment_id' => $this->assignment_id,
+            'type' => $this->type->value,
+            'content' => $this->content,
+            'weight' => (float) $this->weight,
+            'max_score' => (float) $this->max_score,
+            'assignment_title' => $this->assignment?->title ?? '',
+        ];
     }
 }

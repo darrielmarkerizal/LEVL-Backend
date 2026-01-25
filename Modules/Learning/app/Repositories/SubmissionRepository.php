@@ -53,7 +53,11 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
 
-        $query = \Spatie\QueryBuilder\QueryBuilder::for(Submission::class)
+        if ($user && $user->hasRole('Student')) {
+            $filters['user_id'] = $user->id;
+        }
+
+        return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, new \Illuminate\Http\Request($filters))
             ->where('assignment_id', $assignment->id)
             ->allowedFilters([
                 'status',
@@ -70,67 +74,40 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
                 'files',
                 'grade.grader:id,name,email',
                 'answers.question:id,type,content,weight',
-            ]);
-
-        if ($user && $user->hasRole('Student')) {
-            $query->where('user_id', $user->id);
-        } elseif (isset($filters['user_id'])) {
-            $query->where('user_id', $filters['user_id']);
-        }
-
-        return $query->paginate($perPage)->appends($filters);
+            ])
+            ->paginate($perPage)
+            ->appends($filters);
     }
 
     public function search(string $query, array $filters = [], array $options = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $perPage = (int) ($options['per_page'] ?? 15);
-        $sortBy = $options['sort_by'] ?? 'submitted_at';
-        $sortDirection = strtolower($options['sort_direction'] ?? 'desc');
+        $sortBy = $options['field'] ?? $options['sort_by'] ?? 'submitted_at';
+        $sortDirection = strtolower($options['direction'] ?? $options['sort_direction'] ?? 'desc');
 
-        $builder = Submission::search($query);
+        // 1. Get matching IDs from Scout (Meilisearch)
+        $scoutSearch = Submission::search($query);
+        $ids = $scoutSearch->keys()->toArray();
 
-        if (isset($filters['state']) && $filters['state'] !== '') {
-            $builder->where('state', $filters['state']);
-        }
-
-        if (isset($filters['assignment_id'])) {
-            $builder->where('assignment_id', (int) $filters['assignment_id']);
-        }
-
-        // Apply complex filters via callback for Meilisearch
-        $builder->callback(function ($meilisearch, $query, $options) use ($filters, $sortBy, $sortDirection) {
-            $filterStrings = [];
-
-            if (isset($filters['score_min'])) {
-                $filterStrings[] = 'score >= ' . $filters['score_min'];
-            }
-            if (isset($filters['score_max'])) {
-                $filterStrings[] = 'score <= ' . $filters['score_max'];
-            }
-            if (isset($filters['date_from'])) {
-                $ts = Carbon::parse($filters['date_from'])->startOfDay()->timestamp;
-                $filterStrings[] = 'submitted_at >= ' . $ts;
-            }
-            if (isset($filters['date_to'])) {
-                $ts = Carbon::parse($filters['date_to'])->endOfDay()->timestamp;
-                $filterStrings[] = 'submitted_at <= ' . $ts;
-            }
-
-            if (!empty($filterStrings)) {
-                $options['filter'] = implode(' AND ', $filterStrings);
-            }
-
-            $options['sort'] = ["{$sortBy}:{$sortDirection}"];
-
-            return $meilisearch->search($query, $options);
-        });
-
-        return $builder->query(fn ($q) => $q->with([
-            'user:id,name,email',
-            'assignment:id,title,deadline_at',
-            'grade.grader:id,name,email',
-            'answers.question:id,type,content,weight',
-        ]))->paginate($perPage);
+        // 2. Use Spatie Query Builder on Eloquent model constrained by IDs
+        return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, new \Illuminate\Http\Request($filters))
+            ->whereIn('id', $ids)
+            ->allowedFilters([
+                'state',
+                \Spatie\QueryBuilder\AllowedFilter::exact('assignment_id'),
+                \Spatie\QueryBuilder\AllowedFilter::callback('score_min', fn ($q, $v) => $q->where('score', '>=', $v)),
+                \Spatie\QueryBuilder\AllowedFilter::callback('score_max', fn ($q, $v) => $q->where('score', '<=', $v)),
+                \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', Carbon::parse($v)->startOfDay())),
+                \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', Carbon::parse($v)->endOfDay())),
+            ])
+            ->with([
+                'user:id,name,email',
+                'assignment:id,title,deadline_at',
+                'grade.grader:id,name,email',
+                'answers.question:id,type,content,weight',
+            ])
+            ->orderBy($sortBy, $sortDirection)
+            ->paginate($perPage);
     }
 
     public function create(array $attributes): Submission
@@ -255,8 +232,14 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
 
         public function findPendingManualGrading(array $filters = []): Collection
     {
-        $query = Submission::query()
+        return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, new \Illuminate\Http\Request($filters))
             ->where('state', SubmissionState::PendingManualGrading->value)
+            ->allowedFilters([
+                \Spatie\QueryBuilder\AllowedFilter::exact('assignment_id'),
+                \Spatie\QueryBuilder\AllowedFilter::exact('user_id', 'student_id'), // Map student_id filter to user_id column
+                \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', Carbon::parse($v)->startOfDay())),
+                \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', Carbon::parse($v)->endOfDay())),
+            ])
             ->with([
                 'user:id,name,email',
                 'assignment:id,title,deadline_at',
@@ -268,64 +251,11 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
                 },
                 'answers.question:id,type,content,weight',
             ])
-            ->orderBy('submitted_at', 'asc');
-
-        
-        if (isset($filters['assignment_id'])) {
-            $query->where('assignment_id', $filters['assignment_id']);
-        }
-
-        if (isset($filters['student_id'])) {
-            $query->where('user_id', $filters['student_id']);
-        }
-
-        if (isset($filters['date_from'])) {
-            $query->where('submitted_at', '>=', Carbon::parse($filters['date_from'])->startOfDay());
-        }
-
-        if (isset($filters['date_to'])) {
-            $query->where('submitted_at', '<=', Carbon::parse($filters['date_to'])->endOfDay());
-        }
-
-        return $query->get();
+            ->defaultSort('submitted_at')
+            ->get();
     }
 
-        protected function applyScoutFilters(ScoutBuilder $builder, array $filters): ScoutBuilder
-    {
-        
-        if (isset($filters['state']) && $filters['state'] !== '') {
-            $builder->where('state', $filters['state']);
-        }
-
-        
-        if (isset($filters['assignment_id'])) {
-            $builder->where('assignment_id', (int) $filters['assignment_id']);
-        }
-
-        
-        
-        if (isset($filters['score_min'])) {
-            $builder->where('score', '>=', (float) $filters['score_min']);
-        }
-
-        if (isset($filters['score_max'])) {
-            $builder->where('score', '<=', (float) $filters['score_max']);
-        }
-
-        
-        
-        if (isset($filters['date_from'])) {
-            $fromTimestamp = Carbon::parse($filters['date_from'])->startOfDay()->timestamp;
-            $builder->where('submitted_at', '>=', $fromTimestamp);
-        }
-
-        if (isset($filters['date_to'])) {
-            $toTimestamp = Carbon::parse($filters['date_to'])->endOfDay()->timestamp;
-            $builder->where('submitted_at', '<=', $toTimestamp);
-        }
-
-        return $builder;
-    }
+    
 
         public function filterByState(string $state): Collection
     {

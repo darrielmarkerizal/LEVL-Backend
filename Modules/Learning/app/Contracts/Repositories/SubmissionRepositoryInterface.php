@@ -30,7 +30,7 @@ interface SubmissionRepositoryInterface
 
     public function getLastSubmissionTime(int $studentId, int $assignmentId): ?\Illuminate\Support\Carbon;
 
-    public function search(string $query, array $filters = [], array $options = []): array;
+    public function search(string $query, array $filters = [], array $options = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
     public function filterByState(string $state): Collection;
 

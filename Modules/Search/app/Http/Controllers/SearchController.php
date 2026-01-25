@@ -54,21 +54,12 @@ class SearchController extends Controller
 
         // Normalize array filters
         $filters = $params['filter'] ?? [];
+        $arrayFields = ['category_id', 'level_tag', 'instructor_id', 'status'];
 
-        if (isset($filters['category_id']) && ! is_array($filters['category_id'])) {
-            $filters['category_id'] = [$filters['category_id']];
-        }
-
-        if (isset($filters['level_tag']) && ! is_array($filters['level_tag'])) {
-            $filters['level_tag'] = [$filters['level_tag']];
-        }
-
-        if (isset($filters['instructor_id']) && ! is_array($filters['instructor_id'])) {
-            $filters['instructor_id'] = [$filters['instructor_id']];
-        }
-
-        if (isset($filters['status']) && ! is_array($filters['status'])) {
-            $filters['status'] = [$filters['status']];
+        foreach ($arrayFields as $field) {
+             if (isset($filters[$field]) && ! is_array($filters[$field])) {
+                 $filters[$field] = [$filters[$field]];
+             }
         }
 
         // Add pagination parameters
