@@ -248,19 +248,23 @@ Mengambil daftar soal untuk sesi ujian yang sedang berlangsung. Ini adalah endpo
 
 **Endpoint:** `GET /api/v1/grading`
 
-Melihat daftar submission yang menunggu penilaian manual (essay/file upload).
+Melihat daftar submission. Secara default menampilkan submission yang menunggu penilaian manual (essay/file upload), namun dapat difilter untuk melihat semua submission berdasarkan state.
 
 **Parameter Query:**
 
-| Parameter | Tipe | Deskripsi |
-|-----------|------|-------------|
-| `filter[assignment_id]` | int | Filter berdasarkan ID tugas |
-| `filter[user_id]` | int | Filter berdasarkan ID siswa |
-| `filter[date_from]` | date | Filter tanggal mulai (YYYY-MM-DD) |
-| `filter[date_to]` | date | Filter tanggal akhir (YYYY-MM-DD) |
-| `sort` | string | Urutkan hasil (`submitted_at`, `-submitted_at`) |
-| `page` | int | Default: 1 |
-| `per_page` | int | Default: 15 (Max: 100) |
+| Parameter | Tipe | Deskripsi | Nilai yang Tersedia |
+|-----------|------|-------------|---------------------|
+| `filter[assignment_id]` | int | Filter berdasarkan ID tugas | - |
+| `filter[user_id]` | int | Filter berdasarkan ID siswa | - |
+| `filter[state]` | string | Filter berdasarkan state submission | `in_progress` (Sedang dikerjakan)<br>`submitted` (Sudah dikumpulkan)<br>`auto_graded` (Dinilai otomatis)<br>`pending_manual_grading` (Menunggu penilaian manual)<br>`graded` (Sudah dinilai)<br>`released` (Nilai dirilis) |
+| `filter[date_from]` | date | Filter tanggal mulai (YYYY-MM-DD) | - |
+| `filter[date_to]` | date | Filter tanggal akhir (YYYY-MM-DD) | - |
+| `sort` | string | Urutkan hasil | `submitted_at` (Terlama)<br>`-submitted_at` (Terbaru)<br>`created_at` (Terlama)<br>`-created_at` (Terbaru) |
+| `page` | int | Nomor halaman | Default: 1 |
+| `per_page` | int | Item per halaman | Default: 15 (Max: 100) |
+
+> [!INFO]
+> **Default Behavior:** Jika tidak ada `filter[state]` yang diberikan, endpoint akan otomatis menampilkan hanya submission dengan state `pending_manual_grading`. Untuk melihat semua submission, berikan `filter[state]` dengan nilai yang diinginkan.
 
 ### 2. Nilai Manual
 

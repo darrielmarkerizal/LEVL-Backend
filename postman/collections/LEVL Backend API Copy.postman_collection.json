@@ -9109,6 +9109,401 @@
                 }
               },
               "response": []
+            },
+            {
+              "name": "Rilis Nilai",
+              "id": "a1dcb206-107b-4459-b68a-d6b7f8aa4c9c",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"grades\": [            \n    {\n      \"question_id\": 101,  \n      \"score\": 10,\n      \"feedback\": \"Jawaban sangat tepat.\"\n    },\n    {\n      \"question_id\": 102,\n      \"score\": 5,\n      \"feedback\": \"Kurang lengkap.\"\n    }\n  ],\n  \"feedback\": \"Secara keseluruhan sudah baik.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/grades/release",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "grades",
+                    "release"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "type": "text",
+                      "uuid": "4b0a38bc-834f-4bca-a10a-f1e5a8ee26c3",
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "0a287753-82bc-4e29-927e-7a14050bb1ca",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[assignment_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "907e0871-b062-465c-bf3c-62df73905997",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[user_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "6fe6322e-7bb7-4bde-8e57-2153b655f642",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_from]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "626f8883-97a6-48c5-9b33-30b6307ac1f0",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_to]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "95c26751-de3e-4d3b-8e5e-85e78773865b",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": "",
+                      "description": "submitted_at, created_at",
+                      "type": "text",
+                      "uuid": "9f098a6a-8bea-4f5a-a7b7-e1794057a4ed",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "2",
+                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Kembalikan ke Antrean",
+              "id": "d5869335-f049-4b72-98bf-cb91878365e3",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"score\": 90,\n  \"reason\": \"Revisi manual setelah banding\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/grades/return-to-queue",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "grades",
+                    "return-to-queue"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "type": "text",
+                      "uuid": "4b0a38bc-834f-4bca-a10a-f1e5a8ee26c3",
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "0a287753-82bc-4e29-927e-7a14050bb1ca",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[assignment_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "907e0871-b062-465c-bf3c-62df73905997",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[user_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "6fe6322e-7bb7-4bde-8e57-2153b655f642",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_from]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "626f8883-97a6-48c5-9b33-30b6307ac1f0",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_to]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "95c26751-de3e-4d3b-8e5e-85e78773865b",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": "",
+                      "description": "submitted_at, created_at",
+                      "type": "text",
+                      "uuid": "9f098a6a-8bea-4f5a-a7b7-e1794057a4ed",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "2",
+                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ubah Paksa Nilai",
+              "id": "4f98d8f0-f22d-46e1-950d-061c97a376bb",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"score\": 90,\n  \"reason\": \"Revisi manual setelah banding\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/grades",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "grades"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "type": "text",
+                      "uuid": "4b0a38bc-834f-4bca-a10a-f1e5a8ee26c3",
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "0a287753-82bc-4e29-927e-7a14050bb1ca",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[assignment_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "907e0871-b062-465c-bf3c-62df73905997",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[user_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "6fe6322e-7bb7-4bde-8e57-2153b655f642",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_from]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "626f8883-97a6-48c5-9b33-30b6307ac1f0",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_to]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "95c26751-de3e-4d3b-8e5e-85e78773865b",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": "",
+                      "description": "submitted_at, created_at",
+                      "type": "text",
+                      "uuid": "9f098a6a-8bea-4f5a-a7b7-e1794057a4ed",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "2",
+                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Lihat Status Penilaian",
+              "id": "a6e1b06c-d537-4cc6-be90-58316370decc",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"score\": 90,\n  \"reason\": \"Revisi manual setelah banding\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/submissions/:submissionId/grades/status",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "submissions",
+                    ":submissionId",
+                    "grades",
+                    "status"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "type": "text",
+                      "uuid": "4b0a38bc-834f-4bca-a10a-f1e5a8ee26c3",
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "0a287753-82bc-4e29-927e-7a14050bb1ca",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[assignment_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "907e0871-b062-465c-bf3c-62df73905997",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[user_id]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "6fe6322e-7bb7-4bde-8e57-2153b655f642",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_from]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "626f8883-97a6-48c5-9b33-30b6307ac1f0",
+                      "disabled": true
+                    },
+                    {
+                      "key": "filter[date_to]",
+                      "value": null,
+                      "type": "text",
+                      "uuid": "95c26751-de3e-4d3b-8e5e-85e78773865b",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": "",
+                      "description": "submitted_at, created_at",
+                      "type": "text",
+                      "uuid": "9f098a6a-8bea-4f5a-a7b7-e1794057a4ed",
+                      "disabled": true
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "submissionId",
+                      "value": "5",
+                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                    }
+                  ]
+                }
+              },
+              "response": []
             }
           ],
           "id": "da5d1a70-59ca-44da-850b-fffa0f6410be"
