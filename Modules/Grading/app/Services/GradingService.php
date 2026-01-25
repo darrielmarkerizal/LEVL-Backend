@@ -59,6 +59,8 @@ class GradingService implements GradingServiceInterface
     public function manualGrade(int $submissionId, array $grades, ?string $feedback = null): Grade
     {
         $submission = Submission::with(['answers.question', 'assignment'])->findOrFail($submissionId);
+        
+        $grades = collect($grades)->keyBy('question_id')->toArray();
 
         $globalScoreOverride = null;
         if (isset($grades['score'])) {
@@ -111,7 +113,7 @@ class GradingService implements GradingServiceInterface
         if ($globalScoreOverride === null) {
             if (! $this->validateGradingComplete($submissionId)) {
                 throw \Modules\Learning\Exceptions\SubmissionException::notAllowed(
-                    __('messages.submissions.grading_incomplete')
+                    __('messages.grading.incomplete_grading')
                 );
             }
 
@@ -150,6 +152,8 @@ class GradingService implements GradingServiceInterface
     public function saveDraftGrade(int $submissionId, array $partialGrades): void
     {
         $submission = Submission::with(['answers.question', 'grade'])->findOrFail($submissionId);
+        
+        $partialGrades = collect($partialGrades)->keyBy('question_id')->toArray();
 
         if ($submission->grade && !$submission->grade->is_draft) {
             throw new \InvalidArgumentException(
@@ -171,7 +175,7 @@ class GradingService implements GradingServiceInterface
                 $maxScore = $question->max_score ?? 100;
                 if ($score < 0 || $score > $maxScore) {
                     throw new InvalidArgumentException(
-                        "Score for question {$questionId} must be between 0 and {$maxScore}"
+                        __('messages.grading.invalid_score')
                     );
                 }
             }
@@ -262,7 +266,7 @@ class GradingService implements GradingServiceInterface
     public function overrideGrade(int $submissionId, float $score, string $reason): void
     {
         if (empty($reason)) {
-            throw new InvalidArgumentException('Override reason is required');
+            throw new InvalidArgumentException(__('messages.grading.reason_required'));
         }
 
         $submission = Submission::findOrFail($submissionId);
@@ -316,7 +320,7 @@ class GradingService implements GradingServiceInterface
         $submission = Submission::findOrFail($submissionId);
 
         if ($submission->state !== SubmissionState::Graded) {
-            throw new InvalidArgumentException('Can only return graded submissions to the queue');
+            throw new InvalidArgumentException(__('messages.grading.submission_not_graded'));
         }
 
         $submission->update(['state' => SubmissionState::PendingManualGrading->value]);
@@ -343,6 +347,24 @@ class GradingService implements GradingServiceInterface
         }
 
         return true;
+    }
+
+    public function getGradingStatusDetails(int $submissionId): array
+    {
+        $isComplete = $this->validateGradingComplete($submissionId);
+        $submission = Submission::with(['answers.question', 'grade'])->findOrFail($submissionId);
+
+        $gradedCount = $submission->answers->filter(fn ($a) => $a->score !== null)->count();
+        $totalCount = $submission->answers->count();
+
+        return [
+            'submission_id' => $submission->id,
+            'is_complete' => $isComplete,
+            'graded_questions' => $gradedCount,
+            'total_questions' => $totalCount,
+            'can_finalize' => $isComplete,
+            'can_release' => $isComplete && $submission->grade && ! $submission->grade->is_draft,
+        ];
     }
 
     public function releaseGrade(int $submissionId): void
@@ -405,12 +427,25 @@ class GradingService implements GradingServiceInterface
         ];
     }
 
+    public function handleBulkRelease(array $submissionIds, int $userId, bool $async = false): array
+    {
+        if ($async) {
+            $validation = $this->validateBulkReleaseGrades($submissionIds);
+            if (! $validation['valid'] && count($validation['errors']) === count($submissionIds)) {
+                 throw new InvalidArgumentException('Bulk release validation failed: '.implode('; ', $validation['errors']));
+            }
+            BulkReleaseGradesJob::dispatch($submissionIds, $userId);
+            return ['async' => true, 'count' => count($submissionIds)];
+        }
+        return array_merge(['async' => false], $this->bulkReleaseGrades($submissionIds));
+    }
+
     public function bulkReleaseGrades(array $submissionIds): array
     {
         $validation = $this->validateBulkReleaseGrades($submissionIds);
 
         if (! $validation['valid'] && count($validation['errors']) === count($submissionIds)) {
-            throw new InvalidArgumentException('Bulk release validation failed: '.implode('; ', $validation['errors']));
+            throw new InvalidArgumentException(__('messages.grading.bulk_validation_failed', ['errors' => implode('; ', $validation['errors'])]));
         }
 
         $submissions = Submission::with('grade')->whereIn('id', $submissionIds)->get();
@@ -492,16 +527,29 @@ class GradingService implements GradingServiceInterface
         ];
     }
 
+    public function handleBulkFeedback(array $submissionIds, string $feedback, int $userId, bool $async = false): array
+    {
+        if ($async) {
+            $validation = $this->validateBulkApplyFeedback($submissionIds);
+             if (! $validation['valid'] && count($validation['errors']) === count($submissionIds)) {
+                throw new InvalidArgumentException(__('messages.grading.bulk_validation_failed', ['errors' => implode('; ', $validation['errors'])]));
+            }
+            \Modules\Grading\Jobs\BulkApplyFeedbackJob::dispatch($submissionIds, $feedback, $userId);
+            return ['async' => true, 'count' => count($submissionIds)];
+        }
+        return array_merge(['async' => false], $this->bulkApplyFeedback($submissionIds, $feedback));
+    }
+
     public function bulkApplyFeedback(array $submissionIds, string $feedback): array
     {
         if (empty(trim($feedback))) {
-            throw new InvalidArgumentException('Feedback cannot be empty');
+            throw new InvalidArgumentException(__('messages.grading.feedback_required'));
         }
 
         $validation = $this->validateBulkApplyFeedback($submissionIds);
 
         if (! $validation['valid'] && count($validation['errors']) === count($submissionIds)) {
-            throw new InvalidArgumentException('Bulk feedback validation failed: '.implode('; ', $validation['errors']));
+            throw new InvalidArgumentException(__('messages.grading.bulk_validation_failed', ['errors' => implode('; ', $validation['errors'])]));
         }
 
         $submissions = Submission::with('grade')->whereIn('id', $submissionIds)->get();

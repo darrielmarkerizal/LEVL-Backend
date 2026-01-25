@@ -11,6 +11,8 @@ use Modules\Schemes\Models\Lesson;
 
 interface AssignmentServiceInterface
 {
+    public function resolveCourseFromScopeOrFail(?array $scope): \Modules\Schemes\Models\Course;
+
     public function list(\Modules\Schemes\Models\Course $course, array $filters = []);
 
     public function listByLesson(Lesson $lesson, array $filters = []);
@@ -42,5 +44,5 @@ interface AssignmentServiceInterface
         ?int $grantorId = null
     ): Override;
 
-    public function duplicateAssignment(int $assignmentId, ?array $overrides = null): Assignment;
+    public function duplicateAssignment(int $assignmentId, int $userId, array $overrides = []): Assignment;
 }

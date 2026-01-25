@@ -533,6 +533,8 @@ return [
         'incomplete_grading' => 'Not all questions have been graded.',
         'invalid_score' => 'Score must be between 0 and the maximum score.',
         'reason_required' => 'A reason is required for grade override.',
+        'feedback_required' => 'Feedback cannot be empty.',
+        'bulk_validation_failed' => 'Bulk validation failed: :errors',
     ],
 
     // Appeals Module (Requirements 17.1, 17.4, 17.5)

@@ -35,19 +35,14 @@ class GradingController extends Controller
     public function manualGrade(ManualGradeRequest $request, Submission $submission): JsonResponse
     {
         try {
-            $validated = $request->validated();
-            $grades = collect($validated['grades'])->keyBy('question_id')->toArray();
-
             $grade = $this->gradingService->manualGrade(
                 $submission->id,
-                $grades,
-                $validated['feedback'] ?? null
+                $request->validated('grades'),
+                $request->validated('feedback')
             );
 
-            $grade->load(['submission', 'user', 'grader']);
-
             return $this->success(
-                GradeResource::make($grade),
+                GradeResource::make($grade->load(['submission', 'user', 'grader'])),
                 __('messages.grading.manual_graded')
             );
         } catch (InvalidArgumentException $e) {
@@ -57,12 +52,7 @@ class GradingController extends Controller
 
     public function queue(GradingQueueRequest $request): JsonResponse
     {
-        $filters = $request->validated();
-        
-        $filters = array_merge($request->query(), $filters);
-
-        $paginator = $this->gradingService->getGradingQueue($filters);
-
+        $paginator = $this->gradingService->getGradingQueue($request->all());
         $paginator->getCollection()->transform(fn($item) => new GradingQueueItemResource($item));
 
         return $this->paginateResponse($paginator, 'messages.grading.queue_fetched');
@@ -72,10 +62,8 @@ class GradingController extends Controller
     {
         try {
             $this->gradingService->returnToQueue($submission->id);
-            $submission->refresh();
-
             return $this->success(
-                ['submission_id' => $submission->id, 'state' => $submission->state?->value],
+                ['submission_id' => $submission->id, 'state' => $submission->refresh()->state?->value],
                 __('messages.grading.returned_to_queue')
             );
         } catch (InvalidArgumentException $e) {
@@ -86,15 +74,8 @@ class GradingController extends Controller
     public function saveDraftGrade(SaveDraftGradeRequest $request, Submission $submission): JsonResponse
     {
         try {
-            $validated = $request->validated();
-            $grades = collect($validated['grades'])->keyBy('question_id')->toArray();
-
-            $this->gradingService->saveDraftGrade($submission->id, $grades);
-
-            return $this->success(
-                ['submission_id' => $submission->id],
-                __('messages.grading.draft_saved')
-            );
+            $this->gradingService->saveDraftGrade($submission->id, $request->validated('grades'));
+            return $this->success(['submission_id' => $submission->id], __('messages.grading.draft_saved'));
         } catch (InvalidArgumentException $e) {
             return $this->error($e->getMessage(), [], 422);
         }
@@ -103,29 +84,19 @@ class GradingController extends Controller
     public function getDraftGrade(Submission $submission): JsonResponse
     {
         $draftGrade = $this->gradingService->getDraftGrade($submission->id);
-
-        if ($draftGrade === null) {
-            return $this->success(null);
-        }
-
-        return $this->success(
-            DraftGradeResource::make($draftGrade)
-        );
+        return $this->success($draftGrade ? DraftGradeResource::make($draftGrade) : null);
     }
 
     public function overrideGrade(OverrideGradeRequest $request, Submission $submission): JsonResponse
     {
         try {
-            $validated = $request->validated();
-
             $this->gradingService->overrideGrade(
                 $submission->id,
-                (float) $validated['score'],
-                $validated['reason']
+                (float) $request->validated('score'),
+                $request->validated('reason')
             );
 
-            $submission->refresh();
-            $submission->load('grade');
+            $submission->refresh()->load('grade');
 
             return $this->success(
                 [
@@ -144,15 +115,11 @@ class GradingController extends Controller
     {
         try {
             $this->gradingService->releaseGrade($submission->id);
-
-            $submission->refresh();
-            $submission->load('grade');
-
             return $this->success(
                 [
                     'submission_id' => $submission->id,
-                    'state' => $submission->state?->value,
-                    'grade' => $submission->grade ? GradeResource::make($submission->grade) : null,
+                    'state' => $submission->refresh()->state?->value,
+                    'grade' => $submission->load('grade')->grade ? GradeResource::make($submission->grade) : null,
                 ],
                 __('messages.grading.grade_released')
             );
@@ -164,45 +131,8 @@ class GradingController extends Controller
     public function bulkReleaseGrades(BulkReleaseGradesRequest $request): JsonResponse
     {
         try {
-            $validated = $request->validated();
-            $submissionIds = $validated['submission_ids'];
-            $async = $validated['async'] ?? false;
-
-            if ($async) {
-                $validation = $this->gradingService->validateBulkReleaseGrades($submissionIds);
-
-                if (! $validation['valid'] && count($validation['errors']) === count($submissionIds)) {
-                    return $this->error(
-                        'Bulk release validation failed: '.implode('; ', $validation['errors']),
-                        ['errors' => $validation['errors']],
-                        422
-                    );
-                }
-
-                BulkReleaseGradesJob::dispatch($submissionIds, auth('api')->user()->id);
-
-                return $this->success(
-                    [
-                        'message' => 'Bulk grade release job has been queued for processing.',
-                        'submission_count' => count($submissionIds),
-                        'async' => true,
-                    ],
-                    __('messages.grading.bulk_release_queued')
-                );
-            }
-
-            $result = $this->gradingService->bulkReleaseGrades($submissionIds);
-
-            return $this->success(
-                [
-                    'success_count' => $result['success'],
-                    'failed_count' => $result['failed'],
-                    'released_submissions' => $result['submissions']->pluck('id'),
-                    'errors' => $result['errors'],
-                    'async' => false,
-                ],
-                __('messages.grading.bulk_released')
-            );
+            $result = $this->gradingService->handleBulkRelease($request->validated('submission_ids'), auth('api')->id(), $request->boolean('async'));
+            return $this->success($result, $result['async'] ? __('messages.grading.bulk_release_queued') : __('messages.grading.bulk_released'));
         } catch (InvalidArgumentException $e) {
             return $this->error($e->getMessage(), [], 422);
         }
@@ -211,46 +141,8 @@ class GradingController extends Controller
     public function bulkApplyFeedback(BulkFeedbackRequest $request): JsonResponse
     {
         try {
-            $validated = $request->validated();
-            $submissionIds = $validated['submission_ids'];
-            $feedback = $validated['feedback'];
-            $async = $validated['async'] ?? false;
-
-            if ($async) {
-                $validation = $this->gradingService->validateBulkApplyFeedback($submissionIds);
-
-                if (! $validation['valid'] && count($validation['errors']) === count($submissionIds)) {
-                    return $this->error(
-                        'Bulk feedback validation failed: '.implode('; ', $validation['errors']),
-                        ['errors' => $validation['errors']],
-                        422
-                    );
-                }
-
-                BulkApplyFeedbackJob::dispatch($submissionIds, $feedback, auth('api')->user()->id);
-
-                return $this->success(
-                    [
-                        'message' => 'Bulk feedback application job has been queued for processing.',
-                        'submission_count' => count($submissionIds),
-                        'async' => true,
-                    ],
-                    __('messages.grading.bulk_feedback_queued')
-                );
-            }
-
-            $result = $this->gradingService->bulkApplyFeedback($submissionIds, $feedback);
-
-            return $this->success(
-                [
-                    'success_count' => $result['success'],
-                    'failed_count' => $result['failed'],
-                    'updated_submissions' => $result['submissions']->pluck('id'),
-                    'errors' => $result['errors'],
-                    'async' => false,
-                ],
-                __('messages.grading.bulk_feedback_applied')
-            );
+            $result = $this->gradingService->handleBulkFeedback($request->validated('submission_ids'), $request->validated('feedback'), auth('api')->id(), $request->boolean('async'));
+            return $this->success($result, $result['async'] ? __('messages.grading.bulk_feedback_queued') : __('messages.grading.bulk_feedback_applied'));
         } catch (InvalidArgumentException $e) {
             return $this->error($e->getMessage(), [], 422);
         }
@@ -258,22 +150,6 @@ class GradingController extends Controller
 
     public function gradingStatus(Submission $submission): JsonResponse
     {
-        $isComplete = $this->gradingService->validateGradingComplete($submission->id);
-
-        $submission->load(['answers.question', 'grade']);
-
-        $gradedCount = $submission->answers->filter(fn ($a) => $a->score !== null)->count();
-        $totalCount = $submission->answers->count();
-
-        return $this->success(
-            [
-                'submission_id' => $submission->id,
-                'is_complete' => $isComplete,
-                'graded_questions' => $gradedCount,
-                'total_questions' => $totalCount,
-                'can_finalize' => $isComplete,
-                'can_release' => $isComplete && $submission->grade && ! $submission->grade->is_draft,
-            ]
-        );
+        return $this->success($this->gradingService->getGradingStatusDetails($submission->id));
     }
 }

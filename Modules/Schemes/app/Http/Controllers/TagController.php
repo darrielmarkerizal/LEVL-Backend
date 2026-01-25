@@ -21,37 +21,22 @@ class TagController extends Controller
 
     public function index(Request $request)
     {
-        $search = $request->query('search');
-        $perPage = (int) $request->query('per_page', 15);
+        $data = $this->service->list($request->all(), (int) $request->query('per_page', 15));
 
-        if ($search) {
-            $paginator = Tag::search($search)->paginate($perPage);
-        } else {
-            $paginator = Tag::query()->orderBy('name')->paginate($perPage);
+        if ($data instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) {
+            return $this->paginateResponse($data->through(fn($tag) => new TagResource($tag)));
         }
-
-        $paginator->getCollection()->transform(fn($tag) => new TagResource($tag));
-        return $this->paginateResponse($paginator);
+        return $this->success(TagResource::collection($data));
     }
 
     public function store(TagRequest $request)
     {
         $this->authorize('create', Tag::class);
+        $result = $this->service->handleCreate($request->validated());
         
-        $validated = $request->validated();
-        
-        // Handle bulk creation with names array
-        if (isset($validated['names']) && is_array($validated['names'])) {
-            $tags = $this->service->createMany($validated['names']);
-            return $this->success(
-                TagResource::collection($tags),
-                __('messages.tags.created')
-            );
-        }
-        
-        // Handle single tag creation
-        $tag = $this->service->create($validated);
-        return $this->created(new TagResource($tag), __('messages.tags.created'));
+        return $result instanceof \Illuminate\Support\Collection
+            ? $this->success(TagResource::collection($result), __('messages.tags.created'))
+            : $this->created(new TagResource($result), __('messages.tags.created'));
     }
 
     public function show(Tag $tag)

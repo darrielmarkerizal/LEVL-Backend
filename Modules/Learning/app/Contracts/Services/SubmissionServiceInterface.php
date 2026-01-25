@@ -54,4 +54,7 @@ interface SubmissionServiceInterface
     public function searchSubmissions(string $query, array $filters = [], array $options = []): array;
 
     public function checkAndDispatchNewHighScore(Submission $submission): void;
+    public function getSubmissionDetail(Submission $submission, ?int $userId): array;
+
+    public function getDeadlineStatus(Assignment $assignment, int $userId): array;
 }

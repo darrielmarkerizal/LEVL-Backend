@@ -20,22 +20,26 @@ class AppealService implements AppealServiceInterface
         private readonly AppealRepositoryInterface $appealRepository
     ) {}
 
-    public function submitAppeal(int $submissionId, string $reason, array $files = []): Appeal
+    public function submitAppeal(int $submissionId, int $studentId, string $reason, array $files = []): Appeal
     {
         if (empty(trim($reason))) {
-            throw new InvalidArgumentException('Appeal reason is required');
+            throw new InvalidArgumentException(__('messages.appeals.reason_required'));
         }
 
         $submission = Submission::with(['assignment', 'user'])->findOrFail($submissionId);
 
+        if ($submission->user_id !== $studentId) {
+            throw new \Illuminate\Auth\Access\AuthorizationException(__('messages.appeals.not_owner'));
+        }
+
         $existingAppeal = $this->appealRepository->findBySubmission($submissionId);
         if ($existingAppeal) {
-            throw new InvalidArgumentException('An appeal already exists for this submission');
+            throw new InvalidArgumentException(__('messages.appeals.already_exists'));
         }
 
         if (! $this->isEligibleForAppeal($submission)) {
             throw new InvalidArgumentException(
-                'This submission is not eligible for appeal. Appeals are only allowed for submissions rejected due to lateness.'
+                __('messages.appeals.not_eligible')
             );
         }
 
@@ -57,7 +61,7 @@ class AppealService implements AppealServiceInterface
 
                 $appeal = $this->appealRepository->create([
                     'submission_id' => $submissionId,
-                    'student_id' => Submission::findOrFail($submissionId)->user_id,
+                    'student_id' => $studentId,
                     'reason' => trim($reason),
                     'supporting_documents' => $documents,
                     'status' => AppealStatus::Pending,
@@ -99,17 +103,17 @@ class AppealService implements AppealServiceInterface
     public function denyAppeal(int $appealId, int $instructorId, string $reason): void
     {
         if (empty(trim($reason))) {
-            throw new InvalidArgumentException('Denial reason is required');
+            throw new InvalidArgumentException(__('messages.appeals.denial_reason_required'));
         }
 
         $appeal = $this->appealRepository->findById($appealId);
 
         if (! $appeal) {
-            throw new InvalidArgumentException('Appeal not found');
+            throw new InvalidArgumentException(__('messages.appeals.not_found'));
         }
 
         if ($appeal->status->isDecided()) {
-            throw new InvalidArgumentException('Appeal has already been decided');
+            throw new InvalidArgumentException(__('messages.appeals.already_decided'));
         }
 
         $appeal->deny($instructorId, trim($reason));
@@ -140,6 +144,24 @@ class AppealService implements AppealServiceInterface
             ->defaultSort('-submitted_at')
             ->paginate($perPage)
             ->appends($filters);
+    }
+
+    public function getAppealForUser(Appeal $appeal, int $userId): Appeal
+    {
+        $user = \Modules\Auth\Models\User::findOrFail($userId);
+        
+        $isOwner = $appeal->student_id === $userId;
+        $isInstructor = $user->hasRole('Admin') ||
+            $user->hasRole('Instructor') ||
+            $user->hasRole('Superadmin');
+
+        if (! $isOwner && ! $isInstructor) {
+            throw new \Illuminate\Auth\Access\AuthorizationException(__('messages.appeals.not_authorized'));
+        }
+
+        $appeal->load(['submission.assignment', 'student', 'reviewer']);
+        
+        return $appeal;
     }
 
     private function isEligibleForAppeal(Submission $submission): bool

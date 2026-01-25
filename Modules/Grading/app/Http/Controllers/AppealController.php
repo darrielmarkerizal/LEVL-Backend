@@ -38,27 +38,18 @@ class AppealController extends Controller
 
     public function submit(SubmitAppealRequest $request, Submission $submission): JsonResponse
     {
-        $user = auth('api')->user();
-
-        if ($submission->user_id !== $user->id) {
-            return $this->forbidden(__('messages.appeals.not_owner'));
-        }
-
+        // $submission dependency is used for route binding check effectively, service handles ownership logic
         try {
-            $validated = $request->validated();
-            $files = $request->allFiles();
-
             $appeal = $this->appealService->submitAppeal(
                 $submission->id,
-                $validated['reason'],
-                $files
+                auth('api')->id(),
+                $request->validated('reason'),
+                $request->allFiles()
             );
 
-            $appeal->load(['submission.assignment', 'student']);
-
-            return $this->created([
-                'appeal' => AppealResource::make($appeal),
-            ], __('messages.appeals.submitted'));
+            return $this->created(['appeal' => AppealResource::make($appeal)], __('messages.appeals.submitted'));
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+             return $this->forbidden($e->getMessage());
         } catch (InvalidArgumentException $e) {
             return $this->error($e->getMessage(), [], 422);
         }
@@ -67,13 +58,9 @@ class AppealController extends Controller
     public function approve(Appeal $appeal): JsonResponse
     {
         try {
-            $this->appealService->approveAppeal($appeal->id, auth('api')->user()->id);
-
-            $appeal->refresh();
-            $appeal->load(['submission.assignment', 'student', 'reviewer']);
-
+            $this->appealService->approveAppeal($appeal->id, auth('api')->id());
             return $this->success(
-                AppealResource::make($appeal),
+                AppealResource::make($appeal->refresh()->load(['submission.assignment', 'student', 'reviewer'])),
                 __('messages.appeals.approved')
             );
         } catch (InvalidArgumentException $e) {
@@ -84,19 +71,9 @@ class AppealController extends Controller
     public function deny(DenyAppealRequest $request, Appeal $appeal): JsonResponse
     {
         try {
-            $validated = $request->validated();
-
-            $this->appealService->denyAppeal(
-                $appeal->id,
-                auth('api')->user()->id,
-                $validated['reason']
-            );
-
-            $appeal->refresh();
-            $appeal->load(['submission.assignment', 'student', 'reviewer']);
-
+            $this->appealService->denyAppeal($appeal->id, auth('api')->id(), $request->validated('reason'));
             return $this->success(
-                AppealResource::make($appeal),
+                AppealResource::make($appeal->refresh()->load(['submission.assignment', 'student', 'reviewer'])),
                 __('messages.appeals.denied')
             );
         } catch (InvalidArgumentException $e) {
@@ -106,31 +83,16 @@ class AppealController extends Controller
 
     public function pending(): JsonResponse
     {
-        $appeals = $this->appealService->getPendingAppeals(auth('api')->user()->id);
-
-        return $this->success(
-            AppealResource::collection($appeals),
-            __('messages.appeals.pending_fetched')
-        );
+        return $this->success(AppealResource::collection($this->appealService->getPendingAppeals(auth('api')->id())), __('messages.appeals.pending_fetched'));
     }
 
     public function show(Appeal $appeal): JsonResponse
     {
-        $user = auth('api')->user();
-
-        $isOwner = $appeal->student_id === $user->id;
-        $isInstructor = $user->hasRole('Admin') ||
-            $user->hasRole('Instructor') ||
-            $user->hasRole('Superadmin');
-
-        if (! $isOwner && ! $isInstructor) {
-            return $this->forbidden(__('messages.appeals.not_authorized'));
+        try {
+            $appeal = $this->appealService->getAppealForUser($appeal, auth('api')->id());
+            return $this->success(AppealResource::make($appeal));
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            return $this->forbidden($e->getMessage());
         }
-
-        $appeal->load(['submission.assignment', 'student', 'reviewer']);
-
-        return $this->success(
-            AppealResource::make($appeal)
-        );
     }
 }
