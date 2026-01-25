@@ -284,20 +284,27 @@ class GradingService implements GradingServiceInterface
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
 
-        return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class)
+        $query = \Spatie\QueryBuilder\QueryBuilder::for(Submission::class)
             ->with([
                 'user:id,name,email',
                 'assignment:id,title,max_score',
                 'answers.question'
             ])
-            ->where('state', SubmissionState::PendingManualGrading->value)
             ->allowedFilters([
                 \Spatie\QueryBuilder\AllowedFilter::exact('assignment_id'),
                 \Spatie\QueryBuilder\AllowedFilter::exact('user_id'),
+                \Spatie\QueryBuilder\AllowedFilter::exact('state'),
                 \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
                 \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
             ])
-            ->allowedSorts(['submitted_at', 'created_at'])
+            ->allowedSorts(['submitted_at', 'created_at']);
+
+        // Default filter untuk state = pending_manual_grading jika tidak ada filter state
+        if (!isset($filters['filter']['state'])) {
+            $query->where('state', SubmissionState::PendingManualGrading->value);
+        }
+
+        return $query
             ->defaultSort('submitted_at')
             ->paginate($perPage)
             ->appends($filters);
