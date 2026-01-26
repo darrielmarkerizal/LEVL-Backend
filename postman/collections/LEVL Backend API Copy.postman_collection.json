@@ -3753,7 +3753,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{url}}/courses?include=units",
+              "raw": "{{url}}/courses",
               "host": [
                 "{{url}}"
               ],
@@ -3776,8 +3776,9 @@
                 },
                 {
                   "key": "filter[status]",
-                  "value": "",
+                  "value": "published",
                   "description": "draft, published, archieved",
+                  "uuid": "453748ca-ed02-4c66-a7e7-8992418fcd41",
                   "disabled": true
                 },
                 {
@@ -3800,7 +3801,8 @@
                   "key": "include",
                   "value": "units",
                   "description": "tags, tagsCount, tagsExists, category, categoryCount, categoryExists, instructor, instructorCount, instructorExists, units, unitsCount, unitsExists, admins, adminsCount, adminsExists",
-                  "type": "text"
+                  "uuid": "7e179a5d-c505-48b4-ac5a-5b29d94045b4",
+                  "disabled": true
                 },
                 {
                   "key": "sort",
@@ -4924,11 +4926,6 @@
           "name": "Tugas",
           "item": [
             {
-              "name": "New Folder",
-              "item": [],
-              "id": "82b88387-76f3-491f-9d8d-9f6704908a6d"
-            },
-            {
               "name": "Semua Tugas",
               "id": "ae10343f-f7af-4926-88a1-d8e8da6d0449",
               "request": {
@@ -4937,7 +4934,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token_student}}",
+                      "value": "{{access_token_superadmin}}",
                       "type": "string"
                     }
                   ]
@@ -5021,7 +5018,7 @@
                   "variable": [
                     {
                       "key": "courseSlug",
-                      "value": "junior-web-programmer"
+                      "value": "eius-nemo-totam-nihil-nulla"
                     }
                   ]
                 }
@@ -8904,8 +8901,7 @@
                   "variable": [
                     {
                       "key": "submissionId",
-                      "value": "2",
-                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                      "value": "2"
                     }
                   ]
                 }
@@ -9003,8 +8999,7 @@
                   "variable": [
                     {
                       "key": "submissionId",
-                      "value": "2",
-                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                      "value": "2"
                     }
                   ]
                 }
@@ -9102,8 +9097,7 @@
                   "variable": [
                     {
                       "key": "submissionId",
-                      "value": "2",
-                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                      "value": "2"
                     }
                   ]
                 }
@@ -9201,8 +9195,7 @@
                   "variable": [
                     {
                       "key": "submissionId",
-                      "value": "2",
-                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                      "value": "2"
                     }
                   ]
                 }
@@ -9300,8 +9293,7 @@
                   "variable": [
                     {
                       "key": "submissionId",
-                      "value": "2",
-                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                      "value": "2"
                     }
                   ]
                 }
@@ -9398,8 +9390,7 @@
                   "variable": [
                     {
                       "key": "submissionId",
-                      "value": "2",
-                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                      "value": "2"
                     }
                   ]
                 }
@@ -9497,8 +9488,7 @@
                   "variable": [
                     {
                       "key": "submissionId",
-                      "value": "5",
-                      "uuid": "fe1f94a4-984e-4da0-ac27-0473cffa3590"
+                      "value": "5"
                     }
                   ]
                 }

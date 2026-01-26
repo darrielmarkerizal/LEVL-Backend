@@ -35,12 +35,13 @@
     "spatie/laravel-permission": "^6.22",
     "spatie/laravel-query-builder": "^6.3",
     "spatie/laravel-sluggable": "^3.7",
-    "tymon/jwt-auth": "^2.2"
+    "tymon/jwt-auth": "^2.2",
+    "fakerphp/faker": "^1.23"
   },
   "require-dev": {
     "barryvdh/laravel-ide-helper": "^3.6",
     "codedungeon/phpunit-result-printer": "^0.1.0",
-    "fakerphp/faker": "^1.23",
+
     "larastan/larastan": "^3.8",
     "laravel/boost": "^1.8",
     "laravel/pail": "^1.2.2",
