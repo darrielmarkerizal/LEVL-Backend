@@ -55,8 +55,8 @@ jobs:
           host: ${{ secrets.DEPLOY_SERVER }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          timeout: 3600
-          command_timeout: 3600
+          timeout: 60m
+          command_timeout: 60m
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
             git reset --hard HEAD
