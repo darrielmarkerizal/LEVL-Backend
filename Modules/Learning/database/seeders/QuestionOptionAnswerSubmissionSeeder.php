@@ -240,5 +240,3 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
         \DB::connection()->enableQueryLog();
     }
 }
-    }
-}
