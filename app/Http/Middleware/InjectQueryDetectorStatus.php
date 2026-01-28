@@ -16,6 +16,10 @@ class InjectQueryDetectorStatus
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (!app()->isLocal()) {
+            return $next($request);
+        }
+
         $response = $next($request);
 
         // Only inject for JSON responses

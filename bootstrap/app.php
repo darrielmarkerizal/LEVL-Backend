@@ -51,10 +51,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Enable CORS for API routes
         $middleware->api(prepend: [\Illuminate\Http\Middleware\HandleCors::class]);
 
-        // Inject Query Detector status in all API responses - only in local environment
-        if (app()->isLocal()) {
-            $middleware->api(append: [\App\Http\Middleware\InjectQueryDetectorStatus::class]);
-        }
+        // Inject Query Detector status in all API responses - handled internally by middleware
+        $middleware->api(append: [\App\Http\Middleware\InjectQueryDetectorStatus::class]);
 
         $middleware->append(\App\Http\Middleware\LogApiAction::class);
         // Temporarily commented out for maximum performance testing

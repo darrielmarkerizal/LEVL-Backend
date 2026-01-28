@@ -18,7 +18,7 @@ use Modules\Schemes\Enums\LevelTag;
 class CourseSeederEnhanced extends Seeder
 {
     private const CHUNK_SIZE = 20;
-    private const TOTAL_COURSES = 100;
+    private const TOTAL_COURSES = 50;
 
     public function run(): void
     {
@@ -44,10 +44,10 @@ class CourseSeederEnhanced extends Seeder
         $this->command->info("  📊 Creating " . self::TOTAL_COURSES . " courses across all scenarios...");
 
         $distribution = [
-            'published_auto' => 50,       // Published + Auto-accept enrollment
-            'published_approval' => 20,    // Published + Approval required
-            'published_key' => 15,         // Published + Key-based enrollment
-            'draft' => 15,                 // Draft courses
+            'published_auto' => 25,       // Published + Auto-accept enrollment
+            'published_approval' => 10,    // Published + Approval required
+            'published_key' => 10,         // Published + Key-based enrollment
+            'draft' => 5,                 // Draft courses
         ];
 
         $created = 0;

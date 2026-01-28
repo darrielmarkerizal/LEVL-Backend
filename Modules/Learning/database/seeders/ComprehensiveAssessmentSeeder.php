@@ -30,14 +30,13 @@ class ComprehensiveAssessmentSeeder extends Seeder
         $this->pregenerateFakeData();
         $this->createdAt = now()->toDateTimeString();
 
-        $this->userIds = DB::table('users')->limit(30)->pluck('id')->toArray();
+        $this->userIds = DB::table('users')->limit(50)->pluck('id')->toArray();
         if (empty($this->userIds)) {
             echo "⚠️  No users found. Please run user seeders first.\n";
             return;
         }
 
         $courses = DB::table('courses')
-            ->where('status', 'published')
             ->select('id', 'title')
             ->get();
 
@@ -61,7 +60,6 @@ class ComprehensiveAssessmentSeeder extends Seeder
                 ->join('units', 'lessons.unit_id', '=', 'units.id')
                 ->where('units.course_id', $course->id)
                 ->select('lessons.id', 'lessons.title')
-                ->limit(3)
                 ->get();
 
             if ($lessons->isEmpty()) {
@@ -69,7 +67,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
                 continue;
             }
 
-            foreach ($lessons->take(2) as $lesson) {
+            foreach ($lessons as $lesson) {
                 $result = $this->createAssignmentWithFullData($course->id, $lesson->id);
                 $totalAssignments += $result['assignments'];
                 $totalQuestions += $result['questions'];
