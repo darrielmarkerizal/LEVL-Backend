@@ -3753,7 +3753,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{url}}/courses",
+              "raw": "{{url}}/courses?page=2",
               "host": [
                 "{{url}}"
               ],
@@ -3770,9 +3770,8 @@
                 },
                 {
                   "key": "page",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
+                  "value": "2",
+                  "type": "text"
                 },
                 {
                   "key": "filter[status]",

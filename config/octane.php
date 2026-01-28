@@ -186,10 +186,7 @@ return [
             'reactor_num' => function_exists('swoole_cpu_num') ? swoole_cpu_num() : 4, // Match reactor threads to CPU cores
             'dispatch_mode' => 2, // Packet dispatch mode for consistent load balancing
             'enable_coroutine' => true,
-            'coroutine' => [
-                'enable_preemptive_scheduler' => false, // Disable for more predictable behavior
-                'hook_flags' => defined('SWOOLE_HOOK_ALL') ? SWOOLE_HOOK_ALL : 0,
-            ],
+            'hook_flags' => defined('SWOOLE_HOOK_ALL') ? SWOOLE_HOOK_ALL : 0,
 
             // BALANCED MEMORY AND BUFFER OPTIMIZATIONS
             'buffer_output_size' => 1024 * 1024 * 2, // 2MB output buffer (balanced)
