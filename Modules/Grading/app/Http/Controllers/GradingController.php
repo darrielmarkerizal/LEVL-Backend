@@ -58,6 +58,21 @@ class GradingController extends Controller
         return $this->paginateResponse($paginator, 'messages.grading.queue_fetched');
     }
 
+    public function show(Submission $submission): JsonResponse
+    {
+        $submission->load([
+            'user:id,name,email',
+            'assignment:id,title,max_score,instructions',
+            'assignment.course:id,title',
+            'answers.question'
+        ]);
+
+        return $this->success(
+            new GradingQueueItemResource($submission),
+            __('messages.grading.submission_fetched')
+        );
+    }
+
     public function returnToQueue(Submission $submission): JsonResponse
     {
         try {

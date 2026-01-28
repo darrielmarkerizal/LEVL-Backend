@@ -528,6 +528,8 @@ return [
         'bulk_feedback_applied' => 'Feedback applied successfully.',
         'bulk_release_queued' => 'Bulk grade release job has been queued for processing.',
         'bulk_feedback_queued' => 'Bulk feedback application job has been queued for processing.',
+        'queue_fetched' => 'Grading queue fetched successfully.',
+        'submission_fetched' => 'Submission details fetched successfully.',
         'not_found' => 'Grade not found.',
         'already_graded' => 'Submission has already been graded.',
         'incomplete_grading' => 'Not all questions have been graded.',

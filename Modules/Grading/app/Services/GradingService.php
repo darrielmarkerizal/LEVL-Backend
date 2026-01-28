@@ -298,16 +298,27 @@ class GradingService implements GradingServiceInterface
                 \Spatie\QueryBuilder\AllowedFilter::exact('assignment_id'),
                 \Spatie\QueryBuilder\AllowedFilter::exact('user_id'),
                 \Spatie\QueryBuilder\AllowedFilter::exact('state'),
+                \Spatie\QueryBuilder\AllowedFilter::exact('is_late'),
                 \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
                 \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
             ])
-            ->allowedSorts(['submitted_at', 'created_at']);
+            ->allowedSorts(['submitted_at', 'created_at', 'updated_at'])
+            ->allowedIncludes(['assignment.course', 'user.profile']);
 
-        // Default filter untuk state = pending_manual_grading jika tidak ada filter state
         $request = new \Illuminate\Http\Request($filters);
         if (!$request->has('filter.state')) {
             $query->where('state', SubmissionState::PendingManualGrading->value);
         }
+
+        $query->whereHas('answers', function ($q) {
+            $q->whereNull('score')
+                ->whereHas('question', function ($qq) {
+                    $qq->whereIn('type', [
+                        \Modules\Learning\Enums\QuestionType::Essay->value,
+                        \Modules\Learning\Enums\QuestionType::FileUpload->value
+                    ]);
+                });
+        });
 
         return $query
             ->defaultSort('submitted_at')

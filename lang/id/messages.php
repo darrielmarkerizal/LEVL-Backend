@@ -517,6 +517,7 @@ return [
         'bulk_release_queued' => 'Job rilis nilai massal telah diantrekan untuk diproses.',
         'bulk_feedback_queued' => 'Job penerapan feedback massal telah diantrekan untuk diproses.',
         'queue_fetched' => 'Daftar pengumpulan berhasil diambil.',
+        'submission_fetched' => 'Detail pengumpulan berhasil diambil.',
         'no_grade_exists' => 'Nilai tidak ditemukan untuk pengumpulan ini.',
         'not_found' => 'Nilai tidak ditemukan.',
         'already_graded' => 'Pengumpulan sudah dinilai.',
