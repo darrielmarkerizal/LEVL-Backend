@@ -38,11 +38,44 @@ class GradingQueueItemResource extends JsonResource
         return $this->answers
             ->filter(fn ($answer) => $answer->score === null && ! $answer->question?->canAutoGrade())
             ->map(fn ($answer) => [
+                'answer_id' => $answer->id,
                 'question_id' => $answer->question_id,
                 'question_type' => $answer->question?->type?->value,
                 'question_content' => $answer->question?->content,
+                'question_max_score' => $answer->question?->max_score,
+                'student_answer' => $this->formatStudentAnswer($answer),
             ])
             ->values()
             ->toArray();
+    }
+
+    private function formatStudentAnswer($answer): array
+    {
+        $questionType = $answer->question?->type?->value;
+
+        switch ($questionType) {
+            case 'essay':
+                return [
+                    'content' => $answer->content ?? null,
+                ];
+
+            case 'file_upload':
+                return [
+                    'file_paths' => $answer->file_paths ? json_decode($answer->file_paths, true) : [],
+                ];
+
+            case 'multiple_choice':
+            case 'checkbox':
+                return [
+                    'selected_options' => $answer->selected_options ? json_decode($answer->selected_options, true) : [],
+                ];
+
+            default:
+                return [
+                    'content' => $answer->content ?? null,
+                    'selected_options' => $answer->selected_options ? json_decode($answer->selected_options, true) : null,
+                    'file_paths' => $answer->file_paths ? json_decode($answer->file_paths, true) : null,
+                ];
+        }
     }
 }

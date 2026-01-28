@@ -3753,7 +3753,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{url}}/courses?page=2",
+              "raw": "{{url}}/courses?page=7",
               "host": [
                 "{{url}}"
               ],
@@ -3770,8 +3770,8 @@
                 },
                 {
                   "key": "page",
-                  "value": "2",
-                  "type": "text"
+                  "value": "7",
+                  "uuid": "426ac389-3e7d-4d2a-989e-da5fd8413a01"
                 },
                 {
                   "key": "filter[status]",
@@ -8746,12 +8746,13 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{url}}/grading",
+                  "raw": "{{url}}/grading/",
                   "host": [
                     "{{url}}"
                   ],
                   "path": [
-                    "grading"
+                    "grading",
+                    ""
                   ],
                   "query": [
                     {
