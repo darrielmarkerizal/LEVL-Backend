@@ -21,6 +21,7 @@ class BenchmarkRepository extends BaseRepository
     public function get1000Users(): Collection
     {
         return $this->model->newQuery()
+            ->select(['id', 'name', 'username', 'email', 'created_at'])
             ->limit(1000)
             ->get();
     }
