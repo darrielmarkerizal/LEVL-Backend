@@ -794,10 +794,6 @@ class EnrollmentService implements EnrollmentServiceInterface
         });
     }
 
-    /**
-     * Invalidate enrollment cache for a specific enrollment.
-     * Requirements: 28.10
-     */
     private function invalidateEnrollmentCache(Enrollment $enrollment): void
     {
         if ($this->repository instanceof \Modules\Enrollments\Repositories\EnrollmentRepository) {
