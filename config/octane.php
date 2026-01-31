@@ -25,6 +25,9 @@ use Laravel\Octane\Listeners\ReportException;
 use Laravel\Octane\Listeners\StopWorkerIfNecessary;
 use Laravel\Octane\Octane;
 
+$cpuCount = function_exists('swoole_cpu_num') ? swoole_cpu_num() : ((int) shell_exec('nproc 2>/dev/null') ?: 4);
+$swooleHookAll = defined('SWOOLE_HOOK_ALL') ? SWOOLE_HOOK_ALL : 0;
+
 return [
 
     'server' => env('OCTANE_SERVER', 'swoole'),
@@ -112,9 +115,9 @@ return [
 
     'swoole' => [
         'options' => [
-            'worker_num' => env('SWOOLE_WORKER_NUM', swoole_cpu_num() * 2),
-            'task_worker_num' => env('SWOOLE_TASK_WORKER_NUM', swoole_cpu_num()),
-            'reactor_num' => env('SWOOLE_REACTOR_NUM', swoole_cpu_num()),
+            'worker_num' => env('SWOOLE_WORKER_NUM', $cpuCount * 2),
+            'task_worker_num' => env('SWOOLE_TASK_WORKER_NUM', $cpuCount),
+            'reactor_num' => env('SWOOLE_REACTOR_NUM', $cpuCount),
 
             'max_request' => env('SWOOLE_MAX_REQUEST', 10000),
             'max_request_grace' => env('SWOOLE_MAX_REQUEST_GRACE', 500),
@@ -123,7 +126,7 @@ return [
             'dispatch_mode' => 2,
 
             'enable_coroutine' => true,
-            'hook_flags' => SWOOLE_HOOK_ALL,
+            'hook_flags' => $swooleHookAll,
             'max_coroutine' => 100000,
 
             'log_file' => storage_path('logs/swoole_http.log'),
