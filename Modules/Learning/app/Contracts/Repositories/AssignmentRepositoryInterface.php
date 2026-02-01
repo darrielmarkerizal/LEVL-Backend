@@ -28,4 +28,6 @@ interface AssignmentRepositoryInterface
     public function invalidateAssignmentCache(int $id): void;
     
     public function invalidateListCache(string $type, int $id, ?string $scopeType = null): void;
+
+    public function getFlattenedForCourse(int $courseId): Collection;
 }

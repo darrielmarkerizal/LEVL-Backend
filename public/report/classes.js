@@ -18646,24 +18646,24 @@ var classes = [
         ],
         "implements": [],
         "lcom": 2,
-        "length": 84,
+        "length": 83,
         "vocabulary": 24,
-        "volume": 385.14,
-        "difficulty": 6.5,
-        "effort": 2503.39,
-        "level": 0.15,
+        "volume": 380.55,
+        "difficulty": 6.4,
+        "effort": 2435.53,
+        "level": 0.16,
         "bugs": 0.13,
-        "time": 139,
-        "intelligentContent": 59.25,
+        "time": 135,
+        "intelligentContent": 59.46,
         "number_operators": 19,
-        "number_operands": 65,
+        "number_operands": 64,
         "number_operators_unique": 4,
         "number_operands_unique": 20,
         "cloc": 0,
-        "loc": 75,
-        "lloc": 75,
-        "mi": 40.45,
-        "mIwoC": 40.45,
+        "loc": 74,
+        "lloc": 74,
+        "mi": 40.62,
+        "mIwoC": 40.62,
         "commentWeight": 0,
         "kanDefect": 0.52,
         "relativeStructuralComplexity": 324,
@@ -19255,9 +19255,9 @@ var classes = [
         "totalSystemComplexity": 614,
         "package": "Modules\\Grading\\Models\\",
         "pageRank": 0.01,
-        "afferentCoupling": 9,
+        "afferentCoupling": 11,
         "efferentCoupling": 4,
-        "instability": 0.31,
+        "instability": 0.27,
         "violations": {}
     },
     {
@@ -19355,6 +19355,70 @@ var classes = [
         "afferentCoupling": 0,
         "efferentCoupling": 2,
         "instability": 1,
+        "violations": {}
+    },
+    {
+        "name": "Modules\\Grading\\DTOs\\BulkOperationDTO",
+        "interface": false,
+        "abstract": false,
+        "final": false,
+        "methods": [
+            {
+                "name": "__construct",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            }
+        ],
+        "nbMethodsIncludingGettersSetters": 1,
+        "nbMethods": 1,
+        "nbMethodsPrivate": 0,
+        "nbMethodsPublic": 1,
+        "nbMethodsGetter": 0,
+        "nbMethodsSetters": 0,
+        "wmc": 1,
+        "ccn": 1,
+        "ccnMethodMax": 1,
+        "externals": [
+            "Spatie\\LaravelData\\Data"
+        ],
+        "parents": [
+            "Spatie\\LaravelData\\Data"
+        ],
+        "implements": [],
+        "lcom": 1,
+        "length": 4,
+        "vocabulary": 4,
+        "volume": 8,
+        "difficulty": 0,
+        "effort": 0,
+        "level": 2,
+        "bugs": 0,
+        "time": 0,
+        "intelligentContent": 16,
+        "number_operators": 0,
+        "number_operands": 4,
+        "number_operators_unique": 0,
+        "number_operands_unique": 4,
+        "cloc": 0,
+        "loc": 7,
+        "lloc": 7,
+        "mi": 75.11,
+        "mIwoC": 75.11,
+        "commentWeight": 0,
+        "kanDefect": 0.15,
+        "relativeStructuralComplexity": 0,
+        "relativeDataComplexity": 4,
+        "relativeSystemComplexity": 4,
+        "totalStructuralComplexity": 0,
+        "totalDataComplexity": 4,
+        "totalSystemComplexity": 4,
+        "package": "Modules\\Grading\\DTOs\\",
+        "pageRank": 0,
+        "afferentCoupling": 2,
+        "efferentCoupling": 1,
+        "instability": 0.33,
         "violations": {}
     },
     {
@@ -19486,6 +19550,70 @@ var classes = [
         "violations": {}
     },
     {
+        "name": "Modules\\Grading\\DTOs\\SubmissionGradeDTO",
+        "interface": false,
+        "abstract": false,
+        "final": false,
+        "methods": [
+            {
+                "name": "__construct",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            }
+        ],
+        "nbMethodsIncludingGettersSetters": 1,
+        "nbMethods": 1,
+        "nbMethodsPrivate": 0,
+        "nbMethodsPublic": 1,
+        "nbMethodsGetter": 0,
+        "nbMethodsSetters": 0,
+        "wmc": 1,
+        "ccn": 1,
+        "ccnMethodMax": 1,
+        "externals": [
+            "Spatie\\LaravelData\\Data"
+        ],
+        "parents": [
+            "Spatie\\LaravelData\\Data"
+        ],
+        "implements": [],
+        "lcom": 1,
+        "length": 5,
+        "vocabulary": 5,
+        "volume": 11.61,
+        "difficulty": 0,
+        "effort": 0,
+        "level": 2,
+        "bugs": 0,
+        "time": 0,
+        "intelligentContent": 23.22,
+        "number_operators": 0,
+        "number_operands": 5,
+        "number_operators_unique": 0,
+        "number_operands_unique": 5,
+        "cloc": 0,
+        "loc": 7,
+        "lloc": 7,
+        "mi": 73.97,
+        "mIwoC": 73.97,
+        "commentWeight": 0,
+        "kanDefect": 0.15,
+        "relativeStructuralComplexity": 0,
+        "relativeDataComplexity": 5,
+        "relativeSystemComplexity": 5,
+        "totalStructuralComplexity": 0,
+        "totalDataComplexity": 5,
+        "totalSystemComplexity": 5,
+        "package": "Modules\\Grading\\DTOs\\",
+        "pageRank": 0,
+        "afferentCoupling": 3,
+        "efferentCoupling": 1,
+        "instability": 0.25,
+        "violations": {}
+    },
+    {
         "name": "Modules\\Grading\\Http\\Resources\\GradingQueueItemResource",
         "interface": false,
         "abstract": false,
@@ -19534,14 +19662,14 @@ var classes = [
         "length": 86,
         "vocabulary": 37,
         "volume": 448.01,
-        "difficulty": 9.52,
-        "effort": 4263.85,
+        "difficulty": 8.97,
+        "effort": 4016.67,
         "level": 0.11,
         "bugs": 0.15,
-        "time": 237,
-        "intelligentContent": 47.07,
-        "number_operators": 17,
-        "number_operands": 69,
+        "time": 223,
+        "intelligentContent": 49.97,
+        "number_operators": 21,
+        "number_operands": 65,
         "number_operators_unique": 8,
         "number_operands_unique": 29,
         "cloc": 0,
@@ -20292,10 +20420,13 @@ var classes = [
         "ccnMethodMax": 3,
         "externals": [
             "Illuminate\\Routing\\Controller",
-            "Modules\\Grading\\Contracts\\Services\\GradingServiceInterface",
+            "Modules\\Grading\\Services\\GradingEntryService",
+            "Modules\\Grading\\Services\\GradingQueueService",
+            "Modules\\Grading\\Services\\GradingBulkService",
             "Illuminate\\Http\\JsonResponse",
             "Modules\\Grading\\Http\\Requests\\ManualGradeRequest",
             "Modules\\Learning\\Models\\Submission",
+            "Modules\\Grading\\DTOs\\SubmissionGradeDTO",
             "Modules\\Grading\\Http\\Resources\\GradeResource",
             "Illuminate\\Http\\JsonResponse",
             "Modules\\Grading\\Http\\Requests\\GradingQueueRequest",
@@ -20308,6 +20439,7 @@ var classes = [
             "Illuminate\\Http\\JsonResponse",
             "Modules\\Grading\\Http\\Requests\\SaveDraftGradeRequest",
             "Modules\\Learning\\Models\\Submission",
+            "Modules\\Grading\\DTOs\\SubmissionGradeDTO",
             "Illuminate\\Http\\JsonResponse",
             "Modules\\Learning\\Models\\Submission",
             "Modules\\Grading\\Http\\Resources\\DraftGradeResource",
@@ -20320,8 +20452,10 @@ var classes = [
             "Modules\\Grading\\Http\\Resources\\GradeResource",
             "Illuminate\\Http\\JsonResponse",
             "Modules\\Grading\\Http\\Requests\\BulkReleaseGradesRequest",
+            "Modules\\Grading\\DTOs\\BulkOperationDTO",
             "Illuminate\\Http\\JsonResponse",
             "Modules\\Grading\\Http\\Requests\\BulkFeedbackRequest",
+            "Modules\\Grading\\DTOs\\BulkOperationDTO",
             "Illuminate\\Http\\JsonResponse",
             "Modules\\Learning\\Models\\Submission"
         ],
@@ -20330,36 +20464,36 @@ var classes = [
         ],
         "implements": [],
         "lcom": 2,
-        "length": 186,
-        "vocabulary": 41,
-        "volume": 996.5,
-        "difficulty": 6.16,
-        "effort": 6136.37,
+        "length": 212,
+        "vocabulary": 45,
+        "volume": 1164.27,
+        "difficulty": 6.29,
+        "effort": 7318.29,
         "level": 0.16,
-        "bugs": 0.33,
-        "time": 341,
-        "intelligentContent": 161.83,
-        "number_operators": 30,
-        "number_operands": 156,
+        "bugs": 0.39,
+        "time": 407,
+        "intelligentContent": 185.23,
+        "number_operators": 36,
+        "number_operands": 176,
         "number_operators_unique": 3,
-        "number_operands_unique": 38,
-        "cloc": 0,
-        "loc": 93,
-        "lloc": 93,
-        "mi": 34.32,
-        "mIwoC": 34.32,
-        "commentWeight": 0,
+        "number_operands_unique": 42,
+        "cloc": 10,
+        "loc": 117,
+        "lloc": 107,
+        "mi": 54.39,
+        "mIwoC": 32.51,
+        "commentWeight": 21.88,
         "kanDefect": 0.15,
         "relativeStructuralComplexity": 676,
-        "relativeDataComplexity": 0.71,
-        "relativeSystemComplexity": 676.71,
+        "relativeDataComplexity": 0.72,
+        "relativeSystemComplexity": 676.72,
         "totalStructuralComplexity": 8112,
-        "totalDataComplexity": 8.56,
-        "totalSystemComplexity": 8120.56,
+        "totalDataComplexity": 8.63,
+        "totalSystemComplexity": 8120.63,
         "package": "Modules\\Grading\\Http\\Controllers\\",
         "pageRank": 0,
         "afferentCoupling": 0,
-        "efferentCoupling": 13,
+        "efferentCoupling": 17,
         "instability": 1,
         "violations": {}
     },
@@ -20454,9 +20588,9 @@ var classes = [
         "totalSystemComplexity": 2500.69,
         "package": "Modules\\Grading\\Jobs\\",
         "pageRank": 0,
-        "afferentCoupling": 2,
+        "afferentCoupling": 1,
         "efferentCoupling": 8,
-        "instability": 0.8,
+        "instability": 0.89,
         "violations": {}
     },
     {
@@ -20505,7 +20639,7 @@ var classes = [
         "ccnMethodMax": 4,
         "externals": [
             "Illuminate\\Contracts\\Queue\\ShouldQueue",
-            "Modules\\Grading\\Contracts\\Services\\GradingServiceInterface",
+            "Modules\\Grading\\Services\\GradingBulkService",
             "Illuminate\\Support\\Facades\\Log",
             "Illuminate\\Support\\Facades\\Log",
             "Illuminate\\Support\\Facades\\Log",
@@ -20519,25 +20653,25 @@ var classes = [
             "Illuminate\\Contracts\\Queue\\ShouldQueue"
         ],
         "lcom": 2,
-        "length": 70,
-        "vocabulary": 38,
-        "volume": 367.35,
-        "difficulty": 5.63,
-        "effort": 2066.37,
-        "level": 0.18,
-        "bugs": 0.12,
-        "time": 115,
-        "intelligentContent": 65.31,
+        "length": 64,
+        "vocabulary": 34,
+        "volume": 325.6,
+        "difficulty": 5.79,
+        "effort": 1883.81,
+        "level": 0.17,
+        "bugs": 0.11,
+        "time": 105,
+        "intelligentContent": 56.28,
         "number_operators": 10,
-        "number_operands": 60,
+        "number_operands": 54,
         "number_operators_unique": 6,
-        "number_operands_unique": 32,
-        "cloc": 0,
-        "loc": 38,
-        "lloc": 38,
-        "mi": 46.91,
-        "mIwoC": 46.91,
-        "commentWeight": 0,
+        "number_operands_unique": 28,
+        "cloc": 1,
+        "loc": 42,
+        "lloc": 41,
+        "mi": 58.39,
+        "mIwoC": 46.55,
+        "commentWeight": 11.84,
         "kanDefect": 0.29,
         "relativeStructuralComplexity": 64,
         "relativeDataComplexity": 0.47,
@@ -20598,7 +20732,7 @@ var classes = [
         "ccnMethodMax": 3,
         "externals": [
             "Illuminate\\Contracts\\Queue\\ShouldQueue",
-            "Modules\\Grading\\Contracts\\Services\\GradingServiceInterface",
+            "Modules\\Grading\\Services\\GradingBulkService",
             "Illuminate\\Support\\Facades\\Log",
             "Illuminate\\Support\\Facades\\Log",
             "Illuminate\\Support\\Facades\\Log",
@@ -20611,24 +20745,24 @@ var classes = [
             "Illuminate\\Contracts\\Queue\\ShouldQueue"
         ],
         "lcom": 2,
-        "length": 62,
-        "vocabulary": 35,
-        "volume": 318.02,
-        "difficulty": 5.59,
-        "effort": 1776.5,
-        "level": 0.18,
-        "bugs": 0.11,
-        "time": 99,
-        "intelligentContent": 56.93,
+        "length": 56,
+        "vocabulary": 31,
+        "volume": 277.43,
+        "difficulty": 5.76,
+        "effort": 1598.03,
+        "level": 0.17,
+        "bugs": 0.09,
+        "time": 89,
+        "intelligentContent": 48.17,
         "number_operators": 8,
-        "number_operands": 54,
+        "number_operands": 48,
         "number_operators_unique": 6,
-        "number_operands_unique": 29,
+        "number_operands_unique": 25,
         "cloc": 0,
         "loc": 34,
         "lloc": 34,
-        "mi": 48.53,
-        "mIwoC": 48.53,
+        "mi": 48.95,
+        "mIwoC": 48.95,
         "commentWeight": 0,
         "kanDefect": 0.22,
         "relativeStructuralComplexity": 49,
@@ -20639,9 +20773,9 @@ var classes = [
         "totalSystemComplexity": 197.5,
         "package": "Modules\\Grading\\Jobs\\",
         "pageRank": 0,
-        "afferentCoupling": 0,
+        "afferentCoupling": 1,
         "efferentCoupling": 4,
-        "instability": 1,
+        "instability": 0.8,
         "violations": {}
     },
     {
@@ -20893,11 +21027,362 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "Modules\\Grading\\Services\\GradingService",
+        "name": "Modules\\Grading\\Services\\GradingQueueService",
         "interface": false,
         "abstract": false,
         "final": false,
         "methods": [
+            {
+                "name": "getGradingQueue",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            },
+            {
+                "name": "getGradingStatusDetails",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            },
+            {
+                "name": "getDraftGrade",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            }
+        ],
+        "nbMethodsIncludingGettersSetters": 3,
+        "nbMethods": 3,
+        "nbMethodsPrivate": 0,
+        "nbMethodsPublic": 3,
+        "nbMethodsGetter": 0,
+        "nbMethodsSetters": 0,
+        "wmc": 10,
+        "ccn": 8,
+        "ccnMethodMax": 5,
+        "externals": [
+            "Illuminate\\Contracts\\Pagination\\LengthAwarePaginator",
+            "Illuminate\\Support\\Arr",
+            "Illuminate\\Http\\Request",
+            "Spatie\\QueryBuilder\\QueryBuilder",
+            "Spatie\\QueryBuilder\\AllowedFilter",
+            "Spatie\\QueryBuilder\\AllowedFilter",
+            "Spatie\\QueryBuilder\\AllowedFilter",
+            "Spatie\\QueryBuilder\\AllowedFilter",
+            "Spatie\\QueryBuilder\\AllowedFilter",
+            "Spatie\\QueryBuilder\\AllowedFilter",
+            "Modules\\Learning\\Models\\Submission",
+            "Modules\\Learning\\Models\\Submission",
+            "Modules\\Grading\\Models\\Grade"
+        ],
+        "parents": [],
+        "implements": [],
+        "lcom": 3,
+        "length": 147,
+        "vocabulary": 62,
+        "volume": 875.27,
+        "difficulty": 7.45,
+        "effort": 6516.76,
+        "level": 0.13,
+        "bugs": 0.29,
+        "time": 362,
+        "intelligentContent": 117.56,
+        "number_operators": 30,
+        "number_operands": 117,
+        "number_operators_unique": 7,
+        "number_operands_unique": 55,
+        "cloc": 0,
+        "loc": 44,
+        "lloc": 44,
+        "mi": 42.47,
+        "mIwoC": 42.47,
+        "commentWeight": 0,
+        "kanDefect": 0.36,
+        "relativeStructuralComplexity": 1089,
+        "relativeDataComplexity": 0.12,
+        "relativeSystemComplexity": 1089.12,
+        "totalStructuralComplexity": 3267,
+        "totalDataComplexity": 0.35,
+        "totalSystemComplexity": 3267.35,
+        "package": "Modules\\Grading\\Services\\",
+        "pageRank": 0,
+        "afferentCoupling": 1,
+        "efferentCoupling": 7,
+        "instability": 0.88,
+        "violations": {}
+    },
+    {
+        "name": "Modules\\Grading\\Services\\Support\\GradeCalculator",
+        "interface": false,
+        "abstract": false,
+        "final": false,
+        "methods": [
+            {
+                "name": "calculateSubmissionScore",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            },
+            {
+                "name": "applyLatePenalty",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            },
+            {
+                "name": "calculateCourseScore",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            }
+        ],
+        "nbMethodsIncludingGettersSetters": 3,
+        "nbMethods": 3,
+        "nbMethodsPrivate": 0,
+        "nbMethodsPublic": 3,
+        "nbMethodsGetter": 0,
+        "nbMethodsSetters": 0,
+        "wmc": 17,
+        "ccn": 15,
+        "ccnMethodMax": 7,
+        "externals": [
+            "Modules\\Learning\\Models\\Submission",
+            "Modules\\Common\\Models\\SystemSetting",
+            "Illuminate\\Support\\Collection",
+            "Modules\\Learning\\Models\\Submission"
+        ],
+        "parents": [],
+        "implements": [],
+        "lcom": 3,
+        "length": 144,
+        "vocabulary": 41,
+        "volume": 771.49,
+        "difficulty": 21.13,
+        "effort": 16297.67,
+        "level": 0.05,
+        "bugs": 0.26,
+        "time": 905,
+        "intelligentContent": 36.52,
+        "number_operators": 53,
+        "number_operands": 91,
+        "number_operators_unique": 13,
+        "number_operands_unique": 28,
+        "cloc": 0,
+        "loc": 56,
+        "lloc": 56,
+        "mi": 39.63,
+        "mIwoC": 39.63,
+        "commentWeight": 0,
+        "kanDefect": 1.1,
+        "relativeStructuralComplexity": 121,
+        "relativeDataComplexity": 0.72,
+        "relativeSystemComplexity": 121.72,
+        "totalStructuralComplexity": 363,
+        "totalDataComplexity": 2.17,
+        "totalSystemComplexity": 365.17,
+        "package": "Modules\\Grading\\Services\\Support\\",
+        "pageRank": 0,
+        "afferentCoupling": 2,
+        "efferentCoupling": 3,
+        "instability": 0.6,
+        "violations": {}
+    },
+    {
+        "name": "Modules\\Grading\\Services\\Support\\GradingActionProcessor",
+        "interface": false,
+        "abstract": false,
+        "final": false,
+        "methods": [
+            {
+                "name": "processAnswers",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            },
+            {
+                "name": "persistGrade",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            },
+            {
+                "name": "saveDraft",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            },
+            {
+                "name": "overrideGrade",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            },
+            {
+                "name": "returnToQueue",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            }
+        ],
+        "nbMethodsIncludingGettersSetters": 5,
+        "nbMethods": 5,
+        "nbMethodsPrivate": 0,
+        "nbMethodsPublic": 5,
+        "nbMethodsGetter": 0,
+        "nbMethodsSetters": 0,
+        "wmc": 30,
+        "ccn": 26,
+        "ccnMethodMax": 12,
+        "externals": [
+            "Modules\\Learning\\Models\\Submission",
+            "Modules\\Learning\\Exceptions\\SubmissionException",
+            "Modules\\Grading\\Models\\Grade",
+            "Modules\\Learning\\Models\\Submission",
+            "Modules\\Grading\\Models\\Grade",
+            "Modules\\Grading\\Events\\GradeCreated",
+            "Modules\\Learning\\Models\\Submission",
+            "InvalidArgumentException",
+            "InvalidArgumentException",
+            "Modules\\Grading\\Models\\Grade",
+            "Modules\\Learning\\Models\\Submission",
+            "InvalidArgumentException",
+            "Modules\\Grading\\Models\\Grade",
+            "Modules\\Grading\\Events\\GradeOverridden",
+            "Modules\\Learning\\Models\\Submission",
+            "InvalidArgumentException",
+            "Modules\\Grading\\Models\\Grade"
+        ],
+        "parents": [],
+        "implements": [],
+        "lcom": 5,
+        "length": 185,
+        "vocabulary": 44,
+        "volume": 1009.99,
+        "difficulty": 18.51,
+        "effort": 18699.33,
+        "level": 0.05,
+        "bugs": 0.34,
+        "time": 1039,
+        "intelligentContent": 54.55,
+        "number_operators": 41,
+        "number_operands": 144,
+        "number_operators_unique": 9,
+        "number_operands_unique": 35,
+        "cloc": 0,
+        "loc": 74,
+        "lloc": 74,
+        "mi": 34.69,
+        "mIwoC": 34.69,
+        "commentWeight": 0,
+        "kanDefect": 1.38,
+        "relativeStructuralComplexity": 196,
+        "relativeDataComplexity": 0.25,
+        "relativeSystemComplexity": 196.25,
+        "totalStructuralComplexity": 980,
+        "totalDataComplexity": 1.27,
+        "totalSystemComplexity": 981.27,
+        "package": "Modules\\Grading\\Services\\Support\\",
+        "pageRank": 0,
+        "afferentCoupling": 1,
+        "efferentCoupling": 6,
+        "instability": 0.86,
+        "violations": {}
+    },
+    {
+        "name": "Modules\\Grading\\Services\\Support\\AutoGradingProcessor",
+        "interface": false,
+        "abstract": false,
+        "final": false,
+        "methods": [
+            {
+                "name": "__construct",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            },
+            {
+                "name": "execute",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            }
+        ],
+        "nbMethodsIncludingGettersSetters": 2,
+        "nbMethods": 2,
+        "nbMethodsPrivate": 0,
+        "nbMethodsPublic": 2,
+        "nbMethodsGetter": 0,
+        "nbMethodsSetters": 0,
+        "wmc": 6,
+        "ccn": 5,
+        "ccnMethodMax": 5,
+        "externals": [
+            "Modules\\Grading\\Services\\Support\\GradeCalculator",
+            "Modules\\Learning\\Models\\Submission",
+            "Modules\\Grading\\Strategies\\GradingStrategyFactory"
+        ],
+        "parents": [],
+        "implements": [],
+        "lcom": 2,
+        "length": 45,
+        "vocabulary": 15,
+        "volume": 175.81,
+        "difficulty": 2.69,
+        "effort": 473.33,
+        "level": 0.37,
+        "bugs": 0.06,
+        "time": 26,
+        "intelligentContent": 65.3,
+        "number_operators": 10,
+        "number_operands": 35,
+        "number_operators_unique": 2,
+        "number_operands_unique": 13,
+        "cloc": 0,
+        "loc": 29,
+        "lloc": 29,
+        "mi": 51.71,
+        "mIwoC": 51.71,
+        "commentWeight": 0,
+        "kanDefect": 0.52,
+        "relativeStructuralComplexity": 81,
+        "relativeDataComplexity": 0.1,
+        "relativeSystemComplexity": 81.1,
+        "totalStructuralComplexity": 162,
+        "totalDataComplexity": 0.2,
+        "totalSystemComplexity": 162.2,
+        "package": "Modules\\Grading\\Services\\Support\\",
+        "pageRank": 0,
+        "afferentCoupling": 1,
+        "efferentCoupling": 3,
+        "instability": 0.75,
+        "violations": {}
+    },
+    {
+        "name": "Modules\\Grading\\Services\\GradingEntryService",
+        "interface": false,
+        "abstract": false,
+        "final": false,
+        "methods": [
+            {
+                "name": "__construct",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            },
             {
                 "name": "autoGrade",
                 "role": null,
@@ -20913,28 +21398,14 @@ var classes = [
                 "_type": "Hal\\Metric\\FunctionMetric"
             },
             {
+                "name": "releaseGrade",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            },
+            {
                 "name": "saveDraftGrade",
-                "role": null,
-                "public": true,
-                "private": false,
-                "_type": "Hal\\Metric\\FunctionMetric"
-            },
-            {
-                "name": "getDraftGrade",
-                "role": null,
-                "public": true,
-                "private": false,
-                "_type": "Hal\\Metric\\FunctionMetric"
-            },
-            {
-                "name": "calculateScore",
-                "role": null,
-                "public": true,
-                "private": false,
-                "_type": "Hal\\Metric\\FunctionMetric"
-            },
-            {
-                "name": "recalculateAfterAnswerKeyChange",
                 "role": null,
                 "public": true,
                 "private": false,
@@ -20948,13 +21419,6 @@ var classes = [
                 "_type": "Hal\\Metric\\FunctionMetric"
             },
             {
-                "name": "getGradingQueue",
-                "role": null,
-                "public": true,
-                "private": false,
-                "_type": "Hal\\Metric\\FunctionMetric"
-            },
-            {
                 "name": "returnToQueue",
                 "role": null,
                 "public": true,
@@ -20962,28 +21426,86 @@ var classes = [
                 "_type": "Hal\\Metric\\FunctionMetric"
             },
             {
-                "name": "validateGradingComplete",
+                "name": "recalculateCourseGrade",
                 "role": null,
                 "public": true,
                 "private": false,
                 "_type": "Hal\\Metric\\FunctionMetric"
-            },
+            }
+        ],
+        "nbMethodsIncludingGettersSetters": 8,
+        "nbMethods": 8,
+        "nbMethodsPrivate": 0,
+        "nbMethodsPublic": 8,
+        "nbMethodsGetter": 0,
+        "nbMethodsSetters": 0,
+        "wmc": 19,
+        "ccn": 12,
+        "ccnMethodMax": 6,
+        "externals": [
+            "Modules\\Grading\\Services\\Support\\GradeCalculator",
+            "Modules\\Learning\\Contracts\\Repositories\\AssignmentRepositoryInterface",
+            "Modules\\Grading\\Services\\Support\\GradingActionProcessor",
+            "Modules\\Grading\\Services\\Support\\AutoGradingProcessor",
+            "Modules\\Grading\\Models\\Grade",
+            "Modules\\Grading\\DTOs\\SubmissionGradeDTO",
+            "Modules\\Learning\\Models\\Submission",
+            "Modules\\Learning\\Exceptions\\SubmissionException",
+            "Modules\\Learning\\Models\\Submission",
+            "InvalidArgumentException",
+            "InvalidArgumentException",
+            "InvalidArgumentException",
+            "Modules\\Grading\\Events\\GradesReleased",
+            "Modules\\Grading\\DTOs\\SubmissionGradeDTO",
+            "Modules\\Learning\\Models\\Submission",
+            "Modules\\Learning\\Models\\Submission",
+            "Modules\\Learning\\Models\\Submission",
+            "Modules\\Grading\\Models\\Grade"
+        ],
+        "parents": [],
+        "implements": [],
+        "lcom": 3,
+        "length": 145,
+        "vocabulary": 40,
+        "volume": 771.68,
+        "difficulty": 11.98,
+        "effort": 9248.46,
+        "level": 0.08,
+        "bugs": 0.26,
+        "time": 514,
+        "intelligentContent": 64.39,
+        "number_operators": 32,
+        "number_operands": 113,
+        "number_operators_unique": 7,
+        "number_operands_unique": 33,
+        "cloc": 2,
+        "loc": 78,
+        "lloc": 76,
+        "mi": 49.42,
+        "mIwoC": 37.14,
+        "commentWeight": 12.28,
+        "kanDefect": 0.71,
+        "relativeStructuralComplexity": 484,
+        "relativeDataComplexity": 0.21,
+        "relativeSystemComplexity": 484.21,
+        "totalStructuralComplexity": 3872,
+        "totalDataComplexity": 1.65,
+        "totalSystemComplexity": 3873.65,
+        "package": "Modules\\Grading\\Services\\",
+        "pageRank": 0,
+        "afferentCoupling": 4,
+        "efferentCoupling": 10,
+        "instability": 0.71,
+        "violations": {}
+    },
+    {
+        "name": "Modules\\Grading\\Services\\GradingBulkService",
+        "interface": false,
+        "abstract": false,
+        "final": false,
+        "methods": [
             {
-                "name": "getGradingStatusDetails",
-                "role": null,
-                "public": true,
-                "private": false,
-                "_type": "Hal\\Metric\\FunctionMetric"
-            },
-            {
-                "name": "releaseGrade",
-                "role": null,
-                "public": true,
-                "private": false,
-                "_type": "Hal\\Metric\\FunctionMetric"
-            },
-            {
-                "name": "validateBulkReleaseGrades",
+                "name": "__construct",
                 "role": null,
                 "public": true,
                 "private": false,
@@ -20997,21 +21519,14 @@ var classes = [
                 "_type": "Hal\\Metric\\FunctionMetric"
             },
             {
-                "name": "bulkReleaseGrades",
-                "role": null,
-                "public": true,
-                "private": false,
-                "_type": "Hal\\Metric\\FunctionMetric"
-            },
-            {
-                "name": "validateBulkApplyFeedback",
-                "role": null,
-                "public": true,
-                "private": false,
-                "_type": "Hal\\Metric\\FunctionMetric"
-            },
-            {
                 "name": "handleBulkFeedback",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
+            },
+            {
+                "name": "bulkReleaseGrades",
                 "role": null,
                 "public": true,
                 "private": false,
@@ -21025,149 +21540,81 @@ var classes = [
                 "_type": "Hal\\Metric\\FunctionMetric"
             },
             {
-                "name": "recalculateCourseGrade",
-                "role": null,
-                "public": true,
-                "private": false,
-                "_type": "Hal\\Metric\\FunctionMetric"
-            },
-            {
-                "name": "calculateCourseGrade",
-                "role": null,
-                "public": true,
-                "private": false,
-                "_type": "Hal\\Metric\\FunctionMetric"
-            },
-            {
-                "name": "getAssignmentsForCourse",
+                "name": "validateBulkReleaseGrades",
                 "role": null,
                 "public": false,
                 "private": true,
                 "_type": "Hal\\Metric\\FunctionMetric"
             },
             {
-                "name": "updateCourseGradeRecord",
+                "name": "validateBulkApplyFeedback",
                 "role": null,
                 "public": false,
                 "private": true,
                 "_type": "Hal\\Metric\\FunctionMetric"
             }
         ],
-        "nbMethodsIncludingGettersSetters": 22,
-        "nbMethods": 22,
+        "nbMethodsIncludingGettersSetters": 7,
+        "nbMethods": 7,
         "nbMethodsPrivate": 2,
-        "nbMethodsPublic": 20,
+        "nbMethodsPublic": 5,
         "nbMethodsGetter": 0,
         "nbMethodsSetters": 0,
-        "wmc": 121,
-        "ccn": 100,
-        "ccnMethodMax": 18,
+        "wmc": 18,
+        "ccn": 12,
+        "ccnMethodMax": 5,
         "externals": [
-            "Modules\\Grading\\Contracts\\Services\\GradingServiceInterface",
-            "Modules\\Learning\\Models\\Submission",
-            "Modules\\Grading\\Strategies\\GradingStrategyFactory",
-            "Modules\\Grading\\Models\\Grade",
-            "Modules\\Learning\\Models\\Submission",
-            "Modules\\Common\\Models\\SystemSetting",
-            "Modules\\Learning\\Exceptions\\SubmissionException",
-            "Modules\\Learning\\Exceptions\\SubmissionException",
-            "Modules\\Grading\\Models\\Grade",
-            "Modules\\Grading\\Events\\GradeCreated",
-            "Modules\\Learning\\Models\\Submission",
-            "InvalidArgumentException",
-            "InvalidArgumentException",
-            "Modules\\Grading\\Models\\Grade",
-            "Modules\\Learning\\Models\\Submission",
-            "Modules\\Learning\\Models\\Submission",
-            "Modules\\Learning\\Models\\Question",
-            "Modules\\Grading\\Jobs\\RecalculateGradesJob",
-            "InvalidArgumentException",
-            "Modules\\Learning\\Models\\Submission",
-            "Modules\\Grading\\Models\\Grade",
-            "Modules\\Grading\\Events\\GradeOverridden",
-            "Illuminate\\Contracts\\Pagination\\LengthAwarePaginator",
-            "Illuminate\\Support\\Arr",
-            "Illuminate\\Http\\Request",
-            "Spatie\\QueryBuilder\\QueryBuilder",
-            "Spatie\\QueryBuilder\\AllowedFilter",
-            "Spatie\\QueryBuilder\\AllowedFilter",
-            "Spatie\\QueryBuilder\\AllowedFilter",
-            "Spatie\\QueryBuilder\\AllowedFilter",
-            "Spatie\\QueryBuilder\\AllowedFilter",
-            "Spatie\\QueryBuilder\\AllowedFilter",
-            "Modules\\Learning\\Models\\Submission",
-            "Modules\\Learning\\Models\\Submission",
-            "InvalidArgumentException",
-            "Modules\\Grading\\Models\\Grade",
-            "Modules\\Learning\\Models\\Submission",
-            "Modules\\Learning\\Models\\Submission",
-            "Modules\\Learning\\Models\\Submission",
-            "InvalidArgumentException",
-            "InvalidArgumentException",
-            "InvalidArgumentException",
-            "Modules\\Grading\\Events\\GradesReleased",
-            "Modules\\Learning\\Models\\Submission",
-            "InvalidArgumentException",
-            "Modules\\Grading\\Services\\BulkReleaseGradesJob",
-            "InvalidArgumentException",
-            "Modules\\Learning\\Models\\Submission",
-            "Modules\\Grading\\Events\\GradesReleased",
-            "Modules\\Learning\\Models\\Submission",
-            "InvalidArgumentException",
+            "Modules\\Grading\\Services\\GradingEntryService",
+            "Modules\\Grading\\DTOs\\BulkOperationDTO",
+            "Modules\\Grading\\Jobs\\BulkReleaseGradesJob",
+            "Modules\\Grading\\DTOs\\BulkOperationDTO",
             "Modules\\Grading\\Jobs\\BulkApplyFeedbackJob",
-            "InvalidArgumentException",
-            "InvalidArgumentException",
             "Modules\\Learning\\Models\\Submission",
+            "Modules\\Learning\\Models\\Submission",
+            "InvalidArgumentException",
             "Modules\\Grading\\Models\\Grade",
+            "InvalidArgumentException",
             "Modules\\Learning\\Models\\Submission",
-            "Illuminate\\Support\\Collection",
-            "Modules\\Schemes\\Models\\Course",
-            "Modules\\Learning\\Models\\Assignment",
-            "Modules\\Learning\\Models\\Assignment",
-            "Modules\\Learning\\Models\\Assignment",
-            "Modules\\Learning\\Models\\Assignment",
-            "Modules\\Grading\\Models\\Grade"
+            "InvalidArgumentException"
         ],
         "parents": [],
-        "implements": [
-            "Modules\\Grading\\Contracts\\Services\\GradingServiceInterface"
-        ],
-        "lcom": 11,
-        "length": 1081,
-        "vocabulary": 155,
-        "volume": 7865.49,
-        "difficulty": 43.77,
-        "effort": 344255.66,
-        "level": 0.02,
-        "bugs": 2.62,
-        "time": 19125,
-        "intelligentContent": 179.71,
-        "number_operators": 264,
-        "number_operands": 817,
-        "number_operators_unique": 15,
-        "number_operands_unique": 140,
+        "implements": [],
+        "lcom": 3,
+        "length": 100,
+        "vocabulary": 31,
+        "volume": 495.42,
+        "difficulty": 11.67,
+        "effort": 5779.9,
+        "level": 0.09,
+        "bugs": 0.17,
+        "time": 321,
+        "intelligentContent": 42.46,
+        "number_operators": 20,
+        "number_operands": 80,
+        "number_operators_unique": 7,
+        "number_operands_unique": 24,
         "cloc": 0,
-        "loc": 428,
-        "lloc": 428,
-        "mi": 1.87,
-        "mIwoC": 1.87,
+        "loc": 74,
+        "lloc": 74,
+        "mi": 38.74,
+        "mIwoC": 38.74,
         "commentWeight": 0,
-        "kanDefect": 7.7,
-        "relativeStructuralComplexity": 8836,
-        "relativeDataComplexity": 0.29,
-        "relativeSystemComplexity": 8836.29,
-        "totalStructuralComplexity": 194392,
-        "totalDataComplexity": 6.41,
-        "totalSystemComplexity": 194398.41,
+        "kanDefect": 1.03,
+        "relativeStructuralComplexity": 324,
+        "relativeDataComplexity": 0.18,
+        "relativeSystemComplexity": 324.18,
+        "totalStructuralComplexity": 2268,
+        "totalDataComplexity": 1.26,
+        "totalSystemComplexity": 2269.26,
         "package": "Modules\\Grading\\Services\\",
         "pageRank": 0,
-        "afferentCoupling": 0,
-        "efferentCoupling": 22,
-        "instability": 1,
+        "afferentCoupling": 3,
+        "efferentCoupling": 7,
+        "instability": 0.7,
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000000c920000000000000000",
+        "name": "anonymous@00000000000019b10000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -21240,7 +21687,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000023700000000000000000",
+        "name": "anonymous@0000000000002b9f0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -21313,7 +21760,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000022e80000000000000000",
+        "name": "anonymous@00000000000025ff0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -21386,7 +21833,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@000000000000232d0000000000000000",
+        "name": "anonymous@00000000000026eb0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -21460,7 +21907,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000023980000000000000000",
+        "name": "anonymous@0000000000002c2f0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -21534,7 +21981,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000022b60000000000000000",
+        "name": "anonymous@000000000000349b0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -21607,7 +22054,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000000fc60000000000000000",
+        "name": "anonymous@00000000000019b50000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -21685,7 +22132,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000001a410000000000000000",
+        "name": "anonymous@00000000000031430000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -21759,7 +22206,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000023430000000000000000",
+        "name": "anonymous@000000000000338a0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -21833,7 +22280,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000005fe0000000000000000",
+        "name": "anonymous@000000000000338f0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -21906,7 +22353,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000022b30000000000000000",
+        "name": "anonymous@000000000000349e0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -21979,7 +22426,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@000000000000235d0000000000000000",
+        "name": "anonymous@000000000000310c0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -22052,7 +22499,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000021b70000000000000000",
+        "name": "anonymous@00000000000027210000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -22125,7 +22572,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000023a70000000000000000",
+        "name": "anonymous@0000000000002c3e0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -22198,7 +22645,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000023790000000000000000",
+        "name": "anonymous@00000000000032380000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -22271,7 +22718,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000021b80000000000000000",
+        "name": "anonymous@00000000000027200000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -22345,7 +22792,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000022b10000000000000000",
+        "name": "anonymous@00000000000034050000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -22418,7 +22865,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000001ac80000000000000000",
+        "name": "anonymous@00000000000031660000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -22492,7 +22939,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000011160000000000000000",
+        "name": "anonymous@0000000000002c890000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -33815,7 +34262,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@000000000000102c0000000000000000",
+        "name": "anonymous@0000000000002d080000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -33888,7 +34335,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000020030000000000000000",
+        "name": "anonymous@00000000000007fc0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -33961,7 +34408,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002b6f0000000000000000",
+        "name": "anonymous@0000000000000e820000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -34034,7 +34481,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000023c10000000000000000",
+        "name": "anonymous@0000000000002c060000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -34107,7 +34554,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000028ee0000000000000000",
+        "name": "anonymous@00000000000012db0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -34180,7 +34627,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000022e30000000000000000",
+        "name": "anonymous@00000000000025fa0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -34253,7 +34700,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000000b500000000000000000",
+        "name": "anonymous@0000000000000b990000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -34326,7 +34773,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000001eac0000000000000000",
+        "name": "anonymous@000000000000314e0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -34399,7 +34846,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000002160000000000000000",
+        "name": "anonymous@000000000000099b0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -34472,7 +34919,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@000000000000108a0000000000000000",
+        "name": "anonymous@000000000000278e0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -34551,7 +34998,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000023540000000000000000",
+        "name": "anonymous@00000000000033aa0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -34624,7 +35071,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000026500000000000000000",
+        "name": "anonymous@000000000000115f0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -34697,7 +35144,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@000000000000204c0000000000000000",
+        "name": "anonymous@00000000000020430000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -34770,7 +35217,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@000000000000342c0000000000000000",
+        "name": "anonymous@00000000000009e10000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -38858,7 +39305,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000018470000000000000000",
+        "name": "anonymous@0000000000002f830000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -38931,7 +39378,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000028f60000000000000000",
+        "name": "anonymous@00000000000013150000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39005,7 +39452,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000000b860000000000000000",
+        "name": "anonymous@00000000000029680000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39080,7 +39527,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002d160000000000000000",
+        "name": "anonymous@0000000000000fa80000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39165,7 +39612,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000022eb0000000000000000",
+        "name": "anonymous@00000000000026060000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39238,7 +39685,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000005030000000000000000",
+        "name": "anonymous@00000000000027540000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39315,7 +39762,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000004c20000000000000000",
+        "name": "anonymous@00000000000032480000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39388,7 +39835,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000032390000000000000000",
+        "name": "anonymous@00000000000023fc0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39461,7 +39908,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002d210000000000000000",
+        "name": "anonymous@0000000000000f960000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39535,7 +39982,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000020060000000000000000",
+        "name": "anonymous@00000000000016710000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39608,7 +40055,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002bda0000000000000000",
+        "name": "anonymous@00000000000003d80000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39681,7 +40128,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000031570000000000000000",
+        "name": "anonymous@000000000000356d0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39754,7 +40201,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002b890000000000000000",
+        "name": "anonymous@00000000000009010000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39827,7 +40274,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000001a5e0000000000000000",
+        "name": "anonymous@00000000000036140000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39900,7 +40347,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000000cee0000000000000000",
+        "name": "anonymous@0000000000002e520000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -39974,7 +40421,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002ba50000000000000000",
+        "name": "anonymous@00000000000004f20000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -40047,7 +40494,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000031690000000000000000",
+        "name": "anonymous@00000000000033be0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -42558,16 +43005,23 @@ var classes = [
                 "public": true,
                 "private": false,
                 "_type": "Hal\\Metric\\FunctionMetric"
+            },
+            {
+                "name": "getFlattenedForCourse",
+                "role": null,
+                "public": true,
+                "private": false,
+                "_type": "Hal\\Metric\\FunctionMetric"
             }
         ],
-        "nbMethodsIncludingGettersSetters": 20,
-        "nbMethods": 20,
+        "nbMethodsIncludingGettersSetters": 21,
+        "nbMethods": 21,
         "nbMethodsPrivate": 3,
-        "nbMethodsPublic": 17,
+        "nbMethodsPublic": 18,
         "nbMethodsGetter": 0,
         "nbMethodsSetters": 0,
-        "wmc": 37,
-        "ccn": 18,
+        "wmc": 41,
+        "ccn": 21,
         "ccnMethodMax": 5,
         "externals": [
             "App\\Repositories\\BaseRepository",
@@ -42599,7 +43053,15 @@ var classes = [
             "Illuminate\\Support\\Facades\\Cache",
             "Illuminate\\Support\\Facades\\Cache",
             "Illuminate\\Support\\Facades\\Cache",
-            "Illuminate\\Support\\Facades\\Cache"
+            "Illuminate\\Support\\Facades\\Cache",
+            "Illuminate\\Database\\Eloquent\\Collection",
+            "Illuminate\\Support\\Facades\\Cache",
+            "Modules\\Schemes\\Models\\Course",
+            "Illuminate\\Database\\Eloquent\\Collection",
+            "Modules\\Learning\\Models\\Assignment",
+            "Modules\\Learning\\Models\\Assignment",
+            "Modules\\Learning\\Models\\Assignment",
+            "Modules\\Learning\\Models\\Assignment"
         ],
         "parents": [
             "App\\Repositories\\BaseRepository"
@@ -42607,38 +43069,38 @@ var classes = [
         "implements": [
             "Modules\\Learning\\Contracts\\Repositories\\AssignmentRepositoryInterface"
         ],
-        "lcom": 15,
-        "length": 313,
-        "vocabulary": 61,
-        "volume": 1856.32,
-        "difficulty": 13.96,
-        "effort": 25920.99,
+        "lcom": 16,
+        "length": 366,
+        "vocabulary": 67,
+        "volume": 2220.19,
+        "difficulty": 14.7,
+        "effort": 32647.69,
         "level": 0.07,
-        "bugs": 0.62,
-        "time": 1440,
-        "intelligentContent": 132.94,
-        "number_operators": 57,
-        "number_operands": 256,
+        "bugs": 0.74,
+        "time": 1814,
+        "intelligentContent": 150.98,
+        "number_operators": 67,
+        "number_operands": 299,
         "number_operators_unique": 6,
-        "number_operands_unique": 55,
+        "number_operands_unique": 61,
         "cloc": 26,
-        "loc": 188,
-        "lloc": 162,
-        "mi": 53.73,
-        "mIwoC": 26.49,
-        "commentWeight": 27.24,
-        "kanDefect": 1.01,
-        "relativeStructuralComplexity": 1369,
-        "relativeDataComplexity": 0.53,
-        "relativeSystemComplexity": 1369.53,
-        "totalStructuralComplexity": 27380,
-        "totalDataComplexity": 10.68,
-        "totalSystemComplexity": 27390.68,
+        "loc": 209,
+        "lloc": 183,
+        "mi": 50.37,
+        "mIwoC": 24.39,
+        "commentWeight": 25.98,
+        "kanDefect": 1.54,
+        "relativeStructuralComplexity": 2209,
+        "relativeDataComplexity": 0.49,
+        "relativeSystemComplexity": 2209.49,
+        "totalStructuralComplexity": 46389,
+        "totalDataComplexity": 10.19,
+        "totalSystemComplexity": 46399.19,
         "package": "Modules\\Learning\\Repositories\\",
         "pageRank": 0,
         "afferentCoupling": 1,
-        "efferentCoupling": 6,
-        "instability": 0.86,
+        "efferentCoupling": 7,
+        "instability": 0.88,
         "violations": {}
     },
     {
@@ -43302,10 +43764,10 @@ var classes = [
         "totalDataComplexity": 21.89,
         "totalSystemComplexity": 789.89,
         "package": "Modules\\Learning\\Models\\",
-        "pageRank": 0.01,
-        "afferentCoupling": 17,
+        "pageRank": 0.02,
+        "afferentCoupling": 16,
         "efferentCoupling": 6,
-        "instability": 0.26,
+        "instability": 0.27,
         "violations": {}
     },
     {
@@ -43602,9 +44064,9 @@ var classes = [
         "totalSystemComplexity": 26957.37,
         "package": "Modules\\Learning\\Models\\",
         "pageRank": 0.04,
-        "afferentCoupling": 29,
+        "afferentCoupling": 34,
         "efferentCoupling": 11,
-        "instability": 0.28,
+        "instability": 0.24,
         "violations": {}
     },
     {
@@ -44101,7 +44563,7 @@ var classes = [
         "totalSystemComplexity": 28196.31,
         "package": "Modules\\Learning\\Models\\",
         "pageRank": 0.02,
-        "afferentCoupling": 26,
+        "afferentCoupling": 25,
         "efferentCoupling": 9,
         "instability": 0.26,
         "violations": {}
@@ -44172,7 +44634,7 @@ var classes = [
         "totalDataComplexity": 1.4,
         "totalSystemComplexity": 33.4,
         "package": "Modules\\Learning\\Exceptions\\",
-        "pageRank": 0.01,
+        "pageRank": 0.02,
         "afferentCoupling": 2,
         "efferentCoupling": 2,
         "instability": 0.5,
@@ -44343,9 +44805,9 @@ var classes = [
         "totalSystemComplexity": 39,
         "package": "Modules\\Learning\\Exceptions\\",
         "pageRank": 0.01,
-        "afferentCoupling": 3,
+        "afferentCoupling": 4,
         "efferentCoupling": 1,
-        "instability": 0.25,
+        "instability": 0.2,
         "violations": {}
     },
     {
@@ -48213,7 +48675,7 @@ var classes = [
         "ccnMethodMax": 1,
         "externals": [
             "Illuminate\\Contracts\\Queue\\ShouldQueue",
-            "Modules\\Grading\\Contracts\\Services\\GradingServiceInterface",
+            "Modules\\Grading\\Services\\GradingEntryService",
             "Modules\\Learning\\Events\\NewHighScoreAchieved",
             "Illuminate\\Support\\Facades\\Log"
         ],
@@ -48684,7 +49146,7 @@ var classes = [
             "Modules\\Learning\\Contracts\\Services\\SubmissionServiceInterface",
             "Modules\\Learning\\Contracts\\Repositories\\SubmissionRepositoryInterface",
             "Modules\\Enrollments\\Contracts\\Repositories\\EnrollmentRepositoryInterface",
-            "Modules\\Grading\\Contracts\\Services\\GradingServiceInterface",
+            "Modules\\Grading\\Services\\GradingEntryService",
             "Modules\\Learning\\Contracts\\Repositories\\QuestionRepositoryInterface",
             "Illuminate\\Contracts\\Pagination\\LengthAwarePaginator",
             "Modules\\Learning\\Models\\Assignment",
@@ -48716,6 +49178,7 @@ var classes = [
             "Modules\\Learning\\Models\\Submission",
             "Modules\\Learning\\Models\\Submission",
             "Modules\\Learning\\Exceptions\\SubmissionException",
+            "Modules\\Grading\\DTOs\\SubmissionGradeDTO",
             "Illuminate\\Support\\Facades\\DB",
             "Modules\\Schemes\\Models\\Lesson",
             "Modules\\Learning\\Models\\Submission",
@@ -48778,25 +49241,25 @@ var classes = [
             "Modules\\Learning\\Contracts\\Services\\SubmissionServiceInterface"
         ],
         "lcom": 5,
-        "length": 1018,
-        "vocabulary": 153,
-        "volume": 7388.02,
-        "difficulty": 41.52,
-        "effort": 306763.47,
+        "length": 1024,
+        "vocabulary": 155,
+        "volume": 7450.75,
+        "difficulty": 41.2,
+        "effort": 306944.35,
         "level": 0.02,
-        "bugs": 2.46,
-        "time": 17042,
-        "intelligentContent": 177.93,
-        "number_operators": 254,
-        "number_operands": 764,
+        "bugs": 2.48,
+        "time": 17052,
+        "intelligentContent": 180.86,
+        "number_operators": 255,
+        "number_operands": 769,
         "number_operators_unique": 15,
-        "number_operands_unique": 138,
-        "cloc": 4,
-        "loc": 422,
-        "lloc": 418,
-        "mi": 11.68,
-        "mIwoC": 4.17,
-        "commentWeight": 7.51,
+        "number_operands_unique": 140,
+        "cloc": 12,
+        "loc": 438,
+        "lloc": 426,
+        "mi": 16.64,
+        "mIwoC": 3.96,
+        "commentWeight": 12.68,
         "kanDefect": 4.39,
         "relativeStructuralComplexity": 14884,
         "relativeDataComplexity": 0.44,
@@ -48807,7 +49270,7 @@ var classes = [
         "package": "Modules\\Learning\\Services\\",
         "pageRank": 0,
         "afferentCoupling": 0,
-        "efferentCoupling": 23,
+        "efferentCoupling": 24,
         "instability": 1,
         "violations": {}
     },
@@ -49552,7 +50015,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000001abb0000000000000000",
+        "name": "anonymous@00000000000025800000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -49625,7 +50088,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000010db0000000000000000",
+        "name": "anonymous@0000000000001cf20000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -49698,7 +50161,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002abe0000000000000000",
+        "name": "anonymous@000000000000233b0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -49773,7 +50236,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000000a460000000000000000",
+        "name": "anonymous@00000000000018180000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -49846,7 +50309,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@000000000000233c0000000000000000",
+        "name": "anonymous@00000000000023cd0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -49933,7 +50396,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000031130000000000000000",
+        "name": "anonymous@0000000000001a3e0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -50006,7 +50469,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002ddc0000000000000000",
+        "name": "anonymous@0000000000002b080000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -50079,7 +50542,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002a2c0000000000000000",
+        "name": "anonymous@0000000000002c520000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -50152,7 +50615,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000019b80000000000000000",
+        "name": "anonymous@0000000000001dc40000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -55889,7 +56352,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000026150000000000000000",
+        "name": "anonymous@0000000000000e690000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -55962,7 +56425,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000011070000000000000000",
+        "name": "anonymous@00000000000031970000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -56035,7 +56498,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002f810000000000000000",
+        "name": "anonymous@00000000000011290000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -57016,7 +57479,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@000000000000032c0000000000000000",
+        "name": "anonymous@0000000000001ff70000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -57944,7 +58407,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002e2c0000000000000000",
+        "name": "anonymous@0000000000000c8f0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -58017,7 +58480,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000029320000000000000000",
+        "name": "anonymous@000000000000329e0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -58090,7 +58553,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000006c00000000000000000",
+        "name": "anonymous@00000000000034fe0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -58165,7 +58628,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002a840000000000000000",
+        "name": "anonymous@0000000000002e310000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -58244,7 +58707,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000000bd60000000000000000",
+        "name": "anonymous@00000000000027350000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -61954,7 +62417,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000002c170000000000000000",
+        "name": "anonymous@0000000000001b030000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -62027,7 +62490,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000000f6d0000000000000000",
+        "name": "anonymous@0000000000002f4a0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -62100,7 +62563,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000039550000000000000000",
+        "name": "anonymous@00000000000039ce0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -62194,7 +62657,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000011080000000000000000",
+        "name": "anonymous@00000000000019ff0000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -62267,7 +62730,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@0000000000001b4b0000000000000000",
+        "name": "anonymous@0000000000000f720000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -62344,7 +62807,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000017830000000000000000",
+        "name": "anonymous@0000000000001ba60000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,
@@ -62417,7 +62880,7 @@ var classes = [
         "violations": {}
     },
     {
-        "name": "anonymous@00000000000026d30000000000000000",
+        "name": "anonymous@0000000000001a200000000000000000",
         "interface": false,
         "abstract": false,
         "final": false,

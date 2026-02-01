@@ -6,13 +6,13 @@ namespace Modules\Learning\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
-use Modules\Grading\Contracts\Services\GradingServiceInterface;
+
 use Modules\Learning\Events\NewHighScoreAchieved;
 
 class RecalculateCourseGradeOnNewHighScore implements ShouldQueue
 {
     public function __construct(
-        private readonly GradingServiceInterface $gradingService
+        private readonly \Modules\Grading\Services\GradingEntryService $gradingEntryService
     ) {}
 
     public function handle(NewHighScoreAchieved $event): void
@@ -28,7 +28,7 @@ class RecalculateCourseGradeOnNewHighScore implements ShouldQueue
         ]);
 
         
-        $this->gradingService->recalculateCourseGrade(
+        $this->gradingEntryService->recalculateCourseGrade(
             $submission->user_id,
             $submission->assignment->getCourseId()
         );

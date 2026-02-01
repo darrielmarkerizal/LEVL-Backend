@@ -10,7 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Modules\Grading\Contracts\Services\GradingServiceInterface;
+
 
 class BulkReleaseGradesJob implements ShouldQueue
 {
@@ -26,7 +26,7 @@ class BulkReleaseGradesJob implements ShouldQueue
         $this->onQueue('grading');
     }
 
-    public function handle(GradingServiceInterface $gradingService): void
+    public function handle(\Modules\Grading\Services\GradingBulkService $gradingService): void
     {
         if (empty($this->submissionIds)) {
             Log::info('BulkReleaseGradesJob: No submission IDs provided, skipping');
@@ -39,12 +39,10 @@ class BulkReleaseGradesJob implements ShouldQueue
         ]);
 
         try {
-            $result = $gradingService->bulkReleaseGrades($this->submissionIds);
+            $result = $gradingService->bulkReleaseGrades($this->submissionIds, $this->instructorId);
 
             Log::info('BulkReleaseGradesJob: Completed bulk grade release', [
-                'success_count' => $result['success'],
-                'failed_count' => $result['failed'],
-                'errors' => $result['errors'],
+                'count' => $result,
                 'instructor_id' => $this->instructorId,
             ]);
         } catch (\Throwable $e) {
