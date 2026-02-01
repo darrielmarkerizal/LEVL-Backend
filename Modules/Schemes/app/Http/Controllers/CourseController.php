@@ -26,7 +26,7 @@ class CourseController extends Controller
     public function index(Request $request)
     {
         $paginator = $this->service->listForIndex(
-            $request->query('filter', []),
+            $request->all(),
             (int) $request->query('per_page', 15)
         );
         $paginator->getCollection()->transform(fn($course) => new \Modules\Schemes\Http\Resources\CourseIndexResource($course));

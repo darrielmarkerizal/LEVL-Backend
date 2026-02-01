@@ -37,9 +37,12 @@ class EnrollmentService implements EnrollmentServiceInterface
     public function paginateByCourse(int $courseId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $searchQuery = $filters['search'] ?? null;
+        $searchQuery = data_get($filters, 'search');
+        
+        $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search']);
+        $request = new \Illuminate\Http\Request($cleanFilters);
 
-        $builder = QueryBuilder::for(Enrollment::class)
+        $builder = QueryBuilder::for(Enrollment::class, $request)
             ->with(['user', 'course'])
             ->where('course_id', $courseId);
 
@@ -74,9 +77,13 @@ class EnrollmentService implements EnrollmentServiceInterface
     public function paginateByCourseForIndex(int $courseId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $searchQuery = $filters['search'] ?? null;
+        $searchQuery = data_get($filters, 'search');
+        
+        $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search']);
 
-        $builder = QueryBuilder::for(Enrollment::class)
+        $request = new \Illuminate\Http\Request($cleanFilters);
+
+        $builder = QueryBuilder::for(Enrollment::class, $request)
             ->with(['user:id,name,email', 'course:id,title,slug,code'])
             ->where('course_id', $courseId);
 
@@ -110,9 +117,12 @@ class EnrollmentService implements EnrollmentServiceInterface
     public function paginateByCourseIds(array $courseIds, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $searchQuery = $filters['search'] ?? null;
+        $searchQuery = data_get($filters, 'search');
+        
+        $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search']);
+        $request = new \Illuminate\Http\Request($cleanFilters);
 
-        $builder = QueryBuilder::for(Enrollment::class)
+        $builder = QueryBuilder::for(Enrollment::class, $request)
             ->with(['user', 'course'])
             ->whereIn('course_id', $courseIds);
 
@@ -155,9 +165,12 @@ class EnrollmentService implements EnrollmentServiceInterface
     public function paginateByCourseIdsForIndex(array $courseIds, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $searchQuery = $filters['search'] ?? null;
+        $searchQuery = data_get($filters, 'search');
+        
+        $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search']);
+        $request = new \Illuminate\Http\Request($cleanFilters);
 
-        $builder = QueryBuilder::for(Enrollment::class)
+        $builder = QueryBuilder::for(Enrollment::class, $request)
             ->with(['user:id,name,email', 'course:id,title,slug,code'])
             ->whereIn('course_id', $courseIds);
 
@@ -199,9 +212,12 @@ class EnrollmentService implements EnrollmentServiceInterface
     public function paginateByUser(int $userId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $searchQuery = $filters['search'] ?? null;
+        $searchQuery = data_get($filters, 'search');
+        
+        $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search']);
+        $request = new \Illuminate\Http\Request($cleanFilters);
 
-        $builder = QueryBuilder::for(Enrollment::class)
+        $builder = QueryBuilder::for(Enrollment::class, $request)
             ->with(['user', 'course'])
             ->where('user_id', $userId);
 
@@ -233,9 +249,12 @@ class EnrollmentService implements EnrollmentServiceInterface
     public function paginateByUserForIndex(int $userId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $searchQuery = $filters['search'] ?? null;
+        $searchQuery = data_get($filters, 'search');
+        
+        $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search']);
+        $request = new \Illuminate\Http\Request($cleanFilters);
 
-        $builder = QueryBuilder::for(Enrollment::class)
+        $builder = QueryBuilder::for(Enrollment::class, $request)
             ->with(['user:id,name,email', 'course:id,title,slug,code'])
             ->where('user_id', $userId);
 
@@ -266,9 +285,12 @@ class EnrollmentService implements EnrollmentServiceInterface
     public function paginateAll(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $searchQuery = $filters['search'] ?? null;
+        $searchQuery = data_get($filters, 'search');
+        
+        $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search']);
+        $request = new \Illuminate\Http\Request($cleanFilters);
 
-        $builder = QueryBuilder::for(Enrollment::class)
+        $builder = QueryBuilder::for(Enrollment::class, $request)
             ->with(['user', 'course']);
 
         if ($searchQuery && trim((string) $searchQuery) !== '') {
@@ -310,9 +332,12 @@ class EnrollmentService implements EnrollmentServiceInterface
     public function paginateAllForIndex(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
-        $searchQuery = $filters['search'] ?? null;
+        $searchQuery = data_get($filters, 'search');
+        
+        $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search']);
+        $request = new \Illuminate\Http\Request($cleanFilters);
 
-        $builder = QueryBuilder::for(Enrollment::class)
+        $builder = QueryBuilder::for(Enrollment::class, $request)
             ->with(['user:id,name,email', 'course:id,title,slug,code']);
 
         if ($searchQuery && trim((string) $searchQuery) !== '') {

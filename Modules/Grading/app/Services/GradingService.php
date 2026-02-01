@@ -287,8 +287,12 @@ class GradingService implements GradingServiceInterface
     public function getGradingQueue(array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
+        $search = data_get($filters, 'search');
 
-        $query = \Spatie\QueryBuilder\QueryBuilder::for(Submission::class)
+        $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search']);
+        $request = new \Illuminate\Http\Request($cleanFilters);
+
+        $query = \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, $request)
             ->with([
                 'user:id,name,email',
                 'assignment:id,title,max_score',
@@ -305,7 +309,11 @@ class GradingService implements GradingServiceInterface
             ->allowedSorts(['submitted_at', 'created_at', 'updated_at'])
             ->allowedIncludes(['assignment.course', 'user.profile']);
 
-        $request = new \Illuminate\Http\Request($filters);
+        if ($search && trim((string) $search) !== '') {
+            $ids = Submission::search($search)->keys();
+            $query->whereIn('id', $ids);
+        }
+
         if (!$request->has('filter.state')) {
             $query->where('state', SubmissionState::PendingManualGrading->value);
         }

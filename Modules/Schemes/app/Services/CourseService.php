@@ -89,9 +89,14 @@ class CourseService implements CourseServiceInterface
     private function buildQuery(array $filters = []): QueryBuilder
     {
         $searchQuery = data_get($filters, 'search');
+        
+        // Strip manual filters before passing to QueryBuilder
+        $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search', 'tag']);
+        $request = new \Illuminate\Http\Request($cleanFilters);
+
         $builder = QueryBuilder::for(
             Course::with(['instructor.media', 'instructor.roles', 'admins.media', 'admins.roles', 'media']),
-            $this->buildQueryBuilderRequest($filters)
+            $request
         );
 
         if ($searchQuery && trim((string) $searchQuery) !== '') {
@@ -125,13 +130,24 @@ class CourseService implements CourseServiceInterface
 
     private function buildQueryForIndex(array $filters = []): QueryBuilder
     {
+        $searchQuery = data_get($filters, 'search');
+        
+        // Strip manual filters before passing to QueryBuilder
+        $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search', 'tag']);
+        $request = new \Illuminate\Http\Request($cleanFilters);
+
         $builder = QueryBuilder::for(
             Course::with([
                 'admins:id,name,username,email,status,account_status',
                 'media:id,model_type,model_id,collection_name,file_name,disk',
             ])->withCount('admins'),
-            $this->buildQueryBuilderRequest($filters)
+            $request
         );
+
+        if ($searchQuery && trim((string) $searchQuery) !== '') {
+            $ids = Course::search($searchQuery)->keys()->toArray();
+            $builder->whereIn('id', $ids ?: [0]);
+        }
 
         if ($tagFilter = data_get($filters, 'tag')) {
             $tags = ArrayParser::parseFilter($tagFilter);

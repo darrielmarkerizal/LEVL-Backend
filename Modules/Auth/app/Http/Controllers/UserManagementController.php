@@ -25,8 +25,8 @@ class UserManagementController extends Controller
     {
         $users = $this->userManagementService->listUsersForIndex(
             $request->user(),
-            (int) $request->query('per_page', 15),
-            $request->query('search')
+            $request->all(),
+            (int) $request->query('per_page', 15)
         );
 
         $users->getCollection()->transform(fn($user) => new \Modules\Auth\Http\Resources\UserIndexResource($user));

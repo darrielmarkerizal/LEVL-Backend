@@ -11,7 +11,7 @@ interface UserManagementServiceInterface
 {
     public function listUsers(User $authUser, int $perPage = 15, ?string $search = null): LengthAwarePaginator;
 
-    public function listUsersForIndex(User $authUser, int $perPage = 15, ?string $search = null): LengthAwarePaginator;
+    public function listUsersForIndex(User $authUser, array $filters = [], int $perPage = 15): LengthAwarePaginator;
 
     public function showUser(User $authUser, int $userId): User;
 
