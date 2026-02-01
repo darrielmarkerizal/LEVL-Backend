@@ -28,20 +28,27 @@ class UserManagementService implements UserManagementServiceInterface
 
     public function listUsers(User $authUser, int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return $this->listUsersForIndex($authUser, $perPage, $search);
+        $filters = $search ? ['search' => $search] : [];
+        return $this->listUsersForIndex($authUser, $filters, $perPage);
     }
 
-    public function listUsersForIndex(User $authUser, int $perPage = 15, ?string $search = null): LengthAwarePaginator
+    public function listUsersForIndex(User $authUser, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         if (! $authUser->can('viewAny', User::class)) {
             throw new AuthorizationException(__('messages.unauthorized'));
         }
 
-        $query = QueryBuilder::for(User::class)
+        $search = data_get($filters, 'search');
+        
+        $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search']);
+
+        $request = new \Illuminate\Http\Request($cleanFilters);
+
+        $query = QueryBuilder::for(User::class, $request)
             ->select(['id', 'name', 'email', 'username', 'status', 'account_status', 'created_at', 'email_verified_at', 'is_password_set'])
             ->with(['roles:id,name,guard_name', 'media:id,model_type,model_id,collection_name,file_name,disk']);
 
-        if ($search && trim($search) !== '') {
+        if ($search && trim((string) $search) !== '') {
             $ids = User::search($search)->keys()->toArray();
             $query->whereIn('id', $ids);
         }

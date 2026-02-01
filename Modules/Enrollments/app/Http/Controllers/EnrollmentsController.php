@@ -36,7 +36,7 @@ class EnrollmentsController extends Controller
         $this->authorize('update', $course);
 
         $perPage = max(1, (int) $request->query('per_page', 15));
-        $paginator = $this->service->paginateByCourse($course->id, $perPage);
+        $paginator = $this->service->paginateByCourse($course->id, $perPage, $request->all());
 
         $paginator->getCollection()->transform(fn($item) => new EnrollmentResource($item));
         return $this->paginateResponse($paginator, __('messages.enrollments.course_list_retrieved'));
