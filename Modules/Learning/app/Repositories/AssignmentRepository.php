@@ -301,4 +301,44 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
     {
         Cache::tags(['assignments'])->flush();
     }
+
+    public function getFlattenedForCourse(int $courseId): Collection
+    {
+        $cacheKey = "assignments:flattened:course:{$courseId}";
+
+        return Cache::tags(['assignments', "course:{$courseId}"])
+            ->remember($cacheKey, self::CACHE_TTL_ASSIGNMENT, function () use ($courseId) {
+                $course = \Modules\Schemes\Models\Course::with(['units.lessons'])->find($courseId);
+                
+                if (! $course) {
+                    return new Collection();
+                }
+
+                $assignmentIds = collect();
+
+                $assignmentIds = $assignmentIds->merge(Assignment::query()
+                    ->where('assignable_type', \Modules\Schemes\Models\Course::class)
+                    ->where('assignable_id', $courseId)
+                    ->pluck('id'));
+
+                foreach ($course->units as $unit) {
+                    $assignmentIds = $assignmentIds->merge(Assignment::query()
+                        ->where('assignable_type', \Modules\Schemes\Models\Unit::class)
+                        ->where('assignable_id', $unit->id)
+                        ->pluck('id'));
+
+                    foreach ($unit->lessons as $lesson) {
+                        $assignmentIds = $assignmentIds->merge(Assignment::query()
+                            ->where(function ($q) use ($lesson) {
+                                $q->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
+                                    ->where('assignable_id', $lesson->id);
+                            })
+                            ->orWhere('lesson_id', $lesson->id)
+                            ->pluck('id'));
+                    }
+                }
+
+                return Assignment::whereIn('id', $assignmentIds->unique())->get();
+            });
+    }
 }

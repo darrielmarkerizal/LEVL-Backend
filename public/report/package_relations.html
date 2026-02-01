@@ -49,7 +49,7 @@
 <div class="page">
     <div class="content content-first">
         <div class="report-details">
-            Created at 2026-02-01 10:47:37        , with PHPMetrics v2.9.1 (<a href="https://twitter.com/Halleck45">Jean-François Lépine</a>).
+            Created at 2026-02-01 11:38:53        , with PHPMetrics v2.9.1 (<a href="https://twitter.com/Halleck45">Jean-François Lépine</a>).
         </div>
 
         
@@ -93,7 +93,7 @@
                             <path d="M0 0h24v24H0z" fill="none">
                             <path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z">
                         </svg>
-                        Violations (226)
+                        Violations (223)
                     </a>
                 </li>
                                     <li>
@@ -1099,14 +1099,6 @@
         ]
     },
     {
-        "name": "Modules\\Grading\\Contracts\\Services",
-        "size": 3000,
-        "relations": [
-            "Modules\\Grading\\Models",
-            "Illuminate\\Contracts\\Pagination"
-        ]
-    },
-    {
         "name": "Modules\\Grading\\Providers",
         "size": 3000,
         "relations": [
@@ -1163,11 +1155,33 @@
         "size": 3000,
         "relations": [
             "Illuminate\\Routing",
-            "Modules\\Grading\\Contracts\\Services",
+            "Modules\\Grading\\Services",
             "Illuminate\\Http",
             "Modules\\Grading\\Http\\Requests",
             "Modules\\Learning\\Models",
+            "Modules\\Grading\\DTOs",
             "Modules\\Grading\\Http\\Resources"
+        ]
+    },
+    {
+        "name": "Modules\\Grading\\Services",
+        "size": 3000,
+        "relations": [
+            "Illuminate\\Contracts\\Pagination",
+            "Illuminate\\Support",
+            "Illuminate\\Http",
+            "Spatie\\QueryBuilder",
+            "Modules\\Learning\\Models",
+            "Modules\\Grading\\Models",
+            "Modules\\Grading\\Services\\Support",
+            "Modules\\Learning\\Contracts\\Repositories",
+            "Modules\\Grading\\DTOs",
+            "Modules\\Learning\\Exceptions",
+            "global",
+            "Modules\\Grading\\Events",
+            "Modules\\Grading\\Jobs",
+            "Illuminate\\Database\\Migrations",
+            "Illuminate\\Support\\Facades"
         ]
     },
     {
@@ -1180,7 +1194,7 @@
             "Modules\\Grading\\Strategies",
             "Modules\\Grading\\Events",
             "global",
-            "Modules\\Grading\\Contracts\\Services"
+            "Modules\\Grading\\Services"
         ]
     },
     {
@@ -1193,25 +1207,28 @@
         ]
     },
     {
-        "name": "Modules\\Grading\\Services",
+        "name": "Modules\\Grading\\Services\\Support",
         "size": 3000,
         "relations": [
-            "Modules\\Grading\\Contracts\\Services",
             "Modules\\Learning\\Models",
-            "Modules\\Grading\\Strategies",
-            "Modules\\Grading\\Models",
             "Modules\\Common\\Models",
+            "Illuminate\\Support",
             "Modules\\Learning\\Exceptions",
+            "Modules\\Grading\\Models",
             "Modules\\Grading\\Events",
             "global",
-            "Modules\\Grading\\Jobs",
-            "Illuminate\\Contracts\\Pagination",
+            "Modules\\Grading\\Strategies"
+        ]
+    },
+    {
+        "name": "Modules\\Learning\\Contracts\\Repositories",
+        "size": 3000,
+        "relations": [
+            "Modules\\Learning\\Models",
+            "Modules\\Learning\\Enums",
+            "Illuminate\\Database\\Eloquent",
             "Illuminate\\Support",
-            "Illuminate\\Http",
-            "Spatie\\QueryBuilder",
-            "Modules\\Schemes\\Models",
-            "Illuminate\\Database\\Migrations",
-            "Illuminate\\Support\\Facades"
+            "Illuminate\\Contracts\\Pagination"
         ]
     },
     {
@@ -1716,17 +1733,6 @@
         ]
     },
     {
-        "name": "Modules\\Learning\\Contracts\\Repositories",
-        "size": 3000,
-        "relations": [
-            "Modules\\Learning\\Models",
-            "Modules\\Learning\\Enums",
-            "Illuminate\\Database\\Eloquent",
-            "Illuminate\\Support",
-            "Illuminate\\Contracts\\Pagination"
-        ]
-    },
-    {
         "name": "Modules\\Learning\\Contracts\\Services",
         "size": 3000,
         "relations": [
@@ -1769,6 +1775,7 @@
             "Illuminate\\Support",
             "Illuminate\\Database\\Eloquent",
             "Illuminate\\Support\\Facades",
+            "Modules\\Schemes\\Models",
             "Modules\\Learning\\Enums"
         ]
     },
@@ -1833,10 +1840,11 @@
             "Spatie\\QueryBuilder",
             "Modules\\Learning\\Enums",
             "Modules\\Enrollments\\Contracts\\Repositories",
-            "Modules\\Grading\\Contracts\\Services",
+            "Modules\\Grading\\Services",
             "Modules\\Auth\\Models",
             "Modules\\Learning\\Exceptions",
             "Modules\\Common\\Models",
+            "Modules\\Grading\\DTOs",
             "Modules\\Schemes\\Models",
             "Illuminate\\Database\\Eloquent",
             "Modules\\Learning\\Repositories",
@@ -1865,7 +1873,7 @@
             "Illuminate\\Support\\Facades",
             "Modules\\Learning\\Mail",
             "Modules\\Learning\\Contracts\\Services",
-            "Modules\\Grading\\Contracts\\Services"
+            "Modules\\Grading\\Services"
         ]
     },
     {

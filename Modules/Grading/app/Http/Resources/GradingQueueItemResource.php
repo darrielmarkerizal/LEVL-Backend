@@ -61,20 +61,20 @@ class GradingQueueItemResource extends JsonResource
 
             case 'file_upload':
                 return [
-                    'file_paths' => $answer->file_paths ? json_decode($answer->file_paths, true) : [],
+                    'file_paths' => $answer->file_paths ?? [],
                 ];
 
             case 'multiple_choice':
             case 'checkbox':
                 return [
-                    'selected_options' => $answer->selected_options ? json_decode($answer->selected_options, true) : [],
+                    'selected_options' => $answer->selected_options ?? [],
                 ];
 
             default:
                 return [
                     'content' => $answer->content ?? null,
-                    'selected_options' => $answer->selected_options ? json_decode($answer->selected_options, true) : null,
-                    'file_paths' => $answer->file_paths ? json_decode($answer->file_paths, true) : null,
+                    'selected_options' => $answer->selected_options ?? null,
+                    'file_paths' => $answer->file_paths ?? null,
                 ];
         }
     }

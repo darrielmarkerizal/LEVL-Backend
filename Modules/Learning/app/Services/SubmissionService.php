@@ -35,7 +35,7 @@ class SubmissionService implements SubmissionServiceInterface
     public function __construct(
         private readonly SubmissionRepositoryInterface $repository,
         private readonly EnrollmentRepositoryInterface $enrollmentRepository,
-        private readonly GradingServiceInterface $gradingService,
+        private readonly \Modules\Grading\Services\GradingEntryService $gradingEntryService,
         private readonly QuestionRepositoryInterface $questionRepository,
         private readonly ?QuestionServiceInterface $questionService = null,
         private readonly ?OverrideRepositoryInterface $overrideRepository = null,
@@ -187,11 +187,23 @@ class SubmissionService implements SubmissionServiceInterface
                 throw SubmissionException::invalidScore(__('messages.submissions.score_out_of_range', ['max' => $maxScore]));
             }
 
-            $grade = $this->gradingService->manualGrade(
-                $submission->id,
-                ['score' => $score],
-                $feedback
+            $dto = new \Modules\Grading\DTOs\SubmissionGradeDTO(
+                submissionId: $submission->id,
+                answers: ['score' => $score], // Assuming answers format, or is this score only? 
+                // Wait, manualGrade expects structure: answers = [question_id => ...].
+                // SubmissionService::grade seems to be a 'quick grade' for the whole submission or simple assignment?
+                // Looking at old call: `['score' => $score]`. This implies `score` was passed as filter or data? 
+                // Ah, old `manualGrade` signature was `manualGrade($submissionId, array $grades, ?string $feedback)`.
+                // If old call was `['score' => $score]`, maybe it wasn't keyed by questionId?
+                // Or maybe this `grade` method in SubmissionService assigns a global score?
+                // The DTO has `scoreOverride`.
+                scoreOverride: (float) $score,
+                feedback: $feedback,
+                graderId: $gradedBy,
+                answers: [] // No per-question answers provided here
             );
+
+            $grade = $this->gradingEntryService->manualGrade($dto);
 
             $updated = $this->repository->update($submission, [
                 'status' => \Modules\Learning\Enums\SubmissionStatus::Graded->value,

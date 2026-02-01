@@ -6,7 +6,6 @@ use App\Support\Traits\RegistersModuleConfig;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Modules\Grading\Repositories\GradingRepository;
-use Modules\Grading\Services\GradingService;
 use Nwidart\Modules\Traits\PathNamespace;
 
 class GradingServiceProvider extends ServiceProvider
@@ -47,7 +46,7 @@ class GradingServiceProvider extends ServiceProvider
     {
         $this->app->bind(GradingRepositoryInterface::class, GradingRepository::class);
 
-        $this->app->bind(GradingServiceInterface::class, GradingService::class);
+
     }
 
     protected function registerCommands(): void
