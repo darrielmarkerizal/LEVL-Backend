@@ -16,7 +16,7 @@ use Modules\Gamification\Models\UserChallengeCompletion;
 class ChallengeFinder
 {
     
-    public function getUserChallenges(int $userId): Collection
+    public function getUserChallengesQuery(int $userId): \Illuminate\Database\Eloquent\Builder
     {
         return UserChallengeAssignment::with('challenge.badge')
             ->where('user_id', $userId)
@@ -29,8 +29,17 @@ class ChallengeFinder
                 $query->whereNull('expires_at')
                     ->orWhere('expires_at', '>', now());
             })
-            ->orderBy('expires_at')
-            ->get();
+            ->orderBy('expires_at');
+    }
+
+    public function getUserChallenges(int $userId): Collection
+    {
+        return $this->getUserChallengesQuery($userId)->get();
+    }
+    
+    public function getUserChallengesPaginated(int $userId, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        return $this->getUserChallengesQuery($userId)->paginate($perPage);
     }
 
     public function getActiveChallenge(int $challengeId): ?Challenge

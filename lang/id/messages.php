@@ -577,17 +577,7 @@ return [
         'not_completed_cannot_claim' => 'Tantangan belum selesai, tidak dapat mengklaim hadiah.',
     ],
 
-    // Gamification Module
-    'gamification' => [
-        'points_awarded' => 'Poin berhasil diberikan.',
-        'leaderboard_updated' => 'Peringkat leaderboard berhasil diperbarui.',
-        'updating_leaderboard' => 'Memperbarui leaderboard...',
-        'badges_retrieved' => 'Badge berhasil diambil.',
-        'achievements_retrieved' => 'Pencapaian berhasil diambil.',
-        'points_history_retrieved' => 'Riwayat poin berhasil diambil.',
-        'leaderboard_retrieved' => 'Leaderboard berhasil diambil.',
-        'levels_retrieved' => 'Data level berhasil diambil.',
-    ],
+
 
     // Forums Module
     'forums' => [

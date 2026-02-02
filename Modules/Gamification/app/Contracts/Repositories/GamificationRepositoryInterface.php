@@ -30,4 +30,8 @@ interface GamificationRepositoryInterface
     public function upsertLeaderboard(?int $courseId, int $userId, int $rank): Leaderboard;
 
     public function deleteGlobalLeaderboardExcept(array $userIds): int;
+
+    public function countByUserId(int $userId): int;
+
+    public function findByUserId(int $userId): Collection;
 }

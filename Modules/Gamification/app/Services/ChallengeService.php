@@ -59,6 +59,11 @@ class ChallengeService implements ChallengeServiceInterface
         return $this->finder->getUserChallenges($userId);
     }
 
+    public function getUserChallengesPaginated(int $userId, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        return $this->finder->getUserChallengesPaginated($userId, $perPage);
+    }
+
     public function getActiveChallenge(int $challengeId): ?Challenge
     {
         return $this->finder->getActiveChallenge($challengeId);

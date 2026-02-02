@@ -144,7 +144,7 @@ class CourseFinder
         $builder = QueryBuilder::for(
             Course::with([
                 'admins:id,name,username,email,status,account_status',
-                'media:id,model_type,model_id,collection_name,file_name,disk',
+                'media:id,model_type,model_id,collection_name,file_name,disk,updated_at',
             ])->withCount('admins'),
             $request
         );
