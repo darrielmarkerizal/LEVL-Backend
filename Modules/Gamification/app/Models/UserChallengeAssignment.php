@@ -67,16 +67,13 @@ class UserChallengeAssignment extends Model
         return $this->expires_at && $this->expires_at->isPast();
     }
 
-    public function isCompleted(): bool
+    public function getStatusAttribute($value)
     {
-        return $this->status === ChallengeAssignmentStatus::Completed
-            || $this->status === ChallengeAssignmentStatus::Claimed;
-    }
+        if ($this->isCriteriaMet() && $value !== ChallengeAssignmentStatus::Claimed->value && $value !== ChallengeAssignmentStatus::Completed->value) {
+            return ChallengeAssignmentStatus::Completed;
+        }
 
-    public function isClaimable(): bool
-    {
-        return $this->status === ChallengeAssignmentStatus::Completed
-            && ! $this->reward_claimed;
+        return $value;
     }
 
     public function getProgressPercentage(): float
@@ -86,7 +83,20 @@ class UserChallengeAssignment extends Model
             return 100.0;
         }
 
-        return min(100.0, ($this->current_progress / $target) * 100);
+        $percentage = min(100.0, ($this->current_progress / $target) * 100);
+
+        if ($percentage >= 100) {
+            return 100.0;
+        }
+
+        return $percentage;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === ChallengeAssignmentStatus::Completed
+            || $this->status === ChallengeAssignmentStatus::Claimed
+            || $this->isCriteriaMet();
     }
 
     public function isCriteriaMet(): bool

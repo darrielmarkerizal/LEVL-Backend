@@ -6,14 +6,14 @@ namespace Modules\Common\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Meilisearch\Exceptions\ApiException;
-use Modules\Common\Repositories\AchievementRepository;
+use Modules\Common\Repositories\ChallengeManagementRepository;
 use Modules\Gamification\Models\Challenge;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
-class AchievementService
+class ChallengeManagementService
 {
-    public function __construct(private readonly AchievementRepository $repository) {}
+    public function __construct(private readonly ChallengeManagementRepository $repository) {}
 
     public function paginate(int $perPage = 15, array $params = []): LengthAwarePaginator
     {

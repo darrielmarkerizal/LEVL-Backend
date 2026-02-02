@@ -59,6 +59,17 @@ class BadgeService
         return DB::transaction(function () use ($data, $files) {
             $badge = $this->repository->create($data);
 
+            if (isset($data['rules'])) {
+                foreach ($data['rules'] as $rule) {
+                    \Modules\Gamification\Models\BadgeRule::create([
+                        'badge_id' => $badge->id,
+                        'criterion' => $rule['criterion'],
+                        'operator' => $rule['operator'],
+                        'value' => $rule['value'],
+                    ]);
+                }
+            }
+
             if (isset($files['icon'])) {
                 $badge->addMedia($files['icon'])
                     ->toMediaCollection('icon');
@@ -83,6 +94,19 @@ class BadgeService
 
         return DB::transaction(function () use ($badge, $data, $files) {
             $updated = $this->repository->update($badge, $data);
+
+            if (isset($data['rules'])) {
+                // Sync rules: Delete existing and create new ones (simplest approach for now)
+                \Modules\Gamification\Models\BadgeRule::where('badge_id', $badge->id)->delete();
+                foreach ($data['rules'] as $rule) {
+                    \Modules\Gamification\Models\BadgeRule::create([
+                        'badge_id' => $badge->id,
+                        'criterion' => $rule['criterion'],
+                        'operator' => $rule['operator'],
+                        'value' => $rule['value'],
+                    ]);
+                }
+            }
 
             if (isset($files['icon'])) {
                 $updated->clearMediaCollection('icon');

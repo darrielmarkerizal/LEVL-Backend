@@ -28,6 +28,10 @@ class BadgeUpdateRequest extends FormRequest
             'type' => ['sometimes', 'required', 'string', 'in:'.implode(',', array_column(BadgeType::cases(), 'value'))],
             'threshold' => ['nullable', 'integer', 'min:1'],
             'icon' => ['nullable', 'file', 'mimes:jpeg,png,svg,webp', 'max:2048'],
+            'rules' => ['nullable', 'array'],
+            'rules.*.criterion' => ['required', 'string', 'max:50'],
+            'rules.*.operator' => ['required', 'string', 'in:=,>=,>'],
+            'rules.*.value' => ['required', 'integer', 'min:1'],
         ];
     }
 }

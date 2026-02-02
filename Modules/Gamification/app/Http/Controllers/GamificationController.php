@@ -48,12 +48,12 @@ class GamificationController extends Controller
         return $this->paginateResponse($points, __('gamification.points_history_retrieved'));
     }
 
-    public function achievements(Request $request): JsonResponse
+    public function milestones(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
         $data = $this->gamificationService->getAchievements($userId);
 
-        return $this->success($data, __('gamification.achievements_retrieved'));
+        return $this->success($data, __('gamification.milestones_retrieved'));
     }
 
     public function unitLevels(Request $request, string $slug): JsonResponse

@@ -38,26 +38,40 @@ class PointManager
         $allowMultiple = (bool) ($options['allow_multiple'] ?? true);
 
         return DB::transaction(function () use ($userId, $points, $reason, $sourceType, $sourceId, $options, $allowMultiple) {
-            if (! $allowMultiple && $this->repository->pointExists($userId, $sourceType, $sourceId, $reason)) {
+            try {
+                // Anti-Farming Checks
+                $resolvedSourceType = $sourceType ?? 'system';
+                
+                if (! $this->checkCooldown($userId, $resolvedSourceType, $reason)) {
+                    return null;
+                }
+                
+                if (! $this->checkDailyCap($userId, $points, $resolvedSourceType)) {
+                    return null;
+                }
+
+                if (! $allowMultiple && $this->repository->pointExists($userId, $sourceType, $sourceId, $reason)) {
+                    return null;
+                }
+
+                $point = $this->repository->createPoint([
+                    'user_id' => $userId,
+                    'points' => $points,
+                    'reason' => $reason,
+                    'source_type' => $resolvedSourceType,
+                    'source_id' => $sourceId,
+                    'description' => $options['description'] ?? null,
+                ]);
+
+                $this->updateUserGamificationStats($userId, $points);
+                $this->updateScopeStats($userId, $points, $sourceType, $sourceId);
+                $this->checkAndIncrementStreak($userId);
+
+                return $point;
+            } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+                // Race condition handled: Point already exists
                 return null;
             }
-
-            $resolvedSourceType = $sourceType ?? 'system';
-
-            $point = $this->repository->createPoint([
-                'user_id' => $userId,
-                'points' => $points,
-                'reason' => $reason,
-                'source_type' => $resolvedSourceType,
-                'source_id' => $sourceId,
-                'description' => $options['description'] ?? null,
-            ]);
-
-            $this->updateUserGamificationStats($userId, $points);
-            $this->updateScopeStats($userId, $points, $sourceType, $sourceId);
-            $this->checkAndIncrementStreak($userId);
-
-            return $point;
         });
     }
 
@@ -243,6 +257,43 @@ class PointManager
             'current_level' => $currentLevel,
         ];
         }
+
+    private function checkCooldown(int $userId, string $sourceType, string $reason): bool
+    {
+        // 10 Seconds Cooldown for 'lesson' completion to prevent rapid-fire API calls
+        if ($sourceType === 'lesson' && $reason === 'completion') {
+            $lastPoint = Point::where('user_id', $userId)
+                ->where('source_type', $sourceType)
+                ->where('reason', $reason)
+                ->latest()
+                ->first();
+
+            if ($lastPoint && $lastPoint->created_at->diffInSeconds(Carbon::now()) < 10) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private function checkDailyCap(int $userId, int $points, string $sourceType): bool
+    {
+        // Daily Cap for 'lesson' farming: Max 5000 XP per day
+        if ($sourceType === 'lesson') {
+            $todayScale = 'gamification.daily_cap.' . $userId . '.' . Carbon::today()->format('Y-m-d');
+            $currentDailyXp = \Illuminate\Support\Facades\Cache::get($todayScale, 0);
+
+            if ($currentDailyXp + $points > 5000) {
+                return false;
+            }
+
+            \Illuminate\Support\Facades\Cache::increment($todayScale, $points);
+            // Cache expires at end of day + buffer
+            if ($currentDailyXp === 0) {
+                \Illuminate\Support\Facades\Cache::put($todayScale, $points, Carbon::tomorrow()->addHour());
+            }
+        }
+        return true;
+    }
 
     private function checkAndIncrementStreak(int $userId): void
     {

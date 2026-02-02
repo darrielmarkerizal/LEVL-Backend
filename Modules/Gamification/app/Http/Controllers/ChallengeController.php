@@ -95,15 +95,16 @@ class ChallengeController extends Controller
     public function completed(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
-        $limit = (int) ($request->input("limit") ?? 15);
-        $limit = $limit > 0 ? $limit : 15;
+        $perPage = (int) ($request->input('per_page') ?? 15);
+        $perPage = $perPage > 0 ? $perPage : 15;
 
-        $completions = $this->challengeService->getCompletedChallenges($userId, $limit);
+        $completions = $this->challengeService->getCompletedChallengesQuery($userId)
+            ->paginate($perPage)
+            ->appends($request->query());
 
-        return $this->success(
-            ChallengeCompletionResource::collection($completions),
-            __("gamification.completions_retrieved"), // Note: I need to check if this key exists, I will add it to gamification.php if not. Wait, messages.php had 'completions_retrieved' under challenges. I should check that.
-        );
+        $completions->getCollection()->transform(fn($item) => new ChallengeCompletionResource($item));
+
+        return $this->paginateResponse($completions, __("gamification.completions_retrieved"));
     }
   
     public function claim(int $challengeId, Request $request): JsonResponse

@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Modules\Common\Http\Requests\Concerns\HasApiValidation;
 use Modules\Gamification\Enums\ChallengeType;
 
-class AchievementStoreRequest extends FormRequest
+class ChallengeStoreRequest extends FormRequest
 {
     use HasApiValidation;
 

@@ -78,7 +78,7 @@ class UserGamificationSeeder extends Seeder
                 Point::create([
                     'user_id' => $user->id,
                     'source_type' => $validSourceTypes[array_rand($validSourceTypes)],
-                    'source_id' => 0, // Placeholder
+                    'source_id' => $i + 1, // Ensure uniqueness per transaction
                     'points' => rand(10, 100),
                     'reason' => PointReason::cases()[array_rand(PointReason::cases())],
                     'description' => 'Simulated activity reward',
@@ -132,10 +132,10 @@ class UserGamificationSeeder extends Seeder
                     ],
                     [
                         'total_xp' => $courseXp,
-                        'current_level' => $courseLevel,
                     ]
                 );
             }
+
         }
 
         $this->command->info('✅ User Gamification Stats & Scope Stats seeded for ' . $users->count() . ' users.');

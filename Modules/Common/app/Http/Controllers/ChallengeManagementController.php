@@ -11,20 +11,20 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Modules\Common\Http\Requests\AchievementStoreRequest;
-use Modules\Common\Http\Requests\AchievementUpdateRequest;
-use Modules\Common\Http\Resources\AchievementResource;
-use Modules\Common\Services\AchievementService;
+use Modules\Common\Http\Requests\ChallengeStoreRequest;
+use Modules\Common\Http\Requests\ChallengeUpdateRequest;
+use Modules\Common\Http\Resources\CommonChallengeResource;
+use Modules\Common\Services\ChallengeManagementService;
 use Modules\Gamification\Models\Challenge;
 
-class AchievementsController extends Controller
+class ChallengeManagementController extends Controller
 {
     use ApiResponse;
     use AuthorizesRequests;
     use HandlesFiltering;
     use ProvidesMetadata;
 
-    public function __construct(private readonly AchievementService $service) {}
+    public function __construct(private readonly ChallengeManagementService $service) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -32,22 +32,22 @@ class AchievementsController extends Controller
         $params = $this->extractFilterParams($request);
         $perPage = $params['per_page'] ?? 15;
         $paginator = $this->service->paginate($perPage, $params);
-        $paginator->getCollection()->transform(fn ($item) => new AchievementResource($item));
+        $paginator->getCollection()->transform(fn ($item) => new CommonChallengeResource($item));
 
         return $this->paginateResponse($paginator);
     }
 
-    public function store(AchievementStoreRequest $request): JsonResponse
+    public function store(ChallengeStoreRequest $request): JsonResponse
     {
         $this->authorize('create', Challenge::class);
-        $achievement = $this->service->create($request->validated());
+        $challenge = $this->service->create($request->validated());
 
-        return $this->created(new AchievementResource($achievement), __('messages.achievements.created'));
+        return $this->created(new CommonChallengeResource($challenge), __('messages.achievements.created'));
     }
 
-    public function show(int $achievement): JsonResponse
+    public function show(int $challenge): JsonResponse
     {
-        $model = $this->service->find($achievement);
+        $model = $this->service->find($challenge);
 
         if (! $model) {
             return $this->error(__('messages.achievements.not_found'), 404);
@@ -55,12 +55,12 @@ class AchievementsController extends Controller
 
         $this->authorize('view', $model);
 
-        return $this->success(new AchievementResource($model));
+        return $this->success(new CommonChallengeResource($model));
     }
 
-    public function update(AchievementUpdateRequest $request, int $achievement): JsonResponse
+    public function update(ChallengeUpdateRequest $request, int $challenge): JsonResponse
     {
-        $model = $this->service->find($achievement);
+        $model = $this->service->find($challenge);
 
         if (! $model) {
             return $this->error(__('messages.achievements.not_found'), 404);
@@ -68,14 +68,14 @@ class AchievementsController extends Controller
 
         $this->authorize('update', $model);
 
-        $updated = $this->service->update($achievement, $request->validated());
+        $updated = $this->service->update($challenge, $request->validated());
 
-        return $this->success(new AchievementResource($updated), __('messages.achievements.updated'));
+        return $this->success(new CommonChallengeResource($updated), __('messages.achievements.updated'));
     }
 
-    public function destroy(int $achievement): JsonResponse
+    public function destroy(int $challenge): JsonResponse
     {
-        $model = $this->service->find($achievement);
+        $model = $this->service->find($challenge);
 
         if (! $model) {
             return $this->error(__('messages.achievements.not_found'), 404);
@@ -83,7 +83,7 @@ class AchievementsController extends Controller
 
         $this->authorize('delete', $model);
 
-        $this->service->delete($achievement);
+        $this->service->delete($challenge);
 
         return $this->success([], __('messages.achievements.deleted'));
     }

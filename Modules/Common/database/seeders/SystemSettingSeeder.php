@@ -78,6 +78,7 @@ class SystemSettingSeeder extends Seeder
             // ============================================
             ['key' => 'gamification.enable', 'value' => 'true', 'type' => 'boolean'],
             ['key' => 'gamification.points.lesson_complete', 'value' => '10', 'type' => 'number'],
+            ['key' => 'gamification.points.unit_complete', 'value' => '20', 'type' => 'number'],
             ['key' => 'gamification.points.assignment_submit', 'value' => '20', 'type' => 'number'],
             ['key' => 'gamification.points.quiz_complete', 'value' => '30', 'type' => 'number'],
             ['key' => 'gamification.points.course_complete', 'value' => '50', 'type' => 'number'],

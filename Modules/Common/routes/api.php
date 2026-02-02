@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\Api\ActivityLogController;
 use Illuminate\Support\Facades\Route;
-use Modules\Common\Http\Controllers\AchievementsController;
 use Modules\Common\Http\Controllers\AuditLogController;
 use Modules\Common\Http\Controllers\BadgesController;
+use Modules\Common\Http\Controllers\ChallengeManagementController;
 use Modules\Common\Http\Controllers\LevelConfigsController;
 use Modules\Common\Http\Controllers\MasterDataController;
 use Modules\Schemes\Http\Controllers\TagController;
@@ -77,14 +77,14 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    Route::prefix('achievements')->name('achievements.')->group(function () {
-        Route::get('/', [AchievementsController::class, 'index'])->name('index');
-        Route::get('/{achievement}', [AchievementsController::class, 'show'])->name('show');
+    Route::prefix('management/challenges')->name('challenges.')->group(function () {
+        Route::get('/', [ChallengeManagementController::class, 'index'])->name('index');
+        Route::get('/{challenge}', [ChallengeManagementController::class, 'show'])->name('show');
 
         Route::middleware(['auth:api'])->group(function () {
-            Route::post('/', [AchievementsController::class, 'store'])->name('store');
-            Route::put('/{achievement}', [AchievementsController::class, 'update'])->name('update');
-            Route::delete('/{achievement}', [AchievementsController::class, 'destroy'])->name('destroy');
+            Route::post('/', [ChallengeManagementController::class, 'store'])->name('store');
+            Route::put('/{challenge}', [ChallengeManagementController::class, 'update'])->name('update');
+            Route::delete('/{challenge}', [ChallengeManagementController::class, 'destroy'])->name('destroy');
         });
     });
 });
