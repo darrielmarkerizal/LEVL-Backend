@@ -24,11 +24,14 @@ class LeaderboardController extends Controller
         $page = $request->input('page', 1);
         
         $courseId = null;
+        $courseId = null;
         if ($slug = $request->input('course_slug')) {
             $course = \Modules\Schemes\Models\Course::where('slug', $slug)->first();
             if ($course) {
                 $courseId = $course->id;
             }
+        } else {
+             // If scope_type is global or not set, courseId remains null (Global)
         }
 
         $leaderboard = $this->leaderboardService->getGlobalLeaderboard($perPage, $page, $courseId);
@@ -50,6 +53,11 @@ class LeaderboardController extends Controller
              $rankData = $this->leaderboardService->getUserRank($user->id);
              $additionalMeta['my_rank'] = [
                 'rank' => $rankData['rank'],
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'avatar_url' => $user->avatar_url,
+                ],
                 'total_xp' => $rankData['total_xp'],
                 'level' => $rankData['level'],
             ];

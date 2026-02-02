@@ -69,6 +69,34 @@ class ChallengeService implements ChallengeServiceInterface
         return $this->finder->getActiveChallenge($challengeId);
     }
 
+    public function getCompletedChallengesQuery(int $userId): QueryBuilder
+    {
+        return QueryBuilder::for(\Modules\Gamification\Models\UserChallengeCompletion::class)
+            ->with('challenge.badge')
+            ->where('user_id', $userId)
+            ->allowedFilters([
+                AllowedFilter::partial('challenge.title'),
+                AllowedFilter::exact('challenge.type'),
+                AllowedFilter::callback('search', function ($query, $value) {
+                    try {
+                        // Strictly Meilisearch as requested
+                        $ids = \Modules\Gamification\Models\Challenge::search($value)->keys()->toArray();
+                        if (!empty($ids)) {
+                            $query->whereIn('challenge_id', $ids);
+                        } else {
+                            $query->whereRaw('1 = 0');
+                        }
+                    } catch (\Exception $e) {
+                         // Fallback is strictly forbidden by user request ("TIDAK BOLEH ADA QUERY LIKE")
+                         // So we return no results if Meilisearch fails
+                         $query->whereRaw('1 = 0');
+                    }
+                }),
+            ])
+            ->allowedSorts(['completed_date', 'points_earned'])
+            ->defaultSort('-completed_date');
+    }
+
     public function getCompletedChallenges(int $userId, int $limit = 15): Collection
     {
         return $this->finder->getCompletedChallenges($userId, $limit);

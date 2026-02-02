@@ -14,6 +14,7 @@ class CommonDatabaseSeeder extends Seeder
         $this->call([
             SystemSettingSeeder::class,
             LevelConfigSeeder::class,
+            CategorySeeder::class,
         ]);
     }
 }

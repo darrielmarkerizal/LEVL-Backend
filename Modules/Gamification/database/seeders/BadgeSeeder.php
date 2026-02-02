@@ -127,6 +127,25 @@ class BadgeSeeder extends Seeder
                      $this->command->error("Failed to attach media to {$badge->code}: " . $e->getMessage());
                 }
             }
+
+            // Sync Rules
+            if (in_array($badge->code, ['first_step', 'course_finisher'])) {
+                 $criterion = match ($badge->code) {
+                     'first_step' => 'lesson_count',
+                     'course_finisher' => 'course_count',
+                     default => null,
+                 };
+                 
+                 if ($criterion) {
+                     \Modules\Gamification\Models\BadgeRule::firstOrCreate(
+                         ['badge_id' => $badge->id, 'criterion' => $criterion],
+                         [
+                             'operator' => '>=', 
+                             'value' => 1
+                         ]
+                     );
+                 }
+            }
         }
         
         // Clean up temp file

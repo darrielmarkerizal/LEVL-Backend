@@ -8,7 +8,10 @@ use Modules\Schemes\Events\LessonCompleted;
 
 class AwardXpForLessonCompleted
 {
-    public function __construct(private GamificationService $gamification) {}
+    public function __construct(
+        private GamificationService $gamification,
+        private \Modules\Gamification\Services\Support\BadgeRuleEvaluator $evaluator
+    ) {}
 
     public function handle(LessonCompleted $event): void
     {
@@ -32,6 +35,12 @@ class AwardXpForLessonCompleted
                 'allow_multiple' => false,
             ]
         );
+
+        // Evaluate Dynamic Badge Rules
+        $user = \Modules\Auth\Models\User::find($userId);
+        if ($user) {
+            $this->evaluator->evaluate($user, 'lesson_completed');
+        }
     }
 }
 

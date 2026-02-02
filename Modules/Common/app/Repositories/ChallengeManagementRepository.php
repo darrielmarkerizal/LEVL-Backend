@@ -7,7 +7,7 @@ namespace Modules\Common\Repositories;
 use App\Repositories\BaseRepository;
 use Modules\Gamification\Models\Challenge;
 
-class AchievementRepository extends BaseRepository
+class ChallengeManagementRepository extends BaseRepository
 {
     protected function model(): string
     {

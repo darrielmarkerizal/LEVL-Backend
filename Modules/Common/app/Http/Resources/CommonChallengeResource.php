@@ -6,7 +6,7 @@ namespace Modules\Common\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AchievementResource extends JsonResource
+class CommonChallengeResource extends JsonResource
 {
     public function toArray($request): array
     {

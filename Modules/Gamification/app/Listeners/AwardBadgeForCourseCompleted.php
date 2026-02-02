@@ -7,7 +7,10 @@ use Modules\Schemes\Events\CourseCompleted;
 
 class AwardBadgeForCourseCompleted
 {
-    public function __construct(private GamificationService $gamification) {}
+    public function __construct(
+        private GamificationService $gamification,
+        private \Modules\Gamification\Services\Support\BadgeRuleEvaluator $evaluator
+    ) {}
 
     public function handle(CourseCompleted $event): void
     {
@@ -43,5 +46,8 @@ class AwardBadgeForCourseCompleted
                 ]
             );
         }
+
+        // Evaluate Dynamic Badge Rules
+        $this->evaluator->evaluate($enrollment->user, 'course_completed');
     }
 }
