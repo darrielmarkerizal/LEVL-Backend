@@ -22,8 +22,11 @@ class ChallengeController extends Controller
     {
         $userId = $request->user()?->id;
 
+        $perPage = (int) ($request->input("per_page") ?? 15);
+        $perPage = $perPage > 0 ? $perPage : 15;
+
         $challenges = $this->challengeService->getChallengesQuery($userId)
-            ->paginate($request->input("per_page", 15))
+            ->paginate($perPage)
             ->appends($request->query());
 
         if ($userId) {
@@ -81,21 +84,25 @@ class ChallengeController extends Controller
     public function myChallenges(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
-        $challenges = $this->challengeService->getUserChallenges($userId);
+        $perPage = (int) ($request->input('per_page') ?? 15);
+        $perPage = $perPage > 0 ? $perPage : 15;
+        $challenges = $this->challengeService->getUserChallengesPaginated($userId, $perPage);
+        $challenges->appends($request->query());
 
-        return $this->success(UserChallengeAssignmentResource::collection($challenges));
+        return $this->paginateResponse($challenges, __("messages.challenges.list_retrieved"));
     }
 
     public function completed(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
-        $limit = $request->input("limit", 15);
+        $limit = (int) ($request->input("limit") ?? 15);
+        $limit = $limit > 0 ? $limit : 15;
 
         $completions = $this->challengeService->getCompletedChallenges($userId, $limit);
 
         return $this->success(
-            ["completions" => ChallengeCompletionResource::collection($completions)],
-            __("messages.challenges.completions_retrieved"),
+            ChallengeCompletionResource::collection($completions),
+            __("gamification.completions_retrieved"), // Note: I need to check if this key exists, I will add it to gamification.php if not. Wait, messages.php had 'completions_retrieved' under challenges. I should check that.
         );
     }
   

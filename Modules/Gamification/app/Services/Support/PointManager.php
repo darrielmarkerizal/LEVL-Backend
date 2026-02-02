@@ -55,6 +55,7 @@ class PointManager
 
             $this->updateUserGamificationStats($userId, $points);
             $this->updateScopeStats($userId, $points, $sourceType, $sourceId);
+            $this->checkAndIncrementStreak($userId);
 
             return $point;
         });
@@ -232,5 +233,25 @@ class PointManager
             'current_xp' => $totalXp,
             'current_level' => $currentLevel,
         ];
+        }
+
+    private function checkAndIncrementStreak(int $userId): void
+    {
+        $stats = $this->repository->getOrCreateStats($userId);
+        $lastActivityDate = $stats->last_activity_date ? Carbon::parse($stats->last_activity_date) : null;
+        $today = Carbon::today();
+
+        if (! $lastActivityDate) {
+            $stats->current_streak = 1;
+            $stats->longest_streak = max($stats->longest_streak, 1);
+        } elseif ($lastActivityDate->isYesterday()) {
+            $stats->current_streak++;
+            $stats->longest_streak = max($stats->longest_streak, $stats->current_streak);
+        } elseif ($lastActivityDate->lt(Carbon::yesterday())) {
+            $stats->current_streak = 1;
+        }
+
+        $stats->last_activity_date = $today;
+        $this->repository->saveStats($stats);
     }
 }

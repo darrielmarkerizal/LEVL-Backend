@@ -19,7 +19,8 @@ class LeaderboardController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = min($request->input('per_page', 10), 100);
+        $perPage = (int) ($request->input('per_page') ?? 10);
+        $perPage = min($perPage > 0 ? $perPage : 10, 100);
         $page = $request->input('page', 1);
         
         $courseId = null;
@@ -43,7 +44,18 @@ class LeaderboardController extends Controller
 
         $leaderboard->getCollection()->transform(fn($item) => new LeaderboardResource($item));
 
-        return $this->paginateResponse($leaderboard, __('gamification.leaderboard_retrieved'));
+        // Add user's own rank to meta
+        $additionalMeta = [];
+        if ($user = $request->user()) {
+             $rankData = $this->leaderboardService->getUserRank($user->id);
+             $additionalMeta['my_rank'] = [
+                'rank' => $rankData['rank'],
+                'total_xp' => $rankData['total_xp'],
+                'level' => $rankData['level'],
+            ];
+        }
+
+        return $this->paginateResponse($leaderboard, __('gamification.leaderboard_retrieved'), 200, $additionalMeta);
     }
 
     public function myRank(Request $request): JsonResponse

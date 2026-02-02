@@ -78,9 +78,6 @@ class GamificationServiceProvider extends ServiceProvider
             \Modules\Gamification\Services\LeaderboardService::class
         );
 
-        $this->app->singleton(GamificationService::class, function () {
-            return new GamificationService;
-        });
     }
 
     protected function registerCommands(): void

@@ -31,15 +31,14 @@ class GamificationController extends Controller
         $userId = $request->user()->id;
         $badges = $this->gamificationService->getUserBadges($userId);
 
-        return $this->success([
-            'badges' => UserBadgeResource::collection($badges)
-        ], __('gamification.badges_retrieved'));
+        return $this->success(UserBadgeResource::collection($badges), __('gamification.badges_retrieved'));
     }
 
     public function pointsHistory(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
-        $perPage = $request->input('per_page', 15);
+        $perPage = (int) ($request->input('per_page') ?? 15);
+        $perPage = $perPage > 0 ? $perPage : 15;
 
         $points = $this->gamificationService->getPointsHistory($userId, $perPage);
         $points->appends($request->query());
@@ -64,6 +63,21 @@ class GamificationController extends Controller
         
         $data = $this->gamificationService->getUnitLevels($userId, $course->id);
 
-        return $this->success(['unit_levels' => $data], __('gamification.levels_retrieved'));
+        return $this->success($data, __('gamification.levels_retrieved'));
+    }
+    public function level(Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $stats = $this->gamificationService->getOrCreateStats($userId);
+
+        $data = [
+            'level' => $stats->global_level,
+            'total_xp' => $stats->total_xp,
+            'current_level_xp' => $stats->current_level_xp,
+            'xp_to_next_level' => $stats->xp_to_next_level,
+            'progress' => $stats->progress_to_next_level,
+        ];
+
+        return $this->success($data, __('gamification.level_retrieved'));
     }
 }

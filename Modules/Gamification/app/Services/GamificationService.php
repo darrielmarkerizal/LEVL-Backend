@@ -111,21 +111,26 @@ class GamificationService implements GamificationServiceInterface
 
     public function getUnitLevels(int $userId, int $courseId): Collection
     {
-        return \Modules\Gamification\Models\UserScopeStat::where('user_id', $userId)
+        $units = \Modules\Schemes\Models\Unit::where('course_id', $courseId)
+            ->orderBy('order')
+            ->get(['id', 'title', 'order']);
+
+        $stats = \Modules\Gamification\Models\UserScopeStat::where('user_id', $userId)
             ->where('scope_type', 'unit')
-            ->whereIn('scope_id', function ($query) use ($courseId) {
-                $query->select('id')
-                    ->from('units')
-                    ->where('course_id', $courseId);
-            })
+            ->whereIn('scope_id', $units->pluck('id'))
             ->get()
-            ->map(function ($stat) {
-                return [
-                    'unit_id' => $stat->scope_id,
-                    'level' => $stat->current_level,
-                    'total_xp' => $stat->total_xp,
-                    'progress' => 0, 
-                ];
-            });
+            ->keyBy('scope_id');
+
+        return $units->map(function ($unit) use ($stats) {
+            $stat = $stats->get($unit->id);
+
+            return [
+                'unit_id' => $unit->id,
+                'title' => $unit->title,
+                'level' => $stat?->current_level ?? 1,
+                'total_xp' => $stat?->total_xp ?? 0,
+                'progress' => 0,
+            ];
+        });
     }
 }
