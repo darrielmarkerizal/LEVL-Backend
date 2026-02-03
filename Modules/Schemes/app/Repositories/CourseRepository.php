@@ -43,7 +43,7 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
     {
         $query = $this->query();
 
-        $searchQuery = $params['search'] ?? (request('filter.search') ?? request('search'));
+        $searchQuery = $params['search'] ?? request('search');
 
         if ($searchQuery && trim($searchQuery) !== '') {
             $ids = Course::search($searchQuery)->keys()->toArray();
@@ -74,7 +74,7 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
     {
         $query = $this->query();
 
-        $searchQuery = $params['search'] ?? (request('filter.search') ?? request('search'));
+        $searchQuery = $params['search'] ?? request('search');
 
         if ($searchQuery && trim($searchQuery) !== '') {
             $ids = Course::search($searchQuery)->keys()->toArray();

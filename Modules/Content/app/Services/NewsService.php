@@ -25,7 +25,7 @@ class NewsService implements NewsServiceInterface
     public function getFeed(array $filters = []): LengthAwarePaginator
     {
         $perPage = $filters['per_page'] ?? 15;
-        $searchQuery = request('filter.search') ?? request('search');
+        $searchQuery = request('search');
 
         $builder = QueryBuilder::for(News::class);
 

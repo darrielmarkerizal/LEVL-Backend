@@ -32,7 +32,6 @@ class AuditRepository implements AuditRepositoryInterface
                 AllowedFilter::exact('subject_type'),
                 AllowedFilter::callback('start_date', fn ($q, $v) => $q->where('created_at', '>=', $v)),
                 AllowedFilter::callback('end_date', fn ($q, $v) => $q->where('created_at', '<=', $v)),
-                AllowedFilter::callback('context_search', fn ($q, $v) => $q->where('context', 'like', "%{$v}%")),
             ])
             ->allowedSorts(['created_at', 'action', 'actor_id'])
             ->defaultSort('-created_at')

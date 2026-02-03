@@ -27,7 +27,7 @@ class UnitRepository extends BaseRepository implements UnitRepositoryInterface
     {
         $query = $this->query()->where('course_id', $courseId);
 
-        $searchQuery = $params['search'] ?? request('filter.search') ?? request('search');
+        $searchQuery = $params['search'] ?? request('search');
 
         if ($searchQuery && trim($searchQuery) !== '') {
             $ids = Unit::search($searchQuery)
