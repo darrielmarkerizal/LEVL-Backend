@@ -1,60 +1,59 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Forums\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
 use Modules\Enrollments\Models\Enrollment;
+use Modules\Schemes\Models\Course;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckForumAccess
 {
-     
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
-        if (! $user) {
+        if (!$user) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthenticated.',
             ], 401);
         }
 
-        
-        $schemeId = $request->route('scheme') ?? $request->input('scheme_id');
+        $courseId = $request->route('scheme') ?? $request->input('course_id');
 
-        if (! $schemeId) {
+        if (!$courseId) {
             return response()->json([
                 'success' => false,
-                'message' => 'Scheme ID is required.',
+                'message' => 'Course ID is required.',
             ], 400);
         }
 
-        
-        $isEnrolled = Enrollment::where('user_id', $user->id)
-            ->where('course_id', $schemeId)
-            ->exists();
+        if ($user->hasRole('admin')) {
+            return $next($request);
+        }
 
-        if (! $isEnrolled) {
-            
-            if ($user->hasRole('admin')) {
+        if ($user->hasRole('instructor')) {
+            $isInstructor = Course::where('id', (int) $courseId)
+                ->where('instructor_id', $user->id)
+                ->exists();
+
+            if ($isInstructor) {
                 return $next($request);
             }
+        }
 
-            if ($user->hasRole('instructor')) {
-                $isInstructor = \Modules\Schemes\Models\Course::where('id', $schemeId)
-                    ->where('instructor_id', $user->id)
-                    ->exists();
+        $isEnrolled = Enrollment::where('user_id', $user->id)
+            ->where('course_id', (int) $courseId)
+            ->exists();
 
-                if ($isInstructor) {
-                    return $next($request);
-                }
-            }
-
+        if (!$isEnrolled) {
             return response()->json([
                 'success' => false,
-                'message' => 'You are not enrolled in this scheme.',
+                'message' => 'You do not have access to this forum.',
             ], 403);
         }
 

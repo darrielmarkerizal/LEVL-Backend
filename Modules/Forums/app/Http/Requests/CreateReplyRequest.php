@@ -1,32 +1,111 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Forums\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\Enrollments\Models\Enrollment;
+use Modules\Forums\Models\Reply;
+use Modules\Forums\Models\Thread;
+use Modules\Schemes\Models\Course;
 
 class CreateReplyRequest extends FormRequest
 {
-     
     public function authorize(): bool
     {
-        return true; 
+        $threadId = (int) $this->route('thread');
+        $thread = Thread::find($threadId);
+
+        if (!$thread) {
+            return false;
+        }
+
+        return match ($thread->forumable_type) {
+            Course::class => $this->canAccessCourse($this->user()->id, $thread->forumable_id),
+            \Modules\Learning\Models\Unit::class => $this->canAccessUnit($this->user()->id, $thread->forumable_id),
+            \Modules\Learning\Models\Lesson::class => $this->canAccessLesson($this->user()->id, $thread->forumable_id),
+            \Modules\Learning\Models\Assignment::class => $this->canAccessAssignment($this->user()->id, $thread->forumable_id),
+            default => false,
+        };
     }
 
-     
     public function rules(): array
     {
+        $threadId = (int) $this->route('thread');
+
         return [
-            'content' => 'required|string',
-            'parent_id' => 'nullable|integer|exists:replies,id',
+            'content' => 'required|string|min:1|max:5000',
+            'parent_id' => [
+                'nullable',
+                'integer',
+                'min:1',
+                function ($attribute, $value, $fail) use ($threadId) {
+                    if ($value) {
+                        $parent = Reply::find($value);
+                        if (!$parent || $parent->thread_id !== $threadId) {
+                            $fail('The selected parent reply does not exist in this thread.');
+                        } elseif (!$parent->canHaveChildren()) {
+                            $fail('This reply has reached the maximum nesting level.');
+                        }
+                    }
+                },
+            ],
         ];
     }
 
-     
     public function messages(): array
     {
         return [
             'content.required' => __('validation.required', ['attribute' => __('validation.attributes.content')]),
-            'parent_id.exists' => __('validation.exists', ['attribute' => __('validation.attributes.parent_reply')]),
+            'content.min' => __('validation.min.string', ['attribute' => __('validation.attributes.content'), 'min' => 1]),
+            'content.max' => __('validation.max.string', ['attribute' => __('validation.attributes.content'), 'max' => 5000]),
+            'parent_id.integer' => __('validation.integer', ['attribute' => __('validation.attributes.parent_reply')]),
+            'parent_id.min' => __('validation.min.numeric', ['attribute' => __('validation.attributes.parent_reply'), 'min' => 1]),
         ];
+    }
+
+    private function canAccessCourse(int $userId, int $courseId): bool
+    {
+        if ($this->user()->hasRole(['admin', 'instructor'])) {
+            $course = Course::find($courseId);
+            if ($this->user()->hasRole('instructor') && $course->instructor_id !== $userId) {
+                return Enrollment::where('user_id', $userId)->where('course_id', $courseId)->exists();
+            }
+
+            return true;
+        }
+
+        return Enrollment::where('user_id', $userId)->where('course_id', $courseId)->exists();
+    }
+
+    private function canAccessUnit(int $userId, int $unitId): bool
+    {
+        $unit = \Modules\Learning\Models\Unit::find($unitId);
+        if (!$unit) {
+            return false;
+        }
+
+        return $this->canAccessCourse($userId, $unit->course_id);
+    }
+
+    private function canAccessLesson(int $userId, int $lessonId): bool
+    {
+        $lesson = \Modules\Learning\Models\Lesson::find($lessonId);
+        if (!$lesson) {
+            return false;
+        }
+
+        return $this->canAccessUnit($userId, $lesson->unit_id);
+    }
+
+    private function canAccessAssignment(int $userId, int $assignmentId): bool
+    {
+        $assignment = \Modules\Learning\Models\Assignment::find($assignmentId);
+        if (!$assignment) {
+            return false;
+        }
+
+        return $this->canAccessUnit($userId, $assignment->unit_id);
     }
 }

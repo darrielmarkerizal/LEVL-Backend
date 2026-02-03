@@ -9,7 +9,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Forums\Repositories\ForumStatisticsRepository;
 
- 
 class ForumStatisticsController extends Controller
 {
     use ApiResponse;
@@ -21,7 +20,6 @@ class ForumStatisticsController extends Controller
         $this->statisticsRepository = $statisticsRepository;
     }
 
-     
     public function index(Request $request, int $schemeId): JsonResponse
     {
         $request->validate([
@@ -75,7 +73,6 @@ class ForumStatisticsController extends Controller
         return $this->success($statistics, __('forums.statistics_retrieved'));
     }
 
-     
     public function userStats(Request $request, int $schemeId): JsonResponse
     {
         $request->validate([
