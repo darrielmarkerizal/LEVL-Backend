@@ -21,6 +21,7 @@ class ActivityLogService
     $filters = data_get($params, 'filter', []);
     
     $paginator = \Spatie\QueryBuilder\QueryBuilder::for(ActivityLog::class)
+        ->with(['causer', 'subject'])
         ->allowedFilters([
             'log_name',
             'description',

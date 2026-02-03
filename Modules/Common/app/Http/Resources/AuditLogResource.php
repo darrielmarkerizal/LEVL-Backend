@@ -35,9 +35,10 @@ class AuditLogResource extends JsonResource
             'actor' => [
                 'id' => $auditLog->actor_id,
                 'type' => $auditLog->actor_type,
-                'name' => $this->whenLoaded('actor', function () use ($auditLog) {
-                    return $auditLog->actor->name ?? null;
-                }),
+                'name' => $this->whenLoaded('actor', fn () => $auditLog->actor->name ?? null),
+                'username' => $this->whenLoaded('actor', fn () => $auditLog->actor->username ?? null),
+                'email' => $this->whenLoaded('actor', fn () => $auditLog->actor->email ?? null),
+                'avatar_url' => $this->whenLoaded('actor', fn () => $auditLog->actor->avatar_url ?? null),
             ],
             'subject' => [
                 'id' => $auditLog->subject_id,

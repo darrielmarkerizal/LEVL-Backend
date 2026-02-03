@@ -5,19 +5,13 @@ declare(strict_types=1);
 namespace Modules\Common\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\LengthAwarePaginator as PaginatorInstance;
-use Illuminate\Support\Collection;
 use Modules\Auth\Models\User;
-use Modules\Common\Contracts\Services\AuditServiceInterface;
 use Modules\Common\Models\AuditLog;
-use Modules\Common\Services\AssessmentAuditService;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class AuditLogQueryService
 {
-    public function __construct(
-        private readonly AuditServiceInterface $auditService
-    ) {}
-
     public function canAccess(?User $user): bool
     {
         if ($user === null) {
@@ -29,102 +23,43 @@ class AuditLogQueryService
 
     public function searchAndPaginate(array $validated): LengthAwarePaginator
     {
-        $filters = $this->buildFilters($validated);
-        $auditLogs = $this->auditService->search($filters);
-        
-        return $this->paginateResults($auditLogs, $validated);
+        $perPage = (int) ($validated['per_page'] ?? 15);
+        $perPage = max(1, min($perPage, 100));
+
+        return QueryBuilder::for(AuditLog::class)
+            ->with('actor')
+            ->allowedFilters([
+                AllowedFilter::exact('action'),
+                AllowedFilter::scope('actions', 'action_in'),
+                AllowedFilter::exact('actor_id'),
+                AllowedFilter::exact('actor_type'),
+                AllowedFilter::exact('subject_id'),
+                AllowedFilter::exact('subject_type'),
+                AllowedFilter::scope('created_between'),
+                AllowedFilter::scope('context_contains'),
+                AllowedFilter::scope('assignment_id'),
+                AllowedFilter::scope('student_id'),
+            ])
+            ->allowedSorts(['created_at', 'id', 'action', 'actor_id'])
+            ->defaultSort('-created_at')
+            ->paginate($perPage)
+            ->appends(request()->query());
     }
 
-    private function buildFilters(array $validated): array
+    public function findById(int $id): ?AuditLog
     {
-        $filters = [];
-
-        if (isset($validated['action'])) {
-            $filters['action'] = $validated['action'];
-        }
-
-        if (isset($validated['actions'])) {
-            $filters['actions'] = $validated['actions'];
-        }
-
-        if (isset($validated['actor_id'])) {
-            $filters['actor_id'] = $validated['actor_id'];
-        }
-
-        if (isset($validated['actor_type'])) {
-            $filters['actor_type'] = $validated['actor_type'];
-        }
-
-        if (isset($validated['subject_id'])) {
-            $filters['subject_id'] = $validated['subject_id'];
-        }
-
-        if (isset($validated['subject_type'])) {
-            $filters['subject_type'] = $validated['subject_type'];
-        }
-
-        if (isset($validated['start_date'])) {
-            $filters['start_date'] = $validated['start_date'];
-        }
-
-        if (isset($validated['end_date'])) {
-            $filters['end_date'] = $validated['end_date'];
-        }
-
-        if (isset($validated['context_search'])) {
-            $filters['context_search'] = $validated['context_search'];
-        }
-
-        if (isset($validated['assignment_id'])) {
-            $filters['assignment_id'] = $validated['assignment_id'];
-        }
-
-        if (isset($validated['student_id'])) {
-            $filters['student_id'] = $validated['student_id'];
-        }
-
-        return $filters;
+        return AuditLog::with('actor')->find($id);
     }
 
-    // ... findById ...
-
-    private function paginateResults(Collection $auditLogs, array $validated): LengthAwarePaginator
+    public function getAvailableActions(): array
     {
-        $page = $this->extractPage($validated);
-        $perPage = $this->extractPerPage($validated);
-        $count = $auditLogs->count();
-        
-        $items = $auditLogs->slice(($page - 1) * $perPage, $perPage)->values();
-
-        return new PaginatorInstance(
-            $items,
-            $count,
-            $perPage,
-            $page,
-            [
-                'path' => PaginatorInstance::resolveCurrentPath(),
-                'query' => $validated,
-            ]
-        );
-    }
-
-    // sliceLogs and buildMeta methods can be removed as Paginator handles this.
-
-    private function extractPage(array $validated): int
-    {
-        if (! isset($validated['page'])) {
-            return 1;
-        }
-
-        return is_numeric($validated['page']) ? intval($validated['page']) : 1;
-    }
-
-    private function extractPerPage(array $validated): int
-    {
-        if (! isset($validated['per_page'])) {
-            return 15;
-        }
-
-        return is_numeric($validated['per_page']) ? intval($validated['per_page']) : 15;
+        return [
+            AssessmentAuditService::ACTION_SUBMISSION_CREATED,
+            AssessmentAuditService::ACTION_STATE_TRANSITION,
+            AssessmentAuditService::ACTION_GRADING,
+            AssessmentAuditService::ACTION_ANSWER_KEY_CHANGE,
+            AssessmentAuditService::ACTION_GRADE_OVERRIDE,
+            AssessmentAuditService::ACTION_OVERRIDE_GRANT,
+        ];
     }
 }

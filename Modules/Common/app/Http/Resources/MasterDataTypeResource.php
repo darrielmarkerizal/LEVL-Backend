@@ -12,6 +12,7 @@ class MasterDataTypeResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id' => $this->resource['type'] ?? null,
             'type' => $this->resource['type'] ?? null,
             'label' => $this->resource['label'] ?? null,
             'is_crud' => $this->resource['is_crud'] ?? false,
