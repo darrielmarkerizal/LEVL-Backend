@@ -117,7 +117,7 @@ class MasterDataRepository extends \App\Repositories\BaseRepository implements \
       ->map(fn($item) => $this->transformTypeItem($item));
   }
 
-  private function getAllowedSorts(): array
+  public function getAllowedSorts(): array
   {
     return [
       "type",

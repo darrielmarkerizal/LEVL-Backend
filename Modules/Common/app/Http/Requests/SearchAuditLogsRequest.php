@@ -40,37 +40,22 @@ class SearchAuditLogsRequest extends FormRequest
         ];
 
         return [
-            // Filter by single action type
-            'action' => ['nullable', 'string', 'in:'.implode(',', $validActions)],
+            // Spatie Query Builder Filters
+            'filter.action' => ['nullable', 'string', 'in:'.implode(',', $validActions)],
+            'filter.actions' => ['nullable', 'string'], // Comma separated for scope
+            'filter.actor_id' => ['nullable', 'integer', 'exists:users,id'],
+            'filter.actor_type' => ['nullable', 'string'],
+            'filter.subject_id' => ['nullable', 'integer'],
+            'filter.subject_type' => ['nullable', 'string'],
+            'filter.created_between' => ['nullable', 'string'], // Comma separated YYYY-MM-DD
+            'filter.context_contains' => ['nullable', 'string', 'max:255'],
+            'filter.assignment_id' => ['nullable', 'integer', 'exists:assignments,id'],
+            'filter.student_id' => ['nullable', 'integer', 'exists:users,id'],
 
-            // Filter by multiple action types
-            'actions' => ['nullable', 'array'],
-            'actions.*' => ['string', 'in:'.implode(',', $validActions)],
-
-            // Filter by actor
-            'actor_id' => ['nullable', 'integer', 'exists:users,id'],
-            'actor_type' => ['nullable', 'string'],
-
-            // Filter by subject
-            'subject_id' => ['nullable', 'integer'],
-            'subject_type' => ['nullable', 'string'],
-
-            // Filter by date range
-            'start_date' => ['nullable', 'date', 'before_or_equal:end_date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-
-            // Search in context JSON field
-            'context_search' => ['nullable', 'string', 'max:255'],
-
-            // Filter by assignment_id in context
-            'assignment_id' => ['nullable', 'integer', 'exists:assignments,id'],
-
-            // Filter by student_id in context
-            'student_id' => ['nullable', 'integer', 'exists:users,id'],
-
-            // Pagination
+            // Pagination & Sorting
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'sort' => ['nullable', 'string'],
         ];
     }
 

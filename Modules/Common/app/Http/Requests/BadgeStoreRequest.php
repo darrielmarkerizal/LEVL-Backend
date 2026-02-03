@@ -25,7 +25,7 @@ class BadgeStoreRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
             'type' => ['required', 'string', 'in:'.implode(',', array_column(BadgeType::cases(), 'value'))],
             'threshold' => ['nullable', 'integer', 'min:1'],
-            'icon' => ['nullable', 'file', 'mimes:jpeg,png,svg,webp', 'max:2048'],
+            'icon' => ['required', 'file', 'mimes:jpeg,png,svg,webp', 'max:2048'],
             'rules' => ['nullable', 'array'],
             'rules.*.criterion' => ['required', 'string', 'max:50'],
             'rules.*.operator' => ['required', 'string', 'in:=,>=,>'],

@@ -47,15 +47,41 @@ Mendapatkan daftar log aktivitas user.
             "created_at": "2024-01-01T00:00:00.000000Z",
             "updated_at": "2024-01-01T00:00:00.000000Z",
             "event": "login",
-            "ip_address": "127.0.0.1",
-            "browser": "Chrome",
+            "batch_uuid": null,
+            "device_info": "-",
             "location": {
                 "city": "Jakarta",
                 "region": "DKI Jakarta",
                 "country": "Indonesia"
+            },
+            "causer": {
+                "id": 1,
+                "name": "Super Admin",
+                "username": "superadmin",
+                "email": "superadmin@example.com",
+                "status": "active",
+                "avatar_url": "..."
+            },
+            "subject": {
+                "id": 1,
+                "name": "Super Admin",
+                "username": "superadmin",
+                "email": "superadmin@example.com"
             }
         }
-    ]
+    ],
+    "meta": {
+        "pagination": {
+            "total": 50,
+            "per_page": 15,
+            "current_page": 1,
+            "last_page": 4,
+            "from": 1,
+            "to": 15,
+            "has_next": true,
+            "has_prev": false
+        }
+    }
 }
 ```
 
@@ -77,6 +103,8 @@ Penjelasan mengenai field-field penting dalam Activity Log:
 | `subject_id` | Primary Key ID dari `subject_type`. Jika aksi adalah hapus user dengan ID 5, maka subject_id = 5. | `1`, `100` |
 | `causer_type` | Class Log Activity Causer (Aktor yang melakukan aksi). Biasanya adalah User model. | `Modules\Auth\Models\User` |
 | `causer_id` | ID dari `causer_type` (User ID yang login). Jika null, berarti aksi dilakukan oleh sistem/bot. | `1` (Admin), `null` (System) |
+| `causer` | Object data lengkap dari actor/causer (biasanya User). | `{ "id": 1, "name": "Admin", ... }` |
+| `subject` | Object data partial dari subject. | `{ "id": 10, "name": "Course PHP" }` |
 | `properties` | Metadata tambahan terkait event dalam format JSON. | `{"ip": "127.0.0.1", "browser": "Chrome", "old": {...}, "attributes": {...}}` |
 
 ---
@@ -91,17 +119,19 @@ Mendapatkan daftar audit logs sistem untuk keperluan validasi dan compliance.
 - **Akses**: `Admin`, `Superadmin`
 
 **Query Parameters:**
-| Parameter | Tipe | Wajib | Keterangan | Valid Values / Contoh |
-|-----------|------|-------|------------|-----------------------|
-| `per_page` | integer | Tidak | Pagination | `15` |
-| `page` | integer | Tidak | Halaman | `1` |
-| `action` | string | Tidak | Filter single action | `submission_created` |
-| `actions[]` | array | Tidak | Filter multiple actions | `['grading', 'grade_override']` |
-| `actor_id` | integer | Tidak | ID User Aktor | `1` |
-| `subject_id` | integer | Tidak | ID Subject | `10` |
-| `start_date` | date | Tidak | Filter range start | `2024-01-01` |
-| `end_date` | date | Tidak | Filter range end | `2024-12-31` |
-| `context_search`| string | Tidak | Cari text dalam JSON context | `reason` |
+| Parameter | Tipe | Keterangan | Valid Values / Contoh |
+|-----------|------|------------|-----------------------|
+| `page` | integer | Halaman | `1` |
+| `per_page` | integer | Pagination | `15` |
+| `sort` | string | Sorting (`-created_at`, `created_at`) | `-created_at` |
+| `filter[action]` | string | Filter single action | `submission_created` |
+| `filter[actions]` | string | Filter multiple actions (comma separated) | `grading,grade_override` |
+| `filter[actor_id]` | integer | ID User Aktor | `1` |
+| `filter[subject_id]` | integer | ID Subject | `10` |
+| `filter[created_between]` | string | Filter date range (comma separated `YYYY-MM-DD`) | `2024-01-01,2024-12-31` |
+| `filter[context_contains]`| string | Cari text dalam JSON context | `reason` |
+| `filter[assignment_id]` | integer | Filter assignment ID in context | `5` |
+| `filter[student_id]` | integer | Filter student ID in context | `20` |
 
 **Valid Action Types:**
 - `submission_created`: Siswa membuat submission.
@@ -153,21 +183,101 @@ Mendapatkan daftar tags.
 ```
 
 ### 3.2 Create Tags
-Membuat tag baru. Mendukung pembuatan **Single** atau **Bulk (Array)**.
+[... existing tag docs ...]
 
-- **Method**: `POST`
-- **URL**: `/api/v1/tags`
-- **Akses**: `Superadmin`, `Admin`, `Instructor`
+---
 
-**Request Body (Single):**
+## 4. Master Data (Data Master)
+
+Sistem untuk mengelola data referensi (seperti Kategori, Tipe, Status) yang dinamis namun terpusat.
+
+### 4.1 List Master Data Types
+Mendapatkan daftar tipe master data yang tersedia (cth: `categories`, `tags`, `job_titles`).
+
+- **Method**: `GET`
+- **URL**: `/api/v1/master-data/types`
+- **Akses**: `Authenticated User`
+
+**Query Parameters:**
+| Parameter | Tipe | Keterangan | Valid Values |
+|-----------|------|------------|--------------|
+| `page` | integer | Halaman | `1` |
+| `per_page` | integer | Pagination (Default 15) | `10`, `50` |
+| `search` | string | Pencarian nama tipe atau label | `cat` |
+| `filter[is_crud]` | boolean | Filter tipe yang bisa diedit (CRUD) | `true`, `false` |
+| `sort` | string | Sorting | `type`, `label`, `count`, `last_updated`, `-last_updated` |
+
+**Response Example:**
 ```json
 {
-    "name": "VueJS"
+    "data": [
+        {
+            "key": "categories",
+            "label": "Kategori",
+            "count": 12,
+            "last_updated": "2024-01-01 10:00:00",
+            "is_crud": true
+        }
+    ],
+    "meta": { ... }
 }
 ```
 
-**Request Body (Bulk):**
-Berguna untuk membuat banyak tag sekaligus dari input UI (e.g. creatable select).
+### 4.2 List Master Data Items
+Mendapatkan item-item dari tipe spesifik.
+
+- **Method**: `GET`
+- **URL**: `/api/v1/master-data/{type}`
+- **Akses**: `Authenticated User`
+
+**Query Parameters:**
+| Parameter | Tipe | Keterangan |
+|-----------|------|------------|
+| `page` | integer | Halaman |
+| `per_page` | integer | Pagination |
+| `search` | string | Pencarian Full-Text (Meilisearch) |
+| `filter[is_active]` | boolean | Filter status aktif |
+| `filter[is_system]` | boolean | Filter default system |
+| `filter[value]` | string | Filter exact value |
+| `filter[label]` | string | Filter partial label |
+| `sort` | string | `value`, `label`, `sort_order`, `created_at`, `updated_at` |
+
+### 4.3 Create Master Data Item
+- **Method**: `POST`
+- **URL**: `/api/v1/master-data/{type}`
+- **Akses**: `Superadmin`
+
+**Request Body:**
+```json
+{
+    "value": "vuejs",          // Required: String, Max 255
+    "label": "Vue.js",         // Required: String, Max 255
+    "is_active": true,         // Optional: Boolean
+    "sort_order": 1,           // Optional: Integer
+    "metadata": {              // Optional: Array/JSON
+        "color": "green"
+    }
+}
+```
+
+### 4.4 Update Master Data Item
+- **Method**: `PUT`
+- **URL**: `/api/v1/master-data/{type}/{id}`
+- **Akses**: `Superadmin`
+
+**Request Body:**
+Field bersifat optional (partial update).
+```json
+{
+    "value": "vuejs-updated",
+    "label": "Vue.js Updated",
+    "is_active": false
+}
+```
+
+### 4.5 Delete Master Data Item
+- **Method**: `DELETE`
+- **URL**: `/api/v1/master-data/{type}/{id}`
 ```json
 [
     { "name": "React" },
@@ -259,11 +369,24 @@ Membuat badge baru.
 | `description` | string | Tidak | Deskripsi singkat. |
 | `type` | string | Ya | `achievement`, `milestone`, `completion`. |
 | `threshold` | integer | Tidak | Nilai target (misal: 100 XP). |
-| `icon` | file | Tidak | Image file (jpg, png, svg, webp) max 2MB. |
+| `icon` | file | Ya | Image file (jpg, png, svg, webp) max 2MB. |
 | `rules` | array | Tidak | Array of objects rule otomatisasi. |
 | `rules[0][criterion]`| string | Ya | `lesson_completed`, `xp_earned`, `streak_days` |
 | `rules[0][operator]` | string | Ya | `=`, `>=`, `>` |
 | `rules[0][value]` | integer | Ya | Value target rule. |
+
+**Example Form Data:**
+```bash
+code: first_step
+name: Langkah Awal
+description: Menyelesaikan pelajaran pertama
+type: achievement
+icon: (binary file)
+threshold: 1
+rules[0][criterion]: lesson_completed
+rules[0][operator]: >=
+rules[0][value]: 1
+```
 
 ### 5.3 Update & Delete Badge
 - **Update**: `PUT /api/v1/badges/{badge}` (atau POST `_method=PUT`)

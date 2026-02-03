@@ -100,6 +100,70 @@ class AuditLog extends Model
     }
 
     /**
+     * Scope for filtering by multiple actions.
+     */
+    public function scopeActionIn($query, ...$actions)
+    {
+         if (count($actions) === 1 && is_string($actions[0]) && str_contains($actions[0], ',')) {
+            $actions = explode(',', $actions[0]);
+        }
+        if (count($actions) === 1 && is_array($actions[0])) {
+            $actions = $actions[0];
+        }
+        
+        return $query->whereIn('action', $actions);
+    }
+
+    /**
+     * Scope for date range filtering.
+     */
+    public function scopeCreatedBetween($query, ...$dates)
+    {
+        if (count($dates) === 1 && is_string($dates[0]) && str_contains($dates[0], ',')) {
+            $dates = explode(',', $dates[0]);
+        }
+        if (count($dates) === 1 && is_array($dates[0])) {
+            $dates = $dates[0];
+        }
+
+        if (count($dates) >= 2) {
+            return $query->whereBetween('created_at', [
+                \Carbon\Carbon::parse($dates[0])->startOfDay(), 
+                \Carbon\Carbon::parse($dates[1])->endOfDay()
+            ]);
+        }
+        return $query;
+    }
+
+    /**
+     * Scope for searching in context JSON.
+     */
+    public function scopeContextContains($query, $search)
+    {
+        // Simple text search in JSON, strictly depends on DB capability. 
+        // For Postgres: cast to text or use ->> operator if keys known.
+        // Assuming Postgres here for generic search:
+        return $query->whereRaw("context::text ILIKE ?", ["%{$search}%"]);
+    }
+
+    /**
+     * Scope for assignment_id in context.
+     */
+    public function scopeAssignmentId($query, $id)
+    {
+        return $query->whereRaw("context->>'assignment_id' = ?", [(string)$id]);
+    }
+
+    /**
+     * Scope for student_id in context.
+     */
+    public function scopeStudentId($query, $id)
+    {
+        return $query->whereRaw("context->>'student_id' = ?", [(string)$id]);
+    }
+
+
+    /**
      * Get the target model (legacy polymorphic relationship).
      */
     public function target(): MorphTo

@@ -38,21 +38,21 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::prefix('master-data')->name('master-data.')->group(function () {
+        // Types List
         Route::get('types', [MasterDataController::class, 'types'])->name('types.index');
         
-        Route::middleware(['auth:api'])->group(function () {
-            Route::get('types/{type}', [MasterDataController::class, 'get'])->name('types.show');
-        });
-
-        Route::prefix('types/{type}/items')->name('items.')->group(function () {
-            Route::get('/', [MasterDataController::class, 'index'])->name('index');
-            Route::get('/{id}', [MasterDataController::class, 'show'])->name('show');
-            
-            Route::middleware(['auth:api', 'role:Superadmin'])->group(function () {
-                Route::post('/', [MasterDataController::class, 'store'])->name('store');
-                Route::put('/{id}', [MasterDataController::class, 'update'])->name('update');
-                Route::delete('/{id}', [MasterDataController::class, 'destroy'])->name('destroy');
-            });
+        // Data Items (Paginated)
+        Route::get('{type}', [MasterDataController::class, 'index'])->name('index');
+        // Data Items (All - helpers)
+        Route::get('{type}/all', [MasterDataController::class, 'get'])->name('all');
+        
+        // CRUD Items
+        Route::get('{type}/{id}', [MasterDataController::class, 'show'])->name('show');
+        
+        Route::middleware(['auth:api', 'role:Superadmin'])->group(function () {
+            Route::post('{type}', [MasterDataController::class, 'store'])->name('store');
+            Route::put('{type}/{id}', [MasterDataController::class, 'update'])->name('update');
+            Route::delete('{type}/{id}', [MasterDataController::class, 'destroy'])->name('destroy');
         });
     });
 
