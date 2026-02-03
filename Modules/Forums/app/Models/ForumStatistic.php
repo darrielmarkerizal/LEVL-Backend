@@ -11,9 +11,7 @@ class ForumStatistic extends Model
 {
     use HasFactory;
 
-    /**
-     * Create a new factory instance for the model.
-     */
+     
     protected static function newFactory()
     {
         return \Modules\Forums\Database\Factories\ForumStatisticFactory::new();
@@ -43,49 +41,37 @@ class ForumStatistic extends Model
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Get the scheme (course) that owns the statistic.
-     */
+     
     public function scheme(): BelongsTo
     {
         return $this->belongsTo(Course::class, 'scheme_id');
     }
 
-    /**
-     * Get the user that owns the statistic (null for scheme-wide stats).
-     */
+     
     public function user(): BelongsTo
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class);
     }
 
-    /**
-     * Scope a query to only include statistics for a specific scheme.
-     */
+     
     public function scopeForScheme($query, int $schemeId)
     {
         return $query->where('scheme_id', $schemeId);
     }
 
-    /**
-     * Scope a query to only include statistics for a specific user.
-     */
+     
     public function scopeForUser($query, int $userId)
     {
         return $query->where('user_id', $userId);
     }
 
-    /**
-     * Scope a query to only include scheme-wide statistics (no specific user).
-     */
+     
     public function scopeSchemeWide($query)
     {
         return $query->whereNull('user_id');
     }
 
-    /**
-     * Scope a query to filter by period.
-     */
+     
     public function scopeForPeriod($query, $startDate, $endDate)
     {
         return $query->where('period_start', '>=', $startDate)

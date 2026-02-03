@@ -9,9 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Forums\Repositories\ForumStatisticsRepository;
 
-/**
- * @tags Forum Diskusi
- */
+ 
 class ForumStatisticsController extends Controller
 {
     use ApiResponse;
@@ -23,28 +21,7 @@ class ForumStatisticsController extends Controller
         $this->statisticsRepository = $statisticsRepository;
     }
 
-    /**
-     * Statistik Forum per Scheme
-     *
-     * Mengambil statistik forum untuk scheme tertentu dalam periode waktu tertentu. Dapat juga mengambil statistik per user.
-     *
-     * Requires: Admin, Instructor, Superadmin
-     *
-     * **Filter yang tersedia:**
-     * - `filter[period_start]` (date): Tanggal mulai periode. Default: awal bulan ini
-     * - `filter[period_end]` (date): Tanggal akhir periode. Default: akhir bulan ini
-     * - `filter[user_id]` (integer): ID user untuk statistik individual
-     *
-     * @summary Statistik Forum per Scheme
-     *
-     * @queryParam filter[period_start] date Tanggal mulai periode. Default: awal bulan ini. Example: 2025-01-01
-     * @queryParam filter[period_end] date Tanggal akhir periode. Default: akhir bulan ini. Example: 2025-01-31
-     * @queryParam filter[user_id] integer ID user untuk statistik individual. Example: 1
-     *
-     * @response 200 scenario="Success" {"success": true, "data": {"total_threads": 50, "total_replies": 200, "active_users": 25, "resolved_threads": 30}, "message": "Statistik berhasil diambil."}
-     *
-     * @authenticated
-     */
+     
     public function index(Request $request, int $schemeId): JsonResponse
     {
         $request->validate([
@@ -98,24 +75,7 @@ class ForumStatisticsController extends Controller
         return $this->success($statistics, __('forums.statistics_retrieved'));
     }
 
-    /**
-     * Statistik Forum User
-     *
-     * Mengambil statistik forum untuk user yang sedang login dalam periode waktu tertentu.
-     *
-     * **Filter yang tersedia:**
-     * - `filter[period_start]` (date): Tanggal mulai periode. Default: awal bulan ini
-     * - `filter[period_end]` (date): Tanggal akhir periode. Default: akhir bulan ini
-     *
-     * @summary Statistik Forum User
-     *
-     * @queryParam filter[period_start] date Tanggal mulai periode. Default: awal bulan ini. Example: 2025-01-01
-     * @queryParam filter[period_end] date Tanggal akhir periode. Default: akhir bulan ini. Example: 2025-01-31
-     *
-     * @response 200 scenario="Success" {"success": true, "data": {"threads_created": 5, "replies_posted": 20, "reactions_received": 15, "accepted_answers": 3}, "message": "Statistik user berhasil diambil."}
-     *
-     * @authenticated
-     */
+     
     public function userStats(Request $request, int $schemeId): JsonResponse
     {
         $request->validate([

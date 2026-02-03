@@ -25,24 +25,20 @@ class ModerationService implements ModerationServiceInterface
         $this->replyRepository = $replyRepository;
     }
 
-    /**
-     * Pin a thread.
-     */
+     
     public function pinThread(Thread $thread, User $moderator): Thread
     {
         $this->threadRepository->update($thread, ['is_pinned' => true]);
 
         $this->logModerationAction('pin_thread', $moderator, $thread);
 
-        // Fire event for notifications
+        
         event(new \Modules\Forums\Events\ThreadPinned($thread));
 
         return $thread->fresh();
     }
 
-    /**
-     * Unpin a thread.
-     */
+     
     public function unpinThread(Thread $thread, User $moderator): Thread
     {
         $this->threadRepository->update($thread, ['is_pinned' => false]);
@@ -52,9 +48,7 @@ class ModerationService implements ModerationServiceInterface
         return $thread->fresh();
     }
 
-    /**
-     * Close a thread.
-     */
+     
     public function closeThread(Thread $thread, User $moderator): Thread
     {
         $this->threadRepository->update($thread, ['is_closed' => true]);
@@ -64,9 +58,7 @@ class ModerationService implements ModerationServiceInterface
         return $thread->fresh();
     }
 
-    /**
-     * Reopen a thread.
-     */
+     
     public function reopenThread(Thread $thread, User $moderator): Thread
     {
         $this->threadRepository->update($thread, ['is_closed' => false]);
@@ -76,15 +68,13 @@ class ModerationService implements ModerationServiceInterface
         return $thread->fresh();
     }
 
-    /**
-     * Mark a reply as accepted answer.
-     */
+     
     public function markAsAcceptedAnswer(Reply $reply, User $user): Reply
     {
         return DB::transaction(function () use ($reply, $user) {
             $this->replyRepository->markAsAccepted($reply);
 
-            // Mark thread as resolved
+            
             $thread = $reply->thread;
             $this->threadRepository->update($thread, ['is_resolved' => true]);
 
@@ -94,15 +84,13 @@ class ModerationService implements ModerationServiceInterface
         });
     }
 
-    /**
-     * Unmark a reply as accepted answer.
-     */
+     
     public function unmarkAsAcceptedAnswer(Reply $reply, User $user): Reply
     {
         return DB::transaction(function () use ($reply, $user) {
             $this->replyRepository->unmarkAsAccepted($reply);
 
-            // Mark thread as unresolved
+            
             $thread = $reply->thread;
             $this->threadRepository->update($thread, ['is_resolved' => false]);
 
@@ -112,11 +100,7 @@ class ModerationService implements ModerationServiceInterface
         });
     }
 
-    /**
-     * Delete content with moderation logging.
-     *
-     * @param  Thread|Reply  $content
-     */
+     
     public function moderateDelete($content, User $moderator, string $reason): bool
     {
         $result = false;
@@ -138,11 +122,7 @@ class ModerationService implements ModerationServiceInterface
         return $result;
     }
 
-    /**
-     * Log moderation action.
-     *
-     * @param  Thread|Reply  $content
-     */
+     
     protected function logModerationAction(string $action, User $moderator, $content, array $extra = []): void
     {
         $logData = [

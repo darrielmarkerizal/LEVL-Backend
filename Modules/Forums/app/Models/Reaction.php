@@ -11,18 +11,14 @@ class Reaction extends Model
 {
     use HasFactory;
 
-    /**
-     * Reaction types.
-     */
+     
     const TYPE_LIKE = 'like';
 
     const TYPE_HELPFUL = 'helpful';
 
     const TYPE_SOLVED = 'solved';
 
-    /**
-     * Indicates if the model should be timestamped.
-     */
+     
     public $timestamps = false;
 
     protected $fillable = [
@@ -36,28 +32,19 @@ class Reaction extends Model
         'created_at' => 'datetime',
     ];
 
-    /**
-     * Get the user who created the reaction.
-     */
+     
     public function user(): BelongsTo
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class);
     }
 
-    /**
-     * Get the parent reactable model (thread or reply).
-     */
+     
     public function reactable(): MorphTo
     {
         return $this->morphTo();
     }
 
-    /**
-     * Toggle a reaction for a user on a specific content.
-     * If the reaction exists, it will be removed. Otherwise, it will be created.
-     *
-     * @return bool True if reaction was added, false if removed
-     */
+     
     public static function toggle(int $userId, string $reactableType, int $reactableId, string $type): bool
     {
         $reaction = static::where([
@@ -83,9 +70,7 @@ class Reaction extends Model
         return true;
     }
 
-    /**
-     * Get all available reaction types.
-     */
+     
     public static function getTypes(): array
     {
         return [
@@ -95,9 +80,7 @@ class Reaction extends Model
         ];
     }
 
-    /**
-     * Check if a type is valid.
-     */
+     
     public static function isValidType(string $type): bool
     {
         return in_array($type, self::getTypes());

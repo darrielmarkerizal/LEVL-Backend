@@ -9,7 +9,7 @@ use Spatie\LaravelData\Optional;
 final class UpdateThreadDTO extends Data
 {
     public function __construct(
-        #[Max(255)]
+        
         public string|Optional|null $title,
 
         public string|Optional|null $content,

@@ -16,9 +16,7 @@ class UpdateForumStatistics
         $this->statisticsRepository = $statisticsRepository;
     }
 
-    /**
-     * Handle the event.
-     */
+     
     public function handle($event): void
     {
         $now = Carbon::now();
@@ -28,14 +26,14 @@ class UpdateForumStatistics
         if ($event instanceof ThreadCreated) {
             $thread = $event->thread;
 
-            // Update scheme-wide statistics
+            
             $this->statisticsRepository->updateSchemeStatistics(
                 $thread->scheme_id,
                 $periodStart,
                 $periodEnd
             );
 
-            // Update user statistics
+            
             $this->statisticsRepository->updateUserStatistics(
                 $thread->scheme_id,
                 $thread->author_id,
@@ -46,14 +44,14 @@ class UpdateForumStatistics
             $reply = $event->reply;
             $thread = $reply->thread;
 
-            // Update scheme-wide statistics
+            
             $this->statisticsRepository->updateSchemeStatistics(
                 $thread->scheme_id,
                 $periodStart,
                 $periodEnd
             );
 
-            // Update user statistics
+            
             $this->statisticsRepository->updateUserStatistics(
                 $thread->scheme_id,
                 $reply->author_id,

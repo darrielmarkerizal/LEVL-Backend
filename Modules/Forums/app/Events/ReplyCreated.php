@@ -12,9 +12,7 @@ class ReplyCreated
 
     public Reply $reply;
 
-    /**
-     * Create a new event instance.
-     */
+     
     public function __construct(Reply $reply)
     {
         $this->reply = $reply;

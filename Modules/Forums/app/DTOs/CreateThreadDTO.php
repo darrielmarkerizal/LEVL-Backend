@@ -8,17 +8,17 @@ use Spatie\LaravelData\Attributes\Validation\Required;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
-#[MapInputName(SnakeCaseMapper::class)]
+
 final class CreateThreadDTO extends Data
 {
     public function __construct(
-        #[Required, Max(255)]
+        
         public string $title,
 
-        #[Required]
+        
         public string $content,
 
-        #[MapInputName('course_id')]
+        
         public ?int $courseId = null,
     ) {}
 

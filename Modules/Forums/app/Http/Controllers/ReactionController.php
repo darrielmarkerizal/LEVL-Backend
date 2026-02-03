@@ -11,9 +11,7 @@ use Modules\Forums\Models\Reaction;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 
-/**
- * @tags Forum Diskusi
- */
+ 
 class ReactionController extends Controller
 {
     use ApiResponse;
@@ -22,21 +20,7 @@ class ReactionController extends Controller
         private ReactionRepositoryInterface $reactionRepository
     ) {}
 
-    /**
-     * Toggle Reaksi pada Thread
-     *
-     * Menambah atau menghapus reaksi pada thread. Jika reaksi sudah ada, akan dihapus. Jika belum ada, akan ditambahkan.
-     *
-     *
-     * @summary Toggle Reaksi pada Thread
-     *
-     * @response 200 scenario="Success" {"success": true, "data": {"added": true}, "message": "Reaksi berhasil ditambahkan."}
-     * @response 200 scenario="Success" {"success": true, "data": {"added": false}, "message": "Reaksi berhasil dihapus."}
-     * @response 404 scenario="Not Found" {"success":false,"message":"Thread tidak ditemukan."}
-     * @response 422 scenario="Validation Error" {"success": false, "message": "Validation error", "errors": {"type": ["The selected type is invalid."]}}
-     *
-     * @authenticated
-     */
+     
     public function toggleThreadReaction(Request $request, int $threadId): JsonResponse
     {
         $request->validate([
@@ -73,21 +57,7 @@ class ReactionController extends Controller
         return $this->success(['added' => $added], $message);
     }
 
-    /**
-     * Toggle Reaksi pada Balasan
-     *
-     * Menambah atau menghapus reaksi pada balasan. Jika reaksi sudah ada, akan dihapus. Jika belum ada, akan ditambahkan.
-     *
-     *
-     * @summary Toggle Reaksi pada Balasan
-     *
-     * @response 200 scenario="Success" {"success": true, "data": {"added": true}, "message": "Reaksi berhasil ditambahkan."}
-     * @response 200 scenario="Success" {"success": true, "data": {"added": false}, "message": "Reaksi berhasil dihapus."}
-     * @response 404 scenario="Not Found" {"success":false,"message":"Balasan tidak ditemukan."}
-     * @response 422 scenario="Validation Error" {"success": false, "message": "Validation error", "errors": {"type": ["The selected type is invalid."]}}
-     *
-     * @authenticated
-     */
+     
     public function toggleReplyReaction(Request $request, int $replyId): JsonResponse
     {
         $request->validate([

@@ -28,11 +28,7 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
         $this->replyRepository = $replyRepository;
     }
 
-    /**
-     * Create a new thread.
-     *
-     * @throws \Exception
-     */
+     
     public function createThread(array $data, User $user): Thread
     {
         return DB::transaction(function () use ($data, $user) {
@@ -46,16 +42,14 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
 
             $thread = $this->threadRepository->create($threadData);
 
-            // Fire event for notifications
+            
             event(new \Modules\Forums\Events\ThreadCreated($thread));
 
             return $thread;
         });
     }
 
-    /**
-     * Update a thread.
-     */
+     
     public function updateThread(Thread $thread, array $data): Thread
     {
         $updateData = [];
@@ -75,22 +69,13 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
         return $this->threadRepository->update($thread, $updateData);
     }
 
-    /**
-     * Delete a thread (soft delete).
-     */
+     
     public function deleteThread(Thread $thread, User $user): bool
     {
         return $this->threadRepository->delete($thread, $user->id);
     }
 
-    /**
-     * Get threads for a scheme with sorting and filters.
-     *
-     * Supports:
-     * - filter[scheme_id], filter[author_id], filter[status]
-     * - sort: last_activity_at, created_at, replies_count, views_count (prefix with - for desc)
-     * - include: author, replies, scheme
-     */
+     
     public function getThreadsForScheme(int $schemeId, array $filters = []): LengthAwarePaginator
     {
         $perPage = $filters['per_page'] ?? 15;
@@ -108,17 +93,13 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
         return $query->paginate($perPage);
     }
 
-    /**
-     * Search threads by query.
-     */
+     
     public function searchThreads(string $query, int $schemeId): LengthAwarePaginator
     {
         return $this->threadRepository->searchThreads($query, $schemeId);
     }
 
-    /**
-     * Get a thread with all details.
-     */
+     
     public function getThreadDetail(int $threadId): ?Thread
     {
         $thread = $this->threadRepository->findWithRelations($threadId);
@@ -130,49 +111,46 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
         return $thread;
     }
 
-    /**
-     * Create a reply to a thread or another reply.
-     *
-     * @throws \Exception
-     */
+     
     public function createReply(Thread $thread, array $data, User $user, ?int $parentId = null): Reply
     {
-        // Check if thread is closed
+        $this->validateReplyForThread($thread, $parentId);
+
+        return DB::transaction(fn () => $this->persistReply($thread, $data, $user, $parentId));
+    }
+
+    private function validateReplyForThread(Thread $thread, ?int $parentId): void
+    {
         if ($thread->isClosed()) {
             throw new \Exception(__('messages.forums.cannot_reply_closed_thread'));
         }
 
-        $parent = $parentId ? Reply::find($parentId) : null;
-
-        // Check depth limit if replying to another reply
-        if ($parent && ! $parent->canHaveChildren()) {
-            throw new \Exception(__('messages.forums.max_reply_depth_exceeded'));
+        if ($parentId) {
+            $parent = Reply::find($parentId);
+            if ($parent && ! $parent->canHaveChildren()) {
+                throw new \Exception(__('messages.forums.max_reply_depth_exceeded'));
+            }
         }
-
-        return DB::transaction(function () use ($thread, $data, $user, $parent) {
-            $replyData = [
-                'thread_id' => $thread->id,
-                'parent_id' => $parent?->id,
-                'author_id' => $user->id,
-                'content' => $data['content'],
-            ];
-
-            $reply = $this->replyRepository->create($replyData);
-
-            // Update thread's reply count and last activity
-            $thread->increment('replies_count');
-            $thread->updateLastActivity();
-
-            // Fire event for notifications
-            event(new \Modules\Forums\Events\ReplyCreated($reply));
-
-            return $reply;
-        });
     }
 
-    /**
-     * Update a reply.
-     */
+    private function persistReply(Thread $thread, array $data, User $user, ?int $parentId): Reply
+    {
+        $reply = $this->replyRepository->create([
+            'thread_id' => $thread->id,
+            'parent_id' => $parentId,
+            'author_id' => $user->id,
+            'content' => $data['content'],
+        ]);
+
+        $thread->increment('replies_count');
+        $thread->updateLastActivity();
+
+        event(new \Modules\Forums\Events\ReplyCreated($reply));
+
+        return $reply;
+    }
+
+     
     public function updateReply(Reply $reply, array $data): Reply
     {
         $updateData = [];
@@ -185,9 +163,7 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
         return $this->replyRepository->update($reply, $updateData);
     }
 
-    /**
-     * Delete a reply (soft delete).
-     */
+     
     public function deleteReply(Reply $reply, User $user): bool
     {
         return DB::transaction(function () use ($reply, $user) {
@@ -196,7 +172,7 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
             $result = $this->replyRepository->delete($reply, $user->id);
 
             if ($result) {
-                // Decrement thread's reply count
+                
                 $thread->decrement('replies_count');
             }
 

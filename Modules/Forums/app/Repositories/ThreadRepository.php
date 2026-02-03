@@ -22,14 +22,11 @@ class ThreadRepository extends BaseRepository
 
     protected array $with = ['author'];
 
-    // ========================================================================
-    // Interface Methods - These satisfy ThreadRepositoryInterface
-    // ========================================================================
+    
+    
+    
 
-    /**
-     * Paginate threads with filters.
-     * Satisfies both BaseRepository and ThreadRepositoryInterface signatures.
-     */
+     
     public function paginate(array $filters = [], int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $query = $this->query();
@@ -63,9 +60,9 @@ class ThreadRepository extends BaseRepository
         return $thread;
     }
 
-    // ========================================================================
-    // Additional Helper Methods (Not in interface, for internal use)
-    // ========================================================================
+    
+    
+    
 
     public function pin(Thread $thread): Thread
     {
@@ -95,36 +92,21 @@ class ThreadRepository extends BaseRepository
         return $thread;
     }
 
-    // ========================================================================
-    // Additional Helper Methods (Not in interface, for internal use)
-    // ========================================================================
+    
+    
+    
 
     public function getThreadsForScheme(int $schemeId, array $filters = []): LengthAwarePaginator
     {
-        $query = Thread::forScheme($schemeId)
+        return Thread::forScheme($schemeId)
             ->with(['author', 'replies'])
-            ->withCount('replies');
-
-        if (isset($filters['pinned']) && $filters['pinned']) {
-            $query->pinned();
-        }
-
-        if (isset($filters['resolved']) && $filters['resolved']) {
-            $query->resolved();
-        }
-
-        if (isset($filters['closed'])) {
-            if ($filters['closed']) {
-                $query->closed();
-            } else {
-                $query->open();
-            }
-        }
-
-        $query->orderBy('is_pinned', 'desc')
-            ->orderBy('last_activity_at', 'desc');
-
-        return $query->paginate($filters['per_page'] ?? 20);
+            ->withCount('replies')
+            ->when($filters['pinned'] ?? false, fn ($q) => $q->pinned())
+            ->when($filters['resolved'] ?? false, fn ($q) => $q->resolved())
+            ->when(isset($filters['closed']), fn ($q) => $filters['closed'] ? $q->closed() : $q->open())
+            ->orderBy('is_pinned', 'desc')
+            ->orderBy('last_activity_at', 'desc')
+            ->paginate($filters['per_page'] ?? 20);
     }
 
     public function searchThreads(string $searchQuery, int $schemeId, int $perPage = 20): LengthAwarePaginator

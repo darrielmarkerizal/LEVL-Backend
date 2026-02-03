@@ -1,6 +1,0 @@
-# GitLab CI/CD Pipeline
-.gitlab/
-!.gitlab/ci/
-
-# CI/CD specific files
-CI_CD_VARIABLES_TEMPLATE.env
