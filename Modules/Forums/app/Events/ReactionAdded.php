@@ -12,9 +12,7 @@ class ReactionAdded
 
     public Reaction $reaction;
 
-    /**
-     * Create a new event instance.
-     */
+     
     public function __construct(Reaction $reaction)
     {
         $this->reaction = $reaction;

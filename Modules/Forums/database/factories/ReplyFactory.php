@@ -7,9 +7,7 @@ use Modules\Auth\Models\User;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Forums\Models\Reply>
- */
+ 
 class ReplyFactory extends Factory
 {
     protected $model = Reply::class;
@@ -33,9 +31,7 @@ class ReplyFactory extends Factory
         ]);
     }
 
-    /**
-     * State for nested replies (children)
-     */
+     
     public function nested(Reply $parent): static
     {
         return $this->state(fn (array $attributes) => [
@@ -45,9 +41,7 @@ class ReplyFactory extends Factory
         ]);
     }
 
-    /**
-     * Alias for solution() to match test expectations
-     */
+     
     public function accepted(): static
     {
         return $this->solution();

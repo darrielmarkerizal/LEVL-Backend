@@ -14,15 +14,13 @@ class NotifyUsersOnThreadPinned
         $this->notificationService = $notificationService;
     }
 
-    /**
-     * Handle the event.
-     */
+     
     public function handle(ThreadPinned $event): void
     {
         $thread = $event->thread;
         $scheme = $thread->scheme;
 
-        // Notify all enrolled users
+        
         $enrollments = \Modules\Enrollments\Models\Enrollment::where('course_id', $thread->scheme_id)
             ->where('user_id', '!=', $thread->author_id)
             ->get();

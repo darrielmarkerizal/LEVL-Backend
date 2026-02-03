@@ -16,15 +16,13 @@ class NotifyAuthorOnReaction
         $this->notificationService = $notificationService;
     }
 
-    /**
-     * Handle the event.
-     */
+     
     public function handle(ReactionAdded $event): void
     {
         $reaction = $event->reaction;
         $reactable = $reaction->reactable;
 
-        // Don't notify if user reacted to their own content
+        
         if ($reactable->author_id == $reaction->user_id) {
             return;
         }

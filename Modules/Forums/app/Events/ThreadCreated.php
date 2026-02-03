@@ -12,9 +12,7 @@ class ThreadCreated
 
     public Thread $thread;
 
-    /**
-     * Create a new event instance.
-     */
+     
     public function __construct(Thread $thread)
     {
         $this->thread = $thread;

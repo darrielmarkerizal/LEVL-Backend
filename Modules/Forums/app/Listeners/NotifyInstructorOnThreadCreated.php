@@ -14,15 +14,13 @@ class NotifyInstructorOnThreadCreated
         $this->notificationService = $notificationService;
     }
 
-    /**
-     * Handle the event.
-     */
+     
     public function handle(ThreadCreated $event): void
     {
         $thread = $event->thread;
         $scheme = $thread->scheme;
 
-        // Get instructor for this scheme
+        
         if ($scheme && $scheme->instructor_id) {
             $this->notificationService->send(
                 $scheme->instructor_id,
@@ -37,7 +35,7 @@ class NotifyInstructorOnThreadCreated
             );
         }
 
-        // If author is instructor, notify all enrolled students
+        
         if ($thread->author->hasRole('instructor')) {
             $enrollments = \Modules\Enrollments\Models\Enrollment::where('course_id', $thread->scheme_id)
                 ->where('user_id', '!=', $thread->author_id)
