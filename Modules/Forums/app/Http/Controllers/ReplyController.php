@@ -7,14 +7,12 @@ use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Forums\Contracts\Services\ForumServiceInterface;
-use Modules\Forums\Contracts\Services\ModerationServiceInterface;
 use Modules\Forums\Http\Requests\CreateReplyRequest;
 use Modules\Forums\Http\Requests\UpdateReplyRequest;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 use Modules\Forums\Services\ModerationService;
 
- 
 class ReplyController extends Controller
 {
     use ApiResponse;
@@ -24,8 +22,20 @@ class ReplyController extends Controller
         private readonly ModerationService $moderationService
     ) {}
 
-     
-    public function store(CreateReplyRequest $request, int $threadId): JsonResponse
+    public function index(int $courseId, int $threadId): JsonResponse
+    {
+        $thread = Thread::find($threadId);
+
+        if (! $thread) {
+            return $this->notFound(__('forums.thread_not_found'));
+        }
+
+        $replies = $thread->replies()->with('author')->paginate(20);
+
+        return $this->paginateResponse($replies, __('forums.replies_retrieved'));
+    }
+
+    public function store(CreateReplyRequest $request, int $courseId, int $threadId): JsonResponse
     {
         $thread = Thread::find($threadId);
 
@@ -35,16 +45,11 @@ class ReplyController extends Controller
 
         $this->authorize('create', [Reply::class, $thread]);
 
-        $parentId = $request->input('parent_id');
-        
-        
-
         try {
             $reply = $this->forumService->createReply(
                 $thread,
                 $request->validated(),
-                $request->user(),
-                $parentId
+                $request->user()
             );
         } catch (\Exception $e) {
             return $this->error($e->getMessage(), 400);
@@ -53,8 +58,7 @@ class ReplyController extends Controller
         return $this->created($reply, __('forums.reply_created'));
     }
 
-     
-    public function update(UpdateReplyRequest $request, Reply $reply): JsonResponse
+    public function update(UpdateReplyRequest $request, int $courseId, Reply $reply): JsonResponse
     {
         $this->authorize('update', $reply);
 
@@ -63,23 +67,12 @@ class ReplyController extends Controller
         return $this->success($updatedReply, __('forums.reply_updated'));
     }
 
-     
-    public function destroy(Request $request, Reply $reply): JsonResponse
+    public function destroy(Request $request, int $courseId, Reply $reply): JsonResponse
     {
         $this->authorize('delete', $reply);
 
         $this->forumService->deleteReply($reply, $request->user());
 
         return $this->success(null, __('forums.reply_deleted'));
-    }
-
-     
-    public function accept(Request $request, Reply $reply): JsonResponse
-    {
-        $this->authorize('markAsAccepted', $reply);
-
-        $acceptedReply = $this->moderationService->markAsAcceptedAnswer($reply, $request->user());
-
-        return $this->success($acceptedReply, __('forums.reply_accepted'));
     }
 }
