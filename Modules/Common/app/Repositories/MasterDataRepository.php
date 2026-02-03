@@ -105,12 +105,21 @@ class MasterDataRepository extends \App\Repositories\BaseRepository implements \
 
   private function buildTypesQuery(string $search): SupportCollection
   {
-    return \Spatie\QueryBuilder\QueryBuilder::for(MasterDataItem::class)
+    $query = \Spatie\QueryBuilder\QueryBuilder::for(MasterDataItem::class)
       ->select("type")
       ->selectRaw("COUNT(*) as count")
-      ->selectRaw("MAX(updated_at) as last_updated")
-      ->when($search !== "", fn($query) => $query->where("type", "like", "%{$search}%"))
-      ->groupBy("type")
+      ->selectRaw("MAX(updated_at) as last_updated");
+
+    if ($search !== "") {
+      $ids = MasterDataItem::search($search)->keys()->toArray();
+      if (! empty($ids)) {
+        $query->whereIn('id', $ids);
+      } else {
+        $query->whereRaw('1 = 0');
+      }
+    }
+
+    return $query->groupBy("type")
       ->allowedSorts($this->getAllowedSorts())
       ->defaultSort("type")
       ->get()

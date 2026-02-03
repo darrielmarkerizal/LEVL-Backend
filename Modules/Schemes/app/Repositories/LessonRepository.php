@@ -39,7 +39,7 @@ class LessonRepository extends BaseRepository implements LessonRepositoryInterfa
     {
         $query = $this->query()->where('unit_id', $unitId);
 
-        $searchQuery = $params['search'] ?? request('filter.search') ?? request('search');
+        $searchQuery = $params['search'] ?? request('search');
 
         if ($searchQuery && trim($searchQuery) !== '') {
             $ids = Lesson::search($searchQuery)
