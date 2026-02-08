@@ -51,6 +51,8 @@ class CreateReplyRequest extends FormRequest
                     }
                 },
             ],
+            'attachments' => 'nullable|array|max:5',
+            'attachments.*' => 'file|mimes:jpeg,png,jpg,gif,pdf,mp4,webm,ogg,mov,avi|max:51200',
         ];
     }
 
@@ -62,6 +64,11 @@ class CreateReplyRequest extends FormRequest
             'content.max' => __('validation.max.string', ['attribute' => __('validation.attributes.content'), 'max' => 5000]),
             'parent_id.integer' => __('validation.integer', ['attribute' => __('validation.attributes.parent_reply')]),
             'parent_id.min' => __('validation.min.numeric', ['attribute' => __('validation.attributes.parent_reply'), 'min' => 1]),
+            'attachments.array' => __('validation.array', ['attribute' => 'attachments']),
+            'attachments.max' => __('validation.max.array', ['attribute' => 'attachments', 'max' => 5]),
+            'attachments.*.file' => __('validation.file', ['attribute' => 'attachment']),
+            'attachments.*.mimes' => __('validation.mimes', ['attribute' => 'attachment', 'values' => 'jpeg,png,jpg,gif,pdf,mp4,webm,ogg,mov,avi']),
+            'attachments.*.max' => __('validation.max.file', ['attribute' => 'attachment', 'max' => '50MB']),
         ];
     }
 

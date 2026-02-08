@@ -23,77 +23,53 @@ class ForumDashboardController extends Controller
     public function allThreads(Request $request): JsonResponse
     {
         $user = $request->user();
-        $filters = [
-            'per_page' => (int) $request->input('per_page', 20),
-        ];
+        $filters = $request->all();
         $search = $request->input('search');
 
-        if ($user->hasRole('admin')) {
+        if ($user->hasRole(['Admin', 'Superadmin'])) {
             $threads = $this->threadRepository->getAllThreads($filters, $search);
 
-            return $this->paginateResponse($threads, __('forums.threads_retrieved'));
+            return $this->paginateResponse($threads, __('messages.forums.threads_retrieved'));
         }
 
-        if ($user->hasRole('instructor')) {
+        if ($user->hasRole('Instructor')) {
             $threads = $this->threadRepository->getInstructorThreads($user->id, $filters, $search);
 
-            return $this->paginateResponse($threads, __('forums.threads_retrieved'));
+            return $this->paginateResponse($threads, __('messages.forums.threads_retrieved'));
         }
 
-        return $this->error(__('forums.unauthorized_access'), 403);
+        return $this->error(__('messages.forums.unauthorized_access'), [], 403);
     }
 
     public function myThreads(Request $request): JsonResponse
     {
         $user = $request->user();
-        $filters = [
-            'per_page' => (int) $request->input('per_page', 20),
-        ];
+        $filters = $request->all();
         $search = $request->input('search');
 
         $threads = $this->threadRepository->getUserThreads($user->id, $filters, $search);
 
-        return $this->paginateResponse($threads, __('forums.my_threads_retrieved'));
-    }
-
-    public function recentThreads(Request $request): JsonResponse
-    {
-        $user = $request->user();
-        $limit = (int) $request->input('limit', 10);
-
-        if ($user->hasRole('admin')) {
-            $threads = $this->threadRepository->getRecentThreads($limit);
-
-            return $this->success($threads, __('forums.recent_threads_retrieved'));
-        }
-
-        if ($user->hasRole('instructor')) {
-            $threads = $this->threadRepository->getInstructorRecentThreads($user->id, $limit);
-
-            return $this->success($threads, __('forums.recent_threads_retrieved'));
-        }
-
-        return $this->error(__('forums.unauthorized_access'), 403);
+        return $this->paginateResponse($threads, __('messages.forums.my_threads_retrieved'));
     }
 
     public function trendingThreads(Request $request): JsonResponse
     {
         $user = $request->user();
-        $limit = (int) $request->input('limit', 10);
-        $period = $request->input('period', '7days');
+        $filters = (array) $request->input('filter', []);
+        $search = $request->input('search');
 
-        if ($user->hasRole('admin')) {
-            $threads = $this->threadRepository->getTrendingThreads($limit, $period);
+        if ($user->hasRole(['Admin', 'Superadmin'])) {
+            $threads = $this->threadRepository->getTrendingThreads($filters, $search);
 
-            return $this->success($threads, __('forums.trending_threads_retrieved'));
+            return $this->paginateResponse($threads, __('messages.forums.trending_threads_retrieved'));
         }
 
-        if ($user->hasRole('instructor')) {
-            $threads = $this->threadRepository->getInstructorTrendingThreads($user->id, $limit, $period);
+        if ($user->hasRole('Instructor')) {
+            $threads = $this->threadRepository->getInstructorTrendingThreads($user->id, $filters, $search);
 
-            return $this->success($threads, __('forums.trending_threads_retrieved'));
+            return $this->paginateResponse($threads, __('messages.forums.trending_threads_retrieved'));
         }
 
-        return $this->error(__('forums.unauthorized_access'), 403);
+        return $this->error(__('messages.forums.unauthorized_access'), [], 403);
     }
 }

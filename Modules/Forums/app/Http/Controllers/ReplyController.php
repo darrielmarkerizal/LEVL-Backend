@@ -9,9 +9,11 @@ use Illuminate\Http\Request;
 use Modules\Forums\Contracts\Services\ForumServiceInterface;
 use Modules\Forums\Http\Requests\CreateReplyRequest;
 use Modules\Forums\Http\Requests\UpdateReplyRequest;
+use Modules\Forums\Http\Resources\ReplyResource;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 use Modules\Forums\Services\ModerationService;
+use Modules\Schemes\Models\Course;
 
 class ReplyController extends Controller
 {
@@ -22,57 +24,75 @@ class ReplyController extends Controller
         private readonly ModerationService $moderationService
     ) {}
 
-    public function index(int $courseId, int $threadId): JsonResponse
+    public function index(Course $course, int $threadId): JsonResponse
     {
         $thread = Thread::find($threadId);
 
         if (! $thread) {
-            return $this->notFound(__('forums.thread_not_found'));
+            return $this->notFound(__('messages.forums.thread_not_found'));
         }
 
-        $replies = $thread->replies()->with('author')->paginate(20);
+        $replies = $thread->replies()
+            ->topLevel()
+            ->with([
+                'author',
+                'media',
+                'children' => function ($query) {
+                    $query->with(['author', 'media', 'children' => function ($query) {
+                        $query->with(['author', 'media', 'children']);
+                    }]);
+                }
+            ])
+            ->paginate(20);
 
-        return $this->paginateResponse($replies, __('forums.replies_retrieved'));
+        return $this->paginateResponse(ReplyResource::collection($replies), __('messages.forums.replies_retrieved'));
     }
 
-    public function store(CreateReplyRequest $request, int $courseId, int $threadId): JsonResponse
+    public function store(CreateReplyRequest $request, Course $course, int $threadId): JsonResponse
     {
         $thread = Thread::find($threadId);
 
         if (! $thread) {
-            return $this->notFound(__('forums.thread_not_found'));
+            return $this->notFound(__('messages.forums.thread_not_found'));
         }
 
         $this->authorize('create', [Reply::class, $thread]);
 
         try {
+            $data = $request->validated();
+            $data['attachments'] = $request->file('attachments') ?? [];
+
             $reply = $this->forumService->createReply(
                 $thread,
-                $request->validated(),
+                $data,
                 $request->user()
             );
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 400);
-        }
 
-        return $this->created($reply, __('forums.reply_created'));
+            $reply->load('author', 'media');
+
+            return $this->created(new ReplyResource($reply), __('messages.forums.reply_created'));
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), [], 400);
+        }
     }
 
-    public function update(UpdateReplyRequest $request, int $courseId, Reply $reply): JsonResponse
+    public function update(UpdateReplyRequest $request, Course $course, Reply $reply): JsonResponse
     {
         $this->authorize('update', $reply);
 
         $updatedReply = $this->forumService->updateReply($reply, $request->validated());
 
-        return $this->success($updatedReply, __('forums.reply_updated'));
+        $updatedReply->load('author', 'media');
+
+        return $this->success(new ReplyResource($updatedReply), __('messages.forums.reply_updated'));
     }
 
-    public function destroy(Request $request, int $courseId, Reply $reply): JsonResponse
+    public function destroy(Request $request, Course $course, Reply $reply): JsonResponse
     {
         $this->authorize('delete', $reply);
 
         $this->forumService->deleteReply($reply, $request->user());
 
-        return $this->success(null, __('forums.reply_deleted'));
+        return $this->success(null, __('messages.forums.reply_deleted'));
     }
 }

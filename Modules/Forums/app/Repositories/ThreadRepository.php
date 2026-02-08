@@ -17,7 +17,12 @@ class ThreadRepository extends BaseRepository
         return Thread::class;
     }
 
-    protected array $allowedFilters = ['author_id', 'pinned', 'resolved', 'closed'];
+    public function query(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::query()->withIsMentioned();
+    }
+
+    protected array $allowedFilters = ['author_id', 'pinned', 'resolved', 'closed', 'is_mentioned'];
 
     protected array $allowedSorts = ['id', 'created_at', 'last_activity_at', 'is_pinned', 'views_count', 'replies_count'];
 
@@ -90,10 +95,10 @@ class ThreadRepository extends BaseRepository
     public function getThreadsByForumable(string $forumableType, int $forumableId, array $filters = []): LengthAwarePaginator
     {
         $query = Thread::query()
+            ->withIsMentioned()
             ->where('forumable_type', $forumableType)
             ->where('forumable_id', $forumableId)
-            ->with(['author', 'replies'])
-            ->withCount('replies');
+            ->with(['author', 'replies']);
 
         return $this->filteredPaginate(
             $query,
@@ -103,6 +108,7 @@ class ThreadRepository extends BaseRepository
                 AllowedFilter::scope('pinned'),
                 AllowedFilter::scope('resolved'),
                 AllowedFilter::scope('closed'),
+                AllowedFilter::scope('is_mentioned'),
             ],
             ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
             '-last_activity_at',
@@ -117,16 +123,34 @@ class ThreadRepository extends BaseRepository
 
     public function searchThreadsByForumable(string $searchQuery, string $forumableType, int $forumableId, array $filters = []): LengthAwarePaginator
     {
-        $ids = Thread::search($searchQuery)
+        $query = Thread::query()
+            ->withIsMentioned()
             ->where('forumable_type', $forumableType)
             ->where('forumable_id', $forumableId)
-            ->keys()
-            ->toArray();
+            ->with(['author', 'replies']);
 
-        $query = Thread::query()
-            ->whereIn('id', $ids)
-            ->with(['author', 'replies'])
-            ->withCount('replies');
+        if (! empty(trim($searchQuery))) {
+            $threadIds = Thread::search($searchQuery)
+                ->where('forumable_type', $forumableType)
+                ->where('forumable_id', $forumableId)
+                ->keys()
+                ->toArray();
+
+            $replyThreadIds = \Modules\Forums\Models\Reply::search($searchQuery)
+                ->keys()
+                ->map(fn ($id) => \Modules\Forums\Models\Reply::find($id)?->thread_id)
+                ->filter()
+                ->unique()
+                ->toArray();
+
+            $ids = array_unique(array_merge($threadIds, $replyThreadIds));
+
+            if (! empty($ids)) {
+                $query->whereIn('id', $ids);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
 
         return $this->filteredPaginate(
             $query,
@@ -136,6 +160,7 @@ class ThreadRepository extends BaseRepository
                 AllowedFilter::scope('pinned'),
                 AllowedFilter::scope('resolved'),
                 AllowedFilter::scope('closed'),
+                AllowedFilter::scope('is_mentioned'),
             ],
             ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
             '-last_activity_at',
@@ -150,19 +175,19 @@ class ThreadRepository extends BaseRepository
 
     public function findWithRelations(int $threadId): ?Thread
     {
-        return Thread::with(['author', 'forumable', 'replies.author', 'replies.children'])
-            ->withCount('replies')
+        return Thread::withIsMentioned()
+            ->with(['author', 'forumable', 'replies.author', 'replies.children'])
             ->find($threadId);
     }
 
     public function getPinnedThreads(string $forumableType, int $forumableId): Collection
     {
         return Thread::query()
+            ->withIsMentioned()
             ->where('forumable_type', $forumableType)
             ->where('forumable_id', $forumableId)
             ->pinned()
             ->with(['author'])
-            ->withCount('replies')
             ->orderBy('last_activity_at', 'desc')
             ->get();
     }
@@ -170,12 +195,17 @@ class ThreadRepository extends BaseRepository
     public function getAllThreads(array $filters = [], ?string $search = null): LengthAwarePaginator
     {
         $query = Thread::query()
-            ->with(['author', 'forumable'])
-            ->withCount('replies');
+            ->withIsMentioned()
+            ->with(['author', 'forumable']);
 
-        if ($search) {
+        if ($search && ! empty(trim($search))) {
             $ids = Thread::search($search)->keys()->toArray();
-            $query->whereIn('id', $ids);
+
+            if (! empty($ids)) {
+                $query->whereIn('id', $ids);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         return $this->filteredPaginate(
@@ -186,6 +216,7 @@ class ThreadRepository extends BaseRepository
                 AllowedFilter::scope('pinned'),
                 AllowedFilter::scope('resolved'),
                 AllowedFilter::scope('closed'),
+                AllowedFilter::scope('is_mentioned'),
             ],
             ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
             '-last_activity_at',
@@ -200,17 +231,22 @@ class ThreadRepository extends BaseRepository
             ->toArray();
 
         $query = Thread::query()
+            ->withIsMentioned()
             ->where('forumable_type', \Modules\Schemes\Models\Course::class)
             ->whereIn('forumable_id', $courseIds)
-            ->with(['author', 'forumable'])
-            ->withCount('replies');
+            ->with(['author', 'forumable']);
 
-        if ($search) {
+        if ($search && ! empty(trim($search))) {
             $ids = Thread::search($search)
                 ->where('forumable_type', \Modules\Schemes\Models\Course::class)
                 ->keys()
                 ->toArray();
-            $query->whereIn('id', $ids);
+
+            if (! empty($ids)) {
+                $query->whereIn('id', $ids);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         return $this->filteredPaginate(
@@ -221,6 +257,7 @@ class ThreadRepository extends BaseRepository
                 AllowedFilter::scope('pinned'),
                 AllowedFilter::scope('resolved'),
                 AllowedFilter::scope('closed'),
+                AllowedFilter::scope('is_mentioned'),
             ],
             ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
             '-last_activity_at',
@@ -231,16 +268,21 @@ class ThreadRepository extends BaseRepository
     public function getUserThreads(int $userId, array $filters = [], ?string $search = null): LengthAwarePaginator
     {
         $query = Thread::query()
+            ->withIsMentioned()
             ->where('author_id', $userId)
-            ->with(['author', 'forumable'])
-            ->withCount('replies');
+            ->with(['author', 'forumable']);
 
-        if ($search) {
+        if ($search && ! empty(trim($search))) {
             $ids = Thread::search($search)
                 ->where('author_id', $userId)
                 ->keys()
                 ->toArray();
-            $query->whereIn('id', $ids);
+
+            if (! empty($ids)) {
+                $query->whereIn('id', $ids);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         return $this->filteredPaginate(
@@ -250,6 +292,7 @@ class ThreadRepository extends BaseRepository
                 AllowedFilter::scope('pinned'),
                 AllowedFilter::scope('resolved'),
                 AllowedFilter::scope('closed'),
+                AllowedFilter::scope('is_mentioned'),
             ],
             ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
             '-last_activity_at',
@@ -260,8 +303,8 @@ class ThreadRepository extends BaseRepository
     public function getRecentThreads(int $limit = 10): Collection
     {
         return Thread::query()
+            ->withIsMentioned()
             ->with(['author', 'forumable'])
-            ->withCount('replies')
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();
@@ -274,58 +317,100 @@ class ThreadRepository extends BaseRepository
             ->toArray();
 
         return Thread::query()
+            ->withIsMentioned()
             ->where('forumable_type', \Modules\Schemes\Models\Course::class)
             ->whereIn('forumable_id', $courseIds)
             ->with(['author', 'forumable'])
-            ->withCount('replies')
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();
     }
 
-    public function getTrendingThreads(int $limit = 10, string $period = '7days'): Collection
+    public function getTrendingThreads(array $filters = [], ?string $search = null): LengthAwarePaginator
     {
-        $startDate = match($period) {
-            '24hours' => now()->subDay(),
-            '7days' => now()->subDays(7),
-            '30days' => now()->subDays(30),
-            '90days' => now()->subDays(90),
-            default => now()->subDays(7),
-        };
+        $perPage = (int) ($filters['limit'] ?? $filters['per_page'] ?? 10);
 
-        return Thread::query()
-            ->where('created_at', '>=', $startDate)
-            ->with(['author', 'forumable'])
-            ->withCount('replies')
-            ->orderBy('replies_count', 'desc')
-            ->orderBy('views_count', 'desc')
-            ->limit($limit)
-            ->get();
+        $query = Thread::query()
+            ->withIsMentioned()
+            ->with(['author', 'forumable']);
+
+        if ($search && ! empty(trim($search))) {
+            $ids = Thread::search($search)->keys()->toArray();
+
+            if (! empty($ids)) {
+                $query->whereIn('id', $ids);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        return $this->filteredPaginate(
+            $query,
+            $filters,
+            [
+                AllowedFilter::callback('period', function ($query, $value): void {
+                    $period = (string) $value;
+                    $startDate = match($period) {
+                        '24hours' => now()->subDay(),
+                        '7days' => now()->subDays(7),
+                        '30days' => now()->subDays(30),
+                        '90days' => now()->subDays(90),
+                        default => now()->subDays(7),
+                    };
+                    $query->where('created_at', '>=', $startDate);
+                }),
+            ],
+            ['replies_count', 'views_count', 'created_at'],
+            '-replies_count',
+            $perPage
+        );
     }
 
-    public function getInstructorTrendingThreads(int $instructorId, int $limit = 10, string $period = '7days'): Collection
+    public function getInstructorTrendingThreads(int $instructorId, array $filters = [], ?string $search = null): LengthAwarePaginator
     {
         $courseIds = \Modules\Schemes\Models\Course::where('instructor_id', $instructorId)
             ->pluck('id')
             ->toArray();
+        $perPage = (int) ($filters['limit'] ?? $filters['per_page'] ?? 10);
 
-        $startDate = match($period) {
-            '24hours' => now()->subDay(),
-            '7days' => now()->subDays(7),
-            '30days' => now()->subDays(30),
-            '90days' => now()->subDays(90),
-            default => now()->subDays(7),
-        };
-
-        return Thread::query()
+        $query = Thread::query()
+            ->withIsMentioned()
             ->where('forumable_type', \Modules\Schemes\Models\Course::class)
             ->whereIn('forumable_id', $courseIds)
-            ->where('created_at', '>=', $startDate)
-            ->with(['author', 'forumable'])
-            ->withCount('replies')
-            ->orderBy('replies_count', 'desc')
-            ->orderBy('views_count', 'desc')
-            ->limit($limit)
-            ->get();
-    }
+            ->with(['author', 'forumable']);
 
+        if ($search && ! empty(trim($search))) {
+            $ids = Thread::search($search)
+                ->where('forumable_type', \Modules\Schemes\Models\Course::class)
+                ->keys()
+                ->toArray();
+
+            if (! empty($ids)) {
+                $query->whereIn('id', $ids);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        return $this->filteredPaginate(
+            $query,
+            $filters,
+            [
+                AllowedFilter::callback('period', function ($query, $value): void {
+                    $period = (string) $value;
+                    $startDate = match($period) {
+                        '24hours' => now()->subDay(),
+                        '7days' => now()->subDays(7),
+                        '30days' => now()->subDays(30),
+                        '90days' => now()->subDays(90),
+                        default => now()->subDays(7),
+                    };
+                    $query->where('created_at', '>=', $startDate);
+                }),
+            ],
+            ['replies_count', 'views_count', 'created_at'],
+            '-replies_count',
+            $perPage
+        );
+    }
+}

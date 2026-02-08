@@ -50,12 +50,10 @@ class ReplyPolicy
      
     protected function isModerator(User $user, int $schemeId): bool
     {
-        
-        if ($user->hasRole('admin')) {
+        if ($user->hasRole(['admin', 'superadmin'])) {
             return true;
         }
 
-        
         if ($user->hasRole('instructor')) {
             return \Modules\Schemes\Models\Course::where('id', $schemeId)
                 ->where('instructor_id', $user->id)
@@ -65,15 +63,12 @@ class ReplyPolicy
         return false;
     }
 
-     
     protected function isInstructor(User $user, int $schemeId): bool
     {
-        
-        if ($user->hasRole('admin')) {
+        if ($user->hasRole(['admin', 'superadmin'])) {
             return true;
         }
 
-        
         if ($user->hasRole('instructor')) {
             return \Modules\Schemes\Models\Course::where('id', $schemeId)
                 ->where('instructor_id', $user->id)

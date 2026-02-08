@@ -10,40 +10,21 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Modules\Learning\Models\Submission;
 
-/**
- * Notification sent to students when their grade has been recalculated due to answer key changes.
- *
- * @see Requirements 15.5: THE System SHALL notify affected students of grade changes
- * @see Requirements 21.6: THE System SHALL support email and in-app notification channels
- */
 class GradeRecalculatedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(
         public readonly Submission $submission,
         public readonly float $oldScore,
         public readonly float $newScore
     ) {}
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @param  mixed  $notifiable
-     */
     public function via($notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     */
     public function toMail($notifiable): MailMessage
     {
         $assignmentTitle = $this->submission->assignment?->title ?? 'Assignment';
@@ -62,11 +43,6 @@ class GradeRecalculatedNotification extends Notification implements ShouldQueue
             ->line('If you have any questions about this change, please contact your instructor.');
     }
 
-    /**
-     * Get the array representation of the notification for database storage.
-     *
-     * @param  mixed  $notifiable
-     */
     public function toArray($notifiable): array
     {
         $scoreChange = $this->newScore - $this->oldScore;
@@ -83,9 +59,6 @@ class GradeRecalculatedNotification extends Notification implements ShouldQueue
         ];
     }
 
-    /**
-     * Get the URL to view the submission.
-     */
     protected function getSubmissionUrl(): string
     {
         return config('app.url')."/submissions/{$this->submission->id}";

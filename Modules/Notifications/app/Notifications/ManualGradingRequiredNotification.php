@@ -10,39 +10,20 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Modules\Learning\Models\Submission;
 
-/**
- * Notification sent to instructors when a submission requires manual grading.
- *
- * @see Requirements 21.3: WHEN a submission requires manual grading, THE System SHALL notify assigned instructors
- * @see Requirements 21.6: THE System SHALL support email and in-app notification channels
- */
 class ManualGradingRequiredNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(
         public readonly Submission $submission,
         public readonly int $questionsRequiringGrading = 0
     ) {}
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @param  mixed  $notifiable
-     */
     public function via($notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     */
     public function toMail($notifiable): MailMessage
     {
         $assignmentTitle = $this->submission->assignment?->title ?? 'Assignment';
@@ -62,11 +43,6 @@ class ManualGradingRequiredNotification extends Notification implements ShouldQu
             ->line('Please review and grade the submission at your earliest convenience.');
     }
 
-    /**
-     * Get the array representation of the notification for database storage.
-     *
-     * @param  mixed  $notifiable
-     */
     public function toArray($notifiable): array
     {
         return [
@@ -82,9 +58,6 @@ class ManualGradingRequiredNotification extends Notification implements ShouldQu
         ];
     }
 
-    /**
-     * Get the URL to grade the submission.
-     */
     protected function getGradingUrl(): string
     {
         return config('app.url')."/grading/submissions/{$this->submission->id}";

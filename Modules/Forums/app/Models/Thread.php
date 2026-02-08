@@ -12,10 +12,12 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Scout\Searchable;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Thread extends Model
+class Thread extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, Searchable;
+    use HasFactory, SoftDeletes, Searchable, InteractsWithMedia;
 
     protected static function newFactory()
     {
@@ -74,6 +76,11 @@ class Thread extends Model
     public function reactions(): MorphMany
     {
         return $this->morphMany(Reaction::class, 'reactable');
+    }
+
+    public function mentions(): MorphMany
+    {
+        return $this->morphMany(Mention::class, 'mentionable');
     }
 
     public function scopeForumable($query, string $type, int $id)
@@ -136,6 +143,29 @@ class Thread extends Model
         $this->update(['last_activity_at' => now()]);
     }
 
+    public function scopeWithIsMentioned($query)
+    {
+        if (auth()->check()) {
+            return $query->withExists(['mentions as is_mentioned' => function ($q) {
+                $q->where('user_id', auth()->id());
+            }]);
+        }
+        return $query;
+    }
+
+    public function scopeIsMentioned($query, $state = true)
+    {
+        if (!auth()->check()) {
+            return $query;
+        }
+
+        $method = filter_var($state, FILTER_VALIDATE_BOOLEAN) ? 'whereHas' : 'whereDoesntHave';
+
+        return $query->$method('mentions', function ($q) {
+            $q->where('user_id', auth()->id());
+        });
+    }
+
     public function toSearchableArray(): array
     {
         return [
@@ -145,5 +175,35 @@ class Thread extends Model
             'forumable_type' => $this->forumable_type,
             'forumable_id' => $this->forumable_id,
             'author_id' => $this->author_id,
+            'author_name' => $this->author->name ?? '',
         ];
     }
+
+    public function searchableOptions(): array
+    {
+        return [
+            'filterableAttributes' => ['author_id', 'forumable_type', 'forumable_id'],
+            'sortableAttributes' => ['created_at'],
+        ];
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('attachments')
+            ->useDisk('do');
+    }
+
+    public function registerMediaConversions(?\Spatie\MediaLibrary\MediaCollections\Models\Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(300)
+            ->height(200)
+            ->sharpen(10)
+            ->performOnCollections('attachments');
+
+        $this->addMediaConversion('preview')
+            ->width(800)
+            ->height(600)
+            ->performOnCollections('attachments');
+    }
+}

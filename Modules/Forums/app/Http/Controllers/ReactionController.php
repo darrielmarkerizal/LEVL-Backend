@@ -10,6 +10,7 @@ use Modules\Forums\Contracts\Repositories\ReactionRepositoryInterface;
 use Modules\Forums\Models\Reaction;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
+use Modules\Schemes\Models\Course;
 
 class ReactionController extends Controller
 {
@@ -19,7 +20,7 @@ class ReactionController extends Controller
         private ReactionRepositoryInterface $reactionRepository
     ) {}
 
-    public function storeThreadReaction(Request $request, int $courseId, Thread $thread): JsonResponse
+    public function storeThreadReaction(Request $request, Course $course, Thread $thread): JsonResponse
     {
         $request->validate([
             'type' => 'required|in:like,helpful,solved',
@@ -32,7 +33,7 @@ class ReactionController extends Controller
             $request->input('type')
         );
 
-        $message = $added ? __('forums.reaction_added') : __('forums.reaction_removed');
+        $message = $added ? __('messages.forums.reaction_added') : __('messages.forums.reaction_removed');
 
         if ($added) {
             $reaction = $this->reactionRepository->findByUserAndReactable(
@@ -49,20 +50,20 @@ class ReactionController extends Controller
         return $this->success(['added' => $added], $message);
     }
 
-    public function destroyThreadReaction(Request $request, int $courseId, Thread $thread, Reaction $reaction): JsonResponse
+    public function destroyThreadReaction(Request $request, Course $course, Thread $thread, Reaction $reaction): JsonResponse
     {
         if ($reaction->reactable_type !== Thread::class || $reaction->reactable_id !== $thread->id) {
-            return $this->notFound(__('forums.reaction_not_found'));
+            return $this->notFound(__('messages.forums.reaction_not_found'));
         }
 
         $this->authorize('delete', $reaction);
 
         $reaction->delete();
 
-        return $this->success(null, __('forums.reaction_removed'));
+        return $this->success(null, __('messages.forums.reaction_removed'));
     }
 
-    public function storeReplyReaction(Request $request, int $courseId, Reply $reply): JsonResponse
+    public function storeReplyReaction(Request $request, Course $course, Reply $reply): JsonResponse
     {
         $request->validate([
             'type' => 'required|in:like,helpful,solved',
@@ -75,7 +76,7 @@ class ReactionController extends Controller
             $request->input('type')
         );
 
-        $message = $added ? __('forums.reaction_added') : __('forums.reaction_removed');
+        $message = $added ? __('messages.forums.reaction_added') : __('messages.forums.reaction_removed');
 
         if ($added) {
             $reaction = $this->reactionRepository->findByUserAndReactable(
@@ -92,16 +93,16 @@ class ReactionController extends Controller
         return $this->success(['added' => $added], $message);
     }
 
-    public function destroyReplyReaction(Request $request, int $courseId, Reply $reply, Reaction $reaction): JsonResponse
+    public function destroyReplyReaction(Request $request, Course $course, Reply $reply, Reaction $reaction): JsonResponse
     {
         if ($reaction->reactable_type !== Reply::class || $reaction->reactable_id !== $reply->id) {
-            return $this->notFound(__('forums.reaction_not_found'));
+            return $this->notFound(__('messages.forums.reaction_not_found'));
         }
 
         $this->authorize('delete', $reaction);
 
         $reaction->delete();
 
-        return $this->success(null, __('forums.reaction_removed'));
+        return $this->success(null, __('messages.forums.reaction_removed'));
     }
 }

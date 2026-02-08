@@ -10,40 +10,21 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Modules\Learning\Models\Submission;
 
-/**
- * Notification sent to students when their submission has been graded.
- *
- * @see Requirements 21.1: WHEN a submission is graded, THE System SHALL notify the student
- * @see Requirements 21.6: THE System SHALL support email and in-app notification channels
- */
 class SubmissionGradedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(
         public readonly Submission $submission,
         public readonly float $score,
         public readonly ?string $feedback = null
     ) {}
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @param  mixed  $notifiable
-     */
     public function via($notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     */
     public function toMail($notifiable): MailMessage
     {
         $assignmentTitle = $this->submission->assignment?->title ?? 'Assignment';
@@ -60,11 +41,6 @@ class SubmissionGradedNotification extends Notification implements ShouldQueue
             ->line('Thank you for your hard work!');
     }
 
-    /**
-     * Get the array representation of the notification for database storage.
-     *
-     * @param  mixed  $notifiable
-     */
     public function toArray($notifiable): array
     {
         return [
@@ -78,9 +54,6 @@ class SubmissionGradedNotification extends Notification implements ShouldQueue
         ];
     }
 
-    /**
-     * Get the URL to view the submission.
-     */
     protected function getSubmissionUrl(): string
     {
         return config('app.url')."/submissions/{$this->submission->id}";

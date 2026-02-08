@@ -10,10 +10,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Reply extends Model
+use Laravel\Scout\Searchable;
+
+class Reply extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, InteractsWithMedia, Searchable;
 
      
     const MAX_DEPTH = 5;
@@ -96,6 +100,11 @@ class Reply extends Model
         return $this->morphMany(Reaction::class, 'reactable');
     }
 
+    public function mentions(): MorphMany
+    {
+        return $this->morphMany(Mention::class, 'mentionable');
+    }
+
      
     public function isAcceptedAnswer(): bool
     {
@@ -124,5 +133,36 @@ class Reply extends Model
     public function scopeAccepted($query)
     {
         return $query->where('is_accepted_answer', true);
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('attachments')
+            ->useDisk('do');
+    }
+
+    public function registerMediaConversions(?\Spatie\MediaLibrary\MediaCollections\Models\Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(300)
+            ->height(200)
+            ->sharpen(10)
+            ->performOnCollections('attachments');
+
+        $this->addMediaConversion('preview')
+            ->width(800)
+            ->height(600)
+            ->performOnCollections('attachments');
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'content' => $this->content,
+            'thread_id' => $this->thread_id,
+            'author_id' => $this->author_id,
+            'author_name' => $this->author->name ?? '',
+        ];
     }
 }
