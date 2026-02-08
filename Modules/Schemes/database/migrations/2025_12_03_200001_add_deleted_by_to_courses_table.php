@@ -6,12 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * Add deleted_by column to courses table for tracking who deleted a record.
-     * This ensures consistency with the soft delete pattern (Requirements 8.1, 8.3).
-     */
     public function up(): void
     {
         Schema::table('courses', function (Blueprint $table) {
@@ -23,9 +17,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('courses', function (Blueprint $table) {

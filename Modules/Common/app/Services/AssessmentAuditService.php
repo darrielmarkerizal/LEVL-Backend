@@ -9,49 +9,23 @@ use Modules\Auth\Models\User;
 use Modules\Common\Contracts\Repositories\AuditRepositoryInterface;
 use Modules\Common\Contracts\Services\AuditServiceInterface;
 use Modules\Common\Models\AuditLog;
-
 use Modules\Grading\Models\Grade;
 use Modules\Learning\Models\Question;
 use Modules\Learning\Models\Submission;
 
-/**
- * Service for comprehensive audit logging of all critical assessment and grading operations.
- *
- * This service provides immutable logging for compliance and dispute resolution.
- * All log entries are append-only and cannot be modified or deleted.
- *
- * Requirements: 20.1, 20.2, 20.3, 20.4, 20.5, 20.7
- */
 class AssessmentAuditService implements AuditServiceInterface
 {
-    /**
-     * Action constants for audit logging.
-     */
     public const ACTION_SUBMISSION_CREATED = 'submission_created';
-
     public const ACTION_STATE_TRANSITION = 'state_transition';
-
     public const ACTION_GRADING = 'grading';
-
     public const ACTION_ANSWER_KEY_CHANGE = 'answer_key_change';
-
     public const ACTION_GRADE_OVERRIDE = 'grade_override';
-
-
-
     public const ACTION_OVERRIDE_GRANT = 'override_grant';
 
     public function __construct(
         private readonly AuditRepositoryInterface $auditRepository
     ) {}
 
-    /**
-     * Log submission creation.
-     *
-     * Requirements: 20.1
-     *
-     * @param  Submission  $submission  The created submission
-     */
     public function logSubmissionCreated(Submission $submission): void
     {
         AuditLog::logAction(
@@ -62,8 +36,12 @@ class AssessmentAuditService implements AuditServiceInterface
         );
     }
 
-    public function logStateTransition(Submission $submission, string $oldState, string $newState, int $actorId): void
-    {
+    public function logStateTransition(
+        Submission $submission,
+        string $oldState,
+        string $newState,
+        int $actorId
+    ): void {
         AuditLog::logAction(
             action: self::ACTION_STATE_TRANSITION,
             subject: $submission,
@@ -82,8 +60,12 @@ class AssessmentAuditService implements AuditServiceInterface
         );
     }
 
-    public function logAnswerKeyChange(Question $question, array $oldKey, array $newKey, int $instructorId): void
-    {
+    public function logAnswerKeyChange(
+        Question $question,
+        array $oldKey,
+        array $newKey,
+        int $instructorId
+    ): void {
         AuditLog::logAction(
             action: self::ACTION_ANSWER_KEY_CHANGE,
             subject: $question,
@@ -92,8 +74,13 @@ class AssessmentAuditService implements AuditServiceInterface
         );
     }
 
-    public function logGradeOverride(Grade $grade, float $oldScore, float $newScore, string $reason, int $instructorId): void
-    {
+    public function logGradeOverride(
+        Grade $grade,
+        float $oldScore,
+        float $newScore,
+        string $reason,
+        int $instructorId
+    ): void {
         AuditLog::logAction(
             action: self::ACTION_GRADE_OVERRIDE,
             subject: $grade,
@@ -102,13 +89,24 @@ class AssessmentAuditService implements AuditServiceInterface
         );
     }
 
-    public function logOverrideGrant(int $assignmentId, int $studentId, string $overrideType, string $reason, int $instructorId): void
-    {
+    public function logOverrideGrant(
+        int $assignmentId,
+        int $studentId,
+        string $overrideType,
+        string $reason,
+        int $instructorId
+    ): void {
         AuditLog::logAction(
             action: self::ACTION_OVERRIDE_GRANT,
             subject: null,
             actor: User::find($instructorId),
-            context: $this->buildOverrideGrantContext($assignmentId, $studentId, $overrideType, $reason, $instructorId)
+            context: $this->buildOverrideGrantContext(
+                $assignmentId,
+                $studentId,
+                $overrideType,
+                $reason,
+                $instructorId
+            )
         );
     }
 
@@ -129,8 +127,12 @@ class AssessmentAuditService implements AuditServiceInterface
         ];
     }
 
-    private function buildStateTransitionContext(Submission $submission, string $oldState, string $newState, int $actorId): array
-    {
+    private function buildStateTransitionContext(
+        Submission $submission,
+        string $oldState,
+        string $newState,
+        int $actorId
+    ): array {
         return [
             'assignment_id' => $submission->assignment_id,
             'student_id' => $submission->user_id,
@@ -155,12 +157,18 @@ class AssessmentAuditService implements AuditServiceInterface
         ];
     }
 
-    private function buildAnswerKeyChangeContext(Question $question, array $oldKey, array $newKey, int $instructorId): array
-    {
+    private function buildAnswerKeyChangeContext(
+        Question $question,
+        array $oldKey,
+        array $newKey,
+        int $instructorId
+    ): array {
         return [
             'assignment_id' => $question->assignment_id,
             'question_id' => $question->id,
-            'question_type' => $question->type instanceof \Modules\Learning\Enums\QuestionType ? $question->type->value : $question->type,
+            'question_type' => $question->type instanceof \Modules\Learning\Enums\QuestionType
+                ? $question->type->value
+                : $question->type,
             'instructor_id' => $instructorId,
             'old_answer_key' => $oldKey,
             'new_answer_key' => $newKey,
@@ -168,8 +176,13 @@ class AssessmentAuditService implements AuditServiceInterface
         ];
     }
 
-    private function buildGradeOverrideContext(Grade $grade, float $oldScore, float $newScore, string $reason, int $instructorId): array
-    {
+    private function buildGradeOverrideContext(
+        Grade $grade,
+        float $oldScore,
+        float $newScore,
+        string $reason,
+        int $instructorId
+    ): array {
         return [
             'submission_id' => $grade->submission_id,
             'student_id' => $grade->user_id,
@@ -181,8 +194,13 @@ class AssessmentAuditService implements AuditServiceInterface
         ];
     }
 
-    private function buildOverrideGrantContext(int $assignmentId, int $studentId, string $overrideType, string $reason, int $instructorId): array
-    {
+    private function buildOverrideGrantContext(
+        int $assignmentId,
+        int $studentId,
+        string $overrideType,
+        string $reason,
+        int $instructorId
+    ): array {
         return [
             'assignment_id' => $assignmentId,
             'student_id' => $studentId,

@@ -11,12 +11,11 @@ use Modules\Forums\Http\Middleware\CheckForumAccess;
 Route::middleware(['auth:api'])->prefix('v1')->group(function () {
     Route::prefix('forums')->group(function () {
         Route::get('threads', [ForumDashboardController::class, 'allThreads']);
-        Route::get('threads/recent', [ForumDashboardController::class, 'recentThreads']);
         Route::get('threads/trending', [ForumDashboardController::class, 'trendingThreads']);
         Route::get('my-threads', [ForumDashboardController::class, 'myThreads']);
     });
 
-    Route::prefix('courses/{course}/forum')
+    Route::prefix('courses/{course:slug}/forum')
         ->middleware(CheckForumAccess::class)
         ->group(function () {
             Route::apiResource('threads', ThreadController::class);

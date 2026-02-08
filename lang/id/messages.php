@@ -583,6 +583,11 @@ return [
     'forums' => [
         'reaction_added' => 'Reaksi berhasil ditambahkan.',
         'statistics_retrieved' => 'Statistik forum berhasil diambil.',
+        'threads_retrieved' => 'Thread berhasil diambil.',
+        'my_threads_retrieved' => 'Thread Anda berhasil diambil.',
+        'recent_threads_retrieved' => 'Thread terbaru berhasil diambil.',
+        'trending_threads_retrieved' => 'Thread trending berhasil diambil.',
+        'unauthorized_access' => 'Anda tidak memiliki izin untuk mengakses resource ini.',
     ],
 
     // Notifications Module

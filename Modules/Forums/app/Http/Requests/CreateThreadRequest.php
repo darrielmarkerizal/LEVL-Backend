@@ -14,14 +14,16 @@ class CreateThreadRequest extends FormRequest
     public function authorize(): bool
     {
         $forumableType = $this->input('forumable_type', Course::class);
-        $forumableId = (int) $this->input('forumable_id', 0);
+        $forumableSlug = (string) $this->input('forumable_slug', '');
+        $forumableId = $this->resolveForumableId($forumableType, $forumableSlug);
         $userId = $this->user()->id;
+
+        if (! $forumableId) {
+            return false;
+        }
 
         return match ($forumableType) {
             Course::class => $this->canAccessCourse($userId, $forumableId),
-            \Modules\Learning\Models\Unit::class => $this->canAccessUnit($userId, $forumableId),
-            \Modules\Learning\Models\Lesson::class => $this->canAccessLesson($userId, $forumableId),
-            \Modules\Learning\Models\Assignment::class => $this->canAccessAssignment($userId, $forumableId),
             default => false,
         };
     }
@@ -34,14 +36,13 @@ class CreateThreadRequest extends FormRequest
                 'string',
                 Rule::in([
                     Course::class,
-                    \Modules\Learning\Models\Unit::class,
-                    \Modules\Learning\Models\Lesson::class,
-                    \Modules\Learning\Models\Assignment::class,
                 ]),
             ],
-            'forumable_id' => 'required|integer|min:1',
+            'forumable_slug' => 'required|string',
             'title' => 'required|string|min:3|max:255',
             'content' => 'required|string|min:1|max:5000',
+            'attachments' => 'nullable|array|max:5',
+            'attachments.*' => 'file|mimes:jpeg,png,jpg,gif,pdf,mp4,webm,ogg,mov,avi|max:51200',
         ];
     }
 
@@ -56,9 +57,21 @@ class CreateThreadRequest extends FormRequest
             'content.max' => __('validation.max.string', ['attribute' => __('validation.attributes.content'), 'max' => 5000]),
             'forumable_type.required' => __('validation.required', ['attribute' => 'forum type']),
             'forumable_type.in' => __('validation.in', ['attribute' => 'forum type']),
-            'forumable_id.required' => __('validation.required', ['attribute' => 'forum id']),
-            'forumable_id.integer' => __('validation.integer', ['attribute' => 'forum id']),
+            'forumable_slug.required' => __('validation.required', ['attribute' => 'forum slug']),
+            'attachments.array' => __('validation.array', ['attribute' => 'attachments']),
+            'attachments.max' => __('validation.max.array', ['attribute' => 'attachments', 'max' => 5]),
+            'attachments.*.file' => __('validation.file', ['attribute' => 'attachment']),
+            'attachments.*.mimes' => __('validation.mimes', ['attribute' => 'attachment', 'values' => 'jpeg,png,jpg,gif,pdf,mp4,webm,ogg,mov,avi']),
+            'attachments.*.max' => __('validation.max.file', ['attribute' => 'attachment', 'max' => '50MB']),
         ];
+    }
+
+    private function resolveForumableId(string $forumableType, string $forumableSlug): ?int
+    {
+        return match ($forumableType) {
+            Course::class => Course::where('slug', $forumableSlug)->value('id'),
+            default => null,
+        };
     }
 
     private function canAccessCourse(int $userId, int $courseId): bool
@@ -75,33 +88,5 @@ class CreateThreadRequest extends FormRequest
         return Enrollment::where('user_id', $userId)->where('course_id', $courseId)->exists();
     }
 
-    private function canAccessUnit(int $userId, int $unitId): bool
-    {
-        $unit = \Modules\Learning\Models\Unit::find($unitId);
-        if (!$unit) {
-            return false;
-        }
 
-        return $this->canAccessCourse($userId, $unit->course_id);
-    }
-
-    private function canAccessLesson(int $userId, int $lessonId): bool
-    {
-        $lesson = \Modules\Learning\Models\Lesson::find($lessonId);
-        if (!$lesson) {
-            return false;
-        }
-
-        return $this->canAccessUnit($userId, $lesson->unit_id);
-    }
-
-    private function canAccessAssignment(int $userId, int $assignmentId): bool
-    {
-        $assignment = \Modules\Learning\Models\Assignment::find($assignmentId);
-        if (!$assignment) {
-            return false;
-        }
-
-        return $this->canAccessUnit($userId, $assignment->unit_id);
-    }
 }

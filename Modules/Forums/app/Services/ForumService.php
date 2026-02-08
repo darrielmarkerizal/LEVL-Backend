@@ -24,10 +24,16 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
     {
         $this->validateContent($data['content']);
 
-        return DB::transaction(function () use ($data, $user) {
+        $forumableId = $this->resolveForumableId($data['forumable_type'], $data['forumable_slug']);
+
+        if (! $forumableId) {
+            throw new \Exception('Forum not found.');
+        }
+
+        return DB::transaction(function () use ($data, $user, $forumableId) {
             $threadData = [
                 'forumable_type' => $data['forumable_type'],
-                'forumable_id' => $data['forumable_id'],
+                'forumable_id' => $forumableId,
                 'author_id' => $user->id,
                 'title' => $data['title'],
                 'content' => $data['content'],
@@ -36,10 +42,27 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
 
             $thread = $this->threadRepository->create($threadData);
 
+            if (!empty($data['attachments'])) {
+                foreach ($data['attachments'] as $file) {
+                    $thread->addMedia($file)
+                        ->toMediaCollection('attachments');
+                }
+            }
+
             event(new \Modules\Forums\Events\ThreadCreated($thread));
+
+            $this->processMentions($thread, $data['content']);
 
             return $thread;
         });
+    }
+
+    public function resolveForumableId(string $forumableType, string $forumableSlug): ?int
+    {
+        return match ($forumableType) {
+            \Modules\Schemes\Models\Course::class => \Modules\Schemes\Models\Course::where('slug', $forumableSlug)->value('id'),
+            default => null,
+        };
     }
 
     public function updateThread(Thread $thread, array $data): Thread
@@ -59,7 +82,13 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
             $updateData['edited_at'] = now();
         }
 
-        return $this->threadRepository->update($thread, $updateData);
+        $updatedThread = $this->threadRepository->update($thread, $updateData);
+
+        if (isset($data['content'])) {
+            $this->processMentions($updatedThread, $data['content']);
+        }
+
+        return $updatedThread;
     }
 
     public function deleteThread(Thread $thread, User $user): bool
@@ -79,6 +108,16 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
     public function getThreadsForScheme(int $schemeId, array $filters = [], ?string $search = null): LengthAwarePaginator
     {
         return $this->getThreadsForumable(\Modules\Schemes\Models\Course::class, $schemeId, $filters, $search);
+    }
+
+    public function searchThreads(string $query, int $schemeId): LengthAwarePaginator
+    {
+        return $this->threadRepository->searchThreadsByForumable(
+            $query,
+            \Modules\Schemes\Models\Course::class,
+            $schemeId,
+            []
+        );
     }
 
     public function getThreadDetail(int $threadId): ?Thread
@@ -123,10 +162,19 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
             'content' => $data['content'],
         ]);
 
+        if (!empty($data['attachments'])) {
+            foreach ($data['attachments'] as $file) {
+                $reply->addMedia($file)
+                    ->toMediaCollection('attachments');
+            }
+        }
+
         $thread->increment('replies_count');
         $thread->updateLastActivity();
 
         event(new \Modules\Forums\Events\ReplyCreated($reply));
+
+        $this->processMentions($reply, $data['content']);
 
         return $reply;
     }
@@ -141,7 +189,13 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
             $updateData['edited_at'] = now();
         }
 
-        return $this->replyRepository->update($reply, $updateData);
+        $updatedReply = $this->replyRepository->update($reply, $updateData);
+
+        if (isset($data['content'])) {
+            $this->processMentions($updatedReply, $data['content']);
+        }
+
+        return $updatedReply;
     }
 
     public function deleteReply(Reply $reply, User $user): bool
@@ -157,6 +211,42 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
 
             return $result;
         });
+    }
+
+    private function processMentions($model, string $content): void
+    {
+        $mentionedUsers = $this->extractMentions($content);
+        $this->syncMentions($model, $mentionedUsers);
+    }
+
+    private function extractMentions(string $content): \Illuminate\Support\Collection
+    {
+        preg_match_all('/@([a-zA-Z0-9_]+)/', $content, $matches);
+
+        if (empty($matches[1])) {
+            return collect();
+        }
+
+        return User::whereIn('username', $matches[1])->get();
+    }
+
+    private function syncMentions($model, \Illuminate\Support\Collection $users): void
+    {
+        $model->mentions()->delete();
+
+        if ($users->isEmpty()) {
+            return;
+        }
+
+        $mentions = $users->map(fn ($user) => [
+            'user_id' => $user->id,
+            'mentionable_type' => $model::class,
+            'mentionable_id' => $model->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->toArray();
+
+        \Modules\Forums\Models\Mention::insert($mentions);
     }
 
     private function validateContent(string $content): void

@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Forums\Repositories\ForumStatisticsRepository;
+use Modules\Schemes\Models\Course;
 
 class ForumStatisticsController extends Controller
 {
@@ -20,7 +21,7 @@ class ForumStatisticsController extends Controller
         $this->statisticsRepository = $statisticsRepository;
     }
 
-    public function index(Request $request, int $schemeId): JsonResponse
+    public function index(Request $request, Course $course): JsonResponse
     {
         $request->validate([
             'filter.period_start' => 'nullable|date',
@@ -40,7 +41,7 @@ class ForumStatisticsController extends Controller
 
         if ($userId) {
             $statistics = $this->statisticsRepository->getUserStatistics(
-                $schemeId,
+                $course->id,
                 $userId,
                 $periodStart,
                 $periodEnd
@@ -48,7 +49,7 @@ class ForumStatisticsController extends Controller
 
             if (! $statistics) {
                 $statistics = $this->statisticsRepository->updateUserStatistics(
-                    $schemeId,
+                    $course->id,
                     $userId,
                     $periodStart,
                     $periodEnd
@@ -56,24 +57,24 @@ class ForumStatisticsController extends Controller
             }
         } else {
             $statistics = $this->statisticsRepository->getSchemeStatistics(
-                $schemeId,
+                $course->id,
                 $periodStart,
                 $periodEnd
             );
 
             if (! $statistics) {
                 $statistics = $this->statisticsRepository->updateSchemeStatistics(
-                    $schemeId,
+                    $course->id,
                     $periodStart,
                     $periodEnd
                 );
             }
         }
 
-        return $this->success($statistics, __('forums.statistics_retrieved'));
+        return $this->success($statistics, __('messages.forums.statistics_retrieved'));
     }
 
-    public function userStats(Request $request, int $schemeId): JsonResponse
+    public function userStats(Request $request, Course $course): JsonResponse
     {
         $request->validate([
             'filter.period_start' => 'nullable|date',
@@ -89,7 +90,7 @@ class ForumStatisticsController extends Controller
             : Carbon::now()->endOfMonth();
 
         $statistics = $this->statisticsRepository->getUserStatistics(
-            $schemeId,
+            $course->id,
             $request->user()->id,
             $periodStart,
             $periodEnd
@@ -97,13 +98,13 @@ class ForumStatisticsController extends Controller
 
         if (! $statistics) {
             $statistics = $this->statisticsRepository->updateUserStatistics(
-                $schemeId,
+                $course->id,
                 $request->user()->id,
                 $periodStart,
                 $periodEnd
             );
         }
 
-        return $this->success($statistics, __('forums.user_statistics_retrieved'));
+        return $this->success($statistics, __('messages.forums.user_statistics_retrieved'));
     }
 }

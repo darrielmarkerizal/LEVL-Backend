@@ -22,4 +22,6 @@ interface ForumServiceInterface
     public function updateReply(Reply $reply, array $data): Reply;
 
     public function deleteReply(Reply $reply, User $user): bool;
+
+    public function resolveForumableId(string $forumableType, string $forumableSlug): ?int;
 }

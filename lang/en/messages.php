@@ -615,8 +615,31 @@ return [
 
     // Forums Module
     'forums' => [
+        'thread_created' => 'Thread created successfully.',
+        'thread_retrieved' => 'Thread retrieved successfully.',
+        'thread_updated' => 'Thread updated successfully.',
+        'thread_deleted' => 'Thread deleted successfully.',
+        'thread_pinned' => 'Thread pinned successfully.',
+        'thread_unpinned' => 'Thread unpinned successfully.',
+        'thread_closed' => 'Thread closed successfully.',
+        'thread_not_found' => 'Thread not found.',
+        'threads_retrieved' => 'Threads retrieved successfully.',
+        'my_threads_retrieved' => 'Your threads retrieved successfully.',
+        'recent_threads_retrieved' => 'Recent threads retrieved successfully.',
+        'trending_threads_retrieved' => 'Trending threads retrieved successfully.',
+        'reply_created' => 'Reply created successfully.',
+        'reply_updated' => 'Reply updated successfully.',
+        'reply_deleted' => 'Reply deleted successfully.',
+        'reply_not_found' => 'Reply not found.',
+        'replies_retrieved' => 'Replies retrieved successfully.',
         'reaction_added' => 'Reaction added successfully.',
+        'reaction_removed' => 'Reaction removed successfully.',
+        'reaction_not_found' => 'Reaction not found.',
         'statistics_retrieved' => 'Forum statistics retrieved successfully.',
+        'user_statistics_retrieved' => 'User statistics retrieved successfully.',
+        'cannot_reply_closed_thread' => 'Cannot reply to a closed thread.',
+        'max_reply_depth_exceeded' => 'Maximum reply depth exceeded.',
+        'unauthorized_access' => 'You do not have permission to access this resource.',
     ],
 
     // Notifications Module

@@ -23,16 +23,19 @@ class CheckForumAccess
             ], 401);
         }
 
-        $courseId = $request->route('scheme') ?? $request->input('course_id');
+        $routeCourse = $request->route('course');
+        $courseId = $routeCourse instanceof Course
+            ? $routeCourse->id
+            : Course::where('slug', (string) $routeCourse)->value('id');
 
         if (!$courseId) {
             return response()->json([
                 'success' => false,
-                'message' => 'Course ID is required.',
+                'message' => 'Course slug is required.',
             ], 400);
         }
 
-        if ($user->hasRole('admin')) {
+        if ($user->hasRole(['admin', 'superadmin'])) {
             return $next($request);
         }
 
