@@ -17,7 +17,7 @@ class ReplyPolicy
         }
 
         return Enrollment::where('user_id', $user->id)
-            ->where('course_id', $reply->thread->scheme_id)
+            ->where('course_id', $reply->thread->course_id)
             ->exists();
     }
 
@@ -29,7 +29,7 @@ class ReplyPolicy
         }
 
         return Enrollment::where('user_id', $user->id)
-            ->where('course_id', $thread->scheme_id)
+            ->where('course_id', $thread->course_id)
             ->exists();
     }
 
@@ -47,24 +47,24 @@ class ReplyPolicy
     public function delete(User $user, Reply $reply): bool
     {
         
-        return $user->id === $reply->author_id || $this->isModerator($user, $reply->thread->scheme_id);
+        return $user->id === $reply->author_id || $this->isModerator($user, $reply->thread->course_id);
     }
 
      
     public function markAsAccepted(User $user, Reply $reply): bool
     {
-        return $this->isInstructor($user, $reply->thread->scheme_id);
+        return $this->isInstructor($user, $reply->thread->course_id);
     }
 
      
-    protected function isModerator(User $user, int $schemeId): bool
+    protected function isModerator(User $user, int $courseId): bool
     {
         if ($user->hasRole(['Admin', 'Superadmin'])) {
             return true;
         }
 
         if ($user->hasRole('instructor')) {
-            return \Modules\Schemes\Models\Course::where('id', $schemeId)
+            return \Modules\Schemes\Models\Course::where('id', $courseId)
                 ->where('instructor_id', $user->id)
                 ->exists();
         }
@@ -72,14 +72,14 @@ class ReplyPolicy
         return false;
     }
 
-    protected function isInstructor(User $user, int $schemeId): bool
+    protected function isInstructor(User $user, int $courseId): bool
     {
         if ($user->hasRole(['Admin', 'Superadmin'])) {
             return true;
         }
 
         if ($user->hasRole('instructor')) {
-            return \Modules\Schemes\Models\Course::where('id', $schemeId)
+            return \Modules\Schemes\Models\Course::where('id', $courseId)
                 ->where('instructor_id', $user->id)
                 ->exists();
         }

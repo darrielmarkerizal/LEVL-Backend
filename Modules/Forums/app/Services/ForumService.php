@@ -133,7 +133,7 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
 
         if ($parentId) {
             $parent = Reply::find($parentId);
-            if ($parent && !$parent->canHaveChildren()) {
+            if ($parent && ! $parent->canHaveChildren()) {
                 throw new \Exception(__('messages.forums.max_reply_depth_exceeded'));
             }
         }
