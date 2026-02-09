@@ -15,11 +15,7 @@ class CreateReplyRequest extends FormRequest
     public function authorize(): bool
     {
         $threadId = (int) $this->route('thread');
-        $thread = Thread::find($threadId);
-
-        if (!$thread) {
-            return false;
-        }
+        $thread = Thread::findOrFail($threadId);
 
         return $this->canAccessCourse($this->user()->id, $thread->course_id);
     }
@@ -98,6 +94,10 @@ class CreateReplyRequest extends FormRequest
 
     private function canAccessCourse(int $userId, int $courseId): bool
     {
+        if ($this->user()->hasRole('Superadmin')) {
+            return true;
+        }
+
         if ($this->user()->hasRole(['Admin', 'Instructor'])) {
             $course = Course::find($courseId);
             if ($this->user()->hasRole('Instructor') && $course->instructor_id !== $userId) {

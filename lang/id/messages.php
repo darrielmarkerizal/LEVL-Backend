@@ -587,6 +587,7 @@ return [
         'my_threads_retrieved' => 'Thread Anda berhasil diambil.',
         'recent_threads_retrieved' => 'Thread terbaru berhasil diambil.',
         'trending_threads_retrieved' => 'Thread trending berhasil diambil.',
+        'cannot_reply_closed_thread' => 'Tidak dapat membalas thread yang sudah ditutup.',
         'unauthorized_access' => 'Anda tidak memiliki izin untuk mengakses resource ini.',
     ],
 
