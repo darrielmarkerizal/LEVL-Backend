@@ -16,20 +16,26 @@ class LeaderboardService implements LeaderboardServiceInterface
     
     public function getGlobalLeaderboard(int $perPage = 10, int $page = 1, ?int $courseId = null): LengthAwarePaginator
     {
-        $perPage = min($perPage, 100);
+        $perPage = max(1, min($perPage, 100));
 
-        if ($courseId) {
-             $query = QueryBuilder::for(\Modules\Gamification\Models\Leaderboard::class)
-                ->with(['user:id,name', 'user.media'])
-                ->defaultSort('rank')
-                ->where('course_id', $courseId);
-        } else {
-             $query = QueryBuilder::for(UserGamificationStat::class)
-                ->with(['user:id,name', 'user.media'])
-                ->defaultSort('-total_xp');
-        }
+        return cache()->tags(['gamification', 'leaderboard'])->remember(
+            "gamification:leaderboard:global:{$perPage}:{$page}:" . ($courseId ?? 'global'),
+            300,
+            function () use ($perPage, $page, $courseId) {
+                if ($courseId) {
+                     $query = QueryBuilder::for(\Modules\Gamification\Models\Leaderboard::class)
+                        ->with(['user:id,name', 'user.media'])
+                        ->defaultSort('rank')
+                        ->where('course_id', $courseId);
+                } else {
+                     $query = QueryBuilder::for(UserGamificationStat::class)
+                        ->with(['user:id,name', 'user.media'])
+                        ->defaultSort('-total_xp');
+                }
 
-        return $query->paginate($perPage, ['*'], 'page', $page);
+                return $query->paginate($perPage, ['*'], 'page', $page);
+            }
+        );
     }
 
     public function getUserRank(int $userId): array
@@ -86,6 +92,9 @@ class LeaderboardService implements LeaderboardServiceInterface
 
             
             $this->updateCourseRankings();
+
+            // Invalidate cache
+            cache()->tags(['gamification', 'leaderboard'])->flush();
         });
     }
 

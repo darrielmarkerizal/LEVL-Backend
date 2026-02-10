@@ -26,44 +26,59 @@ class AnnouncementService implements AnnouncementServiceInterface
     public function getForUser(User $user, array $filters = []): LengthAwarePaginator
     {
         $perPage = $filters['per_page'] ?? 15;
+        $perPage = max(1, min($perPage, 100));
+        $page = request()->get('page', 1);
 
-        $query = QueryBuilder::for(Announcement::class)
-            ->where(function ($q) use ($user) {
-                $q->where('target_type', 'all')
-                    ->orWhere(function ($q2) use ($user) {
-                        $q2->where('target_type', 'specific_users')
-                            ->whereHas('targetUsers', fn ($q3) => $q3->where('user_id', $user->id));
-                    });
-            })
-            ->allowedFilters([
-                AllowedFilter::exact('course_id'),
-                AllowedFilter::exact('status'),
-                AllowedFilter::exact('priority'),
-                AllowedFilter::exact('target_type'),
-            ])
-            ->allowedIncludes(['author', 'course'])
-            ->allowedSorts(['published_at', 'created_at', 'priority'])
-            ->defaultSort('-published_at');
-
-        return $query->paginate($perPage);
+        return cache()->tags(['content', 'announcements'])->remember(
+            "content:announcements:user:{$user->id}:{$perPage}:{$page}:" . md5(json_encode($filters)),
+            300,
+            function () use ($user, $perPage) {
+                return QueryBuilder::for(Announcement::class)
+                    ->where(function ($q) use ($user) {
+                        $q->where('target_type', 'all')
+                            ->orWhere(function ($q2) use ($user) {
+                                $q2->where('target_type', 'specific_users')
+                                    ->whereHas('targetUsers', fn ($q3) => $q3->where('user_id', $user->id));
+                            });
+                    })
+                    ->allowedFilters([
+                        AllowedFilter::exact('course_id'),
+                        AllowedFilter::exact('status'),
+                        AllowedFilter::exact('priority'),
+                        AllowedFilter::exact('target_type'),
+                        AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
+                    ])
+                    ->allowedIncludes(['author', 'course'])
+                    ->allowedSorts(['published_at', 'created_at', 'priority'])
+                    ->defaultSort('-published_at')
+                    ->paginate($perPage);
+            }
+        );
     }
 
     public function getForCourse(int $courseId, array $filters = []): LengthAwarePaginator
     {
         $perPage = $filters['per_page'] ?? 15;
+        $page = request()->get('page', 1);
 
-        $query = QueryBuilder::for(Announcement::class)
-            ->where('course_id', $courseId)
-            ->allowedFilters([
-                AllowedFilter::exact('status'),
-                AllowedFilter::exact('priority'),
-                AllowedFilter::exact('target_type'),
-            ])
-            ->allowedIncludes(['author', 'course'])
-            ->allowedSorts(['published_at', 'created_at', 'priority'])
-            ->defaultSort('-published_at');
-
-        return $query->paginate($perPage);
+        return cache()->tags(['content', 'announcements'])->remember(
+            "content:announcements:course:{$courseId}:{$perPage}:{$page}:" . md5(json_encode($filters)),
+            300,
+            function () use ($courseId, $perPage) {
+                return QueryBuilder::for(Announcement::class)
+                    ->where('course_id', $courseId)
+                    ->allowedFilters([
+                        AllowedFilter::exact('status'),
+                        AllowedFilter::exact('priority'),
+                        AllowedFilter::exact('target_type'),
+                        AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
+                    ])
+                    ->allowedIncludes(['author', 'course'])
+                    ->allowedSorts(['published_at', 'created_at', 'priority'])
+                    ->defaultSort('-published_at')
+                    ->paginate($perPage);
+            }
+        );
     }
 
     public function find(int $id): ?Announcement
@@ -81,7 +96,9 @@ class AnnouncementService implements AnnouncementServiceInterface
                 'priority' => $dto->priority ?? 'normal',
             ]);
 
-            return $this->repository->create($data);
+            $announcement = $this->repository->create($data);
+            cache()->tags(['content', 'announcements'])->flush();
+            return $announcement;
         });
     }
 
@@ -90,13 +107,17 @@ class AnnouncementService implements AnnouncementServiceInterface
         return DB::transaction(function () use ($announcement, $dto, $editor) {
             $announcement->saveRevision($editor);
 
-            return $this->repository->update($announcement, $dto->toArrayWithoutNull());
+            $updated = $this->repository->update($announcement, $dto->toArrayWithoutNull());
+            cache()->tags(['content', 'announcements'])->flush();
+            return $updated;
         });
     }
 
     public function delete(Announcement $announcement, User $user): bool
     {
-        return $this->repository->delete($announcement, $user->id);
+        $result = $this->repository->delete($announcement, $user->id);
+        cache()->tags(['content', 'announcements'])->flush();
+        return $result;
     }
 
     /**
@@ -117,6 +138,7 @@ class AnnouncementService implements AnnouncementServiceInterface
 
             event(new AnnouncementPublished($announcement->fresh()));
 
+            cache()->tags(['content', 'announcements'])->flush();
             return $announcement->fresh();
         });
     }

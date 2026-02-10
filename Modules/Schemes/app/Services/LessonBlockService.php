@@ -35,15 +35,21 @@ class LessonBlockService
 
     public function list(int $lessonId, array $filters = []): Collection
     {
-        $query = QueryBuilder::for(LessonBlock::class, $this->buildQueryBuilderRequest($filters))
-            ->where('lesson_id', $lessonId)
-            ->allowedFilters([
-                AllowedFilter::exact('block_type'),
-            ])
-            ->allowedSorts(['order', 'created_at'])
-            ->defaultSort('order');
+        return cache()->tags(['schemes', 'lesson_blocks'])->remember(
+            "schemes:lesson_blocks:lesson:{$lessonId}:" . md5(json_encode($filters)),
+            300,
+            function () use ($lessonId, $filters) {
+                $query = QueryBuilder::for(LessonBlock::class, $this->buildQueryBuilderRequest($filters))
+                    ->where('lesson_id', $lessonId)
+                    ->allowedFilters([
+                        AllowedFilter::exact('block_type'),
+                    ])
+                    ->allowedSorts(['order', 'created_at'])
+                    ->defaultSort('order');
 
-        return $query->get();
+                return $query->get();
+            }
+        );
     }
 
     public function create(int $lessonId, array $data, ?UploadedFile $mediaFile): LessonBlock
@@ -76,6 +82,8 @@ class LessonBlockService
                     $this->storeVideoMetadata($media);
                 }
             }
+
+            cache()->tags(['schemes', 'lesson_blocks'])->flush();
 
             return $block->fresh();
         });
@@ -131,7 +139,10 @@ class LessonBlockService
                 }
             }
 
-            return $block->fresh();
+            $updated = $block->fresh();
+            cache()->tags(['schemes', 'lesson_blocks'])->flush();
+
+            return $updated;
         });
     }
 
@@ -152,6 +163,10 @@ class LessonBlockService
                 LessonBlock::where('lesson_id', $lessonId)
                     ->where('order', '>', $deletedOrder)
                     ->decrement('order');
+            }
+
+            if ($deleted) {
+                cache()->tags(['schemes', 'lesson_blocks'])->flush();
             }
 
             return $deleted;

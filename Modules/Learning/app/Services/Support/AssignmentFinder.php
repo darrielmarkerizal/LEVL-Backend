@@ -47,41 +47,48 @@ class AssignmentFinder
         $unitSlug = data_get($filters, 'unit_slug');
         $lessonSlug = data_get($filters, 'lesson_slug');
 
-        if ($lessonSlug) {
-            $lesson = \Modules\Schemes\Models\Lesson::where('slug', $lessonSlug)->first();
+        // Cache based on inputs
+        return cache()->tags(['learning', 'assignments'])->remember(
+            "learning:assignments:index:{$course->id}:" . md5(json_encode($filters)),
+            300,
+            function () use ($course, $filters, $unitSlug, $lessonSlug) {
+                if ($lessonSlug) {
+                    $lesson = \Modules\Schemes\Models\Lesson::where('slug', $lessonSlug)->first();
 
-            if (! $lesson) {
-                throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.lessons.not_found'));
+                    if (! $lesson) {
+                        throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.lessons.not_found'));
+                    }
+
+                    $lesson->loadMissing('unit');
+                    if ($lesson->unit && $lesson->unit->course_id !== $course->id) {
+                         throw new \InvalidArgumentException(__('messages.assignments.invalid_scope_hierarchy'));
+                    }
+
+                    return $this->listByLessonForIndex($lesson, $filters);
+                }
+
+                if ($unitSlug) {
+                     $unit = \Modules\Schemes\Models\Unit::where('slug', $unitSlug)->first();
+
+                     if (! $unit) {
+                         throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.units.not_found'));
+                     }
+
+                     if ($unit->course_id !== $course->id) {
+                          throw new \InvalidArgumentException(__('messages.assignments.invalid_scope_hierarchy'));
+                     }
+
+                     return $this->listByUnitForIndex($unit, $filters);
+                }
+
+                return $this->listByCourseForIndex($course, $filters);
             }
-
-            $lesson->loadMissing('unit');
-            if ($lesson->unit && $lesson->unit->course_id !== $course->id) {
-                 throw new \InvalidArgumentException(__('messages.assignments.invalid_scope_hierarchy'));
-            }
-
-            return $this->listByLessonForIndex($lesson, $filters);
-        }
-
-        if ($unitSlug) {
-             $unit = \Modules\Schemes\Models\Unit::where('slug', $unitSlug)->first();
-
-             if (! $unit) {
-                 throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.units.not_found'));
-             }
-
-             if ($unit->course_id !== $course->id) {
-                  throw new \InvalidArgumentException(__('messages.assignments.invalid_scope_hierarchy'));
-             }
-
-             return $this->listByUnitForIndex($unit, $filters);
-        }
-
-        return $this->listByCourseForIndex($course, $filters);
+        );
     }
 
     public function listByLesson(\Modules\Schemes\Models\Lesson $lesson, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, (int) data_get($filters, 'per_page', 15));
+        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
 
         return $this->buildQuery($filters)
             ->forLesson($lesson->id)
@@ -90,7 +97,7 @@ class AssignmentFinder
 
     public function listByLessonForIndex(\Modules\Schemes\Models\Lesson $lesson, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, (int) data_get($filters, 'per_page', 15));
+        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
 
         return $this->buildQueryForIndex($filters)
             ->forLesson($lesson->id)
@@ -99,7 +106,7 @@ class AssignmentFinder
 
     public function listByUnit(\Modules\Schemes\Models\Unit $unit, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, (int) data_get($filters, 'per_page', 15));
+        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
 
         return $this->buildQuery($filters)
             ->forUnit($unit->id)
@@ -108,16 +115,25 @@ class AssignmentFinder
 
     public function listByUnitForIndex(\Modules\Schemes\Models\Unit $unit, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, (int) data_get($filters, 'per_page', 15));
+        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
 
         return $this->buildQueryForIndex($filters)
             ->forUnit($unit->id)
             ->paginate($perPage);
     }
 
+    public function paginateByCourse(int $courseId, int $perPage = 15, array $filters = []): LengthAwarePaginator
+    {
+        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', $perPage)));
+
+        return $this->buildQuery($filters)
+            ->forCourse($courseId)
+            ->paginate($perPage);
+    }
+
     public function listByCourse(\Modules\Schemes\Models\Course $course, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, (int) data_get($filters, 'per_page', 15));
+        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
 
         return $this->buildQuery($filters)
             ->forCourse($course->id)
@@ -126,7 +142,7 @@ class AssignmentFinder
 
     public function listByCourseForIndex(\Modules\Schemes\Models\Course $course, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, (int) data_get($filters, 'per_page', 15));
+        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
 
         return $this->buildQueryForIndex($filters)
             ->forCourse($course->id)
@@ -135,23 +151,29 @@ class AssignmentFinder
 
     public function listIncomplete(\Modules\Schemes\Models\Course $course, int $studentId, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, (int) data_get($filters, 'per_page', 15));
+        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
 
-        $query = $this->buildQuery($filters)
-            ->forCourse($course->id)
-            ->where('assignments.status', AssignmentStatus::Published->value);
+        return cache()->tags(['learning', 'assignments'])->remember(
+            "learning:assignments:incomplete:{$course->id}:{$studentId}:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($course, $studentId, $filters, $perPage) {
+                $query = $this->buildQuery($filters)
+                    ->forCourse($course->id)
+                    ->where('assignments.status', AssignmentStatus::Published->value);
 
-        // Left join with submissions to find incomplete assignments
-        $query->leftJoin('submissions', function ($join) use ($studentId) {
-            $join->on('assignments.id', '=', 'submissions.assignment_id')
-                 ->where('submissions.user_id', $studentId)
-                 ->whereIn('submissions.status', ['submitted', 'graded']);
-        })
-        ->whereNull('submissions.id')
-        ->select('assignments.*')
-        ->distinct();
+                // Left join with submissions to find incomplete assignments
+                $query->leftJoin('submissions', function ($join) use ($studentId) {
+                    $join->on('assignments.id', '=', 'submissions.assignment_id')
+                         ->where('submissions.user_id', $studentId)
+                         ->whereIn('submissions.status', ['submitted', 'graded']);
+                })
+                ->whereNull('submissions.id')
+                ->select('assignments.*')
+                ->distinct();
 
-        return $query->paginate($perPage);
+                return $query->paginate($perPage);
+            }
+        );
     }
 
     private function buildQuery(array $payload = []): QueryBuilder

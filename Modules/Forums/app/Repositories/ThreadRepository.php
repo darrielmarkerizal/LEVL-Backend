@@ -34,14 +34,21 @@ class ThreadRepository extends BaseRepository
 
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = $this->query();
+        return cache()->tags(['forums', 'threads'])->remember(
+            "forums:threads:paginate:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            300,
+            function () use ($filters, $perPage) {
+                $query = $this->query();
 
-        $query = $this->applyFilters($query, $filters);
-        $query = $this->applySorting($query, $filters);
+                $query = $this->applyFilters($query, $filters);
+                $query = $this->applySorting($query, $filters);
 
-        $perPage = $filters['per_page'] ?? $perPage;
+                $perPage = $filters['per_page'] ?? $perPage;
+                $perPage = max(1, min($perPage, 100));
 
-        return $query->paginate($perPage);
+                return $query->paginate($perPage);
+            }
+        );
     }
 
     public function find(int $id): ?Thread
@@ -96,24 +103,31 @@ class ThreadRepository extends BaseRepository
 
     public function getThreadsByCourse(int $courseId, array $filters = []): LengthAwarePaginator
     {
-        $query = Thread::query()
-            ->withIsMentioned()
-            ->where('course_id', $courseId)
-            ->with(['author.media', 'replies']);
+        $perPage = max(1, min((int) ($filters['per_page'] ?? 20), 100));
+        return cache()->tags(['forums', 'threads', "course:{$courseId}"])->remember(
+            "forums:threads:course:{$courseId}:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            300,
+            function () use ($courseId, $filters) {
+                $query = Thread::query()
+                    ->withIsMentioned()
+                    ->where('course_id', $courseId)
+                    ->with(['author.media', 'replies']);
 
-        $paginator = $this->filteredPaginate(
-            $query,
-            $filters,
-            [
-                AllowedFilter::exact('author_id'),
-                AllowedFilter::scope('pinned'),
-                AllowedFilter::scope('resolved'),
-                AllowedFilter::scope('closed'),
-                AllowedFilter::scope('is_mentioned'),
-            ],
-            ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
-            '-last_activity_at',
-            $filters['per_page'] ?? 20
+                return $this->filteredPaginate(
+                    $query,
+                    $filters,
+                    [
+                        AllowedFilter::exact('author_id'),
+                        AllowedFilter::scope('pinned'),
+                        AllowedFilter::scope('resolved'),
+                        AllowedFilter::scope('closed'),
+                        AllowedFilter::scope('is_mentioned'),
+                    ],
+                    ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
+                    '-last_activity_at',
+                    $filters['per_page'] ?? 20
+                );
+            }
         );
     }
 
@@ -124,33 +138,40 @@ class ThreadRepository extends BaseRepository
 
     public function searchThreadsByCourse(string $searchQuery, int $courseId, array $filters = []): LengthAwarePaginator
     {
-        $query = Thread::query()
-            ->withIsMentioned()
-            ->where('course_id', $courseId)
-            ->with(['author.media', 'replies']);
+        $perPage = max(1, min((int) ($filters['per_page'] ?? 20), 100));
+        return cache()->tags(['forums', 'threads', "course:{$courseId}"])->remember(
+            "forums:threads:search:course:{$courseId}:{$searchQuery}:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            300,
+            function () use ($searchQuery, $courseId, $filters) {
+                $query = Thread::query()
+                    ->withIsMentioned()
+                    ->where('course_id', $courseId)
+                    ->with(['author.media', 'replies']);
 
-        if (! empty(trim($searchQuery))) {
-            $query->where(function ($subQuery) use ($searchQuery) {
-                $subQuery->search($searchQuery)
-                    ->orWhereHas('replies', function ($replyQuery) use ($searchQuery) {
-                        $replyQuery->search($searchQuery);
+                if (! empty(trim($searchQuery))) {
+                    $query->where(function ($subQuery) use ($searchQuery) {
+                        $subQuery->search($searchQuery)
+                            ->orWhereHas('replies', function ($replyQuery) use ($searchQuery) {
+                                $replyQuery->search($searchQuery);
+                            });
                     });
-            });
-        }
+                }
 
-        return $this->filteredPaginate(
-            $query,
-            $filters,
-            [
-                AllowedFilter::exact('author_id'),
-                AllowedFilter::scope('pinned'),
-                AllowedFilter::scope('resolved'),
-                AllowedFilter::scope('closed'),
-                AllowedFilter::scope('is_mentioned'),
-            ],
-            ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
-            '-last_activity_at',
-            $filters['per_page'] ?? 20
+                return $this->filteredPaginate(
+                    $query,
+                    $filters,
+                    [
+                        AllowedFilter::exact('author_id'),
+                        AllowedFilter::scope('pinned'),
+                        AllowedFilter::scope('resolved'),
+                        AllowedFilter::scope('closed'),
+                        AllowedFilter::scope('is_mentioned'),
+                    ],
+                    ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
+                    '-last_activity_at',
+                    $filters['per_page'] ?? 20
+                );
+            }
         );
     }
 
@@ -179,84 +200,105 @@ class ThreadRepository extends BaseRepository
 
     public function getAllThreads(array $filters = [], ?string $search = null): LengthAwarePaginator
     {
-        $query = Thread::query()
-            ->withIsMentioned()
-            ->with(['author.media', 'course']);
+        $perPage = max(1, min((int) ($filters['per_page'] ?? 20), 100));
+        return cache()->tags(['forums', 'threads'])->remember(
+            "forums:threads:all:{$perPage}:" . request('page', 1) . ":" . md5(json_encode([$filters, $search])),
+            300,
+            function () use ($filters, $search) {
+                $query = Thread::query()
+                    ->withIsMentioned()
+                    ->with(['author.media', 'course']);
 
-        if ($search && ! empty(trim($search))) {
-            $query->search($search);
-        }
+                if ($search && ! empty(trim($search))) {
+                    $query->search($search);
+                }
 
-        return $this->filteredPaginate(
-            $query,
-            $filters,
-            [
-                AllowedFilter::exact('author_id'),
-                AllowedFilter::scope('pinned'),
-                AllowedFilter::scope('resolved'),
-                AllowedFilter::scope('closed'),
-                AllowedFilter::scope('is_mentioned'),
-            ],
-            ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
-            '-last_activity_at',
-            $filters['per_page'] ?? 20
+                return $this->filteredPaginate(
+                    $query,
+                    $filters,
+                    [
+                        AllowedFilter::exact('author_id'),
+                        AllowedFilter::scope('pinned'),
+                        AllowedFilter::scope('resolved'),
+                        AllowedFilter::scope('closed'),
+                        AllowedFilter::scope('is_mentioned'),
+                    ],
+                    ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
+                    '-last_activity_at',
+                    $filters['per_page'] ?? 20
+                );
+            }
         );
     }
 
     public function getInstructorThreads(int $instructorId, array $filters = [], ?string $search = null): LengthAwarePaginator
     {
-        $courseIds = \Modules\Schemes\Models\Course::where('instructor_id', $instructorId)
-            ->pluck('id')
-            ->toArray();
+        $perPage = max(1, min((int) ($filters['per_page'] ?? 20), 100));
+        return cache()->tags(['forums', 'threads', "instructor:{$instructorId}"])->remember(
+            "forums:threads:instructor:{$instructorId}:{$perPage}:" . request('page', 1) . ":" . md5(json_encode([$filters, $search])),
+            300,
+            function () use ($instructorId, $filters, $search) {
+                $courseIds = \Modules\Schemes\Models\Course::where('instructor_id', $instructorId)
+                    ->pluck('id')
+                    ->toArray();
 
-        $query = Thread::query()
-            ->withIsMentioned()
-            ->whereIn('course_id', $courseIds)
-            ->with(['author.media', 'course']);
+                $query = Thread::query()
+                    ->withIsMentioned()
+                    ->whereIn('course_id', $courseIds)
+                    ->with(['author.media', 'course']);
 
-        if ($search && ! empty(trim($search))) {
-            $query->search($search);
-        }
+                if ($search && ! empty(trim($search))) {
+                    $query->search($search);
+                }
 
-        return $this->filteredPaginate(
-            $query,
-            $filters,
-            [
-                AllowedFilter::exact('author_id'),
-                AllowedFilter::scope('pinned'),
-                AllowedFilter::scope('resolved'),
-                AllowedFilter::scope('closed'),
-                AllowedFilter::scope('is_mentioned'),
-            ],
-            ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
-            '-last_activity_at',
-            $filters['per_page'] ?? 20
+                return $this->filteredPaginate(
+                    $query,
+                    $filters,
+                    [
+                        AllowedFilter::exact('author_id'),
+                        AllowedFilter::scope('pinned'),
+                        AllowedFilter::scope('resolved'),
+                        AllowedFilter::scope('closed'),
+                        AllowedFilter::scope('is_mentioned'),
+                    ],
+                    ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
+                    '-last_activity_at',
+                    $filters['per_page'] ?? 20
+                );
+            }
         );
     }
 
     public function getUserThreads(int $userId, array $filters = [], ?string $search = null): LengthAwarePaginator
     {
-        $query = Thread::query()
-            ->withIsMentioned()
-            ->where('author_id', $userId)
-            ->with(['author.media', 'course']);
+        $perPage = max(1, min((int) ($filters['per_page'] ?? 20), 100));
+        return cache()->tags(['forums', 'threads', "user:{$userId}"])->remember(
+            "forums:threads:user:{$userId}:{$perPage}:" . request('page', 1) . ":" . md5(json_encode([$filters, $search])),
+            300,
+            function () use ($userId, $filters, $search) {
+                $query = Thread::query()
+                    ->withIsMentioned()
+                    ->where('author_id', $userId)
+                    ->with(['author.media', 'course']);
 
-        if ($search && ! empty(trim($search))) {
-            $query->search($search);
-        }
+                if ($search && ! empty(trim($search))) {
+                    $query->search($search);
+                }
 
-        return $this->filteredPaginate(
-            $query,
-            $filters,
-            [
-                AllowedFilter::scope('pinned'),
-                AllowedFilter::scope('resolved'),
-                AllowedFilter::scope('closed'),
-                AllowedFilter::scope('is_mentioned'),
-            ],
-            ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
-            '-last_activity_at',
-            $filters['per_page'] ?? 20
+                return $this->filteredPaginate(
+                    $query,
+                    $filters,
+                    [
+                        AllowedFilter::scope('pinned'),
+                        AllowedFilter::scope('resolved'),
+                        AllowedFilter::scope('closed'),
+                        AllowedFilter::scope('is_mentioned'),
+                    ],
+                    ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
+                    '-last_activity_at',
+                    $filters['per_page'] ?? 20
+                );
+            }
         );
     }
 
@@ -288,88 +330,89 @@ class ThreadRepository extends BaseRepository
     public function getTrendingThreads(array $filters = [], ?string $search = null): LengthAwarePaginator
     {
         $perPage = (int) ($filters['limit'] ?? $filters['per_page'] ?? 10);
+        $perPage = max(1, min($perPage, 100));
+        $userId = auth()->id() ?? 0;
 
-        $cacheKey = 'forums:trending:all:'.(auth()->id() ?? 0).':'.md5(json_encode([$filters, $search, $perPage]));
-        $cached = Cache::get($cacheKey);
-        if ($cached) {
-            return $cached;
-        }
+        return cache()->tags(['forums', 'threads', 'trending'])->remember(
+            'forums:trending:all:'.$userId.':'.md5(json_encode([$filters, $search, $perPage])),
+            120, // 2 minutes
+            function () use ($filters, $search, $perPage) {
+                $query = Thread::query()
+                    ->withIsMentioned()
+                    ->with(['author.media', 'course']);
 
-        $query = Thread::query()
-            ->withIsMentioned()
-            ->with(['author.media', 'course']);
+                if ($search && ! empty(trim($search))) {
+                    $query->search($search);
+                }
 
-        if ($search && ! empty(trim($search))) {
-            $query->search($search);
-        }
-
-        return $this->filteredPaginate(
-            $query,
-            $filters,
-            [
-                AllowedFilter::callback('period', function ($query, $value): void {
-                    $period = (string) $value;
-                    $startDate = match($period) {
-                        '24hours' => now()->subDay(),
-                        '7days' => now()->subDays(7),
-                        '30days' => now()->subDays(30),
-                        '90days' => now()->subDays(90),
-                        default => now()->subDays(7),
-                    };
-                    $query->where('created_at', '>=', $startDate);
-                }),
-            ],
-            ['replies_count', 'views_count', 'created_at'],
-            '-replies_count',
-            $perPage
+                return $this->filteredPaginate(
+                    $query,
+                    $filters,
+                    [
+                        AllowedFilter::callback('period', function ($query, $value): void {
+                            $period = (string) $value;
+                            $startDate = match($period) {
+                                '24hours' => now()->subDay(),
+                                '7days' => now()->subDays(7),
+                                '30days' => now()->subDays(30),
+                                '90days' => now()->subDays(90),
+                                default => now()->subDays(7),
+                            };
+                            $query->where('created_at', '>=', $startDate);
+                        }),
+                    ],
+                    ['replies_count', 'views_count', 'created_at'],
+                    '-replies_count',
+                    $perPage
+                );
+            }
         );
-        Cache::put($cacheKey, $paginator, now()->addMinutes(2));
-        return $paginator;
     }
 
     public function getInstructorTrendingThreads(int $instructorId, array $filters = [], ?string $search = null): LengthAwarePaginator
     {
-        $courseIds = \Modules\Schemes\Models\Course::where('instructor_id', $instructorId)
-            ->pluck('id')
-            ->toArray();
         $perPage = (int) ($filters['limit'] ?? $filters['per_page'] ?? 10);
+        $perPage = max(1, min($perPage, 100));
+        $userId = auth()->id() ?? 0;
 
-        $cacheKey = 'forums:trending:instructor:'.$instructorId.':'.(auth()->id() ?? 0).':'.md5(json_encode([$filters, $search, $perPage]));
-        $cached = Cache::get($cacheKey);
-        if ($cached) {
-            return $cached;
-        }
+        return cache()->tags(['forums', 'threads', 'trending', "instructor:{$instructorId}"])->remember(
+            'forums:trending:instructor:'.$instructorId.':'.$userId.':'.md5(json_encode([$filters, $search, $perPage])),
+            120, // 2 minutes
+            function () use ($instructorId, $filters, $search, $perPage) {
+                $courseIds = \Modules\Schemes\Models\Course::where('instructor_id', $instructorId)
+                    ->pluck('id')
+                    ->toArray();
 
-        $query = Thread::query()
-            ->withIsMentioned()
-            ->whereIn('course_id', $courseIds)
-            ->with(['author.media', 'course']);
+                $query = Thread::query()
+                    ->withIsMentioned()
+                    ->whereIn('course_id', $courseIds)
+                    ->with(['author.media', 'course']);
 
-        if ($search && ! empty(trim($search))) {
-            $query->search($search);
-        }
+                if ($search && ! empty(trim($search))) {
+                    $query->search($search);
+                }
 
-        $paginator = $this->filteredPaginate(
-            $query,
-            $filters,
-            [
-                AllowedFilter::callback('period', function ($query, $value): void {
-                    $period = (string) $value;
-                    $startDate = match($period) {
-                        '24hours' => now()->subDay(),
-                        '7days' => now()->subDays(7),
-                        '30days' => now()->subDays(30),
-                        '90days' => now()->subDays(90),
-                        default => now()->subDays(7),
-                    };
-                    $query->where('created_at', '>=', $startDate);
-                }),
-            ],
-            ['replies_count', 'views_count', 'created_at'],
-            '-replies_count',
-            $perPage
+                return $this->filteredPaginate(
+                    $query,
+                    $filters,
+                    [
+                        AllowedFilter::callback('period', function ($query, $value): void {
+                            $period = (string) $value;
+                            $startDate = match($period) {
+                                '24hours' => now()->subDay(),
+                                '7days' => now()->subDays(7),
+                                '30days' => now()->subDays(30),
+                                '90days' => now()->subDays(90),
+                                default => now()->subDays(7),
+                            };
+                            $query->where('created_at', '>=', $startDate);
+                        }),
+                    ],
+                    ['replies_count', 'views_count', 'created_at'],
+                    '-replies_count',
+                    $perPage
+                );
+            }
         );
-        Cache::put($cacheKey, $paginator, now()->addMinutes(2));
-        return $paginator;
     }
 }

@@ -39,6 +39,7 @@ class ChallengeFinder
     
     public function getUserChallengesPaginated(int $userId, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
+        $perPage = max(1, min($perPage, 100));
         return $this->getUserChallengesQuery($userId)->paginate($perPage);
     }
 

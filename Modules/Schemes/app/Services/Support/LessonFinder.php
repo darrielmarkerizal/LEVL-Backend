@@ -23,19 +23,24 @@ class LessonFinder
 
     public function paginate(int $unitId, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $perPage = max(1, $perPage);
+        $perPage = max(1, min($perPage, 100));
 
-        $query = QueryBuilder::for(Lesson::class, $this->buildQueryBuilderRequest($filters))
-            ->where('unit_id', $unitId)
-            ->allowedFilters([
-                AllowedFilter::exact('content_type'),
-                AllowedFilter::exact('status'),
-            ])
-            ->allowedIncludes(['unit', 'blocks', 'assignments'])
-            ->allowedSorts(['order', 'title', 'created_at'])
-            ->defaultSort('order');
-
-        return $query->paginate($perPage);
+        return cache()->tags(['schemes', 'lessons'])->remember(
+            "schemes:lessons:unit:{$unitId}:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            300,
+            function () use ($unitId, $filters, $perPage) {
+                return QueryBuilder::for(Lesson::class, $this->buildQueryBuilderRequest($filters))
+                    ->where('unit_id', $unitId)
+                    ->allowedFilters([
+                        AllowedFilter::exact('content_type'),
+                        AllowedFilter::exact('status'),
+                    ])
+                    ->allowedIncludes(['unit', 'blocks', 'assignments'])
+                    ->allowedSorts(['order', 'title', 'created_at'])
+                    ->defaultSort('order')
+                    ->paginate($perPage);
+            }
+        );
     }
 
     public function find(int $id): ?Lesson

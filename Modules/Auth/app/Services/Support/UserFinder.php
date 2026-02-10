@@ -24,8 +24,9 @@ class UserFinder
         private readonly UserCacheService $cacheService,
     ) {}
 
-    public function listUsers(User $authUser, int $perPage = 15, ?string $search = null): LengthAwarePaginator
+    public function paginate(User $authUser, int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
+        $perPage = max(1, min($perPage, 100));
         $filters = $search ? ['search' => $search] : [];
         return $this->listUsersForIndex($authUser, $filters, $perPage);
     }
@@ -40,54 +41,60 @@ class UserFinder
         
         $cleanFilters = Arr::except($filters, ['search']);
 
-        $request = new Request($cleanFilters);
+        return cache()->tags(['auth', 'users'])->remember(
+            "auth:users:index:{$authUser->id}:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($authUser, $cleanFilters, $search, $perPage) {
+                $request = new Request($cleanFilters);
 
-        $query = QueryBuilder::for(User::class, $request)
-            ->select(['id', 'name', 'email', 'username', 'status', 'account_status', 'created_at', 'email_verified_at', 'is_password_set'])
-            ->with(['roles:id,name,guard_name', 'media:id,model_type,model_id,collection_name,file_name,disk']);
+                $query = QueryBuilder::for(User::class, $request)
+                    ->select(['id', 'name', 'email', 'username', 'status', 'account_status', 'created_at', 'email_verified_at', 'is_password_set'])
+                    ->with(['roles:id,name,guard_name', 'media:id,model_type,model_id,collection_name,file_name,disk']);
 
-        if ($search && trim((string) $search) !== '') {
-            $query->search($search);
-        }
+                if ($search && trim((string) $search) !== '') {
+                    $query->search($search);
+                }
 
-        if ($authUser->hasRole('Admin') && ! $authUser->hasRole('Superadmin')) {
-            $managedCourseIds = CourseAdmin::query()
-                ->where('user_id', $authUser->id)
-                ->pluck('course_id')
-                ->unique();
+                if ($authUser->hasRole('Admin') && ! $authUser->hasRole('Superadmin')) {
+                    $managedCourseIds = CourseAdmin::query()
+                        ->where('user_id', $authUser->id)
+                        ->pluck('course_id')
+                        ->unique();
 
-            $query->where(function (Builder $q) use ($managedCourseIds) {
-                $q->whereHas('roles', function ($roleQuery) {
-                    $roleQuery->where('name', 'Admin');
-                })
-                    ->orWhere(function ($subQuery) use ($managedCourseIds) {
-                        $subQuery->whereHas('roles', function ($roleQuery) {
-                            $roleQuery->whereIn('name', ['Instructor', 'Student']);
+                    $query->where(function (Builder $q) use ($managedCourseIds) {
+                        $q->whereHas('roles', function ($roleQuery) {
+                            $roleQuery->where('name', 'Admin');
                         })
-                            ->whereHas('enrollments', function ($enrollmentQuery) use ($managedCourseIds) {
-                                $enrollmentQuery->whereIn('course_id', $managedCourseIds);
+                            ->orWhere(function ($subQuery) use ($managedCourseIds) {
+                                $subQuery->whereHas('roles', function ($roleQuery) {
+                                    $roleQuery->whereIn('name', ['Instructor', 'Student']);
+                                })
+                                    ->whereHas('enrollments', function ($enrollmentQuery) use ($managedCourseIds) {
+                                        $enrollmentQuery->whereIn('course_id', $managedCourseIds);
+                                    });
                             });
                     });
-            });
-        }
-
-        return $query->allowedFilters([
-            AllowedFilter::exact('status'),
-            AllowedFilter::callback('role', function (Builder $query, $value) {
-                $roles = is_array($value)
-                  ? $value
-                  : Str::of($value)->explode(',')->map(fn ($r) => trim($r))->toArray();
-                $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
-            }),
-            AllowedFilter::callback('search', function (Builder $query, $value) {
-                if (is_string($value) && trim($value) !== '') {
-                    $query->search($value);
                 }
-            }),
-        ])
-            ->allowedSorts(['name', 'email', 'username', 'status', 'created_at'])
-            ->defaultSort('-created_at')
-            ->paginate($perPage);
+
+                return $query->allowedFilters([
+                    AllowedFilter::exact('status'),
+                    AllowedFilter::callback('role', function (Builder $query, $value) {
+                        $roles = is_array($value)
+                          ? $value
+                          : Str::of($value)->explode(',')->map(fn ($r) => trim($r))->toArray();
+                        $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
+                    }),
+                    AllowedFilter::callback('search', function (Builder $query, $value) {
+                        if (is_string($value) && trim($value) !== '') {
+                            $query->search($value);
+                        }
+                    }),
+                ])
+                    ->allowedSorts(['name', 'email', 'username', 'status', 'created_at'])
+                    ->defaultSort('-created_at')
+                    ->paginate($perPage);
+            }
+        );
     }
 
     public function showUser(User $authUser, int $userId): User

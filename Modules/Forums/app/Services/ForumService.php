@@ -49,6 +49,8 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
 
             $this->processMentions($thread, $data['content']);
 
+            cache()->tags(['forums', 'threads'])->flush();
+
             return $thread;
         });
     }
@@ -78,12 +80,19 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
             $this->processMentions($updatedThread, $data['content']);
         }
 
+        cache()->tags(['forums', 'threads'])->flush();
+
         return $updatedThread;
     }
 
     public function deleteThread(Thread $thread, User $user): bool
     {
-        return $this->threadRepository->delete($thread, $user->id);
+        $deleted = $this->threadRepository->delete($thread, $user->id);
+        if ($deleted) {
+            cache()->tags(['forums', 'threads'])->flush();
+            cache()->tags(['forums', 'replies', "thread:{$thread->id}"])->flush();
+        }
+        return $deleted;
     }
 
     public function getThreadsByCourse(int $courseId, array $filters = [], ?string $search = null): LengthAwarePaginator
@@ -165,6 +174,9 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
 
         $this->processMentions($reply, $data['content']);
 
+        cache()->tags(['forums', 'threads'])->flush(); // Update reply count
+        cache()->tags(['forums', 'replies', "thread:{$thread->id}"])->flush();
+
         return $reply;
     }
 
@@ -185,6 +197,7 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
         }
 
         return $updatedReply;
+        cache()->tags(['forums', 'replies', "thread:{$reply->thread_id}"])->flush();
     }
 
     public function deleteReply(Reply $reply, User $user): bool
@@ -196,6 +209,8 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
 
             if ($result) {
                 $thread->decrement('replies_count');
+                cache()->tags(['forums', 'threads'])->flush(); // Update reply count
+                cache()->tags(['forums', 'replies', "thread:{$thread->id}"])->flush();
             }
 
             return $result;
@@ -251,7 +266,7 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
 
     public function toggleThreadReaction(User $user, Thread $thread, string $type): array
     {
-        return DB::transaction(function () use ($user, $thread, $type) {
+        $result = DB::transaction(function () use ($user, $thread, $type) {
             $added = Reaction::toggle(
                 $user->id,
                 Thread::class,
@@ -277,11 +292,15 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
 
             return ['added' => $added, 'reaction' => $reaction];
         });
+
+        cache()->tags(['forums', 'threads'])->flush();
+
+        return $result;
     }
 
     public function toggleReplyReaction(User $user, Reply $reply, string $type): array
     {
-        return DB::transaction(function () use ($user, $reply, $type) {
+        $result = DB::transaction(function () use ($user, $reply, $type) {
             $added = Reaction::toggle(
                 $user->id,
                 Reply::class,
@@ -305,5 +324,9 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
 
             return ['added' => $added, 'reaction' => $reaction];
         });
+
+        cache()->tags(['forums', 'replies', "thread:{$reply->thread_id}"])->flush();
+
+        return $result;
     }
 }

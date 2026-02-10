@@ -33,24 +33,31 @@ class AuditLogQueryService
             $query->search($search);
         }
 
-        return QueryBuilder::for($query)
-            ->with('actor')
-            ->allowedFilters([
-                AllowedFilter::exact('action'),
-                AllowedFilter::scope('actions', 'action_in'),
-                AllowedFilter::exact('actor_id'),
-                AllowedFilter::exact('actor_type'),
-                AllowedFilter::exact('subject_id'),
-                AllowedFilter::exact('subject_type'),
-                AllowedFilter::scope('created_between'),
-                AllowedFilter::scope('context_contains'),
-                AllowedFilter::scope('assignment_id'),
-                AllowedFilter::scope('student_id'),
-            ])
-            ->allowedSorts(['created_at', 'id', 'action', 'actor_id'])
-            ->defaultSort('-created_at')
-            ->paginate($perPage)
-            ->appends(request()->query());
+        return cache()->tags(['common', 'audit_logs'])->remember(
+            "common:audit_logs:paginate:{$perPage}:" . md5(json_encode($validated)),
+            300,
+            function () use ($query, $perPage) {
+                return QueryBuilder::for($query)
+                    ->with('actor')
+                    ->allowedFilters([
+                        AllowedFilter::exact('action'),
+                        AllowedFilter::scope('actions', 'action_in'),
+                        AllowedFilter::exact('actor_id'),
+                        AllowedFilter::exact('actor_type'),
+                        AllowedFilter::exact('subject_id'),
+                        AllowedFilter::exact('subject_type'),
+                        AllowedFilter::scope('created_between'),
+                        AllowedFilter::scope('context_contains'),
+                        AllowedFilter::scope('assignment_id'),
+                        AllowedFilter::scope('student_id'),
+                        AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
+                    ])
+                    ->allowedSorts(['created_at', 'id', 'action', 'actor_id'])
+                    ->defaultSort('-created_at')
+                    ->paginate($perPage)
+                    ->appends(request()->query());
+            }
+        );
     }
 
     public function findById(int $id): ?AuditLog

@@ -22,26 +22,35 @@ class NewsService implements NewsServiceInterface
         private NewsRepositoryInterface $repository
     ) {}
 
-    public function getFeed(array $filters = []): LengthAwarePaginator
+    public function list(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $perPage = $filters['per_page'] ?? 15;
+        $perPage = $filters['per_page'] ?? $perPage;
+        $perPage = max(1, min($perPage, 100));
+        $page = request()->get('page', 1);
         $searchQuery = request('search');
+        $sort = request('sort', '-published_at');
+        
+        return cache()->tags(['content', 'news'])->remember(
+            "content:news:feed:{$perPage}:{$page}:{$searchQuery}:{$sort}:" . md5(json_encode($filters)),
+            300,
+            function () use ($perPage, $searchQuery) {
+                $builder = QueryBuilder::for(News::class);
 
-        $builder = QueryBuilder::for(News::class);
+                if ($searchQuery && trim($searchQuery) !== '') {
+                    $builder->search($searchQuery);
+                }
 
-        if ($searchQuery && trim($searchQuery) !== '') {
-            $builder->search($searchQuery);
-        }
-
-        $builder->allowedFilters([
-            AllowedFilter::exact('status'),
-            AllowedFilter::exact('category'),
-        ])
-            ->allowedIncludes(['author'])
-            ->allowedSorts(['published_at', 'views_count', 'created_at'])
-            ->defaultSort('-published_at');
-
-        return $builder->paginate($perPage);
+                return $builder->allowedFilters([
+                    AllowedFilter::exact('status'),
+                    AllowedFilter::exact('category'),
+                    AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
+                ])
+                    ->allowedIncludes(['author'])
+                    ->allowedSorts(['published_at', 'views_count', 'created_at'])
+                    ->defaultSort('-published_at')
+                    ->paginate($perPage);
+            }
+        );
     }
 
     public function search(string $query, array $filters = []): LengthAwarePaginator
@@ -68,7 +77,9 @@ class NewsService implements NewsServiceInterface
                 'author_id' => $author->id,
             ]);
 
-            return $this->repository->create($data);
+            $news = $this->repository->create($data);
+            cache()->tags(['content', 'news'])->flush();
+            return $news;
         });
     }
 
@@ -77,13 +88,17 @@ class NewsService implements NewsServiceInterface
         return DB::transaction(function () use ($news, $dto, $editor) {
             $news->saveRevision($editor);
 
-            return $this->repository->update($news, $dto->toArrayWithoutNull());
+            $updated = $this->repository->update($news, $dto->toArrayWithoutNull());
+            cache()->tags(['content', 'news'])->flush();
+            return $updated;
         });
     }
 
     public function delete(News $news, User $user): bool
     {
-        return $this->repository->delete($news, $user->id);
+        $result = $this->repository->delete($news, $user->id);
+        cache()->tags(['content', 'news'])->flush();
+        return $result;
     }
 
     /**
@@ -104,6 +119,7 @@ class NewsService implements NewsServiceInterface
 
             event(new NewsPublished($news->fresh()));
 
+            cache()->tags(['content', 'news'])->flush();
             return $news->fresh();
         });
     }
@@ -122,6 +138,7 @@ class NewsService implements NewsServiceInterface
             'scheduled_at' => $publishAt,
         ]);
 
+        cache()->tags(['content', 'news'])->flush();
         return $news->fresh();
     }
 

@@ -34,18 +34,24 @@ class UnitService
 
     public function paginate(int $courseId, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $perPage = max(1, $perPage);
+        $perPage = max(1, min($perPage, 100));
 
-        $query = QueryBuilder::for(Unit::class, $this->buildQueryBuilderRequest($filters))
-            ->where('course_id', $courseId)
-            ->allowedFilters([
-                AllowedFilter::exact('status'),
-            ])
-            ->allowedIncludes(['course', 'lessons'])
-            ->allowedSorts(['order', 'title', 'created_at'])
-            ->defaultSort('order');
+        return cache()->tags(['schemes', 'units'])->remember(
+            "schemes:units:course:{$courseId}:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            300,
+            function () use ($courseId, $filters, $perPage) {
+                $query = QueryBuilder::for(Unit::class, $this->buildQueryBuilderRequest($filters))
+                    ->where('course_id', $courseId)
+                    ->allowedFilters([
+                        AllowedFilter::exact('status'),
+                    ])
+                    ->allowedIncludes(['course', 'lessons'])
+                    ->allowedSorts(['order', 'title', 'created_at'])
+                    ->defaultSort('order');
 
-        return $query->paginate($perPage);
+                return $query->paginate($perPage);
+            }
+        );
     }
 
     public function find(int $id): ?Unit
@@ -79,7 +85,9 @@ class UnitService
 
             $attributes = Arr::except($attributes, ['slug']);
 
-            return $this->repository->create($attributes);
+            $unit = $this->repository->create($attributes);
+            cache()->tags(['schemes', 'units'])->flush();
+            return $unit;
         });
     }
 
@@ -111,7 +119,9 @@ class UnitService
 
             $attributes = Arr::except($attributes, ['slug']);
 
-            return $this->repository->update($unit, $attributes);
+            $updated = $this->repository->update($unit, $attributes);
+            cache()->tags(['schemes', 'units'])->flush();
+            return $updated;
         });
     }
 
@@ -129,6 +139,10 @@ class UnitService
                 Unit::where('course_id', $courseId)
                     ->where('order', '>', $deletedOrder)
                     ->decrement('order');
+            }
+
+            if ($deleted) {
+                cache()->tags(['schemes', 'units'])->flush();
             }
 
             return $deleted;
@@ -164,6 +178,9 @@ class UnitService
 
             $this->cacheService->invalidateCourse($courseId);
 
+            $this->cacheService->invalidateCourse($courseId);
+            cache()->tags(['schemes', 'units'])->flush();
+
             return true;
         });
     }
@@ -175,6 +192,9 @@ class UnitService
 
         $this->cacheService->invalidateCourse($unit->course_id);
 
+        $this->cacheService->invalidateCourse($unit->course_id);
+        cache()->tags(['schemes', 'units'])->flush();
+
         return $unit->fresh();
     }
 
@@ -184,6 +204,9 @@ class UnitService
         $unit->update(['status' => 'draft']);
 
         $this->cacheService->invalidateCourse($unit->course_id);
+
+        $this->cacheService->invalidateCourse($unit->course_id);
+        cache()->tags(['schemes', 'units'])->flush();
 
         return $unit->fresh();
     }

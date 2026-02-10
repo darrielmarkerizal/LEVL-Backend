@@ -25,9 +25,8 @@ class ChallengeController extends Controller
         $perPage = (int) ($request->input("per_page") ?? 15);
         $perPage = $perPage > 0 ? $perPage : 15;
 
-        $challenges = $this->challengeService->getChallengesQuery($userId)
-            ->paginate($perPage)
-            ->appends($request->query());
+        $challenges = $this->challengeService->getChallenges($request->query(), $perPage);
+        $challenges->appends($request->query());
 
         if ($userId) {
             $userChallenges = $this->challengeService->getUserChallenges($userId)->keyBy("challenge_id");
@@ -98,9 +97,8 @@ class ChallengeController extends Controller
         $perPage = (int) ($request->input('per_page') ?? 15);
         $perPage = $perPage > 0 ? $perPage : 15;
 
-        $completions = $this->challengeService->getCompletedChallengesQuery($userId)
-            ->paginate($perPage)
-            ->appends($request->query());
+        $completions = $this->challengeService->getCompletedChallengesPaginated($userId, $request->query(), $perPage);
+        $completions->appends($request->query());
 
         $completions->getCollection()->transform(fn($item) => new ChallengeCompletionResource($item));
 

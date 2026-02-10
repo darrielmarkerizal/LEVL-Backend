@@ -15,41 +15,54 @@ class NewsRepository implements NewsRepositoryInterface
     public function getNewsFeed(array $filters = []): LengthAwarePaginator
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
-        $request = new Request(['filter' => $filters]);
-
-        return QueryBuilder::for(News::published()->class, $request)
-            ->with(['author', 'categories', 'tags'])
-            ->withCount('reads')
-            ->allowedFilters([
-                AllowedFilter::exact('category_id'),
-                AllowedFilter::exact('tag_id'),
-                AllowedFilter::exact('featured'),
-                AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('published_at', '>=', $v)),
-                AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('published_at', '<=', $v)),
-            ])
-            ->allowedSorts(['published_at', 'views_count', 'created_at'])
-            ->defaultSort('-published_at')
-            ->paginate($perPage)
-            ->appends($filters);
+        $perPage = max(1, min($perPage, 100));
+        return cache()->tags(['content', 'news'])->remember(
+            "content:news:repo:feed:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($filters, $perPage) {
+                $request = new Request(['filter' => $filters]);
+                return QueryBuilder::for(News::published()->class, $request)
+                    ->with(['author', 'categories', 'tags'])
+                    ->withCount('reads')
+                    ->allowedFilters([
+                        AllowedFilter::exact('category_id'),
+                        AllowedFilter::exact('tag_id'),
+                        AllowedFilter::exact('featured'),
+                        AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('published_at', '>=', $v)),
+                        AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('published_at', '<=', $v)),
+                    ])
+                    ->allowedSorts(['published_at', 'views_count', 'created_at'])
+                    ->defaultSort('-published_at')
+                    ->paginate($perPage)
+                    ->appends($filters);
+            }
+        );
     }
 
     public function searchNews(string $searchQuery, array $filters = []): LengthAwarePaginator
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
+        $perPage = max(1, min($perPage, 100));
 
-        return News::published()
-            ->search($searchQuery)
-            ->with(['author', 'categories', 'tags'])
-            ->withCount('reads')
-            ->query(function ($q) use ($filters) {
-                if (!empty($filters['category_id'])) {
-                    $q->whereHas('categories', fn ($q2) => $q2->where('content_categories.id', (int) $filters['category_id']));
-                }
-            })
-            ->orderBy('is_featured', 'desc')
-            ->orderBy('published_at', 'desc')
-            ->paginate($perPage)
-            ->appends($filters);
+        return cache()->tags(['content', 'news'])->remember(
+            "content:news:repo:search:{$searchQuery}:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($searchQuery, $perPage, $filters) {
+                return News::published()
+                    ->search($searchQuery)
+                    ->with(['author', 'categories', 'tags'])
+                    ->withCount('reads')
+                    ->query(function ($q) use ($filters) {
+                        if (!empty($filters['category_id'])) {
+                            $q->whereHas('categories', fn ($q2) => $q2->where('content_categories.id', (int) $filters['category_id']));
+                        }
+                    })
+                    ->orderBy('is_featured', 'desc')
+                    ->orderBy('published_at', 'desc')
+                    ->paginate($perPage)
+                    ->appends($filters);
+            }
+        );
     }
 
     public function findBySlugWithRelations(string $slug): ?News
@@ -109,22 +122,34 @@ class NewsRepository implements NewsRepositoryInterface
 
     public function getTrendingNews(int $limit = 10): Collection
     {
-        return News::published()
-            ->where('published_at', '>=', now()->subDays(7))
-            ->with(['author', 'categories'])
-            ->orderByRaw('views_count / (TIMESTAMPDIFF(HOUR, published_at, NOW()) + 1) DESC')
-            ->limit($limit)
-            ->get();
+        return cache()->tags(['content', 'news'])->remember(
+            "content:news:trending:{$limit}",
+            300,
+            function () use ($limit) {
+                return News::published()
+                    ->where('published_at', '>=', now()->subDays(7))
+                    ->with(['author', 'categories'])
+                    ->orderByRaw('views_count / (TIMESTAMPDIFF(HOUR, published_at, NOW()) + 1) DESC')
+                    ->limit($limit)
+                    ->get();
+            }
+        );
     }
 
     public function getFeaturedNews(int $limit = 5): Collection
     {
-        return News::published()
-            ->featured()
-            ->with(['author', 'categories'])
-            ->orderBy('published_at', 'desc')
-            ->limit($limit)
-            ->get();
+        return cache()->tags(['content', 'news'])->remember(
+            "content:news:featured:{$limit}",
+            300,
+            function () use ($limit) {
+                return News::published()
+                    ->featured()
+                    ->with(['author', 'categories'])
+                    ->orderBy('published_at', 'desc')
+                    ->limit($limit)
+                    ->get();
+            }
+        );
     }
 
     public function getScheduledForPublishing(): Collection
