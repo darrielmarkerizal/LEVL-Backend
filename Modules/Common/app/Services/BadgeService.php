@@ -19,20 +19,34 @@ class BadgeService implements BadgeServiceInterface
 
     public function paginate(int $perPage = 15, array $params = []): LengthAwarePaginator
     {
-        $query = Badge::query();
-        
-        $this->applySearch($query, $params);
+        $perPage = max(1, min($perPage, 100));
+        $page = request()->get('page', 1);
+        $search = $params['search'] ?? request('search');
+        $sort = request('sort', '-created_at');
 
-        return QueryBuilder::for($query)
-            ->allowedFilters([
-                AllowedFilter::exact('id'),
-                AllowedFilter::partial('code'),
-                AllowedFilter::partial('name'),
-                AllowedFilter::exact('type'),
-            ])
-            ->allowedSorts(['id', 'code', 'name', 'type', 'threshold', 'created_at', 'updated_at'])
-            ->defaultSort('-created_at')
-            ->paginate(max(1, $perPage));
+        return cache()->tags(['common', 'badges'])->remember(
+            "common:badges:paginate:{$perPage}:{$page}:{$search}:{$sort}",
+            300,
+            function () use ($perPage, $search) {
+                $query = Badge::query();
+                
+                if ($search && trim($search) !== '') {
+                    $query->search($search);
+                }
+
+                return QueryBuilder::for($query)
+                    ->allowedFilters([
+                        AllowedFilter::exact('id'),
+                        AllowedFilter::partial('code'),
+                        AllowedFilter::partial('name'),
+                        AllowedFilter::exact('type'),
+                        AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
+                    ])
+                    ->allowedSorts(['id', 'code', 'name', 'type', 'threshold', 'created_at', 'updated_at'])
+                    ->defaultSort('-created_at')
+                    ->paginate($perPage);
+            }
+        );
     }
 
     public function create(array $data, array $files = []): Badge
@@ -46,6 +60,7 @@ class BadgeService implements BadgeServiceInterface
 
             $this->handleMedia($badge, $files);
 
+            cache()->tags(['common', 'badges'])->flush();
             return $badge->fresh();
         });
     }
@@ -71,6 +86,7 @@ class BadgeService implements BadgeServiceInterface
             $badge->addMedia($iconPath)->toMediaCollection('icon');
         }
 
+        cache()->tags(['common', 'badges'])->flush();
         return $badge->fresh();
     }
 
@@ -96,6 +112,7 @@ class BadgeService implements BadgeServiceInterface
 
             $this->handleMedia($updated, $files);
 
+            cache()->tags(['common', 'badges'])->flush();
             return $updated->fresh();
         });
     }
@@ -120,21 +137,13 @@ class BadgeService implements BadgeServiceInterface
 
         return DB::transaction(function () use ($badge) {
             $badge->clearMediaCollection('icon');
-
-            return $this->repository->delete($badge);
+            $result = $this->repository->delete($badge);
+            cache()->tags(['common', 'badges'])->flush();
+            return $result;
         });
     }
 
-    private function applySearch(\Illuminate\Database\Eloquent\Builder $query, array $params): void
-    {
-        $searchQuery = $params['search'] ?? request('search');
 
-        if (! $searchQuery || trim($searchQuery) === '') {
-            return;
-        }
-
-        $query->search($searchQuery);
-    }
 
     private function syncRules(int $badgeId, array $rules): void
     {

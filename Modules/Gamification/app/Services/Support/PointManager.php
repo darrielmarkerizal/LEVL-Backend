@@ -67,6 +67,10 @@ class PointManager
                 $this->updateScopeStats($userId, $points, $sourceType, $sourceId);
                 $this->checkAndIncrementStreak($userId);
 
+                $this->checkAndIncrementStreak($userId);
+
+                cache()->tags(['gamification', 'leaderboard'])->flush();
+
                 return $point;
             } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
                 // Race condition handled: Point already exists
@@ -218,15 +222,22 @@ class PointManager
 
     public function getPointsHistory(int $userId, int $perPage): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-         return QueryBuilder::for(Point::class)
-            ->where('user_id', $userId)
-            ->allowedFilters([
-                AllowedFilter::exact('source_type'),
-                AllowedFilter::exact('reason'),
-            ])
-            ->defaultSort('-created_at')
-            ->allowedSorts(['created_at', 'points', 'source_type'])
-            ->paginate($perPage);
+        $perPage = max(1, min($perPage, 100));
+         return cache()->tags(['gamification', 'points'])->remember(
+            "gamification:points:history:{$userId}:{$perPage}:" . request('page', 1),
+            300,
+            function () use ($userId, $perPage) {
+                 return QueryBuilder::for(Point::class)
+                    ->where('user_id', $userId)
+                    ->allowedFilters([
+                        AllowedFilter::exact('source_type'),
+                        AllowedFilter::exact('reason'),
+                    ])
+                    ->defaultSort('-created_at')
+                    ->allowedSorts(['created_at', 'points', 'source_type'])
+                    ->paginate($perPage);
+            }
+         );
     }
 
     public function getAchievements(int $totalXp, int $currentLevel): array

@@ -24,13 +24,20 @@ class TagService
 
     public function list(array $filters = [], int $perPage = 0): LengthAwarePaginator|Collection
     {
-        $query = $this->buildQuery($filters);
-
+        $key = "schemes:tags:list:{$perPage}:" . md5(json_encode($filters));
         if ($perPage > 0) {
-            return $query->paginate($perPage);
+            $key .= ":" . request('page', 1);
         }
 
-        return $query->get();
+        return cache()->tags(['schemes', 'tags'])->remember($key, 300, function () use ($filters, $perPage) {
+            $query = $this->buildQuery($filters);
+
+            if ($perPage > 0) {
+                return $query->paginate($perPage);
+            }
+
+            return $query->get();
+        });
     }
 
     private function buildQuery(array $filters = []): QueryBuilder
@@ -59,7 +66,9 @@ class TagService
     {
         $name = trim((string) ($data['name'] ?? ''));
 
-        return $this->firstOrCreateByName($name);
+        $tag = $this->firstOrCreateByName($name);
+        cache()->tags(['schemes', 'tags'])->flush();
+        return $tag;
     }
 
     public function handleCreate(array $data): BaseCollection|Tag
@@ -96,6 +105,8 @@ class TagService
         $tag->fill($payload);
         $tag->save();
 
+        cache()->tags(['schemes', 'tags'])->flush();
+
         return $tag;
     }
 
@@ -108,7 +119,13 @@ class TagService
 
         $tag->courses()->detach();
 
-        return (bool) $tag->delete();
+        $deleted = (bool) $tag->delete();
+        if ($deleted) {
+            cache()->tags(['schemes', 'tags'])->flush();
+            cache()->tags(['schemes', 'courses'])->flush();
+        }
+
+        return $deleted;
     }
 
     public function syncCourseTags(Course $course, array $tags): void
@@ -120,6 +137,9 @@ class TagService
         $names = Tag::query()->whereIn('id', $tagIds)->pluck('name')->unique()->values()->toArray();
         $course->tags_json = $names;
         $course->save();
+
+        cache()->tags(['schemes', 'tags'])->flush();
+        cache()->tags(['schemes', 'courses'])->flush();
     }
 
     private function preparePayload(array $data, ?int $ignoreId = null, ?string $currentSlug = null, ?string $currentName = null): array

@@ -48,13 +48,19 @@ class ReplyRepository extends BaseRepository
 
     public function paginateTopLevelReplies(int $threadId, int $perPage, int $page): LengthAwarePaginator
     {
-        return Reply::where('thread_id', $threadId)
-            ->topLevel()
-            ->with(['author.media', 'children.author.media', 'media', 'children.media'])
-            ->withCount('reactions')
-            ->orderBy('is_accepted_answer', 'desc')
-            ->orderBy('created_at', 'asc')
-            ->paginate($perPage, ['*'], 'page', $page);
+        return cache()->tags(['forums', 'replies', "thread:{$threadId}"])->remember(
+            "forums:replies:thread:{$threadId}:top:{$perPage}:{$page}",
+            300,
+            function () use ($threadId, $perPage, $page) {
+                return Reply::where('thread_id', $threadId)
+                    ->topLevel()
+                    ->with(['author.media', 'children.author.media', 'media', 'children.media'])
+                    ->withCount('reactions')
+                    ->orderBy('is_accepted_answer', 'desc')
+                    ->orderBy('created_at', 'asc')
+                    ->paginate($perPage, ['*'], 'page', $page);
+            }
+        );
     }
 
     public function getNestedReplies(int $parentId): Collection

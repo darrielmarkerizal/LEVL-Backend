@@ -15,54 +15,59 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class GradingQueueService
 {
-    public function getGradingQueue(array $filters = []): LengthAwarePaginator
+    public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
+        $perPage = max(1, min($perPage, 100));
         $perPage = (int) ($filters['per_page'] ?? 15);
         $search = data_get($filters, 'search');
 
-        $cleanFilters = Arr::except($filters, ['search']);
-        $request = new Request($cleanFilters);
+        return cache()->tags(['grading', 'queue'])->remember(
+            "grading:queue:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($filters, $perPage, $cleanFilters, $search) {
+                $request = new Request($cleanFilters);
+                $query = QueryBuilder::for(Submission::class, $request)
+                    ->with([
+                        'user:id,name,email',
+                        'assignment:id,title,max_score',
+                        'answers.question'
+                    ])
+                    ->allowedFilters([
+                        AllowedFilter::exact('assignment_id'),
+                        AllowedFilter::exact('user_id'),
+                        AllowedFilter::exact('state'),
+                        AllowedFilter::exact('is_late'),
+                        AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
+                        AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
+                    ])
+                    ->allowedSorts(['submitted_at', 'created_at', 'updated_at'])
+                    ->allowedIncludes(['assignment.course', 'user.profile']);
 
-        $query = QueryBuilder::for(Submission::class, $request)
-            ->with([
-                'user:id,name,email',
-                'assignment:id,title,max_score',
-                'answers.question'
-            ])
-            ->allowedFilters([
-                AllowedFilter::exact('assignment_id'),
-                AllowedFilter::exact('user_id'),
-                AllowedFilter::exact('state'),
-                AllowedFilter::exact('is_late'),
-                AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
-                AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
-            ])
-            ->allowedSorts(['submitted_at', 'created_at', 'updated_at'])
-            ->allowedIncludes(['assignment.course', 'user.profile']);
+                if ($search && trim((string) $search) !== '') {
+                    $ids = Submission::search($search)->keys();
+                    $query->whereIn('id', $ids);
+                }
 
-        if ($search && trim((string) $search) !== '') {
-            $ids = Submission::search($search)->keys();
-            $query->whereIn('id', $ids);
-        }
+                if (!isset($filters['filter']['state'])) {
+                    $query->where('state', SubmissionState::PendingManualGrading->value);
+                }
 
-        if (!$request->has('filter.state')) {
-            $query->where('state', SubmissionState::PendingManualGrading->value);
-        }
-
-        $query->whereHas('answers', function ($q) {
-            $q->whereNull('score')
-                ->whereHas('question', function ($qq) {
-                    $qq->whereIn('type', [
-                        \Modules\Learning\Enums\QuestionType::Essay->value,
-                        \Modules\Learning\Enums\QuestionType::FileUpload->value
-                    ]);
+                $query->whereHas('answers', function ($q) {
+                    $q->whereNull('score')
+                        ->whereHas('question', function ($qq) {
+                            $qq->whereIn('type', [
+                                \Modules\Learning\Enums\QuestionType::Essay->value,
+                                \Modules\Learning\Enums\QuestionType::FileUpload->value
+                            ]);
+                        });
                 });
-        });
 
-        return $query
-            ->defaultSort('submitted_at')
-            ->paginate($perPage)
-            ->appends($filters);
+                return $query
+                    ->defaultSort('submitted_at')
+                    ->paginate($perPage)
+                    ->appends($filters);
+            }
+        );
     }
 
     public function getGradingStatusDetails(int $submissionId): array

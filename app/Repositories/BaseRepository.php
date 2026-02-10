@@ -34,6 +34,8 @@ abstract class BaseRepository implements BaseRepositoryInterface
 
     public function filteredPaginate(Builder $query, array $params, array $allowedFilters = [], array $allowedSorts = [], string $defaultSort = 'id', int $perPage = 15): LengthAwarePaginator
     {
+        $perPage = max(1, min($perPage, 100));
+
         return QueryBuilder::for($query)
             ->allowedFilters($allowedFilters ?: $this->allowedFilters)
             ->allowedSorts($allowedSorts ?: $this->allowedSorts)
@@ -76,6 +78,8 @@ abstract class BaseRepository implements BaseRepositoryInterface
 
     public function paginate(array $params, int $perPage = 15): LengthAwarePaginator
     {
+        $perPage = max(1, min($perPage, 100));
+
         return QueryBuilder::for($this->model())
             ->allowedFilters($this->allowedFilters)
             ->allowedSorts($this->allowedSorts)

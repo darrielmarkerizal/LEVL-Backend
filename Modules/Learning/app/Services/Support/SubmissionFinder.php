@@ -29,27 +29,39 @@ class SubmissionFinder
         return $this->listForAssignmentForIndex($assignment, $user, $filters);
     }
 
+    public function paginateByAssignment(int $assignmentId, int $perPage = 15, array $filters = []): LengthAwarePaginator
+    {
+        $perPage = max(1, min($perPage, 100));
+        return $this->listForAssignmentForIndex($assignment, $user, $filters);
+    }
+
     public function listForAssignmentForIndex(Assignment $assignment, User $user, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, (int) data_get($filters, 'per_page', 15));
+        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
+        
+        return cache()->tags(['learning', 'submissions'])->remember(
+            "learning:submissions:assignment:{$assignment->id}:user:{$user->id}:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($assignment, $user, $perPage) {
+                $query = QueryBuilder::for(Submission::class)
+                    ->allowedFilters([
+                        AllowedFilter::exact('status'),
+                        AllowedFilter::exact('user_id'),
+                        AllowedFilter::exact('is_late'),
+                        AllowedFilter::scope('score_range', 'filterByScoreRange'),
+                    ])
+                    ->allowedSorts(['submitted_at', 'created_at', 'score', 'status'])
+                    ->defaultSort('-submitted_at')
+                    ->where('assignment_id', $assignment->id)
+                    ->with(['user:id,name,email', 'grade:id,submission_id,score,status,released_at']);
 
-        $query = QueryBuilder::for(Submission::class)
-            ->allowedFilters([
-                AllowedFilter::exact('status'),
-                AllowedFilter::exact('user_id'),
-                AllowedFilter::exact('is_late'),
-                AllowedFilter::scope('score_range', 'filterByScoreRange'),
-            ])
-            ->allowedSorts(['submitted_at', 'created_at', 'score', 'status'])
-            ->defaultSort('-submitted_at')
-            ->where('assignment_id', $assignment->id)
-            ->with(['user:id,name,email', 'grade:id,submission_id,score,status,released_at']);
+                if ($user->hasRole('Student')) {
+                    $query->where('user_id', $user->id);
+                }
 
-        if ($user->hasRole('Student')) {
-            $query->where('user_id', $user->id);
-        }
-
-        return $query->paginate($perPage);
+                return $query->paginate($perPage);
+            }
+        );
     }
 
     public function getSubmission(int $submissionId, array $filters = []): Submission

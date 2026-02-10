@@ -28,18 +28,25 @@ class MasterDataRepository extends \App\Repositories\BaseRepository implements \
     array $params = [],
     int $perPage = 15,
   ): LengthAwarePaginator {
+    $perPage = max(1, min($perPage, 100));
     $query = $this->query()->where("type", $type);
     $searchQuery = $this->extractSearchQuery($params);
 
     $this->applySearchFilter($query, $searchQuery, $type);
 
-    return $this->filteredPaginate(
-      $query,
-      $params,
-      $this->allowedFilters,
-      $this->allowedSorts,
-      $this->defaultSort,
-      $perPage,
+    return cache()->tags(['common', 'master_data'])->remember(
+      "common:master_data:paginate:{$type}:{$perPage}:" . md5(json_encode($params)),
+      3600,
+      function () use ($query, $params, $perPage) {
+        return $this->filteredPaginate(
+          $query,
+          $params,
+          $this->allowedFilters,
+          $this->allowedSorts,
+          $this->defaultSort,
+          $perPage,
+        );
+      }
     );
   }
 
@@ -52,15 +59,20 @@ class MasterDataRepository extends \App\Repositories\BaseRepository implements \
       return new Collection();
     }
 
-    $this->applyFiltering(
-      $query,
-      $params,
-      $this->allowedFilters,
-      $this->allowedSorts,
-      $this->defaultSort,
+    return cache()->tags(['common', 'master_data'])->remember(
+      "common:master_data:all:{$type}:" . md5(json_encode($params)),
+      3600,
+      function () use ($query, $params) {
+        $this->applyFiltering(
+          $query,
+          $params,
+          $this->allowedFilters,
+          $this->allowedSorts,
+          $this->defaultSort,
+        );
+        return $query->get();
+      }
     );
-
-    return $query->get();
   }
 
   public function getTypes(array $params = []): SupportCollection
@@ -68,10 +80,15 @@ class MasterDataRepository extends \App\Repositories\BaseRepository implements \
     $search = $this->extractSearch($params);
     $normalizedIsCrud = $this->extractIsCrudFilter($params);
 
-    $types = $this->buildTypesQuery($search);
-    $types = $this->applyPostQueryFilters($types, $search, $normalizedIsCrud);
-
-    return $types->values();
+    return cache()->tags(['common', 'master_data'])->remember(
+      "common:master_data:types:" . md5(json_encode($params)),
+      3600,
+      function () use ($search, $normalizedIsCrud) {
+        $types = $this->buildTypesQuery($search);
+        $types = $this->applyPostQueryFilters($types, $search, $normalizedIsCrud);
+        return $types->values();
+      }
+    );
   }
 
   public function find(string $type, int $id): ?MasterDataItem

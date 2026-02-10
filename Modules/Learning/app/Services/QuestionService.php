@@ -63,7 +63,8 @@ class QuestionService implements QuestionServiceInterface
             if ($attachments) {
                 $this->processQuestionAttachments($question, $attachments);
             }
-
+            
+            cache()->tags(['learning', 'questions'])->flush();
             return $question;
         });
     }
@@ -94,7 +95,9 @@ class QuestionService implements QuestionServiceInterface
                 $this->processQuestionAttachments($question, $attachments);
             }
 
-            return $this->questionRepository->updateQuestion($questionId, $data);
+            $updated = $this->questionRepository->updateQuestion($questionId, $data);
+            cache()->tags(['learning', 'questions'])->flush();
+            return $updated;
         });
     }
 
@@ -107,7 +110,9 @@ class QuestionService implements QuestionServiceInterface
             }
         }
 
-        return $this->questionRepository->deleteQuestion($questionId);
+        $result = $this->questionRepository->deleteQuestion($questionId);
+        cache()->tags(['learning', 'questions'])->flush();
+        return $result;
     }
 
     public function updateAnswerKey(int $questionId, array $answerKey, int $instructorId): void
@@ -154,25 +159,33 @@ class QuestionService implements QuestionServiceInterface
     public function getQuestionsByAssignment(int $assignmentId, ?\Modules\Auth\Models\User $user = null, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
+        $perPage = max(1, min($perPage, 100));
 
-        return \Spatie\QueryBuilder\QueryBuilder::for(Question::class)
-            ->where('assignment_id', $assignmentId)
-            ->allowedFilters([
-                \Spatie\QueryBuilder\AllowedFilter::exact('type'),
-                \Spatie\QueryBuilder\AllowedFilter::callback('search', function ($query, $value) {
-                    $ids = Question::search($value)->keys();
-                    $query->whereIn('id', $ids);
-                }),
-            ])
-            ->allowedSorts(['order', 'weight', 'created_at'])
-            ->defaultSort('order')
-            ->paginate($perPage)
-            ->appends($filters);
+        return cache()->tags(['learning', 'questions'])->remember(
+            "learning:questions:assignment:{$assignmentId}:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($assignmentId, $perPage, $filters) {
+                return \Spatie\QueryBuilder\QueryBuilder::for(Question::class)
+                    ->where('assignment_id', $assignmentId)
+                    ->allowedFilters([
+                        \Spatie\QueryBuilder\AllowedFilter::exact('type'),
+                        \Spatie\QueryBuilder\AllowedFilter::callback('search', function ($query, $value) {
+                            $ids = Question::search($value)->keys();
+                            $query->whereIn('id', $ids);
+                        }),
+                    ])
+                    ->allowedSorts(['order', 'weight', 'created_at'])
+                    ->defaultSort('order')
+                    ->paginate($perPage)
+                    ->appends($filters);
+            }
+        );
     }
 
     public function reorderQuestions(int $assignmentId, array $questionIds): void
     {
         $this->questionRepository->reorder($assignmentId, $questionIds);
+        cache()->tags(['learning', 'questions'])->flush();
     }
 
     private function validateQuestionData(array $data, bool $isUpdate = false): void

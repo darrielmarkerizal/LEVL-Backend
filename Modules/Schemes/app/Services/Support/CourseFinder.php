@@ -28,14 +28,26 @@ class CourseFinder
     {
         $perPage = max(1, $perPage);
 
-        return $this->buildQuery($filters)->paginate($perPage);
+        return \Illuminate\Support\Facades\Cache::tags(['schemes', 'courses'])->remember(
+            "schemes:courses:paginate:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            300,
+            function () use ($filters, $perPage) {
+                return $this->buildQuery($filters)->paginate($perPage);
+            }
+        );
     }
 
     public function paginateForIndex(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
 
-        return $this->buildQueryForIndex($filters)->paginate($perPage);
+        return \Illuminate\Support\Facades\Cache::tags(['schemes', 'courses'])->remember(
+            "schemes:courses:index:paginate:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            300,
+            function () use ($filters, $perPage) {
+                return $this->buildQueryForIndex($filters)->paginate($perPage);
+            }
+        );
     }
 
     public function list(array $filters = [], int $perPage = 15): LengthAwarePaginator

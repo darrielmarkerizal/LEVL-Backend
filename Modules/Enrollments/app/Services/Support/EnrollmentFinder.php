@@ -24,75 +24,127 @@ class EnrollmentFinder
 
     public function paginateByCourse(int $courseId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        return $this->buildQuery(
-            QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->where('course_id', $courseId),
-            $filters,
-            $perPage
+        return cache()->tags(['enrollments', "course:{$courseId}"])->remember(
+            "enrollments:course:{$courseId}:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($courseId, $filters, $perPage) {
+                return $this->buildQuery(
+                    QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->where('course_id', $courseId),
+                    $filters,
+                    $perPage
+                );
+            }
         );
     }
 
     public function paginateByCourseForIndex(int $courseId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        return $this->buildQueryForIndex(
-            QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->where('course_id', $courseId),
-            $filters,
-            $perPage
+        return cache()->tags(['enrollments', "course:{$courseId}"])->remember(
+            "enrollments:course:index:{$courseId}:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($courseId, $filters, $perPage) {
+                return $this->buildQueryForIndex(
+                    QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->where('course_id', $courseId),
+                    $filters,
+                    $perPage
+                );
+            }
         );
     }
 
     public function paginateByCourseIds(array $courseIds, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        return $this->buildQuery(
-            QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->whereIn('course_id', $courseIds),
-            $filters,
-            $perPage
+        sort($courseIds);
+        $idsHash = md5(json_encode($courseIds));
+        return cache()->tags(['enrollments', 'course_ids'])->remember(
+            "enrollments:courses:ids:{$idsHash}:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($courseIds, $filters, $perPage) {
+                return $this->buildQuery(
+                    QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->whereIn('course_id', $courseIds),
+                    $filters,
+                    $perPage
+                );
+            }
         );
     }
 
     public function paginateByCourseIdsForIndex(array $courseIds, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        return $this->buildQueryForIndex(
-            QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->whereIn('course_id', $courseIds),
-            $filters,
-            $perPage
+        sort($courseIds);
+        $idsHash = md5(json_encode($courseIds));
+        return cache()->tags(['enrollments', 'course_ids'])->remember(
+            "enrollments:courses:index:ids:{$idsHash}:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($courseIds, $filters, $perPage) {
+                return $this->buildQueryForIndex(
+                    QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->whereIn('course_id', $courseIds),
+                    $filters,
+                    $perPage
+                );
+            }
         );
     }
 
     public function paginateByUser(int $userId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        return $this->buildQuery(
-            QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->where('user_id', $userId),
-            $filters,
-            $perPage,
-            false // use default sort for user
+        return cache()->tags(['enrollments', "user:{$userId}"])->remember(
+            "enrollments:user:{$userId}:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($userId, $filters, $perPage) {
+                return $this->buildQuery(
+                    QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->where('user_id', $userId),
+                    $filters,
+                    $perPage,
+                    false // use default sort for user
+                );
+            }
         );
     }
 
     public function paginateByUserForIndex(int $userId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        return $this->buildQueryForIndex(
-            QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->where('user_id', $userId),
-            $filters,
-            $perPage,
-            false
+        return cache()->tags(['enrollments', "user:{$userId}"])->remember(
+            "enrollments:user:index:{$userId}:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($userId, $filters, $perPage) {
+                return $this->buildQueryForIndex(
+                    QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->where('user_id', $userId),
+                    $filters,
+                    $perPage,
+                    false
+                );
+            }
         );
     }
 
     public function paginateAll(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        return $this->buildQuery(
-            QueryBuilder::for(Enrollment::class, $this->makeRequest($filters)),
-            $filters,
-            $perPage
+        return cache()->tags(['enrollments'])->remember(
+            "enrollments:all:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($filters, $perPage) {
+                return $this->buildQuery(
+                    QueryBuilder::for(Enrollment::class, $this->makeRequest($filters)),
+                    $filters,
+                    $perPage
+                );
+            }
         );
     }
 
     public function paginateAllForIndex(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        return $this->buildQueryForIndex(
-            QueryBuilder::for(Enrollment::class, $this->makeRequest($filters)),
-            $filters,
-            $perPage
+        return cache()->tags(['enrollments'])->remember(
+            "enrollments:all:index:{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($filters, $perPage) {
+                return $this->buildQueryForIndex(
+                    QueryBuilder::for(Enrollment::class, $this->makeRequest($filters)),
+                    $filters,
+                    $perPage
+                );
+            }
         );
     }
 
@@ -235,7 +287,7 @@ class EnrollmentFinder
 
     private function buildQuery(QueryBuilder $builder, array $filters, int $perPage, bool $usePrioritySort = true): LengthAwarePaginator
     {
-        $perPage = max(1, $perPage);
+        $perPage = max(1, min($perPage, 100));
         $searchQuery = data_get($filters, 'search');
 
         if ($searchQuery && trim((string) $searchQuery) !== '') {
@@ -260,7 +312,7 @@ class EnrollmentFinder
 
     private function buildQueryForIndex(QueryBuilder $builder, array $filters, int $perPage, bool $usePrioritySort = true): LengthAwarePaginator
     {
-        $perPage = max(1, $perPage);
+        $perPage = max(1, min($perPage, 100));
         $searchQuery = data_get($filters, 'search');
 
         if ($searchQuery && trim((string) $searchQuery) !== '') {

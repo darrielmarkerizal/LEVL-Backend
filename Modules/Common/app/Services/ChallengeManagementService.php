@@ -20,31 +20,41 @@ implements ChallengeManagementServiceInterface
 
     public function paginate(int $perPage = 15, array $params = []): LengthAwarePaginator
     {
-        $perPage = max(1, $perPage);
+        $perPage = max(1, min($perPage, 100));
+        $page = request()->get('page', 1);
+        $search = $params['search'] ?? request('search');
+        $sort = request('sort', '-created_at');
 
-        $query = Challenge::query()->with('badge');
+        return cache()->tags(['common', 'challenges'])->remember(
+            "common:challenges:paginate:{$perPage}:{$page}:{$search}:{$sort}",
+            300,
+            function () use ($perPage, $search) {
+                $query = Challenge::query()->with('badge');
 
-        $searchQuery = $params['search'] ?? request('search');
+                if ($search && trim($search) !== '') {
+                    $query->search($search);
+                }
 
-        if ($searchQuery && trim($searchQuery) !== '') {
-            $query->search($searchQuery);
-        }
-
-        return QueryBuilder::for($query)
-            ->allowedFilters([
-                AllowedFilter::exact('id'),
-                AllowedFilter::partial('title'),
-                AllowedFilter::exact('type'),
-            ])
-            ->allowedSorts(['id', 'title', 'type', 'points_reward', 'start_at', 'end_at', 'created_at', 'updated_at'])
-            ->defaultSort('-created_at')
-            ->paginate($perPage);
+                return QueryBuilder::for($query)
+                    ->allowedFilters([
+                        AllowedFilter::exact('id'),
+                        AllowedFilter::partial('title'),
+                        AllowedFilter::exact('type'),
+                        AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
+                    ])
+                    ->allowedSorts(['id', 'title', 'type', 'points_reward', 'start_at', 'end_at', 'created_at', 'updated_at'])
+                    ->defaultSort('-created_at')
+                    ->paginate($perPage);
+            }
+        );
     }
 
     public function create(array $data): Challenge
     {
         return DB::transaction(function () use ($data) {
-            return $this->repository->create($data);
+            $challenge = $this->repository->create($data);
+            cache()->tags(['common', 'challenges'])->flush();
+            return $challenge;
         });
     }
 
@@ -60,7 +70,9 @@ implements ChallengeManagementServiceInterface
             return null;
         }
         return DB::transaction(function () use ($achievement, $data) {
-            return $this->repository->update($achievement, $data);
+            $updated = $this->repository->update($achievement, $data);
+            cache()->tags(['common', 'challenges'])->flush();
+            return $updated;
         });
     }
 
@@ -71,7 +83,9 @@ implements ChallengeManagementServiceInterface
             if (! $achievement) {
                 return false;
             }
-            return $this->repository->delete($achievement);
+            $result = $this->repository->delete($achievement);
+            cache()->tags(['common', 'challenges'])->flush();
+            return $result;
         });
     }
 }

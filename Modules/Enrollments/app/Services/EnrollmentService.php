@@ -111,31 +111,43 @@ class EnrollmentService implements EnrollmentServiceInterface
 
     public function enroll(User $user, Course $course, array $data): array
     {
-        return $this->lifecycleProcessor->enroll($user, $course, $data);
+        $result = $this->lifecycleProcessor->enroll($user, $course, $data);
+        cache()->tags(['enrollments'])->flush();
+        return $result;
     }
 
     public function cancel(Enrollment $enrollment): Enrollment
     {
-        return $this->lifecycleProcessor->cancel($enrollment);
+        $result = $this->lifecycleProcessor->cancel($enrollment);
+        cache()->tags(['enrollments'])->flush();
+        return $result;
     }
 
     public function withdraw(Enrollment $enrollment): Enrollment
     {
-        return $this->lifecycleProcessor->withdraw($enrollment);
+        $result = $this->lifecycleProcessor->withdraw($enrollment);
+        cache()->tags(['enrollments'])->flush();
+        return $result;
     }
 
     public function approve(Enrollment $enrollment): Enrollment
     {
-        return $this->lifecycleProcessor->approve($enrollment);
+        $result = $this->lifecycleProcessor->approve($enrollment);
+        cache()->tags(['enrollments'])->flush();
+        return $result;
     }
 
     public function decline(Enrollment $enrollment): Enrollment
     {
-        return $this->lifecycleProcessor->decline($enrollment);
+        $result = $this->lifecycleProcessor->decline($enrollment);
+        cache()->tags(['enrollments'])->flush();
+        return $result;
     }
 
     public function remove(Enrollment $enrollment): Enrollment
     {
-        return $this->lifecycleProcessor->remove($enrollment);
+        $result = $this->lifecycleProcessor->remove($enrollment);
+        cache()->tags(['enrollments'])->flush();
+        return $result;
     }
 }

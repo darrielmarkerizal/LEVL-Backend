@@ -72,12 +72,18 @@ class GradingRepository implements GradingRepositoryInterface
 
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
-        // Pagination is hard to cache effectively per page without stale data, skipping for now
-        // or short TTL if needed.
-        return $this->model
-            ->with(self::DEFAULT_EAGER_LOAD)
-            ->orderByDesc('graded_at')
-            ->paginate($perPage);
+        $perPage = max(1, min($perPage, 100));
+
+        return \Illuminate\Support\Facades\Cache::tags(['grades'])->remember(
+            "grades:paginate:{$perPage}:" . request('page', 1),
+            self::CACHE_TTL,
+            function () use ($perPage) {
+                return $this->model
+                    ->with(self::DEFAULT_EAGER_LOAD)
+                    ->orderByDesc('graded_at')
+                    ->paginate($perPage);
+            }
+        );
     }
 
     public function create(array $data): Grade
@@ -106,37 +112,42 @@ class GradingRepository implements GradingRepositoryInterface
 
     public function findPendingManualGrading(array $filters = []): Collection
     {
-        // Complex query with filters, keeping live for now or short cache
-        return \Spatie\QueryBuilder\QueryBuilder::for($this->model, new \Illuminate\Http\Request($filters))
-            ->whereHas('submission', function ($q) {
-                $q->where('state', 'pending_manual_grading');
-            })
-            ->allowedFilters([
-                \Spatie\QueryBuilder\AllowedFilter::callback('assignment_id', function ($query, $value) {
-                    $query->whereHas('submission', function ($q) use ($value) {
-                        $q->where('assignment_id', $value);
-                    });
-                }),
-                \Spatie\QueryBuilder\AllowedFilter::callback('student_id', function ($query, $value) {
-                    $query->whereHas('submission', function ($q) use ($value) {
-                        $q->where('user_id', $value);
-                    });
-                }),
-            ])
-            ->with([
-                'submission.user:id,name,email',
-                'submission.assignment:id,title,deadline_at',
-                'submission.answers' => function ($q) {
-                    $q->whereNull('score')
-                        ->orWhereHas('question', function ($q) {
-                            $q->whereIn('type', ['essay', 'file_upload']);
-                        });
-                },
-                'submission.answers.question:id,type,content,weight',
-                'grader:id,name,email',
-            ])
-            ->defaultSort('created_at')
-            ->get();
+        return \Illuminate\Support\Facades\Cache::tags(['grades', 'grading', 'queue'])->remember(
+            "grades:pending_manual:" . md5(json_encode($filters)),
+            300,
+            function () use ($filters) {
+                return \Spatie\QueryBuilder\QueryBuilder::for($this->model, new \Illuminate\Http\Request($filters))
+                    ->whereHas('submission', function ($q) {
+                        $q->where('state', 'pending_manual_grading');
+                    })
+                    ->allowedFilters([
+                        \Spatie\QueryBuilder\AllowedFilter::callback('assignment_id', function ($query, $value) {
+                            $query->whereHas('submission', function ($q) use ($value) {
+                                $q->where('assignment_id', $value);
+                            });
+                        }),
+                        \Spatie\QueryBuilder\AllowedFilter::callback('student_id', function ($query, $value) {
+                            $query->whereHas('submission', function ($q) use ($value) {
+                                $q->where('user_id', $value);
+                            });
+                        }),
+                    ])
+                    ->with([
+                        'submission.user:id,name,email',
+                        'submission.assignment:id,title,deadline_at',
+                        'submission.answers' => function ($q) {
+                            $q->whereNull('score')
+                                ->orWhereHas('question', function ($q) {
+                                    $q->whereIn('type', ['essay', 'file_upload']);
+                                });
+                        },
+                        'submission.answers.question:id,type,content,weight',
+                        'grader:id,name,email',
+                    ])
+                    ->defaultSort('created_at')
+                    ->get();
+            }
+        );
     }
 
     public function saveDraft(int $submissionId, array $data): void
@@ -225,5 +236,8 @@ class GradingRepository implements GradingRepositoryInterface
             // Try to load relation if not set on model
              $cache->forget("grades:user:{$grade->submission->user_id}");
         }
+
+        // Flush grading queue cache
+        \Illuminate\Support\Facades\Cache::tags(['grading', 'queue'])->flush();
     }
 }

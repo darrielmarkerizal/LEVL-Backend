@@ -49,82 +49,100 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
         public function listForAssignment(Assignment $assignment, ?User $user = null, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
+        $perPage = max(1, min($perPage, 100));
 
-        if ($user && $user->hasRole('Student')) {
-            $filters['user_id'] = $user->id;
-        }
+        return cache()->tags(['learning', 'submissions'])->remember(
+            "learning:submissions:assignment:{$assignment->id}:user:" . ($user ? $user->id : 'all') . ":{$perPage}:" . md5(json_encode($filters)),
+            300,
+            function () use ($assignment, $user, $filters, $perPage) {
+                if ($user && $user->hasRole('Student')) {
+                    $filters['user_id'] = $user->id;
+                }
 
-        return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, new \Illuminate\Http\Request($filters))
-            ->where('assignment_id', $assignment->id)
-            ->allowedFilters([
-                'status',
-                \Spatie\QueryBuilder\AllowedFilter::exact('user_id'),
-                \Spatie\QueryBuilder\AllowedFilter::exact('is_late'),
-                \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
-                \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
-            ])
-            ->allowedSorts(['submitted_at', 'created_at', 'score', 'status'])
-            ->defaultSort('-created_at')
-            ->with([
-                'user:id,name,email',
-                'enrollment:id,status',
-                'files',
-                'grade.grader:id,name,email',
-                'answers.question:id,type,content,weight',
-            ])
-            ->paginate($perPage)
-            ->appends($filters);
+                return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, new \Illuminate\Http\Request($filters))
+                    ->where('assignment_id', $assignment->id)
+                    ->allowedFilters([
+                        'status',
+                        \Spatie\QueryBuilder\AllowedFilter::exact('user_id'),
+                        \Spatie\QueryBuilder\AllowedFilter::exact('is_late'),
+                        \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
+                        \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
+                    ])
+                    ->allowedSorts(['submitted_at', 'created_at', 'score', 'status'])
+                    ->defaultSort('-created_at')
+                    ->with([
+                        'user:id,name,email',
+                        'enrollment:id,status',
+                        'files',
+                        'grade.grader:id,name,email',
+                        'answers.question:id,type,content,weight',
+                    ])
+                    ->paginate($perPage)
+                    ->appends($filters);
+            }
+        );
     }
 
     public function search(string $query, array $filters = [], array $options = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $perPage = (int) ($options['per_page'] ?? 15);
+        $perPage = max(1, min($perPage, 100));
         $sortBy = $options['field'] ?? $options['sort_by'] ?? 'submitted_at';
         $sortDirection = strtolower($options['direction'] ?? $options['sort_direction'] ?? 'desc');
 
-        // 1. Use Spatie Query Builder on Eloquent model constrained by search
-        return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, new \Illuminate\Http\Request($filters))
-            ->search($query)
-            ->allowedFilters([
-                'state',
-                \Spatie\QueryBuilder\AllowedFilter::exact('assignment_id'),
-                \Spatie\QueryBuilder\AllowedFilter::callback('score_min', fn ($q, $v) => $q->where('score', '>=', $v)),
-                \Spatie\QueryBuilder\AllowedFilter::callback('score_max', fn ($q, $v) => $q->where('score', '<=', $v)),
-                \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', Carbon::parse($v)->startOfDay())),
-                \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', Carbon::parse($v)->endOfDay())),
-            ])
-            ->with([
-                'user:id,name,email',
-                'assignment:id,title,deadline_at',
-                'grade.grader:id,name,email',
-                'answers.question:id,type,content,weight',
-            ])
-            ->orderBy($sortBy, $sortDirection)
-            ->paginate($perPage);
+        return cache()->tags(['learning', 'submissions'])->remember(
+            "learning:submissions:search:{$query}:{$perPage}:{$sortBy}:{$sortDirection}:" . md5(json_encode($filters)),
+            300,
+            function () use ($filters, $query, $perPage, $sortBy, $sortDirection) {
+                // 1. Use Spatie Query Builder on Eloquent model constrained by search
+                return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, new \Illuminate\Http\Request($filters))
+                    ->search($query)
+                    ->allowedFilters([
+                        'state',
+                        \Spatie\QueryBuilder\AllowedFilter::exact('assignment_id'),
+                        \Spatie\QueryBuilder\AllowedFilter::callback('score_min', fn ($q, $v) => $q->where('score', '>=', $v)),
+                        \Spatie\QueryBuilder\AllowedFilter::callback('score_max', fn ($q, $v) => $q->where('score', '<=', $v)),
+                        \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', Carbon::parse($v)->startOfDay())),
+                        \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', Carbon::parse($v)->endOfDay())),
+                    ])
+                    ->with([
+                        'user:id,name,email',
+                        'assignment:id,title,deadline_at',
+                        'grade.grader:id,name,email',
+                        'answers.question:id,type,content,weight',
+                    ])
+                    ->orderBy($sortBy, $sortDirection)
+                    ->paginate($perPage);
+            }
+        );
     }
 
     public function create(array $attributes): Submission
     {
-        return Submission::create($attributes);
+        $submission = Submission::create($attributes);
+        cache()->tags(['learning', 'submissions'])->flush();
+        return $submission;
     }
 
     public function update(Model|Submission $model, array $attributes): Model|Submission
     {
         $model->fill($attributes)->save();
-
+        cache()->tags(['learning', 'submissions'])->flush();
         return $model;
     }
 
     public function updateSubmission(Submission $submission, array $attributes): Submission
     {
         $submission->fill($attributes)->save();
-
+        cache()->tags(['learning', 'submissions'])->flush();
         return $submission;
     }
 
     public function delete(Model|Submission $model): bool
     {
-        return $model->delete();
+        $result = $model->delete();
+        cache()->tags(['learning', 'submissions'])->flush();
+        return $result;
     }
 
     public function hasCompletedAssignment(int $assignmentId, int $studentId): bool
@@ -222,27 +240,33 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
 
         public function findPendingManualGrading(array $filters = []): Collection
     {
-        return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, new \Illuminate\Http\Request($filters))
-            ->where('state', SubmissionState::PendingManualGrading->value)
-            ->allowedFilters([
-                \Spatie\QueryBuilder\AllowedFilter::exact('assignment_id'),
-                \Spatie\QueryBuilder\AllowedFilter::exact('user_id', 'student_id'), // Map student_id filter to user_id column
-                \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', Carbon::parse($v)->startOfDay())),
-                \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', Carbon::parse($v)->endOfDay())),
-            ])
-            ->with([
-                'user:id,name,email',
-                'assignment:id,title,deadline_at',
-                'answers' => function ($q) {
-                    $q->whereNull('score')
-                        ->orWhereHas('question', function ($q) {
-                            $q->whereIn('type', ['essay', 'file_upload']);
-                        });
-                },
-                'answers.question:id,type,content,weight',
-            ])
-            ->defaultSort('submitted_at')
-            ->get();
+        return cache()->tags(['learning', 'submissions'])->remember(
+            "learning:submissions:pending_manual:" . md5(json_encode($filters)),
+            300,
+            function () use ($filters) {
+                return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, new \Illuminate\Http\Request($filters))
+                    ->where('state', SubmissionState::PendingManualGrading->value)
+                    ->allowedFilters([
+                        \Spatie\QueryBuilder\AllowedFilter::exact('assignment_id'),
+                        \Spatie\QueryBuilder\AllowedFilter::exact('user_id', 'student_id'), // Map student_id filter to user_id column
+                        \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', Carbon::parse($v)->startOfDay())),
+                        \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', Carbon::parse($v)->endOfDay())),
+                    ])
+                    ->with([
+                        'user:id,name,email',
+                        'assignment:id,title,deadline_at',
+                        'answers' => function ($q) {
+                            $q->whereNull('score')
+                                ->orWhereHas('question', function ($q) {
+                                    $q->whereIn('type', ['essay', 'file_upload']);
+                                });
+                        },
+                        'answers.question:id,type,content,weight',
+                    ])
+                    ->defaultSort('submitted_at')
+                    ->get();
+            }
+        );
     }
 
     

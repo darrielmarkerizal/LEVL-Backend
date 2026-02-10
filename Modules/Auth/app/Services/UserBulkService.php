@@ -86,6 +86,8 @@ class UserBulkService implements UserBulkServiceInterface
 
         $this->logStatusChanges($userIds, $changedBy, UserStatus::Active->value);
 
+        cache()->tags(['auth', 'users'])->flush();
+
         return $updated;
     }
 
@@ -101,6 +103,8 @@ class UserBulkService implements UserBulkServiceInterface
 
         $this->logStatusChanges($userIds, $changedBy, UserStatus::Inactive->value);
 
+        cache()->tags(['auth', 'users'])->flush();
+
         return $updated;
     }
 
@@ -112,7 +116,9 @@ class UserBulkService implements UserBulkServiceInterface
             throw new \InvalidArgumentException(__('messages.auth.cannot_delete_self'));
         }
 
-        return $this->repository->bulkDelete($userIds);
+        $deleted = $this->repository->bulkDelete($userIds);
+        cache()->tags(['auth', 'users'])->flush();
+        return $deleted;
     }
 
     private function logStatusChanges(array $userIds, int $changedBy, string $newStatus): void
