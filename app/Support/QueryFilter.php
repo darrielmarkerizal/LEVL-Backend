@@ -255,17 +255,9 @@ class QueryFilter
     {
         $model = $query->getModel();
 
-        // Use Scout/Meilisearch if model has Searchable trait
-        if (in_array(\Laravel\Scout\Searchable::class, class_uses_recursive($model))) {
-            $modelClass = get_class($model);
-            $ids = $modelClass::search($search)->keys()->toArray();
-            if (! empty($ids)) {
-                $query->whereIn($model->getKeyName(), $ids);
-            } else {
-                // No results from search - return empty
-                $query->whereRaw('1 = 0');
-            }
-
+        // Use PgSearchable if model has the trait
+        if (in_array(\Modules\Common\Traits\PgSearchable::class, class_uses_recursive($model))) {
+            $query->search($search);
             return;
         }
 

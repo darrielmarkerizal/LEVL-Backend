@@ -7,14 +7,20 @@ namespace Modules\Common\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 use Modules\Common\Enums\CategoryStatus;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Category extends Model
 {
-    use HasFactory, LogsActivity, Searchable, SoftDeletes;
+    use HasFactory, LogsActivity, PgSearchable, SoftDeletes;
+
+    protected array $searchable_columns = [
+        'name',
+        'value',
+        'description',
+    ];
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -41,26 +47,7 @@ class Category extends Model
         'status' => CategoryStatus::class,
     ];
 
-    public function toSearchableArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'value' => $this->value,
-            'description' => $this->description,
-            'status' => $this->status?->value,
-        ];
-    }
 
-    public function searchableAs(): string
-    {
-        return 'categories_index';
-    }
-
-    public function shouldBeSearchable(): bool
-    {
-        return $this->status === CategoryStatus::Active;
-    }
 
     protected static function newFactory()
     {

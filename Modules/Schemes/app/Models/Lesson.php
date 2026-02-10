@@ -6,7 +6,7 @@ namespace Modules\Schemes\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 use Modules\Schemes\Enums\ContentType;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -15,7 +15,14 @@ use Spatie\Sluggable\SlugOptions;
 
 class Lesson extends Model
 {
-    use HasFactory, HasSlug, LogsActivity, Searchable;
+    use HasFactory, HasSlug, LogsActivity, PgSearchable;
+
+    protected array $searchable_columns = [
+        'title',
+        'description',
+        'markdown_content',
+        'slug',
+    ];
 
     public function getSlugOptions(): SlugOptions
     {
@@ -67,33 +74,7 @@ class Lesson extends Model
         return 'slug';
     }
 
-    public function toSearchableArray(): array
-    {
-        $this->loadMissing(['unit', 'unit.course']);
 
-        return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'description' => $this->description,
-            'markdown_content' => $this->markdown_content,
-            'unit_id' => $this->unit_id,
-            'unit_title' => $this->unit?->title,
-            'course_id' => $this->unit?->course_id,
-            'course_title' => $this->unit?->course?->title,
-            'status' => $this->status,
-            'content_type' => $this->content_type?->value,
-        ];
-    }
-
-    public function searchableAs(): string
-    {
-        return 'lessons_index';
-    }
-
-    public function shouldBeSearchable(): bool
-    {
-        return $this->status === 'published';
-    }
 
     protected static function newFactory()
     {

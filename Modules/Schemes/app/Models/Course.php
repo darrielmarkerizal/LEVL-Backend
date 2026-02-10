@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 use Modules\Schemes\Enums\CourseStatus;
 use Modules\Schemes\Enums\CourseType;
 use Modules\Schemes\Enums\EnrollmentType;
@@ -26,7 +26,14 @@ use Spatie\Sluggable\SlugOptions;
 
 class Course extends Model implements HasMedia
 {
-    use HasFactory, HasSlug, InteractsWithMedia, LogsActivity, Searchable, SoftDeletes;
+    use HasFactory, HasSlug, InteractsWithMedia, LogsActivity, PgSearchable, SoftDeletes;
+
+    protected array $searchable_columns = [
+        'title',
+        'short_desc',
+        'code',
+        'slug',
+    ];
 
     public function registerMediaCollections(): void
     {
@@ -83,7 +90,7 @@ class Course extends Model implements HasMedia
             );
     }
 
-    protected array $searchable = ['title', 'short_desc'];
+
 
     protected $fillable = [
         'code',
@@ -326,16 +333,6 @@ class Course extends Model implements HasMedia
             'duration_estimate' => $this->duration_estimate,
             'published_at' => $this->published_at?->timestamp,
         ];
-    }
-
-    public function searchableAs(): string
-    {
-        return 'courses_index';
-    }
-
-    public function shouldBeSearchable(): bool
-    {
-        return $this->status === CourseStatus::Published;
     }
 
     protected static function newFactory()

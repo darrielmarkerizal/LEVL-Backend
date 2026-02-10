@@ -5,12 +5,18 @@ namespace Modules\Gamification\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 use Modules\Gamification\Enums\ChallengeType;
 
 class Challenge extends Model
 {
-  use Searchable;
+  use PgSearchable;
+
+  protected array $searchable_columns = [
+      'title',
+      'description',
+  ];
+
     protected $table = 'challenges';
 
     protected $fillable = [
@@ -104,24 +110,5 @@ class Challenge extends Model
         return $this->criteria['target'] ?? $this->target_count;
     }
 
-    public function toSearchableArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'description' => $this->description,
-            'type' => $this->type->value,
-            'badge_id' => $this->badge_id,
-            'points_reward' => $this->points_reward,
-            'target_count' => $this->target_count,
-            'start_at' => $this->start_at?->timestamp,
-            'end_at' => $this->end_at?->timestamp,
-            'created_at' => $this->created_at->timestamp,
-        ];
-    }
 
-    public function searchableAs(): string
-    {
-        return 'challenges_index';
-    }
 }

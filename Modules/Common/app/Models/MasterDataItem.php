@@ -6,11 +6,17 @@ namespace Modules\Common\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 
 class MasterDataItem extends Model
 {
-    use Searchable;
+    use PgSearchable;
+
+    protected array $searchable_columns = [
+        'type',
+        'value',
+        'label',
+    ];
 
     private const CACHE_TAG = 'master_data';
 
@@ -83,26 +89,5 @@ class MasterDataItem extends Model
     public function scopeOfType($query, string $type)
     {
         return $query->where('type', $type);
-    }
-
-    public function toSearchableArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'type' => $this->type,
-            'value' => $this->value,
-            'label' => $this->label,
-            'is_active' => $this->is_active,
-        ];
-    }
-
-    public function searchableAs(): string
-    {
-        return 'master_data_index';
-    }
-
-    public function shouldBeSearchable(): bool
-    {
-        return $this->is_active;
     }
 }
