@@ -16,7 +16,7 @@ class ThreadReadService
     public function paginateCourseThreads(int $courseId, ?string $search, int $perPage): LengthAwarePaginator
     {
         $includes = array_merge(
-            ['author', 'course', 'media', 'tags'],
+            ['author', 'author.media', 'course', 'media', 'tags'],
             $this->getRecursiveReplyIncludes()
         );
 
@@ -46,15 +46,13 @@ class ThreadReadService
             ->allowedIncludes($includes)
             ->defaultSort('-is_pinned', '-last_activity_at');
 
-        if ($search) {
-            $threadsQuery->where(function ($query) use ($search) {
-                $query->where('title', 'like', "%{$search}%")
-                    ->orWhere('content', 'like', "%{$search}%");
-            });
+        if ($search && trim($search) !== '') {
+            $ids = Thread::search($search)->keys()->toArray();
+            $threadsQuery->whereIn('id', $ids ?: [0]);
         }
 
         $threads = $threadsQuery->paginate($perPage);
-        
+
         $threads->getCollection()->transform(fn ($item) => new ThreadResource($item));
 
         return $threads;
@@ -63,7 +61,7 @@ class ThreadReadService
     public function getThreadDetail(int $threadId): Thread
     {
         $includes = array_merge(
-            ['author', 'course', 'media', 'tags'],
+            ['author', 'author.media', 'course', 'media', 'tags'],
             $this->getRecursiveReplyIncludes()
         );
 
@@ -77,22 +75,20 @@ class ThreadReadService
     {
         return QueryBuilder::for(Thread::class)
             ->where('id', $threadId)
-            ->allowedIncludes(['author', 'course', 'media', 'tags'])
+            ->allowedIncludes(['author', 'author.media', 'course', 'media', 'tags'])
             ->firstOrFail();
     }
 
-    /**
-     * Generates allowed includes for nested replies up to a specific depth.
-     * This ensures the API can handle deep nesting requests without hardcoded strings.
-     */
     private function getRecursiveReplyIncludes(int $depth = 10): array
     {
         $includes = [
-            'replies', // Flat
+            'replies',
             'replies.author',
+            'replies.author.media',
             'replies.media',
-            'topLevelReplies', // Root
+            'topLevelReplies',
             'topLevelReplies.author',
+            'topLevelReplies.author.media',
             'topLevelReplies.media',
         ];
 
@@ -101,8 +97,9 @@ class ThreadReadService
         for ($i = 0; $i < $depth; $i++) {
             $currentPrefix .= '.children';
             $includes[] = $currentPrefix;
-            $includes[] = $currentPrefix . '.author';
-            $includes[] = $currentPrefix . '.media';
+            $includes[] = $currentPrefix.'.author';
+            $includes[] = $currentPrefix.'.author.media';
+            $includes[] = $currentPrefix.'.media';
         }
 
         return $includes;

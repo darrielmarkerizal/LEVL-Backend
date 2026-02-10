@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Forums\Listeners;
 
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Modules\Forums\Events\ReplyCreated;
 use Modules\Forums\Events\ThreadCreated;
 use Modules\Forums\Repositories\ForumStatisticsRepository;
+use Carbon\Carbon;
 
 class UpdateForumStatistics
 {
@@ -42,6 +43,9 @@ class UpdateForumStatistics
                 $periodEnd
             );
 
+            Cache::forget($this->cacheKey($courseId, null, $periodStart, $periodEnd));
+            Cache::forget($this->cacheKey($courseId, $thread->author_id, $periodStart, $periodEnd));
+
             return;
         }
 
@@ -66,6 +70,15 @@ class UpdateForumStatistics
                 $periodStart,
                 $periodEnd
             );
+
+            Cache::forget($this->cacheKey($courseId, null, $periodStart, $periodEnd));
+            Cache::forget($this->cacheKey($courseId, $reply->author_id, $periodStart, $periodEnd));
         }
+    }
+
+    private function cacheKey(int $courseId, ?int $userId, Carbon $periodStart, Carbon $periodEnd): string
+    {
+        $userPart = $userId ? (string) $userId : 'all';
+        return "forums:stats:course:{$courseId}:user:{$userPart}:{$periodStart->toDateString()}:{$periodEnd->toDateString()}";
     }
 }

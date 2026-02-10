@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Forums\Services;
 
 use Illuminate\Support\Facades\DB;
@@ -17,17 +19,10 @@ use Modules\Forums\Repositories\ThreadRepository;
 
 class ModerationService implements ModerationServiceInterface
 {
-    protected ThreadRepository $threadRepository;
-
-    protected ReplyRepository $replyRepository;
-
     public function __construct(
-        ThreadRepository $threadRepository,
-        ReplyRepository $replyRepository
-    ) {
-        $this->threadRepository = $threadRepository;
-        $this->replyRepository = $replyRepository;
-    }
+        private readonly ThreadRepository $threadRepository,
+        private readonly ReplyRepository $replyRepository
+    ) {}
 
      
     public function pinThread(Thread $thread, User $moderator): Thread

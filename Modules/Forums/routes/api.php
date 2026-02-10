@@ -37,6 +37,8 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             Route::delete('threads/{thread}/replies/{reply}/reactions/{reaction}', [ReactionController::class, 'destroyReplyReaction']);
 
             Route::get('statistics', [ForumStatisticsController::class, 'index']);
-            Route::get('my-statistics', [ForumStatisticsController::class, 'show']);
+            Route::get('my-statistics', [ForumStatisticsController::class, 'userStats']);
+            Route::patch('threads/{thread}/replies/{reply}/accept', [ReplyController::class, 'accept']);
+            Route::patch('threads/{thread}/replies/{reply}/unaccept', [ReplyController::class, 'unaccept']);
         });
 });

@@ -22,5 +22,9 @@ interface ForumServiceInterface
     public function updateReply(Reply $reply, array $data): Reply;
 
     public function deleteReply(Reply $reply, User $user): bool;
+
+    public function toggleThreadReaction(User $user, Thread $thread, string $type): array;
+
+    public function toggleReplyReaction(User $user, Reply $reply, string $type): array;
 }
 

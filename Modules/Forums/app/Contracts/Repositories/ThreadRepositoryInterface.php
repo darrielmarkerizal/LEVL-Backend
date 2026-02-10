@@ -28,4 +28,18 @@ interface ThreadRepositoryInterface
     public function lock(Thread $thread): Thread;
 
     public function unlock(Thread $thread): Thread;
+
+    public function getThreadsByCourse(int $courseId, array $filters = []): LengthAwarePaginator;
+
+    public function searchThreadsByCourse(string $searchQuery, int $courseId, array $filters = []): LengthAwarePaginator;
+
+    public function getAllThreads(array $filters = [], ?string $search = null): LengthAwarePaginator;
+
+    public function getInstructorThreads(int $instructorId, array $filters = [], ?string $search = null): LengthAwarePaginator;
+
+    public function getUserThreads(int $userId, array $filters = [], ?string $search = null): LengthAwarePaginator;
+
+    public function getTrendingThreads(array $filters = [], ?string $search = null): LengthAwarePaginator;
+
+    public function getInstructorTrendingThreads(int $instructorId, array $filters = [], ?string $search = null): LengthAwarePaginator;
 }

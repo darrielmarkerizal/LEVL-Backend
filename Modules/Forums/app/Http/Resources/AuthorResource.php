@@ -16,7 +16,7 @@ class AuthorResource extends JsonResource
             'username' => $this->username,
             'name' => $this->name,
             'email' => $this->email,
-            'avatar' => $this->getFirstMediaUrl('avatar') ?: null,
+            'avatar' => $this->relationLoaded('media') ? ($this->getFirstMediaUrl('avatar') ?: null) : null,
         ];
     }
 }

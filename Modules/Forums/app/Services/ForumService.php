@@ -12,12 +12,15 @@ use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 use Modules\Forums\Repositories\ReplyRepository;
 use Modules\Forums\Repositories\ThreadRepository;
+use Modules\Forums\Contracts\Repositories\ReactionRepositoryInterface;
+use Modules\Forums\Models\Reaction;
 
 class ForumService implements ModuleForumServiceInterface, \App\Contracts\Services\ForumServiceInterface
 {
     public function __construct(
         private readonly ThreadRepository $threadRepository,
         private readonly ReplyRepository $replyRepository,
+        private readonly ReactionRepositoryInterface $reactionRepository,
     ) {}
 
     public function createThread(array $data, User $user, int $courseId): Thread
@@ -244,5 +247,63 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
         if (preg_match('/<script|javascript:|onerror|onclick/i', $content)) {
             throw new \Exception(__('validation.invalid_content_detected'));
         }
+    }
+
+    public function toggleThreadReaction(User $user, Thread $thread, string $type): array
+    {
+        return DB::transaction(function () use ($user, $thread, $type) {
+            $added = Reaction::toggle(
+                $user->id,
+                Thread::class,
+                $thread->id,
+                $type
+            );
+
+            $reaction = null;
+
+            if ($added) {
+                // We need to fetch the fresh reaction model to dispatch the event
+                // This ensures we have the ID and relations loaded
+                $reaction = $this->reactionRepository->findByUserAndReactable(
+                    $user->id,
+                    Thread::class,
+                    $thread->id
+                );
+
+                if ($reaction) {
+                    event(new \Modules\Forums\Events\ReactionAdded($reaction));
+                }
+            }
+
+            return ['added' => $added, 'reaction' => $reaction];
+        });
+    }
+
+    public function toggleReplyReaction(User $user, Reply $reply, string $type): array
+    {
+        return DB::transaction(function () use ($user, $reply, $type) {
+            $added = Reaction::toggle(
+                $user->id,
+                Reply::class,
+                $reply->id,
+                $type
+            );
+
+            $reaction = null;
+
+            if ($added) {
+                $reaction = $this->reactionRepository->findByUserAndReactable(
+                    $user->id,
+                    Reply::class,
+                    $reply->id
+                );
+
+                if ($reaction) {
+                    event(new \Modules\Forums\Events\ReactionAdded($reaction));
+                }
+            }
+
+            return ['added' => $added, 'reaction' => $reaction];
+        });
     }
 }
