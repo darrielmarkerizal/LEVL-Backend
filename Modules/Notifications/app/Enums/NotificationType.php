@@ -19,6 +19,8 @@ enum NotificationType: string
     case Enrollment = 'enrollment';
     case ForumReplyToThread = 'forum_reply_to_thread';
     case ForumReplyToReply = 'forum_reply_to_reply';
+    case ForumReactionThread = 'forum_reaction_thread';
+    case ForumReactionReply = 'forum_reaction_reply';
 
     /**
      * Get all enum values as array.
@@ -57,6 +59,8 @@ enum NotificationType: string
             self::Enrollment => __('enums.notification_type.enrollment'),
             self::ForumReplyToThread => __('enums.notification_type.forum_reply_to_thread'),
             self::ForumReplyToReply => __('enums.notification_type.forum_reply_to_reply'),
+            self::ForumReactionThread => __('enums.notification_type.forum_reaction_thread'),
+            self::ForumReactionReply => __('enums.notification_type.forum_reaction_reply'),
         };
     }
 }

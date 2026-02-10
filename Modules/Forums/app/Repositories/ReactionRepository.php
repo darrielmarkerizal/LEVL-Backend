@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Forums\Repositories;
 
 use Modules\Forums\Contracts\Repositories\ReactionRepositoryInterface;

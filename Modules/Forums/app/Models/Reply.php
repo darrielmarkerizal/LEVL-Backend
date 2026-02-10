@@ -157,12 +157,13 @@ class Reply extends Model implements HasMedia
 
     public function toSearchableArray(): array
     {
+        $authorName = $this->relationLoaded('author') ? ($this->author?->name ?? '') : '';
         return [
             'id' => $this->id,
             'content' => $this->content,
             'thread_id' => $this->thread_id,
             'author_id' => $this->author_id,
-            'author_name' => $this->author->name ?? '',
+            'author_name' => $authorName,
         ];
     }
 

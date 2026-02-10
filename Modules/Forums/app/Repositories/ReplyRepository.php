@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Forums\Repositories;
 
 use App\Repositories\BaseRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Forums\Models\Reply;
 
 class ReplyRepository extends BaseRepository
@@ -20,7 +23,7 @@ class ReplyRepository extends BaseRepository
 
     protected string $defaultSort = 'created_at';
 
-    protected array $with = ['author'];
+    protected array $with = ['author.media'];
 
     public function getRepliesForThread(int $threadId): Collection
     {
@@ -36,17 +39,28 @@ class ReplyRepository extends BaseRepository
     {
         return Reply::where('thread_id', $threadId)
             ->topLevel()
-            ->with(['author', 'children.author'])
+            ->with(['author.media', 'children.author.media', 'media', 'children.media'])
             ->withCount('reactions')
             ->orderBy('is_accepted_answer', 'desc')
             ->orderBy('created_at', 'asc')
             ->get();
     }
 
+    public function paginateTopLevelReplies(int $threadId, int $perPage, int $page): LengthAwarePaginator
+    {
+        return Reply::where('thread_id', $threadId)
+            ->topLevel()
+            ->with(['author.media', 'children.author.media', 'media', 'children.media'])
+            ->withCount('reactions')
+            ->orderBy('is_accepted_answer', 'desc')
+            ->orderBy('created_at', 'asc')
+            ->paginate($perPage, ['*'], 'page', $page);
+    }
+
     public function getNestedReplies(int $parentId): Collection
     {
         return Reply::where('parent_id', $parentId)
-            ->with(['author', 'children.author'])
+            ->with(['author.media', 'children.author.media', 'media', 'children.media'])
             ->withCount('reactions')
             ->orderBy('created_at', 'asc')
             ->get();
@@ -88,7 +102,7 @@ class ReplyRepository extends BaseRepository
 
     public function findWithRelations(int $replyId): ?Reply
     {
-        return Reply::with(['author', 'thread', 'parent', 'children'])
+        return Reply::with(['author.media', 'thread', 'parent', 'children', 'media', 'children.media', 'children.author.media'])
             ->withCount('reactions')
             ->find($replyId);
     }
@@ -97,7 +111,7 @@ class ReplyRepository extends BaseRepository
     {
         return Reply::where('thread_id', $threadId)
             ->accepted()
-            ->with(['author'])
+            ->with(['author.media'])
             ->first();
     }
 

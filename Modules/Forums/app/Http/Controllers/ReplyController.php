@@ -8,107 +8,65 @@ use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Modules\Forums\Contracts\Services\ForumServiceInterface;
+use Modules\Forums\Contracts\Repositories\ReplyRepositoryInterface;
 use Modules\Forums\Http\Requests\CreateReplyRequest;
 use Modules\Forums\Http\Requests\UpdateReplyRequest;
 use Modules\Forums\Http\Resources\ReplyResource;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 use Modules\Forums\Services\ModerationService;
+use Modules\Forums\Services\ReplyService;
 use Modules\Schemes\Models\Course;
 
 class ReplyController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(
-        private readonly ForumServiceInterface $forumService,
-        private readonly ModerationService $moderationService
-    ) {}
-
-    public function index(Request $request, Course $course, int $threadId): JsonResponse
+    public function index(Request $request, Course $course, Thread $thread, ReplyRepositoryInterface $replyRepository): JsonResponse
     {
-        $thread = Thread::find($threadId);
-
-        if (! $thread) {
-            return $this->notFound(__('messages.forums.thread_not_found'));
-        }
-
         $perPage = (int) $request->input('per_page', 20);
-
-        $repliesQuery = \Spatie\QueryBuilder\QueryBuilder::for(Reply::class)
-            ->where('thread_id', $threadId)
-            ->whereNull('parent_id')
-            ->allowedIncludes([
-                'author',
-                'media',
-                'children',
-                'children.author',
-                'children.media',
-                'children.children',
-                'children.children.author',
-                'children.children.media',
-            ])
-            ->allowedSorts(['created_at', 'updated_at'])
-            ->defaultSort('created_at');
-
-        $replies = $repliesQuery->paginate($perPage);
-        $replies->getCollection()->transform(fn($item) => new ReplyResource($item));
-
+        $page = (int) $request->input('page', 1);
+        $replies = $replyRepository->paginateTopLevelReplies($thread->id, $perPage, $page);
+        $replies->getCollection()->transform(fn ($item) => new ReplyResource($item));
         return $this->paginateResponse($replies, __('messages.forums.replies_retrieved'));
     }
 
-    public function store(CreateReplyRequest $request, Course $course, int $threadId): JsonResponse
+    public function store(CreateReplyRequest $request, Course $course, Thread $thread, ReplyService $replyService, ReplyRepositoryInterface $replyRepository): JsonResponse
     {
-        $thread = Thread::find($threadId);
-
-        if (! $thread) {
-            return $this->notFound(__('messages.forums.thread_not_found'));
-        }
-
         $this->authorize('create', [Reply::class, $thread]);
-
-        try {
-            $data = $request->validated();
-            $data['attachments'] = $request->file('attachments') ?? [];
-
-            $reply = $this->forumService->createReply(
-                $thread,
-                $data,
-                $request->user()
-            );
-
-            $replyWithIncludes = \Spatie\QueryBuilder\QueryBuilder::for(Reply::class)
-                ->where('id', $reply->id)
-                ->allowedIncludes(['author', 'media', 'children'])
-                ->firstOrFail();
-
-            return $this->created(new ReplyResource($replyWithIncludes), __('messages.forums.reply_created'));
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), [], 400);
-        }
+        $reply = $replyService->create($request->validated(), $request->user(), $thread, null, $request->file('attachments') ?? []);
+        $replyWithIncludes = $replyRepository->findWithRelations($reply->id);
+        return $this->created(new ReplyResource($replyWithIncludes), __('messages.forums.reply_created'));
     }
 
-    public function update(UpdateReplyRequest $request, Course $course, Reply $reply): JsonResponse
+    public function update(UpdateReplyRequest $request, Course $course, Reply $reply, ReplyService $replyService, ReplyRepositoryInterface $replyRepository): JsonResponse
     {
         $this->authorize('update', $reply);
-
-        $updatedReply = $this->forumService->updateReply($reply, $request->validated());
-
-        $replyWithIncludes = \Spatie\QueryBuilder\QueryBuilder::for(Reply::class)
-            ->where('id', $updatedReply->id)
-            ->allowedIncludes(['author', 'media', 'children'])
-            ->firstOrFail();
-
+        $updatedReply = $replyService->update($reply, $request->validated());
+        $replyWithIncludes = $replyRepository->findWithRelations($updatedReply->id);
         return $this->success(new ReplyResource($replyWithIncludes), __('messages.forums.reply_updated'));
     }
 
-    public function destroy(Request $request, Course $course, Reply $reply): JsonResponse
+    public function destroy(Request $request, Course $course, Reply $reply, ReplyService $replyService): JsonResponse
     {
         $this->authorize('delete', $reply);
-
-        $this->forumService->deleteReply($reply, $request->user());
-
+        $replyService->delete($reply, $request->user());
         return $this->success(null, __('messages.forums.reply_deleted'));
+    }
+
+    public function accept(Request $request, Course $course, Thread $thread, Reply $reply, ModerationService $moderationService, ReplyRepositoryInterface $replyRepository): JsonResponse
+    {
+        $this->authorize('markAsAccepted', $reply);
+        $updatedReply = $moderationService->markAsAcceptedAnswer($reply, $request->user());
+        $replyWithIncludes = $replyRepository->findWithRelations($updatedReply->id);
+        return $this->success(new ReplyResource($replyWithIncludes), __('messages.forums.reply_updated'));
+    }
+
+    public function unaccept(Request $request, Course $course, Thread $thread, Reply $reply, ModerationService $moderationService, ReplyRepositoryInterface $replyRepository): JsonResponse
+    {
+        $this->authorize('markAsAccepted', $reply);
+        $updatedReply = $moderationService->unmarkAsAcceptedAnswer($reply, $request->user());
+        $replyWithIncludes = $replyRepository->findWithRelations($updatedReply->id);
+        return $this->success(new ReplyResource($replyWithIncludes), __('messages.forums.reply_updated'));
     }
 }

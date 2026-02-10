@@ -32,7 +32,7 @@ class ThreadResource extends JsonResource
             'content' => $this->content,
             'author' => new AuthorResource($this->whenLoaded('author')),
 
-            'course_slug' => $this->course?->slug,
+            'course_slug' => $this->whenLoaded('course', fn () => $this->course?->slug),
             'course' => $this->whenLoaded('course'),
             'is_pinned' => $this->is_pinned,
             'is_closed' => $this->is_closed,

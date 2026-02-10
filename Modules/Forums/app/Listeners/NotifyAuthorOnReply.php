@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Forums\Listeners;
 
 use Modules\Forums\Events\ReplyCreated;
@@ -7,12 +9,9 @@ use Modules\Notifications\Services\NotificationService;
 
 class NotifyAuthorOnReply
 {
-    protected NotificationService $notificationService;
-
-    public function __construct(NotificationService $notificationService)
-    {
-        $this->notificationService = $notificationService;
-    }
+    public function __construct(
+        private readonly NotificationService $notificationService
+    ) {}
 
      
     public function handle(ReplyCreated $event): void

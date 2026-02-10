@@ -582,6 +582,7 @@ return [
     // Forums Module
     'forums' => [
         'reaction_added' => 'Reaksi berhasil ditambahkan.',
+        'reaction_removed' => 'Reaksi berhasil dihapus.',
         'statistics_retrieved' => 'Statistik forum berhasil diambil.',
         'threads_retrieved' => 'Thread berhasil diambil.',
         'my_threads_retrieved' => 'Thread Anda berhasil diambil.',

@@ -172,13 +172,14 @@ class Thread extends Model implements HasMedia
 
     public function toSearchableArray(): array
     {
+        $authorName = $this->relationLoaded('author') ? ($this->author?->name ?? '') : '';
         return [
             'id' => $this->id,
             'title' => $this->title,
             'content' => $this->content,
             'course_id' => $this->course_id,
             'author_id' => $this->author_id,
-            'author_name' => $this->author->name ?? '',
+            'author_name' => $authorName,
         ];
     }
 

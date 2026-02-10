@@ -7,8 +7,10 @@ namespace Modules\Forums\Repositories;
 use App\Repositories\BaseRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Spatie\QueryBuilder\AllowedFilter;
+use Illuminate\Support\Facades\Cache;
+use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class ThreadRepository extends BaseRepository
 {
@@ -28,7 +30,7 @@ class ThreadRepository extends BaseRepository
 
     protected string $defaultSort = '-last_activity_at';
 
-    protected array $with = ['author'];
+    protected array $with = ['author.media'];
 
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
@@ -97,9 +99,9 @@ class ThreadRepository extends BaseRepository
         $query = Thread::query()
             ->withIsMentioned()
             ->where('course_id', $courseId)
-            ->with(['author', 'replies']);
+            ->with(['author.media', 'replies']);
 
-        return $this->filteredPaginate(
+        $paginator = $this->filteredPaginate(
             $query,
             $filters,
             [
@@ -125,7 +127,7 @@ class ThreadRepository extends BaseRepository
         $query = Thread::query()
             ->withIsMentioned()
             ->where('course_id', $courseId)
-            ->with(['author', 'replies']);
+            ->with(['author.media', 'replies']);
 
         if (! empty(trim($searchQuery))) {
             $threadIds = Thread::search($searchQuery)
@@ -133,12 +135,10 @@ class ThreadRepository extends BaseRepository
                 ->keys()
                 ->toArray();
 
-            $replyThreadIds = \Modules\Forums\Models\Reply::search($searchQuery)
-                ->keys()
-                ->map(fn ($id) => \Modules\Forums\Models\Reply::find($id)?->thread_id)
-                ->filter()
-                ->unique()
-                ->toArray();
+            $replyIds = Reply::search($searchQuery)->keys()->toArray();
+            $replyThreadIds = $replyIds
+                ? Reply::whereIn('id', $replyIds)->pluck('thread_id')->unique()->toArray()
+                : [];
 
             $ids = array_unique(array_merge($threadIds, $replyThreadIds));
 
@@ -173,7 +173,7 @@ class ThreadRepository extends BaseRepository
     public function findWithRelations(int $threadId): ?Thread
     {
         return Thread::withIsMentioned()
-            ->with(['author', 'course', 'replies.author', 'replies.children'])
+            ->with(['author.media', 'course', 'replies.author.media', 'replies.children', 'replies.media'])
             ->find($threadId);
     }
 
@@ -183,7 +183,7 @@ class ThreadRepository extends BaseRepository
             ->withIsMentioned()
             ->where('course_id', $courseId)
             ->pinned()
-            ->with(['author'])
+            ->with(['author.media'])
             ->orderBy('last_activity_at', 'desc')
             ->get();
     }
@@ -192,7 +192,7 @@ class ThreadRepository extends BaseRepository
     {
         $query = Thread::query()
             ->withIsMentioned()
-            ->with(['author', 'course']);
+            ->with(['author.media', 'course']);
 
         if ($search && ! empty(trim($search))) {
             $ids = Thread::search($search)->keys()->toArray();
@@ -229,7 +229,7 @@ class ThreadRepository extends BaseRepository
         $query = Thread::query()
             ->withIsMentioned()
             ->whereIn('course_id', $courseIds)
-            ->with(['author', 'course']);
+            ->with(['author.media', 'course']);
 
         if ($search && ! empty(trim($search))) {
             $ids = Thread::search($search)
@@ -264,7 +264,7 @@ class ThreadRepository extends BaseRepository
         $query = Thread::query()
             ->withIsMentioned()
             ->where('author_id', $userId)
-            ->with(['author', 'course']);
+            ->with(['author.media', 'course']);
 
         if ($search && ! empty(trim($search))) {
             $ids = Thread::search($search)
@@ -298,7 +298,7 @@ class ThreadRepository extends BaseRepository
     {
         return Thread::query()
             ->withIsMentioned()
-            ->with(['author', 'course'])
+            ->with(['author.media', 'course'])
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();
@@ -313,7 +313,7 @@ class ThreadRepository extends BaseRepository
         return Thread::query()
             ->withIsMentioned()
             ->whereIn('course_id', $courseIds)
-            ->with(['author', 'course'])
+            ->with(['author.media', 'course'])
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();
@@ -323,9 +323,15 @@ class ThreadRepository extends BaseRepository
     {
         $perPage = (int) ($filters['limit'] ?? $filters['per_page'] ?? 10);
 
+        $cacheKey = 'forums:trending:all:'.(auth()->id() ?? 0).':'.md5(json_encode([$filters, $search, $perPage]));
+        $cached = Cache::get($cacheKey);
+        if ($cached) {
+            return $cached;
+        }
+
         $query = Thread::query()
             ->withIsMentioned()
-            ->with(['author', 'course']);
+            ->with(['author.media', 'course']);
 
         if ($search && ! empty(trim($search))) {
             $ids = Thread::search($search)->keys()->toArray();
@@ -357,6 +363,8 @@ class ThreadRepository extends BaseRepository
             '-replies_count',
             $perPage
         );
+        Cache::put($cacheKey, $paginator, now()->addMinutes(2));
+        return $paginator;
     }
 
     public function getInstructorTrendingThreads(int $instructorId, array $filters = [], ?string $search = null): LengthAwarePaginator
@@ -366,10 +374,16 @@ class ThreadRepository extends BaseRepository
             ->toArray();
         $perPage = (int) ($filters['limit'] ?? $filters['per_page'] ?? 10);
 
+        $cacheKey = 'forums:trending:instructor:'.$instructorId.':'.(auth()->id() ?? 0).':'.md5(json_encode([$filters, $search, $perPage]));
+        $cached = Cache::get($cacheKey);
+        if ($cached) {
+            return $cached;
+        }
+
         $query = Thread::query()
             ->withIsMentioned()
             ->whereIn('course_id', $courseIds)
-            ->with(['author', 'course']);
+            ->with(['author.media', 'course']);
 
         if ($search && ! empty(trim($search))) {
             $ids = Thread::search($search)
@@ -383,7 +397,7 @@ class ThreadRepository extends BaseRepository
             }
         }
 
-        return $this->filteredPaginate(
+        $paginator = $this->filteredPaginate(
             $query,
             $filters,
             [
@@ -403,5 +417,7 @@ class ThreadRepository extends BaseRepository
             '-replies_count',
             $perPage
         );
+        Cache::put($cacheKey, $paginator, now()->addMinutes(2));
+        return $paginator;
     }
 }
