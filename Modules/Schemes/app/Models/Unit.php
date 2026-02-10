@@ -6,7 +6,7 @@ namespace Modules\Schemes\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Sluggable\HasSlug;
@@ -14,7 +14,14 @@ use Spatie\Sluggable\SlugOptions;
 
 class Unit extends Model
 {
-    use HasFactory, HasSlug, LogsActivity, Searchable;
+    use HasFactory, HasSlug, LogsActivity, PgSearchable;
+
+    protected array $searchable_columns = [
+        'title',
+        'description',
+        'code',
+        'slug',
+    ];
 
     public function getSlugOptions(): SlugOptions
     {
@@ -62,30 +69,7 @@ class Unit extends Model
         return 'slug';
     }
 
-    public function toSearchableArray(): array
-    {
-        $this->loadMissing('course');
 
-        return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'description' => $this->description,
-            'code' => $this->code,
-            'course_id' => $this->course_id,
-            'course_title' => $this->course?->title,
-            'status' => $this->status,
-        ];
-    }
-
-    public function searchableAs(): string
-    {
-        return 'units_index';
-    }
-
-    public function shouldBeSearchable(): bool
-    {
-        return $this->status === 'published';
-    }
 
     protected static function newFactory()
     {

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Traits\HasProfilePrivacy;
 use Modules\Auth\Traits\TracksUserActivity;
@@ -28,9 +28,15 @@ class User extends Authenticatable implements HasMedia, JWTSubject
         InteractsWithMedia,
         LogsActivity,
         Notifiable,
-        Searchable,
+        PgSearchable,
         SoftDeletes,
         TracksUserActivity;
+
+    protected array $searchable_columns = [
+        'name',
+        'username',
+        'email',
+    ];
 
     public function registerMediaCollections(): void
     {
@@ -179,28 +185,6 @@ class User extends Authenticatable implements HasMedia, JWTSubject
             'user_id',
             'course_id',
         );
-    }
-
-    public function toSearchableArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'username' => $this->username,
-            'status' => $this->status?->value,
-            'account_status' => $this->account_status,
-        ];
-    }
-
-    public function searchableAs(): string
-    {
-        return 'users_index';
-    }
-
-    public function shouldBeSearchable(): bool
-    {
-        return $this->account_status === 'active' || $this->status === UserStatus::Active;
     }
 
     protected static function newFactory()

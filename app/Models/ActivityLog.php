@@ -6,7 +6,13 @@ use Spatie\Activitylog\Models\Activity as SpatieActivity;
 
 class ActivityLog extends SpatieActivity
 {
-    use \Laravel\Scout\Searchable;
+    use \Modules\Common\Traits\PgSearchable;
+
+    protected array $searchable_columns = [
+        'description',
+        'event',
+        'log_name',
+    ];
 
     protected $appends = ["device_info"];
 
@@ -60,14 +66,5 @@ class ActivityLog extends SpatieActivity
       return $query;
   }
 
-  public function toSearchableArray(): array
-  {
-      return [
-          'id' => $this->id,
-          'log_name' => $this->log_name,
-          'description' => $this->description,
-          'event' => $this->event,
-          'properties' => $this->properties->toArray(),
-      ];
-  }
+
 }

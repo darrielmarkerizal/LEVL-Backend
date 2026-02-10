@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 
 /**
  * AuditLog Model - Immutable (append-only) audit log for compliance.
@@ -35,7 +35,14 @@ use Laravel\Scout\Searchable;
  */
 class AuditLog extends Model
 {
-    use HasFactory, Searchable;
+    use HasFactory, PgSearchable;
+
+    protected array $searchable_columns = [
+        'action',
+        'event',
+        'actor_type',
+        'subject_type',
+    ];
 
     /**
      * The table associated with the model.
@@ -294,20 +301,5 @@ class AuditLog extends Model
         ]);
     }
 
-    public function toSearchableArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'action' => $this->action,
-            'actor_type' => $this->actor_type,
-            'subject_type' => $this->subject_type,
-            'context' => $this->context,
-            'event' => $this->event, // Legacy
-        ];
-    }
 
-    public function searchableAs(): string
-    {
-        return 'audit_logs_index';
-    }
 }

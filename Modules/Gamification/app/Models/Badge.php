@@ -4,7 +4,7 @@ namespace Modules\Gamification\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 use Modules\Gamification\Enums\BadgeType;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -13,7 +13,13 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class Badge extends Model implements HasMedia
 {
   use InteractsWithMedia;
-  use Searchable;
+  use PgSearchable;
+
+  protected array $searchable_columns = [
+      'code',
+      'name',
+      'description',
+  ];
 
   protected $table = "badges";
 
@@ -79,19 +85,5 @@ class Badge extends Model implements HasMedia
     return $query->where("type", "completion");
   }
 
-  public function toSearchableArray(): array
-  {
-      return [
-          'id' => $this->id,
-          'code' => $this->code,
-          'name' => $this->name,
-          'description' => $this->description,
-          'type' => $this->type,
-      ];
-  }
 
-  public function searchableAs(): string
-  {
-      return 'badges_index';
-  }
 }

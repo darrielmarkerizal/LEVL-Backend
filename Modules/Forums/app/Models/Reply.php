@@ -13,11 +13,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 
 class Reply extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, Searchable;
+    use HasFactory, SoftDeletes, InteractsWithMedia, PgSearchable;
+
+    protected array $searchable_columns = [
+        'content',
+    ];
 
      
     const MAX_DEPTH = 5;
@@ -155,20 +159,5 @@ class Reply extends Model implements HasMedia
             ->performOnCollections('attachments');
     }
 
-    public function toSearchableArray(): array
-    {
-        $authorName = $this->relationLoaded('author') ? ($this->author?->name ?? '') : '';
-        return [
-            'id' => $this->id,
-            'content' => $this->content,
-            'thread_id' => $this->thread_id,
-            'author_id' => $this->author_id,
-            'author_name' => $authorName,
-        ];
-    }
 
-    public function searchableAs(): string
-    {
-        return 'replies_index';
-    }
 }

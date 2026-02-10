@@ -19,7 +19,6 @@
     "laravel/framework": "^11.0",
     "laravel/nightwatch": "^1.22",
     "laravel/octane": "^2.13",
-    "laravel/scout": "^10.0",
     "laravel/socialite": "^5.23",
     "laravel/telescope": "^5.15",
     "laravel/tinker": "^2.10.1",

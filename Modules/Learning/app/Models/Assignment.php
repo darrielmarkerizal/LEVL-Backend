@@ -13,7 +13,7 @@ use Modules\Learning\Enums\AssignmentStatus;
 use Modules\Learning\Enums\RandomizationType;
 use Modules\Learning\Enums\ReviewMode;
 use Modules\Learning\Enums\SubmissionType;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 
 /**
  * @property int $id
@@ -60,7 +60,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Assignment extends Model implements HasMedia
 {
-    use Searchable, InteractsWithMedia, HasFactory;
+    use PgSearchable, InteractsWithMedia, HasFactory;
+
+    protected array $searchable_columns = [
+        'title',
+        'description',
+    ];
 
     public function registerMediaCollections(): void
     {
@@ -356,28 +361,5 @@ class Assignment extends Model implements HasMedia
         return null;
     }
 
-    public function toSearchableArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'description' => $this->description,
-            'type' => $this->type,
-            'submission_type' => $this->submission_type->value,
-            'status' => $this->status->value,
-            'lesson_id' => $this->lesson_id,
-            'assignable_type' => $this->assignable_type,
-            'assignable_id' => $this->assignable_id,
-            'created_by' => $this->created_by,
-            'max_score' => $this->max_score,
-            'available_from' => $this->available_from?->timestamp,
-            'deadline_at' => $this->deadline_at?->timestamp,
-            'created_at' => $this->created_at->timestamp,
-        ];
-    }
 
-    public function searchableAs(): string
-    {
-        return 'assignments_index';
-    }
 }

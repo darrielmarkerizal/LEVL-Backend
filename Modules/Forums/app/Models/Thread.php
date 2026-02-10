@@ -11,13 +11,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Thread extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, Searchable, InteractsWithMedia;
+    use HasFactory, SoftDeletes, PgSearchable, InteractsWithMedia;
+
+    protected array $searchable_columns = [
+        'title',
+        'content',
+    ];
 
     protected static function newFactory()
     {
@@ -170,23 +175,7 @@ class Thread extends Model implements HasMedia
         });
     }
 
-    public function toSearchableArray(): array
-    {
-        $authorName = $this->relationLoaded('author') ? ($this->author?->name ?? '') : '';
-        return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'content' => $this->content,
-            'course_id' => $this->course_id,
-            'author_id' => $this->author_id,
-            'author_name' => $authorName,
-        ];
-    }
 
-    public function searchableAs(): string
-    {
-        return 'threads_index';
-    }
 
     public function registerMediaCollections(): void
     {

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 use Modules\Auth\Models\User;
 use Modules\Content\Enums\ContentStatus;
 use Modules\Content\Traits\HasContentRevisions;
@@ -24,7 +24,14 @@ use Spatie\Sluggable\SlugOptions;
 
 class News extends Model implements HasMedia
 {
-  use HasContentRevisions, HasFactory, HasSlug, InteractsWithMedia, LogsActivity, Searchable, SoftDeletes;
+  use HasContentRevisions, HasFactory, HasSlug, InteractsWithMedia, LogsActivity, PgSearchable, SoftDeletes;
+
+  protected array $searchable_columns = [
+      'title',
+      'slug',
+      'excerpt',
+      'content',
+  ];
 
   protected $table = "news";
 
@@ -228,22 +235,5 @@ class News extends Model implements HasMedia
     return $this->status === ContentStatus::Scheduled &&
       $this->scheduled_at !== null &&
       $this->scheduled_at->isFuture();
-  }
-
-  public function toSearchableArray(): array
-  {
-    return [
-      'id' => $this->id,
-      'title' => $this->title,
-      'slug' => $this->slug,
-      'excerpt' => $this->excerpt,
-      'content' => $this->content,
-      'status' => $this->status?->value,
-      'is_featured' => $this->is_featured,
-      'published_at' => $this->published_at?->toIso8601String(),
-      'views_count' => $this->views_count,
-      'author_name' => $this->author?->name,
-      'created_at' => $this->created_at?->toIso8601String(),
-    ];
   }
 }

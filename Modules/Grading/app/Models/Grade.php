@@ -7,13 +7,17 @@ namespace Modules\Grading\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 use Modules\Grading\Enums\GradeStatus;
 use Modules\Grading\Enums\SourceType;
 
 class Grade extends Model
 {
-    use Searchable;
+    use PgSearchable;
+
+    protected array $searchable_columns = [
+        'feedback',
+    ];
 
     protected $fillable = [
         'source_type',
@@ -146,27 +150,5 @@ class Grade extends Model
         return $query->where('submission_id', $submissionId);
     }
 
-    public function toSearchableArray(): array
-    {
-        return [
-            'id' => (int) $this->id,
-            'source_type' => $this->source_type->value,
-            'source_id' => (int) $this->source_id,
-            'submission_id' => (int) $this->submission_id,
-            'user_id' => (int) $this->user_id,
-            'graded_by' => (int) $this->graded_by,
-            'score' => (float) $this->score,
-            'status' => $this->status->value,
-            'is_override' => (bool) $this->is_override,
-            'is_draft' => (bool) $this->is_draft,
-            'feedback' => $this->feedback,
-            'graded_at' => $this->graded_at?->timestamp,
-            'released_at' => $this->released_at?->timestamp,
-        ];
-    }
 
-    public function searchableAs(): string
-    {
-        return 'grades_index';
-    }
 }

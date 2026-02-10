@@ -8,13 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Enums\SubmissionStatus;
 
 class Submission extends Model
 {
-    use Searchable;
+    use PgSearchable;
+
+    protected array $searchable_columns = [
+        'answer_text',
+    ];
 
     protected $fillable = [
         'assignment_id',
@@ -72,46 +76,7 @@ class Submission extends Model
         return $this->state?->value;
     }
 
-    public function searchableAs(): string
-    {
-        return 'submissions_index';
-    }
 
-        public function toSearchableArray(): array
-    {
-        
-        $this->loadMissing(['user', 'assignment']);
-
-        return [
-            'id' => $this->id,
-            'assignment_id' => $this->assignment_id,
-            'user_id' => $this->user_id,
-            
-            'student_name' => $this->user?->name ?? '',
-            'student_email' => $this->user?->email ?? '',
-            
-            'assignment_title' => $this->assignment?->title ?? '',
-            
-            'state' => $this->state?->value ?? $this->status?->value ?? '',
-            
-            'score' => $this->score !== null ? (float) $this->score : null,
-            
-            'submitted_at' => $this->submitted_at?->timestamp,
-            'submitted_at_formatted' => $this->submitted_at?->toIso8601String(),
-            
-            'attempt_number' => $this->attempt_number,
-            'is_late' => $this->is_late,
-            'enrollment_id' => $this->enrollment_id,
-            'created_at' => $this->created_at?->timestamp,
-        ];
-    }
-
-        public function shouldBeSearchable(): bool
-    {
-        
-        
-        return $this->state !== SubmissionState::InProgress;
-    }
 
         public function assignment(): BelongsTo
     {

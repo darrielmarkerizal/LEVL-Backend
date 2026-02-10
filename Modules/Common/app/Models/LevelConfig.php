@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace Modules\Common\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Scout\Searchable;
+use Modules\Common\Traits\PgSearchable;
 
 class LevelConfig extends Model
 {
-    use Searchable;
+    use PgSearchable;
+
+    protected array $searchable_columns = [
+        'name',
+        'description',
+    ];
 
     protected $table = 'level_configs';
 
@@ -26,20 +31,5 @@ class LevelConfig extends Model
         'rewards' => 'array',
     ];
 
-    public function toSearchableArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'level' => $this->level,
-            'name' => $this->name,
-            'description' => $this->description,
-            'min_points' => $this->min_points,
-            'is_active' => $this->is_active,
-        ];
-    }
 
-    public function searchableAs(): string
-    {
-        return 'level_configs_index';
-    }
 }
