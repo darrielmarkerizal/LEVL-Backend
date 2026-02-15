@@ -263,6 +263,10 @@ class UserSeederEnhanced extends Seeder
             $this->batchCreatePrivacySettings($users, $role);
             $this->batchCreateUserActivities($users, $status);
 
+            foreach ($users as $user) {
+                $this->attachAvatar($user);
+            }
+
             $created += $users->count();
             
             if ($chunks > 1) {
