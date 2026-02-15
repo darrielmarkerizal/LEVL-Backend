@@ -72,7 +72,7 @@ class EnrollmentLifecycleProcessor
                 $existingEnrollment->status = $initialStatus;
                 $existingEnrollment->enrolled_at = $enrolledAt;
                 $existingEnrollment->completed_at = null;
-                Enrollment::withoutSyncingToSearch(fn () => $existingEnrollment->save());
+                $existingEnrollment->save();
                 $enrollment = $existingEnrollment;
             } else {
                 $enrollment = new Enrollment;
@@ -80,7 +80,7 @@ class EnrollmentLifecycleProcessor
                 $enrollment->course_id = $course->id;
                 $enrollment->status = $initialStatus;
                 $enrollment->enrolled_at = $enrolledAt;
-                Enrollment::withoutSyncingToSearch(fn () => $enrollment->save());
+                $enrollment->save();
                 
                 // Note: Original code didn't use events here, or I missed it? 
                 // Ah, `EnrollmentCreated` was imported but used in `create` which I didn't see fully in view_file.
@@ -123,7 +123,7 @@ class EnrollmentLifecycleProcessor
 
             $enrollment->status = EnrollmentStatus::Cancelled;
             $enrollment->completed_at = null;
-            Enrollment::withoutSyncingToSearch(fn () => $enrollment->save());
+            $enrollment->save();
             $this->invalidateEnrollmentCache($enrollment);
 
             return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
@@ -139,7 +139,7 @@ class EnrollmentLifecycleProcessor
 
             $enrollment->status = EnrollmentStatus::Cancelled;
             $enrollment->completed_at = null;
-            Enrollment::withoutSyncingToSearch(fn () => $enrollment->save());
+            $enrollment->save();
             $this->invalidateEnrollmentCache($enrollment);
 
             return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
@@ -156,7 +156,7 @@ class EnrollmentLifecycleProcessor
             $enrollment->status = EnrollmentStatus::Active;
             $enrollment->enrolled_at = Carbon::now();
             $enrollment->completed_at = null;
-            Enrollment::withoutSyncingToSearch(fn () => $enrollment->save());
+            $enrollment->save();
             $this->invalidateEnrollmentCache($enrollment);
 
             $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
@@ -181,7 +181,7 @@ class EnrollmentLifecycleProcessor
 
             $enrollment->status = EnrollmentStatus::Cancelled;
             $enrollment->completed_at = null;
-            Enrollment::withoutSyncingToSearch(fn () => $enrollment->save());
+            $enrollment->save();
             $this->invalidateEnrollmentCache($enrollment);
 
             $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
@@ -205,7 +205,7 @@ class EnrollmentLifecycleProcessor
 
             $enrollment->status = EnrollmentStatus::Cancelled;
             $enrollment->completed_at = null;
-            Enrollment::withoutSyncingToSearch(fn () => $enrollment->save());
+            $enrollment->save();
             $this->invalidateEnrollmentCache($enrollment);
 
             return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
