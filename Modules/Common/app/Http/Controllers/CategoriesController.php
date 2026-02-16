@@ -104,8 +104,3 @@ class CategoriesController extends Controller
         );
     }
 }
-            $this->authorize('view', $model);
-
-
-
-        $this->authorize('view', $model);

@@ -45,6 +45,11 @@ class CategoryService implements CategoryServiceInterface
         );
     }
 
+    public function paginate(int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->list([], $perPage);
+    }
+
     public function create(CreateCategoryDTO|array $data): Category
     {
         return DB::transaction(function () use ($data) {

@@ -36,7 +36,14 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
         Route::get('courses/{course:slug}/enrollments', [EnrollmentsController::class, 'indexByCourse'])
             ->middleware('can:viewByCourse,Modules\\Enrollments\\Models\\Enrollment,course')
             ->name('courses.enrollments.index');
+        Route::get('courses/{course:slug}/enrollments/{enrollment}', [EnrollmentsController::class, 'showByCourse'])
+            ->whereNumber('enrollment')
+            ->name('courses.enrollments.show');
+
         Route::get('enrollments', [EnrollmentsController::class, 'index'])->name('enrollments.index');
+        Route::get('enrollments/{enrollment}', [EnrollmentsController::class, 'show'])
+            ->whereNumber('enrollment')
+            ->name('enrollments.show');
     });
 
     // Admin Reporting & Analytics with default API rate limiting
