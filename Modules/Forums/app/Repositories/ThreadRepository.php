@@ -8,11 +8,12 @@ use App\Repositories\BaseRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
+use Modules\Forums\Contracts\Repositories\ThreadRepositoryInterface;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 use Spatie\QueryBuilder\AllowedFilter;
 
-class ThreadRepository extends BaseRepository
+class ThreadRepository extends BaseRepository implements ThreadRepositoryInterface
 {
     protected function model(): string
     {
@@ -49,6 +50,11 @@ class ThreadRepository extends BaseRepository
                 return $query->paginate($perPage);
             }
         );
+    }
+
+    public function paginateByCourse(int $courseId, array $filters = [], int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->getThreadsByCourse($courseId, $filters);
     }
 
     public function find(int $id): ?Thread

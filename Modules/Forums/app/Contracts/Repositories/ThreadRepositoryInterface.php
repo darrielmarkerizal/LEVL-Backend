@@ -17,10 +17,6 @@ interface ThreadRepositoryInterface
 
     public function create(array $data): Thread;
 
-    public function update(Thread $thread, array $data): Thread;
-
-    public function delete(Thread $thread): bool;
-
     public function pin(Thread $thread): Thread;
 
     public function unpin(Thread $thread): Thread;
