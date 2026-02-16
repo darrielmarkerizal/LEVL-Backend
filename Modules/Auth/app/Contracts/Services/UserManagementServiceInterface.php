@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Auth\Contracts\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Modules\Auth\Models\User;
 
 interface UserManagementServiceInterface
@@ -13,7 +14,7 @@ interface UserManagementServiceInterface
 
     public function listUsersForIndex(User $authUser, array $filters = [], int $perPage = 15): LengthAwarePaginator;
 
-    public function showUser(User $authUser, int $userId): User;
+    public function showUser(User $authUser, int $userId, ?Request $request = null): User;
 
     public function updateUserStatus(User $authUser, int $userId, string $status): User;
 
