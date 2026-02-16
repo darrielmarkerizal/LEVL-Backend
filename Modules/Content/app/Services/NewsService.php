@@ -53,6 +53,11 @@ class NewsService implements NewsServiceInterface
         );
     }
 
+    public function getFeed(array $filters = []): LengthAwarePaginator
+    {
+        return $this->list($filters);
+    }
+
     public function search(string $query, array $filters = []): LengthAwarePaginator
     {
         request()->merge(['filter' => array_merge(request('filter', []), ['search' => $query])]);

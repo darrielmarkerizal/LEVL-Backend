@@ -270,7 +270,7 @@ class SubmissionCompletionProcessor
         }
     }
 
-    private function checkAndDispatchNewHighScore(Submission $submission): void
+    public function checkAndDispatchNewHighScore(Submission $submission): void
     {
         if ($submission->score === null) {
             return;

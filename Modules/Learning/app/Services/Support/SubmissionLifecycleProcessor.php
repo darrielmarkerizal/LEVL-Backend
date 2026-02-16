@@ -58,4 +58,9 @@ class SubmissionLifecycleProcessor
     {
         return $this->completionProcessor->delete($submission);
     }
+
+    public function checkAndDispatchNewHighScore(Submission $submission): void
+    {
+        $this->completionProcessor->checkAndDispatchNewHighScore($submission);
+    }
 }

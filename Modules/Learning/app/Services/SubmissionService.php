@@ -150,4 +150,9 @@ class SubmissionService implements SubmissionServiceInterface
     {
         return $this->lifecycleProcessor->grade($submission, $score, $gradedBy, $feedback);
     }
+
+    public function checkAndDispatchNewHighScore(Submission $submission): void
+    {
+        $this->lifecycleProcessor->checkAndDispatchNewHighScore($submission);
+    }
 }

@@ -44,6 +44,24 @@ class EnrollmentsController extends Controller
         return $this->paginateResponse($paginator, __('messages.enrollments.course_list_retrieved'));
     }
 
+    public function show(Enrollment $enrollment)
+    {
+        $this->authorize('view', $enrollment);
+
+        return $this->success(new EnrollmentResource($enrollment), __('messages.enrollments.retrieved'));
+    }
+
+    public function showByCourse(Course $course, Enrollment $enrollment)
+    {
+        if ((int) $enrollment->course_id !== (int) $course->id) {
+            abort(404);
+        }
+
+        $this->authorize('view', $enrollment);
+
+        return $this->success(new EnrollmentResource($enrollment), __('messages.enrollments.retrieved'));
+    }
+
     public function store(Request $request, Course $course)
     {
         $user = auth('api')->user();
