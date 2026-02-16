@@ -26,7 +26,6 @@ class UserIndexResource extends JsonResource
             'account_status' => $this['account_status'] ?? (is_object($this->resource) ? $this->account_status : null),
             'created_at' => $this->formatDate($this['created_at'] ?? (is_object($this->resource) ? $this->created_at : null)),
             'email_verified_at' => $this->formatDate($this->getEmailVerifiedAt()),
-            'is_password_set' => $this['is_password_set'] ?? (is_object($this->resource) ? $this->is_password_set : null),
             'role_names' => $this->whenLoaded('roles') ? $this->roles->pluck('name')->values()->toArray() : [],
         ];
     }

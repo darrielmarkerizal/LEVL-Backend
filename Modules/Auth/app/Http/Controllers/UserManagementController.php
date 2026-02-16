@@ -34,9 +34,9 @@ class UserManagementController extends Controller
         return $this->paginateResponse($users);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
-        $user = $this->userManagementService->showUser(auth()->user(), $id);
+        $user = $this->userManagementService->showUser(auth()->user(), $id, $request);
         
         return $this->success(new UserResource($user), 'messages.data_retrieved');
     }

@@ -27,9 +27,9 @@ class UserManagementService implements UserManagementServiceInterface
         return $this->finder->listUsersForIndex($authUser, $filters, $perPage);
     }
 
-    public function showUser(User $authUser, int $userId): User
+    public function showUser(User $authUser, int $userId, ?\Illuminate\Http\Request $request = null): User
     {
-        return $this->finder->showUser($authUser, $userId);
+        return $this->finder->showUser($authUser, $userId, $request);
     }
 
     public function updateUserStatus(User $authUser, int $userId, string $status): User

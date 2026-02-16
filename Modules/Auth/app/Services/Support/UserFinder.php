@@ -45,11 +45,15 @@ class UserFinder
             "auth:users:index:{$authUser->id}:{$perPage}:" . md5(json_encode($filters)),
             300,
             function () use ($authUser, $cleanFilters, $search, $perPage) {
-                $request = new Request($cleanFilters);
+                $requestData = $cleanFilters;
+                if (request()->has('include')) {
+                    $requestData['include'] = request()->get('include');
+                }
+                $request = new Request($requestData);
 
                 $query = QueryBuilder::for(User::class, $request)
-                    ->select(['id', 'name', 'email', 'username', 'status', 'account_status', 'created_at', 'email_verified_at', 'is_password_set'])
-                    ->with(['roles:id,name,guard_name', 'media']);
+                    ->select(['id', 'name', 'email', 'username', 'status', 'account_status', 'created_at', 'email_verified_at'])
+                    ->with(['roles:id,name,guard_name']);
 
                 if ($search && trim((string) $search) !== '') {
                     $query->search($search);
@@ -90,6 +94,7 @@ class UserFinder
                         }
                     }),
                 ])
+                    ->allowedIncludes(['roles'])
                     ->allowedSorts(['name', 'email', 'username', 'status', 'created_at'])
                     ->defaultSort('-created_at')
                     ->paginate($perPage);
@@ -97,12 +102,22 @@ class UserFinder
         );
     }
 
-    public function showUser(User $authUser, int $userId): User
+    public function showUser(User $authUser, int $userId, ?Request $request = null): User
     {
         $target = $this->cacheService->getUser($userId);
 
         if (! $target) {
-            $target = User::findOrFail($userId);
+            $query = QueryBuilder::for(User::class, $request ?? new Request())
+                ->with(['roles:id,name,guard_name'])
+                ->allowedIncludes(['roles'])
+                ->where('id', $userId);
+            
+            $target = $query->firstOrFail();
+        } else {
+            // If cached, load roles if not already loaded or if explicitly requested
+            if (! $target->relationLoaded('roles')) {
+                $target->load('roles:id,name,guard_name');
+            }
         }
 
         if (! $authUser->can('view', $target)) {
