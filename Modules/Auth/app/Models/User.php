@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Modules\Common\Traits\PgSearchable;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Traits\HasProfilePrivacy;
 use Modules\Auth\Traits\TracksUserActivity;
+use Modules\Common\Traits\PgSearchable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
@@ -126,9 +126,60 @@ class User extends Authenticatable implements HasMedia, JWTSubject
         return $this->hasOne(\Modules\Gamification\Models\UserGamificationStat::class);
     }
 
+    public function badges()
+    {
+        return $this->hasMany(\Modules\Gamification\Models\UserBadge::class);
+    }
 
+    public function challenges()
+    {
+        return $this->hasMany(\Modules\Gamification\Models\UserChallengeAssignment::class);
+    }
 
+    public function challengeCompletions()
+    {
+        return $this->hasMany(\Modules\Gamification\Models\UserChallengeCompletion::class);
+    }
 
+    public function points()
+    {
+        return $this->hasMany(\Modules\Gamification\Models\Point::class);
+    }
+
+    public function levels()
+    {
+        return $this->hasMany(\Modules\Gamification\Models\Level::class);
+    }
+
+    public function milestones()
+    {
+        return $this->hasMany(\Modules\Gamification\Models\Milestone::class);
+    }
+
+    public function learningStreaks()
+    {
+        return $this->hasMany(\Modules\Gamification\Models\LearningStreak::class);
+    }
+
+    public function submissions()
+    {
+        return $this->hasMany(\Modules\Learning\Models\Submission::class);
+    }
+
+    public function assignments()
+    {
+        return $this->hasMany(\Modules\Learning\Models\Assignment::class);
+    }
+
+    public function posts()
+    {
+        return $this->hasMany(\Modules\Forums\Models\Post::class);
+    }
+
+    public function threads()
+    {
+        return $this->hasMany(\Modules\Forums\Models\Thread::class);
+    }
 
     public function receivedOverrides()
     {
@@ -148,6 +199,7 @@ class User extends Authenticatable implements HasMedia, JWTSubject
                     ->orWhere('status', UserStatus::Active);
             });
         }
+
         return $query->where(function ($builder) {
             $builder->where('account_status', '!=', 'active')
                 ->where('status', '!=', UserStatus::Active);
