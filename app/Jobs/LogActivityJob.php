@@ -40,6 +40,24 @@ class LogActivityJob implements ShouldQueue
             ->causedBy($this->activityData['causer_id'] ?? null)
             ->performedOn($this->activityData['subject'] ?? null)
             ->withProperties($this->activityData['properties'] ?? [])
+            ->tap(function (\Illuminate\Database\Eloquent\Model $activity) {
+                if (! isset($this->activityData['device_info']) || ! is_array($this->activityData['device_info'])) {
+                    return;
+                }
+
+                if ($activity instanceof \App\Models\ActivityLog) {
+                    $nav = $this->activityData['device_info'];
+                    $activity->ip_address = $nav['ip_address'] ?? null;
+                    $activity->browser = $nav['browser'] ?? null;
+                    $activity->browser_version = $nav['browser_version'] ?? null;
+                    $activity->platform = $nav['platform'] ?? null;
+                    $activity->device = $nav['device'] ?? null;
+                    $activity->device_type = $nav['device_type'] ?? null;
+                    $activity->city = $nav['city'] ?? null;
+                    $activity->region = $nav['region'] ?? null;
+                    $activity->country = $nav['country'] ?? null;
+                }
+            })
             ->log($this->activityData['description'] ?? '');
     }
 
