@@ -14,7 +14,23 @@ trait TracksUserActivity
         $activity = activity('user_activity')
             ->causedBy($this)
             ->withProperties($data)
-            ->event($type);
+            ->event($type)
+            ->tap(function (\Illuminate\Database\Eloquent\Model $activity) {
+                if (! $activity instanceof ActivityLog) {
+                    return;
+                }
+
+                $deviceInfo = \App\Support\BrowserLogger::getDeviceInfo();
+                $activity->ip_address = $deviceInfo['ip_address'] ?? request()->ip();
+                $activity->browser = $deviceInfo['browser'] ?? null;
+                $activity->browser_version = $deviceInfo['browser_version'] ?? null;
+                $activity->platform = $deviceInfo['platform'] ?? null;
+                $activity->device = $deviceInfo['device'] ?? null;
+                $activity->device_type = $deviceInfo['device_type'] ?? null;
+                $activity->city = $deviceInfo['city'] ?? null;
+                $activity->region = $deviceInfo['region'] ?? null;
+                $activity->country = $deviceInfo['country'] ?? null;
+            });
 
         if ($related) {
             $activity->performedOn($related);

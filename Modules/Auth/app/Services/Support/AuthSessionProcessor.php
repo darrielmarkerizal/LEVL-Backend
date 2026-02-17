@@ -95,6 +95,9 @@ class AuthSessionProcessor
 
         $this->throttle->clearAttempts($login, $ip);
 
+        // Capture device info for async logging
+        $deviceInfo = \App\Support\BrowserLogger::getDeviceInfo();
+
         dispatch(new LogActivityJob([
             'log_name' => 'auth',
             'causer_id' => $user->id,
@@ -105,6 +108,7 @@ class AuthSessionProcessor
                 'status' => $user->status instanceof UserStatus ? $user->status->value : (string) $user->status,
             ],
             'description' => __('messages.auth.log_user_login'),
+            'device_info' => $deviceInfo,
         ]));
 
         $userArray = $user->toArray();
@@ -200,6 +204,9 @@ class AuthSessionProcessor
 
     public function logout(User $user, string $currentJwt, ?string $refreshToken = null): void
     {
+        // Capture device info for async logging
+        $deviceInfo = \App\Support\BrowserLogger::getDeviceInfo();
+
         dispatch(new LogActivityJob([
             'log_name' => 'auth',
             'causer_id' => $user->id,
@@ -208,6 +215,7 @@ class AuthSessionProcessor
                 'refresh_token_revoked' => $refreshToken !== null,
             ],
             'description' => __('messages.auth.log_user_logout'),
+            'device_info' => $deviceInfo,
         ]));
 
         $this->jwt->setToken($currentJwt)->invalidate();

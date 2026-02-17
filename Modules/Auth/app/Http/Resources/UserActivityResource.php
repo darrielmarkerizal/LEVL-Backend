@@ -27,13 +27,19 @@ class UserActivityResource extends JsonResource
             'related_type' => $activity->subject_type,
             'related_id' => $activity->subject_id,
             'created_at' => $activity->created_at?->toISOString(),
-            // Optional: Include new fields if useful
+            'ip_address' => $activity->ip_address,
             'location' => [
                 'city' => $activity->city,
                 'region' => $activity->region,
                 'country' => $activity->country,
             ],
-            'device_info' => $activity->device_info,
+            'device_info' => [
+                'browser' => $activity->browser,
+                'browser_version' => $activity->browser_version,
+                'platform' => $activity->platform,
+                'device' => $activity->device,
+                'device_type' => $activity->device_type,
+            ],
         ];
     }
 }
