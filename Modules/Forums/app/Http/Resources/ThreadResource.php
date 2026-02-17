@@ -51,6 +51,13 @@ class ThreadResource extends JsonResource
             'views_count' => $this->views_count,
             'replies_count' => $this->replies_count,
             'replies' => ReplyResource::collection($this->whenLoaded('topLevelReplies')),
+            'reactions_counts' => [
+                'like' => $this->reactions->where('type', 'like')->count(),
+                'helpful' => $this->reactions->where('type', 'helpful')->count(),
+            ],
+            'user_reactions' => $this->reactions->where('user_id', auth('api')->id())->map(function ($reaction) {
+                return ['id' => $reaction->id, 'type' => $reaction->type];
+            })->values(),
             'attachments' => $attachments,
             'last_activity_at' => $this->last_activity_at,
             'created_at' => $this->created_at,

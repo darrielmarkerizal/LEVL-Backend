@@ -117,7 +117,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                 $query = Thread::query()
                     ->withIsMentioned()
                     ->where('course_id', $courseId)
-                    ->with(['author.media', 'replies']);
+                    ->with(['author.media', 'replies', 'reactions']);
 
                 return $this->filteredPaginate(
                     $query,
@@ -130,7 +130,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                         AllowedFilter::scope('is_mentioned'),
                     ],
                     ['last_activity_at', 'created_at', 'replies_count', 'views_count', 'is_pinned'],
-                    '-is_pinned,-last_activity_at',
+                    ['-is_pinned', '-last_activity_at'],
                     $filters['per_page'] ?? 20
                 );
             }
@@ -152,7 +152,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                 $query = Thread::query()
                     ->withIsMentioned()
                     ->where('course_id', $courseId)
-                    ->with(['author.media', 'replies']);
+                    ->with(['author.media', 'replies', 'reactions']);
 
                 if (! empty(trim($searchQuery))) {
                     $query->where(function ($subQuery) use ($searchQuery) {
@@ -174,7 +174,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                         AllowedFilter::scope('is_mentioned'),
                     ],
                     ['last_activity_at', 'created_at', 'replies_count', 'views_count', 'is_pinned'],
-                    '-is_pinned,-last_activity_at',
+                    ['-is_pinned', '-last_activity_at'],
                     $filters['per_page'] ?? 20
                 );
             }
@@ -189,7 +189,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
     public function findWithRelations(int $threadId): ?Thread
     {
         return Thread::withIsMentioned()
-            ->with(['author.media', 'course', 'replies.author.media', 'replies.children', 'replies.media'])
+            ->with(['author.media', 'course', 'replies.author.media', 'replies.children', 'replies.media', 'reactions'])
             ->find($threadId);
     }
 
@@ -213,7 +213,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
             function () use ($filters, $search) {
                 $query = Thread::query()
                     ->withIsMentioned()
-                    ->with(['author.media', 'course']);
+                    ->with(['author.media', 'course', 'reactions']);
 
                 if ($search && ! empty(trim($search))) {
                     $query->search($search);
@@ -230,7 +230,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                         AllowedFilter::scope('is_mentioned'),
                     ],
                     ['last_activity_at', 'created_at', 'replies_count', 'views_count', 'is_pinned'],
-                    '-is_pinned,-last_activity_at',
+                    ['-is_pinned', '-last_activity_at'],
                     $filters['per_page'] ?? 20
                 );
             }
@@ -268,7 +268,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                         AllowedFilter::scope('is_mentioned'),
                     ],
                     ['last_activity_at', 'created_at', 'replies_count', 'views_count', 'is_pinned'],
-                    '-is_pinned,-last_activity_at',
+                    ['-is_pinned', '-last_activity_at'],
                     $filters['per_page'] ?? 20
                 );
             }
@@ -301,7 +301,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                         AllowedFilter::scope('is_mentioned'),
                     ],
                     ['last_activity_at', 'created_at', 'replies_count', 'views_count'],
-                    '-last_activity_at',
+                    ['-is_pinned', '-last_activity_at'],
                     $filters['per_page'] ?? 20
                 );
             }
@@ -368,7 +368,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                         }),
                     ],
                     ['replies_count', 'views_count', 'created_at'],
-                    '-replies_count',
+                    ['-is_pinned', '-replies_count'],
                     $perPage
                 );
             }
@@ -415,7 +415,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                         }),
                     ],
                     ['replies_count', 'views_count', 'created_at'],
-                    '-replies_count',
+                    ['-is_pinned', '-replies_count'],
                     $perPage
                 );
             }

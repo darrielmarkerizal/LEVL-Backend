@@ -118,7 +118,7 @@ class ReplyService
 
     private function extractMentions(string $content): \Illuminate\Support\Collection
     {
-        preg_match_all('/@([a-zA-Z0-9_]+)/', $content, $matches);
+        preg_match_all('/@([a-zA-Z0-9_.]+)/', $content, $matches);
 
         if (empty($matches[1])) {
             return collect();

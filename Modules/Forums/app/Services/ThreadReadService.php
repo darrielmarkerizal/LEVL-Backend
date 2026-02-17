@@ -16,7 +16,7 @@ class ThreadReadService
     public function paginateCourseThreads(int $courseId, ?string $search, int $perPage): LengthAwarePaginator
     {
         $includes = array_merge(
-            ['author', 'author.media', 'course', 'media', 'tags'],
+            ['author', 'author.media', 'course', 'media'],
             $this->getRecursiveReplyIncludes()
         );
 
@@ -43,6 +43,7 @@ class ThreadReadService
                 'title',
                 AllowedSort::field('pinned', 'is_pinned'),
             ])
+            ->with(['author.media', 'course', 'media'])
             ->allowedIncludes($includes)
             ->defaultSort('-is_pinned', '-last_activity_at');
 
@@ -60,12 +61,13 @@ class ThreadReadService
     public function getThreadDetail(int $threadId): Thread
     {
         $includes = array_merge(
-            ['author', 'author.media', 'course', 'media', 'tags'],
+            ['author', 'author.media', 'course', 'media'],
             $this->getRecursiveReplyIncludes()
         );
 
         return QueryBuilder::for(Thread::class)
             ->where('id', $threadId)
+            ->with(['author.media', 'course', 'media'])
             ->allowedIncludes($includes)
             ->firstOrFail();
     }
@@ -74,7 +76,8 @@ class ThreadReadService
     {
         return QueryBuilder::for(Thread::class)
             ->where('id', $threadId)
-            ->allowedIncludes(['author', 'author.media', 'course', 'media', 'tags'])
+            ->with(['author.media', 'course', 'media'])
+            ->allowedIncludes(['author', 'author.media', 'course', 'media'])
             ->firstOrFail();
     }
 

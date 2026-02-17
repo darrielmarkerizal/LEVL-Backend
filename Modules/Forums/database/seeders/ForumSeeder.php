@@ -47,6 +47,15 @@ class ForumSeeder extends Seeder
             );
 
             $this->createReplies($thread, $users, rand(3, 8));
+
+            if (rand(1, 100) <= 40) {
+                $acceptedReply = $thread->replies()->inRandomOrder()->first();
+                if ($acceptedReply) {
+                    $acceptedReply->update(['is_accepted_answer' => true]);
+                    $thread->update(['is_resolved' => true]);
+                }
+            }
+
             $this->createReactions($thread, $users);
         }
     }
