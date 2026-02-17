@@ -18,59 +18,39 @@ class ReactionService
         private readonly ReactionRepositoryInterface $repository,
     ) {}
 
-    public function toggleThread(User $actor, Thread $thread, string $type): array
+    public function addThread(User $actor, Thread $thread, string $type): Reaction
     {
         return DB::transaction(function () use ($actor, $thread, $type) {
-            $added = Reaction::toggle(
-                $actor->id,
-                Thread::class,
-                $thread->id,
-                $type
-            );
+            $reaction = Reaction::firstOrCreate([
+                'user_id' => $actor->id,
+                'reactable_type' => Thread::class,
+                'reactable_id' => $thread->id,
+                'type' => $type,
+            ]);
 
-            $reaction = null;
-
-            if ($added) {
-                $reaction = $this->repository->findByUserAndReactable(
-                    $actor->id,
-                    Thread::class,
-                    $thread->id
-                );
-
-                if ($reaction) {
-                    event(new ReactionAdded($reaction));
-                }
+            if ($reaction->wasRecentlyCreated) {
+                event(new ReactionAdded($reaction));
             }
 
-            return ['added' => $added, 'reaction' => $reaction];
+            return $reaction;
         });
     }
 
-    public function toggleReply(User $actor, Reply $reply, string $type): array
+    public function addReply(User $actor, Reply $reply, string $type): Reaction
     {
         return DB::transaction(function () use ($actor, $reply, $type) {
-            $added = Reaction::toggle(
-                $actor->id,
-                Reply::class,
-                $reply->id,
-                $type
-            );
+            $reaction = Reaction::firstOrCreate([
+                'user_id' => $actor->id,
+                'reactable_type' => Reply::class,
+                'reactable_id' => $reply->id,
+                'type' => $type,
+            ]);
 
-            $reaction = null;
-
-            if ($added) {
-                $reaction = $this->repository->findByUserAndReactable(
-                    $actor->id,
-                    Reply::class,
-                    $reply->id
-                );
-
-                if ($reaction) {
-                    event(new ReactionAdded($reaction));
-                }
+            if ($reaction->wasRecentlyCreated) {
+                event(new ReactionAdded($reaction));
             }
 
-            return ['added' => $added, 'reaction' => $reaction];
+            return $reaction;
         });
     }
 

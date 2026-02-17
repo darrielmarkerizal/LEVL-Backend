@@ -23,7 +23,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
 
     protected array $with = [];
 
-    public function applyFiltering(Builder $query, array $params, array $allowedFilters = [], array $allowedSorts = [], string $defaultSort = 'id'): Builder
+    public function applyFiltering(Builder $query, array $params, array $allowedFilters = [], array $allowedSorts = [], string|array $defaultSort = 'id'): Builder
     {
         return QueryBuilder::for($query)
             ->allowedFilters($allowedFilters ?: $this->allowedFilters)
@@ -32,7 +32,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
             ->getSubject();
     }
 
-    public function filteredPaginate(Builder $query, array $params, array $allowedFilters = [], array $allowedSorts = [], string $defaultSort = 'id', int $perPage = 15): LengthAwarePaginator
+    public function filteredPaginate(Builder $query, array $params, array $allowedFilters = [], array $allowedSorts = [], string|array $defaultSort = 'id', int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, 100));
 

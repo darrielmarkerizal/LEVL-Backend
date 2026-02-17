@@ -39,6 +39,13 @@ class ReplyResource extends JsonResource
             'updated_at' => $this->updated_at,
             'edited_at' => $this->edited_at ?? null,
             'children' => ReplyResource::collection($this->whenLoaded('children')),
+            'reactions_counts' => [
+                'like' => $this->reactions->where('type', 'like')->count(),
+                'helpful' => $this->reactions->where('type', 'helpful')->count(),
+            ],
+            'user_reactions' => $this->reactions->where('user_id', auth('api')->id())->map(function ($reaction) {
+                return ['id' => $reaction->id, 'type' => $reaction->type];
+            })->values(),
             'deleted_at' => $this->deleted_at,
         ];
     }

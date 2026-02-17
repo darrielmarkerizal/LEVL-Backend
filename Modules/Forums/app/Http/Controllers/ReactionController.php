@@ -21,12 +21,8 @@ class ReactionController extends Controller
 
     public function storeThreadReaction(ToggleReactionRequest $request, Course $course, Thread $thread, ReactionService $reactionService): JsonResponse
     {
-        $result = $reactionService->toggleThread($request->user(), $thread, $request->input('type'));
-        $added = $result['added'];
-        $reaction = $result['reaction'] ?? null;
-        $message = $added ? __('messages.forums.reaction_added') : __('messages.forums.reaction_removed');
-        $data = $added && $reaction ? ['id' => $reaction->id, 'type' => $reaction->type] : null;
-        return $this->success($data, $message);
+        $reaction = $reactionService->addThread($request->user(), $thread, $request->input('type'));
+        return $this->success(['id' => $reaction->id, 'type' => $reaction->type], __('messages.forums.reaction_added'));
     }
 
     public function destroyThreadReaction(Request $request, Course $course, Thread $thread, Reaction $reaction, ReactionService $reactionService): JsonResponse
@@ -39,18 +35,18 @@ class ReactionController extends Controller
         return $this->success(null, __('messages.forums.reaction_removed'));
     }
 
-    public function storeReplyReaction(ToggleReactionRequest $request, Course $course, Reply $reply, ReactionService $reactionService): JsonResponse
+    public function storeReplyReaction(ToggleReactionRequest $request, Course $course, string $threadId, string $replyId, ReactionService $reactionService): JsonResponse
     {
-        $result = $reactionService->toggleReply($request->user(), $reply, $request->input('type'));
-        $added = $result['added'];
-        $reaction = $result['reaction'] ?? null;
-        $message = $added ? __('messages.forums.reaction_added') : __('messages.forums.reaction_removed');
-        $data = $added && $reaction ? ['id' => $reaction->id, 'type' => $reaction->type] : null;
-        return $this->success($data, $message);
+        $reply = Reply::findOrFail($replyId);
+        $reaction = $reactionService->addReply($request->user(), $reply, $request->input('type'));
+        return $this->success(['id' => $reaction->id, 'type' => $reaction->type], __('messages.forums.reaction_added'));
     }
 
-    public function destroyReplyReaction(Request $request, Course $course, Reply $reply, Reaction $reaction, ReactionService $reactionService): JsonResponse
+    public function destroyReplyReaction(Request $request, Course $course, string $threadId, string $replyId, string $reactionId, ReactionService $reactionService): JsonResponse
     {
+        $reply = Reply::findOrFail($replyId);
+        $reaction = Reaction::findOrFail($reactionId);
+        
         if ($reaction->reactable_type !== Reply::class || $reaction->reactable_id !== $reply->id) {
             return $this->notFound(__('messages.forums.reaction_not_found'));
         }

@@ -8,9 +8,10 @@ use App\Repositories\BaseRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Modules\Forums\Contracts\Repositories\ReplyRepositoryInterface;
 use Modules\Forums\Models\Reply;
 
-class ReplyRepository extends BaseRepository
+class ReplyRepository extends BaseRepository implements ReplyRepositoryInterface
 {
     protected function model(): string
     {
@@ -39,9 +40,9 @@ class ReplyRepository extends BaseRepository
     {
         return Reply::where('thread_id', $threadId)
             ->topLevel()
-            ->with(['author.media', 'children.author.media', 'media', 'children.media'])
+            ->with(['author.media', 'children.author.media', 'media', 'children.media', 'reactions', 'children.reactions'])
             ->withCount('reactions')
-            ->orderBy('is_accepted_answer', 'desc')
+            ->orderByRaw('CASE WHEN is_accepted_answer = true THEN 1 WHEN EXISTS (SELECT 1 FROM replies as r2 WHERE r2.parent_id = replies.id AND r2.is_accepted_answer = true) THEN 1 ELSE 0 END DESC')
             ->orderBy('created_at', 'asc')
             ->get();
     }
@@ -54,9 +55,9 @@ class ReplyRepository extends BaseRepository
             function () use ($threadId, $perPage, $page) {
                 return Reply::where('thread_id', $threadId)
                     ->topLevel()
-                    ->with(['author.media', 'children.author.media', 'media', 'children.media'])
+                    ->with(['author.media', 'children.author.media', 'media', 'children.media', 'reactions', 'children.reactions'])
                     ->withCount('reactions')
-                    ->orderBy('is_accepted_answer', 'desc')
+                    ->orderByRaw('CASE WHEN is_accepted_answer = true THEN 1 WHEN EXISTS (SELECT 1 FROM replies as r2 WHERE r2.parent_id = replies.id AND r2.is_accepted_answer = true) THEN 1 ELSE 0 END DESC')
                     ->orderBy('created_at', 'asc')
                     ->paginate($perPage, ['*'], 'page', $page);
             }
@@ -77,38 +78,27 @@ class ReplyRepository extends BaseRepository
         return Reply::create($data);
     }
 
-    public function update(Model $model, array $attributes): Model
+    public function update(Model $model, array $attributes): Reply
     {
         $model->update($attributes);
 
+        /** @var Reply */
         return $model->fresh();
     }
 
-    public function updateReply(Reply $reply, array $data): Reply
+    public function delete(Model $model, ?int $deletedBy = null): bool
     {
-        $reply->update($data);
-
-        return $reply->fresh();
-    }
-
-    public function delete(Model $model): bool
-    {
-        return $model->delete();
-    }
-
-    public function deleteReply(Reply $reply, ?int $deletedBy = null): bool
-    {
-        if ($deletedBy) {
-            $reply->deleted_by = $deletedBy;
-            $reply->save();
+        if ($deletedBy && $model instanceof Reply) {
+            $model->deleted_by = $deletedBy;
+            $model->save();
         }
 
-        return $reply->delete();
+        return $model->delete();
     }
 
     public function findWithRelations(int $replyId): ?Reply
     {
-        return Reply::with(['author.media', 'thread', 'parent', 'children', 'media', 'children.media', 'children.author.media'])
+        return Reply::with(['author.media', 'thread', 'parent', 'children', 'media', 'children.media', 'children.author.media', 'reactions', 'children.reactions'])
             ->withCount('reactions')
             ->find($replyId);
     }
