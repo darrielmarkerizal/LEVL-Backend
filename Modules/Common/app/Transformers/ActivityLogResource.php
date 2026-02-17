@@ -29,11 +29,12 @@ class ActivityLogResource extends JsonResource
             'updated_at' => $this->updated_at,
             'event' => $this->event,
             'batch_uuid' => $this->batch_uuid,
-            'device_info' => $this->device_info, 
+            'ip_address' => $this->ip_address,
+            'device_info' => $this->device_info,
             'location' => [
-                'city' => $properties['city'] ?? null,
-                'region' => $properties['region'] ?? null,
-                'country' => $properties['country'] ?? null,
+                'city' => $this->city,
+                'region' => $this->region,
+                'country' => $this->country,
             ],
 
             'causer' => $this->whenLoaded('causer', function () {
