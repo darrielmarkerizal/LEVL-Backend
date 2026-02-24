@@ -428,8 +428,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
             return collect();
         }
 
-        return \Spatie\QueryBuilder\QueryBuilder::for(Thread::class)
-            ->select(['id', 'title', 'course_id', 'created_at'])
+        return Thread::query()
             ->with(['course:id,title,slug', 'course.media'])
             ->where(function ($subQuery) use ($query) {
                 $subQuery->search($query)

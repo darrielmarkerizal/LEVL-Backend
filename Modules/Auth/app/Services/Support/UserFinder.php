@@ -216,11 +216,8 @@ class UserFinder
             return collect();
         }
 
-        return QueryBuilder::for(User::class)
-            ->select(['id', 'name', 'username'])
+        return User::search($query)
             ->with(['media'])
-            ->search($query)
-            ->active()
             ->limit($limit)
             ->get();
     }

@@ -199,11 +199,8 @@ class CourseFinder
             return collect();
         }
 
-        return QueryBuilder::for(Course::class)
-            ->select(['id', 'title', 'slug', 'status'])
+        return Course::search($query)
             ->with(['media'])
-            ->search($query)
-            ->where('status', 'published')
             ->limit($limit)
             ->get();
     }
