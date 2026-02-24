@@ -11,7 +11,10 @@ use Modules\Search\DTOs\SearchResultDTO;
 class SearchService implements SearchServiceInterface
 {
     public function __construct(
-        private readonly SearchHistoryRepositoryInterface $historyRepository
+        private readonly SearchHistoryRepositoryInterface $historyRepository,
+        private readonly \Modules\Auth\Contracts\Services\UserManagementServiceInterface $userManagementService,
+        private readonly \Modules\Schemes\Contracts\Services\CourseServiceInterface $courseService,
+        private readonly \Modules\Forums\Contracts\Services\ForumServiceInterface $forumService
     ) {}
 
     /**
@@ -123,5 +126,17 @@ class SearchService implements SearchServiceInterface
             'filters' => $filters,
             'results_count' => $resultsCount,
         ]);
+    }
+
+    /**
+     * Perform global search across all integrated modules.
+     */
+    public function globalSearch(string $query, int $limitPerCategory = 5): array
+    {
+        return [
+            'users' => collect($this->userManagementService->searchGlobal($query, $limitPerCategory)),
+            'courses' => collect($this->courseService->searchGlobal($query, $limitPerCategory)),
+            'forums' => collect($this->forumService->searchGlobal($query, $limitPerCategory)),
+        ];
     }
 }

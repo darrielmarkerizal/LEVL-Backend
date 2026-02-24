@@ -209,4 +209,19 @@ class UserFinder
 
         return $target;
     }
+
+    public function searchGlobal(string $query, int $limit = 5): \Illuminate\Support\Collection
+    {
+        if (empty(trim($query))) {
+            return collect();
+        }
+
+        return QueryBuilder::for(User::class)
+            ->select(['id', 'name', 'username'])
+            ->with(['media'])
+            ->search($query)
+            ->active()
+            ->limit($limit)
+            ->get();
+    }
 }

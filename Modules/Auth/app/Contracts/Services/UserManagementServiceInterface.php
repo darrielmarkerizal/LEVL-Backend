@@ -23,4 +23,6 @@ interface UserManagementServiceInterface
     public function createUser(User $authUser, array $validated): User;
 
     public function updateProfile(User $user, array $validated, ?string $ip, ?string $userAgent): User;
+
+    public function searchGlobal(string $query, int $limit = 5): \Illuminate\Support\Collection;
 }
