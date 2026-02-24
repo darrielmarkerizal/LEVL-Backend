@@ -41,6 +41,8 @@ class ReplyService
 
             $this->processMentions($reply, $data['content']);
 
+            cache()->tags(['forums', 'replies', "thread:{$thread->id}"])->flush();
+
             return $reply->fresh();
         });
     }
@@ -76,6 +78,7 @@ class ReplyService
 
             if ($result) {
                 $thread->decrement('replies_count');
+                cache()->tags(['forums', 'replies', "thread:{$thread->id}"])->flush();
             }
 
             return $result;

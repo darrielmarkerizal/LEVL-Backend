@@ -28,6 +28,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
 
             Route::get('threads/{thread}/replies', [ReplyController::class, 'index']);
             Route::post('threads/{thread}/replies', [ReplyController::class, 'store']);
+            Route::get('threads/{thread}/replies/{reply}/children', [ReplyController::class, 'children']);
             Route::patch('threads/{thread}/replies/{reply}', [ReplyController::class, 'update']);
             Route::delete('threads/{thread}/replies/{reply}', [ReplyController::class, 'destroy']);
 

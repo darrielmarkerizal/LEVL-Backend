@@ -51,6 +51,9 @@ class ThreadResource extends JsonResource
             'views_count' => $this->views_count,
             'replies_count' => $this->replies_count,
             'replies' => ReplyResource::collection($this->whenLoaded('topLevelReplies')),
+            'mentioned_users' => AuthorResource::collection($this->whenLoaded('mentions', function () {
+                return $this->mentions->map->user->filter();
+            })),
             'reactions_counts' => [
                 'like' => $this->reactions->where('type', 'like')->count(),
                 'helpful' => $this->reactions->where('type', 'helpful')->count(),

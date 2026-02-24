@@ -14,15 +14,18 @@ class CreateReplyRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $threadId = (int) $this->route('thread');
-        $thread = Thread::findOrFail($threadId);
+        $thread = $this->route('thread');
+        if (!$thread instanceof Thread) {
+            return false;
+        }
 
         return $this->canAccessCourse($this->user()->id, $thread->course_id);
     }
 
     public function rules(): array
     {
-        $threadId = (int) $this->route('thread');
+        $thread = $this->route('thread');
+        $threadId = $thread instanceof Thread ? $thread->id : 0;
 
         return [
             'content' => [

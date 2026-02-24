@@ -48,6 +48,7 @@ class ReactionService
 
             if ($reaction->wasRecentlyCreated) {
                 event(new ReactionAdded($reaction));
+                cache()->tags(['forums', 'replies', "thread:{$reply->thread_id}"])->flush();
             }
 
             return $reaction;
@@ -56,6 +57,15 @@ class ReactionService
 
     public function delete(Reaction $reaction): bool
     {
-        return $reaction->delete();
+        $result = $reaction->delete();
+        
+        if ($result && $reaction->reactable_type === Reply::class) {
+            $reply = $reaction->reactable;
+            if ($reply) {
+                cache()->tags(['forums', 'replies', "thread:{$reply->thread_id}"])->flush();
+            }
+        }
+        
+        return $result;
     }
 }
