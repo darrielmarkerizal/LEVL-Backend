@@ -22,6 +22,7 @@ interface CourseServiceInterface
     public function verifyEnrollmentKey(Course $course, string $plainKey): bool;
     public function generateEnrollmentKey(int $length = 12): string;
     public function hasEnrollmentKey(Course $course): bool; 
+    public function searchGlobal(string $query, int $limit = 5): \Illuminate\Support\Collection;
 }
     
 

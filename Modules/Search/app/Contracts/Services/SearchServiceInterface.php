@@ -27,5 +27,17 @@ interface SearchServiceInterface
     /**
      * Save search query to history.
      */
+    /**
+     * Save search query to history.
+     */
     public function saveSearchHistory(User $user, string $query, array $filters = [], int $resultsCount = 0): void;
+
+    /**
+     * Perform global search across all integrated modules.
+     * 
+     * @param string $query
+     * @param int $limitPerCategory
+     * @return array
+     */
+    public function globalSearch(string $query, int $limitPerCategory = 5): array;
 }

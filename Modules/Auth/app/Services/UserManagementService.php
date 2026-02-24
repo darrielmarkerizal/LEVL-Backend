@@ -51,4 +51,9 @@ class UserManagementService implements UserManagementServiceInterface
     {
         return $this->lifecycleProcessor->updateProfile($user, $validated, $ip, $userAgent);
     }
+
+    public function searchGlobal(string $query, int $limit = 5): \Illuminate\Support\Collection
+    {
+        return $this->finder->searchGlobal($query, $limit);
+    }
 }

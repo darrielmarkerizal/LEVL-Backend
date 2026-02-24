@@ -187,4 +187,32 @@ class SearchController extends Controller
 
         return $this->success(message: __('messages.search.history_cleared'));
     }
+
+    /**
+     * Pencarian Global
+     *
+     * Mencari data secara global pada User, Course, dan Forum dengan limit 5 per kategori.
+     *
+     * @summary Pencarian Global
+     *
+     * @queryParam search string Kata kunci pencarian. Example: Laravel
+     *
+     * @response 200 scenario="Success" {"success":true,"data":{"users":[],"courses":[],"forums":[]}}
+     * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
+     *
+     */
+    public function globalSearch(Request $request): JsonResponse
+    {
+        $query = $request->input('search', '') ?? '';
+        
+        $results = $this->searchService->globalSearch($query, 5);
+
+        $data = [
+            'users' => \Modules\Auth\Http\Resources\UserIndexResource::collection($results['users']),
+            'courses' => \Modules\Schemes\Http\Resources\CourseIndexResource::collection($results['courses']),
+            'forums' => \Modules\Forums\Http\Resources\ThreadResource::collection($results['forums']),
+        ];
+
+        return $this->success(data: $data);
+    }
 }

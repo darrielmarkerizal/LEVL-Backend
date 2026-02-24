@@ -329,4 +329,9 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
 
         return $result;
     }
+
+    public function searchGlobal(string $query, int $limit = 5): \Illuminate\Support\Collection
+    {
+        return $this->threadRepository->searchGlobal($query, $limit);
+    }
 }

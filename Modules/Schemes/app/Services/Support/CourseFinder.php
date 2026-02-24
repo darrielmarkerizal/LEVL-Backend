@@ -192,4 +192,19 @@ class CourseFinder
             $builder->whereHas('tags', fn ($q) => $q->where(fn ($iq) => $iq->where('slug', $slug)->orWhere('slug', $value)->orWhereRaw('LOWER(name) = ?', [mb_strtolower($value)])));
         }
     }
+
+    public function searchGlobal(string $query, int $limit = 5): \Illuminate\Support\Collection
+    {
+        if (empty(trim($query))) {
+            return collect();
+        }
+
+        return QueryBuilder::for(Course::class)
+            ->select(['id', 'title', 'slug', 'status'])
+            ->with(['media'])
+            ->search($query)
+            ->where('status', 'published')
+            ->limit($limit)
+            ->get();
+    }
 }

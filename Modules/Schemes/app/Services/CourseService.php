@@ -145,4 +145,9 @@ class CourseService implements CourseServiceInterface
     {
         return ! empty($course->enrollment_key_hash);
     }
+
+    public function searchGlobal(string $query, int $limit = 5): \Illuminate\Support\Collection
+    {
+        return $this->finder->searchGlobal($query, $limit);
+    }
 }

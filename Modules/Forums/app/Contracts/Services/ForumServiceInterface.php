@@ -26,5 +26,7 @@ interface ForumServiceInterface
     public function toggleThreadReaction(User $user, Thread $thread, string $type): array;
 
     public function toggleReplyReaction(User $user, Reply $reply, string $type): array;
+
+    public function searchGlobal(string $query, int $limit = 5): \Illuminate\Support\Collection;
 }
 

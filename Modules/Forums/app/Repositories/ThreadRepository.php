@@ -421,4 +421,23 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
             }
         );
     }
+
+    public function searchGlobal(string $query, int $limit = 5): \Illuminate\Support\Collection
+    {
+        if (empty(trim($query))) {
+            return collect();
+        }
+
+        return \Spatie\QueryBuilder\QueryBuilder::for(Thread::class)
+            ->select(['id', 'title', 'course_id', 'created_at'])
+            ->with(['course:id,title,slug', 'course.media'])
+            ->where(function ($subQuery) use ($query) {
+                $subQuery->search($query)
+                    ->orWhereHas('replies', function ($replyQuery) use ($query) {
+                        $replyQuery->search($query);
+                    });
+            })
+            ->limit($limit)
+            ->get();
+    }
 }
