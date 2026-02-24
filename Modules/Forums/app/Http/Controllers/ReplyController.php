@@ -34,7 +34,9 @@ class ReplyController extends Controller
     public function store(CreateReplyRequest $request, Course $course, Thread $thread, ReplyService $replyService, ReplyRepositoryInterface $replyRepository): JsonResponse
     {
         $this->authorize('create', [Reply::class, $thread]);
-        $reply = $replyService->create($request->validated(), $request->user(), $thread, null, $request->file('attachments') ?? []);
+        $validated = $request->validated();
+        $parentId = isset($validated['parent_id']) ? (int) $validated['parent_id'] : null;
+        $reply = $replyService->create($validated, $request->user(), $thread, $parentId, $request->file('attachments') ?? []);
         $replyWithIncludes = $replyRepository->findWithRelations($reply->id);
         return $this->created(new ReplyResource($replyWithIncludes), __('messages.forums.reply_created'));
     }
@@ -45,6 +47,12 @@ class ReplyController extends Controller
         $updatedReply = $replyService->update($reply, $request->validated());
         $replyWithIncludes = $replyRepository->findWithRelations($updatedReply->id);
         return $this->success(new ReplyResource($replyWithIncludes), __('messages.forums.reply_updated'));
+    }
+
+    public function children(Request $request, Course $course, Thread $thread, Reply $reply, ReplyRepositoryInterface $replyRepository): JsonResponse
+    {
+        $children = $replyRepository->getChildrenOf($reply->id);
+        return $this->success(ReplyResource::collection($children), __('messages.forums.replies_retrieved'));
     }
 
     public function destroy(Request $request, Course $course, Reply $reply, ReplyService $replyService): JsonResponse

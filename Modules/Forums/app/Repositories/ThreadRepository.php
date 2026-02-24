@@ -31,7 +31,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
 
     protected string $defaultSort = '-last_activity_at';
 
-    protected array $with = ['author.media'];
+    protected array $with = ['author.media', 'mentions.user.media'];
 
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
@@ -117,7 +117,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                 $query = Thread::query()
                     ->withIsMentioned()
                     ->where('course_id', $courseId)
-                    ->with(['author.media', 'replies', 'reactions']);
+                    ->with(['author.media', 'mentions.user.media', 'replies', 'reactions']);
 
                 return $this->filteredPaginate(
                     $query,
@@ -152,7 +152,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                 $query = Thread::query()
                     ->withIsMentioned()
                     ->where('course_id', $courseId)
-                    ->with(['author.media', 'replies', 'reactions']);
+                    ->with(['author.media', 'mentions.user.media', 'replies', 'reactions']);
 
                 if (! empty(trim($searchQuery))) {
                     $query->where(function ($subQuery) use ($searchQuery) {
@@ -189,7 +189,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
     public function findWithRelations(int $threadId): ?Thread
     {
         return Thread::withIsMentioned()
-            ->with(['author.media', 'course', 'replies.author.media', 'replies.children', 'replies.media', 'reactions'])
+            ->with(['author.media', 'mentions.user.media', 'course', 'replies.author.media', 'replies.children', 'replies.media', 'reactions'])
             ->find($threadId);
     }
 
@@ -199,7 +199,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
             ->withIsMentioned()
             ->where('course_id', $courseId)
             ->pinned()
-            ->with(['author.media'])
+            ->with(['author.media', 'mentions.user.media'])
             ->orderBy('last_activity_at', 'desc')
             ->get();
     }
@@ -213,7 +213,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
             function () use ($filters, $search) {
                 $query = Thread::query()
                     ->withIsMentioned()
-                    ->with(['author.media', 'course', 'reactions']);
+                    ->with(['author.media', 'mentions.user.media', 'course', 'reactions']);
 
                 if ($search && ! empty(trim($search))) {
                     $query->search($search);
@@ -251,7 +251,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                 $query = Thread::query()
                     ->withIsMentioned()
                     ->whereIn('course_id', $courseIds)
-                    ->with(['author.media', 'course']);
+                    ->with(['author.media', 'mentions.user.media', 'course']);
 
                 if ($search && ! empty(trim($search))) {
                     $query->search($search);
@@ -285,7 +285,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                 $query = Thread::query()
                     ->withIsMentioned()
                     ->where('author_id', $userId)
-                    ->with(['author.media', 'course']);
+                    ->with(['author.media', 'mentions.user.media', 'course']);
 
                 if ($search && ! empty(trim($search))) {
                     $query->search($search);
@@ -312,7 +312,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
     {
         return Thread::query()
             ->withIsMentioned()
-            ->with(['author.media', 'course'])
+            ->with(['author.media', 'mentions.user.media', 'course'])
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();
@@ -327,7 +327,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
         return Thread::query()
             ->withIsMentioned()
             ->whereIn('course_id', $courseIds)
-            ->with(['author.media', 'course'])
+            ->with(['author.media', 'mentions.user.media', 'course'])
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();
@@ -345,7 +345,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
             function () use ($filters, $search, $perPage) {
                 $query = Thread::query()
                     ->withIsMentioned()
-                    ->with(['author.media', 'course']);
+                    ->with(['author.media', 'mentions.user.media', 'course']);
 
                 if ($search && ! empty(trim($search))) {
                     $query->search($search);
@@ -392,7 +392,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                 $query = Thread::query()
                     ->withIsMentioned()
                     ->whereIn('course_id', $courseIds)
-                    ->with(['author.media', 'course']);
+                    ->with(['author.media', 'mentions.user.media', 'course']);
 
                 if ($search && ! empty(trim($search))) {
                     $query->search($search);

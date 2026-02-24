@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Forums\Contracts\Repositories;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Forums\Models\Reply;
 
@@ -18,6 +19,8 @@ interface ReplyRepositoryInterface
     public function findWithRelations(int $replyId): ?Reply;
 
     public function paginateTopLevelReplies(int $threadId, int $perPage, int $page): LengthAwarePaginator;
+
+    public function getChildrenOf(int $parentId): Collection;
 
     public function getAcceptedAnswer(int $threadId): ?Reply;
 

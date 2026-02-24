@@ -24,12 +24,12 @@ class ReplyRepository extends BaseRepository implements ReplyRepositoryInterface
 
     protected string $defaultSort = 'created_at';
 
-    protected array $with = ['author.media'];
+    protected array $with = ['author.media', 'mentions.user.media'];
 
     public function getRepliesForThread(int $threadId): Collection
     {
         return Reply::where('thread_id', $threadId)
-            ->with(['author', 'children.author', 'children.children.author'])
+            ->with(['author', 'mentions.user.media', 'children.author', 'children.mentions.user.media', 'children.children.author'])
             ->withCount('reactions')
             ->orderBy('is_accepted_answer', 'desc')
             ->orderBy('created_at', 'asc')
@@ -40,7 +40,7 @@ class ReplyRepository extends BaseRepository implements ReplyRepositoryInterface
     {
         return Reply::where('thread_id', $threadId)
             ->topLevel()
-            ->with(['author.media', 'children.author.media', 'media', 'children.media', 'reactions', 'children.reactions'])
+            ->with(['author.media', 'mentions.user.media', 'children.author.media', 'children.mentions.user.media', 'media', 'children.media', 'reactions', 'children.reactions'])
             ->withCount('reactions')
             ->orderByRaw('CASE WHEN is_accepted_answer = true THEN 1 WHEN EXISTS (SELECT 1 FROM replies as r2 WHERE r2.parent_id = replies.id AND r2.is_accepted_answer = true) THEN 1 ELSE 0 END DESC')
             ->orderBy('created_at', 'asc')
@@ -55,8 +55,17 @@ class ReplyRepository extends BaseRepository implements ReplyRepositoryInterface
             function () use ($threadId, $perPage, $page) {
                 return Reply::where('thread_id', $threadId)
                     ->topLevel()
-                    ->with(['author.media', 'children.author.media', 'media', 'children.media', 'reactions', 'children.reactions'])
-                    ->withCount('reactions')
+                    ->with([
+                        'author.media',
+                        'mentions.user.media',
+                        'media',
+                        'reactions',
+                        'children' => function ($query) {
+                            $query->with(['author.media', 'mentions.user.media', 'media', 'reactions'])
+                                  ->withCount('children');
+                        },
+                    ])
+                    ->withCount(['reactions', 'children'])
                     ->orderByRaw('CASE WHEN is_accepted_answer = true THEN 1 WHEN EXISTS (SELECT 1 FROM replies as r2 WHERE r2.parent_id = replies.id AND r2.is_accepted_answer = true) THEN 1 ELSE 0 END DESC')
                     ->orderBy('created_at', 'asc')
                     ->paginate($perPage, ['*'], 'page', $page);
@@ -67,7 +76,7 @@ class ReplyRepository extends BaseRepository implements ReplyRepositoryInterface
     public function getNestedReplies(int $parentId): Collection
     {
         return Reply::where('parent_id', $parentId)
-            ->with(['author.media', 'children.author.media', 'media', 'children.media'])
+            ->with(['author.media', 'mentions.user.media', 'children.author.media', 'children.mentions.user.media', 'media', 'children.media'])
             ->withCount('reactions')
             ->orderBy('created_at', 'asc')
             ->get();
@@ -98,16 +107,25 @@ class ReplyRepository extends BaseRepository implements ReplyRepositoryInterface
 
     public function findWithRelations(int $replyId): ?Reply
     {
-        return Reply::with(['author.media', 'thread', 'parent', 'children', 'media', 'children.media', 'children.author.media', 'reactions', 'children.reactions'])
-            ->withCount('reactions')
+        return Reply::with(['author.media', 'mentions.user.media', 'thread', 'parent', 'children', 'media', 'children.media', 'children.author.media', 'children.mentions.user.media', 'reactions', 'children.reactions'])
+            ->withCount(['reactions', 'children'])
             ->find($replyId);
+    }
+
+    public function getChildrenOf(int $parentId): Collection
+    {
+        return Reply::where('parent_id', $parentId)
+            ->with(['author.media', 'mentions.user.media', 'media', 'reactions'])
+            ->withCount(['reactions', 'children'])
+            ->orderBy('created_at', 'asc')
+            ->get();
     }
 
     public function getAcceptedAnswer(int $threadId): ?Reply
     {
         return Reply::where('thread_id', $threadId)
             ->accepted()
-            ->with(['author.media'])
+            ->with(['author.media', 'mentions.user.media'])
             ->first();
     }
 

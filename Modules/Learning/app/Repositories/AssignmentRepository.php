@@ -50,6 +50,8 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
         if (isset($attributes['assignable_type'], $attributes['assignable_id'])) {
             $this->invalidateListCache('scope', $attributes['assignable_id'], $attributes['assignable_type']);
         }
+        
+        Cache::tags(['learning', 'assignments'])->flush();
 
         return $assignment;
     }
@@ -268,6 +270,7 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
     public function invalidateAssignmentCache(int $id): void
     {
         Cache::tags(['assignments', "assignment:{$id}"])->flush();
+        Cache::tags(['learning', 'assignments'])->flush();
     }
 
     public function invalidateListCache(string $type, int $id, ?string $scopeType = null): void
