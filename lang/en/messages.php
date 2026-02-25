@@ -167,6 +167,10 @@ return [
         'not_found' => 'Data not found.',
     ],
 
+    'dashboard' => [
+        'retrieved' => 'Dashboard data retrieved successfully.',
+    ],
+
     // Activity Logs
     'activity_logs' => [
         'retrieved' => 'Activity logs retrieved successfully.',

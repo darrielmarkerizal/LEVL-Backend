@@ -109,7 +109,10 @@
       "Modules\\Questions\\Database\\Seeders\\": "Modules/Questions/database/seeders/",
       "Modules\\Benchmark\\": "Modules/Benchmark/app/",
       "Modules\\Benchmark\\Database\\Factories\\": "Modules/Benchmark/database/factories/",
-      "Modules\\Benchmark\\Database\\Seeders\\": "Modules/Benchmark/database/seeders/"
+      "Modules\\Benchmark\\Database\\Seeders\\": "Modules/Benchmark/database/seeders/",
+      "Modules\\Dashboard\\": "Modules/Dashboard/app/",
+      "Modules\\Dashboard\\Database\\Factories\\": "Modules/Dashboard/database/factories/",
+      "Modules\\Dashboard\\Database\\Seeders\\": "Modules/Dashboard/database/seeders/"
     }
   },
   "autoload-dev": {
@@ -129,7 +132,8 @@
       "Modules\\Content\\Tests\\": "Modules/Content/tests/",
       "Modules\\Search\\Tests\\": "Modules/Search/tests/",
       "Modules\\Questions\\Tests\\": "Modules/Questions/tests/",
-      "Modules\\Benchmark\\Tests\\": "Modules/Benchmark/tests/"
+      "Modules\\Benchmark\\Tests\\": "Modules/Benchmark/tests/",
+      "Modules\\Dashboard\\Tests\\": "Modules/Dashboard/tests/"
     }
   },
   "scripts": {

@@ -20,7 +20,6 @@ pest()->extend(Tests\TestCase::class)->in('../Modules/Notifications/tests');
 pest()->extend(Tests\TestCase::class)->in('../Modules/Operations/tests');
 pest()->extend(Tests\TestCase::class)->in('../Modules/Questions/tests');
 pest()->extend(Tests\TestCase::class)->in('../Modules/Schemes/tests');
-pest()->extend(Tests\TestCase::class)->in('../Modules/Search/tests');
 
 /*
 |--------------------------------------------------------------------------

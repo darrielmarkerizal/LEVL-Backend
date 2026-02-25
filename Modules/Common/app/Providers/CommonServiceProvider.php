@@ -80,6 +80,11 @@ class CommonServiceProvider extends ServiceProvider
             \Modules\Common\Contracts\Services\ChallengeManagementServiceInterface::class,
             \Modules\Common\Services\ChallengeManagementService::class
         );
+
+        $this->app->bind(
+            \Modules\Common\app\Services\Contracts\MediaServiceInterface::class,
+            \Modules\Common\app\Services\MediaService::class
+        );
     }
 
     protected function registerCommands(): void {}

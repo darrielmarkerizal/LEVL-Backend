@@ -80,8 +80,16 @@ class AuthRegistrationProcessor
         return $user;
     }
 
-    public function generateDevTokens(string $ip, ?string $userAgent): array
+    public function generateDevTokens(string $ip, ?string $userAgent, ?int $userId = null): array
     {
+        if ($userId) {
+            $user = User::find($userId);
+            if (! $user) {
+                return ['error' => 'User not found'];
+            }
+            return ['specific_user' => $this->formatUserToken($user, $ip, $userAgent)];
+        }
+
         $roles = ['Student', 'Instructor', 'Admin', 'Superadmin'];
         $tokens = [];
 
@@ -101,35 +109,40 @@ class AuthRegistrationProcessor
                 $user->assignRole($role);
             }
 
-            $originalTTL = $this->jwt->factory()->getTTL();
-            $this->jwt->factory()->setTTL(525600);
-
-            $token = $this->jwt->fromUser($user);
-            $deviceId = hash('sha256', ($ip ?? '').($userAgent ?? '').$user->id);
-            $refresh = $this->authRepository->createRefreshToken(
-                userId: $user->id,
-                ip: $ip,
-                userAgent: $userAgent,
-                deviceId: $deviceId,
-            );
-
-            $this->jwt->factory()->setTTL($originalTTL);
-
-            $tokens[$role] = [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'username' => $user->username,
-                    'avatar_url' => $user->avatar_url,
-                    'role' => $role,
-                ],
-                'access_token' => $token,
-                'refresh_token' => $refresh->getAttribute('plain_token'),
-                'expires_in' => 525600 * 60,
-            ];
+            $tokens[$role] = $this->formatUserToken($user, $ip, $userAgent, $role);
         }
 
         return $tokens;
+    }
+
+    private function formatUserToken(User $user, string $ip, ?string $userAgent, ?string $role = null): array
+    {
+        $originalTTL = $this->jwt->factory()->getTTL();
+        $this->jwt->factory()->setTTL(525600);
+
+        $token = $this->jwt->fromUser($user);
+        $deviceId = hash('sha256', ($ip ?? '').($userAgent ?? '').$user->id);
+        $refresh = $this->authRepository->createRefreshToken(
+            userId: $user->id,
+            ip: $ip,
+            userAgent: $userAgent,
+            deviceId: $deviceId,
+        );
+
+        $this->jwt->factory()->setTTL($originalTTL);
+
+        return [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'username' => $user->username,
+                'avatar_url' => $user->avatar_url,
+                'role' => $role ?? $user->getRoleNames()->first(),
+            ],
+            'access_token' => $token,
+            'refresh_token' => $refresh->getAttribute('plain_token'),
+            'expires_in' => 525600 * 60,
+        ];
     }
 }
