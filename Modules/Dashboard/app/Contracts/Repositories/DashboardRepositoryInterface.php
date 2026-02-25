@@ -12,7 +12,7 @@ interface DashboardRepositoryInterface extends BaseRepositoryInterface
     public function getPendingEnrollmentCount(User $user): int;
     public function getTotalUsersCount(User $user): int;
     public function getTotalSchemesCount(User $user): int;
-    public function getRegistrationQueue(User $user, int $limit = 10): array;
+    public function getRegistrationQueue(User $user, int $limit = 5): array;
     public function getContentStatistics(User $user): array;
     public function getTopLeaderboard(int $limit = 3): array;
 
