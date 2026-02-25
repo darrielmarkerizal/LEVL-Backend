@@ -39,4 +39,9 @@ class SearchHistoryRepository implements SearchHistoryRepositoryInterface
     {
         return SearchHistory::where('user_id', $userId)->delete();
     }
+
+    public function update(SearchHistory $history, array $data): bool
+    {
+        return $history->update($data);
+    }
 }
