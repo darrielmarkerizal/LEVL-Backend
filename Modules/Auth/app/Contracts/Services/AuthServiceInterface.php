@@ -37,7 +37,7 @@ interface AuthServiceInterface
     public function createUserFromGoogle($googleUser): User;
 
     /** @return array<string,mixed> */
-    public function generateDevTokens(string $ip, ?string $userAgent): array;
+    public function generateDevTokens(string $ip, ?string $userAgent, ?int $userId = null): array;
 
     /** @return array<string,mixed> */
     public function setUsername(User $user, string $username): array;

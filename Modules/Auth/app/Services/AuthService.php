@@ -94,8 +94,8 @@ class AuthService implements AuthServiceInterface
         return $this->registrationProcessor->createUserFromGoogle($googleUser);
     }
 
-    public function generateDevTokens(string $ip, ?string $userAgent): array
+    public function generateDevTokens(string $ip, ?string $userAgent, ?int $userId = null): array
     {
-        return $this->registrationProcessor->generateDevTokens($ip, $userAgent);
+        return $this->registrationProcessor->generateDevTokens($ip, $userAgent, $userId);
     }
 }

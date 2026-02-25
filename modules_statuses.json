@@ -13,5 +13,6 @@
     "Search": true,
     "Questions": true,
     "Benchmark": true,
-    "Mail": true
+    "Mail": true,
+    "Dashboard": true
 }

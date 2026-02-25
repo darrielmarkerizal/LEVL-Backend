@@ -192,10 +192,11 @@ class AuthApiController extends Controller
         return $this->success(new UserResource($result['user']), __('messages.auth.password_set_success'));
     }
 
-    public function generateDevTokens(): JsonResponse
+    public function generateDevTokens(Request $request): JsonResponse
     {
-        $tokens = $this->authService->generateDevTokens(request()->ip(), request()->userAgent());
+        $userId = $request->query('user_id') ? (int) $request->query('user_id') : null;
+        $tokens = $this->authService->generateDevTokens($request->ip(), $request->userAgent(), $userId);
 
-        return $this->success($tokens, 'Dev tokens generated successfully for all roles.');
+        return $this->success($tokens, 'Dev tokens generated successfully.');
     }
 }

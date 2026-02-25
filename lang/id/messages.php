@@ -135,6 +135,10 @@ return [
         'not_found' => 'Data tidak ditemukan.',
     ],
 
+    'dashboard' => [
+        'retrieved' => 'Data dashboard berhasil diambil.',
+    ],
+
     // Activity Logs
     'activity_logs' => [
         'retrieved' => 'Log aktivitas berhasil diambil.',
