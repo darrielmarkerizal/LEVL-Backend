@@ -33,6 +33,12 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             $query->whereHas('course', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
             });
+        } elseif ($user->hasRole('Admin')) {
+            $query->whereHas('course', function ($q) use ($user) {
+                $q->whereHas('admins', function ($aq) use ($user) {
+                    $aq->where('user_id', $user->id);
+                });
+            });
         }
 
         return $query->count();
@@ -40,27 +46,41 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
 
     public function getTotalUsersCount(User $user): int
     {
-        if ($user->hasRole(['Superadmin', 'Admin'])) {
-            return User::count();
-        }
+        $query = User::role('Student')->whereHas('enrollments', function ($eq) use ($user) {
+            $eq->where('status', EnrollmentStatus::Active);
 
-        return Enrollment::whereHas('course', function ($q) use ($user) {
-            $q->where('instructor_id', $user->id);
-        })->distinct('user_id')->count('user_id');
+            if ($user->hasRole('Instructor')) {
+                $eq->whereHas('course', function ($cq) use ($user) {
+                    $cq->where('instructor_id', $user->id);
+                });
+            } elseif ($user->hasRole('Admin')) {
+                $eq->whereHas('course', function ($cq) use ($user) {
+                    $cq->whereHas('admins', function ($aq) use ($user) {
+                        $aq->where('user_id', $user->id);
+                    });
+                });
+            }
+        });
+
+        return $query->count();
     }
 
     public function getTotalSchemesCount(User $user): int
     {
-        $query = Course::query();
+        $query = Course::where('status', \Modules\Schemes\Enums\CourseStatus::Published);
 
         if ($user->hasRole('Instructor')) {
             $query->where('instructor_id', $user->id);
+        } elseif ($user->hasRole('Admin')) {
+            $query->whereHas('admins', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
         }
 
         return $query->count();
     }
 
-    public function getRegistrationQueue(User $user, int $limit = 10): array
+    public function getRegistrationQueue(User $user, int $limit = 5): array
     {
         $query = Enrollment::with(['user', 'course'])
             ->latest();
@@ -69,12 +89,19 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             $query->whereHas('course', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
             });
+        } elseif ($user->hasRole('Admin')) {
+            $query->whereHas('course', function ($q) use ($user) {
+                $q->whereHas('admins', function ($aq) use ($user) {
+                    $aq->where('user_id', $user->id);
+                });
+            });
         }
 
         return $query->limit($limit)->get()->map(fn ($enrollment) => [
             'status' => $enrollment->status->value,
             'user_name' => $enrollment->user?->name,
-            'scheme' => $enrollment->course?->title,
+            'course_name' => $enrollment->course?->title,
+            'date' => $enrollment->created_at,
         ])->toArray();
     }
 
@@ -90,6 +117,21 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             
             $questionQuery->whereHas('assignment', function ($q) use ($user) {
                 $q->where('created_by', $user->id);
+            });
+        } elseif ($user->hasRole('Admin')) {
+            $lessonBlockQuery->whereHas('lesson.unit.course', function ($q) use ($user) {
+                $q->whereHas('admins', function ($aq) use ($user) {
+                    $aq->where('user_id', $user->id);
+                });
+            });
+
+            // For questions, they belong to assignments. Assignments belong to courses via lesson->unit->course, 
+            // but also can be independent. Let's just limit questions to lessons managed by admin if possible.
+            // Wait, Question -> assignment doesn't have course directly. We will limit it by assignment.created_by or something.
+            // For now, let's leave questionQuery unscoped or similarly scoped if there's a relation.
+            // Assignment may not have direct course relation. Let's filter assignment by course admins if relation exists via legacy lesson.
+            $questionQuery->whereHas('assignment.lesson.unit.course.admins', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
             });
         }
 
