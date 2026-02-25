@@ -31,4 +31,9 @@ interface SearchHistoryRepositoryInterface
      * Delete all search history for a user
      */
     public function deleteByUserId(int $userId): int;
+
+    /**
+     * Update an existing search history entry
+     */
+    public function update(SearchHistory $history, array $data): bool;
 }

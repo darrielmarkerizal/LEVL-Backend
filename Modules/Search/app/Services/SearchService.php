@@ -108,16 +108,39 @@ class SearchService implements SearchServiceInterface
     public function saveSearchHistory(User $user, string $query, array $filters = [], int $resultsCount = 0): void
     {
         // Don't save empty queries
-        if (empty(trim($query))) {
+        $query = trim($query);
+        if (empty($query)) {
             return;
         }
 
         // Check if the last search by this user is the same query
         $lastSearch = $this->historyRepository->getLastSearchByUser($user->id);
 
-        // Avoid duplicate consecutive searches
-        if ($lastSearch && $lastSearch->query === $query) {
-            return;
+        if ($lastSearch) {
+            // Avoid duplicate consecutive searches
+            if ($lastSearch->query === $query) {
+                // Update timestamp and result count
+                $this->historyRepository->update($lastSearch, [
+                    'results_count' => $resultsCount,
+                    'created_at' => now(),
+                ]);
+                return;
+            }
+
+            // Check if it's sequential typing within 60 seconds
+            $isTypingForward = str_starts_with(strtolower($query), strtolower($lastSearch->query));
+            $isBackspacing = str_starts_with(strtolower($lastSearch->query), strtolower($query));
+
+            if (($isTypingForward || $isBackspacing) && $lastSearch->created_at->diffInSeconds(now()) < 60) {
+                // Update the existing typing session
+                $this->historyRepository->update($lastSearch, [
+                    'query' => $query,
+                    'filters' => $filters,
+                    'results_count' => $resultsCount,
+                    'created_at' => now(),
+                ]);
+                return;
+            }
         }
 
         $this->historyRepository->create([
