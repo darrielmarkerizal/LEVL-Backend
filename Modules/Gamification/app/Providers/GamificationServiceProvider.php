@@ -78,6 +78,9 @@ class GamificationServiceProvider extends ServiceProvider
             \Modules\Gamification\Services\LeaderboardService::class
         );
 
+        $this->app->singleton(
+            \Modules\Gamification\Services\Support\StreakResetService::class
+        );
     }
 
     protected function registerCommands(): void
@@ -87,6 +90,7 @@ class GamificationServiceProvider extends ServiceProvider
             \Modules\Gamification\Console\Commands\AssignWeeklyChallenges::class,
             \Modules\Gamification\Console\Commands\ExpireChallenges::class,
             \Modules\Gamification\Console\Commands\UpdateLeaderboard::class,
+            \Modules\Gamification\Console\Commands\ResetInactiveStreaks::class,
         ]);
     }
 
@@ -94,6 +98,7 @@ class GamificationServiceProvider extends ServiceProvider
     {
         $this->app->booted(function () {
             $schedule = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
+            $schedule->command('streaks:reset-inactive')->dailyAt('00:00')->timezone('Asia/Jakarta');
             $schedule->command('challenges:assign-daily')->dailyAt('00:01');
             $schedule->command('challenges:assign-weekly')->weeklyOn(1, '00:01');
             $schedule->command('challenges:expire')->hourly();
