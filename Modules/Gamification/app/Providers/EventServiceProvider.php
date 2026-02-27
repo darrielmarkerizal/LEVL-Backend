@@ -13,7 +13,6 @@ class EventServiceProvider extends ServiceProvider
             \Modules\Gamification\Listeners\UpdateChallengeProgressOnLessonCompleted::class,
         ],
         \Modules\Learning\Events\SubmissionCreated::class => [
-            \Modules\Gamification\Listeners\AwardXpForAssignmentSubmission::class,
             \Modules\Gamification\Listeners\UpdateChallengeProgressOnSubmissionCreated::class,
         ],
         \Modules\Schemes\Events\CourseCompleted::class => [
