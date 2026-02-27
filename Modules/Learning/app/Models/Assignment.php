@@ -109,6 +109,7 @@ class Assignment extends Model implements HasMedia
         'allow_resubmit',
         'late_penalty_percent',
         'time_limit_minutes',
+        'allow_multiple',
     ];
 
     protected $casts = [
@@ -125,6 +126,7 @@ class Assignment extends Model implements HasMedia
         'allow_resubmit' => 'boolean',
         'retake_enabled' => 'boolean',
         'late_penalty_percent' => 'integer',
+        'allow_multiple' => 'boolean',
     ];
 
     protected static function newFactory()
