@@ -312,14 +312,9 @@ class PointManager
         $lastActivityDate = $stats->last_activity_date ? Carbon::parse($stats->last_activity_date) : null;
         $today = Carbon::today();
 
-        if (! $lastActivityDate) {
-            $stats->current_streak = 1;
-            $stats->longest_streak = max($stats->longest_streak, 1);
-        } elseif ($lastActivityDate->isYesterday()) {
+        if (! $lastActivityDate || ! $lastActivityDate->isToday()) {
             $stats->current_streak++;
             $stats->longest_streak = max($stats->longest_streak, $stats->current_streak);
-        } elseif ($lastActivityDate->lt(Carbon::yesterday())) {
-            $stats->current_streak = 1;
         }
 
         $stats->last_activity_date = $today;
