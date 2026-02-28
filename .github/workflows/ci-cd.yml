@@ -92,21 +92,56 @@ jobs:
           timeout: 60m
           command_timeout: 60m
           script: |
+            set -e
             cd ${{ secrets.DEPLOY_PATH }}
+
+            # ── Rollback: save current commit before pulling ──────────────────
+            PREVIOUS_COMMIT=$(git rev-parse HEAD)
+            echo "Previous commit: $PREVIOUS_COMMIT"
+
+            # ── Rollback handler: restore if anything fails ───────────────────
+            rollback() {
+              echo "⚠️  Deployment failed — rolling back to $PREVIOUS_COMMIT"
+              git reset --hard "$PREVIOUS_COMMIT"
+              composer install --no-dev --optimize-autoloader --quiet
+              php artisan migrate --force --quiet || true
+              php artisan optimize
+              php artisan up
+              sudo systemctl restart laravel-octane
+              echo "✅ Rollback complete"
+              exit 1
+            }
+            trap rollback ERR
+
+            # ── Enable maintenance mode ───────────────────────────────────────
+            php artisan down --retry=10 --render="errors::503"
+
+            # ── Pull latest code ──────────────────────────────────────────────
             git reset --hard HEAD
             git pull origin main
-            composer install --no-dev --optimize-autoloader
-            php artisan migrate --force
-            php artisan config:clear
-            php artisan route:clear
-            php artisan cache:clear
-            php artisan view:cache
 
-            # Sync Meilisearch index settings and import all searchable models
+            # ── Install dependencies ──────────────────────────────────────────
+            composer install --no-dev --optimize-autoloader
+
+            # ── Run migrations ────────────────────────────────────────────────
+            php artisan migrate --force
+
+            # ── Clear & rebuild all caches in one command ─────────────────────
+            php artisan optimize:clear
+            php artisan optimize
+
+            # ── Sync Meilisearch index settings and import all searchable models
             php artisan meilisearch:import-all --fresh
 
-            # Restart Octane via systemd
+            # ── Restart Octane via systemd ────────────────────────────────────
             sudo systemctl restart laravel-octane
+
+            # ── Bring application back online ─────────────────────────────────
+            php artisan up
+
+            # Deployment succeeded — disarm the rollback trap
+            trap - ERR
+            echo "✅ Deployment successful"
 
       - name: Notify Deploy Success
         if: success()
@@ -136,7 +171,7 @@ jobs:
           🌿 *Branch:* \`main\`
           🖥 *Server:* \`${{ secrets.DEPLOY_SERVER }}\`
           🆔 *Commit:* \`${SHORT_SHA}\`
-          🔴 Status: *Deployment failed*
+          🔴 Status: *Deployment failed — rollback executed*
           🔗 [View Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           bash .github/scripts/telegram.sh \
             "${{ secrets.TELEGRAM_BOT_TOKEN }}" \
