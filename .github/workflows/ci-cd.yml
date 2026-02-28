@@ -131,9 +131,11 @@ jobs:
             # ── Run migrations ────────────────────────────────────────────────
             php artisan migrate --force
 
-            # ── Clear & rebuild all caches in one command ─────────────────────
+            # ── Clear & rebuild all caches (no view:cache — pure API) ──────────
             php artisan optimize:clear
-            php artisan optimize
+            php artisan config:cache
+            php artisan event:cache
+            php artisan route:cache
 
             # ── Sync Meilisearch index settings and import all searchable models
             php artisan meilisearch:import-all --fresh
