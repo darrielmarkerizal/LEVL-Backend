@@ -7,6 +7,7 @@ namespace Modules\Learning\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Learning\Enums\AssignmentStatus;
+use Modules\Learning\Enums\AssignmentType;
 use Modules\Learning\Enums\RandomizationType;
 use Modules\Learning\Enums\ReviewMode;
 use Modules\Learning\Enums\SubmissionType;
@@ -21,6 +22,7 @@ class StoreAssignmentRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'type' => ['required', Rule::enum(AssignmentType::class)],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'assignable_type' => [
@@ -60,6 +62,7 @@ class StoreAssignmentRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
+            // Validate assignable scope
             $typeMap = [
                 'Course' => 'Modules\\Schemes\\Models\\Course',
                 'Unit' => 'Modules\\Schemes\\Models\\Unit',
@@ -87,9 +90,24 @@ class StoreAssignmentRequest extends FormRequest
                         'assignable_id' => $model->id,
                         'assignable_type' => $modelClass,
                     ];
-                    // Also merge for convenience if needed, but we rely on getter now
                     $this->merge($this->resolvedScope);
                 }
+            }
+
+            // Validate type-specific rules
+            $type = $this->input('type');
+            
+            if ($type === 'assignment') {
+                // Assignment must have file submission type
+                $submissionType = $this->input('submission_type');
+                if ($submissionType && !in_array($submissionType, ['file', 'mixed'])) {
+                    $validator->errors()->add('submission_type', 'Assignment type must use file or mixed submission type.');
+                }
+            }
+            
+            if ($type === 'quiz') {
+                // Quiz should not rely on submission_type (uses questions instead)
+                // This is just a warning, not blocking
             }
         });
     }
@@ -97,6 +115,7 @@ class StoreAssignmentRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'type' => __('validation.attributes.type'),
             'title' => __('validation.attributes.title'),
             'description' => __('validation.attributes.description'),
             'assignable_type' => __('validation.attributes.assignable_type'),
