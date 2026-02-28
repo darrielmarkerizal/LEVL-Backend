@@ -66,6 +66,11 @@ return [
   ],
 
   // Learning
+  "assignment_type" => [
+    "assignment" => "Tugas",
+    "quiz" => "Kuis",
+  ],
+
   "assignment_status" => [
     "draft" => "Draf",
     "published" => "Dipublikasikan",
