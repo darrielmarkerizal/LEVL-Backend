@@ -44,6 +44,37 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
         return $query->count();
     }
 
+    public function getPendingEnrollmentPercentage(User $user): float
+    {
+        $totalQuery = Enrollment::query();
+        $pendingQuery = Enrollment::where('status', EnrollmentStatus::Pending);
+
+        if ($user->hasRole('Instructor')) {
+            $totalQuery->whereHas('course', function ($q) use ($user) {
+                $q->where('instructor_id', $user->id);
+            });
+            $pendingQuery->whereHas('course', function ($q) use ($user) {
+                $q->where('instructor_id', $user->id);
+            });
+        } elseif ($user->hasRole('Admin')) {
+            $totalQuery->whereHas('course', function ($q) use ($user) {
+                $q->whereHas('admins', function ($aq) use ($user) {
+                    $aq->where('user_id', $user->id);
+                });
+            });
+            $pendingQuery->whereHas('course', function ($q) use ($user) {
+                $q->whereHas('admins', function ($aq) use ($user) {
+                    $aq->where('user_id', $user->id);
+                });
+            });
+        }
+
+        $total = $totalQuery->count();
+        $pending = $pendingQuery->count();
+
+        return $total > 0 ? round(($pending / $total) * 100, 2) : 0;
+    }
+
     public function getTotalUsersCount(User $user): int
     {
         $query = User::role('Student')->whereHas('enrollments', function ($eq) use ($user) {
@@ -65,6 +96,14 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
         return $query->count();
     }
 
+    public function getTotalUsersPercentage(User $user): float
+    {
+        $totalStudents = User::role('Student')->count();
+        $activeUsers = $this->getTotalUsersCount($user);
+
+        return $totalStudents > 0 ? round(($activeUsers / $totalStudents) * 100, 2) : 0;
+    }
+
     public function getTotalSchemesCount(User $user): int
     {
         $query = Course::where('status', \Modules\Schemes\Enums\CourseStatus::Published);
@@ -78,6 +117,14 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
         }
 
         return $query->count();
+    }
+
+    public function getTotalSchemesPercentage(User $user): float
+    {
+        $totalCourses = Course::count();
+        $publishedSchemes = $this->getTotalSchemesCount($user);
+
+        return $totalCourses > 0 ? round(($publishedSchemes / $totalCourses) * 100, 2) : 0;
     }
 
     public function getRegistrationQueue(User $user, int $limit = 5): array
@@ -114,7 +161,7 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             $lessonBlockQuery->whereHas('lesson.unit.course', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
             });
-            
+
             $questionQuery->whereHas('assignment', function ($q) use ($user) {
                 $q->where('created_by', $user->id);
             });
@@ -125,28 +172,61 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
                 });
             });
 
-            // For questions, they belong to assignments. Assignments belong to courses via lesson->unit->course, 
-            // but also can be independent. Let's just limit questions to lessons managed by admin if possible.
-            // Wait, Question -> assignment doesn't have course directly. We will limit it by assignment.created_by or something.
-            // For now, let's leave questionQuery unscoped or similarly scoped if there's a relation.
-            // Assignment may not have direct course relation. Let's filter assignment by course admins if relation exists via legacy lesson.
             $questionQuery->whereHas('assignment.lesson.unit.course.admins', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             });
         }
 
-        $stats = $lessonBlockQuery->select('block_type', DB::raw('count(*) as total'))
+        $blockStats = $lessonBlockQuery->select('block_type', DB::raw('count(*) as total'))
             ->groupBy('block_type')
             ->pluck('total', 'block_type')
             ->toArray();
 
+        // Calculate total blocks and percentages
+        $totalBlocks = array_sum($blockStats);
+        $blockPercentages = [];
+        foreach ($blockStats as $type => $count) {
+            $blockPercentages[$type] = $totalBlocks > 0 ? round(($count / $totalBlocks) * 100, 2) : 0;
+        }
+
+        // Get question types breakdown
+        $questionTypes = $questionQuery->select('type', DB::raw('count(*) as total'))
+            ->groupBy('type')
+            ->pluck('total', 'type')
+            ->toArray();
+
+        $totalQuestions = $questionQuery->count();
+
+        // Calculate question type counts and percentages
+        $questionByType = [
+            'multiple_choice' => $questionTypes['multiple_choice'] ?? 0,
+            'checkbox' => $questionTypes['checkbox'] ?? 0,
+            'essay' => $questionTypes['essay'] ?? 0,
+            'file_upload' => $questionTypes['file_upload'] ?? 0,
+        ];
+
+        $questionPercentages = [];
+        foreach ($questionByType as $type => $count) {
+            $questionPercentages[$type] = $totalQuestions > 0 ? round(($count / $totalQuestions) * 100, 2) : 0;
+        }
+
         return [
-            'blocks' => $stats,
-            'question_bank_count' => $questionQuery->count(),
+            'blocks' => [
+                'counts' => $blockStats,
+                'percentages' => $blockPercentages,
+                'total' => $totalBlocks,
+            ],
+            'question_bank' => [
+                'total' => $totalQuestions,
+                'by_type' => [
+                    'counts' => $questionByType,
+                    'percentages' => $questionPercentages,
+                ],
+            ],
         ];
     }
 
-    public function getTopLeaderboard(int $limit = 3): array
+    public function getTopLeaderboard(int $limit = 6): array
     {
         return Point::with('user')
             ->selectRaw('user_id, SUM(points) as total_points')
