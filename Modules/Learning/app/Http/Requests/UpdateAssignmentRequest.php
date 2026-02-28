@@ -7,6 +7,7 @@ namespace Modules\Learning\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Learning\Enums\AssignmentStatus;
+use Modules\Learning\Enums\AssignmentType;
 use Modules\Learning\Enums\RandomizationType;
 use Modules\Learning\Enums\ReviewMode;
 use Modules\Learning\Enums\SubmissionType;
@@ -21,6 +22,7 @@ class UpdateAssignmentRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'type' => ['sometimes', Rule::enum(AssignmentType::class)],
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'submission_type' => ['sometimes', Rule::enum(SubmissionType::class)],
@@ -49,6 +51,7 @@ class UpdateAssignmentRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'type' => __('validation.attributes.type'),
             'title' => __('validation.attributes.title'),
             'description' => __('validation.attributes.description'),
             'submission_type' => __('validation.attributes.submission_type'),
