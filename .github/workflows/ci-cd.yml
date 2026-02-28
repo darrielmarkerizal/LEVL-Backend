@@ -104,8 +104,13 @@ jobs:
               echo "⚠️  Deployment failed — rolling back to $PREVIOUS_COMMIT"
               git reset --hard "$PREVIOUS_COMMIT"
               composer install --no-dev --optimize-autoloader --quiet
+
+              # Migrate back (|| true so rollback itself won't abort if no down migration)
               php artisan migrate --force --quiet || true
-              php artisan optimize
+
+              # Clear all caches only — skip rebuilding to avoid stale cache errors
+              php artisan optimize:clear --quiet || true
+
               php artisan up
               sudo systemctl restart laravel-octane
               echo "✅ Rollback complete"
