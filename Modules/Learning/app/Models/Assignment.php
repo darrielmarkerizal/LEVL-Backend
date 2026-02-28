@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Modules\Learning\Enums\AssignmentStatus;
+use Modules\Learning\Enums\AssignmentType;
 use Modules\Learning\Enums\RandomizationType;
 use Modules\Learning\Enums\ReviewMode;
 use Modules\Learning\Enums\SubmissionType;
@@ -113,6 +114,7 @@ class Assignment extends Model implements HasMedia
     ];
 
     protected $casts = [
+        'type' => AssignmentType::class,
         'submission_type' => SubmissionType::class,
         'status' => AssignmentStatus::class,
         'review_mode' => ReviewMode::class,
@@ -361,6 +363,46 @@ class Assignment extends Model implements HasMedia
         }
 
         return null;
+    }
+
+    /**
+     * Check if this is an assignment (file upload type)
+     */
+    public function isAssignment(): bool
+    {
+        return $this->type === AssignmentType::Assignment;
+    }
+
+    /**
+     * Check if this is a quiz (questions type)
+     */
+    public function isQuiz(): bool
+    {
+        return $this->type === AssignmentType::Quiz;
+    }
+
+    /**
+     * Scope to filter by assignment type
+     */
+    public function scopeOfType($query, AssignmentType $type)
+    {
+        return $query->where('type', $type);
+    }
+
+    /**
+     * Scope to get only assignments (file upload)
+     */
+    public function scopeAssignments($query)
+    {
+        return $query->where('type', AssignmentType::Assignment);
+    }
+
+    /**
+     * Scope to get only quizzes (questions)
+     */
+    public function scopeQuizzes($query)
+    {
+        return $query->where('type', AssignmentType::Quiz);
     }
 
 

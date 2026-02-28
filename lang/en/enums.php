@@ -66,6 +66,11 @@ return [
     ],
 
     // Learning
+    'assignment_type' => [
+        'assignment' => 'Assignment',
+        'quiz' => 'Quiz',
+    ],
+
     'assignment_status' => [
         'draft' => 'Draft',
         'published' => 'Published',
