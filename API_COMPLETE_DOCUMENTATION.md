@@ -41,7 +41,7 @@ Accept: application/json
 
 **Access:** Public
 
-**Query Parameters:**
+**Query Parameters (Spatie Query Builder):**
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | search | string | No | PostgreSQL FTS in title, code, short_desc |
@@ -51,14 +51,44 @@ Accept: application/json
 | filter[category_id] | integer | No | Filter by category ID |
 | filter[instructor_id] | integer | No | Filter by instructor ID |
 | filter[enrollment_type] | string | No | Filter: `auto_accept`, `key_based`, `approval` |
-| sort | string | No | Sort field: `title`, `created_at`, `published_at` (prefix with - for desc) |
+| sort | string | No | Sort: `title`, `created_at`, `published_at`, `-created_at` |
+| include | string | No | Relations (comma-separated) |
 | per_page | integer | No | Items per page (default: 15, max: 100) |
 | page | integer | No | Page number |
+
+**Available Includes:**
+- `tags` - Course tags
+- `category` - Course category
+- `instructor` - Course instructor (User)
+- `admins` - Course admins/managers (Users)
+- `units` - Course units
+- `units.lessons` - Units with their lessons
+- `units.lessons.blocks` - Units with lessons and lesson blocks
+- `lessons` - All lessons (via units)
+- `quizzes` - Course-level quizzes
+- `assignments` - Course-level assignments
+- `enrollments` - Course enrollments
+- `enrollments.user` - Enrollments with user data
+
+**Example:**
+```
+GET /courses?search=docker&filter[status]=published&sort=-published_at&include=instructor,admins,units.lessons
+```
 
 ### 2. Show Course
 **GET** `/courses/{slug}`
 
 **Access:** Public
+
+**Query Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| include | string | No | Relations (comma-separated, same as List Courses) |
+
+**Example:**
+```
+GET /courses/docker-kubernetes?include=instructor,admins,units.lessons.blocks,quizzes,assignments,enrollments
+```
 
 ### 3. Create Course
 **POST** `/courses`
@@ -125,6 +155,54 @@ Accept: application/json
 **DELETE** `/courses/{slug}/enrollment-key`
 
 **Access:** Admin, Instructor (owner), Superadmin
+
+---
+
+### Course API - Available Includes
+
+The Course API supports comprehensive relationship loading through the `include` parameter. You can combine multiple includes using comma separation.
+
+**Basic Includes:**
+- `tags` - Course tags/labels
+- `category` - Course category information
+- `instructor` - Primary course instructor (User model)
+- `admins` - Course administrators/managers (User collection)
+
+**Content Includes:**
+- `units` - All course units
+- `units.lessons` - Units with their lessons
+- `units.lessons.blocks` - Complete content hierarchy (units → lessons → blocks)
+- `lessons` - All lessons across all units (flat structure via hasManyThrough)
+
+**Assessment Includes:**
+- `quizzes` - Course-level quizzes (polymorphic relation)
+- `assignments` - Course-level assignments (polymorphic relation)
+
+**Enrollment Includes:**
+- `enrollments` - All course enrollments
+- `enrollments.user` - Enrollments with student information
+
+**Usage Examples:**
+
+```bash
+# Basic course info with instructor and admins
+GET /courses/docker-kubernetes?include=instructor,admins
+
+# Complete content structure
+GET /courses/web-development?include=units.lessons.blocks,quizzes,assignments
+
+# Course with all enrollments and student data
+GET /courses/python-basics?include=enrollments.user,instructor
+
+# Everything (use with caution - large response)
+GET /courses/data-science?include=instructor,admins,units.lessons.blocks,quizzes,assignments,enrollments.user,tags,category
+```
+
+**Performance Notes:**
+- Nested includes (e.g., `units.lessons.blocks`) load the entire hierarchy
+- Use specific includes only when needed to optimize response size
+- For large courses, consider paginating through units/lessons separately
+- Enrollments can be numerous; filter or paginate separately if needed
 
 ---
 
@@ -1004,3 +1082,97 @@ All responses follow this structure:
   "errors": {}
 }
 ```
+
+
+---
+
+## Spatie Query Builder Usage
+
+Most list endpoints use Spatie Query Builder for consistent filtering, sorting, and including relations.
+
+### Search Parameter
+- **Format**: `search=term` (direct query parameter, NOT `filter[search]`)
+- **Engine**: PostgreSQL Full Text Search via `PgSearchable` trait
+- **Behavior**: Searches across multiple columns with similarity matching
+- **Example**: `?search=docker`
+
+### Filter Parameters
+- **Format**: `filter[field]=value`
+- **Types**: 
+  - Exact match: `filter[status]=published`
+  - Multiple filters: `filter[status]=published&filter[type]=kluster`
+- **Example**: `?filter[status]=published&filter[level_tag]=mahir`
+
+### Sort Parameter
+- **Format**: `sort=field` or `sort=-field` (prefix with `-` for descending)
+- **Default**: Usually `-created_at` or specific to endpoint
+- **Example**: `?sort=-published_at` (newest first)
+
+### Include Parameter
+- **Format**: `include=relation1,relation2` (comma-separated)
+- **Nested**: `include=units.lessons.blocks` (dot notation)
+- **Example**: `?include=instructor,admins,units.lessons`
+
+### Pagination Parameters
+- **Format**: `per_page=15&page=1`
+- **Limits**: Usually max 100 items per page
+- **Example**: `?per_page=25&page=2`
+
+### Combined Example
+```bash
+GET /api/v1/courses?search=kubernetes&filter[status]=published&filter[type]=kluster&sort=-published_at&include=instructor,units.lessons&per_page=20&page=1
+```
+
+This will:
+1. Search for "kubernetes" using PostgreSQL FTS
+2. Filter only published courses of type "kluster"
+3. Sort by published date (newest first)
+4. Include instructor and units with lessons
+5. Return 20 items on page 1
+
+---
+
+## API Best Practices
+
+### Performance Optimization
+1. **Use Specific Includes**: Only include relations you need
+2. **Limit Per Page**: Don't request more than 50 items per page unless necessary
+3. **Cache Responses**: Public endpoints are cached for 5 minutes
+4. **Use Filters**: Filter on the server side rather than client side
+
+### Common Patterns
+
+**Get Course with Full Content:**
+```bash
+GET /courses/{slug}?include=units.lessons.blocks,quizzes,assignments
+```
+
+**Get Course with Team:**
+```bash
+GET /courses/{slug}?include=instructor,admins
+```
+
+**Search Published Courses:**
+```bash
+GET /courses?search=python&filter[status]=published&sort=-published_at
+```
+
+**Get Unit with All Content:**
+```bash
+GET /units/{slug}?include=course,lessons.blocks
+```
+
+**Get Lesson with Prerequisites:**
+```bash
+GET /lessons/{slug}?include=unit.course,blocks
+```
+
+### Error Handling
+Always check the `success` field in responses:
+- `success: true` - Request succeeded
+- `success: false` - Request failed, check `errors` or `message`
+
+### Rate Limiting
+- Authenticated: 60 requests/minute
+- Unauthenticated: 30 requests/minute
+- Check `X-RateLimit-*` headers for current status

@@ -121,7 +121,7 @@ class CourseFinder
         $request = new Request($cleanFilters);
 
         $builder = QueryBuilder::for(
-            Course::with(['instructor.media', 'instructor.roles', 'admins.media', 'admins.roles', 'media']),
+            Course::query(),
             $request
         );
 
@@ -149,7 +149,6 @@ class CourseFinder
                 'units.lessons',
                 'units.lessons.blocks',
                 'lessons',
-                'lessonBlocks',
                 'quizzes',
                 'assignments',
                 'enrollments',
@@ -167,10 +166,7 @@ class CourseFinder
         $request = new Request($cleanFilters);
 
         $builder = QueryBuilder::for(
-            Course::with([
-                'admins:id,name,username,email,status,account_status',
-                'media:id,model_type,model_id,collection_name,file_name,disk,updated_at',
-            ])->withCount('admins'),
+            Course::query(),
             $request
         );
 
@@ -189,7 +185,20 @@ class CourseFinder
                 AllowedFilter::exact('type'),
                 AllowedFilter::exact('category_id'),
             ])
-            ->allowedIncludes(['tags'])
+            ->allowedIncludes([
+                'tags',
+                'category',
+                'instructor',
+                'admins',
+                'units',
+                'units.lessons',
+                'units.lessons.blocks',
+                'lessons',
+                'quizzes',
+                'assignments',
+                'enrollments',
+                'enrollments.user',
+            ])
             ->allowedSorts(['id', 'code', 'title', 'created_at', 'updated_at', 'published_at'])
             ->defaultSort('title');
     }
