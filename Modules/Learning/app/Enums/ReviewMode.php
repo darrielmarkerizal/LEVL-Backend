@@ -7,6 +7,7 @@ namespace Modules\Learning\Enums;
 enum ReviewMode: string
 {
     case Immediate = 'immediate';
+    case Manual = 'manual';
     case Deferred = 'deferred';
     case Hidden = 'hidden';
 
@@ -24,6 +25,7 @@ enum ReviewMode: string
     {
         return match ($this) {
             self::Immediate => __('enums.review_mode.immediate'),
+            self::Manual => __('enums.review_mode.manual'),
             self::Deferred => __('enums.review_mode.deferred'),
             self::Hidden => __('enums.review_mode.hidden'),
         };
