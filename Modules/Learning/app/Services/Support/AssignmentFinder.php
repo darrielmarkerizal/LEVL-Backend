@@ -196,7 +196,7 @@ class AssignmentFinder
                 AllowedFilter::exact('submission_type'),
             ])
             ->allowedIncludes(['questions', 'prerequisites', 'overrides', 'creator', 'lesson', 'assignable'])
-            ->allowedSorts(['id', 'title', 'created_at', 'updated_at', 'deadline_at', 'available_from'])
+            ->allowedSorts(['id', 'title', 'created_at', 'updated_at'])
             ->defaultSort('-created_at');
     }
 
@@ -219,7 +219,7 @@ class AssignmentFinder
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('submission_type'),
             ])
-            ->allowedSorts(['id', 'title', 'created_at', 'updated_at', 'deadline_at', 'available_from'])
+            ->allowedSorts(['id', 'title', 'created_at', 'updated_at'])
             ->defaultSort('-created_at');
     }
 }

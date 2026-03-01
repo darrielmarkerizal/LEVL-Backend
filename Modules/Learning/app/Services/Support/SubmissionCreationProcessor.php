@@ -52,7 +52,6 @@ class SubmissionCreationProcessor
             }
 
             $attemptNumber = $isResubmission ? ($existingSubmission->attempt_number + 1) : 1;
-            $isLate = $assignment->isPastDeadline();
 
             if ($isResubmission && $existingSubmission) {
                 $this->repository->delete($existingSubmission);
@@ -65,9 +64,8 @@ class SubmissionCreationProcessor
                 'user_id' => $userId,
                 'enrollment_id' => $enrollment->id,
                 'answer_text' => $data['answer_text'] ?? null,
-                'status' => $isLate ? SubmissionStatus::Late->value : SubmissionStatus::Submitted->value,
+                'status' => SubmissionStatus::Submitted->value,
                 'attempt_number' => $attemptNumber,
-                'is_late' => $isLate,
                 'is_resubmission' => $isResubmission,
                 'previous_submission_id' => null,
                 'submitted_at' => Carbon::now(),
@@ -88,10 +86,6 @@ class SubmissionCreationProcessor
         SubmissionValidator $validator
     ): Submission {
         $assignment = Assignment::findOrFail($assignmentId);
-
-        if (! $validator->checkDeadlineWithOverride($assignment, $studentId)) {
-            throw SubmissionException::deadlinePassed();
-        }
 
         $attemptCheck = $validator->checkAttemptLimitsWithOverride($assignment, $studentId);
         if (! $attemptCheck['allowed']) {

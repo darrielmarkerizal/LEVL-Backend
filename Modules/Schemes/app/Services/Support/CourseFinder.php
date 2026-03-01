@@ -28,8 +28,15 @@ class CourseFinder
     {
         $perPage = max(1, $perPage);
 
+        $includeParam = request()->get('include', '');
+        $cacheKey = "schemes:courses:paginate:{$perPage}:".request('page', 1).':'.md5(json_encode($filters).':'.$includeParam);
+
+        if (! empty($includeParam)) {
+            return $this->buildQuery($filters)->paginate($perPage);
+        }
+
         return \Illuminate\Support\Facades\Cache::tags(['schemes', 'courses'])->remember(
-            "schemes:courses:paginate:{$perPage}:".request('page', 1).':'.md5(json_encode($filters)),
+            $cacheKey,
             300,
             function () use ($filters, $perPage) {
                 return $this->buildQuery($filters)->paginate($perPage);
@@ -41,8 +48,15 @@ class CourseFinder
     {
         $perPage = max(1, $perPage);
 
+        $includeParam = request()->get('include', '');
+        $cacheKey = "schemes:courses:index:paginate:{$perPage}:".request('page', 1).':'.md5(json_encode($filters).':'.$includeParam);
+
+        if (! empty($includeParam)) {
+            return $this->buildQueryForIndex($filters)->paginate($perPage);
+        }
+
         return \Illuminate\Support\Facades\Cache::tags(['schemes', 'courses'])->remember(
-            "schemes:courses:index:paginate:{$perPage}:".request('page', 1).':'.md5(json_encode($filters)),
+            $cacheKey,
             300,
             function () use ($filters, $perPage) {
                 return $this->buildQueryForIndex($filters)->paginate($perPage);
@@ -134,6 +148,8 @@ class CourseFinder
         }
 
         return $builder
+            ->with('instructor')
+            ->withCount(['admins', 'enrollments'])
             ->allowedFilters([
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('level_tag'),
@@ -179,6 +195,8 @@ class CourseFinder
         }
 
         return $builder
+            ->with('instructor')
+            ->withCount(['admins', 'enrollments'])
             ->allowedFilters([
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('level_tag'),

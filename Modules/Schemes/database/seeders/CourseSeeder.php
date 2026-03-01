@@ -4,18 +4,15 @@ namespace Modules\Schemes\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
-use Modules\Schemes\Database\Factories\CourseFactory;
-use Modules\Schemes\Database\Factories\LessonFactory;
-use Modules\Schemes\Database\Factories\UnitFactory;
 use Modules\Schemes\Models\Course;
-use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Models\Lesson;
+use Modules\Schemes\Models\Unit;
 
 class CourseSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * Creates comprehensive course data:
      * - 50 courses with multiple units and lessons
      * - Assign 200 instructors to courses (Admin & Instructor roles)
@@ -25,7 +22,7 @@ class CourseSeeder extends Seeder
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
-        
+
         echo "Seeding courses and course structure...\n";
 
         $instructors = User::whereHas('roles', function ($q) {
@@ -34,6 +31,7 @@ class CourseSeeder extends Seeder
 
         if ($instructors->isEmpty()) {
             echo "⚠️  No instructors found. Skipping course seeding.\n";
+
             return;
         }
 
@@ -55,7 +53,7 @@ class CourseSeeder extends Seeder
 
         echo "✅ Course seeding completed!\n";
         echo "Created 20 courses with units and lessons\n";
-        
+
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
     }
@@ -66,21 +64,40 @@ class CourseSeeder extends Seeder
     private function assignInstructorsToCourses($courses, $instructors): void
     {
         $courseAdmins = [];
+        $courseUpdates = [];
 
         foreach ($courses as $course) {
-            $courseInstructors = $instructors->random(rand(1, 3));
-            foreach ($courseInstructors as $instructor) {
-                $courseAdmins[] = [
-                    'course_id' => $course->id,
-                    'user_id' => $instructor->id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+            $mainInstructor = $instructors->random();
+
+            $courseUpdates[] = [
+                'id' => $course->id,
+                'instructor_id' => $mainInstructor->id,
+            ];
+
+            $additionalAdminsCount = rand(0, 2);
+            if ($additionalAdminsCount > 0) {
+                $availableInstructors = $instructors->where('id', '!=', $mainInstructor->id);
+                if ($availableInstructors->count() >= $additionalAdminsCount) {
+                    $additionalAdmins = $availableInstructors->random($additionalAdminsCount);
+                    foreach ($additionalAdmins as $admin) {
+                        $courseAdmins[] = [
+                            'course_id' => $course->id,
+                            'user_id' => $admin->id,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
             }
         }
 
-        // ✅ Single batch insert instead of multiple updateOrCreate calls
-        if (!empty($courseAdmins)) {
+        foreach ($courseUpdates as $update) {
+            \Illuminate\Support\Facades\DB::table('courses')
+                ->where('id', $update['id'])
+                ->update(['instructor_id' => $update['instructor_id']]);
+        }
+
+        if (! empty($courseAdmins)) {
             \Illuminate\Support\Facades\DB::table('course_admins')->insertOrIgnore($courseAdmins);
         }
     }
@@ -93,7 +110,7 @@ class CourseSeeder extends Seeder
         $counter = 0;
         foreach ($courses as $course) {
             $unitCount = rand(2, 3);
-            
+
             $units = Unit::factory()
                 ->count($unitCount)
                 ->forCourse($course)
@@ -105,7 +122,7 @@ class CourseSeeder extends Seeder
                     ->count($lessonCount)
                     ->forUnit($unit)
                     ->create();
-                    
+
                 $counter++;
                 if ($counter % 30 === 0) {
                     gc_collect_cycles();

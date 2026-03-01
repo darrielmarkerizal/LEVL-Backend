@@ -20,11 +20,8 @@ class AssignmentIndexResource extends JsonResource
             'description' => $assignment->description,
             'submission_type' => $assignment->submission_type?->value ?? $assignment->submission_type,
             'max_score' => $assignment->max_score,
-            'available_from' => $assignment->available_from?->toIso8601String(),
-            'deadline_at' => $assignment->deadline_at?->toIso8601String(),
             'status' => $assignment->status?->value ?? $assignment->status,
             'is_available' => $assignment->isAvailable(),
-            'is_past_deadline' => $assignment->isPastDeadline(),
             'created_at' => $assignment->created_at?->toIso8601String(),
             'updated_at' => $assignment->updated_at?->toIso8601String(),
 

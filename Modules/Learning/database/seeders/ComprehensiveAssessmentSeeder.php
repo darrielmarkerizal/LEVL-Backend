@@ -144,9 +144,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             $result = $this->createAssignmentWithSubmissions($courseId, $lessonId);
             $assignments[] = DB::table('assignments')->where('lesson_id', $lessonId)->latest('id')->first();
             $stats['assignments'] += $result['assignments'];
-            $stats['questions'] += $result['questions'];
             $stats['submissions'] += $result['submissions'];
-            $stats['answers'] += $result['answers'];
             $stats['grades'] += $result['grades'];
         }
 
@@ -164,12 +162,10 @@ class ComprehensiveAssessmentSeeder extends Seeder
 
     private function createAssignmentWithSubmissions(int $courseId, int $lessonId): array
     {
-        $stats = ['assignments' => 0, 'questions' => 0, 'submissions' => 0, 'answers' => 0, 'grades' => 0];
+        $stats = ['assignments' => 0, 'submissions' => 0, 'grades' => 0];
 
         $assignmentId = DB::table('assignments')->insertGetId([
             'lesson_id' => $lessonId,
-            'assignable_type' => 'Modules\\Schemes\\Models\\Lesson',
-            'assignable_id' => $lessonId,
             'created_by' => $this->instructorIds[array_rand($this->instructorIds)],
             'title' => $this->pregenSentences[array_rand($this->pregenSentences)],
             'description' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
@@ -179,8 +175,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'max_attempts' => rand(1, 5),
             'cooldown_minutes' => rand(0, 60),
             'retake_enabled' => rand(0, 1),
-            'review_mode' => 'immediate',
-            'randomization_type' => 'static',
+            'review_mode' => 'manual',
             'status' => 'published',
             'allow_resubmit' => rand(0, 1),
             'created_at' => $this->createdAt,
@@ -188,21 +183,15 @@ class ComprehensiveAssessmentSeeder extends Seeder
         ]);
         $stats['assignments']++;
 
-        $questionTypes = [QuestionType::Essay->value, QuestionType::FileUpload->value];
-        $questions = [];
-
-        foreach ($questionTypes as $order => $type) {
-            $questionId = $this->createAssignmentQuestion($assignmentId, $type, $order + 1);
-            $questions[] = ['id' => $questionId, 'type' => $type, 'max_score' => 50];
-            $stats['questions']++;
+        if (rand(0, 1)) {
+            $this->createAssignmentAttachments($assignmentId);
         }
 
         $selectedUsers = array_slice($this->userIds, 0, min(5, count($this->userIds)));
 
         foreach ($selectedUsers as $userId) {
-            $submissionResult = $this->createSubmissionWithAnswersAndGrade($assignmentId, $userId, $questions, $courseId);
+            $submissionResult = $this->createSubmissionWithGrade($assignmentId, $userId, $courseId);
             $stats['submissions'] += $submissionResult['submissions'];
-            $stats['answers'] += $submissionResult['answers'];
             $stats['grades'] += $submissionResult['grades'];
         }
 
@@ -285,6 +274,55 @@ class ComprehensiveAssessmentSeeder extends Seeder
         }
 
         return DB::table('assignment_questions')->insertGetId($questionData);
+    }
+
+    private function createSubmissionWithGrade(int $assignmentId, int $userId, int $courseId): array
+    {
+        $stats = ['submissions' => 0, 'grades' => 0];
+
+        $states = [SubmissionState::Graded->value, SubmissionState::PendingManualGrading->value, SubmissionState::Released->value];
+        $state = $states[array_rand($states)];
+
+        $status = match ($state) {
+            SubmissionState::PendingManualGrading->value => SubmissionStatus::Submitted->value,
+            default => SubmissionStatus::Graded->value,
+        };
+
+        $totalScore = rand(60, 100);
+
+        $submissionId = DB::table('submissions')->insertGetId([
+            'assignment_id' => $assignmentId,
+            'user_id' => $userId,
+            'status' => $status,
+            'state' => $state,
+            'submitted_at' => now()->subDays(rand(1, 14))->toDateTimeString(),
+            'attempt_number' => 1,
+            'score' => in_array($state, [SubmissionState::Graded->value, SubmissionState::Released->value]) ? $totalScore : null,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->createdAt,
+        ]);
+        $stats['submissions']++;
+
+        if (in_array($state, [SubmissionState::Graded->value, SubmissionState::Released->value])) {
+            DB::table('grades')->insertOrIgnore([
+                'submission_id' => $submissionId,
+                'source_type' => 'assignment',
+                'source_id' => $assignmentId,
+                'user_id' => $userId,
+                'graded_by' => $this->instructorIds[array_rand($this->instructorIds)],
+                'score' => $totalScore,
+                'max_score' => 100,
+                'feedback' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
+                'is_draft' => false,
+                'graded_at' => now()->subDays(rand(0, 7))->toDateTimeString(),
+                'released_at' => $state === SubmissionState::Released->value ? now()->toDateTimeString() : null,
+                'created_at' => $this->createdAt,
+                'updated_at' => $this->createdAt,
+            ]);
+            $stats['grades']++;
+        }
+
+        return $stats;
     }
 
     private function createQuizQuestion(int $quizId, string $type, int $order): int
@@ -528,6 +566,33 @@ class ComprehensiveAssessmentSeeder extends Seeder
         ];
 
         return $templates[$type] ?? 'Sample question';
+    }
+
+    private function createAssignmentAttachments(int $assignmentId): void
+    {
+        $numAttachments = rand(1, 3);
+        
+        for ($i = 0; $i < $numAttachments; $i++) {
+            DB::table('media')->insert([
+                'model_type' => 'Modules\\Learning\\Models\\Assignment',
+                'model_id' => $assignmentId,
+                'uuid' => $this->pregenUuids[array_rand($this->pregenUuids)],
+                'collection_name' => 'attachments',
+                'name' => 'assignment-attachment-'.$i,
+                'file_name' => 'document-'.rand(1000, 9999).'.pdf',
+                'mime_type' => 'application/pdf',
+                'disk' => 'do',
+                'conversions_disk' => 'do',
+                'size' => rand(100000, 5000000),
+                'manipulations' => '[]',
+                'custom_properties' => '[]',
+                'generated_conversions' => '[]',
+                'responsive_images' => '[]',
+                'order_column' => $i + 1,
+                'created_at' => $this->createdAt,
+                'updated_at' => $this->createdAt,
+            ]);
+        }
     }
 
     private function pregenerateFakeData(): void
