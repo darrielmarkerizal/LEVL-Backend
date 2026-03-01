@@ -6,55 +6,87 @@ namespace Modules\Learning\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Modules\Learning\Enums\AssignmentType;
 use Modules\Learning\Enums\QuestionType;
+use Modules\Learning\Enums\QuizGradingStatus;
+use Modules\Learning\Enums\QuizQuestionType;
+use Modules\Learning\Enums\QuizSubmissionStatus;
 use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Enums\SubmissionStatus;
 
 class ComprehensiveAssessmentSeeder extends Seeder
 {
     private array $pregenSentences = [];
+
     private array $pregenParagraphs = [];
+
     private array $pregenWords = [];
+
     private array $pregenUuids = [];
+
     private string $createdAt;
+
     private array $userIds = [];
+
+    private array $instructorIds = [];
 
     public function run(): void
     {
         DB::connection()->disableQueryLog();
         ini_set('memory_limit', '1536M');
 
-        echo "\n🎯 Comprehensive Assessment Seeder\n";
-        echo "=" . str_repeat("=", 50) . "\n";
+        echo "\n🎯 Comprehensive Assessment Seeder (Refactored)\n";
+        echo '='.str_repeat('=', 50)."\n";
 
         $this->pregenerateFakeData();
         $this->createdAt = now()->toDateTimeString();
 
-        $this->userIds = DB::table('users')->limit(50)->pluck('id')->toArray();
+        $this->userIds = DB::table('users')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', 'Student')
+            ->where('model_has_roles.model_type', 'Modules\\Auth\\Models\\User')
+            ->limit(50)
+            ->pluck('users.id')
+            ->toArray();
+
+        $this->instructorIds = DB::table('users')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->whereIn('roles.name', ['Instructor', 'Admin'])
+            ->where('model_has_roles.model_type', 'Modules\\Auth\\Models\\User')
+            ->pluck('users.id')
+            ->toArray();
+
         if (empty($this->userIds)) {
             echo "⚠️  No users found. Please run user seeders first.\n";
+
             return;
         }
 
-        $courses = DB::table('courses')
-            ->select('id', 'title')
-            ->get();
+        if (empty($this->instructorIds)) {
+            $this->instructorIds = DB::table('users')->limit(5)->pluck('id')->toArray();
+        }
+
+        $courses = DB::table('courses')->select('id', 'title')->get();
 
         if ($courses->isEmpty()) {
             echo "⚠️  No courses found. Please run course seeders first.\n";
+
             return;
         }
 
-        echo "📚 Found {$courses->count()} courses\n\n";
+        echo "� Found {$courses->count()} courses\n\n";
 
         $totalAssignments = 0;
+        $totalQuizzes = 0;
         $totalQuestions = 0;
         $totalSubmissions = 0;
         $totalAnswers = 0;
         $totalGrades = 0;
 
         foreach ($courses as $index => $course) {
-            echo "📘 Course " . ($index + 1) . "/{$courses->count()}: {$course->title}\n";
+            echo '📘 Course '.($index + 1)."/{$courses->count()}: {$course->title}\n";
 
             $lessons = DB::table('lessons')
                 ->join('units', 'lessons.unit_id', '=', 'units.id')
@@ -64,12 +96,14 @@ class ComprehensiveAssessmentSeeder extends Seeder
 
             if ($lessons->isEmpty()) {
                 echo "   ⚠️ No lessons found, skipping...\n";
+
                 continue;
             }
 
             foreach ($lessons as $lesson) {
-                $result = $this->createAssignmentWithFullData($course->id, $lesson->id);
+                $result = $this->createMixedAssessments($course->id, $lesson->id);
                 $totalAssignments += $result['assignments'];
+                $totalQuizzes += $result['quizzes'];
                 $totalQuestions += $result['questions'];
                 $totalSubmissions += $result['submissions'];
                 $totalAnswers += $result['answers'];
@@ -83,9 +117,10 @@ class ComprehensiveAssessmentSeeder extends Seeder
             }
         }
 
-        echo "\n" . str_repeat("=", 50) . "\n";
+        echo "\n".str_repeat('=', 50)."\n";
         echo "✅ Comprehensive Assessment Seeding Completed!\n";
         echo "   📊 Assignments: {$totalAssignments}\n";
+        echo "   📊 Quizzes: {$totalQuizzes}\n";
         echo "   📊 Questions: {$totalQuestions}\n";
         echo "   📊 Submissions: {$totalSubmissions}\n";
         echo "   📊 Answers: {$totalAnswers}\n";
@@ -95,7 +130,31 @@ class ComprehensiveAssessmentSeeder extends Seeder
         DB::connection()->enableQueryLog();
     }
 
-    private function createAssignmentWithFullData(int $courseId, int $lessonId): array
+    private function createMixedAssessments(int $courseId, int $lessonId): array
+    {
+        $stats = ['assignments' => 0, 'quizzes' => 0, 'questions' => 0, 'submissions' => 0, 'answers' => 0, 'grades' => 0];
+
+        if (rand(0, 1)) {
+            $result = $this->createAssignmentWithSubmissions($courseId, $lessonId);
+            $stats['assignments'] += $result['assignments'];
+            $stats['questions'] += $result['questions'];
+            $stats['submissions'] += $result['submissions'];
+            $stats['answers'] += $result['answers'];
+            $stats['grades'] += $result['grades'];
+        }
+
+        if (rand(0, 1)) {
+            $result = $this->createQuizWithSubmissions($courseId, $lessonId);
+            $stats['quizzes'] += $result['quizzes'];
+            $stats['questions'] += $result['questions'];
+            $stats['submissions'] += $result['submissions'];
+            $stats['answers'] += $result['answers'];
+        }
+
+        return $stats;
+    }
+
+    private function createAssignmentWithSubmissions(int $courseId, int $lessonId): array
     {
         $stats = ['assignments' => 0, 'questions' => 0, 'submissions' => 0, 'answers' => 0, 'grades' => 0];
 
@@ -103,42 +162,37 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'lesson_id' => $lessonId,
             'assignable_type' => 'Modules\\Schemes\\Models\\Lesson',
             'assignable_id' => $lessonId,
-            'created_by' => $this->userIds[array_rand($this->userIds)],
+            'created_by' => $this->instructorIds[array_rand($this->instructorIds)],
             'title' => $this->pregenSentences[array_rand($this->pregenSentences)],
             'description' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
+            'type' => AssignmentType::Assignment->value,
+            'submission_type' => 'file',
             'max_score' => 100,
-            'max_attempts' => 3,
-            'time_limit_minutes' => rand(30, 120),
+            'max_attempts' => rand(1, 5),
+            'cooldown_minutes' => rand(0, 60),
+            'retake_enabled' => rand(0, 1),
+            'review_mode' => 'immediate',
+            'randomization_type' => 'static',
             'status' => 'published',
-            'deadline_at' => now()->addDays(rand(7, 30))->toDateTimeString(),
-            'available_from' => now()->subDays(rand(1, 7))->toDateTimeString(),
+            'allow_resubmit' => rand(0, 1),
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
         ]);
         $stats['assignments']++;
 
-        $questionTypes = [
-            QuestionType::MultipleChoice->value,
-            QuestionType::Essay->value,
-            QuestionType::FileUpload->value,
-        ];
-
+        $questionTypes = [QuestionType::Essay->value, QuestionType::FileUpload->value];
         $questions = [];
+
         foreach ($questionTypes as $order => $type) {
-            $questionId = $this->createQuestion($assignmentId, $type, $order + 1);
-            $questions[] = ['id' => $questionId, 'type' => $type, 'max_score' => 25];
+            $questionId = $this->createAssignmentQuestion($assignmentId, $type, $order + 1);
+            $questions[] = ['id' => $questionId, 'type' => $type, 'max_score' => 50];
             $stats['questions']++;
         }
 
         $selectedUsers = array_slice($this->userIds, 0, min(5, count($this->userIds)));
 
         foreach ($selectedUsers as $userId) {
-            $submissionResult = $this->createSubmissionWithAnswersAndGrade(
-                $assignmentId,
-                $userId,
-                $questions,
-                $courseId
-            );
+            $submissionResult = $this->createSubmissionWithAnswersAndGrade($assignmentId, $userId, $questions, $courseId);
             $stats['submissions'] += $submissionResult['submissions'];
             $stats['answers'] += $submissionResult['answers'];
             $stats['grades'] += $submissionResult['grades'];
@@ -147,7 +201,58 @@ class ComprehensiveAssessmentSeeder extends Seeder
         return $stats;
     }
 
-    private function createQuestion(int $assignmentId, string $type, int $order): int
+    private function createQuizWithSubmissions(int $courseId, int $lessonId): array
+    {
+        $stats = ['quizzes' => 0, 'questions' => 0, 'submissions' => 0, 'answers' => 0];
+
+        $quizId = DB::table('quizzes')->insertGetId([
+            'assignable_type' => 'Modules\\Schemes\\Models\\Lesson',
+            'assignable_id' => $lessonId,
+            'lesson_id' => $lessonId,
+            'created_by' => $this->instructorIds[array_rand($this->instructorIds)],
+            'title' => 'Quiz: '.$this->pregenSentences[array_rand($this->pregenSentences)],
+            'description' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
+            'passing_grade' => rand(60, 80),
+            'auto_grading' => true,
+            'max_score' => 100,
+            'max_attempts' => rand(1, 3),
+            'cooldown_minutes' => rand(0, 30),
+            'time_limit_minutes' => rand(30, 90),
+            'retake_enabled' => rand(0, 1),
+            'randomization_type' => 'static',
+            'review_mode' => 'immediate',
+            'status' => 'published',
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->createdAt,
+        ]);
+        $stats['quizzes']++;
+
+        $questionTypes = [
+            QuizQuestionType::MultipleChoice->value,
+            QuizQuestionType::TrueFalse->value,
+            QuizQuestionType::Checkbox->value,
+            QuizQuestionType::Essay->value,
+        ];
+
+        $questions = [];
+        foreach ($questionTypes as $order => $type) {
+            $questionId = $this->createQuizQuestion($quizId, $type, $order + 1);
+            $questions[] = ['id' => $questionId, 'type' => $type, 'weight' => 25];
+            $stats['questions']++;
+        }
+
+        $selectedUsers = array_slice($this->userIds, 0, min(5, count($this->userIds)));
+
+        foreach ($selectedUsers as $userId) {
+            $submissionResult = $this->createQuizSubmissionWithAnswers($quizId, $userId, $questions);
+            $stats['submissions'] += $submissionResult['submissions'];
+            $stats['answers'] += $submissionResult['answers'];
+        }
+
+        return $stats;
+    }
+
+    private function createAssignmentQuestion(int $assignmentId, string $type, int $order): int
     {
         $questionData = [
             'assignment_id' => $assignmentId,
@@ -155,7 +260,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'content' => $this->getQuestionContent($type),
             'weight' => 1.0,
             'order' => $order,
-            'max_score' => 25,
+            'max_score' => 50,
             'options' => null,
             'answer_key' => null,
             'max_file_size' => null,
@@ -165,46 +270,57 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'updated_at' => $this->createdAt,
         ];
 
-        switch ($type) {
-            case QuestionType::MultipleChoice->value:
-                $options = [];
-                for ($i = 0; $i < 4; $i++) {
-                    $options[] = [
-                        'id' => $this->pregenUuids[array_rand($this->pregenUuids)],
-                        'label' => $this->pregenWords[array_rand($this->pregenWords)] . ' ' . $this->pregenWords[array_rand($this->pregenWords)],
-                    ];
-                }
-                $questionData['options'] = json_encode($options);
-                $questionData['answer_key'] = json_encode(['correct_option' => 0]);
-                break;
-
-            case QuestionType::Essay->value:
-                $questionData['answer_key'] = json_encode(['keywords' => [$this->pregenWords[array_rand($this->pregenWords)]]]);
-                break;
-
-            case QuestionType::FileUpload->value:
-                $questionData['max_file_size'] = 10485760;
-                $questionData['allowed_file_types'] = json_encode(['pdf', 'docx', 'zip']);
-                $questionData['allow_multiple_files'] = true;
-                break;
+        if ($type === QuestionType::FileUpload->value) {
+            $questionData['max_file_size'] = 10485760;
+            $questionData['allowed_file_types'] = json_encode(['pdf', 'docx', 'xlsx', 'zip']);
+            $questionData['allow_multiple_files'] = true;
         }
 
         return DB::table('assignment_questions')->insertGetId($questionData);
     }
 
-    private function createSubmissionWithAnswersAndGrade(
-        int $assignmentId,
-        int $userId,
-        array $questions,
-        int $courseId
-    ): array {
+    private function createQuizQuestion(int $quizId, string $type, int $order): int
+    {
+        $questionData = [
+            'quiz_id' => $quizId,
+            'type' => $type,
+            'content' => $this->getQuizQuestionContent($type),
+            'weight' => 25,
+            'order' => $order,
+            'max_score' => 25,
+            'options' => null,
+            'answer_key' => null,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->createdAt,
+        ];
+
+        switch ($type) {
+            case QuizQuestionType::MultipleChoice->value:
+                $options = ['Option A', 'Option B', 'Option C', 'Option D'];
+                $questionData['options'] = json_encode($options);
+                $questionData['answer_key'] = json_encode([0]);
+                break;
+
+            case QuizQuestionType::TrueFalse->value:
+                $questionData['options'] = json_encode(['True', 'False']);
+                $questionData['answer_key'] = json_encode([0]);
+                break;
+
+            case QuizQuestionType::Checkbox->value:
+                $options = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];
+                $questionData['options'] = json_encode($options);
+                $questionData['answer_key'] = json_encode([0, 2]);
+                break;
+        }
+
+        return DB::table('quiz_questions')->insertGetId($questionData);
+    }
+
+    private function createSubmissionWithAnswersAndGrade(int $assignmentId, int $userId, array $questions, int $courseId): array
+    {
         $stats = ['submissions' => 0, 'answers' => 0, 'grades' => 0];
 
-        $states = [
-            SubmissionState::Graded->value,
-            SubmissionState::PendingManualGrading->value,
-            SubmissionState::Released->value,
-        ];
+        $states = [SubmissionState::Graded->value, SubmissionState::PendingManualGrading->value, SubmissionState::Released->value];
         $state = $states[array_rand($states)];
 
         $status = match ($state) {
@@ -219,7 +335,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'state' => $state,
             'submitted_at' => now()->subDays(rand(1, 14))->toDateTimeString(),
             'attempt_number' => 1,
-            'is_late' => rand(1, 100) <= 10,
+            'is_late' => false,
             'score' => null,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
@@ -241,7 +357,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
                 'source_type' => 'assignment',
                 'source_id' => $assignmentId,
                 'user_id' => $userId,
-                'graded_by' => $this->userIds[0],
+                'graded_by' => $this->instructorIds[array_rand($this->instructorIds)],
                 'score' => $totalScore,
                 'max_score' => 100,
                 'feedback' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
@@ -253,6 +369,41 @@ class ComprehensiveAssessmentSeeder extends Seeder
             ]);
             $stats['grades']++;
         }
+
+        return $stats;
+    }
+
+    private function createQuizSubmissionWithAnswers(int $quizId, int $userId, array $questions): array
+    {
+        $stats = ['submissions' => 0, 'answers' => 0];
+
+        $submissionId = DB::table('quiz_submissions')->insertGetId([
+            'quiz_id' => $quizId,
+            'user_id' => $userId,
+            'status' => QuizSubmissionStatus::Graded->value,
+            'grading_status' => QuizGradingStatus::Graded->value,
+            'score' => null,
+            'final_score' => null,
+            'submitted_at' => now()->subDays(rand(1, 14))->toDateTimeString(),
+            'started_at' => now()->subDays(rand(1, 15))->toDateTimeString(),
+            'attempt_number' => 1,
+            'is_resubmission' => false,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->createdAt,
+        ]);
+        $stats['submissions']++;
+
+        $totalScore = 0;
+        foreach ($questions as $question) {
+            $score = $this->createQuizAnswer($submissionId, $question);
+            $stats['answers']++;
+            $totalScore += $score;
+        }
+
+        DB::table('quiz_submissions')->where('id', $submissionId)->update([
+            'score' => $totalScore,
+            'final_score' => $totalScore,
+        ]);
 
         return $stats;
     }
@@ -273,30 +424,21 @@ class ComprehensiveAssessmentSeeder extends Seeder
         ];
 
         switch ($question['type']) {
-            case QuestionType::MultipleChoice->value:
-                $answerData['selected_options'] = json_encode([$this->pregenUuids[array_rand($this->pregenUuids)]]);
-                $answerData['is_auto_graded'] = true;
-                if ($state !== SubmissionState::PendingManualGrading->value) {
-                    $answerData['score'] = rand(0, 1) === 1 ? $question['max_score'] : 0;
-                }
-                break;
-
             case QuestionType::Essay->value:
-                $answerData['content'] = $this->pregenParagraphs[array_rand($this->pregenParagraphs)] . "\n\n" .
-                    $this->pregenParagraphs[array_rand($this->pregenParagraphs)];
+                $answerData['content'] = $this->pregenParagraphs[array_rand($this->pregenParagraphs)];
                 if ($state !== SubmissionState::PendingManualGrading->value) {
-                    $answerData['score'] = rand(15, $question['max_score']);
+                    $answerData['score'] = rand(30, $question['max_score']);
                     $answerData['feedback'] = $this->pregenSentences[array_rand($this->pregenSentences)];
                 }
                 break;
 
             case QuestionType::FileUpload->value:
                 $answerData['file_paths'] = json_encode([
-                    'uploads/' . $this->pregenWords[array_rand($this->pregenWords)] . '_' . rand(1000, 9999) . '.pdf',
-                    'uploads/' . $this->pregenWords[array_rand($this->pregenWords)] . '_' . rand(1000, 9999) . '.docx',
+                    'uploads/dummy_'.rand(1000, 9999).'.pdf',
+                    'uploads/dummy_'.rand(1000, 9999).'.docx',
                 ]);
                 if ($state !== SubmissionState::PendingManualGrading->value) {
-                    $answerData['score'] = rand(18, $question['max_score']);
+                    $answerData['score'] = rand(35, $question['max_score']);
                     $answerData['feedback'] = $this->pregenSentences[array_rand($this->pregenSentences)];
                 }
                 break;
@@ -307,31 +449,77 @@ class ComprehensiveAssessmentSeeder extends Seeder
         return ['score' => $answerData['score']];
     }
 
+    private function createQuizAnswer(int $submissionId, array $question): float
+    {
+        $answerData = [
+            'quiz_submission_id' => $submissionId,
+            'quiz_question_id' => $question['id'],
+            'content' => null,
+            'selected_options' => null,
+            'score' => 0,
+            'is_auto_graded' => true,
+            'feedback' => null,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->createdAt,
+        ];
+
+        $isCorrect = rand(0, 100) > 30;
+
+        switch ($question['type']) {
+            case QuizQuestionType::MultipleChoice->value:
+            case QuizQuestionType::TrueFalse->value:
+                $answerData['selected_options'] = json_encode([$isCorrect ? 0 : 1]);
+                $answerData['score'] = $isCorrect ? $question['weight'] : 0;
+                break;
+
+            case QuizQuestionType::Checkbox->value:
+                $answerData['selected_options'] = json_encode($isCorrect ? [0, 2] : [0, 1]);
+                $answerData['score'] = $isCorrect ? $question['weight'] : 0;
+                break;
+
+            case QuizQuestionType::Essay->value:
+                $answerData['content'] = $this->pregenParagraphs[array_rand($this->pregenParagraphs)];
+                $answerData['is_auto_graded'] = false;
+                $answerData['score'] = rand(15, $question['weight']);
+                $answerData['feedback'] = $this->pregenSentences[array_rand($this->pregenSentences)];
+                break;
+        }
+
+        DB::table('quiz_answers')->insertOrIgnore($answerData);
+
+        return $answerData['score'];
+    }
+
     private function getQuestionContent(string $type): string
     {
         $templates = [
-            QuestionType::MultipleChoice->value => [
-                'Which of the following best describes the concept of dependency injection?',
-                'What is the primary purpose of unit testing in software development?',
-                'Which design pattern is most suitable for managing object creation?',
-                'What does SOLID stand for in software development principles?',
-            ],
             QuestionType::Essay->value => [
-                'Explain the importance of code testing and describe different types of testing strategies used in modern software development.',
-                'Discuss the Model-View-Controller (MVC) pattern and explain its role in web application architecture.',
-                'Compare and contrast REST API with GraphQL. When would you choose one over the other?',
-                'Describe the SOLID principles in object-oriented programming with practical examples.',
+                'Explain the importance of code testing and describe different types of testing strategies.',
+                'Discuss the Model-View-Controller (MVC) pattern and its role in web applications.',
+                'Compare REST API with GraphQL and explain when to use each.',
             ],
             QuestionType::FileUpload->value => [
                 'Upload your completed project source code as a ZIP file.',
-                'Submit your database schema diagram in PDF or image format.',
+                'Submit your database schema diagram in PDF format.',
                 'Upload your test case results in Excel or CSV format.',
-                'Submit your design mockups in PNG, JPG, or PDF format.',
             ],
         ];
 
         $options = $templates[$type] ?? $templates[QuestionType::Essay->value];
+
         return $options[array_rand($options)];
+    }
+
+    private function getQuizQuestionContent(string $type): string
+    {
+        $templates = [
+            QuizQuestionType::MultipleChoice->value => 'Which of the following best describes dependency injection?',
+            QuizQuestionType::TrueFalse->value => 'Laravel uses the MVC architectural pattern.',
+            QuizQuestionType::Checkbox->value => 'Select all valid HTTP methods:',
+            QuizQuestionType::Essay->value => 'Explain the concept of middleware in web applications.',
+        ];
+
+        return $templates[$type] ?? 'Sample question';
     }
 
     private function pregenerateFakeData(): void

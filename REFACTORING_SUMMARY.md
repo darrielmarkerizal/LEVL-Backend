@@ -150,3 +150,56 @@ vendor/bin/phpstan analyse Modules/Schemes
 - Clients using deadline fields must update
 - Clients using assignment question endpoints must migrate to alternative approach
 - Quiz question navigation changed to single-question retrieval
+
+
+---
+
+## Task 6: Update Seeders for Refactored Structure ✅
+
+### Seeders Updated
+
+#### ComprehensiveAssessmentSeeder
+- Removed all deadline-related fields from assignments and quizzes
+- Separated Assignment (file upload) from Quiz (questions) entities
+- Used `AssignmentType::Assignment` enum for assignment type
+- Removed `is_late` field from all submissions
+- Used proper enums: `QuizSubmissionStatus`, `QuizGradingStatus`, `SubmissionState`, `SubmissionStatus`
+- Fixed user role queries to use Spatie Permission with `model_has_roles` join
+- Used correct capitalized role names: 'Student', 'Instructor', 'Admin'
+- Created realistic test data with proper grading states
+
+#### LearningContentSeeder
+- Integrated Spatie Media Library for file uploads
+- Upload actual files from `public/dummy/` directory to DigitalOcean Spaces
+- Support multiple content types: text, video, file, image, embed
+- Used `addMedia()` for local files and `addMediaFromUrl()` for remote images
+- Fixed column name from `order_index` to `order` for lessons table
+- Weighted random distribution for realistic content mix
+- Track and report media upload statistics
+
+### Seeding Results
+
+#### LearningContentSeeder
+- 154 units created
+- 696 lessons created
+- 2,766 lesson blocks created
+- 1,672 media files uploaded to DigitalOcean Spaces
+
+#### ComprehensiveAssessmentSeeder
+- 347 assignments created
+- 362 quizzes created
+- 2,142 questions created (assignment + quiz questions)
+- 3,545 submissions created
+- 10,710 answers created
+- 1,166 grades created
+
+### Files Modified
+- `Modules/Learning/database/seeders/ComprehensiveAssessmentSeeder.php`
+- `Modules/Schemes/database/seeders/LearningContentSeeder.php`
+
+### Code Quality
+- All code formatted with Laravel Pint (PSR-12)
+- Strict types declaration maintained
+- Proper enum usage throughout
+- No comments added (descriptive naming used)
+
