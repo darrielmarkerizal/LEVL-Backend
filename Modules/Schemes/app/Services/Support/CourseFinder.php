@@ -140,7 +140,21 @@ class CourseFinder
                 AllowedFilter::exact('type'),
                 AllowedFilter::exact('category_id'),
             ])
-            ->allowedIncludes(['tags', 'category', 'instructor', 'units', 'admins'])
+            ->allowedIncludes([
+                'tags',
+                'category',
+                'instructor',
+                'admins',
+                'units',
+                'units.lessons',
+                'units.lessons.blocks',
+                'lessons',
+                'lessonBlocks',
+                'quizzes',
+                'assignments',
+                'enrollments',
+                'enrollments.user',
+            ])
             ->allowedSorts(['id', 'code', 'title', 'created_at', 'updated_at', 'published_at'])
             ->defaultSort('title');
     }
