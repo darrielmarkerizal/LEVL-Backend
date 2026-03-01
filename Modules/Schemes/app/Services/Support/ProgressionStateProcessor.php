@@ -186,10 +186,7 @@ class ProgressionStateProcessor
                     $completedLessonCount++;
                 }
 
-                $isLessonLocked = false;
-                if ($courseModel->progression_mode === 'sequential') {
-                    $isLessonLocked = ! $previousUnitsCompleted || ! $previousLessonsCompleted;
-                }
+                $isLessonLocked = ! $previousUnitsCompleted || ! $previousLessonsCompleted;
 
                 $lessonsData[] = [
                     'id' => $lessonItem->id,
@@ -222,7 +219,7 @@ class ProgressionStateProcessor
                 $completedUnitsCount++;
             }
 
-            $isUnitLocked = $courseModel->progression_mode === 'sequential' && ! $previousUnitsCompleted;
+            $isUnitLocked = ! $previousUnitsCompleted;
 
             $unitsData[] = [
                 'id' => $unit->id,
@@ -257,7 +254,6 @@ class ProgressionStateProcessor
                 'id' => $courseModel->id,
                 'slug' => $courseModel->slug,
                 'title' => $courseModel->title,
-                'progression_mode' => $courseModel->progression_mode,
                 'status' => $courseStatus instanceof ProgressStatus ? $courseStatus->value : $courseStatus,
                 'progress_percent' => round((float) $coursePercent, 2),
                 'completed_at' => optional($courseProgress?->completed_at)->toIso8601String(),

@@ -162,7 +162,6 @@ return [
         'course_types' => 'Daftar tipe kursus',
         'enrollment_types' => 'Daftar tipe pendaftaran',
         'level_tags' => 'Daftar level kesulitan',
-        'progression_modes' => 'Daftar mode progres',
         'content_types' => 'Daftar tipe konten',
         'enrollment_statuses' => 'Daftar status pendaftaran',
         'progress_statuses' => 'Daftar status progres',

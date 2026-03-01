@@ -194,7 +194,6 @@ return [
         'course_types' => 'Course type list',
         'enrollment_types' => 'Enrollment type list',
         'level_tags' => 'Difficulty level list',
-        'progression_modes' => 'Progression mode list',
         'content_types' => 'Content type list',
         'enrollment_statuses' => 'Enrollment status list',
         'progress_statuses' => 'Progress status list',

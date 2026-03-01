@@ -40,11 +40,6 @@ return [
     "mahir" => "Mahir",
   ],
 
-  "progression_mode" => [
-    "sequential" => "Berurutan",
-    "free" => "Bebas",
-  ],
-
   "content_type" => [
     "markdown" => "Markdown",
     "video" => "Video",

@@ -15,7 +15,6 @@ use Modules\Schemes\Enums\CourseStatus;
 use Modules\Schemes\Enums\CourseType;
 use Modules\Schemes\Enums\EnrollmentType;
 use Modules\Schemes\Enums\LevelTag;
-use Modules\Schemes\Enums\ProgressionMode;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
@@ -103,7 +102,6 @@ class Course extends Model implements HasMedia
         'tags_json',
         'prereq_text',
         'duration_estimate',
-        'progression_mode',
         'enrollment_type',
         'enrollment_key',
         'enrollment_key_hash',
@@ -123,7 +121,6 @@ class Course extends Model implements HasMedia
         'type' => CourseType::class,
         'level_tag' => LevelTag::class,
         'enrollment_type' => EnrollmentType::class,
-        'progression_mode' => ProgressionMode::class,
     ];
 
     protected $appends = ['tag_list'];
