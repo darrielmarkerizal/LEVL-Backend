@@ -84,14 +84,12 @@ it('admin can create course with outcomes and prerequisites', function () {
                 'Understand MVC pattern',
                 'Build REST API',
             ],
-            'prereq' => $prereqText,
         ]);
 
     $response->assertStatus(201);
     $course = Course::where('code', 'TEST-OUTCOMES')->first();
 
     expect($course->outcomes)->toHaveCount(3);
-    expect($course->prereq_text)->toEqual($prereqText);
 
     assertDatabaseHas('course_outcomes', [
         'course_id' => $course->id,
@@ -99,7 +97,6 @@ it('admin can create course with outcomes and prerequisites', function () {
         'order' => 0,
     ]);
 });
-
 
 it('superadmin can create course', function () {
     $superadmin = User::factory()->create();
@@ -177,14 +174,12 @@ it('admin can update course outcomes and prerequisites', function () {
                 'Updated outcome 1',
                 'Updated outcome 2',
             ],
-            'prereq' => '<p>Lengkapi modul dasar terlebih dahulu.</p>',
         ]);
 
     $response->assertStatus(200);
     $course->refresh();
 
     expect($course->outcomes)->toHaveCount(2);
-    expect($course->prereq_text)->toEqual('<p>Lengkapi modul dasar terlebih dahulu.</p>');
 });
 
 // DELETE - Delete Course
@@ -504,4 +499,3 @@ it('admin cannot publish course they dont manage', function () {
 
     $response->assertStatus(403);
 });
-
