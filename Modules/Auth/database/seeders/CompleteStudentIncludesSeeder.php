@@ -141,7 +141,6 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'level_tag' => 'dasar',
                 'tags_json' => json_encode([]),
                 'prereq_text' => 'None',
-                'progression_mode' => 'sequential',
                 'enrollment_type' => 'auto_accept',
                 'status' => 'published',
                 'published_at' => now(),

@@ -11,7 +11,6 @@ use Modules\Schemes\Models\Course;
 use Modules\Schemes\Enums\CourseStatus;
 use Modules\Schemes\Enums\CourseType;
 use Modules\Schemes\Enums\EnrollmentType;
-use Modules\Schemes\Enums\ProgressionMode;
 
 class CourseFactory extends Factory
 {
@@ -68,10 +67,6 @@ class CourseFactory extends Factory
                 EnrollmentType::AutoAccept->value,
                 EnrollmentType::KeyBased->value,
                 EnrollmentType::Approval->value
-            ]),
-            'progression_mode' => fake()->randomElement([
-                ProgressionMode::Sequential->value,
-                ProgressionMode::Free->value
             ]),
             'status' => fake()->randomElement([
                 CourseStatus::Published->value,

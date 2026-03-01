@@ -40,11 +40,6 @@ return [
         'mahir' => 'Advanced',
     ],
 
-    'progression_mode' => [
-        'sequential' => 'Sequential',
-        'free' => 'Free',
-    ],
-
     'content_type' => [
         'markdown' => 'Markdown',
         'video' => 'Video',

@@ -67,9 +67,6 @@ class ProgressionGatekeeper
         }
 
         $course = $lessonModel->unit->course;
-        if ($course->progression_mode === 'free') {
-            return true;
-        }
 
         $orderedUnits = $course->units()
             ->where('status', 'published')

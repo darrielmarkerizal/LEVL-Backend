@@ -10,7 +10,6 @@ use Modules\Schemes\Enums\CourseStatus;
 use Modules\Schemes\Enums\CourseType;
 use Modules\Schemes\Enums\EnrollmentType;
 use Modules\Schemes\Enums\LevelTag;
-use Modules\Schemes\Enums\ProgressionMode;
 
 trait HasSchemesRequestRules
 {
@@ -54,7 +53,6 @@ trait HasSchemesRequestRules
                 'string',
                 'max:100',
             ],
-            'progression_mode' => ['required', Rule::enum(ProgressionMode::class)],
             'category_id' => [Rule::requiredIf(fn () => $courseId === 0), 'integer', 'exists:categories,id'],
             'tags' => ['sometimes', 'array'],
             'tags.*' => ['string'],
@@ -83,7 +81,6 @@ trait HasSchemesRequestRules
             'enrollment_key.required_if' => __('validation.required_if', ['attribute' => __('validation.attributes.enrollment_key'), 'other' => __('validation.attributes.enrollment_type')]),
             'enrollment_key.string' => __('validation.string', ['attribute' => __('validation.attributes.enrollment_key')]),
             'enrollment_key.max' => __('validation.max.string', ['attribute' => __('validation.attributes.enrollment_key'), 'max' => 100]),
-            'progression_mode.required' => __('validation.required', ['attribute' => __('validation.attributes.progression_mode')]),
             'category_id.required' => __('validation.required', ['attribute' => __('validation.attributes.category')]),
             'category_id.integer' => __('validation.integer', ['attribute' => __('validation.attributes.category')]),
             'category_id.exists' => __('validation.exists', ['attribute' => __('validation.attributes.category')]),

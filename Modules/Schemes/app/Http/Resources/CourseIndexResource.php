@@ -17,7 +17,6 @@ class CourseIndexResource extends JsonResource
             'type' => $this->type,
             'level_tag' => $this->level_tag,
             'enrollment_type' => $this->enrollment_type,
-            'progression_mode' => $this->progression_mode,
             'status' => $this->status,
             'published_at' => $this->published_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),

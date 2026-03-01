@@ -209,7 +209,6 @@ return [
         'level' => 'level',
         'enrollment_ids' => 'enrollment IDs',
         'enrollment_type' => 'enrollment type',
-        'progression_mode' => 'progression mode',
         'category_id' => 'category',
         'category' => 'category',
         'weight' => 'weight',

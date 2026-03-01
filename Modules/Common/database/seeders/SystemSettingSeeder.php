@@ -55,7 +55,6 @@ class SystemSettingSeeder extends Seeder
             // ============================================
             // Learning Settings
             // ============================================
-            ['key' => 'learning.progression_mode', 'value' => 'sequential', 'type' => 'string'],
             ['key' => 'learning.max_attempts_per_quiz', 'value' => '3', 'type' => 'number'],
             ['key' => 'learning.auto_complete_lesson', 'value' => 'true', 'type' => 'boolean'],
             ['key' => 'learning.default_unit_order', 'value' => 'asc', 'type' => 'string'],

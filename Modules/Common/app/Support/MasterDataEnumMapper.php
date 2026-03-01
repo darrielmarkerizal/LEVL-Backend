@@ -31,7 +31,6 @@ use Modules\Schemes\Enums\CourseStatus;
 use Modules\Schemes\Enums\CourseType;
 use Modules\Schemes\Enums\EnrollmentType;
 use Modules\Schemes\Enums\LevelTag;
-use Modules\Schemes\Enums\ProgressionMode;
 use Spatie\Permission\Models\Role;
 
 class MasterDataEnumMapper
@@ -45,7 +44,6 @@ class MasterDataEnumMapper
             'course-types' => fn () => $this->transformEnum(CourseType::class),
             'enrollment-types' => fn () => $this->transformEnum(EnrollmentType::class),
             'level-tags' => fn () => $this->transformEnum(LevelTag::class),
-            'progression-modes' => fn () => $this->transformEnum(ProgressionMode::class),
             'content-types' => fn () => $this->transformEnum(ContentType::class),
             'enrollment-status' => fn () => $this->transformEnum(EnrollmentStatus::class),
             'progress-status' => fn () => $this->transformEnum(ProgressStatus::class),
