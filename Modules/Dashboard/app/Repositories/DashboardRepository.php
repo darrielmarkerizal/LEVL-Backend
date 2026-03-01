@@ -268,7 +268,7 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             ->orderByDesc('updated_at')
             ->first();
 
-        if (! $latest) {
+        if (! $latest || ! $latest->lesson || ! $latest->lesson->unit || ! $latest->lesson->unit->course) {
             return null;
         }
 
@@ -280,8 +280,8 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
         $totalLessons = $unit->lessons()->count();
 
         return [
-            'course' => $course->title,
-            'unit' => $unit->title,
+            'course' => $course->title ?? 'Unknown Course',
+            'unit' => $unit->title ?? 'Unknown Unit',
             'lesson_index' => $lessonIndex,
             'total_lessons' => $totalLessons,
             'updated_at' => $latest->updated_at,
@@ -291,13 +291,13 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
     public function getRecentAchievements(User $user): array
     {
         return UserBadge::where('user_id', $user->id)
-            ->with('badge')
+            ->with('badge.media')
             ->orderByDesc('earned_at')
             ->limit(4)
             ->get()
             ->map(fn ($ub) => [
-                'name' => $ub->badge->name,
-                'image' => $ub->badge->icon_url,
+                'name' => $ub->badge?->name ?? 'Unknown Badge',
+                'image' => $ub->badge?->icon_url ?? null,
                 'earned_at' => $ub->earned_at,
             ])
             ->toArray();
@@ -350,7 +350,7 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             }
 
             $recommended = $query
-                ->with(['instructor', 'media'])
+                ->with(['instructor:id,name', 'media'])
                 ->withCount('enrollments')
                 ->inRandomOrder()
                 ->limit(2)
@@ -367,7 +367,7 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
                 }
 
                 $additional = $additionalQuery
-                    ->with(['instructor', 'media'])
+                    ->with(['instructor:id,name', 'media'])
                     ->withCount('enrollments')
                     ->inRandomOrder()
                     ->limit($additionalCount)
@@ -376,18 +376,29 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
                 $recommended = $recommended->merge($additional);
             }
 
-            return $recommended->map(fn ($course) => [
-                'id' => $course->id,
-                'slug' => $course->slug,
-                'title' => $course->title,
-                'short_desc' => $course->short_desc,
-                'thumbnail' => $course->getFirstMediaUrl('thumbnail'),
-                'instructor' => [
-                    'id' => $course->instructor?->id,
-                    'name' => $course->instructor?->name,
-                ],
-                'enrollments_count' => $course->enrollments_count,
-            ])->toArray();
+            return $recommended->map(function ($course) {
+                try {
+                    return [
+                        'id' => $course->id,
+                        'slug' => $course->slug,
+                        'title' => $course->title ?? 'Untitled Course',
+                        'short_desc' => $course->short_desc ?? '',
+                        'thumbnail' => $course->getFirstMediaUrl('thumbnail') ?: null,
+                        'instructor' => [
+                            'id' => $course->instructor?->id,
+                            'name' => $course->instructor?->name ?? 'Unknown Instructor',
+                        ],
+                        'enrollments_count' => $course->enrollments_count ?? 0,
+                    ];
+                } catch (\Exception $e) {
+                    \Log::error('Failed to map course in recommended courses', [
+                        'course_id' => $course->id ?? null,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    return null;
+                }
+            })->filter()->values()->toArray();
         } catch (\Exception $e) {
             \Log::error('Failed to get recommended courses', [
                 'user_id' => $user->id,
@@ -402,7 +413,7 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
     private function getRandomPublishedCourses(int $limit): array
     {
         return Course::where('status', \Modules\Schemes\Enums\CourseStatus::Published)
-            ->with(['instructor', 'media'])
+            ->with(['instructor:id,name', 'media'])
             ->withCount('enrollments')
             ->inRandomOrder()
             ->limit($limit)
@@ -410,14 +421,14 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             ->map(fn ($course) => [
                 'id' => $course->id,
                 'slug' => $course->slug,
-                'title' => $course->title,
-                'short_desc' => $course->short_desc,
-                'thumbnail' => $course->getFirstMediaUrl('thumbnail'),
+                'title' => $course->title ?? 'Untitled Course',
+                'short_desc' => $course->short_desc ?? '',
+                'thumbnail' => $course->getFirstMediaUrl('thumbnail') ?: null,
                 'instructor' => [
                     'id' => $course->instructor?->id,
-                    'name' => $course->instructor?->name,
+                    'name' => $course->instructor?->name ?? 'Unknown Instructor',
                 ],
-                'enrollments_count' => $course->enrollments_count,
+                'enrollments_count' => $course->enrollments_count ?? 0,
             ])
             ->toArray();
     }
