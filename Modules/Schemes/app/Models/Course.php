@@ -89,8 +89,6 @@ class Course extends Model implements HasMedia
             );
     }
 
-
-
     protected $fillable = [
         'code',
         'slug',
@@ -100,7 +98,6 @@ class Course extends Model implements HasMedia
         'level_tag',
         'category_id',
         'tags_json',
-        'prereq_text',
         'duration_estimate',
         'enrollment_type',
         'enrollment_key',
@@ -182,6 +179,7 @@ class Course extends Model implements HasMedia
         if ($isPublished) {
             return $query->where('status', 'published');
         }
+
         return $query->where('status', '!=', 'published');
     }
 

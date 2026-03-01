@@ -17,7 +17,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Quiz extends Model implements HasMedia
 {
-    use PgSearchable, InteractsWithMedia;
+    use InteractsWithMedia, PgSearchable;
 
     protected array $searchable_columns = [
         'title',
@@ -168,6 +168,7 @@ class Quiz extends Model implements HasMedia
         if ($isPublished) {
             return $query->where('status', QuizStatus::Published);
         }
+
         return $query->where('status', '!=', QuizStatus::Published);
     }
 
@@ -176,6 +177,7 @@ class Quiz extends Model implements HasMedia
         if ($isAvailable) {
             return $query->published();
         }
+
         return $query->where('status', '!=', QuizStatus::Published);
     }
 
@@ -188,11 +190,11 @@ class Quiz extends Model implements HasMedia
                 $subQ->where('assignable_type', \Modules\Schemes\Models\Unit::class)
                     ->where('assignable_id', $unitId);
             })
-            ->orWhere(function ($subQ) use ($lessonIds) {
-                $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
-                    ->whereIn('assignable_id', $lessonIds);
-            })
-            ->orWhereIn('lesson_id', $lessonIds);
+                ->orWhere(function ($subQ) use ($lessonIds) {
+                    $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
+                        ->whereIn('assignable_id', $lessonIds);
+                })
+                ->orWhereIn('lesson_id', $lessonIds);
         });
     }
 
@@ -206,15 +208,15 @@ class Quiz extends Model implements HasMedia
                 $subQ->where('assignable_type', \Modules\Schemes\Models\Course::class)
                     ->where('assignable_id', $courseId);
             })
-            ->orWhere(function ($subQ) use ($unitIds) {
-                $subQ->where('assignable_type', \Modules\Schemes\Models\Unit::class)
-                    ->whereIn('assignable_id', $unitIds);
-            })
-            ->orWhere(function ($subQ) use ($lessonIds) {
-                $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
-                    ->whereIn('assignable_id', $lessonIds);
-            })
-            ->orWhereIn('lesson_id', $lessonIds);
+                ->orWhere(function ($subQ) use ($unitIds) {
+                    $subQ->where('assignable_type', \Modules\Schemes\Models\Unit::class)
+                        ->whereIn('assignable_id', $unitIds);
+                })
+                ->orWhere(function ($subQ) use ($lessonIds) {
+                    $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
+                        ->whereIn('assignable_id', $lessonIds);
+                })
+                ->orWhereIn('lesson_id', $lessonIds);
         });
     }
 }

@@ -4,15 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Services\Support;
 
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Modules\Enrollments\Enums\EnrollmentStatus;
-use Modules\Enrollments\Enums\ProgressStatus;
-use Modules\Enrollments\Models\CourseProgress;
 use Modules\Enrollments\Models\Enrollment;
-use Modules\Enrollments\Models\LessonProgress;
-use Modules\Enrollments\Models\UnitProgress;
 use Modules\Schemes\Models\Course;
 
 class ProgressionFinder
@@ -32,7 +27,7 @@ class ProgressionFinder
     public function validateAndGetProgress(Course $course, int $targetUserId, int $requestingUserId): array
     {
         $targetUser = \Modules\Auth\Models\User::find($targetUserId);
-        if (!$targetUser) {
+        if (! $targetUser) {
             throw new ModelNotFoundException(__('messages.users.not_found'));
         }
 
@@ -41,7 +36,7 @@ class ProgressionFinder
             ->whereIn('status', ['active', 'completed'])
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             throw new ModelNotFoundException(__('messages.progress.enrollment_not_found'));
         }
 
@@ -51,7 +46,7 @@ class ProgressionFinder
     public function getProgressForUser(Course $course, int $userId): array
     {
         $enrollment = $this->getEnrollmentForCourse($course->id, $userId);
-        if (!$enrollment) {
+        if (! $enrollment) {
             throw new ModelNotFoundException(__('messages.progress.enrollment_not_found'));
         }
 
@@ -94,7 +89,7 @@ class ProgressionFinder
         // But `ProgressionStateProcessor` depends on calculating.
         // Let's put `getCourseProgressData` in `ProgressionStateProcessor` as it writes to DB.
         // `ProgressionFinder` will primarily be for simple lookups like `getEnrollmentForCourse`.
-        
+
         // Wait, `validateAndGetProgress` calls `getCourseProgressData`.
         // So `validateAndGetProgress` also belongs in Processor? Or it delegates.
         // I'll keep `getEnrollmentForCourse` here.
@@ -104,7 +99,7 @@ class ProgressionFinder
         // `ProgressionStateProcessor` handles `markLessonCompleted`, `update*Progress`.
         // `getCourseProgressData` calls `updateUnitProgress`.
         // So `getCourseProgressData` belongs in `ProgressionStateProcessor`.
-        
+
         return []; // Placeholder, method will be moved.
     }
 }

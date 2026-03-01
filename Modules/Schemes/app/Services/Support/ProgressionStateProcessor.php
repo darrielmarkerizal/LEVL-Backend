@@ -32,7 +32,7 @@ class ProgressionStateProcessor
                 ->first();
 
             if ($existingProgress) {
-                return; 
+                return;
             }
 
             $lessonModel = $lesson->fresh([

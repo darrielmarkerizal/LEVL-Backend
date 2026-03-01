@@ -74,54 +74,63 @@ class CourseService implements CourseServiceInterface
     public function update(int $id, UpdateCourseDTO|array $data, array $files = []): Course
     {
         $course = $this->findOrFail($id);
+
         return $this->lifecycleProcessor->update($course, $data, $files);
     }
 
     public function delete(int $id): bool
     {
         $course = $this->findOrFail($id);
+
         return $this->lifecycleProcessor->delete($course);
     }
 
     public function publish(int $id): Course
     {
         $course = $this->findOrFail($id);
+
         return $this->publicationProcessor->publish($course);
     }
 
     public function unpublish(int $id): Course
     {
         $course = $this->findOrFail($id);
+
         return $this->publicationProcessor->unpublish($course);
     }
 
     public function updateEnrollmentSettings(int $id, array $data): array
     {
         $course = $this->findOrFail($id);
+
         return $this->lifecycleProcessor->updateEnrollmentSettings($course, $data);
     }
 
     public function uploadThumbnail(int $id, \Illuminate\Http\UploadedFile $file): Course
     {
         $course = $this->findOrFail($id);
+
         return $this->lifecycleProcessor->uploadThumbnail($course, $file);
     }
 
     public function uploadBanner(int $id, \Illuminate\Http\UploadedFile $file): Course
     {
         $course = $this->findOrFail($id);
+
         return $this->lifecycleProcessor->uploadBanner($course, $file);
     }
 
     public function deleteThumbnail(int $id): Course
     {
         $course = $this->findOrFail($id);
+
         return $this->lifecycleProcessor->deleteThumbnail($course);
     }
 
     public function deleteBanner(int $id): Course
     {
         $course = $this->findOrFail($id);
+
         return $this->lifecycleProcessor->deleteBanner($course);
     }
 
@@ -135,7 +144,7 @@ class CourseService implements CourseServiceInterface
 
         return $hasher->verify($plainKey, $course->enrollment_key_hash);
     }
-    
+
     public function generateEnrollmentKey(int $length = 12): string
     {
         return $this->lifecycleProcessor->generateEnrollmentKey($length);

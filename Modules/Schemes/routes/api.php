@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Schemes\Http\Controllers\CourseController;
 use Modules\Schemes\Http\Controllers\LessonBlockController;
+use Modules\Schemes\Http\Controllers\LessonCompletionController;
 use Modules\Schemes\Http\Controllers\LessonController;
 use Modules\Schemes\Http\Controllers\ProgressController;
 use Modules\Schemes\Http\Controllers\TagController;
@@ -48,6 +49,11 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.units.show');
         Route::get('courses/{course:slug}/units/{unit:slug}/contents', [UnitController::class, 'contents'])
             ->name('courses.units.contents');
+
+        Route::post('lessons/{lesson:slug}/complete', [LessonCompletionController::class, 'markComplete'])
+            ->name('lessons.complete');
+        Route::delete('lessons/{lesson:slug}/complete', [LessonCompletionController::class, 'markIncomplete'])
+            ->name('lessons.incomplete');
     });
 
     // Unit management routes (Admin, Instructor)

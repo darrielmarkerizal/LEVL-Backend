@@ -29,10 +29,10 @@ class ProgressionGatekeeper
         }
 
         $user = User::find($userId);
-        
+
         if ($user && ($user->hasRole(['Superadmin', 'Admin', 'Instructor']))) {
             $enrollment = $this->finder->getEnrollmentForCourse($course->id, $userId);
-            if (!$enrollment) {
+            if (! $enrollment) {
                 // Auto-enroll staff
                 $enrollment = Enrollment::create([
                     'user_id' => $userId,
@@ -41,12 +41,13 @@ class ProgressionGatekeeper
                     'enrolled_at' => now(),
                 ]);
             }
+
             return $enrollment;
         }
 
         $enrollment = $this->finder->getEnrollmentForCourse($course->id, $userId);
-        
-        if (!$enrollment || !$this->canAccessLesson($lesson, $enrollment)) {
+
+        if (! $enrollment || ! $this->canAccessLesson($lesson, $enrollment)) {
             throw new \App\Exceptions\BusinessException(__('messages.progress.locked_prerequisite'), [], 403);
         }
 

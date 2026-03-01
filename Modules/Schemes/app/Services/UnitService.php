@@ -37,7 +37,7 @@ class UnitService
         $perPage = max(1, min($perPage, 100));
 
         return cache()->tags(['schemes', 'units'])->remember(
-            "schemes:units:course:{$courseId}:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            "schemes:units:course:{$courseId}:{$perPage}:".request('page', 1).':'.md5(json_encode($filters)),
             300,
             function () use ($courseId, $filters, $perPage) {
                 $query = QueryBuilder::for(Unit::class, $this->buildQueryBuilderRequest($filters))
@@ -87,6 +87,7 @@ class UnitService
 
             $unit = $this->repository->create($attributes);
             cache()->tags(['schemes', 'units'])->flush();
+
             return $unit;
         });
     }
@@ -121,6 +122,7 @@ class UnitService
 
             $updated = $this->repository->update($unit, $attributes);
             cache()->tags(['schemes', 'units'])->flush();
+
             return $updated;
         });
     }
@@ -216,7 +218,7 @@ class UnitService
         $lessons = $unit->lessons()
             ->select('id', 'unit_id', 'title', 'slug', 'description', 'order_index', 'status', 'created_at')
             ->get()
-            ->map(fn($lesson) => [
+            ->map(fn ($lesson) => [
                 'id' => $lesson->id,
                 'type' => 'lesson',
                 'title' => $lesson->title,
@@ -231,7 +233,7 @@ class UnitService
             ->where('assignable_id', $unit->id)
             ->select('id', 'title', 'description', 'status', 'max_score', 'passing_grade', 'created_at')
             ->get()
-            ->map(fn($quiz) => [
+            ->map(fn ($quiz) => [
                 'id' => $quiz->id,
                 'type' => 'quiz',
                 'title' => $quiz->title,
@@ -247,7 +249,7 @@ class UnitService
             ->where('assignable_id', $unit->id)
             ->select('id', 'title', 'description', 'status', 'max_score', 'submission_type', 'created_at')
             ->get()
-            ->map(fn($assignment) => [
+            ->map(fn ($assignment) => [
                 'id' => $assignment->id,
                 'type' => 'assignment',
                 'title' => $assignment->title,

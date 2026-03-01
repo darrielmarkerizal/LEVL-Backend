@@ -180,7 +180,7 @@ class CourseLifecycleProcessor
 
         return $course->fresh();
     }
-    
+
     public function generateEnrollmentKey(int $length = 12): string
     {
         $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

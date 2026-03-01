@@ -92,7 +92,6 @@ class Tag extends Model
      * Get the indexable data array for the model.
      */
 
-
     /**
      * Create a new factory instance for the model.
      */
