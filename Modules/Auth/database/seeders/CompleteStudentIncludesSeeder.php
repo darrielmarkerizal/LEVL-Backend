@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Modules\Auth\Models\ProfilePrivacySetting;
 use Modules\Auth\Models\User;
-use Spatie\Permission\Models\Role;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Forums\Models\Thread;
 use Modules\Gamification\Models\Badge;
@@ -28,6 +27,7 @@ use Modules\Learning\Models\Submission;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Unit;
+use Spatie\Permission\Models\Role;
 
 /**
  * Creates one deterministic "complete" Student user with non-empty data
@@ -140,7 +140,6 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'type' => 'okupasi',
                 'level_tag' => 'dasar',
                 'tags_json' => json_encode([]),
-                'prereq_text' => 'None',
                 'enrollment_type' => 'auto_accept',
                 'status' => 'published',
                 'published_at' => now(),
@@ -415,4 +414,3 @@ class CompleteStudentIncludesSeeder extends Seeder
         return array_intersect_key($attributes, $columnsCache[$table]);
     }
 }
-
