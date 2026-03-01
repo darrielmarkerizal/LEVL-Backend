@@ -81,10 +81,6 @@ class CourseRequest extends FormRequest
             $data['tags_list'] = $data['tags'];
             unset($data['tags']);
         }
-        if (\Illuminate\Support\Arr::has($data, 'prereq')) {
-            $data['prereq_text'] = $data['prereq'];
-            unset($data['prereq']);
-        }
 
         return $data;
     }
