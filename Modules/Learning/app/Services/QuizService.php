@@ -1,0 +1,138 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Learning\Services;
+
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Modules\Learning\Contracts\Services\QuizServiceInterface;
+use Modules\Learning\Enums\QuizStatus;
+use Modules\Learning\Models\Quiz;
+use Modules\Learning\Repositories\QuizRepository;
+
+class QuizService implements QuizServiceInterface
+{
+    public function __construct(
+        private readonly QuizRepository $repository,
+    ) {}
+
+    public function resolveCourseFromScope(string $assignableType, int $assignableId): ?\Modules\Schemes\Models\Course
+    {
+        return match ($assignableType) {
+            \Modules\Schemes\Models\Course::class => \Modules\Schemes\Models\Course::find($assignableId),
+            \Modules\Schemes\Models\Unit::class => \Modules\Schemes\Models\Unit::find($assignableId)?->course,
+            \Modules\Schemes\Models\Lesson::class => \Modules\Schemes\Models\Lesson::find($assignableId)?->unit?->course,
+            default => null,
+        };
+    }
+
+    public function resolveCourseFromScopeOrFail(?array $scope): \Modules\Schemes\Models\Course
+    {
+        if (empty($scope['assignable_type']) || empty($scope['assignable_id'])) {
+            abort(422, __('messages.quizzes.invalid_scope'));
+        }
+
+        $course = $this->resolveCourseFromScope($scope['assignable_type'], (int) $scope['assignable_id']);
+
+        if (! $course) {
+            abort(404, __('messages.quizzes.scope_not_found'));
+        }
+
+        return $course;
+    }
+
+    public function list(\Modules\Schemes\Models\Course $course, array $filters = []): LengthAwarePaginator
+    {
+        return $this->listForIndex($course, $filters);
+    }
+
+    public function listForIndex(\Modules\Schemes\Models\Course $course, array $filters = []): LengthAwarePaginator
+    {
+        return $this->repository->listByCourse($course->id, $filters);
+    }
+
+    public function create(array $data, int $createdBy): Quiz
+    {
+        return DB::transaction(function () use ($data, $createdBy) {
+            $quiz = $this->repository->create(array_merge($data, [
+                'created_by' => $createdBy,
+                'status' => $data['status'] ?? QuizStatus::Draft->value,
+                'passing_grade' => $data['passing_grade'] ?? 75.00,
+                'max_score' => $data['max_score'] ?? 100,
+                'auto_grading' => isset($data['auto_grading']) ? (bool) $data['auto_grading'] : true,
+                'cooldown_minutes' => $data['cooldown_minutes'] ?? 0,
+                'retake_enabled' => isset($data['retake_enabled']) ? (bool) $data['retake_enabled'] : false,
+                'review_mode' => $data['review_mode'] ?? 'immediate',
+                'randomization_type' => $data['randomization_type'] ?? 'static',
+            ]));
+
+            if (isset($data['attachments']) && is_array($data['attachments'])) {
+                foreach ($data['attachments'] as $file) {
+                    $quiz->addMedia($file)->toMediaCollection('attachments');
+                }
+            }
+
+            return $quiz->fresh(['lesson', 'creator', 'media']);
+        });
+    }
+
+    public function update(Quiz $quiz, array $data): Quiz
+    {
+        return DB::transaction(function () use ($quiz, $data) {
+            $updated = $this->repository->update($quiz, $data);
+
+            if (isset($data['delete_attachments']) && is_array($data['delete_attachments'])) {
+                $quiz->media()->whereIn('id', $data['delete_attachments'])->delete();
+            }
+
+            if (isset($data['attachments']) && is_array($data['attachments'])) {
+                foreach ($data['attachments'] as $file) {
+                    $quiz->addMedia($file)->toMediaCollection('attachments');
+                }
+            }
+
+            return $updated->fresh(['lesson', 'creator', 'media']);
+        });
+    }
+
+    public function delete(Quiz $quiz): bool
+    {
+        return DB::transaction(fn() => $this->repository->delete($quiz));
+    }
+
+    public function publish(Quiz $quiz): Quiz
+    {
+        return DB::transaction(function () use ($quiz) {
+            $stats = app(\Modules\Learning\Contracts\Services\QuizQuestionServiceInterface::class)
+                ->computeWeightStats($quiz->id);
+
+            if ($stats['exceeds'] ?? false) {
+                throw new \Illuminate\Validation\ValidationException(
+                    \Illuminate\Support\Facades\Validator::make([], [])->errors()->add('weight', __('messages.questions.weight_exceeds_max_score'))
+                );
+            }
+
+            return $this->repository->update($quiz, ['status' => QuizStatus::Published->value])
+                ->fresh(['lesson', 'creator']);
+        });
+    }
+
+    public function unpublish(Quiz $quiz): Quiz
+    {
+        return DB::transaction(fn() => $this->repository->update($quiz, ['status' => QuizStatus::Draft->value])
+            ->fresh(['lesson', 'creator']));
+    }
+
+    public function archive(Quiz $quiz): Quiz
+    {
+        return DB::transaction(fn() => $this->repository->update($quiz, ['status' => QuizStatus::Archived->value])
+            ->fresh(['lesson', 'creator']));
+    }
+
+    public function getWithRelations(Quiz $quiz): Quiz
+    {
+        return $this->repository->findWithRelations($quiz);
+    }
+}

@@ -210,4 +210,55 @@ class UnitService
 
         return $unit->fresh();
     }
+
+    public function getContents(Unit $unit): array
+    {
+        $lessons = $unit->lessons()
+            ->select('id', 'unit_id', 'title', 'slug', 'description', 'order_index', 'status', 'created_at')
+            ->get()
+            ->map(fn($lesson) => [
+                'id' => $lesson->id,
+                'type' => 'lesson',
+                'title' => $lesson->title,
+                'slug' => $lesson->slug,
+                'description' => $lesson->description,
+                'order_index' => $lesson->order_index,
+                'status' => $lesson->status,
+                'created_at' => $lesson->created_at,
+            ]);
+
+        $quizzes = \Modules\Learning\Models\Quiz::where('assignable_type', Unit::class)
+            ->where('assignable_id', $unit->id)
+            ->select('id', 'title', 'description', 'status', 'max_score', 'passing_grade', 'created_at')
+            ->get()
+            ->map(fn($quiz) => [
+                'id' => $quiz->id,
+                'type' => 'quiz',
+                'title' => $quiz->title,
+                'description' => $quiz->description,
+                'order_index' => 0,
+                'status' => $quiz->status->value,
+                'max_score' => $quiz->max_score,
+                'passing_grade' => $quiz->passing_grade,
+                'created_at' => $quiz->created_at,
+            ]);
+
+        $assignments = \Modules\Learning\Models\Assignment::where('assignable_type', Unit::class)
+            ->where('assignable_id', $unit->id)
+            ->select('id', 'title', 'description', 'status', 'max_score', 'submission_type', 'created_at')
+            ->get()
+            ->map(fn($assignment) => [
+                'id' => $assignment->id,
+                'type' => 'assignment',
+                'title' => $assignment->title,
+                'description' => $assignment->description,
+                'order_index' => 0,
+                'status' => $assignment->status->value,
+                'max_score' => $assignment->max_score,
+                'submission_type' => $assignment->submission_type->value,
+                'created_at' => $assignment->created_at,
+            ]);
+
+        return $lessons->concat($quizzes)->concat($assignments)->sortBy('order_index')->values()->toArray();
+    }
 }

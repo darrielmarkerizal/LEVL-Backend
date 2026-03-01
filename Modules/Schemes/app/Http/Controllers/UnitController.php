@@ -96,4 +96,12 @@ class UnitController extends Controller
 
         return $this->success([], __('messages.units.reordered'));
     }
+
+    public function contents(Course $course, Unit $unit)
+    {
+        $this->service->validateHierarchy($course->id, $unit->id);
+        $contents = $this->service->getContents($unit);
+
+        return $this->success($contents);
+    }
 }

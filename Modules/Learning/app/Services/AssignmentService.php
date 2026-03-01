@@ -113,18 +113,12 @@ class AssignmentService implements AssignmentServiceInterface
     public function create(array $data, int $createdBy): Assignment
     {
         return DB::transaction(function () use ($data, $createdBy) {
-            $deadlineAt = !empty($data['deadline_at']) ? Carbon::parse($data['deadline_at'])->endOfDay() : null;
-            $availableFrom = !empty($data['available_from']) ? Carbon::parse($data['available_from'])->startOfDay() : null;
-
             $assignment = $this->repository->create(array_merge($data, [
                 'created_by' => $createdBy,
-                'available_from' => $availableFrom,
-                'deadline_at' => $deadlineAt,
                 'status' => $data['status'] ?? AssignmentStatus::Draft->value,
                 'submission_type' => $data['submission_type'] ?? 'text',
                 'max_score' => $data['max_score'] ?? 100,
                 'allow_resubmit' => data_get($data, 'allow_resubmit') !== null ? (bool) $data['allow_resubmit'] : null,
-                'tolerance_minutes' => $data['tolerance_minutes'] ?? 0,
                 'cooldown_minutes' => $data['cooldown_minutes'] ?? 0,
                 'retake_enabled' => isset($data['retake_enabled']) ? (bool) $data['retake_enabled'] : false,
                 'review_mode' => $data['review_mode'] ?? ReviewMode::Immediate->value,
@@ -144,18 +138,7 @@ class AssignmentService implements AssignmentServiceInterface
     public function update(Assignment $assignment, array $data): Assignment
     {
         return DB::transaction(function () use ($assignment, $data) {
-            $deadlineAt = isset($data['deadline_at']) 
-                ? (!empty($data['deadline_at']) ? Carbon::parse($data['deadline_at'])->endOfDay() : null)
-                : $assignment->deadline_at;
-
-            $availableFrom = isset($data['available_from'])
-                ? (!empty($data['available_from']) ? Carbon::parse($data['available_from'])->startOfDay() : null)
-                : $assignment->available_from;
-
-            $updated = $this->repository->update($assignment, array_merge($data, [
-                'available_from' => $availableFrom,
-                'deadline_at' => $deadlineAt,
-            ]));
+            $updated = $this->repository->update($assignment, $data);
 
             if (isset($data['delete_attachments']) && is_array($data['delete_attachments'])) {
                 $assignment->media()->whereIn('id', $data['delete_attachments'])->delete();

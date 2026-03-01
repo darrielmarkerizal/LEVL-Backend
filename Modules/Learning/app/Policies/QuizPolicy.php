@@ -1,0 +1,147 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Learning\Policies;
+
+use Modules\Auth\Models\User;
+use Modules\Learning\Models\Quiz;
+
+class QuizPolicy
+{
+    private function isCourseAdmin(User $user, int $courseId): bool
+    {
+        return cache()->tags(['course-admin'])->remember(
+            "course_admin:{$user->id}:{$courseId}",
+            3600,
+            function () use ($user, $courseId) {
+                $course = \Modules\Schemes\Models\Course::find($courseId);
+                if (! $course) {
+                    return false;
+                }
+
+                return $course->admins()->where('user_id', $user->id)->exists();
+            }
+        );
+    }
+
+    private function resolveCourseFromQuiz(Quiz $quiz): ?\Modules\Schemes\Models\Course
+    {
+        $courseId = $quiz->getCourseId();
+        if (! $courseId) {
+            return null;
+        }
+
+        return \Modules\Schemes\Models\Course::find($courseId);
+    }
+
+    public function viewAny(?User $user): bool
+    {
+        return true;
+    }
+
+    public function view(?User $user, Quiz $quiz): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('Superadmin') || $user->hasRole('Admin')) {
+            return true;
+        }
+
+        $courseId = $quiz->getCourseId();
+        if (! $courseId) {
+            return false;
+        }
+
+        if ($user->hasRole('Instructor')) {
+            $course = \Modules\Schemes\Models\Course::find($courseId);
+            return $course?->instructor_id === $user->id;
+        }
+
+        if ($user->hasRole('Student')) {
+            return \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
+                ->where('course_id', $courseId)
+                ->whereIn('status', ['active', 'completed'])
+                ->exists();
+        }
+
+        return false;
+    }
+
+    public function create(User $user, \Modules\Schemes\Models\Course $course): bool
+    {
+        if ($user->hasRole('Superadmin')) {
+            return true;
+        }
+
+        if ($user->hasRole('Admin')) {
+            return $this->isCourseAdmin($user, $course->id);
+        }
+
+        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+    }
+
+    public function update(User $user, Quiz $quiz): bool
+    {
+        if ($user->hasRole('Superadmin')) {
+            return true;
+        }
+
+        $course = $this->resolveCourseFromQuiz($quiz);
+        if (! $course) {
+            return false;
+        }
+
+        if ($user->hasRole('Admin')) {
+            return $this->isCourseAdmin($user, $course->id);
+        }
+
+        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+    }
+
+    public function delete(User $user, Quiz $quiz): bool
+    {
+        return $this->update($user, $quiz);
+    }
+
+    public function viewSubmissions(User $user, Quiz $quiz): bool
+    {
+        if ($user->hasRole('Superadmin')) {
+            return true;
+        }
+
+        $course = $this->resolveCourseFromQuiz($quiz);
+        if (! $course) {
+            return false;
+        }
+
+        if ($user->hasRole('Admin')) {
+            return $this->isCourseAdmin($user, $course->id);
+        }
+
+        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+    }
+
+    public function takeQuiz(User $user, Quiz $quiz): bool
+    {
+        if (! $quiz->isAvailable()) {
+            return false;
+        }
+
+        $courseId = $quiz->getCourseId();
+        if (! $courseId) {
+            return false;
+        }
+
+        if ($user->hasRole('Superadmin') || $user->hasRole('Admin') || $user->hasRole('Instructor')) {
+            return true;
+        }
+
+        return \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
+            ->where('course_id', $courseId)
+            ->whereIn('status', ['active'])
+            ->exists();
+    }
+}
