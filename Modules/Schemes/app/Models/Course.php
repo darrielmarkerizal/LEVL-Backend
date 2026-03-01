@@ -219,6 +219,33 @@ class Course extends Model implements HasMedia
         return $this->hasMany(Unit::class);
     }
 
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(\Modules\Enrollments\Models\Enrollment::class);
+    }
+
+    public function quizzes()
+    {
+        return $this->morphMany(\Modules\Learning\Models\Quiz::class, 'assignable');
+    }
+
+    public function assignments()
+    {
+        return $this->morphMany(\Modules\Learning\Models\Assignment::class, 'assignable');
+    }
+
+    public function lessons()
+    {
+        return $this->hasManyThrough(Lesson::class, Unit::class);
+    }
+
+    public function lessonBlocks()
+    {
+        return $this->hasManyThrough(LessonBlock::class, Unit::class, 'course_id', 'lesson_id')
+            ->join('lessons', 'lessons.id', '=', 'lesson_blocks.lesson_id')
+            ->where('lessons.unit_id', '=', \DB::raw('units.id'));
+    }
+
     public function instructor(): BelongsTo
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class, 'instructor_id');
