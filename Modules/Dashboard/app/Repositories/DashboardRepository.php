@@ -302,4 +302,95 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             ])
             ->toArray();
     }
+
+    public function getRecommendedCourses(User $user): array
+    {
+        $latestEnrollment = Enrollment::where('user_id', $user->id)
+            ->where('status', EnrollmentStatus::Active)
+            ->with('course')
+            ->orderByDesc('updated_at')
+            ->first();
+
+        if (!$latestEnrollment || !$latestEnrollment->course) {
+            return Course::where('status', \Modules\Schemes\Enums\CourseStatus::Published)
+                ->with(['instructor', 'media'])
+                ->withCount('enrollments')
+                ->inRandomOrder()
+                ->limit(2)
+                ->get()
+                ->map(fn ($course) => [
+                    'id' => $course->id,
+                    'slug' => $course->slug,
+                    'title' => $course->title,
+                    'short_desc' => $course->short_desc,
+                    'thumbnail' => $course->getFirstMediaUrl('thumbnail'),
+                    'instructor' => [
+                        'id' => $course->instructor?->id,
+                        'name' => $course->instructor?->name,
+                    ],
+                    'enrollments_count' => $course->enrollments_count,
+                ])
+                ->toArray();
+        }
+
+        $lastCourse = $latestEnrollment->course;
+        $categoryId = $lastCourse->category_id;
+        $enrolledCourseIds = Enrollment::where('user_id', $user->id)->pluck('course_id')->toArray();
+
+        $recommended = Course::where('status', \Modules\Schemes\Enums\CourseStatus::Published)
+            ->where('id', '!=', $lastCourse->id)
+            ->whereNotIn('id', $enrolledCourseIds)
+            ->where(function ($query) use ($categoryId, $lastCourse) {
+                if ($categoryId) {
+                    $query->where('category_id', $categoryId);
+                }
+                
+                $tagIds = \DB::table('course_tag')
+                    ->where('course_id', $lastCourse->id)
+                    ->pluck('tag_id')
+                    ->toArray();
+                
+                if (!empty($tagIds)) {
+                    $query->orWhereExists(function ($subQuery) use ($tagIds) {
+                        $subQuery->select(\DB::raw(1))
+                            ->from('course_tag')
+                            ->whereColumn('course_tag.course_id', 'courses.id')
+                            ->whereIn('course_tag.tag_id', $tagIds);
+                    });
+                }
+            })
+            ->with(['instructor', 'media'])
+            ->withCount('enrollments')
+            ->inRandomOrder()
+            ->limit(2)
+            ->get();
+
+        if ($recommended->count() < 2) {
+            $additionalCount = 2 - $recommended->count();
+            $excludeIds = array_merge($enrolledCourseIds, [$lastCourse->id], $recommended->pluck('id')->toArray());
+            
+            $additional = Course::where('status', \Modules\Schemes\Enums\CourseStatus::Published)
+                ->whereNotIn('id', $excludeIds)
+                ->with(['instructor', 'media'])
+                ->withCount('enrollments')
+                ->inRandomOrder()
+                ->limit($additionalCount)
+                ->get();
+
+            $recommended = $recommended->merge($additional);
+        }
+
+        return $recommended->map(fn ($course) => [
+            'id' => $course->id,
+            'slug' => $course->slug,
+            'title' => $course->title,
+            'short_desc' => $course->short_desc,
+            'thumbnail' => $course->getFirstMediaUrl('thumbnail'),
+            'instructor' => [
+                'id' => $course->instructor?->id,
+                'name' => $course->instructor?->name,
+            ],
+            'enrollments_count' => $course->enrollments_count,
+        ])->toArray();
+    }
 }
