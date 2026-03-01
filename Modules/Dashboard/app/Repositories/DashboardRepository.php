@@ -14,9 +14,9 @@ use Modules\Enrollments\Models\LessonProgress;
 use Modules\Gamification\Models\Point;
 use Modules\Gamification\Models\UserBadge;
 use Modules\Gamification\Models\UserGamificationStat;
+use Modules\Learning\Models\Question;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\LessonBlock;
-use Modules\Learning\Models\Question;
 
 class DashboardRepository extends BaseRepository implements DashboardRepositoryInterface
 {
@@ -311,7 +311,7 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             ->orderByDesc('updated_at')
             ->first();
 
-        if (!$latestEnrollment || !$latestEnrollment->course) {
+        if (! $latestEnrollment || ! $latestEnrollment->course) {
             return Course::where('status', \Modules\Schemes\Enums\CourseStatus::Published)
                 ->with(['instructor', 'media'])
                 ->withCount('enrollments')
@@ -337,20 +337,20 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
         $categoryId = $lastCourse->category_id;
         $enrolledCourseIds = Enrollment::where('user_id', $user->id)->pluck('course_id')->toArray();
 
+        $tagIds = \DB::table('course_tag')
+            ->where('course_id', $lastCourse->id)
+            ->pluck('tag_id')
+            ->toArray();
+
         $recommended = Course::where('status', \Modules\Schemes\Enums\CourseStatus::Published)
             ->where('id', '!=', $lastCourse->id)
             ->whereNotIn('id', $enrolledCourseIds)
-            ->where(function ($query) use ($categoryId, $lastCourse) {
+            ->where(function ($query) use ($categoryId, $tagIds) {
                 if ($categoryId) {
                     $query->where('category_id', $categoryId);
                 }
-                
-                $tagIds = \DB::table('course_tag')
-                    ->where('course_id', $lastCourse->id)
-                    ->pluck('tag_id')
-                    ->toArray();
-                
-                if (!empty($tagIds)) {
+
+                if (! empty($tagIds)) {
                     $query->orWhereExists(function ($subQuery) use ($tagIds) {
                         $subQuery->select(\DB::raw(1))
                             ->from('course_tag')
@@ -368,7 +368,7 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
         if ($recommended->count() < 2) {
             $additionalCount = 2 - $recommended->count();
             $excludeIds = array_merge($enrolledCourseIds, [$lastCourse->id], $recommended->pluck('id')->toArray());
-            
+
             $additional = Course::where('status', \Modules\Schemes\Enums\CourseStatus::Published)
                 ->whereNotIn('id', $excludeIds)
                 ->with(['instructor', 'media'])

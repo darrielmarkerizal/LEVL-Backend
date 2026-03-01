@@ -576,7 +576,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             DB::table('media')->insert([
                 'model_type' => 'Modules\\Learning\\Models\\Assignment',
                 'model_id' => $assignmentId,
-                'uuid' => $this->pregenUuids[array_rand($this->pregenUuids)],
+                'uuid' => \Illuminate\Support\Str::uuid()->toString(),
                 'collection_name' => 'attachments',
                 'name' => 'assignment-attachment-'.$i,
                 'file_name' => 'document-'.rand(1000, 9999).'.pdf',
