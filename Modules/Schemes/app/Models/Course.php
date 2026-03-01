@@ -239,13 +239,6 @@ class Course extends Model implements HasMedia
         return $this->hasManyThrough(Lesson::class, Unit::class);
     }
 
-    public function lessonBlocks()
-    {
-        return $this->hasManyThrough(LessonBlock::class, Unit::class, 'course_id', 'lesson_id')
-            ->join('lessons', 'lessons.id', '=', 'lesson_blocks.lesson_id')
-            ->where('lessons.unit_id', '=', \DB::raw('units.id'));
-    }
-
     public function instructor(): BelongsTo
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class, 'instructor_id');
