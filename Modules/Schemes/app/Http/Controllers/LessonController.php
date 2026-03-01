@@ -37,7 +37,8 @@ class LessonController extends Controller
             $request->query('filter', []),
             (int) $request->query('per_page', 15)
         );
-        $paginator->getCollection()->transform(fn($lesson) => new LessonResource($lesson));
+        $paginator->getCollection()->transform(fn ($lesson) => new LessonResource($lesson));
+
         return $this->paginateResponse($paginator);
     }
 
@@ -47,6 +48,7 @@ class LessonController extends Controller
         $this->authorize('update', $unit);
 
         $lesson = $this->service->create($unit->id, $request->validated());
+
         return $this->created(new LessonResource($lesson), __('messages.lessons.created'));
     }
 
@@ -56,6 +58,7 @@ class LessonController extends Controller
         $this->authorize('view', $lesson);
 
         $result = $this->service->getLessonForUser($lesson, $course, auth('api')->user());
+
         return $this->success(new LessonResource($result));
     }
 
@@ -65,6 +68,7 @@ class LessonController extends Controller
         $this->authorize('update', $lesson);
 
         $updated = $this->service->update($lesson->id, $request->validated());
+
         return $this->success(new LessonResource($updated), __('messages.lessons.updated'));
     }
 
@@ -74,6 +78,7 @@ class LessonController extends Controller
         $this->authorize('delete', $lesson);
 
         $this->service->delete($lesson->id);
+
         return $this->success([], __('messages.lessons.deleted'));
     }
 
@@ -83,6 +88,7 @@ class LessonController extends Controller
         $this->authorize('update', $lesson);
 
         $updated = $this->service->publish($lesson->id);
+
         return $this->success(new LessonResource($updated), __('messages.lessons.published'));
     }
 
@@ -92,6 +98,37 @@ class LessonController extends Controller
         $this->authorize('update', $lesson);
 
         $updated = $this->service->unpublish($lesson->id);
+
         return $this->success(new LessonResource($updated), __('messages.lessons.unpublished'));
+    }
+
+    public function indexAll(Request $request)
+    {
+        $user = auth('api')->user();
+
+        $filters = $request->query('filter', []);
+        if ($request->has('search')) {
+            $filters['search'] = $request->query('search');
+        }
+
+        $paginator = $this->service->paginateAll(
+            $filters,
+            (int) $request->query('per_page', 15),
+            $user
+        );
+
+        $paginator->getCollection()->transform(fn ($lesson) => new LessonResource($lesson));
+
+        return $this->paginateResponse($paginator);
+    }
+
+    public function showGlobal(Lesson $lesson)
+    {
+        $this->authorize('view', $lesson);
+
+        $course = $lesson->unit->course;
+        $result = $this->service->getLessonForUser($lesson, $course, auth('api')->user());
+
+        return $this->success(new LessonResource($result));
     }
 }

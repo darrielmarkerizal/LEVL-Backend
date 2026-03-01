@@ -65,4 +65,68 @@ class LessonFinder
 
         return $lesson->load('blocks');
     }
+
+    public function paginateAll(array $filters = [], int $perPage = 15, ?\Modules\Auth\Models\User $user = null): LengthAwarePaginator
+    {
+        $perPage = max(1, min($perPage, 100));
+
+        $query = Lesson::query();
+
+        if (isset($filters['search'])) {
+            $query->search($filters['search']);
+        }
+
+        if (isset($filters['content_type'])) {
+            $query->where('content_type', $filters['content_type']);
+        }
+
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if ($user && ! $user->hasRole('Superadmin')) {
+            $query->whereHas('unit.course', function ($q) use ($user) {
+                if ($user->hasRole(['Admin', 'Instructor'])) {
+                    $q->where('instructor_id', $user->id);
+                }
+            });
+        }
+
+        if (isset($filters['unit_slug'])) {
+            $query->whereHas('unit', function ($q) use ($filters) {
+                $q->where('slug', $filters['unit_slug']);
+            });
+        }
+
+        if (isset($filters['course_slug'])) {
+            $query->whereHas('unit.course', function ($q) use ($filters) {
+                $q->where('slug', $filters['course_slug']);
+            });
+        }
+
+        if (isset($filters['include'])) {
+            $includes = is_array($filters['include']) ? $filters['include'] : explode(',', $filters['include']);
+            $allowedIncludes = ['unit', 'unit.course', 'blocks'];
+            $validIncludes = array_intersect($includes, $allowedIncludes);
+            if (! empty($validIncludes)) {
+                $query->with($validIncludes);
+            }
+        }
+
+        $sortField = $filters['sort'] ?? '-created_at';
+        $sortDirection = 'asc';
+        if (str_starts_with($sortField, '-')) {
+            $sortDirection = 'desc';
+            $sortField = substr($sortField, 1);
+        }
+
+        $allowedSorts = ['order', 'title', 'created_at'];
+        if (in_array($sortField, $allowedSorts)) {
+            $query->orderBy($sortField, $sortDirection);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        return $query->paginate($perPage);
+    }
 }

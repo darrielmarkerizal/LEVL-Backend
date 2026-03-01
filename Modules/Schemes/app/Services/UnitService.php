@@ -263,4 +263,49 @@ class UnitService
 
         return $lessons->concat($quizzes)->concat($assignments)->sortBy('order_index')->values()->toArray();
     }
+
+    public function paginateAll(array $filters = [], int $perPage = 15, ?\Modules\Auth\Models\User $user = null): LengthAwarePaginator
+    {
+        $perPage = max(1, min($perPage, 100));
+
+        $query = Unit::query();
+
+        if (isset($filters['search']) && ! empty($filters['search'])) {
+            $query->search($filters['search']);
+        }
+
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if ($user && ! $user->hasRole('Superadmin')) {
+            $query->whereHas('course', function ($q) use ($user) {
+                if ($user->hasRole(['Admin', 'Instructor'])) {
+                    $q->where('instructor_id', $user->id);
+                }
+            });
+        }
+
+        if (isset($filters['course_slug'])) {
+            $query->whereHas('course', function ($q) use ($filters) {
+                $q->where('slug', $filters['course_slug']);
+            });
+        }
+
+        $allowedSorts = ['order', 'title', 'created_at'];
+        $sortField = in_array($filters['sort'] ?? '', $allowedSorts) ? $filters['sort'] : 'created_at';
+        $sortOrder = ($filters['order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+
+        $query->orderBy($sortField, $sortOrder);
+
+        if (isset($filters['include'])) {
+            $allowedIncludes = ['course', 'lessons'];
+            $includes = array_intersect(explode(',', $filters['include']), $allowedIncludes);
+            if (! empty($includes)) {
+                $query->with($includes);
+            }
+        }
+
+        return $query->paginate($perPage);
+    }
 }

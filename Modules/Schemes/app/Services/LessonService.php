@@ -79,6 +79,11 @@ class LessonService implements LessonServiceInterface
         return $this->orderingProcessor->unpublish($lesson);
     }
 
+    public function paginateAll(array $filters = [], int $perPage = 15, ?\Modules\Auth\Models\User $user = null): LengthAwarePaginator
+    {
+        return $this->finder->paginateAll($filters, $perPage, $user);
+    }
+
     public function getRepository(): LessonRepositoryInterface
     {
         return app(LessonRepositoryInterface::class);
