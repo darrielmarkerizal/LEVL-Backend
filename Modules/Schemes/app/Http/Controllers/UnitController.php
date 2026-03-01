@@ -22,7 +22,7 @@ class UnitController extends Controller
 
     public function index(Request $request, Course $course)
     {
-        $dummyUnit = new Unit();
+        $dummyUnit = new Unit;
         $dummyUnit->course_id = $course->id;
         $dummyUnit->setRelation('course', $course);
         $this->authorize('view', $dummyUnit);
@@ -33,7 +33,8 @@ class UnitController extends Controller
             (int) $request->query('per_page', 15)
         );
 
-        $paginator->getCollection()->transform(fn($unit) => new UnitResource($unit));
+        $paginator->getCollection()->transform(fn ($unit) => new UnitResource($unit));
+
         return $this->paginateResponse($paginator, 'messages.units.list_retrieved');
     }
 
@@ -59,6 +60,7 @@ class UnitController extends Controller
         $this->authorize('update', $unit);
 
         $updated = $this->service->update($unit->id, $request->validated());
+
         return $this->success(new UnitResource($updated), __('messages.units.updated'));
     }
 
@@ -68,6 +70,7 @@ class UnitController extends Controller
         $this->authorize('delete', $unit);
 
         $this->service->delete($unit->id);
+
         return $this->success([], __('messages.units.deleted'));
     }
 
@@ -77,6 +80,7 @@ class UnitController extends Controller
         $this->authorize('update', $unit);
 
         $updated = $this->service->publish($unit->id);
+
         return $this->success(new UnitResource($updated), __('messages.units.published'));
     }
 
@@ -86,6 +90,7 @@ class UnitController extends Controller
         $this->authorize('update', $unit);
 
         $updated = $this->service->unpublish($unit->id);
+
         return $this->success(new UnitResource($updated), __('messages.units.unpublished'));
     }
 
@@ -103,5 +108,32 @@ class UnitController extends Controller
         $contents = $this->service->getContents($unit);
 
         return $this->success($contents);
+    }
+
+    public function indexAll(Request $request)
+    {
+        $user = auth('api')->user();
+
+        $filters = $request->query('filter', []);
+        if ($request->has('search')) {
+            $filters['search'] = $request->query('search');
+        }
+
+        $paginator = $this->service->paginateAll(
+            $filters,
+            (int) $request->query('per_page', 15),
+            $user
+        );
+
+        $paginator->getCollection()->transform(fn ($unit) => new UnitResource($unit));
+
+        return $this->paginateResponse($paginator, 'messages.units.list_retrieved');
+    }
+
+    public function showGlobal(Unit $unit)
+    {
+        $this->authorize('view', $unit);
+
+        return $this->success(new UnitResource($unit->load(['course', 'lessons'])));
     }
 }

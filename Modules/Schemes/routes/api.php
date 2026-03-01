@@ -6,7 +6,6 @@ use Modules\Schemes\Http\Controllers\LessonBlockController;
 use Modules\Schemes\Http\Controllers\LessonCompletionController;
 use Modules\Schemes\Http\Controllers\LessonController;
 use Modules\Schemes\Http\Controllers\ProgressController;
-use Modules\Schemes\Http\Controllers\TagController;
 use Modules\Schemes\Http\Controllers\UnitController;
 
 Route::prefix('v1')->scopeBindings()->group(function () {
@@ -39,6 +38,22 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.enrollment-key.update');
         Route::delete('courses/{course:slug}/enrollment-key', [CourseController::class, 'removeEnrollmentKey'])
             ->name('courses.enrollment-key.destroy');
+    });
+
+    // Global unit routes (without course context)
+    Route::middleware(['auth:api'])->group(function () {
+        Route::get('units', [UnitController::class, 'indexAll'])->name('units.index');
+        Route::get('units/{unit:slug}', [UnitController::class, 'showGlobal'])
+            ->middleware('can:view,unit')
+            ->name('units.show');
+    });
+
+    // Global lesson routes (without course/unit context)
+    Route::middleware(['auth:api'])->group(function () {
+        Route::get('lessons', [LessonController::class, 'indexAll'])->name('lessons.index');
+        Route::get('lessons/{lesson:slug}', [LessonController::class, 'showGlobal'])
+            ->middleware('can:view,lesson')
+            ->name('lessons.show');
     });
 
     // Authenticated unit routes
