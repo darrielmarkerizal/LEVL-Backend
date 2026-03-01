@@ -118,28 +118,6 @@ class SubmissionValidator
         return ['allowed' => true, 'next_attempt_at' => null];
     }
 
-    public function checkDeadlineWithOverride(Assignment $assignment, int $studentId): bool
-    {
-        $extendedDeadline = $this->getExtendedDeadline($assignment->id, $studentId);
-
-        if ($extendedDeadline !== null) {
-            return now()->lte($extendedDeadline);
-        }
-
-        return ! $assignment->isPastTolerance();
-    }
-
-    public function isSubmissionLate(Assignment $assignment, int $studentId): bool
-    {
-        $extendedDeadline = $this->getExtendedDeadline($assignment->id, $studentId);
-
-        if ($extendedDeadline !== null) {
-            return now()->gt($extendedDeadline);
-        }
-
-        return $assignment->isPastDeadline();
-    }
-
     public function hasActiveOverride(int $assignmentId, int $studentId, OverrideType $type): bool
     {
         if ($this->overrideRepository === null) {
@@ -147,30 +125,6 @@ class SubmissionValidator
         }
 
         return $this->overrideRepository->hasActiveOverride($assignmentId, $studentId, $type);
-    }
-    
-    public function getDeadlineStatus(Assignment $assignment, int $userId): array
-    {
-         return [
-            'allowed' => $this->checkDeadlineWithOverride($assignment, $userId),
-            'deadline' => $assignment->deadline_at?->toIso8601String(),
-            'tolerance_minutes' => $assignment->tolerance_minutes,
-        ];
-    }
-
-    private function getExtendedDeadline(int $assignmentId, int $studentId): ?Carbon
-    {
-        if ($this->overrideRepository === null) {
-            return null;
-        }
-
-        $override = $this->overrideRepository->findActiveOverride(
-            $assignmentId,
-            $studentId,
-            OverrideType::Deadline
-        );
-
-        return $override?->getExtendedDeadline();
     }
 
     private function getAdditionalAttempts(int $assignmentId, int $studentId): int

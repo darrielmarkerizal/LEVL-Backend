@@ -113,7 +113,9 @@ class AssignmentService implements AssignmentServiceInterface
     public function create(array $data, int $createdBy): Assignment
     {
         return DB::transaction(function () use ($data, $createdBy) {
-            $assignment = $this->repository->create(array_merge($data, [
+            $isAssignment = ($data['type'] ?? null) === AssignmentType::Assignment->value || ($data['type'] ?? null) === 'assignment';
+            
+            $assignmentData = array_merge($data, [
                 'created_by' => $createdBy,
                 'status' => $data['status'] ?? AssignmentStatus::Draft->value,
                 'submission_type' => $data['submission_type'] ?? 'text',
@@ -121,9 +123,18 @@ class AssignmentService implements AssignmentServiceInterface
                 'allow_resubmit' => data_get($data, 'allow_resubmit') !== null ? (bool) $data['allow_resubmit'] : null,
                 'cooldown_minutes' => $data['cooldown_minutes'] ?? 0,
                 'retake_enabled' => isset($data['retake_enabled']) ? (bool) $data['retake_enabled'] : false,
-                'review_mode' => $data['review_mode'] ?? ReviewMode::Immediate->value,
-                'randomization_type' => $data['randomization_type'] ?? RandomizationType::Static->value,
-            ]));
+            ]);
+            
+            if ($isAssignment) {
+                $assignmentData['review_mode'] = ReviewMode::Manual->value;
+                unset($assignmentData['randomization_type']);
+                unset($assignmentData['question_bank_count']);
+            } else {
+                $assignmentData['review_mode'] = $data['review_mode'] ?? ReviewMode::Immediate->value;
+                $assignmentData['randomization_type'] = $data['randomization_type'] ?? RandomizationType::Static->value;
+            }
+            
+            $assignment = $this->repository->create($assignmentData);
 
             if (isset($data['attachments']) && is_array($data['attachments'])) {
                 foreach ($data['attachments'] as $file) {

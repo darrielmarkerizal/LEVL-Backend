@@ -26,9 +26,6 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
     Route::get('assignments/{assignment}/prerequisites/check', [AssignmentController::class, 'checkPrerequisites'])
         ->name('assignments.prerequisites.check');
 
-    Route::get('assignments/{assignment}/deadline/check', [SubmissionController::class, 'checkDeadline'])
-        ->name('assignments.deadline.check');
-
     Route::get('assignments/{assignment}/attempts/check', [SubmissionController::class, 'checkAttempts'])
         ->name('assignments.attempts.check');
 

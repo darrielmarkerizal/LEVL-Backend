@@ -24,11 +24,17 @@ class CourseResource extends JsonResource
             'thumbnail' => $this->getFirstMediaUrl('thumbnail'),
             'banner' => $this->getFirstMediaUrl('banner'),
             'category' => $this->whenLoaded('category'),
-            'instructor' => new \Modules\Auth\Http\Resources\UserResource($this->whenLoaded('instructor')),
+            'instructor' => $this->instructor ? new \Modules\Auth\Http\Resources\UserResource($this->instructor) : null,
             'creator' => new \Modules\Auth\Http\Resources\UserResource($this->creator),
-            'admins' => \Modules\Auth\Http\Resources\UserResource::collection($this->whenLoaded('admins')),
+            'admins' => $this->whenLoaded('admins', fn () => \Modules\Auth\Http\Resources\UserResource::collection($this->admins)),
+            'admins_count' => $this->admins_count ?? 0,
+            'enrollments_count' => $this->enrollments_count ?? 0,
             'tags' => $this->whenLoaded('tags'),
             'units' => $this->whenLoaded('units'),
+            'lessons' => $this->whenLoaded('lessons'),
+            'quizzes' => $this->whenLoaded('quizzes'),
+            'assignments' => $this->whenLoaded('assignments'),
+            'enrollments' => $this->whenLoaded('enrollments'),
         ];
     }
 }

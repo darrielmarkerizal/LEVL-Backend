@@ -82,10 +82,6 @@ class SubmissionCompletionProcessor
                 throw SubmissionException::notAllowed(__('messages.submissions.cannot_modify'));
             }
 
-            if (!$validator->checkDeadlineWithOverride($assignment, $studentId)) {
-                throw SubmissionException::deadlinePassed();
-            }
-
             if ($this->isTimerExpired($assignment, $submission)) {
                 throw SubmissionException::timerExpired();
             }
@@ -123,11 +119,6 @@ class SubmissionCompletionProcessor
             $this->processAnswers($submission, $answers, $validator);
 
             $this->validateAllQuestionsAnswered($submission, $questionRepo);
-
-            $isLate = $validator->isSubmissionLate($assignment, $studentId);
-            if (! $validator->checkDeadlineWithOverride($assignment, $studentId)) {
-                throw SubmissionException::deadlinePassed();
-            }
 
             if ($this->isTimerExpired($assignment, $submission)) {
                 throw SubmissionException::timerExpired();

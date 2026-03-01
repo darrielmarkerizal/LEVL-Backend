@@ -94,16 +94,26 @@ class StoreAssignmentRequest extends FormRequest
             $type = $this->input('type');
             
             if ($type === 'assignment') {
-                // Assignment must have file submission type
                 $submissionType = $this->input('submission_type');
                 if ($submissionType && !in_array($submissionType, ['file', 'mixed'])) {
                     $validator->errors()->add('submission_type', 'Assignment type must use file or mixed submission type.');
                 }
+                
+                $reviewMode = $this->input('review_mode');
+                if ($reviewMode && $reviewMode !== 'manual') {
+                    $validator->errors()->add('review_mode', 'Assignment type must use manual review mode.');
+                }
+                
+                if ($this->has('randomization_type')) {
+                    $validator->errors()->add('randomization_type', 'Assignment type cannot have randomization type.');
+                }
+                
+                if ($this->has('question_bank_count')) {
+                    $validator->errors()->add('question_bank_count', 'Assignment type cannot have question bank count.');
+                }
             }
             
             if ($type === 'quiz') {
-                // Quiz should not rely on submission_type (uses questions instead)
-                // This is just a warning, not blocking
             }
         });
     }

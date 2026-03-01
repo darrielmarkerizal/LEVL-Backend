@@ -103,11 +103,6 @@ class SubmissionController extends Controller
         return $this->success(SubmissionResource::make($graded), __('messages.submissions.graded'));
     }
 
-    public function checkDeadline(Request $request, Assignment $assignment): JsonResponse
-    {
-        return $this->success($this->service->getDeadlineStatus($assignment, auth('api')->id()));
-    }
-
     public function checkAttempts(Request $request, Assignment $assignment): JsonResponse
     {
         return $this->success($this->service->checkAttemptLimitsWithOverride($assignment, auth('api')->id()));
