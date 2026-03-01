@@ -29,8 +29,7 @@ class AssignmentController extends Controller
     use AuthorizesRequests;
 
     public function __construct(
-        private readonly AssignmentServiceInterface $assignmentService,
-        private readonly QuestionServiceInterface $questionService
+        private readonly AssignmentServiceInterface $assignmentService
     ) {}
 
     public function index(Request $request, \Modules\Schemes\Models\Course $course): JsonResponse
@@ -99,48 +98,10 @@ class AssignmentController extends Controller
         return $this->success(AssignmentResource::make($archived), __('messages.assignments.archived'));
     }
 
-    public function listQuestions(Request $request, Assignment $assignment): JsonResponse
-    {
-        $this->authorize('listQuestions', $assignment);
-        $questions = $this->questionService->getQuestionsByAssignment($assignment->id, auth('api')->user(), $request->all());
 
-        return $this->success(QuestionResource::collection($questions));
-    }
 
-    public function showQuestion(Assignment $assignment, Question $question): JsonResponse
-    {
-        $this->authorize('view', $assignment);
-        // Note: Relation check moved to logic or kept merely for 404. Service could handle "Question in Assignment" check.
-        // For strict thinness, we assume route model binding + potential check inside service or just this check.
-        // But 5 line limit:
-        if ($question->assignment_id !== $assignment->id) return $this->error(__('messages.questions.not_found'), [], 404);
 
-        return $this->success(QuestionResource::make($question));
-    }
 
-    public function addQuestion(StoreQuestionRequest $request, Assignment $assignment): JsonResponse
-    {
-        $this->authorize('update', $assignment);
-        $question = $this->questionService->createQuestion($assignment->id, $request->validated());
-
-        return $this->created(QuestionResource::make($question), __('messages.questions.created'));
-    }
-
-    public function updateQuestion(UpdateQuestionRequest $request, Assignment $assignment, Question $question): JsonResponse 
-    {
-        $this->authorize('update', $assignment);
-        $updated = $this->questionService->updateQuestion($question->id, $request->validated(), $assignment->id);
-
-        return $this->success(QuestionResource::make($updated), __('messages.questions.updated'));
-    }
-
-    public function deleteQuestion(Assignment $assignment, Question $question): JsonResponse
-    {
-        $this->authorize('update', $assignment);
-        $this->questionService->deleteQuestion($question->id, $assignment->id);
-
-        return $this->success([], __('messages.questions.deleted'));
-    }
 
     public function checkPrerequisites(Assignment $assignment): JsonResponse
     {
@@ -173,13 +134,4 @@ class AssignmentController extends Controller
         return $this->created(AssignmentResource::make($duplicated), __('messages.assignments.duplicated'));
     }
 
-    public function reorderQuestions(Request $request, Assignment $assignment): JsonResponse
-    {
-        $this->authorize('update', $assignment);
-        // move validation to FormRequest generally, but for simple array id:
-        $ids = $request->validate(['ids' => ['required', 'array'], 'ids.*' => ['integer']])['ids']; 
-        $this->questionService->reorderQuestions($assignment->id, $ids);
-
-        return $this->success([], __('messages.questions.reordered'));
-    }
 }

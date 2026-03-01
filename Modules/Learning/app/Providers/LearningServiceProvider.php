@@ -10,19 +10,31 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Learning\Contracts\Repositories\AssignmentRepositoryInterface;
 use Modules\Learning\Contracts\Repositories\OverrideRepositoryInterface;
 use Modules\Learning\Contracts\Repositories\QuestionRepositoryInterface;
+use Modules\Learning\Contracts\Repositories\QuizQuestionRepositoryInterface;
+use Modules\Learning\Contracts\Repositories\QuizRepositoryInterface;
+use Modules\Learning\Contracts\Repositories\QuizSubmissionRepositoryInterface;
 use Modules\Learning\Contracts\Repositories\SubmissionRepositoryInterface;
 use Modules\Learning\Contracts\Services\AssignmentServiceInterface;
 use Modules\Learning\Contracts\Services\LearningPageServiceInterface;
 use Modules\Learning\Contracts\Services\QuestionServiceInterface;
+use Modules\Learning\Contracts\Services\QuizQuestionServiceInterface;
+use Modules\Learning\Contracts\Services\QuizServiceInterface;
+use Modules\Learning\Contracts\Services\QuizSubmissionServiceInterface;
 use Modules\Learning\Contracts\Services\ReviewModeServiceInterface;
 use Modules\Learning\Contracts\Services\SubmissionServiceInterface;
 use Modules\Learning\Repositories\AssignmentRepository;
 use Modules\Learning\Repositories\OverrideRepository;
 use Modules\Learning\Repositories\QuestionRepository;
+use Modules\Learning\Repositories\QuizQuestionRepository;
+use Modules\Learning\Repositories\QuizRepository;
+use Modules\Learning\Repositories\QuizSubmissionRepository;
 use Modules\Learning\Repositories\SubmissionRepository;
 use Modules\Learning\Services\AssignmentService;
 use Modules\Learning\Services\LearningPageService;
 use Modules\Learning\Services\QuestionService;
+use Modules\Learning\Services\QuizQuestionService;
+use Modules\Learning\Services\QuizService;
+use Modules\Learning\Services\QuizSubmissionService;
 use Modules\Learning\Services\ReviewModeService;
 use Modules\Learning\Services\SubmissionService;
 use Nwidart\Modules\Traits\PathNamespace;
@@ -56,6 +68,14 @@ class LearningServiceProvider extends ServiceProvider
             \Modules\Learning\Models\Submission::class,
             \Modules\Learning\Policies\SubmissionPolicy::class
         );
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Learning\Models\Quiz::class,
+            \Modules\Learning\Policies\QuizPolicy::class
+        );
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Learning\Models\QuizSubmission::class,
+            \Modules\Learning\Policies\QuizSubmissionPolicy::class
+        );
     }
 
     public function register(): void
@@ -77,6 +97,14 @@ class LearningServiceProvider extends ServiceProvider
         $this->app->bind(LearningPageServiceInterface::class, LearningPageService::class);
         $this->app->bind(QuestionServiceInterface::class, QuestionService::class);
         $this->app->bind(ReviewModeServiceInterface::class, ReviewModeService::class);
+
+        $this->app->bind(QuizRepositoryInterface::class, QuizRepository::class);
+        $this->app->bind(QuizQuestionRepositoryInterface::class, QuizQuestionRepository::class);
+        $this->app->bind(QuizSubmissionRepositoryInterface::class, QuizSubmissionRepository::class);
+
+        $this->app->bind(QuizServiceInterface::class, QuizService::class);
+        $this->app->bind(QuizQuestionServiceInterface::class, QuizQuestionService::class);
+        $this->app->bind(QuizSubmissionServiceInterface::class, QuizSubmissionService::class);
     }
 
     protected function registerCommands(): void

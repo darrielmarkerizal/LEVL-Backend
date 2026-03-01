@@ -46,6 +46,8 @@ Route::prefix('v1')->scopeBindings()->group(function () {
         Route::get('courses/{course:slug}/units/{unit:slug}', [UnitController::class, 'show'])
             ->middleware('can:view,unit')
             ->name('courses.units.show');
+        Route::get('courses/{course:slug}/units/{unit:slug}/contents', [UnitController::class, 'contents'])
+            ->name('courses.units.contents');
     });
 
     // Unit management routes (Admin, Instructor)

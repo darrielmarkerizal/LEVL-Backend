@@ -27,9 +27,6 @@ use Modules\Common\Traits\PgSearchable;
  * @property string $type
  * @property SubmissionType $submission_type
  * @property float $max_score
- * @property \Illuminate\Support\Carbon|null $available_from
- * @property \Illuminate\Support\Carbon|null $deadline_at
- * @property int $tolerance_minutes
  * @property int|null $max_attempts
  * @property int $cooldown_minutes
  * @property bool $retake_enabled
@@ -38,7 +35,6 @@ use Modules\Common\Traits\PgSearchable;
  * @property int|null $question_bank_count
  * @property AssignmentStatus $status
  * @property bool $allow_resubmit
- * @property int $late_penalty_percent
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read string|null $scope_type
@@ -97,9 +93,6 @@ class Assignment extends Model implements HasMedia
         'type',
         'submission_type',
         'max_score',
-        'available_from',
-        'deadline_at',
-        'tolerance_minutes',
         'max_attempts',
         'cooldown_minutes',
         'retake_enabled',
@@ -108,7 +101,6 @@ class Assignment extends Model implements HasMedia
         'question_bank_count',
         'status',
         'allow_resubmit',
-        'late_penalty_percent',
         'time_limit_minutes',
         'allow_multiple',
     ];
@@ -119,15 +111,11 @@ class Assignment extends Model implements HasMedia
         'status' => AssignmentStatus::class,
         'review_mode' => ReviewMode::class,
         'randomization_type' => RandomizationType::class,
-        'available_from' => 'datetime',
-        'deadline_at' => 'datetime',
-        'tolerance_minutes' => 'integer',
         'max_attempts' => 'integer',
         'cooldown_minutes' => 'integer',
         'question_bank_count' => 'integer',
         'allow_resubmit' => 'boolean',
         'retake_enabled' => 'boolean',
-        'late_penalty_percent' => 'integer',
         'allow_multiple' => 'boolean',
     ];
 
@@ -193,47 +181,7 @@ class Assignment extends Model implements HasMedia
 
         public function isAvailable(): bool
     {
-        if ($this->status !== AssignmentStatus::Published) {
-            return false;
-        }
-
-        $now = now();
-        if ($this->available_from && $now->lt($this->available_from)) {
-            return false;
-        }
-
-        return true;
-    }
-
-        public function isPastDeadline(): bool
-    {
-        if (! $this->deadline_at) {
-            return false;
-        }
-
-        return now()->gt($this->deadline_at);
-    }
-
-        public function isWithinTolerance(): bool
-    {
-        if (! $this->deadline_at) {
-            return true;
-        }
-
-        $toleranceEnd = $this->deadline_at->copy()->addMinutes($this->tolerance_minutes ?? 0);
-
-        return now()->lte($toleranceEnd);
-    }
-
-        public function isPastTolerance(): bool
-    {
-        if (! $this->deadline_at) {
-            return false;
-        }
-
-        $toleranceEnd = $this->deadline_at->copy()->addMinutes($this->tolerance_minutes ?? 0);
-
-        return now()->gt($toleranceEnd);
+        return $this->status === AssignmentStatus::Published;
     }
 
         public function getScopeTypeAttribute(): ?string
@@ -313,16 +261,9 @@ class Assignment extends Model implements HasMedia
         public function scopeAvailable($query, bool $isAvailable = true)
     {
         if ($isAvailable) {
-            return $query->published()
-                ->where(function ($q) {
-                    $q->whereNull('available_from')
-                        ->orWhere('available_from', '<=', now());
-                });
+            return $query->published();
         }
-        return $query->where(function ($q) {
-            $q->where('status', '!=', AssignmentStatus::Published)
-                ->orWhere('available_from', '>', now());
-        });
+        return $query->where('status', '!=', AssignmentStatus::Published);
     }
 
         public function hasValidScope(): bool
