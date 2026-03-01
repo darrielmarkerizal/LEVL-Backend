@@ -6,6 +6,7 @@ namespace Modules\Schemes\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Common\Traits\PgSearchable;
 use Modules\Schemes\Enums\ContentType;
 use Spatie\Activitylog\LogOptions;
@@ -69,12 +70,20 @@ class Lesson extends Model
         return $this->hasMany(LessonBlock::class);
     }
 
+    public function completions(): HasMany
+    {
+        return $this->hasMany(LessonCompletion::class);
+    }
+
+    public function isCompletedBy(int $userId): bool
+    {
+        return $this->completions()->where('user_id', $userId)->exists();
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
     }
-
-
 
     protected static function newFactory()
     {

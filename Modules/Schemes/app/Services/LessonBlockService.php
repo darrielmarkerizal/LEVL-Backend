@@ -36,7 +36,7 @@ class LessonBlockService
     public function list(int $lessonId, array $filters = []): Collection
     {
         return cache()->tags(['schemes', 'lesson_blocks'])->remember(
-            "schemes:lesson_blocks:lesson:{$lessonId}:" . md5(json_encode($filters)),
+            "schemes:lesson_blocks:lesson:{$lessonId}:".md5(json_encode($filters)),
             300,
             function () use ($lessonId, $filters) {
                 $query = QueryBuilder::for(LessonBlock::class, $this->buildQueryBuilderRequest($filters))

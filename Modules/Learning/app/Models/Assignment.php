@@ -4,60 +4,23 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Modules\Common\Traits\PgSearchable;
 use Modules\Learning\Enums\AssignmentStatus;
 use Modules\Learning\Enums\AssignmentType;
 use Modules\Learning\Enums\RandomizationType;
 use Modules\Learning\Enums\ReviewMode;
 use Modules\Learning\Enums\SubmissionType;
-use Modules\Common\Traits\PgSearchable;
-
-/**
- * @property int $id
- * @property int|null $lesson_id
- * @property string|null $assignable_type
- * @property int|null $assignable_id
- * @property int $created_by
- * @property string $title
- * @property string|null $description
- * @property string $type
- * @property SubmissionType $submission_type
- * @property float $max_score
- * @property int|null $max_attempts
- * @property int $cooldown_minutes
- * @property bool $retake_enabled
- * @property ReviewMode $review_mode
- * @property RandomizationType $randomization_type
- * @property int|null $question_bank_count
- * @property AssignmentStatus $status
- * @property bool $allow_resubmit
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read string|null $scope_type
- * @property-read \Modules\Schemes\Models\Lesson|null $lesson
- * @property-read \Modules\Auth\Models\User $creator
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Submission> $submissions
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Question> $questions
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Assignment> $prerequisites
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Assignment> $dependents
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Override> $overrides
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Override> $activeOverrides
- * @property-read \Modules\Schemes\Models\Lesson|\Modules\Schemes\Models\Unit|\Modules\Schemes\Models\Course|null $assignable
- */
-
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Assignment extends Model implements HasMedia
 {
-    use PgSearchable, InteractsWithMedia, HasFactory;
+    use HasFactory, InteractsWithMedia, PgSearchable;
 
     protected array $searchable_columns = [
         'title',
@@ -79,7 +42,7 @@ class Assignment extends Model implements HasMedia
                 'application/zip',
                 'image/jpeg',
                 'image/png',
-                'image/webp'
+                'image/webp',
             ]);
     }
 
@@ -124,67 +87,47 @@ class Assignment extends Model implements HasMedia
         return \Modules\Learning\Database\Factories\AssignmentFactory::new();
     }
 
-        public function assignable(): MorphTo
+    public function assignable(): MorphTo
     {
         return $this->morphTo();
     }
 
-        public function lesson(): BelongsTo
+    public function lesson(): BelongsTo
     {
         return $this->belongsTo(\Modules\Schemes\Models\Lesson::class);
     }
 
-        public function creator(): BelongsTo
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class, 'created_by');
     }
 
-        public function submissions(): HasMany
+    public function submissions(): HasMany
     {
         return $this->hasMany(Submission::class);
     }
 
-        public function questions(): HasMany
+    public function questions(): HasMany
     {
         return $this->hasMany(Question::class)->ordered();
     }
 
-        public function prerequisites(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            Assignment::class,
-            'assignment_prerequisites',
-            'assignment_id',
-            'prerequisite_id'
-        )->withTimestamps();
-    }
-
-        public function dependents(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            Assignment::class,
-            'assignment_prerequisites',
-            'prerequisite_id',
-            'assignment_id'
-        )->withTimestamps();
-    }
-
-        public function overrides(): HasMany
+    public function overrides(): HasMany
     {
         return $this->hasMany(Override::class);
     }
 
-        public function activeOverrides(): HasMany
+    public function activeOverrides(): HasMany
     {
         return $this->hasMany(Override::class)->active();
     }
 
-        public function isAvailable(): bool
+    public function isAvailable(): bool
     {
         return $this->status === AssignmentStatus::Published;
     }
 
-        public function getScopeTypeAttribute(): ?string
+    public function getScopeTypeAttribute(): ?string
     {
         if ($this->assignable_type) {
             return match ($this->assignable_type) {
@@ -195,7 +138,6 @@ class Assignment extends Model implements HasMedia
             };
         }
 
-        
         if ($this->lesson_id) {
             return 'lesson';
         }
@@ -203,7 +145,7 @@ class Assignment extends Model implements HasMedia
         return null;
     }
 
-        public function scopeForLesson($query, int $lessonId)
+    public function scopeForLesson($query, int $lessonId)
     {
         return $query->where(function ($q) use ($lessonId) {
             $q->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
@@ -211,7 +153,7 @@ class Assignment extends Model implements HasMedia
         })->orWhere('lesson_id', $lessonId);
     }
 
-        public function scopeForUnit($query, int $unitId)
+    public function scopeForUnit($query, int $unitId)
     {
         $lessonIds = \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)->pluck('id')->toArray();
 
@@ -220,15 +162,15 @@ class Assignment extends Model implements HasMedia
                 $subQ->where('assignable_type', \Modules\Schemes\Models\Unit::class)
                     ->where('assignable_id', $unitId);
             })
-            ->orWhere(function ($subQ) use ($lessonIds) {
-                $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
-                    ->whereIn('assignable_id', $lessonIds);
-            })
-            ->orWhereIn('lesson_id', $lessonIds);
+                ->orWhere(function ($subQ) use ($lessonIds) {
+                    $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
+                        ->whereIn('assignable_id', $lessonIds);
+                })
+                ->orWhereIn('lesson_id', $lessonIds);
         });
     }
 
-        public function scopeForCourse($query, int $courseId)
+    public function scopeForCourse($query, int $courseId)
     {
         $unitIds = \Modules\Schemes\Models\Unit::where('course_id', $courseId)->pluck('id')->toArray();
         $lessonIds = \Modules\Schemes\Models\Lesson::whereIn('unit_id', $unitIds)->pluck('id')->toArray();
@@ -238,65 +180,63 @@ class Assignment extends Model implements HasMedia
                 $subQ->where('assignable_type', \Modules\Schemes\Models\Course::class)
                     ->where('assignable_id', $courseId);
             })
-            ->orWhere(function ($subQ) use ($unitIds) {
-                $subQ->where('assignable_type', \Modules\Schemes\Models\Unit::class)
-                    ->whereIn('assignable_id', $unitIds);
-            })
-            ->orWhere(function ($subQ) use ($lessonIds) {
-                $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
-                    ->whereIn('assignable_id', $lessonIds);
-            })
-            ->orWhereIn('lesson_id', $lessonIds);
+                ->orWhere(function ($subQ) use ($unitIds) {
+                    $subQ->where('assignable_type', \Modules\Schemes\Models\Unit::class)
+                        ->whereIn('assignable_id', $unitIds);
+                })
+                ->orWhere(function ($subQ) use ($lessonIds) {
+                    $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
+                        ->whereIn('assignable_id', $lessonIds);
+                })
+                ->orWhereIn('lesson_id', $lessonIds);
         });
     }
 
-        public function scopePublished($query, bool $isPublished = true)
+    public function scopePublished($query, bool $isPublished = true)
     {
         if ($isPublished) {
             return $query->where('status', AssignmentStatus::Published);
         }
+
         return $query->where('status', '!=', AssignmentStatus::Published);
     }
 
-        public function scopeAvailable($query, bool $isAvailable = true)
+    public function scopeAvailable($query, bool $isAvailable = true)
     {
         if ($isAvailable) {
             return $query->published();
         }
+
         return $query->where('status', '!=', AssignmentStatus::Published);
     }
 
-        public function hasValidScope(): bool
+    public function hasValidScope(): bool
     {
         $hasPolymorphic = $this->assignable_type && $this->assignable_id;
         $hasLegacy = (bool) $this->lesson_id;
 
-        
         return $hasPolymorphic xor $hasLegacy;
     }
 
-        public function getCourseId(): ?int
+    public function getCourseId(): ?int
     {
-        
+
         if ($this->assignable_type === \Modules\Schemes\Models\Course::class) {
             return $this->assignable_id;
         }
 
-        
         if ($this->assignable_type === \Modules\Schemes\Models\Unit::class) {
             $unit = $this->assignable;
 
             return $unit?->course_id;
         }
 
-        
         if ($this->assignable_type === \Modules\Schemes\Models\Lesson::class) {
             $lesson = $this->assignable;
 
             return $lesson?->unit?->course_id;
         }
 
-        
         if ($this->lesson_id) {
             $this->loadMissing('lesson.unit');
 
@@ -345,6 +285,4 @@ class Assignment extends Model implements HasMedia
     {
         return $query->where('type', AssignmentType::Quiz);
     }
-
-
 }

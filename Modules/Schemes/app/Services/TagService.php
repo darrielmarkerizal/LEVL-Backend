@@ -24,9 +24,9 @@ class TagService
 
     public function list(array $filters = [], int $perPage = 0): LengthAwarePaginator|Collection
     {
-        $key = "schemes:tags:list:{$perPage}:" . md5(json_encode($filters));
+        $key = "schemes:tags:list:{$perPage}:".md5(json_encode($filters));
         if ($perPage > 0) {
-            $key .= ":" . request('page', 1);
+            $key .= ':'.request('page', 1);
         }
 
         return cache()->tags(['schemes', 'tags'])->remember($key, 300, function () use ($filters, $perPage) {
@@ -43,9 +43,9 @@ class TagService
     private function buildQuery(array $filters = []): QueryBuilder
     {
         $searchQuery = data_get($filters, 'search');
-        
+
         $cleanFilters = \Illuminate\Support\Arr::except($filters, ['search']);
-        
+
         $builder = QueryBuilder::for(Tag::class, $this->buildQueryBuilderRequest($cleanFilters));
 
         if ($searchQuery && trim((string) $searchQuery) !== '') {
@@ -68,6 +68,7 @@ class TagService
 
         $tag = $this->firstOrCreateByName($name);
         cache()->tags(['schemes', 'tags'])->flush();
+
         return $tag;
     }
 
@@ -75,6 +76,7 @@ class TagService
     {
         if (array_key_exists(0, $data)) {
             $names = collect($data)->pluck('name')->toArray();
+
             return $this->createMany($names);
         }
 

@@ -29,7 +29,7 @@ class CourseFinder
         $perPage = max(1, $perPage);
 
         return \Illuminate\Support\Facades\Cache::tags(['schemes', 'courses'])->remember(
-            "schemes:courses:paginate:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            "schemes:courses:paginate:{$perPage}:".request('page', 1).':'.md5(json_encode($filters)),
             300,
             function () use ($filters, $perPage) {
                 return $this->buildQuery($filters)->paginate($perPage);
@@ -42,7 +42,7 @@ class CourseFinder
         $perPage = max(1, $perPage);
 
         return \Illuminate\Support\Facades\Cache::tags(['schemes', 'courses'])->remember(
-            "schemes:courses:index:paginate:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            "schemes:courses:index:paginate:{$perPage}:".request('page', 1).':'.md5(json_encode($filters)),
             300,
             function () use ($filters, $perPage) {
                 return $this->buildQueryForIndex($filters)->paginate($perPage);
@@ -116,7 +116,7 @@ class CourseFinder
     private function buildQuery(array $filters = []): QueryBuilder
     {
         $searchQuery = data_get($filters, 'search');
-        
+
         $cleanFilters = Arr::except($filters, ['search', 'tag']);
         $request = new Request($cleanFilters);
 
@@ -148,7 +148,7 @@ class CourseFinder
     private function buildQueryForIndex(array $filters = []): QueryBuilder
     {
         $searchQuery = data_get($filters, 'search');
-        
+
         $cleanFilters = Arr::except($filters, ['search', 'tag']);
         $request = new Request($cleanFilters);
 

@@ -54,24 +54,28 @@ class LessonService implements LessonServiceInterface
     public function update(int $id, UpdateLessonDTO|array $data): Lesson
     {
         $lesson = $this->findOrFail($id);
+
         return $this->orderingProcessor->update($lesson, $data);
     }
 
     public function delete(int $id): bool
     {
         $lesson = $this->findOrFail($id);
+
         return $this->orderingProcessor->delete($lesson);
     }
 
     public function publish(int $id): Lesson
     {
         $lesson = $this->findOrFail($id);
+
         return $this->orderingProcessor->publish($lesson);
     }
 
     public function unpublish(int $id): Lesson
     {
         $lesson = $this->findOrFail($id);
+
         return $this->orderingProcessor->unpublish($lesson);
     }
 

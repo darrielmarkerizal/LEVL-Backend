@@ -134,8 +134,15 @@ class ComprehensiveAssessmentSeeder extends Seeder
     {
         $stats = ['assignments' => 0, 'quizzes' => 0, 'questions' => 0, 'submissions' => 0, 'answers' => 0, 'grades' => 0];
 
-        if (rand(0, 1)) {
+        $numAssignments = rand(1, 3);
+        $numQuizzes = rand(1, 3);
+
+        $assignments = [];
+        $quizzes = [];
+
+        for ($i = 0; $i < $numAssignments; $i++) {
             $result = $this->createAssignmentWithSubmissions($courseId, $lessonId);
+            $assignments[] = DB::table('assignments')->where('lesson_id', $lessonId)->latest('id')->first();
             $stats['assignments'] += $result['assignments'];
             $stats['questions'] += $result['questions'];
             $stats['submissions'] += $result['submissions'];
@@ -143,8 +150,9 @@ class ComprehensiveAssessmentSeeder extends Seeder
             $stats['grades'] += $result['grades'];
         }
 
-        if (rand(0, 1)) {
+        for ($i = 0; $i < $numQuizzes; $i++) {
             $result = $this->createQuizWithSubmissions($courseId, $lessonId);
+            $quizzes[] = DB::table('quizzes')->where('lesson_id', $lessonId)->latest('id')->first();
             $stats['quizzes'] += $result['quizzes'];
             $stats['questions'] += $result['questions'];
             $stats['submissions'] += $result['submissions'];

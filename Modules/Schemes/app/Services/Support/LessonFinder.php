@@ -26,7 +26,7 @@ class LessonFinder
         $perPage = max(1, min($perPage, 100));
 
         return cache()->tags(['schemes', 'lessons'])->remember(
-            "schemes:lessons:unit:{$unitId}:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            "schemes:lessons:unit:{$unitId}:{$perPage}:".request('page', 1).':'.md5(json_encode($filters)),
             300,
             function () use ($unitId, $filters, $perPage) {
                 return QueryBuilder::for(Lesson::class, $this->buildQueryBuilderRequest($filters))

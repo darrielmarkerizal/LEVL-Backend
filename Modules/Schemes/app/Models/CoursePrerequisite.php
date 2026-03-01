@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class CoursePrerequisite extends Model
 {
@@ -31,4 +31,3 @@ class CoursePrerequisite extends Model
         return $this->belongsTo(Course::class, 'prerequisite_course_id');
     }
 }
-
