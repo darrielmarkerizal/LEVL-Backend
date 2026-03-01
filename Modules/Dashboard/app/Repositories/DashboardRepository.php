@@ -326,8 +326,11 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
                 ->toArray();
 
             $query = Course::where('status', \Modules\Schemes\Enums\CourseStatus::Published)
-                ->where('id', '!=', $lastCourse->id)
-                ->whereNotIn('id', $enrolledCourseIds);
+                ->where('id', '!=', $lastCourse->id);
+
+            if (! empty($enrolledCourseIds)) {
+                $query->whereNotIn('id', $enrolledCourseIds);
+            }
 
             if ($categoryId || ! empty($tagIds)) {
                 $query->where(function ($subQuery) use ($categoryId, $tagIds) {
@@ -357,8 +360,13 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
                 $additionalCount = 2 - $recommended->count();
                 $excludeIds = array_merge($enrolledCourseIds, [$lastCourse->id], $recommended->pluck('id')->toArray());
 
-                $additional = Course::where('status', \Modules\Schemes\Enums\CourseStatus::Published)
-                    ->whereNotIn('id', $excludeIds)
+                $additionalQuery = Course::where('status', \Modules\Schemes\Enums\CourseStatus::Published);
+
+                if (! empty($excludeIds)) {
+                    $additionalQuery->whereNotIn('id', $excludeIds);
+                }
+
+                $additional = $additionalQuery
                     ->with(['instructor', 'media'])
                     ->withCount('enrollments')
                     ->inRandomOrder()
