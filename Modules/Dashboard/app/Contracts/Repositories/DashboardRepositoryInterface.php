@@ -21,4 +21,6 @@ interface DashboardRepositoryInterface extends BaseRepositoryInterface
     public function getLatestLearningActivity(User $user): ?array;
 
     public function getRecentAchievements(User $user): array;
+
+    public function getRecommendedCourses(User $user): array;
 }

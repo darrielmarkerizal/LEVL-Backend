@@ -21,6 +21,7 @@ class DashboardService implements DashboardServiceInterface
                 'gamification_stats' => $this->repository->getStudentGamificationStats($user),
                 'latest_learning_activity' => $this->repository->getLatestLearningActivity($user),
                 'recent_achievements' => $this->repository->getRecentAchievements($user),
+                'recommended_courses' => $this->repository->getRecommendedCourses($user),
             ];
         }
 
