@@ -15,8 +15,8 @@
 
 #### Authorization Logic
 - **Superadmin**: Can see ALL units from all courses
-- **Admin/Instructor**: Only units from courses they manage (instructor_id match)
-- **Student**: All published units (no restriction)
+- **Admin/Instructor**: Only units from courses they manage
+- **Student**: Only units from courses with active/completed enrollment (enforced by UnitPolicy)
 
 #### Filter Parameters (Slug-Based)
 - `search`: PostgreSQL Full Text Search across title, description, slug (direct query param)
@@ -38,8 +38,8 @@
 
 #### Authorization Logic
 - **Superadmin**: Can see ALL lessons from all courses
-- **Admin/Instructor**: Only lessons from courses they manage (via unit.course.instructor_id)
-- **Student**: All published lessons (no restriction)
+- **Admin/Instructor**: Only lessons from courses they manage
+- **Student**: Only lessons from courses with active/completed enrollment (enforced by LessonPolicy)
 
 #### Filter Parameters (Slug-Based)
 - `search`: PostgreSQL Full Text Search across title, description, markdown_content, slug (direct query param)
@@ -85,8 +85,14 @@ if ($user->hasRole(['Admin', 'Instructor'])) {
 
 ### Student
 ```php
-// All published content (handled by policies)
-// No additional query restrictions
+// Only content from enrolled courses (enforced by policies)
+// UnitPolicy::view() and LessonPolicy::view() check:
+if ($user->hasRole('Student')) {
+    return Enrollment::where('user_id', $user->id)
+        ->where('course_id', $course->id)
+        ->whereIn('status', ['active', 'completed'])
+        ->exists();
+}
 ```
 
 ## 📝 API Usage Examples
@@ -157,10 +163,11 @@ Authorization: Bearer {token}
 ## ⚠️ Important Notes
 
 1. **No ID Filters**: All filters use slug (course_slug, unit_slug) instead of ID
-2. **Authorization**: Automatically applied based on user role
-3. **Policies**: Existing policies still apply for individual resource access
-4. **Performance**: Uses eager loading to prevent N+1 queries
-5. **Caching**: No caching applied to global endpoints (real-time data)
+2. **Enrollment Required for Students**: Students can ONLY access units/lessons from courses they are enrolled in (active/completed status)
+3. **Policies**: UnitPolicy and LessonPolicy enforce enrollment checks for student access
+4. **Recommended Access**: Students should use course hierarchy endpoints (`/courses/{slug}/units`) instead of global endpoints
+5. **Performance**: Uses eager loading to prevent N+1 queries
+6. **Caching**: No caching applied to global endpoints (real-time data)
 
 ## 🔧 Technical Details
 

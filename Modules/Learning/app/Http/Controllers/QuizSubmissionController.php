@@ -12,8 +12,8 @@ use Modules\Learning\Contracts\Services\QuizSubmissionServiceInterface;
 use Modules\Learning\Http\Requests\SaveQuizAnswerRequest;
 use Modules\Learning\Http\Resources\QuizSubmissionResource;
 use Modules\Learning\Models\Quiz;
-use Modules\Learning\Models\QuizQuestion;
 use Modules\Learning\Models\QuizSubmission;
+use Modules\Learning\Services\Support\QuizSubmissionIncludeAuthorizer;
 
 class QuizSubmissionController extends Controller
 {
@@ -22,13 +22,14 @@ class QuizSubmissionController extends Controller
 
     public function __construct(
         private readonly QuizSubmissionServiceInterface $submissionService,
+        private readonly QuizSubmissionIncludeAuthorizer $includeAuthorizer
     ) {}
 
     public function index(Quiz $quiz): JsonResponse
     {
         $this->authorize('viewSubmissions', $quiz);
         $paginator = $this->submissionService->listForQuiz($quiz->id, request()->all());
-        $paginator->getCollection()->transform(fn($item) => new QuizSubmissionResource($item));
+        $paginator->getCollection()->transform(fn ($item) => new QuizSubmissionResource($item));
 
         return $this->paginateResponse($paginator, 'messages.quiz_submissions.list_retrieved');
     }
@@ -61,7 +62,18 @@ class QuizSubmissionController extends Controller
     {
         $this->authorize('view', $submission);
 
-        return $this->success(QuizSubmissionResource::make($submission->load(['answers', 'quiz'])));
+        $includeParam = request()->get('include', '');
+        if (! empty($includeParam)) {
+            $user = auth('api')->user();
+            $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $submission);
+
+            $submission = \Spatie\QueryBuilder\QueryBuilder::for(\Modules\Learning\Models\QuizSubmission::class)
+                ->where('id', $submission->id)
+                ->allowedIncludes($allowedIncludes)
+                ->firstOrFail();
+        }
+
+        return $this->success(QuizSubmissionResource::make($submission));
     }
 
     public function listQuestions(QuizSubmission $submission): JsonResponse

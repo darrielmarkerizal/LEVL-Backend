@@ -51,7 +51,9 @@ class UnitController extends Controller
         $this->service->validateHierarchy($course->id, $unit->id);
         $this->authorize('view', $unit);
 
-        return $this->success(new UnitResource($unit->load('lessons')));
+        $unitWithIncludes = $this->service->findWithIncludes($unit->id);
+
+        return $this->success(new UnitResource($unitWithIncludes));
     }
 
     public function update(UnitRequest $request, Course $course, Unit $unit)
@@ -105,7 +107,8 @@ class UnitController extends Controller
     public function contents(Course $course, Unit $unit)
     {
         $this->service->validateHierarchy($course->id, $unit->id);
-        $contents = $this->service->getContents($unit);
+        $user = auth('api')->user();
+        $contents = $this->service->getContents($unit, $user);
 
         return $this->success($contents);
     }
@@ -134,6 +137,8 @@ class UnitController extends Controller
     {
         $this->authorize('view', $unit);
 
-        return $this->success(new UnitResource($unit->load(['course', 'lessons'])));
+        $unitWithIncludes = $this->service->findWithIncludes($unit->id);
+
+        return $this->success(new UnitResource($unitWithIncludes));
     }
 }

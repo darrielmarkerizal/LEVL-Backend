@@ -143,64 +143,7 @@ GET /courses?search=programming&filter[status]=published
 
 ## Units & Lessons (Student)
 
-### List All Units (Global)
-
-**Endpoint:** `GET /units`
-
-**Access:** Authenticated users
-
-**Query Parameters:**
-- `per_page` (integer, optional): Items per page (default: 15)
-- `page` (integer, optional): Page number
-- `search` (string, optional): Search in title, code, description
-- `filter[status]` (string, optional): Filter by status
-  - Values: `draft`, `published`
-- `filter[course_slug]` (string, optional): Filter by course slug
-  - Values: Get course slugs from `GET /courses`
-
-**Response:** Paginated list of units across all courses user has access to
-
----
-
-### Get Unit Details (Global)
-
-**Endpoint:** `GET /units/{slug}`
-
-**Access:** Authenticated users (must have access to unit's course)
-
-**Path Parameters:**
-- `slug` (string, required): Unit slug
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "code": "UNIT01",
-    "slug": "introduction-unit",
-    "title": "Introduction Unit",
-    "description": "Getting started with the course",
-    "order": 1,
-    "status": "published",
-    "course": {
-      "id": 1,
-      "title": "Introduction to Programming",
-      "slug": "introduction-to-programming"
-    },
-    "lessons": [
-      {
-        "id": 1,
-        "title": "First Lesson",
-        "slug": "first-lesson",
-        "order": 1
-      }
-    ]
-  }
-}
-```
-
----
+**IMPORTANT:** Students can ONLY access units and lessons through the course hierarchy and MUST have an active enrollment in the course.
 
 ### List Units in Course
 
@@ -236,66 +179,7 @@ GET /courses?search=programming&filter[status]=published
 
 **Response:** Returns all content within the unit (lessons, blocks, assignments)
 
----
 
-### List All Lessons (Global)
-
-**Endpoint:** `GET /lessons`
-
-**Access:** Authenticated users
-
-**Query Parameters:**
-- `per_page` (integer, optional): Items per page (default: 15)
-- `search` (string, optional): Search in title, content
-- `filter[status]` (string, optional): Filter by status
-  - Values: `draft`, `published`
-- `filter[unit_slug]` (string, optional): Filter by unit slug
-  - Values: Get unit slugs from `GET /units`
-
-**Response:** Paginated list of lessons across all courses
-
----
-
-### Get Lesson Details (Global)
-
-**Endpoint:** `GET /lessons/{slug}`
-
-**Access:** Authenticated users (must have access)
-
-**Path Parameters:**
-- `slug` (string, required): Lesson slug
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "slug": "first-lesson",
-    "title": "First Lesson",
-    "content": "Lesson content in markdown",
-    "order": 1,
-    "status": "published",
-    "is_completed": false,
-    "unit": {
-      "id": 1,
-      "title": "Introduction Unit",
-      "slug": "introduction-unit"
-    },
-    "blocks": [
-      {
-        "id": 1,
-        "type": "text",
-        "content": "Block content",
-        "order": 1
-      }
-    ]
-  }
-}
-```
-
-
----
 
 ### List Lessons in Unit
 
@@ -322,11 +206,11 @@ GET /courses?search=programming&filter[status]=published
 
 ---
 
-### Mark Lesson Complete (Global)
+### Mark Lesson Complete
 
 **Endpoint:** `POST /lessons/{lesson_slug}/complete`
 
-**Access:** Authenticated users
+**Access:** Authenticated users with active enrollment
 
 **Request Body:** None
 
@@ -338,13 +222,15 @@ GET /courses?search=programming&filter[status]=published
 }
 ```
 
+**Note:** This endpoint validates enrollment before marking completion.
+
 ---
 
-### Mark Lesson Incomplete (Global)
+### Mark Lesson Incomplete
 
 **Endpoint:** `DELETE /lessons/{lesson_slug}/complete`
 
-**Access:** Authenticated users
+**Access:** Authenticated users with active enrollment
 
 **Request Body:** None
 
@@ -355,6 +241,8 @@ GET /courses?search=programming&filter[status]=published
   "message": "Lesson marked as incomplete"
 }
 ```
+
+**Note:** This endpoint validates enrollment before marking incomplete.
 
 ---
 
@@ -3733,6 +3621,44 @@ banner: (file, optional, image, max:5MB)
 
 ---
 
+### List All Units (Global - Management Only)
+
+**Endpoint:** `GET /units`
+
+**Access:** Authenticated users (Admin/Instructor for cross-course access)
+
+**Purpose:** Management convenience endpoint for viewing units across all courses. Students can only access units they have enrollment for.
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+- `page` (integer, optional): Page number
+- `filter[status]` (string, optional): Filter by status
+  - Values: `draft`, `published`
+- `filter[course_slug]` (string, optional): Filter by course slug
+  - Values: Get course slugs from `GET /courses`
+- `search` (string, optional): Search in title, code, description
+
+**Authorization:**
+- Students: Only see units from courses with active/completed enrollment
+- Admin/Instructor: See units from courses they manage
+- Superadmin: See all units
+
+**Response:** Paginated list of units with course information
+
+---
+
+### Get Unit Details (Global - Management Only)
+
+**Endpoint:** `GET /units/{unit_slug}`
+
+**Access:** Authenticated users (enrollment check applies for students)
+
+**Purpose:** Direct unit access without course context. Students must have active enrollment in the parent course.
+
+**Response:** Unit details with available includes based on user permissions
+
+---
+
 ## Lesson Management
 
 ### Create Lesson
@@ -3822,6 +3748,43 @@ banner: (file, optional, image, max:5MB)
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
 **Response:** Lesson with status changed to `draft`
+
+---
+
+### List All Lessons (Global - Management Only)
+
+**Endpoint:** `GET /lessons`
+
+**Access:** Authenticated users (Admin/Instructor for cross-course access)
+
+**Purpose:** Management convenience endpoint for viewing lessons across all courses. Students can only access lessons they have enrollment for.
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+- `page` (integer, optional): Page number
+- `filter[status]` (string, optional): Filter by status
+  - Values: `draft`, `published`
+- `filter[unit_slug]` (string, optional): Filter by unit slug
+- `search` (string, optional): Search in title, content
+
+**Authorization:**
+- Students: Only see lessons from courses with active/completed enrollment
+- Admin/Instructor: See lessons from courses they manage
+- Superadmin: See all lessons
+
+**Response:** Paginated list of lessons with unit and course information
+
+---
+
+### Get Lesson Details (Global - Management Only)
+
+**Endpoint:** `GET /lessons/{lesson_slug}`
+
+**Access:** Authenticated users (enrollment check applies for students)
+
+**Purpose:** Direct lesson access without course/unit context. Students must have active enrollment in the parent course.
+
+**Response:** Lesson details with completion status and available includes based on user permissions
 
 ---
 
@@ -5191,15 +5154,17 @@ Use `filter[field]` syntax:
   - Common values: `auto_accept`, `approval_required`, `key_based`
 - `search`: Full-text search in title, code, description
 
-#### Units (`GET /units`, `GET /courses/{slug}/units`)
+#### Units (`GET /courses/{slug}/units`)
 - `filter[status]`: `draft`, `published`
-- `filter[course_slug]`: string - Get course slugs from `GET /courses`
 - `search`: Full-text search in title, code, description
 
-#### Lessons (`GET /lessons`, `GET /courses/{slug}/units/{slug}/lessons`)
+**Note:** Units can only be accessed through course hierarchy. Students must have active enrollment.
+
+#### Lessons (`GET /courses/{slug}/units/{slug}/lessons`)
 - `filter[status]`: `draft`, `published`
-- `filter[unit_slug]`: string - Get unit slugs from `GET /units`
 - `search`: Full-text search in title, content
+
+**Note:** Lessons can only be accessed through course/unit hierarchy. Students must have active enrollment.
 
 #### Assignments (`GET /courses/{slug}/assignments`)
 - `filter[status]`: `draft`, `published`, `archived`
@@ -5249,13 +5214,13 @@ Use `sort` parameter:
 - `sort=published_at`, `sort=-published_at`
 - Default: `-created_at`
 
-#### Units (`GET /units`)
+#### Units (`GET /courses/{slug}/units`)
 - `sort=order`, `sort=-order`
 - `sort=title`, `sort=-title`
 - `sort=created_at`, `sort=-created_at`
 - Default: `order`
 
-#### Lessons (`GET /lessons`)
+#### Lessons (`GET /courses/{slug}/units/{slug}/lessons`)
 - `sort=order`, `sort=-order`
 - `sort=title`, `sort=-title`
 - `sort=created_at`, `sort=-created_at`
@@ -5346,8 +5311,8 @@ Use `search` parameter for full-text search:
 
 **Endpoints with Search:**
 - `GET /courses?search=laravel`
-- `GET /units?search=introduction`
-- `GET /lessons?search=variables`
+- `GET /courses/{slug}/units?search=introduction`
+- `GET /courses/{slug}/units/{unit_slug}/lessons?search=variables`
 
 ### Example Combined Queries
 
@@ -5355,8 +5320,8 @@ Use `search` parameter for full-text search:
 # Courses: Published, beginner level, sorted by title
 GET /courses?filter[status]=published&filter[level_tag]=beginner&sort=title
 
-# Units: In specific course by slug, published only
-GET /units?filter[course_slug]=laravel-basics&filter[status]=published&sort=order
+# Units: In specific course, published only
+GET /courses/laravel-basics/units?filter[status]=published&sort=order
 
 # Enrollments: Active students in course
 GET /courses/laravel-basics/enrollments?filter[status]=active&include=user

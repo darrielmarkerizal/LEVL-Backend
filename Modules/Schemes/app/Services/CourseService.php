@@ -66,6 +66,11 @@ class CourseService implements CourseServiceInterface
         return $this->finder->findBySlug($slug);
     }
 
+    public function findBySlugWithIncludes(string $slug): ?Course
+    {
+        return $this->finder->findBySlugWithIncludes($slug);
+    }
+
     public function create(CreateCourseDTO|array $data, ?\Modules\Auth\Models\User $actor = null, array $files = []): Course
     {
         return $this->lifecycleProcessor->create($data, $actor, $files);
