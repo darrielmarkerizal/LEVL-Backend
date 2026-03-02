@@ -26,7 +26,7 @@ class PrerequisiteCheckResult
     public static function fail(Collection $incompletePrerequisites): self
     {
         $count = $incompletePrerequisites->count();
-        $message = "You must complete {$count} prerequisite assignment(s) before accessing this assignment.";
+        $message = __('messages.prerequisites.incomplete_count', ['count' => $count]);
 
         return new self(
             passed: false,
@@ -39,9 +39,11 @@ class PrerequisiteCheckResult
     {
         return [
             'passed' => $this->passed,
-            'incomplete_prerequisites' => $this->incompletePrerequisites->map(fn ($a) => [
-                'id' => $a->id,
-                'title' => $a->title,
+            'incomplete_prerequisites' => $this->incompletePrerequisites->map(fn ($item) => [
+                'type' => $item['type'] ?? 'assignment',
+                'id' => $item['id'] ?? $item->id,
+                'title' => $item['title'] ?? $item->title,
+                'slug' => $item['slug'] ?? $item->slug ?? null,
             ])->toArray(),
             'message' => $this->message,
         ];

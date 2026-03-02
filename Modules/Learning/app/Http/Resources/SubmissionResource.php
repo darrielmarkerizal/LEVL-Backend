@@ -21,7 +21,6 @@ class SubmissionResource extends JsonResource
             'state' => $this->state?->value,
             'score' => $this->score,
             'attempt_number' => $this->attempt_number,
-            'is_late' => $this->is_late,
             'is_resubmission' => $this->is_resubmission,
             'question_set' => $this->question_set,
             'submitted_at' => $this->submitted_at,

@@ -18,7 +18,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
 {
         protected const DEFAULT_EAGER_LOAD = [
         'user:id,name,email',
-        'assignment:id,title,deadline_at,tolerance_minutes,review_mode',
+        'assignment:id,title,review_mode',
         'answers.question',
         'grade',
             'enrollment',
@@ -28,7 +28,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
 
         protected const DETAILED_EAGER_LOAD = [
         'user:id,name,email',
-        'assignment:id,title,deadline_at,tolerance_minutes,review_mode',
+        'assignment:id,title,review_mode',
         'answers.question',
         'grade.grader:id,name,email',
     ];
@@ -107,7 +107,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
                     ])
                     ->with([
                         'user:id,name,email',
-                        'assignment:id,title,deadline_at',
+                        'assignment:id,title',
                         'grade.grader:id,name,email',
                         'answers.question:id,type,content,weight',
                     ])
@@ -210,7 +210,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->where('id', $submissionId)
             ->with([
                 'user:id,name,email',
-                'assignment:id,title,deadline_at,tolerance_minutes,review_mode',
+                'assignment:id,title,review_mode',
                 'answers.question:id,type,content,options,answer_key,weight,max_score',
                 'grade',
             ])
@@ -254,7 +254,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
                     ])
                     ->with([
                         'user:id,name,email',
-                        'assignment:id,title,deadline_at',
+                        'assignment:id,title',
                         'answers' => function ($q) {
                             $q->whereNull('score')
                                 ->orWhereHas('question', function ($q) {
@@ -277,7 +277,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->where('state', $state)
             ->with([
                 'user:id,name,email',
-                'assignment:id,title,deadline_at',
+                'assignment:id,title',
                 'grade.grader:id,name,email',
                 'answers.question:id,type,content,weight',
             ])
@@ -293,7 +293,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->where('score', '<=', $max)
             ->with([
                 'user:id,name,email',
-                'assignment:id,title,deadline_at',
+                'assignment:id,title',
                 'grade.grader:id,name,email',
                 'answers.question:id,type,content,weight',
             ])
@@ -311,7 +311,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->whereBetween('submitted_at', [$fromDate, $toDate])
             ->with([
                 'user:id,name,email',
-                'assignment:id,title,deadline_at',
+                'assignment:id,title',
                 'grade.grader:id,name,email',
                 'answers.question:id,type,content,weight',
             ])

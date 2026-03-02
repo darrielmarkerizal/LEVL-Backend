@@ -10,7 +10,6 @@ class AssignmentAndSubmissionSeeder extends Seeder
     private array $pregenDescriptions = [];
     private array $pregenAnswers = [];
     private string $createdAt;
-    private string $deadlineAt;
 
     public function run(): void
     {
@@ -21,7 +20,6 @@ class AssignmentAndSubmissionSeeder extends Seeder
 
         $this->pregenerateFakeData();
         $this->createdAt = now()->toDateTimeString();
-        $this->deadlineAt = now()->addDays(14)->toDateTimeString();
 
         $lessonCount = \DB::table('lessons')->count();
         $instructorIds = \DB::table('users')
@@ -57,13 +55,16 @@ class AssignmentAndSubmissionSeeder extends Seeder
             $instructorId = $instructorIds[array_rand($instructorIds)];
 
             for ($i = 0; $i < $assignmentsPerLesson; $i++) {
+                $submissionType = rand(1, 100) <= 50 ? 'file' : 'text';
+                
                 $assignments[] = [
                     'lesson_id' => $lesson->id,
                     'title' => $this->pregenTitles[array_rand($this->pregenTitles)],
                     'description' => $this->pregenDescriptions[array_rand($this->pregenDescriptions)],
                     'created_by' => $instructorId,
                     'max_score' => rand(50, 100),
-                    'deadline_at' => $this->deadlineAt,
+                    'submission_type' => $submissionType,
+                    'type' => 'assignment',
                     'status' => 'published',
                     'created_at' => $this->createdAt,
                     'updated_at' => $this->createdAt,
@@ -105,7 +106,7 @@ class AssignmentAndSubmissionSeeder extends Seeder
         $assignmentCourseMap = \DB::table('assignments')
             ->join('lessons', 'assignments.lesson_id', '=', 'lessons.id')
             ->join('units', 'lessons.unit_id', '=', 'units.id')
-            ->select('assignments.id', 'assignments.max_score', 'units.course_id')
+            ->select('assignments.id', 'assignments.max_score', 'assignments.submission_type', 'units.course_id')
             ->get()
             ->keyBy('id')
             ->toArray();
@@ -132,6 +133,7 @@ class AssignmentAndSubmissionSeeder extends Seeder
             
             $courseId = $assignmentData->course_id;
             $maxScore = $assignmentData->max_score;
+            $submissionType = $assignmentData->submission_type;
             
             $enrollmentData = $courseEnrollments[$courseId] ?? [];
             if (empty($enrollmentData)) continue;
@@ -150,14 +152,22 @@ class AssignmentAndSubmissionSeeder extends Seeder
                     default => 'draft',
                 };
                 
+                $answerText = null;
+                if ($submissionType === 'text' && $status !== 'draft') {
+                    $answerText = $this->pregenAnswers[array_rand($this->pregenAnswers)];
+                }
+                
                 $submissions[] = [
                     'assignment_id' => $assignmentId,
                     'user_id' => $userId,
                     'enrollment_id' => $enrollmentId,
-                    'answer_text' => $this->pregenAnswers[array_rand($this->pregenAnswers)],
+                    'answer_text' => $answerText,
                     'status' => $status,
+                    'state' => $status,
                     'score' => $status === 'graded' ? rand(0, $maxScore) : null,
                     'submitted_at' => $status !== 'draft' ? $this->createdAt : null,
+                    'graded_at' => $status === 'graded' ? $this->createdAt : null,
+                    'attempt_number' => 1,
                     'created_at' => $this->createdAt,
                     'updated_at' => $this->createdAt,
                 ];
@@ -188,6 +198,12 @@ class AssignmentAndSubmissionSeeder extends Seeder
             unset($submissions);
         }
 
+        echo "Attaching files to file-type submissions...\n";
+        $this->attachFilesToSubmissions();
+
+        echo "Creating grades for graded submissions...\n";
+        $this->createGradesForSubmissions();
+
         echo "✅ Assignment and submission seeding completed!\n";
         echo "Created $assignmentCount assignments with $submissionCount submissions\n";
         
@@ -206,10 +222,121 @@ class AssignmentAndSubmissionSeeder extends Seeder
         for ($i = 0; $i < 100; $i++) {
             $this->pregenTitles[] = $faker->sentence(3);
             $this->pregenDescriptions[] = $faker->text(80);
-            $this->pregenAnswers[] = $faker->paragraph(1);
+            $this->pregenAnswers[] = $faker->paragraph(3);
         }
         
         unset($faker);
+    }
+
+    private function createGradesForSubmissions(): void
+    {
+        $faker = \Faker\Factory::create('id_ID');
+        $instructorIds = \DB::table('users')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', 'Instructor')
+            ->pluck('users.id')
+            ->toArray();
+
+        if (empty($instructorIds)) {
+            echo "⚠️  No instructors found for grading.\n";
+            return;
+        }
+
+        $gradedSubmissions = \DB::table('submissions')
+            ->where('status', 'graded')
+            ->whereNotNull('score')
+            ->select('id', 'assignment_id', 'user_id', 'score', 'graded_at')
+            ->get();
+
+        $grades = [];
+        $gradeCount = 0;
+
+        foreach ($gradedSubmissions as $submission) {
+            $assignment = \DB::table('assignments')
+                ->where('id', $submission->assignment_id)
+                ->first(['max_score']);
+
+            if (!$assignment) continue;
+
+            $grades[] = [
+                'source_type' => 'assignment',
+                'source_id' => $submission->assignment_id,
+                'user_id' => $submission->user_id,
+                'submission_id' => $submission->id,
+                'graded_by' => $instructorIds[array_rand($instructorIds)],
+                'score' => $submission->score,
+                'max_score' => $assignment->max_score,
+                'feedback' => $faker->paragraph(1),
+                'status' => 'graded',
+                'graded_at' => $submission->graded_at,
+                'created_at' => $submission->graded_at,
+                'updated_at' => $submission->graded_at,
+            ];
+            $gradeCount++;
+
+            if (count($grades) >= 50) {
+                \DB::table('grades')->insertOrIgnore($grades);
+                $grades = [];
+                gc_collect_cycles();
+            }
+        }
+
+        if (!empty($grades)) {
+            \DB::table('grades')->insertOrIgnore($grades);
+        }
+
+        echo "✅ Created $gradeCount grades\n";
+        unset($faker);
+    }
+
+    private function attachFilesToSubmissions(): void
+    {
+        $dummyFilePath = public_path('dummy/pdf-sample_0.pdf');
+        
+        if (!file_exists($dummyFilePath)) {
+            echo "⚠️  Dummy file not found at: $dummyFilePath\n";
+            return;
+        }
+
+        $fileSubmissions = \DB::table('submissions')
+            ->join('assignments', 'submissions.assignment_id', '=', 'assignments.id')
+            ->where('assignments.submission_type', 'file')
+            ->whereIn('submissions.status', ['submitted', 'graded'])
+            ->select('submissions.id')
+            ->get();
+
+        if ($fileSubmissions->isEmpty()) {
+            echo "⚠️  No file-type submissions found.\n";
+            return;
+        }
+
+        $fileCount = 0;
+
+        foreach ($fileSubmissions as $submissionData) {
+            $submission = \Modules\Learning\Models\Submission::find($submissionData->id);
+            
+            if (!$submission) continue;
+
+            try {
+                $submission->addMedia($dummyFilePath)
+                    ->preservingOriginal()
+                    ->usingName('submission-' . $submission->id)
+                    ->usingFileName('submission-' . $submission->id . '.pdf')
+                    ->toMediaCollection('submissions', 'do');
+                
+                $fileCount++;
+
+                if ($fileCount % 50 === 0) {
+                    echo "  ✅ Attached $fileCount files\n";
+                    gc_collect_cycles();
+                }
+            } catch (\Exception $e) {
+                echo "⚠️  Failed to attach file to submission {$submission->id}: {$e->getMessage()}\n";
+            }
+        }
+
+        echo "✅ Attached $fileCount files to submissions\n";
     }
 }
 

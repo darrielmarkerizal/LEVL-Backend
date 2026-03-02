@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Modules\Learning\Repositories;
 
@@ -17,65 +19,44 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
         return Assignment::class;
     }
 
-        protected const CACHE_TTL_ASSIGNMENT = 3600;
+    protected const CACHE_TTL_ASSIGNMENT = 3600;
 
-        protected const CACHE_PREFIX_ASSIGNMENT = 'assignment:';
+    protected const CACHE_PREFIX_ASSIGNMENT = 'assignment:';
 
-        protected const CACHE_PREFIX_ASSIGNMENT_LIST = 'assignment_list:';
+    protected const CACHE_PREFIX_ASSIGNMENT_LIST = 'assignment_list:';
 
-        protected const DEFAULT_EAGER_LOAD = [
+    protected const DEFAULT_EAGER_LOAD = [
         'creator:id,name,email',
         'questions',
     ];
 
-        protected const DETAILED_EAGER_LOAD = [
+    protected const DETAILED_EAGER_LOAD = [
         'creator:id,name,email',
         'questions',
         'prerequisites:id,title',
         'assignable',
     ];
 
-
-
     public function create(array $attributes): Assignment
     {
         $assignment = Assignment::create($attributes);
 
-        
         if (isset($attributes['lesson_id'])) {
             $this->invalidateListCache('lesson', $attributes['lesson_id']);
         }
 
-        
         if (isset($attributes['assignable_type'], $attributes['assignable_id'])) {
             $this->invalidateListCache('scope', $attributes['assignable_id'], $attributes['assignable_type']);
         }
-        
+
         Cache::tags(['learning', 'assignments'])->flush();
 
         return $assignment;
     }
 
-    public function findWithPrerequisites(int $id): ?Assignment
-    {
-        return Assignment::with('prerequisites')->find($id);
-    }
-
     public function findWithRelations(Assignment $assignment): Assignment
     {
         return $assignment->loadMissing(['creator:id,name,email', 'lesson:id,title,slug', 'questions', 'assignable']);
-    }
-
-    public function attachPrerequisite(int $assignmentId, int $prerequisiteId): void
-    {
-        $assignment = Assignment::findOrFail($assignmentId);
-        $assignment->prerequisites()->syncWithoutDetaching([$prerequisiteId]);
-    }
-
-    public function detachPrerequisite(int $assignmentId, int $prerequisiteId): void
-    {
-        $assignment = Assignment::findOrFail($assignmentId);
-        $assignment->prerequisites()->detach($prerequisiteId);
     }
 
     public function findForDuplication(int $id): ?Assignment
@@ -86,7 +67,7 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
     public function update(Model $model, array $attributes): Assignment
     {
         assert($model instanceof Assignment);
-        
+
         $model->fill($attributes)->save();
 
         $this->invalidateAssignmentCache($model->id);
@@ -105,7 +86,7 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
     public function delete(Model $model): bool
     {
         assert($model instanceof Assignment);
-        
+
         $lessonId = $model->lesson_id;
         $assignableType = $model->assignable_type;
         $assignableId = $model->assignable_id;
@@ -114,15 +95,13 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
         $result = $model->delete();
 
         if ($result) {
-            
+
             $this->invalidateAssignmentCache($assignmentId);
 
-            
             if ($lessonId) {
                 $this->invalidateListCache('lesson', $lessonId);
             }
 
-            
             if ($assignableType && $assignableId) {
                 $this->invalidateListCache('scope', $assignableId, $assignableType);
             }
@@ -131,7 +110,7 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
         return $result;
     }
 
-        public function find(int $id): ?Assignment
+    public function find(int $id): ?Assignment
     {
         $cacheKey = "assignment:{$id}";
 
@@ -165,12 +144,12 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
 
     public function findWithDetails(int $id): ?Assignment
     {
-        // Not cached currently in original code, but could be. 
-        // Leaving as is to minimize scope creep unless requested, 
+        // Not cached currently in original code, but could be.
+        // Leaving as is to minimize scope creep unless requested,
         // but adding cache here is consistent.
         // Let's cache it as it seems heavy.
         $cacheKey = "assignment:{$id}:details";
-        
+
         return Cache::tags(['assignments', "assignment:{$id}"])
             ->remember($cacheKey, self::CACHE_TTL_ASSIGNMENT, function () use ($id) {
                 return Assignment::query()
@@ -228,7 +207,7 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
 
         // Invalidate lists where this new assignment might appear
         if ($newAssignment->assignable_type && $newAssignment->assignable_id) {
-             $this->invalidateListCache('scope', $newAssignment->assignable_id, $newAssignment->assignable_type);
+            $this->invalidateListCache('scope', $newAssignment->assignable_id, $newAssignment->assignable_type);
         }
 
         return $newAssignment->load(self::DEFAULT_EAGER_LOAD);
@@ -253,14 +232,14 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
             ->get();
     }
 
-        protected function getAssignmentCacheKey(int $id, string $suffix = ''): string
+    protected function getAssignmentCacheKey(int $id, string $suffix = ''): string
     {
         $key = self::CACHE_PREFIX_ASSIGNMENT.$id;
 
         return $suffix ? "{$key}:{$suffix}" : $key;
     }
 
-        protected function getListCacheKey(string $type, int $id, array $filters = []): string
+    protected function getListCacheKey(string $type, int $id, array $filters = []): string
     {
         $filterHash = ! empty($filters) ? ':'.md5(serialize($filters)) : '';
 
@@ -283,20 +262,20 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
             // If type is 'lesson', it implies scopeType might be subclass of Lesson or mapped.
             // But checking create/update, it passes 'lesson' and $id.
             // And also 'scope' and assignable_id/type.
-            
-            // If lesson strategy is distinct, we should tag it. 
-            // Currently findByScope is generic. 
+
+            // If lesson strategy is distinct, we should tag it.
+            // Currently findByScope is generic.
             // Let's assume lesson lists are also accessed via findByScope or similar.
             // But wait, findByScope uses assignable_type.
-            
+
             // Safest:
-             Cache::tags(['assignments', "scope:lesson:{$id}"])->flush(); // misuse of type as scope?
-             // Actually, the original code had confusion on 'lesson' vs 'scope'.
-             // Let's just flush generic tag if unsure, or specific if known.
-             // Given the context of `create`: invalidateListCache('lesson', $id)
-             // It seems 'lesson' is treated as a scope type alias?
-             // But findAllByLesson is not here. 
-             // Let's assume 'lesson' acts as a scope.
+            Cache::tags(['assignments', "scope:lesson:{$id}"])->flush(); // misuse of type as scope?
+            // Actually, the original code had confusion on 'lesson' vs 'scope'.
+            // Let's just flush generic tag if unsure, or specific if known.
+            // Given the context of `create`: invalidateListCache('lesson', $id)
+            // It seems 'lesson' is treated as a scope type alias?
+            // But findAllByLesson is not here.
+            // Let's assume 'lesson' acts as a scope.
         }
     }
 
@@ -312,9 +291,9 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
         return Cache::tags(['assignments', "course:{$courseId}"])
             ->remember($cacheKey, self::CACHE_TTL_ASSIGNMENT, function () use ($courseId) {
                 $course = \Modules\Schemes\Models\Course::with(['units.lessons'])->find($courseId);
-                
+
                 if (! $course) {
-                    return new Collection();
+                    return new Collection;
                 }
 
                 $assignmentIds = collect();
