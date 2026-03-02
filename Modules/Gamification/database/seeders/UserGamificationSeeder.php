@@ -6,6 +6,7 @@ namespace Modules\Gamification\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
+use Modules\Gamification\Enums\BadgeType;
 use Modules\Gamification\Enums\ChallengeAssignmentStatus;
 use Modules\Gamification\Enums\PointReason;
 use Modules\Gamification\Enums\PointSourceType;
