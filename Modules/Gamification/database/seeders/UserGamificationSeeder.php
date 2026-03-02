@@ -6,17 +6,17 @@ namespace Modules\Gamification\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
-use Modules\Gamification\Models\UserGamificationStat;
-use Modules\Gamification\Models\Point;
+use Modules\Gamification\Enums\ChallengeAssignmentStatus;
+use Modules\Gamification\Enums\PointReason;
+use Modules\Gamification\Enums\PointSourceType;
 use Modules\Gamification\Models\Badge;
-use Modules\Gamification\Models\UserBadge;
 use Modules\Gamification\Models\Challenge;
+use Modules\Gamification\Models\Point;
+use Modules\Gamification\Models\UserBadge;
 use Modules\Gamification\Models\UserChallengeAssignment;
+use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Gamification\Models\UserScopeStat;
 use Modules\Schemes\Models\Course;
-use Modules\Gamification\Enums\PointSourceType;
-use Modules\Gamification\Enums\PointReason;
-use Modules\Gamification\Enums\ChallengeAssignmentStatus;
 
 class UserGamificationSeeder extends Seeder
 {
@@ -30,6 +30,7 @@ class UserGamificationSeeder extends Seeder
 
         if ($users->isEmpty()) {
             $this->command->warn('No users found. Skipping User Gamification Seeding.');
+
             return;
         }
 
@@ -37,7 +38,7 @@ class UserGamificationSeeder extends Seeder
             // 1. Create or Update Gamification Stats
             // Randomize activity level: 0=Inactive, 1=Beginner, 2=Active, 3=Power User
             $activityLevel = rand(0, 3);
-            
+
             if ($activityLevel === 0) {
                 // Inactive user, maybe just initialized stats
                 UserGamificationStat::firstOrCreate(
@@ -51,14 +52,15 @@ class UserGamificationSeeder extends Seeder
                         'stats_updated_at' => now(),
                     ]
                 );
+
                 continue;
             }
 
             // Active users
             $xp = rand(100, 5000) * $activityLevel;
-            $level = max(1, (int)($xp / 500)); // Rough estimation
+            $level = max(1, (int) ($xp / 500)); // Rough estimation
             $streak = rand(0, 10 * $activityLevel);
-            
+
             UserGamificationStat::updateOrCreate(
                 ['user_id' => $user->id],
                 [
@@ -72,7 +74,7 @@ class UserGamificationSeeder extends Seeder
             );
 
             // 2. Generate Point History (Last 5-10 entries to simulate history)
-            $validSourceTypes = array_filter(PointSourceType::cases(), fn($type) => $type !== PointSourceType::Grade);
+            $validSourceTypes = array_filter(PointSourceType::cases(), fn ($type) => $type !== PointSourceType::Grade);
 
             for ($i = 0; $i < rand(5, 15); $i++) {
                 Point::create([
@@ -86,16 +88,27 @@ class UserGamificationSeeder extends Seeder
                 ]);
             }
 
-            // 3. Assign Random Badges
+            // 3. Assign Badges Based on Level/XP (Logical)
             if ($badges->isNotEmpty()) {
-                $earnedBadges = $badges->random(min($badges->count(), rand(0, 3)));
-                foreach ($earnedBadges as $badge) {
-                    UserBadge::firstOrCreate([
-                        'user_id' => $user->id,
-                        'badge_id' => $badge->id,
-                    ], [
-                        'earned_at' => now()->subDays(rand(1, 60)),
-                    ]);
+                foreach ($badges as $badge) {
+                    $shouldAward = false;
+
+                    if ($badge->type === BadgeType::Milestone) {
+                        $shouldAward = $level >= $badge->threshold;
+                    } elseif ($badge->type === BadgeType::Achievement) {
+                        $shouldAward = $activityLevel >= 2 && rand(0, 100) < 70;
+                    } elseif ($badge->type === BadgeType::Completion) {
+                        $shouldAward = $activityLevel >= 2 && rand(0, 100) < 50;
+                    }
+
+                    if ($shouldAward) {
+                        UserBadge::firstOrCreate([
+                            'user_id' => $user->id,
+                            'badge_id' => $badge->id,
+                        ], [
+                            'earned_at' => now()->subDays(rand(1, 60)),
+                        ]);
+                    }
                 }
             }
 
@@ -104,7 +117,7 @@ class UserGamificationSeeder extends Seeder
                 $assignedChallenges = $challenges->random(min($challenges->count(), rand(1, 2)));
                 foreach ($assignedChallenges as $challenge) {
                     $status = rand(0, 1) ? ChallengeAssignmentStatus::Completed : ChallengeAssignmentStatus::InProgress;
-                    
+
                     UserChallengeAssignment::firstOrCreate([
                         'user_id' => $user->id,
                         'challenge_id' => $challenge->id,
@@ -122,8 +135,8 @@ class UserGamificationSeeder extends Seeder
             $courses = Course::inRandomOrder()->limit(rand(1, 3))->get();
             foreach ($courses as $course) {
                 $courseXp = rand(50, min($xp, 2000));
-                $courseLevel = max(1, (int)($courseXp / 500));
-                
+                $courseLevel = max(1, (int) ($courseXp / 500));
+
                 UserScopeStat::updateOrCreate(
                     [
                         'user_id' => $user->id,
@@ -138,6 +151,6 @@ class UserGamificationSeeder extends Seeder
 
         }
 
-        $this->command->info('✅ User Gamification Stats & Scope Stats seeded for ' . $users->count() . ' users.');
+        $this->command->info('✅ User Gamification Stats & Scope Stats seeded for '.$users->count().' users.');
     }
 }
