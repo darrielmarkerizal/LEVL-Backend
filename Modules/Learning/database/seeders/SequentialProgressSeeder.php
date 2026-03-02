@@ -207,7 +207,7 @@ class SequentialProgressSeeder extends Seeder
         $score = rand(60, 100);
         $status = 'graded';
 
-        $quizSubmission = QuizSubmission::create([
+        QuizSubmission::create([
             'quiz_id' => $quiz->id,
             'user_id' => $studentId,
             'enrollment_id' => $enrollmentId,
@@ -216,8 +216,6 @@ class SequentialProgressSeeder extends Seeder
             'submitted_at' => $this->createdAt,
             'attempt_number' => 1,
         ]);
-
-        $this->createGradeForQuizSubmission($quizSubmission, $quiz);
 
         return $score >= ($quiz->passing_grade ?? 75);
     }
@@ -264,39 +262,9 @@ class SequentialProgressSeeder extends Seeder
             'max_score' => $assignment->max_score,
             'feedback' => $faker->paragraph(1),
             'status' => 'graded',
-            'graded_at' => $submission->graded_at,
-            'created_at' => $submission->graded_at,
-            'updated_at' => $submission->graded_at,
-        ]);
-    }
-
-    private function createGradeForQuizSubmission(QuizSubmission $quizSubmission, Quiz $quiz): void
-    {
-        $faker = \Faker\Factory::create('id_ID');
-        $instructorIds = \DB::table('users')
-            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-            ->where('roles.name', 'Instructor')
-            ->pluck('users.id')
-            ->toArray();
-
-        if (empty($instructorIds)) {
-            return;
-        }
-
-        \DB::table('grades')->insertOrIgnore([
-            'source_type' => 'quiz',
-            'source_id' => $quiz->id,
-            'user_id' => $quizSubmission->user_id,
-            'quiz_submission_id' => $quizSubmission->id,
-            'graded_by' => $instructorIds[array_rand($instructorIds)],
-            'score' => $quizSubmission->score,
-            'max_score' => $quiz->max_score,
-            'feedback' => $faker->paragraph(1),
-            'status' => 'graded',
-            'graded_at' => $quizSubmission->graded_at,
-            'created_at' => $quizSubmission->graded_at,
-            'updated_at' => $quizSubmission->graded_at,
+            'graded_at' => $this->createdAt,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->createdAt,
         ]);
     }
 
