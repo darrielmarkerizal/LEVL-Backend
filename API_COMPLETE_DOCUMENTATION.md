@@ -65,13 +65,13 @@
 - `filter[status]` (string, optional): Filter by status
   - Values: `published`, `draft`, `archived`
 - `filter[type]` (string, optional): Filter by course type
-  - Values: Get from `GET /master-data/course_types` (e.g., `online`, `hybrid`, `in_person`)
+  - Values: Get from `GET /master-data/course-types` (e.g., `online`, `hybrid`, `in_person`)
 - `filter[level_tag]` (string, optional): Filter by level
-  - Values: Get from `GET /master-data/level_tags` (e.g., `beginner`, `intermediate`, `advanced`)
+  - Values: Get from `GET /master-data/level-tags` (e.g., `beginner`, `intermediate`, `advanced`)
 - `filter[category_id]` (integer, optional): Filter by category ID
   - Values: Get category IDs from `GET /categories`
 - `filter[enrollment_type]` (string, optional): Filter by enrollment type
-  - Values: Get from `GET /master-data/enrollment_types` (e.g., `auto_accept`, `approval_required`, `key_based`)
+  - Values: Get from `GET /master-data/enrollment-types` (e.g., `auto_accept`, `approval_required`, `key_based`)
 - `search` (string, optional): Search in title, code, description
 
 **Response:**
@@ -397,7 +397,7 @@ GET /courses?search=programming&filter[status]=published
 - `filter[status]` (string, optional): Filter by status
   - Values: `draft`, `published`, `archived`
 - `filter[type]` (string, optional): Filter by type
-  - Values: Get from `GET /master-data/assignment_types` (e.g., `assignment`, `quiz`)
+  - Values: Get from `GET /master-data/assignment-status` (e.g., `assignment`, `quiz`)
 - `filter[assignable_type]` (string, optional): Filter by scope
   - Values: `Course`, `Unit`, `Lesson`
 
@@ -3234,14 +3234,39 @@ GET /audit-logs?search=course
 {
   "success": true,
   "data": [
-    "course_types",
-    "level_tags",
-    "enrollment_types",
-    "assignment_types",
-    "question_types"
+    "user-status",
+    "roles",
+    "course-status",
+    "course-types",
+    "enrollment-types",
+    "level-tags",
+    "content-types",
+    "enrollment-status",
+    "progress-status",
+    "assignment-status",
+    "submission-status",
+    "submission-types",
+    "content-status",
+    "priorities",
+    "target-types",
+    "challenge-types",
+    "challenge-assignment-status",
+    "challenge-criteria-types",
+    "badge-types",
+    "point-source-types",
+    "point-reasons",
+    "notification-types",
+    "notification-channels",
+    "notification-frequencies",
+    "grade-status",
+    "grade-source-types",
+    "category-status",
+    "setting-types"
   ]
 }
 ```
+
+**Note:** Type names use dash format (e.g., `course-types`, NOT `course_types` or `courses_types`)
 
 ---
 
@@ -3252,16 +3277,17 @@ GET /audit-logs?search=course
 **Access:** Public
 
 **Path Parameters:**
-- `type` (string, required): Master data type
+- `type` (string, required): Master data type (use dash format, e.g., `course-types`)
 
 **Query Parameters:**
 - `per_page` (integer, optional): Items per page (default: 15)
 
 **Example Requests:**
 ```
-GET /master-data/course_types
-GET /master-data/level_tags
-GET /master-data/enrollment_types
+GET /master-data/course-types
+GET /master-data/level-tags
+GET /master-data/enrollment-types
+GET /master-data/assignment-status
 ```
 
 **Response:**
@@ -3270,18 +3296,16 @@ GET /master-data/enrollment_types
   "success": true,
   "data": [
     {
-      "id": 1,
-      "type": "course_types",
-      "key": "online",
-      "value": "Online",
-      "order": 1
+      "value": "online",
+      "label": "Online"
     },
     {
-      "id": 2,
-      "type": "course_types",
-      "key": "hybrid",
-      "value": "Hybrid",
-      "order": 2
+      "value": "hybrid",
+      "label": "Hybrid"
+    },
+    {
+      "value": "in_person",
+      "label": "In Person"
     }
   ],
   "meta": {
@@ -3300,20 +3324,31 @@ GET /master-data/enrollment_types
 
 **Access:** Public
 
+**Path Parameters:**
+- `type` (string, required): Master data type (use dash format)
+
+**Example Requests:**
+```
+GET /master-data/course-types/all
+GET /master-data/level-tags/all
+```
+
 **Response:**
 ```json
 {
   "success": true,
   "data": [
     {
-      "id": 1,
-      "key": "online",
-      "value": "Online"
+      "value": "online",
+      "label": "Online"
     },
     {
-      "id": 2,
-      "key": "hybrid",
-      "value": "Hybrid"
+      "value": "hybrid",
+      "label": "Hybrid"
+    },
+    {
+      "value": "in_person",
+      "label": "In Person"
     }
   ]
 }
@@ -3426,9 +3461,9 @@ GET /master-data/enrollment_types
 code: CS101 (required, string, max:50, unique)
 title: Introduction to Programming (required, string, max:255)
 short_desc: Learn programming basics (nullable, string)
-type: online (nullable, string - get values from GET /master-data/course_types)
-level_tag: beginner (nullable, string - get values from GET /master-data/level_tags)
-enrollment_type: auto_accept (nullable, string - get values from GET /master-data/enrollment_types)
+type: online (nullable, string - get values from GET /master-data/course-types)
+level_tag: beginner (nullable, string - get values from GET /master-data/level-tags)
+enrollment_type: auto_accept (nullable, string - get values from GET /master-data/enrollment-types)
 status: draft (nullable, string: draft|published)
 category_id: 1 (nullable, integer - get from GET /categories)
 instructor_id: 2 (nullable, integer - user ID with instructor role)
@@ -5147,12 +5182,12 @@ Use `filter[field]` syntax:
 
 #### Courses (`GET /courses`)
 - `filter[status]`: `draft`, `published`, `archived`
-- `filter[type]`: Get values from `GET /master-data/course_types`
+- `filter[type]`: Get values from `GET /master-data/course-types`
   - Common values: `online`, `hybrid`, `in_person`
-- `filter[level_tag]`: Get values from `GET /master-data/level_tags`
+- `filter[level_tag]`: Get values from `GET /master-data/level-tags`
   - Common values: `beginner`, `intermediate`, `advanced`
 - `filter[category_id]`: integer - Get category IDs from `GET /categories`
-- `filter[enrollment_type]`: Get values from `GET /master-data/enrollment_types`
+- `filter[enrollment_type]`: Get values from `GET /master-data/enrollment-types`
   - Common values: `auto_accept`, `approval_required`, `key_based`
 - `search`: Full-text search in title, code, description
 
@@ -5168,7 +5203,7 @@ Use `filter[field]` syntax:
 
 #### Assignments (`GET /courses/{slug}/assignments`)
 - `filter[status]`: `draft`, `published`, `archived`
-- `filter[type]`: Get values from `GET /master-data/assignment_types`
+- `filter[type]`: Get values from `GET /master-data/assignment-status`
   - Common values: `assignment`, `quiz`
 - `filter[assignable_type]`: `Course`, `Unit`, `Lesson`
 
