@@ -11,6 +11,7 @@ use Modules\Schemes\Contracts\Repositories\UnitRepositoryInterface;
 use Modules\Schemes\DTOs\CreateUnitDTO;
 use Modules\Schemes\DTOs\UpdateUnitDTO;
 use Modules\Schemes\Models\Unit;
+use Modules\Schemes\Services\Support\UnitIncludeAuthorizer;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -20,7 +21,8 @@ class UnitService
 
     public function __construct(
         private readonly UnitRepositoryInterface $repository,
-        private readonly SchemesCacheService $cacheService
+        private readonly SchemesCacheService $cacheService,
+        private readonly UnitIncludeAuthorizer $includeAuthorizer
     ) {}
 
     public function validateHierarchy(int $courseId, int $unitId): void
@@ -62,6 +64,25 @@ class UnitService
     public function findOrFail(int $id): Unit
     {
         return $this->repository->findByIdOrFail($id);
+    }
+
+    public function findWithIncludes(int $id): Unit
+    {
+        $unit = $this->findOrFail($id);
+        $includeParam = request()->get('include', '');
+
+        if (empty($includeParam)) {
+            return $unit;
+        }
+
+        $unit->load('course');
+        $user = auth('api')->user();
+        $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $unit);
+
+        return QueryBuilder::for(Unit::class)
+            ->where('id', $id)
+            ->allowedIncludes($allowedIncludes)
+            ->firstOrFail();
     }
 
     public function create(int $courseId, CreateUnitDTO|array $data): Unit
@@ -213,55 +234,128 @@ class UnitService
         return $unit->fresh();
     }
 
-    public function getContents(Unit $unit): array
+    public function getContents(Unit $unit, ?\Modules\Auth\Models\User $user = null): array
     {
+        $lessonIds = $unit->lessons()->pluck('id');
+
+        $completedLessonIds = [];
+        if ($user) {
+            $completedLessonIds = \Modules\Schemes\Models\LessonCompletion::where('user_id', $user->id)
+                ->whereIn('lesson_id', $lessonIds)
+                ->pluck('lesson_id')
+                ->toArray();
+        }
+
         $lessons = $unit->lessons()
-            ->select('id', 'unit_id', 'title', 'slug', 'description', 'order_index', 'status', 'created_at')
+            ->select('id', 'unit_id', 'title', 'slug', 'description', 'order', 'status', 'created_at')
+            ->orderBy('order')
+            ->get();
+
+        $submissionsByQuiz = [];
+        $submissionsByAssignment = [];
+
+        if ($user) {
+            $quizIds = \Modules\Learning\Models\Quiz::where('assignable_type', \Modules\Schemes\Models\Lesson::class)
+                ->whereIn('assignable_id', $lessonIds)
+                ->pluck('id');
+
+            $submissionsByQuiz = \Modules\Learning\Models\QuizSubmission::where('user_id', $user->id)
+                ->whereIn('quiz_id', $quizIds)
+                ->get()
+                ->groupBy('quiz_id')
+                ->map(fn ($submissions) => $submissions->sortByDesc('submitted_at')->first());
+
+            $submissionsByAssignment = \Modules\Learning\Models\Submission::where('user_id', $user->id)
+                ->whereIn('assignment_id', function ($query) use ($lessonIds) {
+                    $query->select('id')
+                        ->from('assignments')
+                        ->whereIn('lesson_id', $lessonIds);
+                })
+                ->get()
+                ->groupBy('assignment_id')
+                ->map(fn ($submissions) => $submissions->sortByDesc('submitted_at')->first());
+        }
+
+        $quizzesByLesson = \Modules\Learning\Models\Quiz::where('assignable_type', \Modules\Schemes\Models\Lesson::class)
+            ->whereIn('assignable_id', $lessonIds)
+            ->select('id', 'title', 'description', 'status', 'max_score', 'passing_grade', 'created_at', 'assignable_id')
             ->get()
-            ->map(fn ($lesson) => [
+            ->groupBy('assignable_id');
+
+        $assignmentsByLesson = \Modules\Learning\Models\Assignment::whereIn('lesson_id', $lessonIds)
+            ->select('id', 'title', 'description', 'status', 'max_score', 'submission_type', 'created_at', 'lesson_id')
+            ->get()
+            ->groupBy('lesson_id');
+
+        $contents = collect();
+        $previousLessonCompleted = true;
+
+        foreach ($lessons as $index => $lesson) {
+            $isLessonCompleted = in_array($lesson->id, $completedLessonIds);
+            $isLessonLocked = $user ? ! $previousLessonCompleted : false;
+
+            $contents->push([
                 'id' => $lesson->id,
                 'type' => 'lesson',
                 'title' => $lesson->title,
                 'slug' => $lesson->slug,
                 'description' => $lesson->description,
-                'order_index' => $lesson->order_index,
+                'order_index' => $lesson->order,
                 'status' => $lesson->status,
                 'created_at' => $lesson->created_at,
+                'is_completed' => $isLessonCompleted,
+                'is_locked' => $isLessonLocked,
             ]);
 
-        $quizzes = \Modules\Learning\Models\Quiz::where('assignable_type', Unit::class)
-            ->where('assignable_id', $unit->id)
-            ->select('id', 'title', 'description', 'status', 'max_score', 'passing_grade', 'created_at')
-            ->get()
-            ->map(fn ($quiz) => [
-                'id' => $quiz->id,
-                'type' => 'quiz',
-                'title' => $quiz->title,
-                'description' => $quiz->description,
-                'order_index' => 0,
-                'status' => $quiz->status->value,
-                'max_score' => $quiz->max_score,
-                'passing_grade' => $quiz->passing_grade,
-                'created_at' => $quiz->created_at,
-            ]);
+            if (isset($quizzesByLesson[$lesson->id])) {
+                foreach ($quizzesByLesson[$lesson->id] as $quiz) {
+                    $submission = $submissionsByQuiz[$quiz->id] ?? null;
 
-        $assignments = \Modules\Learning\Models\Assignment::where('assignable_type', Unit::class)
-            ->where('assignable_id', $unit->id)
-            ->select('id', 'title', 'description', 'status', 'max_score', 'submission_type', 'created_at')
-            ->get()
-            ->map(fn ($assignment) => [
-                'id' => $assignment->id,
-                'type' => 'assignment',
-                'title' => $assignment->title,
-                'description' => $assignment->description,
-                'order_index' => 0,
-                'status' => $assignment->status->value,
-                'max_score' => $assignment->max_score,
-                'submission_type' => $assignment->submission_type->value,
-                'created_at' => $assignment->created_at,
-            ]);
+                    $contents->push([
+                        'id' => $quiz->id,
+                        'type' => 'quiz',
+                        'title' => $quiz->title,
+                        'description' => $quiz->description,
+                        'order_index' => $lesson->order + 0.1,
+                        'status' => $quiz->status->value,
+                        'max_score' => $quiz->max_score,
+                        'passing_grade' => $quiz->passing_grade,
+                        'created_at' => $quiz->created_at,
+                        'lesson_id' => $quiz->assignable_id,
+                        'submission_status' => $submission ? $submission->status->value : null,
+                        'score' => $submission?->score,
+                        'is_passed' => $submission ? ($submission->score >= $quiz->passing_grade) : false,
+                        'is_locked' => $user ? ! $isLessonCompleted : false,
+                    ]);
+                }
+            }
 
-        return $lessons->concat($quizzes)->concat($assignments)->sortBy('order_index')->values()->toArray();
+            if (isset($assignmentsByLesson[$lesson->id])) {
+                foreach ($assignmentsByLesson[$lesson->id] as $assignment) {
+                    $submission = $submissionsByAssignment[$assignment->id] ?? null;
+
+                    $contents->push([
+                        'id' => $assignment->id,
+                        'type' => 'assignment',
+                        'title' => $assignment->title,
+                        'description' => $assignment->description,
+                        'order_index' => $lesson->order + 0.2,
+                        'status' => $assignment->status->value,
+                        'max_score' => $assignment->max_score,
+                        'submission_type' => $assignment->submission_type->value,
+                        'created_at' => $assignment->created_at,
+                        'lesson_id' => $assignment->lesson_id,
+                        'submission_status' => $submission ? $submission->status->value : null,
+                        'score' => $submission?->score,
+                        'is_locked' => $user ? ! $isLessonCompleted : false,
+                    ]);
+                }
+            }
+
+            $previousLessonCompleted = $isLessonCompleted;
+        }
+
+        return $contents->toArray();
     }
 
     public function paginateAll(array $filters = [], int $perPage = 15, ?\Modules\Auth\Models\User $user = null): LengthAwarePaginator

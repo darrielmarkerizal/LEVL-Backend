@@ -42,9 +42,7 @@ class GradingController extends Controller
             $dto = new SubmissionGradeDTO(
                 submissionId: $submission->id,
                 answers: $request->validated('grades'),
-                scoreOverride: null, // Form request doesn't imply override usually? Or logic handles it?
-                // Old service interface: `manualGrade($submissionId, array $grades, ?string $feedback)`
-                // DTO expects: answers, scoreOverride, feedback, graderId
+                scoreOverride: null,
                 feedback: $request->validated('feedback'),
                 graderId: auth('api')->id()
             );
@@ -52,7 +50,7 @@ class GradingController extends Controller
             $grade = $this->entryService->manualGrade($dto);
 
             return $this->success(
-                GradeResource::make($grade->load(['submission', 'user', 'grader'])),
+                GradeResource::make($grade),
                 __('messages.grading.manual_graded')
             );
         } catch (InvalidArgumentException|\Modules\Learning\Exceptions\SubmissionException $e) {
@@ -63,19 +61,28 @@ class GradingController extends Controller
     public function queue(GradingQueueRequest $request): JsonResponse
     {
         $paginator = $this->queueService->getGradingQueue($request->all());
-        $paginator->getCollection()->transform(fn($item) => new GradingQueueItemResource($item));
+        $paginator->getCollection()->transform(fn ($item) => new GradingQueueItemResource($item));
 
         return $this->paginateResponse($paginator, 'messages.grading.queue_fetched');
     }
 
     public function show(Submission $submission): JsonResponse
     {
-        $submission->load([
-            'user:id,name,email',
-            'assignment:id,title,max_score,instructions',
-            'assignment.course:id,title',
-            'answers.question'
-        ]);
+        $includeParam = request()->get('include', '');
+
+        if (empty($includeParam)) {
+            $submission->load([
+                'user:id,name,email',
+                'assignment:id,title,max_score,instructions',
+                'assignment.course:id,title',
+                'answers.question',
+            ]);
+        } else {
+            $submission = \Spatie\QueryBuilder\QueryBuilder::for(\Modules\Learning\Models\Submission::class)
+                ->where('id', $submission->id)
+                ->allowedIncludes(['user', 'assignment', 'assignment.course', 'answers', 'answers.question', 'grade'])
+                ->firstOrFail();
+        }
 
         return $this->success(
             new GradingQueueItemResource($submission),
@@ -87,6 +94,7 @@ class GradingController extends Controller
     {
         try {
             $this->entryService->returnToQueue($submission->id);
+
             return $this->success(
                 ['submission_id' => $submission->id, 'state' => $submission->refresh()->state?->value],
                 __('messages.grading.returned_to_queue')
@@ -104,8 +112,9 @@ class GradingController extends Controller
                 answers: $request->validated('grades'),
                 graderId: auth('api')->id()
             );
-            
+
             $this->entryService->saveDraftGrade($dto);
+
             return $this->success(['submission_id' => $submission->id], __('messages.grading.draft_saved'));
         } catch (InvalidArgumentException $e) {
             return $this->error($e->getMessage(), [], 422);
@@ -115,6 +124,7 @@ class GradingController extends Controller
     public function getDraftGrade(Submission $submission): JsonResponse
     {
         $draftGrade = $this->queueService->getDraftGrade($submission->id);
+
         return $this->success($draftGrade ? DraftGradeResource::make($draftGrade) : null);
     }
 
@@ -127,7 +137,7 @@ class GradingController extends Controller
                 $request->validated('reason')
             );
 
-            $submission->refresh()->load('grade');
+            $submission->refresh();
 
             return $this->success(
                 [
@@ -146,11 +156,12 @@ class GradingController extends Controller
     {
         try {
             $this->entryService->releaseGrade($submission->id);
+
             return $this->success(
                 [
                     'submission_id' => $submission->id,
                     'state' => $submission->refresh()->state?->value,
-                    'grade' => $submission->load('grade')->grade ? GradeResource::make($submission->grade) : null,
+                    'grade' => $submission->grade ? GradeResource::make($submission->grade) : null,
                 ],
                 __('messages.grading.grade_released')
             );
@@ -167,22 +178,22 @@ class GradingController extends Controller
                 performerId: auth('api')->id(),
                 async: $request->boolean('async')
             );
-            
+
             // Service expects DTO now? GradingBulkService::handleBulkRelease(BulkOperationDTO $data)
             $this->bulkService->handleBulkRelease($dto);
-            
-            // GradingBulkService void return for DTO arg? Let's check signature. 
+
+            // GradingBulkService void return for DTO arg? Let's check signature.
             // `handleBulkRelease(BulkOperationDTO $data): void` in implementation I wrote.
             // But controller was returning a result array.
             // I should update controller response to assume void success or I should have returned something.
             // The service queues jobs or executes.
             // Let's construct response manually based on async flag.
-            
+
             $isAsync = $request->boolean('async');
             $response = [
-                 'async' => $isAsync,
-                 // 'count' => ... service doesn't return count.
-                 // This is fine for now. Simplify response.
+                'async' => $isAsync,
+                // 'count' => ... service doesn't return count.
+                // This is fine for now. Simplify response.
             ];
 
             return $this->success($response, $isAsync ? __('messages.grading.bulk_release_queued') : __('messages.grading.bulk_released'));
@@ -202,7 +213,7 @@ class GradingController extends Controller
             );
 
             $this->bulkService->handleBulkFeedback($dto);
-            
+
             $isAsync = $request->boolean('async');
             $response = ['async' => $isAsync];
 

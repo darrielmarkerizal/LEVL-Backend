@@ -29,7 +29,8 @@ class CourseController extends Controller
             $request->all(),
             (int) $request->query('per_page', 15)
         );
-        $paginator->getCollection()->transform(fn($course) => new \Modules\Schemes\Http\Resources\CourseIndexResource($course));
+        $paginator->getCollection()->transform(fn ($course) => new \Modules\Schemes\Http\Resources\CourseIndexResource($course));
+
         return $this->paginateResponse($paginator, 'messages.courses.list_retrieved');
     }
 
@@ -40,7 +41,7 @@ class CourseController extends Controller
 
         try {
             $course = $this->service->create($data, $actor, $request->allFiles());
-            $course->load(['tags', 'instructor.media', 'instructor.roles', 'category', 'admins.media', 'admins.roles', 'media']);
+
             return $this->created(new CourseResource($course), __('messages.courses.created'));
         } catch (DuplicateResourceException $e) {
             return $this->validationError($e->getErrors());
@@ -49,7 +50,13 @@ class CourseController extends Controller
 
     public function show(Course $course)
     {
-        return $this->success(new CourseResource($course->load(['tags', 'category', 'instructor.media', 'instructor.roles', 'admins.media', 'admins.roles', 'units', 'media'])));
+        $courseWithIncludes = $this->service->findBySlugWithIncludes($course->slug);
+
+        if (! $courseWithIncludes) {
+            return $this->notFound(__('messages.courses.not_found'));
+        }
+
+        return $this->success(new CourseResource($courseWithIncludes));
     }
 
     public function update(CourseRequest $request, Course $course)
@@ -59,6 +66,7 @@ class CourseController extends Controller
 
         try {
             $updated = $this->service->update($course->id, $request->validated(), $request->allFiles());
+
             return $this->success(new CourseResource($updated), __('messages.courses.updated'));
         } catch (DuplicateResourceException $e) {
             return $this->validationError($e->getErrors());

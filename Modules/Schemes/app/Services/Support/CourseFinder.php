@@ -21,7 +21,8 @@ class CourseFinder
 
     public function __construct(
         private readonly CourseRepositoryInterface $repository,
-        private readonly SchemesCacheService $cacheService
+        private readonly SchemesCacheService $cacheService,
+        private readonly CourseIncludeAuthorizer $includeAuthorizer
     ) {}
 
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -127,6 +128,32 @@ class CourseFinder
         return $this->cacheService->getCourseBySlug($slug);
     }
 
+    public function findBySlugWithIncludes(string $slug): ?Course
+    {
+        $request = request();
+        $includeParam = $request->get('include', '');
+
+        $course = Course::where('slug', $slug)->first();
+
+        if (! $course) {
+            return null;
+        }
+
+        if (empty($includeParam)) {
+            return $course;
+        }
+
+        $user = auth('api')->user();
+        $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $course);
+
+        return QueryBuilder::for(Course::class, $request)
+            ->where('slug', $slug)
+            ->with('instructor')
+            ->withCount(['admins', 'enrollments'])
+            ->allowedIncludes($allowedIncludes)
+            ->first();
+    }
+
     private function buildQuery(array $filters = []): QueryBuilder
     {
         $searchQuery = data_get($filters, 'search');
@@ -156,20 +183,7 @@ class CourseFinder
                 AllowedFilter::exact('type'),
                 AllowedFilter::exact('category_id'),
             ])
-            ->allowedIncludes([
-                'tags',
-                'category',
-                'instructor',
-                'admins',
-                'units',
-                'units.lessons',
-                'units.lessons.blocks',
-                'lessons',
-                'quizzes',
-                'assignments',
-                'enrollments',
-                'enrollments.user',
-            ])
+            ->allowedIncludes($this->includeAuthorizer->getPublicIncludes())
             ->allowedSorts(['id', 'code', 'title', 'created_at', 'updated_at', 'published_at'])
             ->defaultSort('title');
     }
@@ -203,20 +217,7 @@ class CourseFinder
                 AllowedFilter::exact('type'),
                 AllowedFilter::exact('category_id'),
             ])
-            ->allowedIncludes([
-                'tags',
-                'category',
-                'instructor',
-                'admins',
-                'units',
-                'units.lessons',
-                'units.lessons.blocks',
-                'lessons',
-                'quizzes',
-                'assignments',
-                'enrollments',
-                'enrollments.user',
-            ])
+            ->allowedIncludes($this->includeAuthorizer->getPublicIncludes())
             ->allowedSorts(['id', 'code', 'title', 'created_at', 'updated_at', 'published_at'])
             ->defaultSort('title');
     }

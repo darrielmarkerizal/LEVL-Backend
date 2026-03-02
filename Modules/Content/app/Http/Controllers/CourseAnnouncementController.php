@@ -93,7 +93,7 @@ class CourseAnnouncementController extends Controller
         }
 
         return $this->created(
-            $announcement->load(['author', 'course']),
+            $announcement,
             'Pengumuman kursus berhasil dibuat.'
         );
     }
