@@ -16,7 +16,6 @@ class AwardXpForGradeReleased
 
     public function handle(GradesReleased $event): void
     {
-        $passingThreshold = (float) SystemSetting::get('grading.passing_score_percent', 70);
         $xpAmount = (int) SystemSetting::get('gamification.points.assignment_completion', 50);
 
         foreach ($event->submissions as $submission) {
@@ -27,7 +26,9 @@ class AwardXpForGradeReleased
                 continue;
             }
 
-            if ($grade->effective_score < $passingThreshold) {
+            $passingGrade = $assignment->passing_grade;
+
+            if ($grade->effective_score < $passingGrade) {
                 continue;
             }
 
