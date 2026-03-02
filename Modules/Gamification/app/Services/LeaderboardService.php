@@ -6,23 +6,23 @@ namespace Modules\Gamification\Services;
 
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Gamification\Contracts\Services\LeaderboardServiceInterface;
 use Modules\Gamification\Models\Leaderboard;
 use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Gamification\Models\UserScopeStat;
-use Modules\Schemes\Models\Course;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class LeaderboardService implements LeaderboardServiceInterface
 {
     public function getLeaderboardWithRanks(
-        Request $request,
-        ?int $currentUserId
+        int $perPage = 10,
+        int $page = 1,
+        ?int $courseId = null,
+        ?int $currentUserId = null
     ): array {
-        $leaderboard = $this->getGlobalLeaderboard($request);
+        $leaderboard = $this->getGlobalLeaderboard($perPage, $page, $courseId);
 
         $leaderboard->getCollection()->transform(function ($stat, $index) use ($leaderboard) {
             $rank = ($leaderboard->currentPage() - 1) * $leaderboard->perPage() + $index + 1;
@@ -33,7 +33,7 @@ class LeaderboardService implements LeaderboardServiceInterface
 
         $myRank = null;
         if ($currentUserId) {
-            $rankData = $this->getUserRank($request);
+            $rankData = $this->getUserRank($currentUserId);
             $user = \Modules\Auth\Models\User::find($currentUserId);
 
             $myRank = [
@@ -55,21 +55,17 @@ class LeaderboardService implements LeaderboardServiceInterface
         ];
     }
 
-    public function getGlobalLeaderboard(Request $request): LengthAwarePaginator
+    public function getGlobalLeaderboard(int $perPage = 10, int $page = 1, ?int $courseId = null): LengthAwarePaginator
     {
-        $courseSlug = $request->input('filter.course_slug');
-        $period = $request->input('filter.period', 'all_time');
-        $perPage = (int) ($request->input('per_page', 15));
         $perPage = max(1, min($perPage, 100));
+        $period = 'all_time';
 
-        $cacheKey = 'gamification:leaderboard:'.md5(json_encode($request->query()));
+        $cacheKey = 'gamification:leaderboard:'.md5(json_encode(compact('perPage', 'page', 'courseId', 'period')));
 
         return cache()->tags(['gamification', 'leaderboard'])->remember(
             $cacheKey,
             300,
-            function () use ($courseSlug, $period, $perPage) {
-                $courseId = $this->resolveCourseId($courseSlug);
-
+            function () use ($courseId, $period, $perPage, $page) {
                 if ($courseId) {
                     $query = QueryBuilder::for(Leaderboard::class)
                         ->allowedFilters([
@@ -89,7 +85,7 @@ class LeaderboardService implements LeaderboardServiceInterface
                     $this->applyPeriodFilter($query, $period);
                 }
 
-                $result = $query->paginate($perPage);
+                $result = $query->paginate($perPage, ['*'], 'page', $page);
 
                 $userIds = $result->pluck('user_id')->toArray();
                 $badgeCounts = $this->getBadgeCountsForUsers($userIds, $period);
@@ -105,10 +101,9 @@ class LeaderboardService implements LeaderboardServiceInterface
         );
     }
 
-    public function getUserRank(Request $request): array
+    public function getUserRank(int $userId): array
     {
-        $userId = $request->user()->id;
-        $period = $request->input('filter.period', 'all_time');
+        $period = 'all_time';
 
         $userStats = UserGamificationStat::where('user_id', $userId)->first();
 
@@ -169,17 +164,6 @@ class LeaderboardService implements LeaderboardServiceInterface
 
             cache()->tags(['gamification', 'leaderboard'])->flush();
         });
-    }
-
-    private function resolveCourseId(?string $courseSlug): ?int
-    {
-        if (! $courseSlug) {
-            return null;
-        }
-
-        $course = Course::where('slug', $courseSlug)->first();
-
-        return $course?->id;
     }
 
     private function applyPeriodFilter($query, string $period): void
