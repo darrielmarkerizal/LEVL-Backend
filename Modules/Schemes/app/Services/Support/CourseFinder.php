@@ -208,6 +208,13 @@ class CourseFinder
             $this->applyTagFilter($builder, $tagFilter);
         }
 
+        $user = auth('api')->user();
+        if ($user) {
+            $builder->with(['enrollments' => function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            }]);
+        }
+
         return $builder
             ->with('instructor')
             ->withCount(['admins', 'enrollments'])
@@ -245,5 +252,44 @@ class CourseFinder
             ->with(['media'])
             ->limit($limit)
             ->get();
+    }
+
+    public function listEnrolledCourses(int $userId, array $filters = [], int $perPage = 15): LengthAwarePaginator
+    {
+        $perPage = max(1, $perPage);
+        $status = data_get($filters, 'filter.status');
+
+        $cleanFilters = Arr::except($filters, ['filter.status']);
+        $request = new Request($cleanFilters);
+
+        $builder = QueryBuilder::for(Course::class, $request)
+            ->whereHas('enrollments', function ($query) use ($userId, $status) {
+                $query->where('user_id', $userId);
+
+                if ($status === 'active') {
+                    $query->where('status', \Modules\Enrollments\Enums\EnrollmentStatus::Active);
+                } elseif ($status === 'completed') {
+                    $query->where('status', \Modules\Enrollments\Enums\EnrollmentStatus::Completed);
+                } else {
+                    $query->whereIn('status', [
+                        \Modules\Enrollments\Enums\EnrollmentStatus::Active,
+                        \Modules\Enrollments\Enums\EnrollmentStatus::Completed,
+                    ]);
+                }
+            })
+            ->with(['instructor', 'enrollments' => function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            }])
+            ->withCount(['admins', 'enrollments'])
+            ->allowedFilters([
+                AllowedFilter::exact('level_tag'),
+                AllowedFilter::exact('type'),
+                AllowedFilter::exact('category_id'),
+            ])
+            ->allowedIncludes($this->includeAuthorizer->getPublicIncludes())
+            ->allowedSorts(['title', 'created_at', 'updated_at'])
+            ->defaultSort('-updated_at');
+
+        return $builder->paginate($perPage);
     }
 }

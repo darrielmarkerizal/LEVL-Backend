@@ -8,6 +8,13 @@ class CourseResource extends JsonResource
 {
     public function toArray($request): array
     {
+        $user = auth('api')->user();
+        $enrollment = null;
+
+        if ($user && $user->hasRole('Student')) {
+            $enrollment = $this->enrollments->where('user_id', $user->id)->first();
+        }
+
         return [
             'id' => $this->id,
             'code' => $this->code,
@@ -18,6 +25,7 @@ class CourseResource extends JsonResource
             'level_tag' => $this->level_tag,
             'enrollment_type' => $this->enrollment_type,
             'status' => $this->status,
+            'enrollment_status' => $user && $user->hasRole('Student') ? $enrollment?->status?->value : null,
             'published_at' => $this->published_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),
