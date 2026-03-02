@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Gamification\Http\Controllers;
 
 use App\Http\Controllers\Controller;
@@ -19,63 +21,26 @@ class LeaderboardController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = (int) ($request->input('per_page') ?? 10);
-        $perPage = min($perPage > 0 ? $perPage : 10, 100);
-        $page = $request->input('page', 1);
-        
-        $courseId = null;
-        $courseId = null;
-        if ($slug = $request->input('course_slug')) {
-            $course = \Modules\Schemes\Models\Course::where('slug', $slug)->first();
-            if ($course) {
-                $courseId = $course->id;
-            }
-        } else {
-             // If scope_type is global or not set, courseId remains null (Global)
-        }
+        $result = $this->leaderboardService->getLeaderboardWithRanks(
+            $request,
+            $request->user()?->id
+        );
 
-        $leaderboard = $this->leaderboardService->getGlobalLeaderboard($perPage, $page, $courseId);
+        $result['leaderboard']->appends($request->query());
+        $result['leaderboard']->getCollection()->transform(fn ($item) => new LeaderboardResource($item));
 
-        
-        $leaderboard->appends($request->query());
-        $leaderboard->getCollection()->transform(function ($stat, $index) use ($leaderboard) {
-            $rank = ($leaderboard->currentPage() - 1) * $leaderboard->perPage() + $index + 1;
-            
-            $stat->rank = $rank; 
-            return $stat;
-        });
-
-        $leaderboard->getCollection()->transform(fn($item) => new LeaderboardResource($item));
-
-        // Add user's own rank to meta
-        $additionalMeta = [];
-        if ($user = $request->user()) {
-             $rankData = $this->leaderboardService->getUserRank($user->id);
-             $additionalMeta['my_rank'] = [
-                'rank' => $rankData['rank'],
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'avatar_url' => $user->avatar_url,
-                ],
-                'total_xp' => $rankData['total_xp'],
-                'level' => $rankData['level'],
-            ];
-        }
-
-        return $this->paginateResponse($leaderboard, __('gamification.leaderboard_retrieved'), 200, $additionalMeta);
+        return $this->paginateResponse(
+            $result['leaderboard'],
+            __('gamification.leaderboard_retrieved'),
+            200,
+            $result['my_rank'] ? ['my_rank' => $result['my_rank']] : []
+        );
     }
 
     public function myRank(Request $request): JsonResponse
     {
-        $userId = $request->user()->id;
-        $rankData = $this->leaderboardService->getUserRank($userId);
+        $rankData = $this->leaderboardService->getUserRank($request);
 
-        return $this->success([
-            'rank' => $rankData['rank'],
-            'total_xp' => $rankData['total_xp'],
-            'level' => $rankData['level'],
-            'surrounding' => $rankData['surrounding'],
-        ], __('gamification.rank_retrieved'));
+        return $this->success($rankData, __('gamification.rank_retrieved'));
     }
 }
