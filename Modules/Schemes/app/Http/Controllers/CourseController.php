@@ -134,4 +134,15 @@ class CourseController extends Controller
 
         return $this->success(new CourseResource($result['course']), __('messages.courses.key_removed'));
     }
+
+    public function myEnrolledCourses(Request $request)
+    {
+        $userId = auth('api')->id();
+        $perPage = (int) $request->query('per_page', 15);
+
+        $paginator = $this->service->listEnrolledCourses($userId, $request->all(), $perPage);
+        $paginator->getCollection()->transform(fn ($course) => new \Modules\Schemes\Http\Resources\CourseIndexResource($course));
+
+        return $this->paginateResponse($paginator, 'messages.courses.list_retrieved');
+    }
 }

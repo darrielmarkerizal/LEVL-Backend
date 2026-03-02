@@ -164,4 +164,9 @@ class CourseService implements CourseServiceInterface
     {
         return $this->finder->searchGlobal($query, $limit);
     }
+
+    public function listEnrolledCourses(int $userId, array $filters = [], int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->finder->listEnrolledCourses($userId, $filters, $perPage);
+    }
 }

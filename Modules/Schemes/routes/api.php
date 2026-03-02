@@ -14,6 +14,11 @@ Route::prefix('v1')->scopeBindings()->group(function () {
     Route::get('courses', [CourseController::class, 'index'])->name('courses.index');
     Route::get('courses/{course:slug}', [CourseController::class, 'show'])->name('courses.show');
 
+    // Student enrolled courses
+    Route::middleware(['auth:api'])->group(function () {
+        Route::get('my-courses', [CourseController::class, 'myEnrolledCourses'])->name('courses.my-enrolled');
+    });
+
     Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
         Route::post('courses', [CourseController::class, 'store'])
             ->middleware('can:create,Modules\\Schemes\\Models\\Course')
