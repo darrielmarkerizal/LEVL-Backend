@@ -236,7 +236,7 @@ class UnitService
 
     public function getContents(Unit $unit, ?\Modules\Auth\Models\User $user = null): array
     {
-        $lessonIds = $unit->lessons()->pluck('id');
+        $lessonIds = $unit->lessons()->where('status', 'published')->pluck('id');
 
         $completedLessonIds = [];
         if ($user) {
@@ -247,6 +247,7 @@ class UnitService
         }
 
         $lessons = $unit->lessons()
+            ->where('status', 'published')
             ->select('id', 'unit_id', 'title', 'slug', 'description', 'order', 'status', 'created_at')
             ->orderBy('order')
             ->get();
@@ -278,11 +279,13 @@ class UnitService
 
         $quizzesByLesson = \Modules\Learning\Models\Quiz::where('assignable_type', \Modules\Schemes\Models\Lesson::class)
             ->whereIn('assignable_id', $lessonIds)
+            ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
             ->select('id', 'title', 'description', 'status', 'max_score', 'passing_grade', 'created_at', 'assignable_id')
             ->get()
             ->groupBy('assignable_id');
 
         $assignmentsByLesson = \Modules\Learning\Models\Assignment::whereIn('lesson_id', $lessonIds)
+            ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
             ->select('id', 'title', 'description', 'status', 'max_score', 'submission_type', 'created_at', 'lesson_id')
             ->get()
             ->groupBy('lesson_id');
