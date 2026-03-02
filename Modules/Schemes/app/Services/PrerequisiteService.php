@@ -278,6 +278,7 @@ class PrerequisiteService
                     'type' => $type,
                     'id' => $model->id,
                     'title' => $model->title,
+                    'slug' => $model->slug,
                 ];
             }
         }

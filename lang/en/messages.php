@@ -500,6 +500,10 @@ return [
         'granted' => 'Override granted successfully.',
     ],
 
+    'prerequisites' => [
+        'incomplete_count' => 'You must complete :count prerequisite item(s) before accessing this content.',
+    ],
+
     // Answers Module
     'answers' => [
         'saved' => 'Answer saved successfully.',

@@ -467,6 +467,10 @@ return [
         'granted' => 'Override berhasil diberikan.',
     ],
 
+    'prerequisites' => [
+        'incomplete_count' => 'Anda harus menyelesaikan :count item prasyarat sebelum mengakses konten ini.',
+    ],
+
     // Answers Module
     'answers' => [
         'saved' => 'Jawaban berhasil disimpan.',
