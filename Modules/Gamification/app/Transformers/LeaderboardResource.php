@@ -8,17 +8,12 @@ class LeaderboardResource extends JsonResource
 {
     public function toArray($request)
     {
-        
-        
         $rank = $this->resource['rank'] ?? $this->rank ?? null;
         $stat = $this->resource['stat'] ?? $this->resource;
-        
-        
-        
-        
+
         if ($stat instanceof \Modules\Gamification\Models\UserGamificationStat) {
-             return [
-                'rank' => $this->additional['rank'] ?? $rank, 
+            return [
+                'rank' => $this->additional['rank'] ?? $rank,
                 'user' => [
                     'id' => $stat->user_id,
                     'name' => $stat->user?->name ?? 'Unknown',
@@ -26,10 +21,10 @@ class LeaderboardResource extends JsonResource
                 ],
                 'total_xp' => $stat->total_xp,
                 'level' => $stat->global_level,
+                'badges_count' => $stat->badges_count ?? 0,
             ];
         }
 
-        
         return parent::toArray($request);
     }
 }
