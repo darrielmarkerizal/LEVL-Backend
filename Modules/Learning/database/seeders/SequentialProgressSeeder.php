@@ -167,7 +167,6 @@ class SequentialProgressSeeder extends Seeder
         }
 
         $score = $status === 'graded' ? rand(60, 100) : null;
-        $gradedAt = $status === 'graded' ? $this->createdAt : null;
 
         $answerText = null;
         if ($assignment->submission_type === 'text') {
@@ -183,7 +182,6 @@ class SequentialProgressSeeder extends Seeder
             'state' => $status,
             'score' => $score,
             'submitted_at' => $this->createdAt,
-            'graded_at' => $gradedAt,
             'attempt_number' => 1,
         ]);
 
@@ -214,10 +212,8 @@ class SequentialProgressSeeder extends Seeder
             'user_id' => $studentId,
             'enrollment_id' => $enrollmentId,
             'status' => $status,
-            'state' => $status,
             'score' => $score,
             'submitted_at' => $this->createdAt,
-            'graded_at' => $this->createdAt,
             'attempt_number' => 1,
         ]);
 
