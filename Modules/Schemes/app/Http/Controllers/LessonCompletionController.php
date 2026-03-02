@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Modules\Schemes\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Services\LessonCompletionService;
 
 class LessonCompletionController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly LessonCompletionService $service
     ) {}
