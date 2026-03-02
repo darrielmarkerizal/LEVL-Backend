@@ -45,6 +45,22 @@ class MasterDataService
 
     public function paginate(string $type, int $perPage = 15): LengthAwarePaginator
     {
+        if ($this->enumMapper->isStaticType($type)) {
+            $data = $this->get($type);
+            $collection = collect($data);
+            $page = request()->input('page', 1);
+            $total = $collection->count();
+            $items = $collection->forPage($page, $perPage)->values();
+
+            return new \Illuminate\Pagination\LengthAwarePaginator(
+                $items,
+                $total,
+                $perPage,
+                $page,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+        }
+
         return $this->repository->paginateByType($type, [], $perPage);
     }
 
@@ -119,20 +135,20 @@ class MasterDataService
 
     private function transformTypeItem($item): array
     {
-        $labelMap = ["categories" => "Kategori", "tags" => "Tags"];
-        
+        $labelMap = ['categories' => 'Kategori', 'tags' => 'Tags'];
+
         // Handle object or array access safely
         $type = is_object($item) ? $item->type : $item['type'];
         $count = is_object($item) ? $item->count : $item['count'];
         $last_updated = is_object($item) ? $item->last_updated : $item['last_updated'];
 
         return [
-            "key" => $type,
-            "type" => $type,
-            "label" => $labelMap[$type] ?? ucwords(str_replace("-", " ", $type)),
-            "count" => $count,
-            "last_updated" => $last_updated,
-            "is_crud" => true,
+            'key' => $type,
+            'type' => $type,
+            'label' => $labelMap[$type] ?? ucwords(str_replace('-', ' ', $type)),
+            'count' => $count,
+            'last_updated' => $last_updated,
+            'is_crud' => true,
         ];
     }
 
