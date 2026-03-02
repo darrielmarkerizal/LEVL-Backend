@@ -13,7 +13,6 @@ use Modules\Content\DTOs\CreateAnnouncementDTO;
 use Modules\Content\DTOs\UpdateAnnouncementDTO;
 use Modules\Content\Events\AnnouncementPublished;
 use Modules\Content\Models\Announcement;
-use Modules\Content\Models\ContentRevision;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -30,10 +29,10 @@ class AnnouncementService implements AnnouncementServiceInterface
         $page = request()->get('page', 1);
 
         return cache()->tags(['content', 'announcements'])->remember(
-            "content:announcements:user:{$user->id}:{$perPage}:{$page}:" . md5(json_encode($filters)),
+            "content:announcements:user:{$user->id}:{$perPage}:{$page}:".md5(json_encode($filters)),
             300,
             function () use ($user, $perPage) {
-                return QueryBuilder::for(Announcement::class)
+                $query = QueryBuilder::for(Announcement::class)
                     ->where(function ($q) use ($user) {
                         $q->where('target_type', 'all')
                             ->orWhere(function ($q2) use ($user) {
@@ -42,7 +41,9 @@ class AnnouncementService implements AnnouncementServiceInterface
                             });
                     })
                     ->allowedFilters([
-                        AllowedFilter::exact('course_id'),
+                        AllowedFilter::callback('course_slug', function ($query, $value) {
+                            $query->whereHas('course', fn ($q) => $q->where('slug', $value));
+                        }),
                         AllowedFilter::exact('status'),
                         AllowedFilter::exact('priority'),
                         AllowedFilter::exact('target_type'),
@@ -52,6 +53,8 @@ class AnnouncementService implements AnnouncementServiceInterface
                     ->allowedSorts(['published_at', 'created_at', 'priority'])
                     ->defaultSort('-published_at')
                     ->paginate($perPage);
+
+                return $query;
             }
         );
     }
@@ -62,7 +65,7 @@ class AnnouncementService implements AnnouncementServiceInterface
         $page = request()->get('page', 1);
 
         return cache()->tags(['content', 'announcements'])->remember(
-            "content:announcements:course:{$courseId}:{$perPage}:{$page}:" . md5(json_encode($filters)),
+            "content:announcements:course:{$courseId}:{$perPage}:{$page}:".md5(json_encode($filters)),
             300,
             function () use ($courseId, $perPage) {
                 return QueryBuilder::for(Announcement::class)
@@ -98,6 +101,7 @@ class AnnouncementService implements AnnouncementServiceInterface
 
             $announcement = $this->repository->create($data);
             cache()->tags(['content', 'announcements'])->flush();
+
             return $announcement;
         });
     }
@@ -109,6 +113,7 @@ class AnnouncementService implements AnnouncementServiceInterface
 
             $updated = $this->repository->update($announcement, $dto->toArrayWithoutNull());
             cache()->tags(['content', 'announcements'])->flush();
+
             return $updated;
         });
     }
@@ -117,6 +122,7 @@ class AnnouncementService implements AnnouncementServiceInterface
     {
         $result = $this->repository->delete($announcement, $user->id);
         cache()->tags(['content', 'announcements'])->flush();
+
         return $result;
     }
 
@@ -139,6 +145,7 @@ class AnnouncementService implements AnnouncementServiceInterface
             event(new AnnouncementPublished($announcement->fresh()));
 
             cache()->tags(['content', 'announcements'])->flush();
+
             return $announcement->fresh();
         });
     }

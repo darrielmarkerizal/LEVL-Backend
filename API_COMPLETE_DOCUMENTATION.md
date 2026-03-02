@@ -62,10 +62,16 @@
 **Query Parameters:**
 - `per_page` (integer, optional): Items per page (default: 15)
 - `page` (integer, optional): Page number (default: 1)
-- `filter[status]` (string, optional): Filter by status (`published`, `draft`)
+- `filter[status]` (string, optional): Filter by status
+  - Values: `published`, `draft`, `archived`
 - `filter[type]` (string, optional): Filter by course type
+  - Values: Get from `GET /master-data/course_types` (e.g., `online`, `hybrid`, `in_person`)
 - `filter[level_tag]` (string, optional): Filter by level
+  - Values: Get from `GET /master-data/level_tags` (e.g., `beginner`, `intermediate`, `advanced`)
 - `filter[category_id]` (integer, optional): Filter by category ID
+  - Values: Get category IDs from `GET /categories`
+- `filter[enrollment_type]` (string, optional): Filter by enrollment type
+  - Values: Get from `GET /master-data/enrollment_types` (e.g., `auto_accept`, `approval_required`, `key_based`)
 - `search` (string, optional): Search in title, code, description
 
 **Response:**
@@ -110,6 +116,15 @@
 }
 ```
 
+**Example Requests:**
+```
+GET /courses
+GET /courses?filter[status]=published
+GET /courses?filter[type]=online&filter[level_tag]=beginner
+GET /courses?filter[category_id]=1&per_page=20
+GET /courses?search=programming&filter[status]=published
+```
+
 ---
 
 ### Get Course Details (Public)
@@ -138,8 +153,10 @@
 - `per_page` (integer, optional): Items per page (default: 15)
 - `page` (integer, optional): Page number
 - `search` (string, optional): Search in title, code, description
-- `filter[status]` (string, optional): Filter by status (`published`, `draft`)
-- `filter[course_id]` (integer, optional): Filter by course ID
+- `filter[status]` (string, optional): Filter by status
+  - Values: `draft`, `published`
+- `filter[course_slug]` (string, optional): Filter by course slug
+  - Values: Get course slugs from `GET /courses`
 
 **Response:** Paginated list of units across all courses user has access to
 
@@ -194,6 +211,7 @@
 **Query Parameters:**
 - `per_page` (integer, optional): Items per page (default: 15)
 - `filter[status]` (string, optional): Filter by status
+  - Values: `draft`, `published`
 
 **Response:** Paginated list of units in the specified course
 
@@ -230,7 +248,9 @@
 - `per_page` (integer, optional): Items per page (default: 15)
 - `search` (string, optional): Search in title, content
 - `filter[status]` (string, optional): Filter by status
-- `filter[unit_id]` (integer, optional): Filter by unit ID
+  - Values: `draft`, `published`
+- `filter[unit_slug]` (string, optional): Filter by unit slug
+  - Values: Get unit slugs from `GET /units`
 
 **Response:** Paginated list of lessons across all courses
 
@@ -286,6 +306,7 @@
 **Query Parameters:**
 - `per_page` (integer, optional): Items per page (default: 15)
 - `filter[status]` (string, optional): Filter by status
+  - Values: `draft`, `published`
 
 **Response:** Paginated list of lessons in the unit
 
@@ -345,6 +366,7 @@
 
 **Query Parameters:**
 - `filter[type]` (string, optional): Filter by block type
+  - Values: `text`, `video`, `image`, `code`, `file`, `embed`
 
 **Response:** List of lesson blocks (text, video, image, code, etc.)
 
@@ -372,9 +394,12 @@
 **Query Parameters:**
 - `per_page` (integer, optional): Items per page (default: 15)
 - `page` (integer, optional): Page number
-- `filter[status]` (string, optional): Filter by status (`published`, `draft`, `archived`)
-- `filter[type]` (string, optional): Filter by type (`assignment`, `quiz`)
-- `filter[assignable_type]` (string, optional): Filter by scope (`Course`, `Unit`, `Lesson`)
+- `filter[status]` (string, optional): Filter by status
+  - Values: `draft`, `published`, `archived`
+- `filter[type]` (string, optional): Filter by type
+  - Values: Get from `GET /master-data/assignment_types` (e.g., `assignment`, `quiz`)
+- `filter[assignable_type]` (string, optional): Filter by scope
+  - Values: `Course`, `Unit`, `Lesson`
 
 **Response:**
 ```json
@@ -778,6 +803,7 @@
 **Query Parameters:**
 - `per_page` (integer, optional): Items per page (default: 15)
 - `filter[status]` (string, optional): Filter by status
+  - Values: `draft`, `published`, `archived`
 
 **Response:** Paginated list of quizzes in the course
 
@@ -1026,8 +1052,10 @@
 
 **Query Parameters:**
 - `per_page` (integer, optional): Items per page (default: 15)
-- `filter[status]` (string, optional): Filter by status (`pending`, `active`, `completed`, `withdrawn`, `cancelled`, `declined`, `expelled`)
-- `filter[course_id]` (integer, optional): Filter by course ID
+- `filter[status]` (string, optional): Filter by status
+  - Values: `pending`, `active`, `completed`, `withdrawn`, `cancelled`, `declined`, `expelled`
+- `filter[course_slug]` (string, optional): Filter by course slug
+  - Values: Get course slugs from `GET /courses`
 
 **Response:**
 ```json
@@ -1368,8 +1396,10 @@
 
 **Query Parameters:**
 - `per_page` (integer, optional): Items per page (default: 15)
-- `filter[type]` (string, optional): Filter by type (`daily`, `weekly`, `monthly`, `special`)
-- `filter[status]` (string, optional): Filter by status (`active`, `upcoming`, `expired`)
+- `filter[type]` (string, optional): Filter by type
+  - Values: `daily`, `weekly`, `monthly`, `special`
+- `filter[status]` (string, optional): Filter by status
+  - Values: `active`, `upcoming`, `expired`
 
 **Response:**
 ```json
@@ -1505,9 +1535,22 @@
 **Access:** Authenticated users
 
 **Query Parameters:**
-- `per_page` (integer, optional): Items per page (default: 10, max: 100)
-- `page` (integer, optional): Page number
-- `course_slug` (string, optional): Filter by course slug (global leaderboard if omitted)
+- `per_page` (integer, optional): Items per page (default: 15, max: 100)
+- `page` (integer, optional): Page number (default: 1)
+- `filter[course_slug]` (string, optional): Filter by course slug (global leaderboard if omitted)
+- `filter[period]` (string, optional): Time period filter
+  - Values: `today`, `this_week`, `this_month`, `this_year`, `all_time` (default)
+
+**Note:** Leaderboard is ALWAYS sorted by total XP (descending). No custom sorting allowed.
+
+**Example Requests:**
+```
+GET /leaderboards
+GET /leaderboards?filter[period]=today
+GET /leaderboards?filter[period]=this_week&per_page=20
+GET /leaderboards?filter[course_slug]=laravel-basics
+GET /leaderboards?filter[course_slug]=laravel-basics&filter[period]=this_month
+```
 
 **Response:**
 ```json
@@ -1522,7 +1565,8 @@
         "avatar_url": "https://example.com/avatar.jpg"
       },
       "total_xp": 2500,
-      "level": 8
+      "level": 8,
+      "badges_count": 12
     },
     {
       "rank": 2,
@@ -1532,7 +1576,8 @@
         "avatar_url": "https://example.com/avatar2.jpg"
       },
       "total_xp": 2300,
-      "level": 7
+      "level": 7,
+      "badges_count": 10
     }
   ],
   "meta": {
@@ -1547,7 +1592,8 @@
         "avatar_url": "https://example.com/my-avatar.jpg"
       },
       "total_xp": 1250,
-      "level": 5
+      "level": 5,
+      "badges_count": 8
     }
   }
 }
@@ -1557,9 +1603,19 @@
 
 ### Get My Rank
 
-**Endpoint:** `GET /user/rank`
+**Endpoint:** `GET /gamification/rank`
 
 **Access:** Authenticated users
+
+**Query Parameters:**
+- `filter[period]` (string, optional): Time period filter
+  - Values: `today`, `this_week`, `this_month`, `this_year`, `all_time` (default)
+
+**Example Requests:**
+```
+GET /gamification/rank
+GET /gamification/rank?filter[period]=this_week
+```
 
 **Response:**
 ```json
@@ -1569,6 +1625,7 @@
     "rank": 15,
     "total_xp": 1250,
     "level": 5,
+    "badges_count": 8,
     "surrounding": [
       {
         "rank": 14,
@@ -1650,6 +1707,1709 @@
 
 ---
 
+## Search
+
+### Global Search
+
+**Endpoint:** `GET /search`
+
+**Access:** Public (no authentication required)
+
+**Query Parameters:**
+- `q` (string, required): Search query
+- `type` (string, optional): Filter by type (`courses`, `lessons`, `units`, `announcements`, `news`)
+- `per_page` (integer, optional): Items per page (default: 15)
+- `page` (integer, optional): Page number
+
+**Example Requests:**
+```
+GET /search?q=programming
+GET /search?q=laravel&type=courses
+GET /search?q=introduction&type=lessons&per_page=20
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "courses": [
+      {
+        "id": 1,
+        "title": "Introduction to Programming",
+        "slug": "introduction-to-programming",
+        "type": "course",
+        "excerpt": "Learn programming basics..."
+      }
+    ],
+    "lessons": [
+      {
+        "id": 5,
+        "title": "Variables and Data Types",
+        "slug": "variables-data-types",
+        "type": "lesson",
+        "excerpt": "Understanding variables..."
+      }
+    ],
+    "total_results": 15
+  },
+  "meta": {
+    "query": "programming",
+    "current_page": 1,
+    "per_page": 15
+  }
+}
+```
+
+---
+
+### Search Autocomplete
+
+**Endpoint:** `GET /search/autocomplete`
+
+**Access:** Public
+
+**Query Parameters:**
+- `q` (string, required): Search query (minimum 2 characters)
+- `limit` (integer, optional): Max results (default: 10, max: 20)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "title": "Introduction to Programming",
+      "type": "course",
+      "slug": "introduction-to-programming"
+    },
+    {
+      "title": "Programming Basics",
+      "type": "lesson",
+      "slug": "programming-basics"
+    }
+  ]
+}
+```
+
+---
+
+### Get Search History
+
+**Endpoint:** `GET /search/history`
+
+**Access:** Authenticated users
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "query": "programming",
+      "results_count": 15,
+      "searched_at": "2024-01-15T10:00:00+00:00"
+    }
+  ]
+}
+```
+
+---
+
+### Clear Search History
+
+**Endpoint:** `DELETE /search/history`
+
+**Access:** Authenticated users
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Search history cleared"
+}
+```
+
+---
+
+## Notifications
+
+### Get My Notifications
+
+**Endpoint:** `GET /notifications`
+
+**Access:** Authenticated users
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+- `filter[read]` (boolean, optional): Filter by read status (`true`, `false`)
+- `filter[type]` (string, optional): Filter by notification type
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "type": "assignment_graded",
+      "title": "Assignment Graded",
+      "message": "Your Week 1 Assignment has been graded",
+      "data": {
+        "assignment_id": 1,
+        "score": 85
+      },
+      "read_at": null,
+      "created_at": "2024-01-15T10:00:00+00:00"
+    }
+  ],
+  "meta": {
+    "unread_count": 5
+  }
+}
+```
+
+---
+
+### Mark Notification as Read
+
+**Endpoint:** `POST /notifications/{notification_id}/read`
+
+**Access:** Authenticated users
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Notification marked as read"
+}
+```
+
+---
+
+### Mark All Notifications as Read
+
+**Endpoint:** `POST /notifications/read-all`
+
+**Access:** Authenticated users
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "All notifications marked as read"
+}
+```
+
+---
+
+### Get Notification Preferences
+
+**Endpoint:** `GET /notification-preferences`
+
+**Access:** Authenticated users
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "email_notifications": true,
+    "push_notifications": false,
+    "assignment_graded": true,
+    "course_announcement": true,
+    "enrollment_approved": true,
+    "challenge_completed": false
+  }
+}
+```
+
+---
+
+### Update Notification Preferences
+
+**Endpoint:** `PUT /notification-preferences`
+
+**Access:** Authenticated users
+
+**Request Body:**
+```json
+{
+  "email_notifications": true,
+  "push_notifications": true,
+  "assignment_graded": true,
+  "course_announcement": false
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Notification preferences updated",
+  "data": {
+    "email_notifications": true,
+    "push_notifications": true,
+    "assignment_graded": true,
+    "course_announcement": false
+  }
+}
+```
+
+---
+
+### Reset Notification Preferences
+
+**Endpoint:** `POST /notification-preferences/reset`
+
+**Access:** Authenticated users
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Notification preferences reset to defaults"
+}
+```
+
+---
+
+## Announcements
+
+### List Announcements
+
+**Endpoint:** `GET /announcements`
+
+**Access:** Authenticated users
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+- `page` (integer, optional): Page number
+- `filter[course_slug]` (string, optional): Filter by course slug
+  - Values: Get course slugs from `GET /courses`
+- `filter[status]` (string, optional): Filter by status
+  - Values: `draft`, `published`, `archived`
+- `filter[priority]` (string, optional): Filter by priority
+  - Values: `low`, `normal`, `high`, `urgent`
+- `search` (string, optional): Search in title and content
+- `include` (string, optional): Include relations
+  - Values: `author`, `course`
+- `sort` (string, optional): Sort field
+
+**Available Filters:**
+- `filter[course_slug]`: string - Get course slugs from `GET /courses`
+- `filter[status]`: `draft`, `published`, `archived`
+- `filter[priority]`: `low`, `normal`, `high`, `urgent`
+- `search`: Full-text search
+
+**Available Sorts:**
+- `sort=published_at`, `sort=-published_at` (default: `-published_at`)
+- `sort=created_at`, `sort=-created_at`
+- `sort=priority`, `sort=-priority`
+
+**Available Includes:**
+- `include=author` - Announcement author details
+- `include=course` - Course details
+
+**Example Requests:**
+```
+GET /announcements
+GET /announcements?filter[status]=published
+GET /announcements?filter[course_id]=1&filter[priority]=high
+GET /announcements?search=exam&include=author,course
+GET /announcements?sort=-priority&per_page=20
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "title": "Midterm Exam Schedule",
+      "content": "The midterm exam will be held on...",
+      "status": "published",
+      "priority": "high",
+      "published_at": "2024-01-15T10:00:00+00:00",
+      "author": {
+        "id": 2,
+        "name": "Instructor Name"
+      },
+      "course": {
+        "id": 1,
+        "title": "Introduction to Programming"
+      }
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 10
+  }
+}
+```
+
+---
+
+### Get Announcement Details
+
+**Endpoint:** `GET /announcements/{announcement_id}`
+
+**Access:** Authenticated users
+
+**Query Parameters:**
+- `include` (string, optional): Include relations (`author`, `course`)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Midterm Exam Schedule",
+    "content": "The midterm exam will be held on...",
+    "status": "published",
+    "priority": "high",
+    "published_at": "2024-01-15T10:00:00+00:00",
+    "is_read": false,
+    "author": {
+      "id": 2,
+      "name": "Instructor Name",
+      "email": "instructor@example.com"
+    },
+    "course": {
+      "id": 1,
+      "title": "Introduction to Programming",
+      "slug": "introduction-to-programming"
+    }
+  }
+}
+```
+
+---
+
+### Mark Announcement as Read
+
+**Endpoint:** `POST /announcements/{announcement_id}/read`
+
+**Access:** Authenticated users
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Announcement marked as read"
+}
+```
+
+---
+
+### Create Announcement (Management)
+
+**Endpoint:** `POST /announcements`
+
+**Access:** Superadmin, Admin, Instructor
+
+**Request Body:**
+```json
+{
+  "title": "Important Update",
+  "content": "Please note the following changes...",
+  "course_slug": "introduction-to-programming",
+  "status": "draft",
+  "priority": "normal",
+  "published_at": "2024-01-20T10:00:00+00:00"
+}
+```
+
+**Validation Rules:**
+- `title`: required, string, max:255
+- `content`: required, string
+- `course_slug`: nullable, string - Get course slugs from `GET /courses`
+- `status`: nullable, in:draft,published,archived (values: `draft`, `published`, `archived`)
+- `priority`: nullable, in:low,normal,high,urgent (values: `low`, `normal`, `high`, `urgent`)
+- `published_at`: nullable, date
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Announcement created successfully",
+  "data": {
+    "id": 1,
+    "title": "Important Update",
+    "status": "draft",
+    "created_at": "2024-01-15T10:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Update Announcement (Management)
+
+**Endpoint:** `PUT /announcements/{announcement_id}`
+
+**Access:** Superadmin, Admin, Instructor (must have update permission)
+
+**Request Body:** Same as create (all fields optional)
+
+**Response:** Updated announcement details
+
+---
+
+### Delete Announcement (Management)
+
+**Endpoint:** `DELETE /announcements/{announcement_id}`
+
+**Access:** Superadmin, Admin, Instructor (must have delete permission)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Announcement deleted successfully"
+}
+```
+
+---
+
+## News
+
+### List News Articles
+
+**Endpoint:** `GET /news`
+
+**Access:** Public
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+- `filter[status]` (string, optional): Filter by status (`draft`, `published`)
+- `filter[category]` (string, optional): Filter by category
+- `search` (string, optional): Search in title and content
+- `include` (string, optional): Include relations (`author`)
+- `sort` (string, optional): Sort field
+
+**Available Filters:**
+- `filter[status]`: `draft`, `published`
+- `filter[category]`: string (category name)
+- `search`: Full-text search
+
+**Available Sorts:**
+- `sort=published_at`, `sort=-published_at` (default: `-published_at`)
+- `sort=views_count`, `sort=-views_count`
+- `sort=created_at`, `sort=-created_at`
+
+**Available Includes:**
+- `include=author` - Article author details
+
+**Example Requests:**
+```
+GET /news
+GET /news?filter[status]=published&sort=-views_count
+GET /news?filter[category]=technology&include=author
+GET /news?search=laravel&per_page=20
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "title": "New Features in Laravel 11",
+      "slug": "new-features-laravel-11",
+      "excerpt": "Discover the latest features...",
+      "category": "technology",
+      "status": "published",
+      "views_count": 1250,
+      "published_at": "2024-01-15T10:00:00+00:00",
+      "author": {
+        "id": 2,
+        "name": "Author Name"
+      }
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 50
+  }
+}
+```
+
+---
+
+### Get News Article Details
+
+**Endpoint:** `GET /news/{slug}`
+
+**Access:** Public
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "New Features in Laravel 11",
+    "slug": "new-features-laravel-11",
+    "content": "Full article content...",
+    "category": "technology",
+    "status": "published",
+    "views_count": 1251,
+    "published_at": "2024-01-15T10:00:00+00:00",
+    "author": {
+      "id": 2,
+      "name": "Author Name",
+      "email": "author@example.com"
+    }
+  }
+}
+```
+
+---
+
+## Tags & Categories
+
+### List Tags
+
+**Endpoint:** `GET /tags`
+
+**Access:** Public
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+- `filter[name]` (string, optional): Partial match on name
+- `filter[slug]` (string, optional): Partial match on slug
+- `filter[description]` (string, optional): Partial match on description
+- `sort` (string, optional): Sort field
+
+**Available Filters:**
+- `filter[name]`: string (partial match)
+- `filter[slug]`: string (partial match)
+- `filter[description]`: string (partial match)
+
+**Available Sorts:**
+- `sort=name`, `sort=-name` (default: `name`)
+- `sort=slug`, `sort=-slug`
+- `sort=created_at`, `sort=-created_at`
+- `sort=updated_at`, `sort=-updated_at`
+
+**Example Requests:**
+```
+GET /tags
+GET /tags?filter[name]=programming
+GET /tags?sort=name&per_page=20
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "Programming",
+      "slug": "programming",
+      "description": "Programming related content",
+      "created_at": "2024-01-01T00:00:00+00:00"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 25
+  }
+}
+```
+
+---
+
+### Get Tag Details
+
+**Endpoint:** `GET /tags/{slug}`
+
+**Access:** Public
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Programming",
+    "slug": "programming",
+    "description": "Programming related content",
+    "courses_count": 15,
+    "created_at": "2024-01-01T00:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Create Tag (Management)
+
+**Endpoint:** `POST /tags`
+
+**Access:** Superadmin, Admin, Instructor
+
+**Request Body:**
+```json
+{
+  "name": "Web Development",
+  "description": "Web development topics"
+}
+```
+
+**Validation Rules:**
+- `name`: required, string, max:255, unique
+- `description`: nullable, string
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Tag created successfully",
+  "data": {
+    "id": 2,
+    "name": "Web Development",
+    "slug": "web-development",
+    "created_at": "2024-01-15T10:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Update Tag (Management)
+
+**Endpoint:** `PUT /tags/{slug}`
+
+**Access:** Superadmin, Admin, Instructor
+
+**Request Body:** Same as create (all fields optional)
+
+**Response:** Updated tag details
+
+---
+
+### Delete Tag (Management)
+
+**Endpoint:** `DELETE /tags/{slug}`
+
+**Access:** Superadmin, Admin, Instructor
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Tag deleted successfully"
+}
+```
+
+---
+
+### List Categories
+
+**Endpoint:** `GET /categories`
+
+**Access:** Public
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+- `filter[name]` (string, optional): Partial match on name
+- `search` (string, optional): Full-text search
+- `sort` (string, optional): Sort field
+
+**Available Filters:**
+- `filter[name]`: string (partial match)
+- `search`: Full-text search in name and description
+
+**Available Sorts:**
+- `sort=name`, `sort=-name` (default: `name`)
+- `sort=created_at`, `sort=-created_at`
+
+**Example Requests:**
+```
+GET /categories
+GET /categories?filter[name]=computer
+GET /categories?search=science&sort=name
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "Computer Science",
+      "slug": "computer-science",
+      "description": "Computer science courses",
+      "courses_count": 25,
+      "created_at": "2024-01-01T00:00:00+00:00"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 10
+  }
+}
+```
+
+---
+
+### Get Category Details
+
+**Endpoint:** `GET /categories/{category_id}`
+
+**Access:** Public
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Computer Science",
+    "slug": "computer-science",
+    "description": "Computer science courses",
+    "courses_count": 25,
+    "created_at": "2024-01-01T00:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Create Category (Management)
+
+**Endpoint:** `POST /categories`
+
+**Access:** Superadmin only
+
+**Request Body:**
+```json
+{
+  "name": "Data Science",
+  "description": "Data science and analytics courses"
+}
+```
+
+**Validation Rules:**
+- `name`: required, string, max:255, unique
+- `description`: nullable, string
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Category created successfully",
+  "data": {
+    "id": 2,
+    "name": "Data Science",
+    "slug": "data-science",
+    "created_at": "2024-01-15T10:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Update Category (Management)
+
+**Endpoint:** `PUT /categories/{category_id}`
+
+**Access:** Superadmin only
+
+**Request Body:** Same as create (all fields optional)
+
+**Response:** Updated category details
+
+---
+
+### Delete Category (Management)
+
+**Endpoint:** `DELETE /categories/{category_id}`
+
+**Access:** Superadmin only
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Category deleted successfully"
+}
+```
+
+---
+
+## Badges & Gamification Management
+
+### List Badges
+
+**Endpoint:** `GET /badges`
+
+**Access:** Public
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+- `filter[id]` (integer, optional): Exact match on ID
+- `filter[code]` (string, optional): Partial match on code
+- `search` (string, optional): Full-text search
+- `sort` (string, optional): Sort field
+
+**Available Filters:**
+- `filter[id]`: integer (exact match)
+- `filter[code]`: string (partial match)
+- `search`: Full-text search in name, code, description
+
+**Available Sorts:**
+- `sort=id`, `sort=-id`
+- `sort=code`, `sort=-code`
+- `sort=name`, `sort=-name`
+- `sort=type`, `sort=-type`
+- `sort=threshold`, `sort=-threshold`
+- `sort=created_at`, `sort=-created_at` (default: `-created_at`)
+- `sort=updated_at`, `sort=-updated_at`
+
+**Example Requests:**
+```
+GET /badges
+GET /badges?filter[code]=first
+GET /badges?search=completion&sort=name
+GET /badges?sort=-threshold&per_page=20
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "code": "FIRST_LESSON",
+      "name": "First Steps",
+      "description": "Complete your first lesson",
+      "type": "achievement",
+      "threshold": 1,
+      "icon_url": "https://example.com/badge.png",
+      "created_at": "2024-01-01T00:00:00+00:00"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 50
+  }
+}
+```
+
+---
+
+### Get Badge Details
+
+**Endpoint:** `GET /badges/{badge_id}`
+
+**Access:** Public
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "code": "FIRST_LESSON",
+    "name": "First Steps",
+    "description": "Complete your first lesson",
+    "type": "achievement",
+    "threshold": 1,
+    "icon_url": "https://example.com/badge.png",
+    "earned_by_count": 1250,
+    "created_at": "2024-01-01T00:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Create Badge (Management)
+
+**Endpoint:** `POST /badges`
+
+**Access:** Superadmin only
+
+**Request Body (multipart/form-data):**
+```
+code: FIRST_LESSON (required, string, unique)
+name: First Steps (required, string)
+description: Complete your first lesson (nullable, string)
+type: achievement (required, string)
+threshold: 1 (nullable, integer)
+icon: (file, optional, image)
+```
+
+**Validation Rules:**
+- `code`: required, string, max:50, unique
+- `name`: required, string, max:255
+- `description`: nullable, string
+- `type`: required, string
+- `threshold`: nullable, integer, min:0
+- `icon`: nullable, file, image, max:2MB
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Badge created successfully",
+  "data": {
+    "id": 1,
+    "code": "FIRST_LESSON",
+    "name": "First Steps",
+    "created_at": "2024-01-15T10:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Update Badge (Management)
+
+**Endpoint:** `PUT /badges/{badge_id}`
+
+**Access:** Superadmin only
+
+**Request Body:** Same as create (all fields optional)
+
+**Response:** Updated badge details
+
+---
+
+### Delete Badge (Management)
+
+**Endpoint:** `DELETE /badges/{badge_id}`
+
+**Access:** Superadmin only
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Badge deleted successfully"
+}
+```
+
+---
+
+### List Level Configs
+
+**Endpoint:** `GET /level-configs`
+
+**Access:** Public
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+- `filter[id]` (integer, optional): Exact match on ID
+- `filter[level]` (integer, optional): Exact match on level
+- `search` (string, optional): Full-text search
+- `sort` (string, optional): Sort field
+
+**Available Filters:**
+- `filter[id]`: integer (exact match)
+- `filter[level]`: integer (exact match)
+- `search`: Full-text search in name
+
+**Available Sorts:**
+- `sort=id`, `sort=-id`
+- `sort=level`, `sort=-level` (default: `level`)
+- `sort=name`, `sort=-name`
+- `sort=xp_required`, `sort=-xp_required`
+- `sort=created_at`, `sort=-created_at`
+- `sort=updated_at`, `sort=-updated_at`
+
+**Example Requests:**
+```
+GET /level-configs
+GET /level-configs?filter[level]=5
+GET /level-configs?sort=xp_required
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "level": 1,
+      "name": "Beginner",
+      "xp_required": 0,
+      "created_at": "2024-01-01T00:00:00+00:00"
+    },
+    {
+      "id": 2,
+      "level": 2,
+      "name": "Novice",
+      "xp_required": 100,
+      "created_at": "2024-01-01T00:00:00+00:00"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 20
+  }
+}
+```
+
+---
+
+### Get Level Config Details
+
+**Endpoint:** `GET /level-configs/{level_config_id}`
+
+**Access:** Public
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 5,
+    "level": 5,
+    "name": "Intermediate",
+    "xp_required": 500,
+    "created_at": "2024-01-01T00:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Create Level Config (Management)
+
+**Endpoint:** `POST /level-configs`
+
+**Access:** Superadmin only
+
+**Request Body:**
+```json
+{
+  "level": 10,
+  "name": "Expert",
+  "xp_required": 5000
+}
+```
+
+**Validation Rules:**
+- `level`: required, integer, min:1, unique
+- `name`: required, string, max:255
+- `xp_required`: required, integer, min:0
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Level config created successfully",
+  "data": {
+    "id": 10,
+    "level": 10,
+    "name": "Expert",
+    "xp_required": 5000,
+    "created_at": "2024-01-15T10:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Update Level Config (Management)
+
+**Endpoint:** `PUT /level-configs/{level_config_id}`
+
+**Access:** Superadmin only
+
+**Request Body:** Same as create (all fields optional)
+
+**Response:** Updated level config details
+
+---
+
+### Delete Level Config (Management)
+
+**Endpoint:** `DELETE /level-configs/{level_config_id}`
+
+**Access:** Superadmin only
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Level config deleted successfully"
+}
+```
+
+---
+
+### List Challenges (Management)
+
+**Endpoint:** `GET /management/challenges`
+
+**Access:** Superadmin only
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+- `filter[id]` (integer, optional): Exact match on ID
+- `filter[title]` (string, optional): Partial match on title
+- `search` (string, optional): Full-text search
+- `sort` (string, optional): Sort field
+
+**Available Filters:**
+- `filter[id]`: integer (exact match)
+- `filter[title]`: string (partial match)
+- `search`: Full-text search in title and description
+
+**Available Sorts:**
+- `sort=id`, `sort=-id`
+- `sort=title`, `sort=-title`
+- `sort=type`, `sort=-type`
+- `sort=points_reward`, `sort=-points_reward`
+- `sort=start_at`, `sort=-start_at`
+- `sort=end_at`, `sort=-end_at`
+- `sort=created_at`, `sort=-created_at` (default: `-created_at`)
+- `sort=updated_at`, `sort=-updated_at`
+
+**Example Requests:**
+```
+GET /management/challenges
+GET /management/challenges?filter[title]=weekly
+GET /management/challenges?sort=-points_reward
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "title": "Complete 5 Lessons",
+      "description": "Complete 5 lessons this week",
+      "type": "weekly",
+      "points_reward": 100,
+      "start_at": "2024-01-15T00:00:00+00:00",
+      "end_at": "2024-01-22T00:00:00+00:00",
+      "created_at": "2024-01-10T00:00:00+00:00"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 30
+  }
+}
+```
+
+---
+
+### Get Challenge Details (Management)
+
+**Endpoint:** `GET /management/challenges/{challenge_id}`
+
+**Access:** Superadmin only
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Complete 5 Lessons",
+    "description": "Complete 5 lessons this week",
+    "type": "weekly",
+    "points_reward": 100,
+    "criteria_type": "lesson_completion",
+    "criteria_target": 5,
+    "start_at": "2024-01-15T00:00:00+00:00",
+    "end_at": "2024-01-22T00:00:00+00:00",
+    "badge_id": 1,
+    "created_at": "2024-01-10T00:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Create Challenge (Management)
+
+**Endpoint:** `POST /management/challenges`
+
+**Access:** Superadmin only
+
+**Request Body:**
+```json
+{
+  "title": "Complete 10 Lessons",
+  "description": "Complete 10 lessons this month",
+  "type": "monthly",
+  "points_reward": 200,
+  "criteria_type": "lesson_completion",
+  "criteria_target": 10,
+  "start_at": "2024-02-01T00:00:00+00:00",
+  "end_at": "2024-02-29T23:59:59+00:00",
+  "badge_id": 2
+}
+```
+
+**Validation Rules:**
+- `title`: required, string, max:255
+- `description`: nullable, string
+- `type`: required, in:daily,weekly,monthly,special
+- `points_reward`: required, integer, min:0
+- `criteria_type`: required, string
+- `criteria_target`: required, integer, min:1
+- `start_at`: required, date
+- `end_at`: required, date, after:start_at
+- `badge_id`: nullable, integer, exists:badges,id
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Challenge created successfully",
+  "data": {
+    "id": 2,
+    "title": "Complete 10 Lessons",
+    "type": "monthly",
+    "created_at": "2024-01-15T10:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Update Challenge (Management)
+
+**Endpoint:** `PUT /management/challenges/{challenge_id}`
+
+**Access:** Superadmin only
+
+**Request Body:** Same as create (all fields optional)
+
+**Response:** Updated challenge details
+
+---
+
+### Delete Challenge (Management)
+
+**Endpoint:** `DELETE /management/challenges/{challenge_id}`
+
+**Access:** Superadmin only
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Challenge deleted successfully"
+}
+```
+
+---
+
+## Activity & Audit Logs
+
+### List Activity Logs
+
+**Endpoint:** `GET /activity-logs`
+
+**Access:** Superadmin, Admin
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+- `page` (integer, optional): Page number
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "log_name": "default",
+      "description": "created",
+      "subject_type": "Course",
+      "subject_id": 1,
+      "causer_type": "User",
+      "causer_id": 2,
+      "properties": {},
+      "created_at": "2024-01-15T10:00:00+00:00"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 500
+  }
+}
+```
+
+---
+
+### Get Activity Log Details
+
+**Endpoint:** `GET /activity-logs/{id}`
+
+**Access:** Superadmin, Admin
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "log_name": "default",
+    "description": "created",
+    "subject_type": "Course",
+    "subject_id": 1,
+    "causer_type": "User",
+    "causer_id": 2,
+    "properties": {
+      "attributes": {
+        "title": "New Course"
+      }
+    },
+    "created_at": "2024-01-15T10:00:00+00:00"
+  }
+}
+```
+
+---
+
+### List Audit Logs
+
+**Endpoint:** `GET /audit-logs`
+
+**Access:** Superadmin, Admin
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+- `page` (integer, optional): Page number
+- `filter[action]` (string, optional): Exact match on action
+- `filter[actions]` (string, optional): Multiple actions (comma-separated)
+- `filter[actor_id]` (integer, optional): Exact match on actor ID
+- `search` (string, optional): Full-text search
+- `sort` (string, optional): Sort field
+
+**Available Filters:**
+- `filter[action]`: string (exact match - single action)
+- `filter[actions]`: string (comma-separated actions)
+- `filter[actor_id]`: integer (exact match)
+- `search`: Full-text search in auditable type and action
+
+**Available Sorts:**
+- `sort=created_at`, `sort=-created_at` (default: `-created_at`)
+- `sort=id`, `sort=-id`
+- `sort=action`, `sort=-action`
+- `sort=actor_id`, `sort=-actor_id`
+
+**Example Requests:**
+```
+GET /audit-logs
+GET /audit-logs?filter[action]=created
+GET /audit-logs?filter[actions]=created,updated,deleted
+GET /audit-logs?filter[actor_id]=2&sort=-created_at
+GET /audit-logs?search=course
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "auditable_type": "Course",
+      "auditable_id": 1,
+      "action": "created",
+      "old_values": null,
+      "new_values": {
+        "title": "New Course",
+        "status": "draft"
+      },
+      "actor": {
+        "id": 2,
+        "name": "Admin User"
+      },
+      "created_at": "2024-01-15T10:00:00+00:00"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 1000
+  }
+}
+```
+
+---
+
+### Get Audit Log Details
+
+**Endpoint:** `GET /audit-logs/{id}`
+
+**Access:** Superadmin, Admin
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "auditable_type": "Course",
+    "auditable_id": 1,
+    "action": "updated",
+    "old_values": {
+      "title": "Old Title",
+      "status": "draft"
+    },
+    "new_values": {
+      "title": "New Title",
+      "status": "published"
+    },
+    "actor": {
+      "id": 2,
+      "name": "Admin User",
+      "email": "admin@example.com"
+    },
+    "created_at": "2024-01-15T10:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Get Available Audit Actions
+
+**Endpoint:** `GET /audit-logs/meta/actions`
+
+**Access:** Superadmin, Admin
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    "created",
+    "updated",
+    "deleted",
+    "published",
+    "unpublished",
+    "enrolled",
+    "graded"
+  ]
+}
+```
+
+---
+
+## Master Data
+
+### Get Master Data Types
+
+**Endpoint:** `GET /master-data/types`
+
+**Access:** Public
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    "course_types",
+    "level_tags",
+    "enrollment_types",
+    "assignment_types",
+    "question_types"
+  ]
+}
+```
+
+---
+
+### List Master Data Items
+
+**Endpoint:** `GET /master-data/{type}`
+
+**Access:** Public
+
+**Path Parameters:**
+- `type` (string, required): Master data type
+
+**Query Parameters:**
+- `per_page` (integer, optional): Items per page (default: 15)
+
+**Example Requests:**
+```
+GET /master-data/course_types
+GET /master-data/level_tags
+GET /master-data/enrollment_types
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "type": "course_types",
+      "key": "online",
+      "value": "Online",
+      "order": 1
+    },
+    {
+      "id": 2,
+      "type": "course_types",
+      "key": "hybrid",
+      "value": "Hybrid",
+      "order": 2
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 3
+  }
+}
+```
+
+---
+
+### Get All Master Data Items (No Pagination)
+
+**Endpoint:** `GET /master-data/{type}/all`
+
+**Access:** Public
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "key": "online",
+      "value": "Online"
+    },
+    {
+      "id": 2,
+      "key": "hybrid",
+      "value": "Hybrid"
+    }
+  ]
+}
+```
+
+---
+
+### Get Master Data Item Details
+
+**Endpoint:** `GET /master-data/{type}/{id}`
+
+**Access:** Public
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "type": "course_types",
+    "key": "online",
+    "value": "Online",
+    "order": 1,
+    "created_at": "2024-01-01T00:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Create Master Data Item (Management)
+
+**Endpoint:** `POST /master-data/{type}`
+
+**Access:** Superadmin only
+
+**Request Body:**
+```json
+{
+  "key": "in_person",
+  "value": "In Person",
+  "order": 3
+}
+```
+
+**Validation Rules:**
+- `key`: required, string, max:255, unique within type
+- `value`: required, string, max:255
+- `order`: nullable, integer, min:0
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Master data item created successfully",
+  "data": {
+    "id": 3,
+    "type": "course_types",
+    "key": "in_person",
+    "value": "In Person",
+    "order": 3,
+    "created_at": "2024-01-15T10:00:00+00:00"
+  }
+}
+```
+
+---
+
+### Update Master Data Item (Management)
+
+**Endpoint:** `PUT /master-data/{type}/{id}`
+
+**Access:** Superadmin only
+
+**Request Body:** Same as create (all fields optional)
+
+**Response:** Updated master data item details
+
+---
+
+### Delete Master Data Item (Management)
+
+**Endpoint:** `DELETE /master-data/{type}/{id}`
+
+**Access:** Superadmin only
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Master data item deleted successfully"
+}
+```
+
+---
+
 # MANAGEMENT APIs
 
 ## Course Management
@@ -1666,14 +3426,14 @@
 code: CS101 (required, string, max:50, unique)
 title: Introduction to Programming (required, string, max:255)
 short_desc: Learn programming basics (nullable, string)
-type: online (nullable, string: online|hybrid|in_person)
-level_tag: beginner (nullable, string: beginner|intermediate|advanced)
-enrollment_type: auto_accept (nullable, string: auto_accept|approval_required|key_based)
+type: online (nullable, string - get values from GET /master-data/course_types)
+level_tag: beginner (nullable, string - get values from GET /master-data/level_tags)
+enrollment_type: auto_accept (nullable, string - get values from GET /master-data/enrollment_types)
 status: draft (nullable, string: draft|published)
-category_id: 1 (nullable, integer, exists:categories)
-instructor_id: 2 (nullable, integer, exists:users)
+category_id: 1 (nullable, integer - get from GET /categories)
+instructor_id: 2 (nullable, integer - user ID with instructor role)
 admin_ids: [3,4,5] (nullable, array of user IDs)
-tags: [1,2,3] (nullable, array of tag IDs)
+tags: [1,2,3] (nullable, array of tag IDs from GET /tags)
 thumbnail: (file, optional, image, max:5MB)
 banner: (file, optional, image, max:5MB)
 ```
@@ -1840,7 +3600,7 @@ banner: (file, optional, image, max:5MB)
 - `title`: required, string, max:255
 - `description`: nullable, string
 - `order`: nullable, integer, min:1, unique within course
-- `status`: nullable, in:draft,published
+- `status`: nullable, in:draft,published (values: `draft`, `published`)
 
 **Response:**
 ```json
@@ -2350,8 +4110,11 @@ media: (file, optional, for image/video/file types)
 **Query Parameters:**
 - `per_page` (integer, optional): Items per page (default: 15)
 - `filter[status]` (string, optional): Filter by status
+  - Values: `in_progress`, `submitted`, `graded`, `returned`
 - `filter[state]` (string, optional): Filter by state
+  - Values: `pending_grading`, `grading_in_progress`, `graded_unreleased`, `released`
 - `filter[user_id]` (integer, optional): Filter by user
+  - Values: User ID
 
 **Response:** Paginated list of all submissions for the assignment
 
@@ -2368,9 +4131,13 @@ media: (file, optional, for image/video/file types)
 - `per_page` (integer, optional): Items per page (default: 15)
 - `page` (integer, optional): Page number
 - `filters[assignment_id]` (integer, optional): Filter by assignment
+  - Values: Get assignment IDs from `GET /courses/{slug}/assignments`
 - `filters[user_id]` (integer, optional): Filter by user
+  - Values: User ID
 - `filters[status]` (string, optional): Filter by status
+  - Values: `in_progress`, `submitted`, `graded`, `returned`
 - `filters[state]` (string, optional): Filter by state
+  - Values: `pending_grading`, `grading_in_progress`, `graded_unreleased`, `released`
 
 **Response:**
 ```json
@@ -2653,7 +4420,9 @@ media: (file, optional, for image/video/file types)
 **Query Parameters:**
 - `per_page` (integer, optional): Items per page (default: 15)
 - `filter[user_id]` (integer, optional): Filter by user
+  - Values: User ID
 - `filter[status]` (string, optional): Filter by status
+  - Values: `in_progress`, `submitted`, `graded`
 
 **Response:** Paginated list of quiz submissions
 
@@ -2670,10 +4439,14 @@ media: (file, optional, for image/video/file types)
 **Query Parameters:**
 - `per_page` (integer, optional): Items per page (default: 15)
 - `page` (integer, optional): Page number
-- `filter[state]` (string, optional): Filter by state (`pending_grading`, `grading_in_progress`, `graded_unreleased`)
+- `filter[state]` (string, optional): Filter by state
+  - Values: `pending_grading`, `grading_in_progress`, `graded_unreleased`
 - `filter[assignment_id]` (integer, optional): Filter by assignment
-- `filter[course_id]` (integer, optional): Filter by course
+  - Values: Get assignment IDs from `GET /courses/{slug}/assignments`
+- `filter[course_slug]` (string, optional): Filter by course slug
+  - Values: Get course slugs from `GET /courses`
 - `filter[user_id]` (integer, optional): Filter by student
+  - Values: User ID
 - `sort` (string, optional): Sort field (e.g., `submitted_at`, `-submitted_at` for desc)
 
 **Response:**
@@ -3084,8 +4857,11 @@ media: (file, optional, for image/video/file types)
 - `per_page` (integer, optional): Items per page (default: 15)
 - `page` (integer, optional): Page number
 - `filter[status]` (string, optional): Filter by status
+  - Values: `pending`, `active`, `completed`, `withdrawn`, `cancelled`, `declined`, `expelled`
 - `filter[user_id]` (integer, optional): Filter by user
-- `include` (string, optional): Comma-separated relations (`user`, `course`)
+  - Values: User ID
+- `include` (string, optional): Comma-separated relations
+  - Values: `user`, `course`
 
 **Response:**
 ```json
@@ -3367,19 +5143,210 @@ Use `filter[field]` syntax:
 - `filter[type]=assignment`
 - `filter[user_id]=5`
 
+**Available Filter Fields by Endpoint:**
+
+#### Courses (`GET /courses`)
+- `filter[status]`: `draft`, `published`, `archived`
+- `filter[type]`: Get values from `GET /master-data/course_types`
+  - Common values: `online`, `hybrid`, `in_person`
+- `filter[level_tag]`: Get values from `GET /master-data/level_tags`
+  - Common values: `beginner`, `intermediate`, `advanced`
+- `filter[category_id]`: integer - Get category IDs from `GET /categories`
+- `filter[enrollment_type]`: Get values from `GET /master-data/enrollment_types`
+  - Common values: `auto_accept`, `approval_required`, `key_based`
+- `search`: Full-text search in title, code, description
+
+#### Units (`GET /units`, `GET /courses/{slug}/units`)
+- `filter[status]`: `draft`, `published`
+- `filter[course_slug]`: string - Get course slugs from `GET /courses`
+- `search`: Full-text search in title, code, description
+
+#### Lessons (`GET /lessons`, `GET /courses/{slug}/units/{slug}/lessons`)
+- `filter[status]`: `draft`, `published`
+- `filter[unit_slug]`: string - Get unit slugs from `GET /units`
+- `search`: Full-text search in title, content
+
+#### Assignments (`GET /courses/{slug}/assignments`)
+- `filter[status]`: `draft`, `published`, `archived`
+- `filter[type]`: Get values from `GET /master-data/assignment_types`
+  - Common values: `assignment`, `quiz`
+- `filter[assignable_type]`: `Course`, `Unit`, `Lesson`
+
+#### Quizzes (`GET /courses/{slug}/quizzes`)
+- `filter[status]`: `draft`, `published`, `archived`
+- `filter[assignable_type]`: `Course`, `Unit`, `Lesson`
+
+#### Enrollments (`GET /enrollments`, `GET /courses/{slug}/enrollments`)
+- `filter[status]`: `pending`, `active`, `completed`, `withdrawn`, `cancelled`, `declined`, `expelled`
+- `filter[course_slug]`: string - Get course slugs from `GET /courses`
+- `filter[user_id]`: integer - User ID
+
+#### Submissions (`GET /assignments/{id}/submissions`)
+- `filter[status]`: `in_progress`, `submitted`, `graded`, `returned`
+- `filter[state]`: `pending_grading`, `grading_in_progress`, `graded_unreleased`, `released`
+- `filter[user_id]`: integer - User ID
+
+#### Challenges (`GET /challenges`)
+- `filter[type]`: `daily`, `weekly`, `monthly`, `special`
+- `filter[status]`: `active`, `upcoming`, `expired`
+
+#### Leaderboard (`GET /leaderboards`)
+- `filter[course_slug]`: string (course slug)
+- `filter[period]`: `today`, `this_week`, `this_month`, `this_year`, `all_time`
+
+#### Grading Queue (`GET /grading`)
+- `filter[state]`: `pending_grading`, `grading_in_progress`, `graded_unreleased`
+- `filter[assignment_id]`: integer (assignment ID)
+- `filter[course_slug]`: string - Get course slugs from `GET /courses`
+- `filter[user_id]`: integer (student ID)
+
 ### Sorting
 Use `sort` parameter:
 - `sort=created_at` (ascending)
 - `sort=-created_at` (descending, note the minus sign)
+
+**Available Sort Fields by Endpoint:**
+
+#### Courses (`GET /courses`)
+- `sort=title`, `sort=-title`
+- `sort=code`, `sort=-code`
+- `sort=created_at`, `sort=-created_at`
+- `sort=published_at`, `sort=-published_at`
+- Default: `-created_at`
+
+#### Units (`GET /units`)
+- `sort=order`, `sort=-order`
+- `sort=title`, `sort=-title`
+- `sort=created_at`, `sort=-created_at`
+- Default: `order`
+
+#### Lessons (`GET /lessons`)
+- `sort=order`, `sort=-order`
+- `sort=title`, `sort=-title`
+- `sort=created_at`, `sort=-created_at`
+- Default: `order`
+
+#### Assignments/Quizzes
+- `sort=title`, `sort=-title`
+- `sort=created_at`, `sort=-created_at`
+- `sort=max_score`, `sort=-max_score`
+- Default: `-created_at`
+
+#### Enrollments
+- `sort=enrolled_at`, `sort=-enrolled_at`
+- `sort=completed_at`, `sort=-completed_at`
+- Default: `-enrolled_at`
+
+#### Submissions
+- `sort=submitted_at`, `sort=-submitted_at`
+- `sort=score`, `sort=-score`
+- `sort=attempt_number`, `sort=-attempt_number`
+- Default: `-submitted_at`
+
+#### Grading Queue
+- `sort=submitted_at`, `sort=-submitted_at`
+- `sort=assignment_id`, `sort=-assignment_id`
+- Default: `submitted_at`
+
+#### Leaderboard
+- **No custom sorting allowed** - Always sorted by `total_xp` (descending)
 
 ### Including Relations
 Use `include` parameter:
 - `include=user,course`
 - `include=answers.question`
 
+**Available Relations by Endpoint:**
+
+#### Courses
+- `include=instructor` - Course instructor details
+- `include=category` - Course category
+- `include=tags` - Course tags
+- `include=admins` - Course administrators
+- `include=units` - Course units
+- `include=enrollments` - Course enrollments
+- `include=quizzes` - Course quizzes
+- `include=assignments` - Course assignments
+- `include=lessons` - All lessons in course
+
+#### Units
+- `include=course` - Parent course
+- `include=lessons` - Unit lessons
+
+#### Lessons
+- `include=unit` - Parent unit
+- `include=unit.course` - Parent unit with course
+- `include=blocks` - Lesson blocks
+
+#### Assignments/Quizzes
+- `include=lesson` - Parent lesson
+- `include=unit` - Parent unit
+- `include=course` - Parent course
+- `include=questions` - Assignment/quiz questions
+- `include=submissions` - All submissions
+- `include=attachments` - Assignment attachments (media)
+
+#### Enrollments
+- `include=user` - Enrolled user
+- `include=course` - Enrolled course
+- `include=course.instructor` - Course with instructor
+
+#### Submissions
+- `include=assignment` - Parent assignment
+- `include=user` - Submitter
+- `include=answers` - Submission answers
+- `include=answers.question` - Answers with questions
+- `include=grade` - Submission grade
+
 ### Search
 Use `search` parameter for full-text search:
 - `search=programming`
+
+**Search Behavior:**
+- Uses PostgreSQL Full-Text Search
+- Searches across multiple fields (title, description, content, code)
+- Case-insensitive
+- Supports partial word matching
+- Returns ranked results
+
+**Endpoints with Search:**
+- `GET /courses?search=laravel`
+- `GET /units?search=introduction`
+- `GET /lessons?search=variables`
+
+### Example Combined Queries
+
+```
+# Courses: Published, beginner level, sorted by title
+GET /courses?filter[status]=published&filter[level_tag]=beginner&sort=title
+
+# Units: In specific course by slug, published only
+GET /units?filter[course_slug]=laravel-basics&filter[status]=published&sort=order
+
+# Enrollments: Active students in course
+GET /courses/laravel-basics/enrollments?filter[status]=active&include=user
+
+# Enrollments: Filter by course slug
+GET /enrollments?filter[course_slug]=laravel-basics&filter[status]=active
+
+# Submissions: Pending grading, sorted by submission date
+GET /grading?filter[state]=pending_grading&sort=submitted_at
+
+# Grading: Filter by course slug
+GET /grading?filter[course_slug]=laravel-basics&filter[state]=pending_grading
+
+# Leaderboard: This week's top performers
+GET /leaderboards?filter[period]=this_week&per_page=20
+
+# Assignments: Published assignments with questions
+GET /courses/laravel-basics/assignments?filter[status]=published&include=questions
+
+# Announcements: Filter by course and priority
+GET /announcements?filter[course_slug]=laravel-basics&filter[priority]=high
+
+# Search courses with pagination
+GET /courses?search=programming&per_page=20&page=2
+```
 
 ---
 
