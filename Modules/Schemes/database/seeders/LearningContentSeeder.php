@@ -89,6 +89,7 @@ class LearningContentSeeder extends Seeder
 
         $this->dummyFiles = [
             'video' => $basePath.'/file_example_MP4_480_1_5MG.mp4',
+            'image' => $basePath.'/file_example_PNG_500kB (1).png',
             'excel' => $basePath.'/file_example_XLS_5000.xls',
             'doc' => $basePath.'/file-sample_500kB.doc',
             'pdf' => $basePath.'/pdf-sample_0.pdf',
@@ -208,7 +209,7 @@ class LearningContentSeeder extends Seeder
                     if (File::exists($this->dummyFiles['video'])) {
                         $block->addMedia($this->dummyFiles['video'])
                             ->preservingOriginal()
-                            ->toMediaCollection('videos', 'do');
+                            ->toMediaCollection('media', 'do');
 
                         return true;
                     }
@@ -226,18 +227,21 @@ class LearningContentSeeder extends Seeder
                     if ($filePath && File::exists($filePath)) {
                         $block->addMedia($filePath)
                             ->preservingOriginal()
-                            ->toMediaCollection('files', 'do');
+                            ->toMediaCollection('media', 'do');
 
                         return true;
                     }
                     break;
 
                 case 'image':
-                    $imageUrl = 'https://picsum.photos/seed/'.uniqid().'/800/600';
-                    $block->addMediaFromUrl($imageUrl)
-                        ->toMediaCollection('images', 'do');
+                    if (File::exists($this->dummyFiles['image'])) {
+                        $block->addMedia($this->dummyFiles['image'])
+                            ->preservingOriginal()
+                            ->toMediaCollection('media', 'do');
 
-                    return true;
+                        return true;
+                    }
+                    break;
             }
         } catch (\Exception $e) {
             $this->command->warn("    ⚠️  Failed to attach media: {$e->getMessage()}");
@@ -318,10 +322,10 @@ class LearningContentSeeder extends Seeder
     {
         return match ($blockType) {
             'text' => $this->generateTextBlockContent(),
-            'image' => json_encode(['caption' => fake()->sentence(), 'alt' => fake()->words(5, true)]),
-            'video' => json_encode(['title' => fake()->sentence(), 'duration' => rand(5, 30) * 60, 'description' => fake()->paragraph()]),
-            'file' => json_encode(['title' => fake()->sentence(), 'description' => fake()->paragraph()]),
-            'embed' => json_encode(['type' => 'youtube', 'url' => 'https://www.youtube.com/watch?v='.\Illuminate\Support\Str::random(11)]),
+            'image' => '<figure><img src="" alt="'.fake()->words(5, true).'" /><figcaption>'.fake()->sentence().'</figcaption></figure>',
+            'video' => '<div class="video-wrapper"><video controls><source src="" type="video/mp4" /></video><p class="video-description">'.fake()->paragraph().'</p></div>',
+            'file' => '<div class="file-download"><h4>'.fake()->sentence().'</h4><p>'.fake()->paragraph().'</p><a href="" download>Download File</a></div>',
+            'embed' => '<div class="embed-responsive"><iframe src="https://www.youtube.com/embed/'.\Illuminate\Support\Str::random(11).'" frameborder="0" allowfullscreen></iframe></div>',
             default => fake()->paragraph(),
         };
     }
