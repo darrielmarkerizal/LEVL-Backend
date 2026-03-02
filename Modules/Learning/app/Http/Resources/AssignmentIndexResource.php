@@ -6,7 +6,6 @@ namespace Modules\Learning\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Learning\Models\Assignment;
 
 class AssignmentIndexResource extends JsonResource
 {
@@ -25,18 +24,12 @@ class AssignmentIndexResource extends JsonResource
             'created_at' => $assignment->created_at?->toIso8601String(),
             'updated_at' => $assignment->updated_at?->toIso8601String(),
 
-            // Optimized relationships with limited fields
             'creator' => $this->whenLoaded('creator', function () use ($assignment) {
                 return [
                     'id' => $assignment->creator->id,
                     'name' => $assignment->creator->name,
                 ];
             }),
-            
-            'questions_count' => $this->when(
-                $assignment->questions_count !== null,
-                $assignment->questions_count
-            ),
         ];
     }
 }

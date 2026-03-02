@@ -172,6 +172,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'type' => AssignmentType::Assignment->value,
             'submission_type' => 'file',
             'max_score' => 100,
+            'passing_grade' => rand(60, 80),
             'max_attempts' => rand(1, 5),
             'cooldown_minutes' => rand(0, 60),
             'retake_enabled' => rand(0, 1),
@@ -571,7 +572,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
     private function createAssignmentAttachments(int $assignmentId): void
     {
         $numAttachments = rand(1, 3);
-        
+
         for ($i = 0; $i < $numAttachments; $i++) {
             DB::table('media')->insert([
                 'model_type' => 'Modules\\Learning\\Models\\Assignment',
