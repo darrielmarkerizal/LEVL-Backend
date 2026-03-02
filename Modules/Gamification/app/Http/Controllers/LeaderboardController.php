@@ -21,8 +21,14 @@ class LeaderboardController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $perPage = (int) ($request->input('per_page', 15));
+        $page = (int) ($request->input('page', 1));
+        $courseId = null;
+
         $result = $this->leaderboardService->getLeaderboardWithRanks(
-            $request,
+            $perPage,
+            $page,
+            $courseId,
             $request->user()?->id
         );
 
@@ -39,7 +45,7 @@ class LeaderboardController extends Controller
 
     public function myRank(Request $request): JsonResponse
     {
-        $rankData = $this->leaderboardService->getUserRank($request);
+        $rankData = $this->leaderboardService->getUserRank($request->user()->id);
 
         return $this->success($rankData, __('gamification.rank_retrieved'));
     }
