@@ -116,4 +116,9 @@ class CoursePolicy
     {
         return $this->update($user, $course);
     }
+
+    public function viewUnits(?User $user, Course $course): bool
+    {
+        return $this->view($user, $course);
+    }
 }

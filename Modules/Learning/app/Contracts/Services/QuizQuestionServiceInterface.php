@@ -20,4 +20,8 @@ interface QuizQuestionServiceInterface
     public function getQuizQuestions(int $quizId, array $filters = []): LengthAwarePaginator;
 
     public function computeWeightStats(int $quizId, ?float $additionalWeight = null): array;
+
+    public function getQuizQuestionsForUser(int $quizId, array $filters, ?\Modules\Auth\Models\User $user): LengthAwarePaginator;
+
+    public function validateQuestionBelongsToQuiz(int $questionId, int $quizId): void;
 }

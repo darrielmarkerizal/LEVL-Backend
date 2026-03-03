@@ -147,4 +147,28 @@ class QuizService implements QuizServiceInterface
     {
         return $this->repository->findWithRelations($quiz);
     }
+
+    public function listForIndexWithEnrichment(\Modules\Schemes\Models\Course $course, array $filters, ?\Modules\Auth\Models\User $user): LengthAwarePaginator
+    {
+        $paginator = $this->listForIndex($course, $filters);
+        $enrichmentService = app(\Modules\Learning\Services\Support\QuizEnrichmentService::class);
+
+        if ($user && $user->hasRole('Student')) {
+            return $enrichmentService->enrichForStudent($paginator, $user->id);
+        }
+
+        return $enrichmentService->enrichForInstructor($paginator);
+    }
+
+    public function getWithRelationsAndEnrichment(Quiz $quiz, ?\Modules\Auth\Models\User $user): Quiz
+    {
+        $quizWithRelations = $this->getWithRelations($quiz);
+        $enrichmentService = app(\Modules\Learning\Services\Support\QuizEnrichmentService::class);
+
+        if ($user && $user->hasRole('Student')) {
+            return $enrichmentService->enrichDetailForStudent($quizWithRelations, $user->id);
+        }
+
+        return $quizWithRelations;
+    }
 }

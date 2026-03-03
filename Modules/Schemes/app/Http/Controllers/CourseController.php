@@ -61,8 +61,8 @@ class CourseController extends Controller
 
     public function update(CourseRequest $request, Course $course)
     {
-        $course->load('admins');
-        $this->authorize('update', $course);
+        $courseWithAdmins = $this->service->findWithAdmins($course->id);
+        $this->authorize('update', $courseWithAdmins);
 
         try {
             $updated = $this->service->update($course->id, $request->validated(), $request->allFiles());
@@ -75,8 +75,8 @@ class CourseController extends Controller
 
     public function destroy(Course $course)
     {
-        $course->load('admins');
-        $this->authorize('delete', $course);
+        $courseWithAdmins = $this->service->findWithAdmins($course->id);
+        $this->authorize('delete', $courseWithAdmins);
         $this->service->delete($course->id);
 
         return $this->success([], __('messages.courses.deleted'));
@@ -84,8 +84,8 @@ class CourseController extends Controller
 
     public function publish(Course $course)
     {
-        $course->load('admins');
-        $this->authorize('update', $course);
+        $courseWithAdmins = $this->service->findWithAdmins($course->id);
+        $this->authorize('update', $courseWithAdmins);
 
         $updated = $this->service->publish($course->id);
 
@@ -94,8 +94,8 @@ class CourseController extends Controller
 
     public function unpublish(Course $course)
     {
-        $course->load('admins');
-        $this->authorize('update', $course);
+        $courseWithAdmins = $this->service->findWithAdmins($course->id);
+        $this->authorize('update', $courseWithAdmins);
 
         $updated = $this->service->unpublish($course->id);
 
@@ -104,8 +104,8 @@ class CourseController extends Controller
 
     public function generateEnrollmentKey(Course $course)
     {
-        $course->load('admins');
-        $this->authorize('update', $course);
+        $courseWithAdmins = $this->service->findWithAdmins($course->id);
+        $this->authorize('update', $courseWithAdmins);
         $result = $this->service->updateEnrollmentSettings($course->id, ['enrollment_type' => 'key_based']);
 
         return $this->success(
@@ -116,8 +116,8 @@ class CourseController extends Controller
 
     public function updateEnrollmentKey(PublishCourseRequest $request, Course $course)
     {
-        $course->load('admins');
-        $this->authorize('update', $course);
+        $courseWithAdmins = $this->service->findWithAdmins($course->id);
+        $this->authorize('update', $courseWithAdmins);
         $result = $this->service->updateEnrollmentSettings($course->id, $request->validated());
 
         return $this->success(
@@ -128,8 +128,8 @@ class CourseController extends Controller
 
     public function removeEnrollmentKey(Course $course)
     {
-        $course->load('admins');
-        $this->authorize('update', $course);
+        $courseWithAdmins = $this->service->findWithAdmins($course->id);
+        $this->authorize('update', $courseWithAdmins);
         $result = $this->service->updateEnrollmentSettings($course->id, ['enrollment_type' => 'auto_accept']);
 
         return $this->success(new CourseResource($result['course']), __('messages.courses.key_removed'));

@@ -16,12 +16,14 @@ use Modules\Learning\Models\QuizAnswer;
 use Modules\Learning\Models\QuizQuestion;
 use Modules\Learning\Models\QuizSubmission;
 use Modules\Learning\Repositories\QuizSubmissionRepository;
+use Modules\Learning\Services\Support\QuizSubmissionIncludeAuthorizer;
 
 class QuizSubmissionService implements QuizSubmissionServiceInterface
 {
     public function __construct(
         private readonly QuizSubmissionRepository $repository,
         private readonly \Modules\Schemes\Services\PrerequisiteService $prerequisiteService,
+        private readonly QuizSubmissionIncludeAuthorizer $includeAuthorizer,
     ) {}
 
     public function start(Quiz $quiz, int $userId, ?int $enrollmentId = null): QuizSubmission
@@ -277,5 +279,48 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         ]);
 
         return $submission->fresh();
+    }
+
+    public function getSubmissionWithIncludes(QuizSubmission $submission, array $includes, int $userId): QuizSubmission
+    {
+        $allowedIncludes = $this->includeAuthorizer->authorize($includes, $userId);
+
+        if (! empty($allowedIncludes)) {
+            $submission->load($allowedIncludes);
+        }
+
+        return $submission;
+    }
+
+    public function getQuestionsForStudent(QuizSubmission $submission, int $page): array
+    {
+        $questions = $this->listQuestions($submission, $submission->user_id);
+        $total = $questions->count();
+
+        if ($page < 1 || $page > $total) {
+            throw new \InvalidArgumentException(__('messages.quiz_submissions.invalid_page'));
+        }
+
+        $question = $questions->get($page - 1);
+
+        return [
+            'question' => $question,
+            'meta' => [
+                'pagination' => [
+                    'current_page' => $page,
+                    'total' => $total,
+                    'has_next' => $page < $total,
+                    'has_prev' => $page > 1,
+                ],
+            ],
+        ];
+    }
+
+    public function checkExistingDraft(int $quizId, int $userId): ?QuizSubmission
+    {
+        return QuizSubmission::where('quiz_id', $quizId)
+            ->where('user_id', $userId)
+            ->where('status', QuizSubmissionStatus::Draft->value)
+            ->first();
     }
 }

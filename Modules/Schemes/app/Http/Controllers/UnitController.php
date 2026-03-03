@@ -22,10 +22,7 @@ class UnitController extends Controller
 
     public function index(Request $request, Course $course)
     {
-        $dummyUnit = new Unit;
-        $dummyUnit->course_id = $course->id;
-        $dummyUnit->setRelation('course', $course);
-        $this->authorize('view', $dummyUnit);
+        $this->authorize('viewUnits', $course);
 
         $paginator = $this->service->paginate(
             $course->id,

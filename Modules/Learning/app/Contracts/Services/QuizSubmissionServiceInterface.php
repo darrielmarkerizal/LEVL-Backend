@@ -25,4 +25,10 @@ interface QuizSubmissionServiceInterface
     public function listForQuiz(int $quizId, array $filters = []): LengthAwarePaginator;
 
     public function listQuestions(QuizSubmission $submission, int $userId): Collection;
+
+    public function getSubmissionWithIncludes(QuizSubmission $submission, array $includes, int $userId): QuizSubmission;
+
+    public function getQuestionsForStudent(QuizSubmission $submission, int $page): array;
+
+    public function checkExistingDraft(int $quizId, int $userId): ?QuizSubmission;
 }

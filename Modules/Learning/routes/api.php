@@ -29,8 +29,8 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
     Route::get('assignments/{assignment}/attempts/check', [SubmissionController::class, 'checkAttempts'])
         ->name('assignments.attempts.check');
 
-    Route::get('assignments/{assignment}/submissions/me', [SubmissionController::class, 'mySubmissions'])
-        ->name('assignments.submissions.me');
+    Route::get('assignments/{assignment}/submissions', [SubmissionController::class, 'index'])
+        ->name('assignments.submissions.index');
 
     Route::get('assignments/{assignment}/submissions/highest', [SubmissionController::class, 'highestSubmission'])
         ->name('assignments.submissions.highest');
@@ -75,9 +75,6 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
             ->middleware('can:duplicate,assignment')
             ->name('assignments.duplicate');
 
-        Route::get('assignments/{assignment}/submissions', [SubmissionController::class, 'index'])
-            ->name('assignments.submissions.index');
-
         Route::get('submissions/search', [SubmissionController::class, 'search'])
             ->name('submissions.search');
     });
@@ -117,8 +114,8 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         ->middleware('can:view,quiz')
         ->name('quizzes.questions.index');
 
-    Route::get('quizzes/{quiz}/submissions/me', [QuizSubmissionController::class, 'mySubmissions'])
-        ->name('quizzes.submissions.me');
+    Route::get('quizzes/{quiz}/submissions', [QuizSubmissionController::class, 'index'])
+        ->name('quizzes.submissions.index');
 
     Route::get('quizzes/{quiz}/submissions/highest', [QuizSubmissionController::class, 'highestSubmission'])
         ->name('quizzes.submissions.highest');
@@ -190,9 +187,5 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         Route::post('quizzes/{quiz}/questions/reorder', [QuizController::class, 'reorderQuestions'])
             ->middleware('can:update,quiz')
             ->name('quizzes.questions.reorder');
-
-        Route::get('quizzes/{quiz}/submissions', [QuizSubmissionController::class, 'index'])
-            ->middleware('can:viewSubmissions,quiz')
-            ->name('quizzes.submissions.index');
     });
 });

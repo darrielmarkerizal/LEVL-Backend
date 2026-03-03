@@ -38,4 +38,6 @@ interface CourseServiceInterface
     public function searchGlobal(string $query, int $limit = 5): \Illuminate\Support\Collection;
 
     public function listEnrolledCourses(int $userId, array $filters = [], int $perPage = 15): LengthAwarePaginator;
+
+    public function findWithAdmins(int $id): ?Course;
 }
