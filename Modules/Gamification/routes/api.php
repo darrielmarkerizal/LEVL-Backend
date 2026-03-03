@@ -12,6 +12,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
     Route::post('challenges/{challenge}/claim', [ChallengeController::class, 'claim'])->name('challenges.claim');
 
     Route::get('leaderboards', [LeaderboardController::class, 'index'])->name('leaderboards.index');
+    Route::get('leaderboards/{userId}/points-history', [LeaderboardController::class, 'userPointsHistory'])->name('leaderboards.user-points-history');
 
     Route::prefix('user')->name('user.')->group(function () {
 
