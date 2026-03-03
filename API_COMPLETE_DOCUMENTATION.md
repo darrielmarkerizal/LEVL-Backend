@@ -3826,9 +3826,9 @@ banner: (file, optional, image, max:5MB)
 
 **Endpoint:** `GET /courses/{course_slug}/units/{unit_slug}/content-order`
 
-**Access:** Authenticated users (must have view permission on unit)
+**Access:** Superadmin, Admin, Instructor (must have view permission on unit)
 
-**Purpose:** Get the current order of all content (lessons, assignments, quizzes) within a unit.
+**Purpose:** Get the current order of all content (lessons, assignments, quizzes) within a unit for management purposes.
 
 **Response:**
 ```json
@@ -3867,6 +3867,8 @@ banner: (file, optional, image, max:5MB)
   ]
 }
 ```
+
+**Note:** Students don't need this endpoint as they already get ordered content from `/courses/{course_slug}/units/{unit_slug}/contents`.
 
 ---
 

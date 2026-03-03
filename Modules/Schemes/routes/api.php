@@ -69,8 +69,6 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.units.show');
         Route::get('courses/{course:slug}/units/{unit:slug}/contents', [UnitController::class, 'contents'])
             ->name('courses.units.contents');
-        Route::get('courses/{course:slug}/units/{unit:slug}/content-order', [UnitController::class, 'getContentOrder'])
-            ->name('courses.units.content-order');
 
         Route::post('lessons/{lesson:slug}/complete', [LessonCompletionController::class, 'markComplete'])
             ->name('lessons.complete');
@@ -92,6 +90,8 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.units.publish');
         Route::put('courses/{course:slug}/units/{unit:slug}/unpublish', [UnitController::class, 'unpublish'])
             ->name('courses.units.unpublish');
+        Route::get('courses/{course:slug}/units/{unit:slug}/content-order', [UnitController::class, 'getContentOrder'])
+            ->name('courses.units.content-order');
         Route::put('courses/{course:slug}/units/{unit:slug}/content-order', [UnitController::class, 'reorderContent'])
             ->name('courses.units.content-order.update');
     });

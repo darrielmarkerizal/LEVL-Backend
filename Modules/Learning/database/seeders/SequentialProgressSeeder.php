@@ -91,12 +91,35 @@ class SequentialProgressSeeder extends Seeder
 
     private function processUnitProgress(int $studentId, Unit $unit, int $enrollmentId): bool
     {
-        $lessons = Lesson::where('unit_id', $unit->id)
-            ->orderBy('order')
-            ->get();
+        $allContent = collect();
 
+        $lessons = Lesson::where('unit_id', $unit->id)->get();
         foreach ($lessons as $lesson) {
-            $shouldContinue = $this->processLessonProgress($studentId, $lesson, $enrollmentId);
+            $allContent->push(['type' => 'lesson', 'order' => $lesson->order, 'data' => $lesson]);
+        }
+
+        $assignments = Assignment::where('unit_id', $unit->id)
+            ->where('status', 'published')
+            ->get();
+        foreach ($assignments as $assignment) {
+            $allContent->push(['type' => 'assignment', 'order' => $assignment->order, 'data' => $assignment]);
+        }
+
+        $quizzes = Quiz::where('unit_id', $unit->id)
+            ->where('status', 'published')
+            ->get();
+        foreach ($quizzes as $quiz) {
+            $allContent->push(['type' => 'quiz', 'order' => $quiz->order, 'data' => $quiz]);
+        }
+
+        $allContent = $allContent->sortBy('order');
+
+        foreach ($allContent as $content) {
+            $shouldContinue = match ($content['type']) {
+                'lesson' => $this->processLessonCompletion($studentId, $content['data']),
+                'assignment' => $this->processAssignmentProgress($studentId, $content['data'], $enrollmentId),
+                'quiz' => $this->processQuizProgress($studentId, $content['data'], $enrollmentId),
+            };
 
             if (! $shouldContinue) {
                 return false;
@@ -106,7 +129,7 @@ class SequentialProgressSeeder extends Seeder
         return true;
     }
 
-    private function processLessonProgress(int $studentId, Lesson $lesson, int $enrollmentId): bool
+    private function processLessonCompletion(int $studentId, Lesson $lesson): bool
     {
         $completionChance = rand(1, 100);
 
@@ -121,30 +144,6 @@ class SequentialProgressSeeder extends Seeder
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
         ]);
-
-        $assignments = Assignment::where('lesson_id', $lesson->id)
-            ->where('status', 'published')
-            ->get();
-
-        foreach ($assignments as $assignment) {
-            $shouldContinue = $this->processAssignmentProgress($studentId, $assignment, $enrollmentId);
-
-            if (! $shouldContinue) {
-                return false;
-            }
-        }
-
-        $quizzes = Quiz::where('lesson_id', $lesson->id)
-            ->where('status', 'published')
-            ->get();
-
-        foreach ($quizzes as $quiz) {
-            $shouldContinue = $this->processQuizProgress($studentId, $quiz, $enrollmentId);
-
-            if (! $shouldContinue) {
-                return false;
-            }
-        }
 
         return true;
     }
