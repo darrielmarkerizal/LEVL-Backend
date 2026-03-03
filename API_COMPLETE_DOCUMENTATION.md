@@ -3575,39 +3575,48 @@ GET /master-data/level-tags/all
 
 **Access:** Superadmin, Admin, Instructor (with create permission)
 
-
-**Request Body (multipart/form-data):**
-```
-code: CS101 (required, string, max:50, unique)
-title: Introduction to Programming (required, string, max:255)
-short_desc: Learn programming basics (nullable, string)
-type: online (nullable, string - get values from GET /master-data/course-types)
-level_tag: beginner (nullable, string - get values from GET /master-data/level-tags)
-enrollment_type: auto_accept (nullable, string - get values from GET /master-data/enrollment-types)
-status: draft (nullable, string: draft|published)
-category_id: 1 (nullable, integer - get from GET /categories)
-instructor_id: 2 (nullable, integer - user ID with instructor role)
-admin_ids: [3,4,5] (nullable, array of user IDs)
-tags: [1,2,3] (nullable, array of tag IDs from GET /tags)
-thumbnail: (file, optional, image, max:5MB)
-banner: (file, optional, image, max:5MB)
-```
-
-**Response:**
+**Request Body (JSON):**
 ```json
 {
-  "success": true,
-  "message": "Course created successfully",
-  "data": {
-    "id": 1,
-    "code": "CS101",
-    "slug": "introduction-to-programming",
-    "title": "Introduction to Programming",
-    "status": "draft",
-    "created_at": "2024-01-15T10:00:00+00:00"
-  }
+  "code": "CS101",
+  "title": "Introduction to Programming",
+  "short_desc": "Learn programming basics",
+  "level_tag": "beginner",
+  "type": "online",
+  "enrollment_type": "auto_accept",
+  "category_id": 1,
+  "instructor_id": 2,
+  "course_admins": [3, 4, 5],
+  "tags": ["programming", "beginner"],
+  "outcomes": ["Understand basic programming concepts", "Write simple programs"],
+  "prereq": "No prerequisites required",
+  "status": "draft"
 }
 ```
+
+**Validation Rules:**
+- `code`: required, string, max:50, unique
+- `slug`: nullable, string, max:100, unique (auto-generated from title if not provided)
+- `title`: required, string, max:255
+- `short_desc`: nullable, string
+- `level_tag`: required, enum - get values from `GET /master-data/level-tags` (e.g., `beginner`, `intermediate`, `advanced`)
+- `type`: required, enum - get values from `GET /master-data/course-types` (e.g., `online`, `hybrid`, `in_person`)
+- `enrollment_type`: required, enum - get values from `GET /master-data/enrollment-types` (e.g., `auto_accept`, `approval_required`, `key_based`)
+- `enrollment_key`: required_if enrollment_type is `key_based`, nullable, string, max:100
+- `category_id`: required, integer, exists:categories,id - get from `GET /categories`
+- `tags`: sometimes, array of strings
+- `tags.*`: string
+- `outcomes`: sometimes, array of strings
+- `outcomes.*`: string
+- `prereq`: sometimes, nullable, string
+- `status`: sometimes, enum (`draft`, `published`, `archived`)
+- `instructor_id`: sometimes, integer, exists:users,id
+- `course_admins`: sometimes, array of user IDs
+- `course_admins.*`: integer, exists:users,id
+
+**Note:** Media files (thumbnail, banner) must be uploaded separately using multipart/form-data
+- `thumbnail`: file, image, mimes:jpg,jpeg,png,webp, max:4096KB
+- `banner`: file, image, mimes:jpg,jpeg,png,webp, max:6144KB
 
 ---
 
@@ -3617,9 +3626,16 @@ banner: (file, optional, image, max:5MB)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Request Body:** Same as create (all fields optional)
+**Request Body (JSON):** Same as create (all fields optional)
+```json
+{
+  "title": "Updated Course Title",
+  "short_desc": "Updated description",
+  "status": "published"
+}
+```
 
-**Response:** Updated course details
+**Note:** Media files must be uploaded separately using multipart/form-data
 
 ---
 
@@ -3628,15 +3644,6 @@ banner: (file, optional, image, max:5MB)
 **Endpoint:** `DELETE /courses/{slug}`
 
 **Access:** Superadmin, Admin, Instructor (must have delete permission)
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Course deleted successfully",
-  "data": []
-}
-```
 
 ---
 
@@ -3648,19 +3655,6 @@ banner: (file, optional, image, max:5MB)
 
 **Request Body:** None
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Course published successfully",
-  "data": {
-    "id": 1,
-    "status": "published",
-    "published_at": "2024-01-15T10:00:00+00:00"
-  }
-}
-```
-
 ---
 
 ### Unpublish Course
@@ -3670,8 +3664,6 @@ banner: (file, optional, image, max:5MB)
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
 **Request Body:** None
-
-**Response:** Course with status changed to `draft`
 
 ---
 
@@ -3683,22 +3675,6 @@ banner: (file, optional, image, max:5MB)
 
 **Request Body:** None
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Enrollment key generated",
-  "data": {
-    "course": {
-      "id": 1,
-      "enrollment_type": "key_based"
-    },
-    "enrollment_key": "ABC123XYZ"
-  }
-}
-```
-
-
 ---
 
 ### Update Enrollment Key
@@ -3707,15 +3683,13 @@ banner: (file, optional, image, max:5MB)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Request Body:**
+**Request Body (JSON):**
 ```json
 {
   "enrollment_type": "key_based",
   "enrollment_key": "NEWKEY123"
 }
 ```
-
-**Response:** Course with updated enrollment settings
 
 ---
 
@@ -3727,8 +3701,6 @@ banner: (file, optional, image, max:5MB)
 
 **Request Body:** None
 
-**Response:** Course with enrollment_type changed to `auto_accept`
-
 ---
 
 ## Unit Management
@@ -3739,7 +3711,7 @@ banner: (file, optional, image, max:5MB)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission on course)
 
-**Request Body:**
+**Request Body (JSON):**
 ```json
 {
   "code": "UNIT01",
@@ -3752,26 +3724,11 @@ banner: (file, optional, image, max:5MB)
 
 **Validation Rules:**
 - `code`: required, string, max:50, unique
+- `slug`: nullable, string, max:100, unique within course (auto-generated from title if not provided)
 - `title`: required, string, max:255
 - `description`: nullable, string
-- `order`: nullable, integer, min:1, unique within course
-- `status`: nullable, in:draft,published (values: `draft`, `published`)
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Unit created successfully",
-  "data": {
-    "id": 1,
-    "code": "UNIT01",
-    "slug": "introduction-unit",
-    "title": "Introduction Unit",
-    "order": 1,
-    "status": "draft"
-  }
-}
-```
+- `order`: sometimes, integer, min:1
+- `status`: sometimes, enum (`draft`, `published`)
 
 ---
 
@@ -3781,9 +3738,14 @@ banner: (file, optional, image, max:5MB)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Request Body:** Same as create (all fields optional)
-
-**Response:** Updated unit details
+**Request Body (JSON):** Same as create (all fields optional)
+```json
+{
+  "title": "Updated Unit Title",
+  "description": "Updated description",
+  "status": "published"
+}
+```
 
 ---
 
@@ -3793,15 +3755,6 @@ banner: (file, optional, image, max:5MB)
 
 **Access:** Superadmin, Admin, Instructor (must have delete permission)
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Unit deleted successfully",
-  "data": []
-}
-```
-
 ---
 
 ### Publish Unit
@@ -3810,8 +3763,6 @@ banner: (file, optional, image, max:5MB)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Response:** Unit with status changed to `published`
-
 ---
 
 ### Unpublish Unit
@@ -3819,8 +3770,6 @@ banner: (file, optional, image, max:5MB)
 **Endpoint:** `PUT /courses/{course_slug}/units/{unit_slug}/unpublish`
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
-
-**Response:** Unit with status changed to `draft`
 
 
 ---
@@ -3831,25 +3780,16 @@ banner: (file, optional, image, max:5MB)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission on course)
 
-**Request Body:**
+**Request Body (JSON):**
 ```json
 {
-  "units": [
-    {"id": 1, "order": 1},
-    {"id": 2, "order": 2},
-    {"id": 3, "order": 3}
-  ]
+  "units": [1, 2, 3]
 }
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Units reordered successfully",
-  "data": []
-}
-```
+**Validation Rules:**
+- `units`: required, array of unit IDs in desired order
+- `units.*`: required, integer, exists:units,id
 
 ---
 
@@ -3911,7 +3851,7 @@ banner: (file, optional, image, max:5MB)
 
 **Purpose:** Reorder all content (lessons, assignments, quizzes) within a unit in a single request.
 
-**Request Body:**
+**Request Body (JSON):**
 ```json
 {
   "content": [
@@ -3944,44 +3884,6 @@ banner: (file, optional, image, max:5MB)
 - `content.*.type`: required, string, in:lesson,assignment,quiz
 - `content.*.id`: required, integer
 - `content.*.order`: required, integer, min:1
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Content reordered successfully",
-  "data": [
-    {
-      "type": "lesson",
-      "id": 1,
-      "title": "Introduction to Variables",
-      "order": 1,
-      "status": "published"
-    },
-    {
-      "type": "quiz",
-      "id": 1,
-      "title": "Variables Quiz",
-      "order": 2,
-      "status": "published"
-    },
-    {
-      "type": "lesson",
-      "id": 2,
-      "title": "Data Types",
-      "order": 3,
-      "status": "published"
-    },
-    {
-      "type": "assignment",
-      "id": 1,
-      "title": "Variables Practice",
-      "order": 4,
-      "status": "published"
-    }
-  ]
-}
-```
 
 ---
 
@@ -4031,11 +3933,12 @@ banner: (file, optional, image, max:5MB)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission on unit)
 
-**Request Body:**
+**Request Body (JSON):**
 ```json
 {
   "title": "First Lesson",
-  "content": "Lesson content in markdown",
+  "markdown_content": "Lesson content in markdown",
+  "description": "Lesson description",
   "order": 1,
   "status": "draft",
   "duration_minutes": 30
@@ -4043,28 +3946,17 @@ banner: (file, optional, image, max:5MB)
 ```
 
 **Validation Rules:**
+- `slug`: nullable, string, max:100, unique within unit (auto-generated from title if not provided)
 - `title`: required, string, max:255
-- `content`: nullable, string (markdown content, NOT sanitized at input)
+- `description`: nullable, string
+- `markdown_content`: nullable, string (markdown content, NOT sanitized at input)
 - `order`: nullable, integer, min:1 (auto-assigned if not provided - will be placed after all existing content in the unit)
-- `status`: nullable, in:draft,published
-- `duration_minutes`: nullable, integer, min:1
+- `status`: sometimes, enum (`draft`, `published`)
+- `duration_minutes`: sometimes, integer, min:0
 
-**Note:** If `order` is not provided, the system will automatically assign the next available order number after all existing content (lessons, assignments, quizzes) in the unit.
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Lesson created successfully",
-  "data": {
-    "id": 1,
-    "slug": "first-lesson",
-    "title": "First Lesson",
-    "order": 1,
-    "status": "draft"
-  }
-}
-```
+**Note:** 
+- If `order` is not provided, the system will automatically assign the next available order number after all existing content (lessons, assignments, quizzes) in the unit
+- Markdown content is NOT sanitized at input time. Sanitization should be performed at render time using a proper markdown parser with HTML sanitization
 
 ---
 
@@ -4074,9 +3966,14 @@ banner: (file, optional, image, max:5MB)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Request Body:** Same as create (all fields optional)
-
-**Response:** Updated lesson details
+**Request Body (JSON):** Same as create (all fields optional)
+```json
+{
+  "title": "Updated Lesson Title",
+  "markdown_content": "Updated content",
+  "status": "published"
+}
+```
 
 ---
 
@@ -4086,15 +3983,6 @@ banner: (file, optional, image, max:5MB)
 
 **Access:** Superadmin, Admin, Instructor (must have delete permission)
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Lesson deleted successfully",
-  "data": []
-}
-```
-
 ---
 
 ### Publish Lesson
@@ -4103,8 +3991,6 @@ banner: (file, optional, image, max:5MB)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Response:** Lesson with status changed to `published`
-
 ---
 
 ### Unpublish Lesson
@@ -4112,8 +3998,6 @@ banner: (file, optional, image, max:5MB)
 **Endpoint:** `PUT /courses/{course_slug}/units/{unit_slug}/lessons/{lesson_slug}/unpublish`
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
-
-**Response:** Lesson with status changed to `draft`
 
 ---
 
@@ -4160,28 +4044,23 @@ banner: (file, optional, image, max:5MB)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission on lesson)
 
-**Request Body (multipart/form-data):**
-```
-type: text (required, string: text|video|image|code|file|embed)
-content: Block content (nullable, string)
-order: 1 (nullable, integer)
-media: (file, optional, for image/video/file types)
-```
-
-**Response:**
+**Request Body (JSON for text blocks):**
 ```json
 {
-  "success": true,
-  "message": "Lesson block created successfully",
-  "data": {
-    "id": 1,
-    "type": "text",
-    "content": "Block content",
-    "order": 1
-  }
+  "type": "text",
+  "content": "Block content",
+  "order": 1
 }
 ```
 
+**Validation Rules:**
+- `type`: required, in:text,video,image,file
+- `content`: nullable, string
+- `order`: nullable, integer, min:1
+
+**Note:** For media blocks (video, image, file), use multipart/form-data with `media` field
+- `media`: file, required for video/image/file types, max size configured in app settings
+- Media type must match block type (image/* for image, video/* for video)
 
 ---
 
@@ -4191,9 +4070,7 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Request Body:** Same as create (all fields optional)
-
-**Response:** Updated block details
+**Request Body (JSON):** Same as create (all fields optional)
 
 ---
 
@@ -4202,15 +4079,6 @@ media: (file, optional, for image/video/file types)
 **Endpoint:** `DELETE /courses/{course_slug}/units/{unit_slug}/lessons/{lesson_slug}/blocks/{block_slug}`
 
 **Access:** Superadmin, Admin, Instructor (must have delete permission)
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Lesson block deleted successfully",
-  "data": []
-}
-```
 
 ---
 
@@ -4237,7 +4105,7 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor
 
-**Request Body (multipart/form-data):**
+**Request Body (JSON):**
 ```json
 {
   "type": "assignment",
@@ -4247,59 +4115,33 @@ media: (file, optional, for image/video/file types)
   "order": 3,
   "submission_type": "file",
   "max_score": 100,
+  "passing_grade": 70,
   "status": "draft",
-  "allow_resubmit": true,
   "time_limit_minutes": 60,
-  "max_attempts": 3,
-  "cooldown_minutes": 60,
-  "retake_enabled": true,
-  "review_mode": "manual",
-  "attachments": [file1, file2]
+  "review_mode": "manual"
 }
 ```
 
 **Validation Rules:**
-- `type`: required, enum (assignment, quiz)
+- `type`: required, enum (`assignment`, `quiz`)
 - `title`: required, string, max:255
 - `description`: nullable, string
 - `unit_id`: required, integer, exists:units,id
 - `order`: nullable, integer, min:1 (auto-assigned if not provided - will be placed after all existing content in the unit)
-- `submission_type`: required, enum (file, text, mixed, online) - assignment must use file/mixed
+- `submission_type`: required, enum (`file`, `text`, `mixed`, `online`) - assignment must use `file` or `mixed`
 - `max_score`: nullable, integer, min:1, max:1000
-- `status`: nullable, enum (draft, published, archived)
-- `allow_resubmit`: nullable, boolean
+- `passing_grade`: nullable, numeric, min:0, max:100
+- `status`: nullable, enum (`draft`, `published`, `archived`)
 - `time_limit_minutes`: nullable, integer, min:1
-- `max_attempts`: nullable, integer, min:1
-- `cooldown_minutes`: nullable, integer, min:0
-- `retake_enabled`: nullable, boolean
-- `review_mode`: nullable, enum (manual, immediate, after_deadline, never) - assignment must use manual
-- `randomization_type`: nullable, enum (static, random_order, bank) - NOT allowed for assignments
+- `review_mode`: nullable, enum (`manual`, `immediate`, `after_deadline`, `never`) - assignment must use `manual`
+- `randomization_type`: nullable, enum (`static`, `random_order`, `bank`) - NOT allowed for assignments
 - `question_bank_count`: nullable, integer, min:0 - NOT allowed for assignments
-- `attachments`: nullable, array, max:5 files
-- `attachments.*`: file, mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,jpg,jpeg,png,webp, max:10240KB
 
 **Important Notes:**
-- Assignments and quizzes are now unit-level content (not polymorphic)
-- They are ordered alongside lessons using the `order` field
-- If `order` is not provided, the system will automatically assign the next available order number after all existing content (lessons, assignments, quizzes) in the unit
-- `scope_type` is always `"unit"` for both assignments and quizzes
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Assignment created successfully",
-  "data": {
-    "id": 1,
-    "title": "Week 1 Assignment",
-    "type": "assignment",
-    "status": "draft",
-    "unit_slug": "unit-1",
-    "course_slug": "course-1",
-    "created_at": "2024-01-15T10:00:00+00:00"
-  }
-}
-```
+- Assignments are unit-level content ordered alongside lessons and quizzes
+- If `order` is not provided, the system will automatically assign the next available order number after all existing content in the unit
+- Attachments must be uploaded separately using multipart/form-data if needed
+- Assignment type must use `file` or `mixed` submission type and `manual` review mode
 
 
 ---
@@ -4310,22 +4152,31 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Request Body (multipart/form-data):**
+**Request Body (JSON):**
 ```json
 {
   "title": "Updated Title",
   "description": "Updated description",
   "max_score": 120,
-  "attachments": [new_file],
-  "delete_attachments": [1, 2]
+  "passing_grade": 75,
+  "status": "published"
 }
 ```
 
 **Validation Rules:** Same as create, all fields optional
-- `delete_attachments`: nullable, array of media IDs to delete
-- `delete_attachments.*`: integer, exists:media,id
+- `type`: sometimes, enum (`assignment`, `quiz`)
+- `title`: sometimes, string, max:255
+- `description`: nullable, string
+- `unit_id`: sometimes, integer, exists:units,id
+- `order`: sometimes, integer, min:1
+- `submission_type`: sometimes, enum (`file`, `text`, `mixed`, `online`)
+- `max_score`: nullable, integer, min:1, max:1000
+- `passing_grade`: nullable, numeric, min:0, max:100
+- `status`: sometimes, enum (`draft`, `published`, `archived`)
+- `time_limit_minutes`: nullable, integer, min:1
+- `review_mode`: nullable, enum (`manual`, `immediate`, `after_deadline`, `never`)
 
-**Response:** Updated assignment details
+**Note:** Attachments must be managed separately using multipart/form-data if needed
 
 ---
 
@@ -4335,15 +4186,6 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have delete permission)
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Assignment deleted successfully",
-  "data": []
-}
-```
-
 ---
 
 ### Publish Assignment
@@ -4351,8 +4193,6 @@ media: (file, optional, for image/video/file types)
 **Endpoint:** `PUT /assignments/{assignment_id}/publish`
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
-
-**Response:** Assignment with status changed to `published`
 
 ---
 
@@ -4362,8 +4202,6 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Response:** Assignment with status changed to `draft`
-
 ---
 
 ### Archive Assignment
@@ -4371,8 +4209,6 @@ media: (file, optional, for image/video/file types)
 **Endpoint:** `PUT /assignments/{assignment_id}/archived`
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
-
-**Response:** Assignment with status changed to `archived`
 
 ---
 
@@ -4382,7 +4218,7 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have duplicate permission)
 
-**Request Body:**
+**Request Body (JSON):**
 ```json
 {
   "title": "Copy of Week 1 Assignment",
@@ -4394,21 +4230,6 @@ media: (file, optional, for image/video/file types)
 - `title`: nullable, string, max:255 (defaults to "Copy of [original title]")
 - `unit_id`: nullable, integer, exists:units,id (defaults to same unit as original)
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Assignment duplicated successfully",
-  "data": {
-    "id": 2,
-    "title": "Copy of Week 1 Assignment",
-    "status": "draft",
-    "unit_slug": "unit-2",
-    "course_slug": "course-1"
-  }
-}
-```
-
 ---
 
 ### List Assignment Overrides
@@ -4416,25 +4237,6 @@ media: (file, optional, for image/video/file types)
 **Endpoint:** `GET /assignments/{assignment_id}/overrides`
 
 **Access:** Superadmin, Admin, Instructor (must have viewOverrides permission)
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "assignment_id": 1,
-      "student_id": 5,
-      "type": "attempt_limit",
-      "reason": "Student needs extra attempts",
-      "value": {"max_attempts": 5},
-      "granted_by": 2,
-      "created_at": "2024-01-15T10:00:00+00:00"
-    }
-  ]
-}
-```
 
 
 ---
@@ -4445,7 +4247,7 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have grantOverride permission)
 
-**Request Body:**
+**Request Body (JSON):**
 ```json
 {
   "student_id": 5,
@@ -4461,20 +4263,6 @@ media: (file, optional, for image/video/file types)
 - `attempt_limit`: Override max_attempts (value: `{"max_attempts": integer}`)
 - `deadline_extension`: Extend deadline (value: `{"extended_deadline": "2024-01-30T23:59:59Z"}`)
 - `prerequisite_bypass`: Bypass prerequisites (value: `{}`)
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Override granted successfully",
-  "data": {
-    "id": 1,
-    "type": "attempt_limit",
-    "student_id": 5,
-    "reason": "Student needs extra attempts due to technical issues"
-  }
-}
-```
 
 ---
 
@@ -4550,7 +4338,7 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor
 
-**Request Body:**
+**Request Body (JSON):**
 ```json
 {
   "unit_id": 1,
@@ -4560,10 +4348,7 @@ media: (file, optional, for image/video/file types)
   "passing_grade": 70,
   "auto_grading": true,
   "max_score": 100,
-  "max_attempts": 2,
-  "cooldown_minutes": 30,
   "time_limit_minutes": 30,
-  "retake_enabled": true,
   "randomization_type": "random_order",
   "question_bank_count": 10,
   "review_mode": "after_deadline"
@@ -4578,35 +4363,15 @@ media: (file, optional, for image/video/file types)
 - `passing_grade`: nullable, numeric, min:0, max:100
 - `auto_grading`: nullable, boolean
 - `max_score`: nullable, numeric, min:1
-- `max_attempts`: nullable, integer, min:1
-- `cooldown_minutes`: nullable, integer, min:0
 - `time_limit_minutes`: nullable, integer, min:1
-- `retake_enabled`: nullable, boolean
 - `randomization_type`: nullable, in:static,random_order,bank
 - `question_bank_count`: nullable, integer, min:1
 - `review_mode`: nullable, in:immediate,after_deadline,never
 
 **Important Notes:**
-- Quizzes are now unit-level content (not polymorphic)
-- They are ordered alongside lessons and assignments using the `order` field
-- If `order` is not provided, the system will automatically assign the next available order number after all existing content (lessons, assignments, quizzes) in the unit
-- `scope_type` is always `"unit"` for quizzes
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Quiz created successfully",
-  "data": {
-    "id": 1,
-    "title": "Week 1 Quiz",
-    "status": "draft",
-    "unit_slug": "unit-1",
-    "course_slug": "course-1",
-    "created_at": "2024-01-15T10:00:00+00:00"
-  }
-}
-```
+- Quizzes are unit-level content ordered alongside lessons and assignments
+- If `order` is not provided, the system will automatically assign the next available order number after all existing content in the unit
+- Attachments must be uploaded separately using multipart/form-data if needed
 
 
 ---
@@ -4617,9 +4382,15 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Request Body:** Same as create (all fields optional)
-
-**Response:** Updated quiz details
+**Request Body (JSON):** Same as create (all fields optional)
+```json
+{
+  "title": "Updated Quiz Title",
+  "description": "Updated description",
+  "passing_grade": 75,
+  "time_limit_minutes": 45
+}
+```
 
 ---
 
@@ -4629,15 +4400,6 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have delete permission)
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Quiz deleted successfully",
-  "data": []
-}
-```
-
 ---
 
 ### Publish Quiz
@@ -4645,8 +4407,6 @@ media: (file, optional, for image/video/file types)
 **Endpoint:** `PUT /quizzes/{quiz_id}/publish`
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
-
-**Response:** Quiz with status changed to `published`
 
 ---
 
@@ -4656,8 +4416,6 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Response:** Quiz with status changed to `draft`
-
 ---
 
 ### Archive Quiz
@@ -4665,8 +4423,6 @@ media: (file, optional, for image/video/file types)
 **Endpoint:** `PUT /quizzes/{quiz_id}/archived`
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
-
-**Response:** Quiz with status changed to `archived`
 
 ---
 
@@ -4676,28 +4432,6 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have view permission)
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "quiz_id": 1,
-    "type": "multiple_choice",
-    "content": "What is 2 + 2?",
-    "options": [
-      {"text": "3"},
-      {"text": "4"},
-      {"text": "5"}
-    ],
-    "answer_key": [1],
-    "weight": 1,
-    "max_score": 10,
-    "order": 1
-  }
-}
-```
-
 ---
 
 ### Add Quiz Question
@@ -4706,7 +4440,7 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Request Body (multipart/form-data):**
+**Request Body (JSON):**
 ```json
 {
   "type": "multiple_choice",
@@ -4724,29 +4458,16 @@ media: (file, optional, for image/video/file types)
 ```
 
 **Validation Rules:**
-- `type`: required, enum (multiple_choice, true_false, short_answer, essay, checkbox)
+- `type`: required, enum (`multiple_choice`, `true_false`, `short_answer`, `essay`, `checkbox`)
 - `content`: required, string
 - `options`: nullable, array (required for multiple_choice, checkbox, true_false)
 - `options.*.text`: nullable, string
-- `options.*.image`: nullable, file, image
 - `answer_key`: nullable, array (correct answer indices or text)
 - `weight`: nullable, numeric, min:0.01
 - `order`: nullable, integer, min:0
 - `max_score`: nullable, numeric, min:0
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Question created successfully",
-  "data": {
-    "id": 1,
-    "type": "multiple_choice",
-    "content": "What is 2 + 2?",
-    "order": 1
-  }
-}
-```
+**Note:** For image options, use multipart/form-data with `options.*.image` field
 
 
 ---
@@ -4757,9 +4478,7 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Request Body:** Same as add question (all fields optional)
-
-**Response:** Updated question details
+**Request Body (JSON):** Same as add question (all fields optional)
 
 ---
 
@@ -4769,15 +4488,6 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Question deleted successfully",
-  "data": []
-}
-```
-
 ---
 
 ### Reorder Quiz Questions
@@ -4786,7 +4496,7 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have update permission)
 
-**Request Body:**
+**Request Body (JSON):**
 ```json
 {
   "ids": [3, 1, 2, 4]
@@ -4796,15 +4506,6 @@ media: (file, optional, for image/video/file types)
 **Validation Rules:**
 - `ids`: required, array of question IDs in desired order
 - `ids.*`: integer
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Questions reordered successfully",
-  "data": []
-}
-```
 
 ---
 
@@ -4846,35 +4547,6 @@ media: (file, optional, for image/video/file types)
   - Values: User ID
 - `sort` (string, optional): Sort field (e.g., `submitted_at`, `-submitted_at` for desc)
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "assignment_id": 1,
-      "assignment_title": "Week 1 Assignment",
-      "user_id": 5,
-      "user_name": "John Doe",
-      "status": "submitted",
-      "state": "pending_grading",
-      "submitted_at": "2024-01-15T10:00:00+00:00",
-      "course": {
-        "id": 1,
-        "title": "Introduction to Programming"
-      }
-    }
-  ],
-  "meta": {
-    "current_page": 1,
-    "per_page": 15,
-    "total": 50
-  }
-}
-```
-
-
 ---
 
 ### Get Submission for Grading
@@ -4882,41 +4554,6 @@ media: (file, optional, for image/video/file types)
 **Endpoint:** `GET /grading/{submission_id}`
 
 **Access:** Superadmin, Admin, Instructor
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "assignment": {
-      "id": 1,
-      "title": "Week 1 Assignment",
-      "max_score": 100,
-      "instructions": "Complete all questions"
-    },
-    "user": {
-      "id": 5,
-      "name": "John Doe",
-      "email": "john@example.com"
-    },
-    "answers": [
-      {
-        "id": 1,
-        "question_id": 1,
-        "question": {
-          "id": 1,
-          "content": "Question text",
-          "max_score": 10
-        },
-        "answer": "Student answer"
-      }
-    ],
-    "submitted_at": "2024-01-15T10:00:00+00:00",
-    "state": "pending_grading"
-  }
-}
-```
 
 ---
 
@@ -4926,7 +4563,7 @@ media: (file, optional, for image/video/file types)
 
 **Access:** Superadmin, Admin, Instructor (must have grade permission)
 
-**Request Body:**
+**Request Body (JSON):**
 ```json
 {
   "grades": [
@@ -4947,6 +4584,10 @@ media: (file, optional, for image/video/file types)
 
 **Validation Rules:**
 - `grades`: required, array, min:1
+- `grades.*.question_id`: required, integer, exists:questions,id
+- `grades.*.score`: required, numeric, min:0
+- `grades.*.feedback`: nullable, string
+- `feedback`: nullable, string (overall feedback)
 - `grades.*.question_id`: required, integer, exists:questions,id
 - `grades.*.score`: required, numeric, min:0
 - `grades.*.feedback`: nullable, string

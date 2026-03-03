@@ -45,18 +45,6 @@ return new class extends Migration
                 $table->dropColumn('retake_enabled');
             });
         }
-
-        if (Schema::hasColumn('submissions', 'attempt_number')) {
-            Schema::table('submissions', function (Blueprint $table) {
-                $table->dropColumn('attempt_number');
-            });
-        }
-
-        if (Schema::hasColumn('quiz_submissions', 'attempt_number')) {
-            Schema::table('quiz_submissions', function (Blueprint $table) {
-                $table->dropColumn('attempt_number');
-            });
-        }
     }
 
     public function down(): void
@@ -71,14 +59,6 @@ return new class extends Migration
             $table->integer('max_attempts')->nullable();
             $table->integer('cooldown_minutes')->nullable();
             $table->boolean('retake_enabled')->default(false);
-        });
-
-        Schema::table('submissions', function (Blueprint $table) {
-            $table->integer('attempt_number')->default(1);
-        });
-
-        Schema::table('quiz_submissions', function (Blueprint $table) {
-            $table->integer('attempt_number')->default(1);
         });
     }
 };
