@@ -219,7 +219,7 @@ class PointManager
         $perPage = max(1, min($perPage, 100));
 
         return cache()->tags(['gamification', 'points'])->remember(
-            "gamification:points:history:{$userId}:{$perPage}:".request('page', 1),
+            "gamification:points:history:{$userId}:{$perPage}:".request('page', 1).':'.request('filter.period', 'all_time'),
             300,
             function () use ($userId, $perPage) {
                 return QueryBuilder::for(Point::class)
@@ -227,6 +227,17 @@ class PointManager
                     ->allowedFilters([
                         AllowedFilter::exact('source_type'),
                         AllowedFilter::exact('reason'),
+                        AllowedFilter::callback('period', function ($query, $value) {
+                            $dateColumn = 'points.created_at';
+                            match ($value) {
+                                'today' => $query->whereDate($dateColumn, Carbon::today()),
+                                'this_week' => $query->whereBetween($dateColumn, [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]),
+                                'this_month' => $query->whereMonth($dateColumn, Carbon::now()->month)
+                                    ->whereYear($dateColumn, Carbon::now()->year),
+                                'this_year' => $query->whereYear($dateColumn, Carbon::now()->year),
+                                default => null,
+                            };
+                        }),
                     ])
                     ->defaultSort('-created_at')
                     ->allowedSorts(['created_at', 'points', 'source_type'])

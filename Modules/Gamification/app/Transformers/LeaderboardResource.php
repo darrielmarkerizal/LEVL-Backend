@@ -11,7 +11,10 @@ class LeaderboardResource extends JsonResource
         $rank = $this->resource['rank'] ?? $this->rank ?? null;
         $stat = $this->resource['stat'] ?? $this->resource;
 
-        if ($stat instanceof \Modules\Gamification\Models\UserGamificationStat) {
+        if (
+            $stat instanceof \Modules\Gamification\Models\UserGamificationStat || 
+            $stat instanceof \Modules\Gamification\Models\Point
+        ) {
             return [
                 'rank' => $this->additional['rank'] ?? $rank,
                 'user' => [
@@ -20,7 +23,7 @@ class LeaderboardResource extends JsonResource
                     'avatar_url' => $stat->user?->avatar_url ?? null,
                 ],
                 'total_xp' => $stat->total_xp,
-                'level' => $stat->global_level,
+                'level' => $stat->global_level ?? 1,
                 'badges_count' => $stat->badges_count ?? 0,
             ];
         }

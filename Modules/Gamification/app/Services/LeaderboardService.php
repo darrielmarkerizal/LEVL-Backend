@@ -20,9 +20,10 @@ class LeaderboardService implements LeaderboardServiceInterface
         int $perPage = 10,
         int $page = 1,
         ?int $courseId = null,
-        ?int $currentUserId = null
+        ?int $currentUserId = null,
+        ?string $period = 'all_time'
     ): array {
-        $leaderboard = $this->getGlobalLeaderboard($perPage, $page, $courseId);
+        $leaderboard = $this->getGlobalLeaderboard($perPage, $page, $courseId, $period);
 
         $leaderboard->getCollection()->transform(function ($stat, $index) use ($leaderboard) {
             $rank = ($leaderboard->currentPage() - 1) * $leaderboard->perPage() + $index + 1;
@@ -33,7 +34,7 @@ class LeaderboardService implements LeaderboardServiceInterface
 
         $myRank = null;
         if ($currentUserId) {
-            $rankData = $this->getUserRank($currentUserId);
+            $rankData = $this->getUserRank($currentUserId, $period);
             $user = \Modules\Auth\Models\User::find($currentUserId);
 
             $myRank = [
@@ -55,10 +56,10 @@ class LeaderboardService implements LeaderboardServiceInterface
         ];
     }
 
-    public function getGlobalLeaderboard(int $perPage = 10, int $page = 1, ?int $courseId = null): LengthAwarePaginator
+    public function getGlobalLeaderboard(int $perPage = 10, int $page = 1, ?int $courseId = null, ?string $period = 'all_time'): LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, 100));
-        $period = 'all_time';
+        $period = $period ?? 'all_time';
 
         $cacheKey = 'gamification:leaderboard:'.md5(json_encode(compact('perPage', 'page', 'courseId', 'period')));
 
@@ -75,14 +76,30 @@ class LeaderboardService implements LeaderboardServiceInterface
                         ->where('course_id', $courseId)
                         ->orderBy('rank');
                 } else {
-                    $query = QueryBuilder::for(UserGamificationStat::class)
-                        ->allowedFilters([
-                            AllowedFilter::exact('period'),
-                        ])
-                        ->with(['user:id,name', 'user.media'])
-                        ->orderByDesc('total_xp');
+                    if ($period === 'all_time') {
+                        $query = QueryBuilder::for(UserGamificationStat::class)
+                            ->allowedFilters([
+                                AllowedFilter::callback('period', function ($query, $value) {
+                                    // Handled manually below via $this->applyPeriodFilter()
+                                }),
+                            ])
+                            ->with(['user:id,name', 'user.media'])
+                            ->orderByDesc('total_xp');
 
-                    $this->applyPeriodFilter($query, $period);
+                        $this->applyPeriodFilter($query, $period);
+                    } else {
+                        $query = QueryBuilder::for(\Modules\Gamification\Models\Point::class)
+                            ->select('user_id', DB::raw('SUM(points) as total_xp'))
+                            ->groupBy('user_id')
+                            ->allowedFilters([
+                                AllowedFilter::callback('period', function ($query, $value) {
+                                }),
+                            ])
+                            ->with(['user:id,name', 'user.media', 'user.gamificationStats'])
+                            ->orderByDesc('total_xp');
+
+                        $this->applyPeriodFilter($query, $period, true);
+                    }
                 }
 
                 $result = $query->paginate($perPage, ['*'], 'page', $page);
@@ -90,8 +107,13 @@ class LeaderboardService implements LeaderboardServiceInterface
                 $userIds = $result->pluck('user_id')->toArray();
                 $badgeCounts = $this->getBadgeCountsForUsers($userIds, $period);
 
-                $result->getCollection()->transform(function ($item) use ($badgeCounts) {
+                $result->getCollection()->transform(function ($item) use ($badgeCounts, $period) {
                     $item->badges_count = $badgeCounts[$item->user_id] ?? 0;
+                    
+                    // Remap the loaded relationship into object variable for uniform output if it's points model
+                    if ($period !== 'all_time') {
+                         $item->global_level = $item->user?->gamificationStats?->global_level ?? 1;
+                    }
 
                     return $item;
                 });
@@ -101,34 +123,60 @@ class LeaderboardService implements LeaderboardServiceInterface
         );
     }
 
-    public function getUserRank(int $userId): array
+    public function getUserRank(int $userId, string $period = 'all_time'): array
     {
-        $period = 'all_time';
+        if ($period === 'all_time') {
+            $userStats = UserGamificationStat::where('user_id', $userId)->first();
 
-        $userStats = UserGamificationStat::where('user_id', $userId)->first();
+            if (! $userStats) {
+                return [
+                    'rank' => null,
+                    'total_xp' => 0,
+                    'level' => 0,
+                    'badges_count' => 0,
+                    'surrounding' => [],
+                ];
+            }
 
-        if (! $userStats) {
-            return [
-                'rank' => null,
-                'total_xp' => 0,
-                'level' => 0,
-                'badges_count' => 0,
-                'surrounding' => [],
-            ];
+            $query = UserGamificationStat::where('total_xp', '>', $userStats->total_xp);
+            $this->applyPeriodFilter($query, $period);
+            $rank = $query->count() + 1;
+
+            $surrounding = $this->getSurroundingUsers($userId, $userStats->total_xp, 2, $period);
+            $badgesCount = $this->getBadgeCountForUser($userId, $period);
+            $globalLevel = $userStats->global_level;
+            $totalXp = $userStats->total_xp;
+        } else {
+             $userPointQuery = \Modules\Gamification\Models\Point::where('user_id', $userId);
+             $this->applyPeriodFilter($userPointQuery, $period, true);
+             $totalXp = (int) $userPointQuery->sum('points');
+             
+             if ($totalXp === 0) {
+                 return [
+                     'rank' => null,
+                     'total_xp' => 0,
+                     'level' => 0,
+                     'badges_count' => 0,
+                     'surrounding' => [],
+                 ];
+             }
+
+             $rankQuery = \Modules\Gamification\Models\Point::select('user_id', DB::raw('SUM(points) as period_xp'))
+                 ->groupBy('user_id')
+                 ->having(DB::raw('SUM(points)'), '>', $totalXp);
+             $this->applyPeriodFilter($rankQuery, $period, true);
+
+             $rank = $rankQuery->get()->count() + 1;
+
+             $surrounding = $this->getSurroundingUsers($userId, $totalXp, 2, $period);
+             $badgesCount = $this->getBadgeCountForUser($userId, $period);
+             $globalLevel = \Modules\Gamification\Models\UserGamificationStat::where('user_id', $userId)->value('global_level') ?? 1;
         }
-
-        $query = UserGamificationStat::where('total_xp', '>', $userStats->total_xp);
-        $this->applyPeriodFilter($query, $period);
-        $rank = $query->count() + 1;
-
-        $surrounding = $this->getSurroundingUsers($userId, $userStats->total_xp, 2, $period);
-
-        $badgesCount = $this->getBadgeCountForUser($userId, $period);
 
         return [
             'rank' => $rank,
-            'total_xp' => $userStats->total_xp,
-            'level' => $userStats->global_level,
+            'total_xp' => $totalXp,
+            'level' => $globalLevel,
             'badges_count' => $badgesCount,
             'surrounding' => $surrounding,
         ];
@@ -166,9 +214,9 @@ class LeaderboardService implements LeaderboardServiceInterface
         });
     }
 
-    private function applyPeriodFilter($query, string $period): void
+    private function applyPeriodFilter($query, string $period, bool $isPointTable = false): void
     {
-        $dateColumn = 'user_gamification_stats.stats_updated_at';
+        $dateColumn = $isPointTable ? 'points.created_at' : 'user_gamification_stats.stats_updated_at';
 
         match ($period) {
             'today' => $query->whereDate($dateColumn, Carbon::today()),
@@ -254,51 +302,102 @@ class LeaderboardService implements LeaderboardServiceInterface
 
     private function getSurroundingUsers(int $userId, int $userXp, int $count = 2, string $period = 'all_time'): array
     {
-        $aboveQuery = UserGamificationStat::with(['user:id,name', 'user.media'])
-            ->where('total_xp', '>', $userXp)
-            ->orderBy('total_xp');
-        $this->applyPeriodFilter($aboveQuery, $period);
-        $above = $aboveQuery->limit($count)->get()->reverse()->values();
+        if ($period === 'all_time') {
+            $aboveQuery = UserGamificationStat::with(['user:id,name', 'user.media'])
+                ->where('total_xp', '>', $userXp)
+                ->orderBy('total_xp');
+            $this->applyPeriodFilter($aboveQuery, $period);
+            $above = $aboveQuery->limit($count)->get()->reverse()->values();
 
-        $belowQuery = UserGamificationStat::with(['user:id,name', 'user.media'])
-            ->where('total_xp', '<', $userXp)
-            ->orderByDesc('total_xp');
-        $this->applyPeriodFilter($belowQuery, $period);
-        $below = $belowQuery->limit($count)->get();
+            $belowQuery = UserGamificationStat::with(['user:id,name', 'user.media'])
+                ->where('total_xp', '<', $userXp)
+                ->orderByDesc('total_xp');
+            $this->applyPeriodFilter($belowQuery, $period);
+            $below = $belowQuery->limit($count)->get();
 
-        $current = UserGamificationStat::with(['user:id,name', 'user.media'])
-            ->where('user_id', $userId)
-            ->first();
+            $current = UserGamificationStat::with(['user:id,name', 'user.media'])
+                ->where('user_id', $userId)
+                ->first();
+        } else {
+            $aboveQuery = \Modules\Gamification\Models\Point::select('user_id', DB::raw('SUM(points) as total_xp'))
+                ->with(['user:id,name', 'user.media', 'user.gamificationStats'])
+                ->groupBy('user_id')
+                ->having(DB::raw('SUM(points)'), '>', $userXp)
+                ->orderByDesc('total_xp');
+            $this->applyPeriodFilter($aboveQuery, $period, true);
+            $above = $aboveQuery->limit($count)->get()->reverse()->values();
+
+            $belowQuery = \Modules\Gamification\Models\Point::select('user_id', DB::raw('SUM(points) as total_xp'))
+                ->with(['user:id,name', 'user.media', 'user.gamificationStats'])
+                ->groupBy('user_id')
+                ->having(DB::raw('SUM(points)'), '<', $userXp)
+                ->orderByDesc('total_xp');
+            $this->applyPeriodFilter($belowQuery, $period, true);
+            $below = $belowQuery->limit($count)->get();
+            
+            $currentQuery = \Modules\Gamification\Models\Point::select('user_id', DB::raw('SUM(points) as total_xp'))
+                ->with(['user:id,name', 'user.media', 'user.gamificationStats'])
+                ->where('user_id', $userId)
+                ->groupBy('user_id');
+            $this->applyPeriodFilter($currentQuery, $period, true);
+            $current = $currentQuery->first();
+        }
 
         $result = [];
 
         foreach ($above as $stat) {
-            $rankQuery = UserGamificationStat::where('total_xp', '>', $stat->total_xp);
-            $this->applyPeriodFilter($rankQuery, $period);
-            $rank = $rankQuery->count() + 1;
+            if ($period === 'all_time') {
+                 $rankQuery = UserGamificationStat::where('total_xp', '>', $stat->total_xp);
+                 $this->applyPeriodFilter($rankQuery, $period);
+                 $rank = $rankQuery->count() + 1;
+            } else {
+                 $rankQuery = \Modules\Gamification\Models\Point::select('user_id', DB::raw('SUM(points) as period_xp'))
+                     ->groupBy('user_id')
+                     ->having(DB::raw('SUM(points)'), '>', $stat->total_xp);
+                 $this->applyPeriodFilter($rankQuery, $period, true);
+                 $rank = $rankQuery->get()->count() + 1;
+            }
             $result[] = $this->formatLeaderboardEntry($stat, $rank, $period);
         }
 
         if ($current) {
-            $rankQuery = UserGamificationStat::where('total_xp', '>', $current->total_xp);
-            $this->applyPeriodFilter($rankQuery, $period);
-            $rank = $rankQuery->count() + 1;
+            if ($period === 'all_time') {
+                 $rankQuery = UserGamificationStat::where('total_xp', '>', $current->total_xp);
+                 $this->applyPeriodFilter($rankQuery, $period);
+                 $rank = $rankQuery->count() + 1;
+            } else {
+                 $rankQuery = \Modules\Gamification\Models\Point::select('user_id', DB::raw('SUM(points) as period_xp'))
+                     ->groupBy('user_id')
+                     ->having(DB::raw('SUM(points)'), '>', $current->total_xp);
+                 $this->applyPeriodFilter($rankQuery, $period, true);
+                 $rank = $rankQuery->get()->count() + 1;
+            }
             $result[] = array_merge($this->formatLeaderboardEntry($current, $rank, $period), ['is_current_user' => true]);
         }
 
         foreach ($below as $stat) {
-            $rankQuery = UserGamificationStat::where('total_xp', '>', $stat->total_xp);
-            $this->applyPeriodFilter($rankQuery, $period);
-            $rank = $rankQuery->count() + 1;
+            if ($period === 'all_time') {
+                 $rankQuery = UserGamificationStat::where('total_xp', '>', $stat->total_xp);
+                 $this->applyPeriodFilter($rankQuery, $period);
+                 $rank = $rankQuery->count() + 1;
+            } else {
+                 $rankQuery = \Modules\Gamification\Models\Point::select('user_id', DB::raw('SUM(points) as period_xp'))
+                     ->groupBy('user_id')
+                     ->having(DB::raw('SUM(points)'), '>', $stat->total_xp);
+                 $this->applyPeriodFilter($rankQuery, $period, true);
+                 $rank = $rankQuery->get()->count() + 1;
+            }
             $result[] = $this->formatLeaderboardEntry($stat, $rank, $period);
         }
 
         return $result;
     }
 
-    private function formatLeaderboardEntry(UserGamificationStat $stat, int $rank, string $period = 'all_time'): array
+    private function formatLeaderboardEntry($stat, int $rank, string $period = 'all_time'): array
     {
         $badgesCount = $this->getBadgeCountForUser($stat->user_id, $period);
+        
+        $globalLevel = $period === 'all_time' ? $stat->global_level : ($stat->user?->gamificationStats?->global_level ?? 1);
 
         return [
             'rank' => $rank,
@@ -308,7 +407,7 @@ class LeaderboardService implements LeaderboardServiceInterface
                 'avatar_url' => $stat->user?->avatar_url ?? null,
             ],
             'total_xp' => $stat->total_xp,
-            'level' => $stat->global_level,
+            'level' => $globalLevel,
             'badges_count' => $badgesCount,
         ];
     }
