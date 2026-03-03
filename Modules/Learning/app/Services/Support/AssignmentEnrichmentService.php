@@ -17,7 +17,7 @@ class AssignmentEnrichmentService
 
     public function enrichForStudent(LengthAwarePaginator $paginator, int $userId): LengthAwarePaginator
     {
-        $paginator->load('lesson.unit:id,slug');
+        $paginator->load(['unit:id,slug,course_id', 'unit.course:id,slug']);
 
         $assignmentIds = $paginator->pluck('id')->toArray();
         $submissions = $this->getLatestSubmissions($assignmentIds, $userId);
@@ -36,8 +36,7 @@ class AssignmentEnrichmentService
                 'passing_grade' => $item->passing_grade,
                 'status' => $item->status->value,
                 'is_locked' => ! $prerequisiteCheck['accessible'],
-                'lesson_slug' => $item->lesson?->slug,
-                'unit_slug' => $item->lesson?->unit?->slug,
+                'unit_slug' => $item->unit->slug ?? null,
                 'submission_status' => $submissionData['submission_status'],
                 'submission_status_label' => $submissionData['submission_status_label'],
                 'score' => $submissionData['score'],
@@ -60,7 +59,7 @@ class AssignmentEnrichmentService
 
     public function enrichForInstructor(LengthAwarePaginator $paginator): LengthAwarePaginator
     {
-        $paginator->load('lesson.unit:id,slug', 'creator:id,name');
+        $paginator->load(['unit:id,slug', 'creator:id,name']);
 
         $paginator->getCollection()->transform(function ($item) {
             return [
@@ -71,8 +70,7 @@ class AssignmentEnrichmentService
                 'max_score' => $item->max_score,
                 'status' => $item->status->value,
                 'is_available' => $item->isAvailable(),
-                'lesson_slug' => $item->lesson?->slug,
-                'unit_slug' => $item->lesson?->unit?->slug,
+                'unit_slug' => $item->unit->slug ?? null,
                 'created_at' => $item->created_at?->toIso8601String(),
                 'updated_at' => $item->updated_at?->toIso8601String(),
                 'creator' => $item->creator ? [

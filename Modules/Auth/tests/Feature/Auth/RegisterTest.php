@@ -1,8 +1,6 @@
 <?php
 
 use Modules\Auth\app\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
 test('user can register with valid data', function () {
     $data = [
@@ -27,7 +25,7 @@ test('user can register with valid data', function () {
     $this->assertDatabaseHas('users', [
         'username' => 'testuser',
         'email' => 'test@example.com',
-        'status' => 'pending', 
+        'status' => 'pending',
         'email_verified_at' => null,
     ]);
 });

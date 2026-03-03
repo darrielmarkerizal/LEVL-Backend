@@ -34,7 +34,7 @@ class UpdateThreadRequest extends FormRequest
     private function validateMentionedUsernames(string $content, $fail): void
     {
         preg_match_all('/@([a-zA-Z0-9._-]+)/', $content, $matches);
-        
+
         if (empty($matches[1])) {
             return;
         }
@@ -46,9 +46,9 @@ class UpdateThreadRequest extends FormRequest
 
         $invalidUsernames = array_diff($mentionedUsernames, $existingUsernames);
 
-        if (!empty($invalidUsernames)) {
+        if (! empty($invalidUsernames)) {
             $fail(__('validation.mentioned_users_not_found', [
-                'usernames' => implode(', ', array_map(fn($u) => "@{$u}", $invalidUsernames))
+                'usernames' => implode(', ', array_map(fn ($u) => "@{$u}", $invalidUsernames)),
             ]));
         }
     }

@@ -10,12 +10,12 @@ use Modules\Gamification\Models\Point;
 use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Gamification\Models\UserScopeStat;
 use Modules\Gamification\Repositories\GamificationRepository;
+use Modules\Learning\Models\Assignment;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Unit;
-use Modules\Learning\Models\Assignment;
-use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class PointManager
 {
@@ -41,11 +41,11 @@ class PointManager
             try {
                 // Anti-Farming Checks
                 $resolvedSourceType = $sourceType ?? 'system';
-                
+
                 if (! $this->checkCooldown($userId, $resolvedSourceType, $reason)) {
                     return null;
                 }
-                
+
                 if (! $this->checkDailyCap($userId, $points, $resolvedSourceType)) {
                     return null;
                 }
@@ -130,8 +130,7 @@ class PointManager
                 case 'assignment':
                     $assignment = Assignment::find($sourceId);
                     if ($assignment) {
-                        
-                        
+
                         if ($assignment->assignable_type === Course::class) {
                             $scopes['course'] = $assignment->assignable_id;
                         } elseif ($assignment->assignable_type === Unit::class) {
@@ -147,33 +146,28 @@ class PointManager
                         }
                     }
                     break;
-                
+
                 case 'attempt':
-                     
-                     
-                     
-                     
-                     
-                     break;
+
+                    break;
 
                 case 'course':
                     $scopes['course'] = $sourceId;
                     break;
 
                 case 'grade':
-                    
+
                     $grade = \Modules\Grading\Models\Grade::find($sourceId);
                     if ($grade && $grade->source_type->value === 'assignment') {
-                        
-                        
-                         $assignmentResults = $this->resolveScopes('assignment', (int)$grade->source_id);
-                         $scopes['course'] = $assignmentResults['course'] ?? null;
-                         $scopes['unit'] = $assignmentResults['unit'] ?? null;
+
+                        $assignmentResults = $this->resolveScopes('assignment', (int) $grade->source_id);
+                        $scopes['course'] = $assignmentResults['course'] ?? null;
+                        $scopes['unit'] = $assignmentResults['unit'] ?? null;
                     }
                     break;
             }
         } catch (\Throwable $e) {
-            
+
         }
 
         return $scopes;
@@ -193,7 +187,7 @@ class PointManager
     public function calculateLevelFromXp(int $totalXp): int
     {
         $configs = \Illuminate\Support\Facades\Cache::remember('gamification.level_configs', 3600, function () {
-             return \Modules\Common\Models\LevelConfig::all()->keyBy('level');
+            return \Modules\Common\Models\LevelConfig::all()->keyBy('level');
         });
 
         $level = 0;
@@ -211,7 +205,7 @@ class PointManager
     private function getXpRequiredForLevel(\Illuminate\Support\Collection $configs, int $level): int
     {
         $lookupLevel = $level + 1;
-        
+
         return $configs->get($lookupLevel)?->xp_required ?? PHP_INT_MAX;
     }
 
@@ -223,11 +217,12 @@ class PointManager
     public function getPointsHistory(int $userId, int $perPage): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, 100));
-         return cache()->tags(['gamification', 'points'])->remember(
-            "gamification:points:history:{$userId}:{$perPage}:" . request('page', 1),
+
+        return cache()->tags(['gamification', 'points'])->remember(
+            "gamification:points:history:{$userId}:{$perPage}:".request('page', 1),
             300,
             function () use ($userId, $perPage) {
-                 return QueryBuilder::for(Point::class)
+                return QueryBuilder::for(Point::class)
                     ->where('user_id', $userId)
                     ->allowedFilters([
                         AllowedFilter::exact('source_type'),
@@ -237,7 +232,7 @@ class PointManager
                     ->allowedSorts(['created_at', 'points', 'source_type'])
                     ->paginate($perPage);
             }
-         );
+        );
     }
 
     public function getAchievements(int $totalXp, int $currentLevel): array
@@ -267,7 +262,7 @@ class PointManager
             'current_xp' => $totalXp,
             'current_level' => $currentLevel,
         ];
-        }
+    }
 
     private function checkCooldown(int $userId, string $sourceType, string $reason): bool
     {
@@ -283,6 +278,7 @@ class PointManager
                 return false;
             }
         }
+
         return true;
     }
 
@@ -290,7 +286,7 @@ class PointManager
     {
         // Daily Cap for 'lesson' farming: Max 5000 XP per day
         if ($sourceType === 'lesson') {
-            $todayScale = 'gamification.daily_cap.' . $userId . '.' . Carbon::today()->format('Y-m-d');
+            $todayScale = 'gamification.daily_cap.'.$userId.'.'.Carbon::today()->format('Y-m-d');
             $currentDailyXp = \Illuminate\Support\Facades\Cache::get($todayScale, 0);
 
             if ($currentDailyXp + $points > 5000) {
@@ -303,6 +299,7 @@ class PointManager
                 \Illuminate\Support\Facades\Cache::put($todayScale, $points, Carbon::tomorrow()->addHour());
             }
         }
+
         return true;
     }
 

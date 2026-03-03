@@ -21,8 +21,8 @@ if (class_exists(\Laravel\Telescope\TelescopeApplicationServiceProvider::class))
             $isLocal = $this->app->environment('local');
             $telescopeEnabled = config('telescope.enabled', false);
 
-            Telescope::filter(function (IncomingEntry $entry) use ($isLocal, $telescopeEnabled) {
-                
+            Telescope::filter(function (IncomingEntry $entry) use ($isLocal) {
+
                 return $isLocal ||
                        $entry->isReportableException() ||
                        $entry->isFailedRequest() ||
@@ -34,18 +34,18 @@ if (class_exists(\Laravel\Telescope\TelescopeApplicationServiceProvider::class))
             Telescope::tag(function (IncomingEntry $entry) {
                 if ($entry->type === 'request') {
                     $tags = ['status:'.$entry->content['response_status']];
-                    
+
                     if (isset($entry->content['duration'])) {
                         $tags[] = 'time:'.$entry->content['duration'].'ms';
                     }
-                    
+
                     if (isset($entry->content['memory'])) {
                         $tags[] = 'mem:'.$entry->content['memory'].'MB';
                     }
 
                     return $tags;
                 }
-                
+
                 return [];
             });
         }
@@ -72,7 +72,7 @@ if (class_exists(\Laravel\Telescope\TelescopeApplicationServiceProvider::class))
          * Register the Telescope gate.
          *
          * This gate determines who can access Telescope in non-local environments.
-         * 
+         *
          * WARNING: Currently set to allow public access without authentication.
          * This exposes sensitive application data including:
          * - Database queries and data
@@ -80,7 +80,7 @@ if (class_exists(\Laravel\Telescope\TelescopeApplicationServiceProvider::class))
          * - Exception stack traces
          * - Cache keys and values
          * - Email content
-         * 
+         *
          * RECOMMENDATION: Implement IP whitelist or basic auth for production.
          */
         protected function gate(): void

@@ -11,18 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('social_accounts')) {
-        Schema::create('social_accounts', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('provider_name', 50);
-            $table->string('provider_id', 191);
-            $table->string('token')->nullable();
-            $table->string('refresh_token')->nullable();
-            $table->timestamps();
-        
-            $table->unique(['provider_name', 'provider_id']);
-        });        
+        if (! Schema::hasTable('social_accounts')) {
+            Schema::create('social_accounts', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+                $table->string('provider_name', 50);
+                $table->string('provider_id', 191);
+                $table->string('token')->nullable();
+                $table->string('refresh_token')->nullable();
+                $table->timestamps();
+
+                $table->unique(['provider_name', 'provider_id']);
+            });
         }
     }
 

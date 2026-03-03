@@ -10,8 +10,9 @@ class SubmitAnswersRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; 
+        return true;
     }
+
     public function rules(): array
     {
         return [

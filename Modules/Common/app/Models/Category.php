@@ -7,8 +7,8 @@ namespace Modules\Common\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Common\Traits\PgSearchable;
 use Modules\Common\Enums\CategoryStatus;
+use Modules\Common\Traits\PgSearchable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -46,8 +46,6 @@ class Category extends Model
     protected $casts = [
         'status' => CategoryStatus::class,
     ];
-
-
 
     protected static function newFactory()
     {

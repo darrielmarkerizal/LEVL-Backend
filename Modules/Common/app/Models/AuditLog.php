@@ -121,8 +121,8 @@ class AuditLog extends Model
     public function scopeCreatedBetween($query, $startDate, $endDate)
     {
         return $query->whereBetween('created_at', [
-            \Carbon\Carbon::parse($startDate)->startOfDay(), 
-            \Carbon\Carbon::parse($endDate)->endOfDay()
+            \Carbon\Carbon::parse($startDate)->startOfDay(),
+            \Carbon\Carbon::parse($endDate)->endOfDay(),
         ]);
     }
 
@@ -131,10 +131,10 @@ class AuditLog extends Model
      */
     public function scopeContextContains($query, $search)
     {
-        // Simple text search in JSON, strictly depends on DB capability. 
+        // Simple text search in JSON, strictly depends on DB capability.
         // For Postgres: cast to text or use ->> operator if keys known.
         // Assuming Postgres here for generic search:
-        return $query->whereRaw("context::text ILIKE ?", ["%{$search}%"]);
+        return $query->whereRaw('context::text ILIKE ?', ["%{$search}%"]);
     }
 
     /**
@@ -142,7 +142,7 @@ class AuditLog extends Model
      */
     public function scopeAssignmentId($query, $id)
     {
-        return $query->whereRaw("context->>'assignment_id' = ?", [(string)$id]);
+        return $query->whereRaw("context->>'assignment_id' = ?", [(string) $id]);
     }
 
     /**
@@ -150,9 +150,8 @@ class AuditLog extends Model
      */
     public function scopeStudentId($query, $id)
     {
-        return $query->whereRaw("context->>'student_id' = ?", [(string)$id]);
+        return $query->whereRaw("context->>'student_id' = ?", [(string) $id]);
     }
-
 
     /**
      * Get the target model (legacy polymorphic relationship).
@@ -300,6 +299,4 @@ class AuditLog extends Model
             'context' => $context,
         ]);
     }
-
-
 }

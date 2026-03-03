@@ -3,9 +3,9 @@
 namespace Modules\Enrollments\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\Enrollments\Models\Enrollment;
-use Modules\Enrollments\Enums\EnrollmentStatus;
 use Modules\Auth\Models\User;
+use Modules\Enrollments\Enums\EnrollmentStatus;
+use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
 
 /**

@@ -7,7 +7,6 @@ namespace Modules\Common\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Modules\Common\Http\Requests\Concerns\HasApiValidation;
 use Modules\Common\Http\Requests\Concerns\HasCommonRequestRules;
-use Modules\Common\Models\Category;
 
 class CategoryUpdateRequest extends FormRequest
 {

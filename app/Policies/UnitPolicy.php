@@ -14,7 +14,7 @@ class UnitPolicy
     public function view(User $user, Unit $unit)
     {
         $course = $unit->course;
-        if (!$course) {
+        if (! $course) {
             return $this->deny(__('messages.course_not_found'));
         }
 
@@ -24,7 +24,7 @@ class UnitPolicy
                 ->whereIn('status', ['active', 'completed'])
                 ->exists();
 
-            if (!$isEnrolled) {
+            if (! $isEnrolled) {
                 return $this->deny(__('messages.enrollment_required'));
             }
         }

@@ -6,7 +6,6 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 
 class EventServiceProvider extends ServiceProvider
 {
-     
     protected $listen = [
         \Modules\Forums\Events\ThreadCreated::class => [
             \Modules\Forums\Listeners\NotifyInstructorOnThreadCreated::class,
@@ -24,9 +23,7 @@ class EventServiceProvider extends ServiceProvider
         ],
     ];
 
-     
     protected static $shouldDiscoverEvents = false;
 
-     
     protected function configureEmailVerification(): void {}
 }

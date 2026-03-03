@@ -32,9 +32,8 @@ class AssignmentResource extends JsonResource
             'max_attempts' => $this->resource->max_attempts,
             'retake_enabled' => $this->resource->retake_enabled,
             'review_mode' => $this->resource->review_mode?->value ?? $this->resource->review_mode,
-            'lesson_slug' => $this->resource->lesson?->slug,
-            'unit_slug' => $this->resource->lesson?->unit?->slug,
-            'course_slug' => $this->resource->lesson?->unit?->course?->slug,
+            'unit_slug' => $this->resource->unit->slug ?? null,
+            'course_slug' => $this->resource->unit->course->slug ?? null,
             'attachments' => $this->resource->getMedia('attachments')->map(function ($media) {
                 return [
                     'id' => $media->id,
@@ -62,9 +61,8 @@ class AssignmentResource extends JsonResource
             'review_mode' => $this->resource->review_mode?->value ?? $this->resource->review_mode,
             'status' => $this->resource->status?->value ?? $this->resource->status,
             'allow_resubmit' => $this->resource->allow_resubmit,
-            'lesson_slug' => $this->resource->lesson?->slug,
-            'unit_slug' => $this->resource->lesson?->unit?->slug,
-            'course_slug' => $this->resource->lesson?->unit?->course?->slug,
+            'unit_slug' => $this->resource->unit->slug ?? null,
+            'course_slug' => $this->resource->unit->course->slug ?? null,
             'is_available' => $this->resource->isAvailable(),
             'created_at' => $this->resource->created_at?->toIso8601String(),
             'updated_at' => $this->resource->updated_at?->toIso8601String(),

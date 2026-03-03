@@ -3,7 +3,6 @@
 namespace Modules\Common\Transformers;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Auth\Http\Resources\UserResource;
 
 class ActivityLogResource extends JsonResource
 {
@@ -12,7 +11,7 @@ class ActivityLogResource extends JsonResource
         $properties = $this->properties ?? [];
 
         // Ensure ip_address exists in properties if ip exists
-        if (isset($properties['ip']) && !isset($properties['ip_address'])) {
+        if (isset($properties['ip']) && ! isset($properties['ip_address'])) {
             $properties['ip_address'] = $properties['ip'];
         }
 
@@ -39,8 +38,9 @@ class ActivityLogResource extends JsonResource
 
             'causer' => $this->whenLoaded('causer', function () {
                 if ($this->causer instanceof \Modules\Auth\Models\User) {
-                     return $this->formatUser($this->causer);
+                    return $this->formatUser($this->causer);
                 }
+
                 return $this->causer;
             }),
 
@@ -48,6 +48,7 @@ class ActivityLogResource extends JsonResource
                 if ($this->subject instanceof \Modules\Auth\Models\User) {
                     return $this->formatUser($this->subject);
                 }
+
                 return $this->subject;
             }),
         ];

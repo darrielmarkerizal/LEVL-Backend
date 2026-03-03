@@ -6,7 +6,6 @@ use Illuminate\Support\Collection;
 
 interface UserBadgeRepositoryInterface
 {
-    
     public function countByUserId(int $userId): int;
 
     public function findByUserId(int $userId): Collection;

@@ -21,6 +21,7 @@ class ForumDashboardController extends Controller
         abort_unless($user->hasRole(['Admin', 'Superadmin', 'Instructor']), 403, __('messages.forums.unauthorized_access'));
         $threads = $dashboardService->getAllThreads($user, $request->all(), (int) $request->input('per_page', 20));
         $threads->getCollection()->transform(fn ($item) => new ThreadResource($item));
+
         return $this->paginateResponse($threads, __('messages.forums.threads_retrieved'));
     }
 
@@ -29,6 +30,7 @@ class ForumDashboardController extends Controller
         $user = $request->user();
         $threads = $dashboardService->getMyThreads($user, $request->all(), (int) $request->input('per_page', 20));
         $threads->getCollection()->transform(fn ($item) => new ThreadResource($item));
+
         return $this->paginateResponse($threads, __('messages.forums.my_threads_retrieved'));
     }
 
@@ -38,6 +40,7 @@ class ForumDashboardController extends Controller
         abort_unless($user->hasRole(['Admin', 'Superadmin', 'Instructor']), 403, __('messages.forums.unauthorized_access'));
         $threads = $dashboardService->getTrendingThreads($user, $request->all(), (int) $request->input('per_page', 20));
         $threads->getCollection()->transform(fn ($item) => new ThreadResource($item));
+
         return $this->paginateResponse($threads, __('messages.forums.trending_threads_retrieved'));
     }
 }

@@ -4,10 +4,7 @@ namespace Modules\Gamification\Services\Support;
 
 use Modules\Auth\Models\User;
 use Modules\Gamification\Models\BadgeRule;
-use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Gamification\Models\UserScopeStat;
-use Modules\Schemes\Models\Course;
-use Modules\Schemes\Models\Lesson;
 
 class BadgeRuleEvaluator
 {
@@ -21,7 +18,7 @@ class BadgeRuleEvaluator
         // 1. Get all rules relevant to this trigger
         // Optimization: Cache rules to avoid repeated DB calls on every event (Octane friendly)
         $rules = \Illuminate\Support\Facades\Cache::remember('gamification.badge_rules', 3600, function () {
-             return BadgeRule::with('badge')->get();
+            return BadgeRule::with('badge')->get();
         });
 
         // Mapping Triggers to Criteria
@@ -74,7 +71,7 @@ class BadgeRuleEvaluator
                     ->where('status', 'completed')
                     ->count();
                 break;
-            
+
             case 'login_streak':
                 $stats = $this->pointManager->getOrCreateStats($user->id);
                 $currentValue = $stats->current_streak;

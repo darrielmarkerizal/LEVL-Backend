@@ -23,14 +23,14 @@ class CategoryService implements CategoryServiceInterface
         $perPage = max(1, min($perPage, 100));
         $page = request()->get('page', 1);
         $search = request('search');
-        
+
         return cache()->tags(['common', 'categories'])->remember(
             "common:categories:paginate:{$perPage}:{$page}:{$search}",
             300, // 5 minutes
             function () use ($perPage) {
                 $eloquentQuery = Category::query();
                 if (request()->has('search') && request('search')) {
-                     $eloquentQuery->search(request('search'));
+                    $eloquentQuery->search(request('search'));
                 }
 
                 return QueryBuilder::for($eloquentQuery)
@@ -56,6 +56,7 @@ class CategoryService implements CategoryServiceInterface
             $dto = $data instanceof CreateCategoryDTO ? $data : CreateCategoryDTO::fromRequest($data);
             $category = $this->repository->create($dto->toArray());
             cache()->tags(['common', 'categories'])->flush();
+
             return $category;
         });
     }
@@ -73,9 +74,11 @@ class CategoryService implements CategoryServiceInterface
         }
 
         $dto = $data instanceof UpdateCategoryDTO ? $data : UpdateCategoryDTO::fromRequest($data);
+
         return DB::transaction(function () use ($category, $dto) {
             $updated = $this->repository->update($category, array_filter($dto->toArray(), fn ($value) => $value !== null));
             cache()->tags(['common', 'categories'])->flush();
+
             return $updated;
         });
     }
@@ -90,8 +93,8 @@ class CategoryService implements CategoryServiceInterface
 
             $result = $this->repository->delete($category);
             cache()->tags(['common', 'categories'])->flush();
+
             return $result;
         });
     }
 }
-

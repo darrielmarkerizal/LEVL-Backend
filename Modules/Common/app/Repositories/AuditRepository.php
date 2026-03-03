@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Common\Repositories;
 
-use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Modules\Common\Contracts\Repositories\AuditRepositoryInterface;
 use Modules\Common\Models\AuditLog;
-use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class AuditRepository implements AuditRepositoryInterface
 {
@@ -21,10 +21,11 @@ class AuditRepository implements AuditRepositoryInterface
     public function search(array $filters): Collection
     {
         return cache()->tags(['common', 'audit_logs'])->remember(
-            "common:audit_logs:search:" . md5(json_encode($filters)),
+            'common:audit_logs:search:'.md5(json_encode($filters)),
             300,
             function () use ($filters) {
                 $request = new Request(['filter' => $filters]);
+
                 return QueryBuilder::for(AuditLog::class, $request)
                     ->with(['actor', 'subject'])
                     ->allowedFilters([
@@ -35,7 +36,7 @@ class AuditRepository implements AuditRepositoryInterface
                         AllowedFilter::exact('subject_type'),
                         AllowedFilter::callback('start_date', fn ($q, $v) => $q->where('created_at', '>=', $v)),
                         AllowedFilter::callback('end_date', fn ($q, $v) => $q->where('created_at', '<=', $v)),
-                         AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
+                        AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
                     ])
                     ->allowedSorts(['created_at', 'action', 'actor_id'])
                     ->defaultSort('-created_at')

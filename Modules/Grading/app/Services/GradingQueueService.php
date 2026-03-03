@@ -6,7 +6,6 @@ namespace Modules\Grading\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Modules\Grading\Models\Grade;
 use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Models\Submission;
@@ -22,7 +21,7 @@ class GradingQueueService
         $search = data_get($filters, 'search');
 
         return cache()->tags(['grading', 'queue'])->remember(
-            "grading:queue:{$perPage}:" . md5(json_encode($filters)),
+            "grading:queue:{$perPage}:".md5(json_encode($filters)),
             300,
             function () use ($filters, $perPage, $cleanFilters, $search) {
                 $request = new Request($cleanFilters);
@@ -30,7 +29,7 @@ class GradingQueueService
                     ->with([
                         'user:id,name,email',
                         'assignment:id,title,max_score',
-                        'answers.question'
+                        'answers.question',
                     ])
                     ->allowedFilters([
                         AllowedFilter::exact('assignment_id'),
@@ -48,7 +47,7 @@ class GradingQueueService
                     $query->whereIn('id', $ids);
                 }
 
-                if (!isset($filters['filter']['state'])) {
+                if (! isset($filters['filter']['state'])) {
                     $query->where('state', SubmissionState::PendingManualGrading->value);
                 }
 
@@ -57,7 +56,7 @@ class GradingQueueService
                         ->whereHas('question', function ($qq) {
                             $qq->whereIn('type', [
                                 \Modules\Learning\Enums\QuestionType::Essay->value,
-                                \Modules\Learning\Enums\QuestionType::FileUpload->value
+                                \Modules\Learning\Enums\QuestionType::FileUpload->value,
                             ]);
                         });
                 });
@@ -76,15 +75,15 @@ class GradingQueueService
 
         $gradedCount = $submission->answers->filter(fn ($a) => $a->score !== null)->count();
         $totalCount = $submission->answers->count();
-        
+
         $isComplete = $gradedCount === $totalCount;
-        
-        if (!empty($submission->question_set)) {
-             $questionSet = $submission->question_set;
-             $answersInSet = $submission->answers->whereIn('question_id', $questionSet);
-             $gradedCount = $answersInSet->filter(fn ($a) => $a->score !== null)->count();
-             $totalCount = $answersInSet->count();
-             $isComplete = $gradedCount === $totalCount;
+
+        if (! empty($submission->question_set)) {
+            $questionSet = $submission->question_set;
+            $answersInSet = $submission->answers->whereIn('question_id', $questionSet);
+            $gradedCount = $answersInSet->filter(fn ($a) => $a->score !== null)->count();
+            $totalCount = $answersInSet->count();
+            $isComplete = $gradedCount === $totalCount;
         }
 
         return [

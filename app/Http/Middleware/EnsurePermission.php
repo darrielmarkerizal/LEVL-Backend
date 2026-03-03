@@ -12,7 +12,7 @@ class EnsurePermission
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'status' => 'error',
                 'message' => __('messages.unauthenticated'),
@@ -31,5 +31,3 @@ class EnsurePermission
         ], 403);
     }
 }
-
-

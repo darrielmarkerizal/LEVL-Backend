@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Forums\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Modules\Auth\Models\User;
 use Modules\Forums\Contracts\Repositories\ForumStatisticsRepositoryInterface;
 use Modules\Forums\Models\ForumStatistic;
-use Carbon\Carbon;
 
 class ForumStatisticsService
 {
@@ -19,13 +19,16 @@ class ForumStatisticsService
     public function getStatistics(int $courseId, ?int $userId, Carbon $periodStart, Carbon $periodEnd): ForumStatistic
     {
         $cacheKey = $this->cacheKey($courseId, $userId, $periodStart, $periodEnd);
+
         return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($courseId, $userId, $periodStart, $periodEnd) {
             if ($userId) {
                 $statistics = $this->repository->getUserStatistics($courseId, $userId, $periodStart, $periodEnd);
+
                 return $statistics ?: $this->repository->updateUserStatistics($courseId, $userId, $periodStart, $periodEnd);
             }
 
             $statistics = $this->repository->getSchemeStatistics($courseId, $periodStart, $periodEnd);
+
             return $statistics ?: $this->repository->updateSchemeStatistics($courseId, $periodStart, $periodEnd);
         });
     }
@@ -33,8 +36,10 @@ class ForumStatisticsService
     public function getUserStatistics(int $courseId, User $user, Carbon $periodStart, Carbon $periodEnd): ForumStatistic
     {
         $cacheKey = $this->cacheKey($courseId, $user->id, $periodStart, $periodEnd);
+
         return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($courseId, $user, $periodStart, $periodEnd) {
             $statistics = $this->repository->getUserStatistics($courseId, $user->id, $periodStart, $periodEnd);
+
             return $statistics ?: $this->repository->updateUserStatistics($courseId, $user->id, $periodStart, $periodEnd);
         });
     }
@@ -53,6 +58,7 @@ class ForumStatisticsService
     private function cacheKey(int $courseId, ?int $userId, Carbon $periodStart, Carbon $periodEnd): string
     {
         $userPart = $userId ? (string) $userId : 'all';
+
         return "forums:stats:course:{$courseId}:user:{$userPart}:{$periodStart->toDateString()}:{$periodEnd->toDateString()}";
     }
 }

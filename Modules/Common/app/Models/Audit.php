@@ -66,4 +66,3 @@ class Audit extends Model
         return $query->where('action', $action);
     }
 }
-

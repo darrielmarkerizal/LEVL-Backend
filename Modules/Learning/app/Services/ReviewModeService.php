@@ -11,7 +11,7 @@ use Modules\Learning\Models\Submission;
 
 class ReviewModeService implements ReviewModeServiceInterface
 {
-        public function canViewAnswers(Submission $submission, ?int $userId = null): bool
+    public function canViewAnswers(Submission $submission, ?int $userId = null): bool
     {
         $assignment = $submission->assignment;
 
@@ -19,7 +19,6 @@ class ReviewModeService implements ReviewModeServiceInterface
             return false;
         }
 
-        
         if ($this->isInstructor($userId, $assignment)) {
             return true;
         }
@@ -34,7 +33,7 @@ class ReviewModeService implements ReviewModeServiceInterface
         };
     }
 
-        public function canViewFeedback(Submission $submission, ?int $userId = null): bool
+    public function canViewFeedback(Submission $submission, ?int $userId = null): bool
     {
         $assignment = $submission->assignment;
 
@@ -42,7 +41,6 @@ class ReviewModeService implements ReviewModeServiceInterface
             return false;
         }
 
-        
         if ($this->isInstructor($userId, $assignment)) {
             return true;
         }
@@ -57,13 +55,13 @@ class ReviewModeService implements ReviewModeServiceInterface
         };
     }
 
-        public function canViewScore(Submission $submission, ?int $userId = null): bool
+    public function canViewScore(Submission $submission, ?int $userId = null): bool
     {
-        
+
         return $this->isGraded($submission) || $this->isReleased($submission);
     }
 
-        public function getVisibilityStatus(Submission $submission, ?int $userId = null): array
+    public function getVisibilityStatus(Submission $submission, ?int $userId = null): array
     {
         $assignment = $submission->assignment;
         $reviewMode = $assignment?->review_mode ?? ReviewMode::Immediate;
@@ -78,7 +76,7 @@ class ReviewModeService implements ReviewModeServiceInterface
         ];
     }
 
-        private function isSubmitted(Submission $submission): bool
+    private function isSubmitted(Submission $submission): bool
     {
         $state = $submission->state;
 
@@ -95,7 +93,7 @@ class ReviewModeService implements ReviewModeServiceInterface
         ], true);
     }
 
-        private function isGraded(Submission $submission): bool
+    private function isGraded(Submission $submission): bool
     {
         $state = $submission->state;
 
@@ -110,24 +108,20 @@ class ReviewModeService implements ReviewModeServiceInterface
         ], true);
     }
 
-        private function isReleased(Submission $submission): bool
+    private function isReleased(Submission $submission): bool
     {
         return $submission->state === SubmissionState::Released;
     }
 
-        private function isInstructor(?int $userId, $assignment): bool
+    private function isInstructor(?int $userId, $assignment): bool
     {
         if (! $userId) {
             return false;
         }
 
-        
         if ($assignment->created_by === $userId) {
             return true;
         }
-
-        
-        
 
         return false;
     }

@@ -16,13 +16,11 @@ class NotifyAuthorOnReaction
         $this->notificationService = $notificationService;
     }
 
-     
     public function handle(ReactionAdded $event): void
     {
         $reaction = $event->reaction;
         $reactable = $reaction->reactable;
 
-        
         if ($reactable->author_id == $reaction->user_id) {
             return;
         }

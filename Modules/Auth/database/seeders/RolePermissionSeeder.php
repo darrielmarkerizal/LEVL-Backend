@@ -13,7 +13,7 @@ class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         $this->command->info('🔐 Creating roles and permissions...');
-        
+
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
@@ -36,27 +36,27 @@ class RolePermissionSeeder extends Seeder
             'submissions.create', 'submissions.read', 'submissions.update', 'submissions.delete',
         ];
 
-        $this->command->info("  📝 Creating " . count($permissions) . " permissions...");
-        
+        $this->command->info('  📝 Creating '.count($permissions).' permissions...');
+
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'api']);
         }
-        
-        $this->command->info("  ✅ " . count($permissions) . " permissions created");
+
+        $this->command->info('  ✅ '.count($permissions).' permissions created');
 
         $this->command->info("\n  👥 Creating roles...");
-        
+
         $superadmin = Role::firstOrCreate(['name' => 'Superadmin', 'guard_name' => 'api']);
         $admin = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'api']);
         $instructor = Role::firstOrCreate(['name' => 'Instructor', 'guard_name' => 'api']);
         $student = Role::firstOrCreate(['name' => 'Student', 'guard_name' => 'api']);
-        
-        $this->command->info("  ✅ 4 roles created");
+
+        $this->command->info('  ✅ 4 roles created');
         $this->command->info("\n  🔗 Assigning permissions to roles...");
 
         $allPermissions = Permission::all();
         $superadmin->syncPermissions($allPermissions);
-        $this->command->info("    ✓ Superadmin: " . $allPermissions->count() . " permissions (all)");
+        $this->command->info('    ✓ Superadmin: '.$allPermissions->count().' permissions (all)');
 
         $adminPerms = [
             'courses.read', 'courses.update', 'courses.publish', 'courses.assign-admin', 'courses.assign-instructor',
@@ -68,7 +68,7 @@ class RolePermissionSeeder extends Seeder
             'assignments.read', 'assignments.update', 'submissions.read',
         ];
         $admin->syncPermissions($adminPerms);
-        $this->command->info("    ✓ Admin: " . count($adminPerms) . " permissions");
+        $this->command->info('    ✓ Admin: '.count($adminPerms).' permissions');
 
         $instructorPerms = [
             'courses.read', 'units.read', 'units.update',
@@ -78,15 +78,15 @@ class RolePermissionSeeder extends Seeder
             'submissions.read', 'submissions.update',
         ];
         $instructor->syncPermissions($instructorPerms);
-        $this->command->info("    ✓ Instructor: " . count($instructorPerms) . " permissions");
+        $this->command->info('    ✓ Instructor: '.count($instructorPerms).' permissions');
 
         $studentPerms = [
             'courses.read', 'units.read', 'lessons.read', 'lesson-blocks.read',
             'enrollments.read', 'submissions.create', 'submissions.read', 'submissions.update',
         ];
         $student->syncPermissions($studentPerms);
-        $this->command->info("    ✓ Student: " . count($studentPerms) . " permissions");
-        
+        $this->command->info('    ✓ Student: '.count($studentPerms).' permissions');
+
         $this->command->info("\n✅ Roles and permissions setup completed!");
     }
 }

@@ -22,36 +22,31 @@ return new class extends Migration
      */
     public function up(): void
     {
-        
+
         Schema::table('submissions', function (Blueprint $table) {
-            
-            
+
             if (! $this->indexExists('submissions', 'idx_submissions_student_assignment')) {
                 $table->index(['user_id', 'assignment_id'], 'idx_submissions_student_assignment');
             }
 
-            
             if (! $this->indexExists('submissions', 'idx_submissions_submitted_at')) {
                 $table->index('submitted_at', 'idx_submissions_submitted_at');
             }
 
-            
             if (! $this->indexExists('submissions', 'idx_submissions_score')) {
                 $table->index('score', 'idx_submissions_score');
             }
         });
 
-        
         Schema::table('grades', function (Blueprint $table) {
-            
+
             if (! $this->indexExists('grades', 'idx_grades_grader')) {
                 $table->index('graded_by', 'idx_grades_grader');
             }
         });
 
-        
         Schema::table('assignments', function (Blueprint $table) {
-            
+
             if (! $this->indexExists('assignments', 'idx_assignments_deadline')) {
                 $table->index('deadline_at', 'idx_assignments_deadline');
             }
@@ -124,7 +119,6 @@ return new class extends Migration
             return count($indexes) > 0;
         }
 
-        
         return false;
     }
 };

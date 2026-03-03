@@ -6,10 +6,10 @@ namespace Modules\Learning\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Modules\Learning\Enums\QuestionType;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
-use Modules\Learning\Enums\QuestionType;
-use Illuminate\Support\Str;
 
 class QuestionSeederEnhanced extends Seeder
 {
@@ -92,16 +92,18 @@ class QuestionSeederEnhanced extends Seeder
     public function run(): void
     {
         $this->command->info("\n╔══════════════════════════════════════════════════╗");
-        $this->command->info("║      ❓ QUESTION & ANSWER SEEDER                 ║");
+        $this->command->info('║      ❓ QUESTION & ANSWER SEEDER                 ║');
         $this->command->info("╚══════════════════════════════════════════════════╝\n");
 
-        if (!Assignment::exists()) {
-            $this->command->warn("⚠️  No assignments found. Skipping question seeding.");
+        if (! Assignment::exists()) {
+            $this->command->warn('⚠️  No assignments found. Skipping question seeding.');
+
             return;
         }
 
-        if (!Submission::exists()) {
-            $this->command->warn("⚠️  No submissions found. Skipping answer seeding.");
+        if (! Submission::exists()) {
+            $this->command->warn('⚠️  No submissions found. Skipping answer seeding.');
+
             return;
         }
 
@@ -111,7 +113,7 @@ class QuestionSeederEnhanced extends Seeder
         $this->updateSubmissionStates();
 
         $this->command->info("\n╔══════════════════════════════════════════════════╗");
-        $this->command->info("║   ✅ QUESTION SEEDING COMPLETED!                 ║");
+        $this->command->info('║   ✅ QUESTION SEEDING COMPLETED!                 ║');
         $this->command->info("║   Questions: {$questionCount}                               ║");
         $this->command->info("║   Answers: {$answerCount}                              ║");
         $this->command->info("╚══════════════════════════════════════════════════╝\n");
@@ -146,7 +148,7 @@ class QuestionSeederEnhanced extends Seeder
             }
         });
 
-        if (!empty($questions)) {
+        if (! empty($questions)) {
             DB::table('assignment_questions')->insertOrIgnore($questions);
             $this->command->info("  ✅ Inserted {$questionCount} questions (final batch)");
         }
@@ -175,7 +177,7 @@ class QuestionSeederEnhanced extends Seeder
 
         Submission::with('assignment.questions')->chunkById(1000, function ($submissions) use (&$answerCount, &$answers) {
             foreach ($submissions as $submission) {
-                if (!$submission->assignment || $submission->assignment->questions->isEmpty()) {
+                if (! $submission->assignment || $submission->assignment->questions->isEmpty()) {
                     continue;
                 }
 
@@ -198,14 +200,14 @@ class QuestionSeederEnhanced extends Seeder
             }
         });
 
-        if (!empty($answers)) {
+        if (! empty($answers)) {
             DB::table('answers')->insertOrIgnore($answers);
             $this->command->info("  ✅ Inserted {$answerCount} answers (final batch)");
         }
 
         $this->command->info("\n📊 Answer Summary:");
         $this->command->info("  Total Answers: {$answerCount}");
-        $this->command->info("  Completion Rate: ~80% (20% skipped for realism)");
+        $this->command->info('  Completion Rate: ~80% (20% skipped for realism)');
 
         return $answerCount;
     }
@@ -325,7 +327,7 @@ class QuestionSeederEnhanced extends Seeder
         $options = json_decode($question->options, true);
         if ($options) {
             $baseData['selected_options'] = json_encode([
-                $options[rand(0, count($options) - 1)]['id']
+                $options[rand(0, count($options) - 1)]['id'],
             ]);
         }
 
@@ -340,7 +342,7 @@ class QuestionSeederEnhanced extends Seeder
             $selectedKeys = array_rand($options, $numSelections);
             $selectedKeys = is_array($selectedKeys) ? $selectedKeys : [$selectedKeys];
 
-            $selectedIds = array_map(fn($key) => $options[$key]['id'], $selectedKeys);
+            $selectedIds = array_map(fn ($key) => $options[$key]['id'], $selectedKeys);
             $baseData['selected_options'] = json_encode($selectedIds);
         }
 
@@ -350,10 +352,10 @@ class QuestionSeederEnhanced extends Seeder
     private function buildEssayAnswer(array $baseData): array
     {
         $paragraphs = [
-            "This concept is fundamental to modern software development. It allows developers to write more maintainable and testable code by reducing tight coupling between components.",
-            "In my experience, applying this principle has significantly improved code quality. The separation of concerns makes it easier to understand and modify individual components without affecting others.",
-            "From a practical standpoint, this approach offers several advantages including better code organization, easier testing, and improved scalability. However, it may introduce some complexity in smaller projects.",
-            "After researching various implementations, I found that the key to success is understanding the underlying principles and adapting them to specific project requirements rather than blindly following patterns.",
+            'This concept is fundamental to modern software development. It allows developers to write more maintainable and testable code by reducing tight coupling between components.',
+            'In my experience, applying this principle has significantly improved code quality. The separation of concerns makes it easier to understand and modify individual components without affecting others.',
+            'From a practical standpoint, this approach offers several advantages including better code organization, easier testing, and improved scalability. However, it may introduce some complexity in smaller projects.',
+            'After researching various implementations, I found that the key to success is understanding the underlying principles and adapting them to specific project requirements rather than blindly following patterns.',
         ];
 
         $numParagraphs = rand(2, 4);
@@ -376,7 +378,7 @@ class QuestionSeederEnhanced extends Seeder
         $filePaths = [];
         for ($i = 0; $i < $numFiles; $i++) {
             $ext = $fileTypes[array_rand($fileTypes)];
-            $filePaths[] = Str::uuid() . '.' . $ext;
+            $filePaths[] = Str::uuid().'.'.$ext;
         }
 
         $baseData['file_paths'] = json_encode($filePaths);

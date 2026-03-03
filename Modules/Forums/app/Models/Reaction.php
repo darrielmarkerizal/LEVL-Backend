@@ -13,14 +13,12 @@ class Reaction extends Model
 {
     use HasFactory;
 
-     
     const TYPE_LIKE = 'like';
 
     const TYPE_HELPFUL = 'helpful';
 
     const TYPE_SOLVED = 'solved';
 
-     
     public $timestamps = false;
 
     protected $fillable = [
@@ -34,19 +32,16 @@ class Reaction extends Model
         'created_at' => 'datetime',
     ];
 
-     
     public function user(): BelongsTo
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class);
     }
 
-     
     public function reactable(): MorphTo
     {
         return $this->morphTo();
     }
 
-     
     public static function toggle(int $userId, string $reactableType, int $reactableId, string $type): bool
     {
         $reaction = static::where([
@@ -72,7 +67,6 @@ class Reaction extends Model
         return true;
     }
 
-     
     public static function getTypes(): array
     {
         return [
@@ -82,7 +76,6 @@ class Reaction extends Model
         ];
     }
 
-     
     public static function isValidType(string $type): bool
     {
         return in_array($type, self::getTypes());

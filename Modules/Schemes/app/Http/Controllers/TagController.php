@@ -25,8 +25,9 @@ class TagController extends Controller
         $data = $this->service->list($filters, (int) $request->query('per_page', 15));
 
         if ($data instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) {
-            return $this->paginateResponse($data->through(fn($tag) => new TagResource($tag)));
+            return $this->paginateResponse($data->through(fn ($tag) => new TagResource($tag)));
         }
+
         return $this->success(TagResource::collection($data));
     }
 
@@ -34,7 +35,7 @@ class TagController extends Controller
     {
         $this->authorize('create', Tag::class);
         $result = $this->service->handleCreate($request->validated());
-        
+
         return $result instanceof \Illuminate\Support\Collection
             ? $this->success(TagResource::collection($result), __('messages.tags.created'))
             : $this->created(new TagResource($result), __('messages.tags.created'));

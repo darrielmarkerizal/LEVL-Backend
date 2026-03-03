@@ -87,6 +87,7 @@ class AuthRegistrationProcessor
             if (! $user) {
                 return ['error' => 'User not found'];
             }
+
             return ['specific_user' => $this->formatUserToken($user, $ip, $userAgent)];
         }
 

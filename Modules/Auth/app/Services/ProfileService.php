@@ -8,12 +8,11 @@ use App\Contracts\Services\ProfileServiceInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
+use Modules\Auth\Contracts\Services\AuthServiceInterface;
+use Modules\Auth\Contracts\Services\EmailVerificationServiceInterface;
 use Modules\Auth\Events\AccountDeleted;
 use Modules\Auth\Events\PasswordChanged;
 use Modules\Auth\Events\ProfileUpdated;
-use Modules\Auth\Contracts\Services\AuthServiceInterface;
-use Modules\Auth\Contracts\Services\EmailVerificationServiceInterface;
 use Modules\Auth\Models\User;
 
 class ProfileService implements ProfileServiceInterface
@@ -138,8 +137,7 @@ class ProfileService implements ProfileServiceInterface
     public function requestEmailChange(User $user, string $newEmail, ?string $ip, ?string $userAgent): ?string
     {
         $uuid = $this->emailVerification->sendChangeEmailLink($user, $newEmail);
-        
-        
+
         $this->authService->logEmailChangeRequest($user, $newEmail, $uuid, $ip, $userAgent);
 
         return $uuid;
@@ -167,14 +165,14 @@ class ProfileService implements ProfileServiceInterface
 
     public function restoreAccount(User $user): bool
     {
-        if ($user->account_status !== 'deleted' || !$user->trashed()) {
+        if ($user->account_status !== 'deleted' || ! $user->trashed()) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'account' => [__('messages.account.restore_not_deleted')],
             ]);
         }
 
         $days = (int) ((\Modules\Common\Models\SystemSetting::get('auth_account_retention_days', 30)) ?? 30);
-        
+
         if ($user->deleted_at->addDays($days)->isPast()) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'account' => [__('messages.account.restore_expired', ['days' => $days])],

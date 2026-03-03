@@ -6,7 +6,6 @@ namespace Modules\Learning\Policies;
 
 use Modules\Auth\Models\User;
 use Modules\Learning\Enums\SubmissionState;
-use Modules\Learning\Enums\SubmissionStatus;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
 
@@ -29,8 +28,8 @@ class SubmissionPolicy
 
         $submission->loadMissing('assignment.lesson.unit.course');
         $course = $submission->assignment?->lesson?->unit?->course;
-        
-        if (!$course) {
+
+        if (! $course) {
             return false;
         }
 
@@ -52,12 +51,12 @@ class SubmissionPolicy
             return true;
         }
 
-        if (!$user->hasRole('Student')) {
+        if (! $user->hasRole('Student')) {
             return false;
         }
 
         $courseId = $assignment->getCourseId();
-        if (!$courseId) {
+        if (! $courseId) {
             return false;
         }
 
@@ -82,7 +81,7 @@ class SubmissionPolicy
             return \Illuminate\Auth\Access\Response::allow();
         }
 
-        if (!$user->hasRole('Student')) {
+        if (! $user->hasRole('Student')) {
             return \Illuminate\Auth\Access\Response::deny(__('messages.forbidden'));
         }
 
@@ -124,8 +123,8 @@ class SubmissionPolicy
 
         $submission->loadMissing('assignment.lesson.unit.course');
         $course = $submission->assignment?->lesson?->unit?->course;
-        
-        if (!$course) {
+
+        if (! $course) {
             return false;
         }
 

@@ -13,13 +13,14 @@ class AnswerDetailResource extends JsonResource
     public function withVisibility(array $visibility): self
     {
         $this->visibility = $visibility;
+
         return $this;
     }
 
     public function toArray($request): array
     {
         $question = $this->whenLoaded('question');
-        
+
         $canViewAnswers = $this->visibility['can_view_answers'] ?? false;
         $canViewScore = $this->visibility['can_view_score'] ?? false;
         $canViewFeedback = $this->visibility['can_view_feedback'] ?? false;
@@ -47,9 +48,9 @@ class AnswerDetailResource extends JsonResource
         if ($canViewAnswers) {
             $isCorrect = null;
             if ($this->score !== null && $question && $question->weight > 0) {
-                 $isCorrect = abs((float)$this->score - (float)$question->weight) < 0.001;
+                $isCorrect = abs((float) $this->score - (float) $question->weight) < 0.001;
             } elseif ($this->score !== null && $question && $question->weight == 0) {
-                 $isCorrect = false; 
+                $isCorrect = false;
             }
 
             $data['is_correct'] = $isCorrect;

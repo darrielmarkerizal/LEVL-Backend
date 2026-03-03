@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('grading_rubrics', function (Blueprint $table) {
@@ -14,7 +15,7 @@ return new class extends Migration {
             $table->json('criteria');
             $table->text('description')->nullable();
             $table->integer('max_score')->default(10);
-            $table->integer('weight')->default(1); 
+            $table->integer('weight')->default(1);
             $table->timestamps();
 
             $table->index(['scope_type', 'scope_id']);

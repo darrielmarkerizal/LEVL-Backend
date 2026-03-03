@@ -1,17 +1,15 @@
 <?php
 
-use Modules\Auth\app\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-use Tests\TestCase;
+use Modules\Auth\app\Models\User;
 
 test('user can update name', function () {
     $user = User::factory()->create();
     $token = auth()->login($user);
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile', [
-            'name' => 'New Name'
+            'name' => 'New Name',
         ]);
 
     $response->assertStatus(200);
@@ -22,9 +20,9 @@ test('user can update email', function () {
     $user = User::factory()->create(['email' => 'old@example.com', 'email_verified_at' => now()]);
     $token = auth()->login($user);
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile', [
-            'email' => 'new@example.com'
+            'email' => 'new@example.com',
         ]);
 
     $response->assertStatus(200);
@@ -36,9 +34,9 @@ test('user can update phone', function () {
     $user = User::factory()->create();
     $token = auth()->login($user);
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile', [
-            'phone' => '08123456789'
+            'phone' => '08123456789',
         ]);
 
     $response->assertStatus(200);
@@ -46,12 +44,12 @@ test('user can update phone', function () {
 });
 
 test('user can update bio', function () {
-     $user = User::factory()->create();
+    $user = User::factory()->create();
     $token = auth()->login($user);
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile', [
-            'bio' => 'New Bio'
+            'bio' => 'New Bio',
         ]);
 
     $response->assertStatus(200);
@@ -60,11 +58,11 @@ test('user can update bio', function () {
 
 test('update profile triggers event', function () {
     Event::fake();
-    
+
     $user = User::factory()->create();
     $token = auth()->login($user);
-    
-    $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+
+    $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile', ['name' => 'Name']);
 
     // Event::assertDispatched('ProfileUpdated');
@@ -76,9 +74,9 @@ test('update fails with duplicate email', function () {
     $user = User::factory()->create();
     $token = auth()->login($user);
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile', [
-            'email' => 'taken@example.com'
+            'email' => 'taken@example.com',
         ]);
 
     $response->assertStatus(422)
@@ -89,9 +87,9 @@ test('update fails with invalid email', function () {
     $user = User::factory()->create();
     $token = auth()->login($user);
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile', [
-            'email' => 'notanemail'
+            'email' => 'notanemail',
         ]);
 
     $response->assertStatus(422)
@@ -102,21 +100,21 @@ test('update fails with invalid phone format', function () {
     $user = User::factory()->create();
     $token = auth()->login($user);
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile', [
-            'phone' => 'abc'
+            'phone' => 'abc',
         ]);
 
-    $response->assertStatus(422); 
+    $response->assertStatus(422);
 });
 
 test('update fails with too long name', function () {
-     $user = User::factory()->create();
+    $user = User::factory()->create();
     $token = auth()->login($user);
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile', [
-            'name' => str_repeat('a', 101)
+            'name' => str_repeat('a', 101),
         ]);
 
     $response->assertStatus(422);

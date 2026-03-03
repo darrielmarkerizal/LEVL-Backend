@@ -58,14 +58,14 @@ class ReactionService
     public function delete(Reaction $reaction): bool
     {
         $result = $reaction->delete();
-        
+
         if ($result && $reaction->reactable_type === Reply::class) {
             $reply = $reaction->reactable;
             if ($reply) {
                 cache()->tags(['forums', 'replies', "thread:{$reply->thread_id}"])->flush();
             }
         }
-        
+
         return $result;
     }
 }

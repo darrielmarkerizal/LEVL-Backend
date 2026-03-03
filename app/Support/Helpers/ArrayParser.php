@@ -77,7 +77,6 @@ class ArrayParser
      *
      * @param  string|array  $value  Comma-separated string or array
      * @param  bool  $trimValues  Whether to trim whitespace from values
-     * @return array
      *
      * @example
      * ```php
@@ -98,7 +97,7 @@ class ArrayParser
         $parts = explode(',', $value);
 
         if ($trimValues) {
-            return collect($parts)->map(fn($item) => trim($item))->all();
+            return collect($parts)->map(fn ($item) => trim($item))->all();
         }
 
         return $parts;
@@ -108,7 +107,6 @@ class ArrayParser
      * Ensure value is an array, wrap scalar values.
      *
      * @param  mixed  $value
-     * @return array
      *
      * @example
      * ```php
@@ -134,7 +132,6 @@ class ArrayParser
      * Parse pipe-separated string into array (useful for Laravel validation).
      *
      * @param  string|array  $value  Pipe-separated string or array
-     * @return array
      *
      * @example
      * ```php

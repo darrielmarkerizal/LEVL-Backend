@@ -28,6 +28,7 @@ class ReplyController extends Controller
         $page = (int) $request->input('page', 1);
         $replies = $replyRepository->paginateTopLevelReplies($thread->id, $perPage, $page);
         $replies->getCollection()->transform(fn ($item) => new ReplyResource($item));
+
         return $this->paginateResponse($replies, __('messages.forums.replies_retrieved'));
     }
 
@@ -38,6 +39,7 @@ class ReplyController extends Controller
         $parentId = isset($validated['parent_id']) ? (int) $validated['parent_id'] : null;
         $reply = $replyService->create($validated, $request->user(), $thread, $parentId, $request->file('attachments') ?? []);
         $replyWithIncludes = $replyRepository->findWithRelations($reply->id);
+
         return $this->created(new ReplyResource($replyWithIncludes), __('messages.forums.reply_created'));
     }
 
@@ -46,12 +48,14 @@ class ReplyController extends Controller
         $this->authorize('update', $reply);
         $updatedReply = $replyService->update($reply, $request->validated());
         $replyWithIncludes = $replyRepository->findWithRelations($updatedReply->id);
+
         return $this->success(new ReplyResource($replyWithIncludes), __('messages.forums.reply_updated'));
     }
 
     public function children(Request $request, Course $course, Thread $thread, Reply $reply, ReplyRepositoryInterface $replyRepository): JsonResponse
     {
         $children = $replyRepository->getChildrenOf($reply->id);
+
         return $this->success(ReplyResource::collection($children), __('messages.forums.replies_retrieved'));
     }
 
@@ -59,6 +63,7 @@ class ReplyController extends Controller
     {
         $this->authorize('delete', $reply);
         $replyService->delete($reply, $request->user());
+
         return $this->success(null, __('messages.forums.reply_deleted'));
     }
 
@@ -67,6 +72,7 @@ class ReplyController extends Controller
         $this->authorize('markAsAccepted', $reply);
         $updatedReply = $moderationService->markAsAcceptedAnswer($reply, $request->user());
         $replyWithIncludes = $replyRepository->findWithRelations($updatedReply->id);
+
         return $this->success(new ReplyResource($replyWithIncludes), __('messages.forums.reply_updated'));
     }
 
@@ -75,6 +81,7 @@ class ReplyController extends Controller
         $this->authorize('markAsAccepted', $reply);
         $updatedReply = $moderationService->unmarkAsAcceptedAnswer($reply, $request->user());
         $replyWithIncludes = $replyRepository->findWithRelations($updatedReply->id);
+
         return $this->success(new ReplyResource($replyWithIncludes), __('messages.forums.reply_updated'));
     }
 }

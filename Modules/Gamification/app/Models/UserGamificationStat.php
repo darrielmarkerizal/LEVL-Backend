@@ -48,6 +48,7 @@ class UserGamificationStat extends Model
         }
 
         $currentLevelXp = $this->calculateCurrentLevelXp();
+
         return min(100.0, ($currentLevelXp / $xpToNext) * 100);
     }
 
@@ -59,6 +60,7 @@ class UserGamificationStat extends Model
     private function calculateCurrentLevelXp(): int
     {
         $previousLevelXp = $this->calculateXpForLevel($this->global_level - 1);
+
         return max(0, $this->total_xp - $previousLevelXp);
     }
 
@@ -72,6 +74,7 @@ class UserGamificationStat extends Model
         for ($i = 1; $i < $level; $i++) {
             $xp += $this->calculateXpRequiredForLevel($i);
         }
+
         return $xp;
     }
 
@@ -84,4 +87,3 @@ class UserGamificationStat extends Model
         return (int) (100 * pow(1.1, $level - 1));
     }
 }
-

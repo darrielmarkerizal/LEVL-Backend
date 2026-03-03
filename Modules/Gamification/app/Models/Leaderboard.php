@@ -72,4 +72,3 @@ class Leaderboard extends Model
             ->limit($limit);
     }
 }
-

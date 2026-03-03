@@ -2,14 +2,13 @@
 
 namespace Modules\Forums\DTOs;
 
-use Spatie\LaravelData\Attributes\Validation\Max;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Optional;
 
 final class UpdateThreadDTO extends Data
 {
     public function __construct(
-        
+
         public string|Optional|null $title,
 
         public string|Optional|null $content,

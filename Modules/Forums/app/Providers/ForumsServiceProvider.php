@@ -15,7 +15,6 @@ class ForumsServiceProvider extends ServiceProvider
 
     protected string $nameLower = 'forums';
 
-     
     public function boot(): void
     {
         $this->registerCommands();
@@ -27,7 +26,6 @@ class ForumsServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
     }
 
-     
     protected function registerPolicies(): void
     {
         \Illuminate\Support\Facades\Gate::policy(
@@ -41,7 +39,6 @@ class ForumsServiceProvider extends ServiceProvider
         );
     }
 
-     
     public function register(): void
     {
         $this->app->register(EventServiceProvider::class);
@@ -49,7 +46,6 @@ class ForumsServiceProvider extends ServiceProvider
         $this->registerBindings();
     }
 
-     
     protected function registerBindings(): void
     {
         $this->app->bind(
@@ -59,7 +55,7 @@ class ForumsServiceProvider extends ServiceProvider
         $this->app->bind(
             \Modules\Forums\Contracts\Services\ModerationServiceInterface::class,
             \Modules\Forums\Services\ModerationService::class
-       );
+        );
 
         $this->app->bind(
             \Modules\Forums\Contracts\Repositories\ReactionRepositoryInterface::class,
@@ -82,22 +78,10 @@ class ForumsServiceProvider extends ServiceProvider
         );
     }
 
-     
-    protected function registerCommands(): void
-    {
-        
-    }
+    protected function registerCommands(): void {}
 
-     
-    protected function registerCommandSchedules(): void
-    {
-        
-        
-        
-        
-    }
+    protected function registerCommandSchedules(): void {}
 
-     
     public function registerTranslations(): void
     {
         $langPath = resource_path('lang/modules/'.$this->nameLower);
@@ -111,13 +95,11 @@ class ForumsServiceProvider extends ServiceProvider
         }
     }
 
-     
     protected function registerConfig(): void
     {
         $this->registerModuleConfig();
     }
 
-     
     public function registerViews(): void
     {
         $viewPath = resource_path('views/modules/'.$this->nameLower);
@@ -130,7 +112,6 @@ class ForumsServiceProvider extends ServiceProvider
         Blade::componentNamespace(config('modules.namespace').'\\'.$this->name.'\\View\\Components', $this->nameLower);
     }
 
-     
     public function provides(): array
     {
         return [];

@@ -11,7 +11,9 @@ class ActivityLogSeeder extends Seeder
     public function run(): void
     {
         $admin = User::first(); // Assuming seeders run after user seeders
-        if (!$admin) return;
+        if (! $admin) {
+            return;
+        }
 
         $actions = ['login', 'logout', 'created', 'updated', 'deleted'];
         $logNames = ['auth', 'system', 'user', 'course'];
@@ -21,7 +23,7 @@ class ActivityLogSeeder extends Seeder
         for ($i = 0; $i < 50; $i++) {
             $logName = $logNames[array_rand($logNames)];
             $action = $actions[array_rand($actions)];
-            
+
             ActivityLog::create([
                 'log_name' => $logName,
                 'description' => "User {$action} a resource",

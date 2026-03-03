@@ -8,7 +8,7 @@ use Exception;
 
 class LearningDomainException extends Exception
 {
-    public function __construct(string $message = "", int $code = 0, \Throwable $previous = null, private array $errors = [])
+    public function __construct(string $message = '', int $code = 0, ?\Throwable $previous = null, private array $errors = [])
     {
         parent::__construct($message, $code, $previous);
     }
@@ -16,7 +16,7 @@ class LearningDomainException extends Exception
     public function render($request)
     {
         $status = $this->getCode() ?: 400;
-        
+
         $response = [
             'status' => 'error',
             'message' => $this->getMessage(),

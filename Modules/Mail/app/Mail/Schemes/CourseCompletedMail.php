@@ -24,7 +24,7 @@ class CourseCompletedMail extends Mailable
 
     public function build(): self
     {
-        return $this->subject('Selamat! Anda Telah Menyelesaikan Course: ' . $this->course->title)
+        return $this->subject('Selamat! Anda Telah Menyelesaikan Course: '.$this->course->title)
             ->view('mail::emails.schemes.course-completed')
             ->with([
                 'user' => $this->user,

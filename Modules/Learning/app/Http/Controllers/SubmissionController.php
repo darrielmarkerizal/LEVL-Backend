@@ -11,21 +11,20 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Learning\Contracts\Services\SubmissionServiceInterface;
 use Modules\Learning\Http\Requests\GradeSubmissionRequest;
+use Modules\Learning\Http\Requests\SaveAnswerRequest;
 use Modules\Learning\Http\Requests\SearchSubmissionsRequest;
 use Modules\Learning\Http\Requests\StartSubmissionRequest;
 use Modules\Learning\Http\Requests\StoreSubmissionRequest;
 use Modules\Learning\Http\Requests\SubmitAnswersRequest;
 use Modules\Learning\Http\Requests\UpdateSubmissionRequest;
 use Modules\Learning\Http\Resources\AnswerResource;
-use Modules\Learning\Http\Resources\SubmissionResource;
+use Modules\Learning\Http\Resources\QuestionResource;
 use Modules\Learning\Http\Resources\SubmissionConfirmationResource;
-use Modules\Learning\Http\Resources\SubmissionListResource;
 use Modules\Learning\Http\Resources\SubmissionDetailResource;
-use Modules\Learning\Http\Resources\AnswerDetailResource;
-use Modules\Learning\Http\Requests\SaveAnswerRequest;
+use Modules\Learning\Http\Resources\SubmissionListResource;
+use Modules\Learning\Http\Resources\SubmissionResource;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
-use Modules\Learning\Http\Resources\QuestionResource;
 
 class SubmissionController extends Controller
 {
@@ -40,7 +39,7 @@ class SubmissionController extends Controller
     {
         $this->authorize('viewAny', Submission::class);
         $paginator = $this->service->listForAssignmentForIndex($assignment, auth('api')->user(), $request->all());
-        $paginator->getCollection()->transform(fn($item) => new \Modules\Learning\Http\Resources\SubmissionIndexResource($item));
+        $paginator->getCollection()->transform(fn ($item) => new \Modules\Learning\Http\Resources\SubmissionIndexResource($item));
 
         return $this->paginateResponse($paginator, 'messages.submissions.list_retrieved');
     }
@@ -81,7 +80,7 @@ class SubmissionController extends Controller
     {
         $this->authorize('accessQuestions', $submission);
         if ($request->hasAny(['page', 'per_page'])) {
-            return $this->paginateResponse($this->service->getSubmissionQuestionsPaginated($submission, (int) $request->query('per_page', 1))->through(fn($i) => new QuestionResource($i)));
+            return $this->paginateResponse($this->service->getSubmissionQuestionsPaginated($submission, (int) $request->query('per_page', 1))->through(fn ($i) => new QuestionResource($i)));
         }
 
         return $this->success(QuestionResource::collection($this->service->getSubmissionQuestions($submission)));
@@ -111,22 +110,28 @@ class SubmissionController extends Controller
     public function mySubmissions(Request $request, Assignment $assignment): JsonResponse
     {
         $submissions = $this->service->getSubmissionsWithHighestMarked($assignment->id, auth('api')->id());
+
         return $this->success(SubmissionListResource::collection($submissions));
     }
 
     public function showForAssignment(Request $request, Assignment $assignment, Submission $submission): JsonResponse
     {
         $this->authorize('view', $submission);
-        if ($submission->assignment_id !== $assignment->id) return $this->error(__('messages.submissions.not_found'), [], 404);
-        
+        if ($submission->assignment_id !== $assignment->id) {
+            return $this->error(__('messages.submissions.not_found'), [], 404);
+        }
+
         $data = $this->service->getSubmissionDetail($submission, auth('api')->id());
+
         return $this->success((new SubmissionDetailResource($data['submission']))->withVisibility($data['visibility']));
     }
 
     public function highestSubmission(Request $request, Assignment $assignment): JsonResponse
     {
         $submission = $this->service->getHighestScoreSubmission($assignment->id, auth('api')->id());
-        if (!$submission) return $this->error(__('messages.submissions.not_found'), [], 404);
+        if (! $submission) {
+            return $this->error(__('messages.submissions.not_found'), [], 404);
+        }
 
         return $this->success(SubmissionResource::make($submission));
     }
@@ -135,7 +140,7 @@ class SubmissionController extends Controller
     {
         $this->authorize('viewAny', Submission::class);
         $result = $this->service->searchSubmissions($request->validated('query', ''), $request->validated('filters', []), ['per_page' => (int) $request->validated('per_page', 15), 'page' => (int) $request->validated('page', 1)]);
-        $result['data']->transform(fn($item) => new SubmissionResource($item));
+        $result['data']->transform(fn ($item) => new SubmissionResource($item));
 
         return $this->success(['data' => $result['data'], 'meta' => ['total' => $result['total'], 'per_page' => $result['per_page'], 'current_page' => $result['current_page'], 'last_page' => $result['last_page']]]);
     }

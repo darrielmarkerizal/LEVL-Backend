@@ -12,7 +12,7 @@ class EnsureRole
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'status' => 'error',
                 'message' => __('messages.unauthenticated'),
@@ -24,7 +24,7 @@ class EnsureRole
             return $next($request);
         }
 
-        if (!$user->hasAnyRole($roles)) {
+        if (! $user->hasAnyRole($roles)) {
             return response()->json([
                 'status' => 'error',
                 'message' => __('messages.forbidden'),
@@ -34,5 +34,3 @@ class EnsureRole
         return $next($request);
     }
 }
-
-

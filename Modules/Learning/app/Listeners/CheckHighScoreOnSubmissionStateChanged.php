@@ -20,7 +20,7 @@ class CheckHighScoreOnSubmissionStateChanged implements ShouldQueue
         if (in_array($event->newState, [
             SubmissionState::AutoGraded,
             SubmissionState::Graded,
-            SubmissionState::Released
+            SubmissionState::Released,
         ], true)) {
             $this->submissionService->checkAndDispatchNewHighScore($event->submission);
         }

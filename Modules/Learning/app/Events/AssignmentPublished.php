@@ -17,4 +17,3 @@ class AssignmentPublished
         public Assignment $assignment
     ) {}
 }
-

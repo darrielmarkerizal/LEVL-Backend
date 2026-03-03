@@ -3,12 +3,12 @@
 namespace Modules\Content\Repositories;
 
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Content\Contracts\Repositories\NewsRepositoryInterface;
 use Modules\Content\Models\News;
-use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class NewsRepository implements NewsRepositoryInterface
 {
@@ -16,11 +16,13 @@ class NewsRepository implements NewsRepositoryInterface
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
         $perPage = max(1, min($perPage, 100));
+
         return cache()->tags(['content', 'news'])->remember(
-            "content:news:repo:feed:{$perPage}:" . md5(json_encode($filters)),
+            "content:news:repo:feed:{$perPage}:".md5(json_encode($filters)),
             300,
             function () use ($filters, $perPage) {
                 $request = new Request(['filter' => $filters]);
+
                 return QueryBuilder::for(News::published()->class, $request)
                     ->with(['author', 'categories', 'tags'])
                     ->withCount('reads')
@@ -45,7 +47,7 @@ class NewsRepository implements NewsRepositoryInterface
         $perPage = max(1, min($perPage, 100));
 
         return cache()->tags(['content', 'news'])->remember(
-            "content:news:repo:search:{$searchQuery}:{$perPage}:" . md5(json_encode($filters)),
+            "content:news:repo:search:{$searchQuery}:{$perPage}:".md5(json_encode($filters)),
             300,
             function () use ($searchQuery, $perPage, $filters) {
                 return News::published()
@@ -53,7 +55,7 @@ class NewsRepository implements NewsRepositoryInterface
                     ->with(['author', 'categories', 'tags'])
                     ->withCount('reads')
                     ->query(function ($q) use ($filters) {
-                        if (!empty($filters['category_id'])) {
+                        if (! empty($filters['category_id'])) {
                             $q->whereHas('categories', fn ($q2) => $q2->where('content_categories.id', (int) $filters['category_id']));
                         }
                     })

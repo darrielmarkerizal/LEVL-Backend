@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace Modules\Gamification\Services\Support;
 
 use Illuminate\Support\Facades\DB;
-use Modules\Gamification\Contracts\Services\GamificationServiceInterface;
 use Modules\Gamification\Enums\ChallengeAssignmentStatus;
 use Modules\Gamification\Models\UserChallengeAssignment;
 use Modules\Gamification\Models\UserChallengeCompletion;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Modules\Gamification\Services\Support\PointManager;
-use Modules\Gamification\Services\Support\BadgeManager;
 
 class ChallengeProgressProcessor
 {
@@ -94,7 +91,7 @@ class ChallengeProgressProcessor
                     $challenge->points_reward,
                     'bonus',
                     'challenge',
-                    $assignment->challenge_id, 
+                    $assignment->challenge_id,
                     [
                         'description' => sprintf('Completed challenge: %s', $challenge->title),
                         'allow_multiple' => false,

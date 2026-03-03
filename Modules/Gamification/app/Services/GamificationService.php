@@ -86,6 +86,7 @@ class GamificationService implements GamificationServiceInterface
     public function getAchievements(int $userId): array
     {
         $stats = $this->pointManager->getOrCreateStats($userId);
+
         return $this->pointManager->getAchievements($stats->total_xp, $stats->global_level);
     }
 

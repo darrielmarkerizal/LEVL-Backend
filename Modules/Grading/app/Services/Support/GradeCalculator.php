@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Grading\Services\Support;
 
-use Modules\Learning\Models\Submission;
-use Modules\Schemes\Models\Course;
-use Modules\Learning\Enums\SubmissionState;
 use Illuminate\Support\Collection;
+use Modules\Learning\Enums\SubmissionState;
+use Modules\Learning\Models\Submission;
 
 class GradeCalculator
 {
@@ -37,18 +36,19 @@ class GradeCalculator
 
         return round($totalWeightedScore / $totalWeight, 2);
     }
-    
+
     public function applyLatePenalty(float $score, ?float $penaltyPercent): float
     {
         if ($penaltyPercent === null) {
             $penaltyPercent = (float) \Modules\Common\Models\SystemSetting::get('learning.late_penalty_percent', 0);
         }
-        
+
         if ($penaltyPercent > 0) {
             $penalty = ($score * $penaltyPercent) / 100;
+
             return max(0, $score - $penalty);
         }
-        
+
         return $score;
     }
 

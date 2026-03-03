@@ -35,5 +35,3 @@ class UpdateProgressOnLessonCompleted
         $this->progression->markLessonCompleted($lesson, $enrollment);
     }
 }
-
-

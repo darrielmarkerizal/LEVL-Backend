@@ -16,17 +16,17 @@ use Modules\Learning\Models\Submission;
 
 class SubmissionRepository extends BaseRepository implements SubmissionRepositoryInterface
 {
-        protected const DEFAULT_EAGER_LOAD = [
+    protected const DEFAULT_EAGER_LOAD = [
         'user:id,name,email',
         'assignment:id,title,review_mode',
         'answers.question',
         'grade',
-            'enrollment',
-            'files',
-            'previousSubmission',
+        'enrollment',
+        'files',
+        'previousSubmission',
     ];
 
-        protected const DETAILED_EAGER_LOAD = [
+    protected const DETAILED_EAGER_LOAD = [
         'user:id,name,email',
         'assignment:id,title,review_mode',
         'answers.question',
@@ -46,13 +46,13 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
 
     protected array $with = ['user', 'enrollment'];
 
-        public function listForAssignment(Assignment $assignment, ?User $user = null, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function listForAssignment(Assignment $assignment, ?User $user = null, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
         $perPage = max(1, min($perPage, 100));
 
         return cache()->tags(['learning', 'submissions'])->remember(
-            "learning:submissions:assignment:{$assignment->id}:user:" . ($user ? $user->id : 'all') . ":{$perPage}:" . md5(json_encode($filters)),
+            "learning:submissions:assignment:{$assignment->id}:user:".($user ? $user->id : 'all').":{$perPage}:".md5(json_encode($filters)),
             300,
             function () use ($assignment, $user, $filters, $perPage) {
                 if ($user && $user->hasRole('Student')) {
@@ -91,7 +91,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
         $sortDirection = strtolower($options['direction'] ?? $options['sort_direction'] ?? 'desc');
 
         return cache()->tags(['learning', 'submissions'])->remember(
-            "learning:submissions:search:{$query}:{$perPage}:{$sortBy}:{$sortDirection}:" . md5(json_encode($filters)),
+            "learning:submissions:search:{$query}:{$perPage}:{$sortBy}:{$sortDirection}:".md5(json_encode($filters)),
             300,
             function () use ($filters, $query, $perPage, $sortBy, $sortDirection) {
                 // 1. Use Spatie Query Builder on Eloquent model constrained by search
@@ -121,6 +121,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
     {
         $submission = Submission::create($attributes);
         cache()->tags(['learning', 'submissions'])->flush();
+
         return $submission;
     }
 
@@ -128,6 +129,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
     {
         $model->fill($attributes)->save();
         cache()->tags(['learning', 'submissions'])->flush();
+
         return $model;
     }
 
@@ -135,6 +137,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
     {
         $submission->fill($attributes)->save();
         cache()->tags(['learning', 'submissions'])->flush();
+
         return $submission;
     }
 
@@ -142,6 +145,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
     {
         $result = $model->delete();
         cache()->tags(['learning', 'submissions'])->flush();
+
         return $result;
     }
 
@@ -153,7 +157,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->exists();
     }
 
-        public function latestCommittedSubmission(Assignment $assignment, int $userId): ?Submission
+    public function latestCommittedSubmission(Assignment $assignment, int $userId): ?Submission
     {
         return Submission::query()
             ->where('assignment_id', $assignment->id)
@@ -164,7 +168,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->first();
     }
 
-        public function findHighestScore(int $studentId, int $assignmentId): ?Submission
+    public function findHighestScore(int $studentId, int $assignmentId): ?Submission
     {
         return Submission::query()
             ->where('assignment_id', $assignmentId)
@@ -176,7 +180,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->first();
     }
 
-        public function findByUserAndAssignment(int $userId, int $assignmentId): ?Submission
+    public function findByUserAndAssignment(int $userId, int $assignmentId): ?Submission
     {
         return Submission::query()
             ->where('assignment_id', $assignmentId)
@@ -185,7 +189,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->first();
     }
 
-        public function findByStudentAndAssignment(int $studentId, int $assignmentId): Collection
+    public function findByStudentAndAssignment(int $studentId, int $assignmentId): Collection
     {
         return Submission::query()
             ->where('assignment_id', $assignmentId)
@@ -196,7 +200,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->get();
     }
 
-        public function findWithDetails(int $submissionId): ?Submission
+    public function findWithDetails(int $submissionId): ?Submission
     {
         return Submission::query()
             ->where('id', $submissionId)
@@ -204,7 +208,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->first();
     }
 
-        public function findWithAnswers(int $submissionId): ?Submission
+    public function findWithAnswers(int $submissionId): ?Submission
     {
         return Submission::query()
             ->where('id', $submissionId)
@@ -217,7 +221,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->first();
     }
 
-        public function countAttempts(int $studentId, int $assignmentId): int
+    public function countAttempts(int $studentId, int $assignmentId): int
     {
         return Submission::query()
             ->where('assignment_id', $assignmentId)
@@ -226,7 +230,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->count();
     }
 
-        public function getLastSubmissionTime(int $studentId, int $assignmentId): ?Carbon
+    public function getLastSubmissionTime(int $studentId, int $assignmentId): ?Carbon
     {
         $submission = Submission::query()
             ->where('assignment_id', $assignmentId)
@@ -238,10 +242,10 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
         return $submission?->submitted_at;
     }
 
-        public function findPendingManualGrading(array $filters = []): Collection
+    public function findPendingManualGrading(array $filters = []): Collection
     {
         return cache()->tags(['learning', 'submissions'])->remember(
-            "learning:submissions:pending_manual:" . md5(json_encode($filters)),
+            'learning:submissions:pending_manual:'.md5(json_encode($filters)),
             300,
             function () use ($filters) {
                 return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, new \Illuminate\Http\Request($filters))
@@ -269,9 +273,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
         );
     }
 
-    
-
-        public function filterByState(string $state): Collection
+    public function filterByState(string $state): Collection
     {
         return Submission::query()
             ->where('state', $state)
@@ -285,7 +287,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->get();
     }
 
-        public function filterByScoreRange(float $min, float $max): Collection
+    public function filterByScoreRange(float $min, float $max): Collection
     {
         return Submission::query()
             ->whereNotNull('score')
@@ -301,7 +303,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             ->get();
     }
 
-        public function filterByDateRange(string $from, string $to): Collection
+    public function filterByDateRange(string $from, string $to): Collection
     {
         $fromDate = Carbon::parse($from)->startOfDay();
         $toDate = Carbon::parse($to)->endOfDay();

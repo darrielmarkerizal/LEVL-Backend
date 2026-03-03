@@ -88,20 +88,19 @@ class ComprehensiveAssessmentSeeder extends Seeder
         foreach ($courses as $index => $course) {
             echo '📘 Course '.($index + 1)."/{$courses->count()}: {$course->title}\n";
 
-            $lessons = DB::table('lessons')
-                ->join('units', 'lessons.unit_id', '=', 'units.id')
-                ->where('units.course_id', $course->id)
-                ->select('lessons.id', 'lessons.title')
+            $units = DB::table('units')
+                ->where('course_id', $course->id)
+                ->select('id', 'title')
                 ->get();
 
-            if ($lessons->isEmpty()) {
-                echo "   ⚠️ No lessons found, skipping...\n";
+            if ($units->isEmpty()) {
+                echo "   ⚠️ No units found, skipping...\n";
 
                 continue;
             }
 
-            foreach ($lessons as $lesson) {
-                $result = $this->createMixedAssessments($course->id, $lesson->id);
+            foreach ($units as $unit) {
+                $result = $this->createMixedAssessments($course->id, $unit->id);
                 $totalAssignments += $result['assignments'];
                 $totalQuizzes += $result['quizzes'];
                 $totalQuestions += $result['questions'];
@@ -130,42 +129,48 @@ class ComprehensiveAssessmentSeeder extends Seeder
         DB::connection()->enableQueryLog();
     }
 
-    private function createMixedAssessments(int $courseId, int $lessonId): array
+    private function createMixedAssessments(int $courseId, int $unitId): array
     {
         $stats = ['assignments' => 0, 'quizzes' => 0, 'questions' => 0, 'submissions' => 0, 'answers' => 0, 'grades' => 0];
 
         $numAssignments = rand(1, 3);
         $numQuizzes = rand(1, 3);
 
+        $maxLessonOrder = DB::table('lessons')->where('unit_id', $unitId)->max('order') ?? 0;
+        $currentOrder = $maxLessonOrder + 1;
+
         $assignments = [];
         $quizzes = [];
 
         for ($i = 0; $i < $numAssignments; $i++) {
-            $result = $this->createAssignmentWithSubmissions($courseId, $lessonId);
-            $assignments[] = DB::table('assignments')->where('lesson_id', $lessonId)->latest('id')->first();
+            $result = $this->createAssignmentWithSubmissions($courseId, $unitId, $currentOrder);
+            $assignments[] = DB::table('assignments')->where('unit_id', $unitId)->latest('id')->first();
             $stats['assignments'] += $result['assignments'];
             $stats['submissions'] += $result['submissions'];
             $stats['grades'] += $result['grades'];
+            $currentOrder++;
         }
 
         for ($i = 0; $i < $numQuizzes; $i++) {
-            $result = $this->createQuizWithSubmissions($courseId, $lessonId);
-            $quizzes[] = DB::table('quizzes')->where('lesson_id', $lessonId)->latest('id')->first();
+            $result = $this->createQuizWithSubmissions($courseId, $unitId, $currentOrder);
+            $quizzes[] = DB::table('quizzes')->where('unit_id', $unitId)->latest('id')->first();
             $stats['quizzes'] += $result['quizzes'];
             $stats['questions'] += $result['questions'];
             $stats['submissions'] += $result['submissions'];
             $stats['answers'] += $result['answers'];
+            $currentOrder++;
         }
 
         return $stats;
     }
 
-    private function createAssignmentWithSubmissions(int $courseId, int $lessonId): array
+    private function createAssignmentWithSubmissions(int $courseId, int $unitId, int $order): array
     {
         $stats = ['assignments' => 0, 'submissions' => 0, 'grades' => 0];
 
         $assignmentId = DB::table('assignments')->insertGetId([
-            'lesson_id' => $lessonId,
+            'unit_id' => $unitId,
+            'order' => $order,
             'created_by' => $this->instructorIds[array_rand($this->instructorIds)],
             'title' => $this->pregenSentences[array_rand($this->pregenSentences)],
             'description' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
@@ -199,14 +204,13 @@ class ComprehensiveAssessmentSeeder extends Seeder
         return $stats;
     }
 
-    private function createQuizWithSubmissions(int $courseId, int $lessonId): array
+    private function createQuizWithSubmissions(int $courseId, int $unitId, int $order): array
     {
         $stats = ['quizzes' => 0, 'questions' => 0, 'submissions' => 0, 'answers' => 0];
 
         $quizId = DB::table('quizzes')->insertGetId([
-            'assignable_type' => 'Modules\\Schemes\\Models\\Lesson',
-            'assignable_id' => $lessonId,
-            'lesson_id' => $lessonId,
+            'unit_id' => $unitId,
+            'order' => $order,
             'created_by' => $this->instructorIds[array_rand($this->instructorIds)],
             'title' => 'Quiz: '.$this->pregenSentences[array_rand($this->pregenSentences)],
             'description' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],

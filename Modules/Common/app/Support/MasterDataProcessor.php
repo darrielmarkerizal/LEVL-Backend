@@ -22,7 +22,7 @@ class MasterDataProcessor
     private function applyFilters(Collection $collection, array $params): Collection
     {
         $collection = $this->filterByCrud($collection, $params);
-        
+
         return $this->filterBySearch($collection, $params);
     }
 
@@ -46,7 +46,7 @@ class MasterDataProcessor
         $search = strtolower($params['search']);
 
         return $collection->filter(function ($item) use ($search) {
-            return str_contains(strtolower($item['type']), $search) || 
+            return str_contains(strtolower($item['type']), $search) ||
                    str_contains(strtolower($item['label']), $search);
         });
     }
@@ -55,7 +55,7 @@ class MasterDataProcessor
     {
         $allowedSorts = ['type', 'label', 'count', 'last_updated'];
         $defaultSort = 'label';
-        
+
         $requestedSorts = $params['sort'] ?? $defaultSort;
         $sorts = is_array($requestedSorts) ? $requestedSorts : explode(',', (string) $requestedSorts);
 

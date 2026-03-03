@@ -28,9 +28,9 @@ class TagRequest extends FormRequest
         }
 
         if ($this->isJson() && is_array($this->all()) && array_key_exists(0, $this->all())) {
-             return [
-                 '*.name' => ['required', 'string', 'min:1', 'max:100', 'distinct'],
-             ];
+            return [
+                '*.name' => ['required', 'string', 'min:1', 'max:100', 'distinct'],
+            ];
         }
 
         return [
@@ -40,5 +40,3 @@ class TagRequest extends FormRequest
         ];
     }
 }
-
-

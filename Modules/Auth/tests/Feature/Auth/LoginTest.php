@@ -1,9 +1,7 @@
 <?php
 
-use Modules\Auth\app\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Tests\TestCase;
+use Modules\Auth\app\Models\User;
 
 test('user can login with email', function () {
     $user = User::factory()->create([
@@ -24,7 +22,7 @@ test('user can login with email', function () {
                 'user',
                 'token',
                 'refresh_token',
-            ]
+            ],
         ]);
 });
 
@@ -56,7 +54,7 @@ test('user cannot login with invalid credentials', function () {
     ]);
 
     $response->assertStatus(401) // Or 422 depending on implementation
-       ->assertJsonValidationErrors(['login']); // If validation error
+        ->assertJsonValidationErrors(['login']); // If validation error
 });
 
 test('pending user cannot login', function () {
@@ -72,7 +70,7 @@ test('pending user cannot login', function () {
     ]);
 
     $response->assertStatus(403) // Or 401 with specific message
-             ->assertJson(['message' => 'Email not verified']);
+        ->assertJson(['message' => 'Email not verified']);
 });
 
 test('banned user cannot login', function () {
@@ -88,7 +86,7 @@ test('banned user cannot login', function () {
     ]);
 
     $response->assertStatus(403)
-             ->assertJson(['message' => 'Account is banned']);
+        ->assertJson(['message' => 'Account is banned']);
 });
 
 test('login requires fields', function () {
@@ -101,7 +99,7 @@ test('login is rate limited', function () {
     // Mock throttling or multiple requests
     // Using standard Laravel throttling: 5 attempts
     $user = User::factory()->create(['email' => 'limit@example.com', 'password' => Hash::make('pass')]);
-    
+
     for ($i = 0; $i < 6; $i++) {
         $response = $this->postJson('/api/v1/auth/login', [
             'login' => 'limit@example.com',

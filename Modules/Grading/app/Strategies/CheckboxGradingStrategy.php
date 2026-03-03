@@ -21,9 +21,9 @@ class CheckboxGradingStrategy implements GradingStrategyInterface
         $correctCount = 0;
         $wrongCount = 0;
         $totalCorrectOptions = count($correctSet);
-        
+
         if ($totalCorrectOptions === 0) {
-             return $selectedSet === $correctSet ? (float) $question->max_score : 0.0;
+            return $selectedSet === $correctSet ? (float) $question->max_score : 0.0;
         }
 
         foreach ($selectedSet as $selection) {

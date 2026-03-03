@@ -15,7 +15,6 @@ use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Enums\SubmissionStatus;
 use Modules\Learning\Events\NewHighScoreAchieved;
 use Modules\Learning\Exceptions\SubmissionException;
-use Modules\Learning\Models\Permission;
 use Modules\Learning\Models\Question;
 use Modules\Learning\Models\Submission;
 
@@ -74,7 +73,7 @@ class SubmissionCompletionProcessor
 
     public function saveAnswer(Submission $submission, int $questionId, mixed $answer, SubmissionValidator $validator): \Modules\Learning\Models\Answer
     {
-        return DB::transaction(function () use ($submission, $questionId, $answer, $validator) {
+        return DB::transaction(function () use ($submission, $questionId, $answer) {
             $assignment = $submission->assignment;
             $studentId = $submission->user_id;
 
@@ -87,11 +86,11 @@ class SubmissionCompletionProcessor
             }
 
             $this->validateQuestionInAssignment($submission, $assignment, $questionId);
-            
+
             $question = Question::find($questionId);
 
             $data = $this->prepareAnswerData($submission->id, $questionId, $question, $answer);
-            
+
             $createdAnswer = \Modules\Learning\Models\Answer::updateOrCreate(
                 ['submission_id' => $submission->id, 'question_id' => $questionId],
                 $data
@@ -150,12 +149,13 @@ class SubmissionCompletionProcessor
     {
         $submission->update(['score' => $score]);
         $this->checkAndDispatchNewHighScore($submission);
+
         return $submission->fresh();
     }
-    
+
     public function delete(Submission $submission): bool
     {
-        return DB::transaction(fn() => $this->repository->delete($submission));
+        return DB::transaction(fn () => $this->repository->delete($submission));
     }
 
     private function isTimerExpired(mixed $assignment, Submission $submission): bool
@@ -166,7 +166,7 @@ class SubmissionCompletionProcessor
         $limitEnds = $submission->created_at?->copy()
             ->addMinutes($assignment->time_limit_minutes)
             ->addSeconds(self::TIMER_GRACE_SECONDS);
-            
+
         return $limitEnds && now()->gt($limitEnds);
     }
 
@@ -198,8 +198,9 @@ class SubmissionCompletionProcessor
                 $data['file_paths'] = $answer;
             }
         } else {
-             $data['content'] = (string) $answer;
+            $data['content'] = (string) $answer;
         }
+
         return $data;
     }
 
@@ -208,7 +209,7 @@ class SubmissionCompletionProcessor
         $createdAnswer->clearMediaCollection('answers');
         $files = is_array($answer) ? $answer : [$answer];
         $paths = [];
-        
+
         foreach ($files as $file) {
             if ($file instanceof UploadedFile) {
                 $media = $createdAnswer->addMedia($file)
@@ -216,7 +217,7 @@ class SubmissionCompletionProcessor
                 $paths[] = $media->getUrl();
             }
         }
-        
+
         $createdAnswer->update(['file_paths' => $paths]);
     }
 
@@ -257,7 +258,7 @@ class SubmissionCompletionProcessor
         $unansweredQuestions = array_diff($questionIds, $answeredQuestionIds);
 
         if (! empty($unansweredQuestions)) {
-             throw SubmissionException::notAllowed(__('messages.submissions.incomplete_answers'));
+            throw SubmissionException::notAllowed(__('messages.submissions.incomplete_answers'));
         }
     }
 

@@ -10,12 +10,12 @@ use Modules\Gamification\Enums\ChallengeType;
 
 class Challenge extends Model
 {
-  use PgSearchable;
+    use PgSearchable;
 
-  protected array $searchable_columns = [
-      'title',
-      'description',
-  ];
+    protected array $searchable_columns = [
+        'title',
+        'description',
+    ];
 
     protected $table = 'challenges';
 
@@ -79,12 +79,13 @@ class Challenge extends Model
                     $subQ->whereNull('start_at')
                         ->orWhere('start_at', '<=', now());
                 })
-                ->where(function ($subQ) {
-                    $subQ->whereNull('end_at')
-                        ->orWhere('end_at', '>=', now());
-                });
+                    ->where(function ($subQ) {
+                        $subQ->whereNull('end_at')
+                            ->orWhere('end_at', '>=', now());
+                    });
             });
         }
+
         return $query->where(function ($q) {
             $q->where('start_at', '>', now())
                 ->orWhere('end_at', '<', now());
@@ -109,6 +110,4 @@ class Challenge extends Model
     {
         return $this->criteria['target'] ?? $this->target_count;
     }
-
-
 }

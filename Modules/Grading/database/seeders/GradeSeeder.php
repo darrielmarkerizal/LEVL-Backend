@@ -3,16 +3,12 @@
 namespace Modules\Grading\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Auth\Models\User;
-use Modules\Grading\Models\Grade;
-use Modules\Learning\Models\Submission;
-use Modules\Grading\Enums\GradeStatus;
 
 class GradeSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * Creates comprehensive grading data:
      * - Create grades for submitted assignments
      * - 70-80% of submitted assignments are graded
@@ -23,7 +19,7 @@ class GradeSeeder extends Seeder
     {
         \DB::connection()->disableQueryLog();
         ini_set('memory_limit', '1536M');
-        
+
         echo "\n📋 Seeding grades...\n";
 
         $faker = \Faker\Factory::create('id_ID');
@@ -32,7 +28,7 @@ class GradeSeeder extends Seeder
         $createdAt = now()->toDateTimeString();
         $gradedAt = now()->subDays(10)->toDateTimeString();
         $releasedAt = now()->subDays(5)->toDateTimeString();
-        
+
         for ($i = 0; $i < 100; $i++) {
             $pregenFeedback[] = $faker->paragraph(1);
             $pregenReasons[] = $faker->paragraph(1);
@@ -49,6 +45,7 @@ class GradeSeeder extends Seeder
 
         if (empty($instructorIds)) {
             echo "⚠️  No instructors found. Skipping grading seeding.\n";
+
             return;
         }
 
@@ -58,11 +55,12 @@ class GradeSeeder extends Seeder
 
         if ($totalSubmissions === 0) {
             echo "⚠️  No submissions found. Skipping grading seeding.\n";
+
             return;
         }
 
         echo "   📝 Processing $totalSubmissions submissions...\n";
-        echo "   👥 Using " . count($instructorIds) . " instructors\n\n";
+        echo '   👥 Using '.count($instructorIds)." instructors\n\n";
 
         $gradeCount = 0;
 
@@ -123,27 +121,27 @@ class GradeSeeder extends Seeder
                 $gradeCount++;
             }
 
-            if (!empty($grades)) {
+            if (! empty($grades)) {
                 \DB::table('grades')->insertOrIgnore($grades);
             }
-            
+
             unset($grades);
 
             echo "      ✓ Chunk $chunkNum: $chunkSubmissions submissions | Grades: $gradeCount\n";
-            
+
             if ($chunkNum % 3 === 0) {
                 gc_collect_cycles();
             }
 
             $offset += $chunkSize;
         }
-        
+
         unset($pregenFeedback, $pregenReasons);
-        
+
         echo "\n✅ Grading seeding completed!\n";
         echo "   📊 Total grades created: $gradeCount\n";
         echo "   📊 Total grades created: $gradeCount\n";
-        
+
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
     }

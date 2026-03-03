@@ -7,9 +7,8 @@ namespace Modules\Learning\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Modules\Learning\Enums\QuestionType;
-
 use Modules\Common\Traits\PgSearchable;
+use Modules\Learning\Enums\QuestionType;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -20,7 +19,9 @@ class Question extends Model implements HasMedia
     protected array $searchable_columns = [
         'content',
     ];
+
     protected $table = 'assignment_questions';
+
     protected $fillable = [
         'assignment_id',
         'type',
@@ -51,44 +52,41 @@ class Question extends Model implements HasMedia
         return \Modules\Learning\Database\Factories\AssignmentQuestionFactory::new();
     }
 
-        public function assignment(): BelongsTo
+    public function assignment(): BelongsTo
     {
         return $this->belongsTo(Assignment::class);
     }
 
-        public function answers(): HasMany
+    public function answers(): HasMany
     {
         return $this->hasMany(Answer::class);
     }
 
-        public function canAutoGrade(): bool
+    public function canAutoGrade(): bool
     {
         return $this->type->canAutoGrade();
     }
 
-        public function requiresOptions(): bool
+    public function requiresOptions(): bool
     {
         return $this->type->requiresOptions();
     }
 
-        public function isValid(): bool
+    public function isValid(): bool
     {
-        
+
         if (empty($this->content)) {
             return false;
         }
 
-        
         if ($this->weight <= 0) {
             return false;
         }
 
-        
         if ($this->requiresOptions() && empty($this->options)) {
             return false;
         }
 
-        
         if ($this->canAutoGrade() && empty($this->answer_key)) {
             return false;
         }
@@ -96,17 +94,17 @@ class Question extends Model implements HasMedia
         return true;
     }
 
-        public function scopeOrdered($query)
+    public function scopeOrdered($query)
     {
         return $query->orderBy('order');
     }
 
-        public function scopeOfType($query, QuestionType $type)
+    public function scopeOfType($query, QuestionType $type)
     {
         return $query->where('type', $type);
     }
 
-        public function scopeAutoGradable($query, bool $isAutoGradable = true)
+    public function scopeAutoGradable($query, bool $isAutoGradable = true)
     {
         if ($isAutoGradable) {
             return $query->whereIn('type', [
@@ -114,13 +112,14 @@ class Question extends Model implements HasMedia
                 QuestionType::TrueFalse,
             ]);
         }
+
         return $query->whereNotIn('type', [
             QuestionType::MultipleChoice,
             QuestionType::TrueFalse,
         ]);
     }
 
-        public function scopeManualGrading($query, bool $requiresManualGrading = true)
+    public function scopeManualGrading($query, bool $requiresManualGrading = true)
     {
         if ($requiresManualGrading) {
             return $query->whereIn('type', [
@@ -128,11 +127,10 @@ class Question extends Model implements HasMedia
                 QuestionType::FileUpload,
             ]);
         }
+
         return $query->whereNotIn('type', [
             QuestionType::Essay,
             QuestionType::FileUpload,
         ]);
     }
-
-
 }

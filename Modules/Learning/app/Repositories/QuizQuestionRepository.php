@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Modules\Learning\Repositories;
 
@@ -23,6 +25,7 @@ class QuizQuestionRepository extends BaseRepository implements QuizQuestionRepos
     {
         $question = QuizQuestion::findOrFail($questionId);
         $question->fill($data)->save();
+
         return $question;
     }
 

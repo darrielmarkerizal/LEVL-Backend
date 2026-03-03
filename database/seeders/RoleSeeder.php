@@ -9,8 +9,6 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        (new RolePermissionService())->syncDefault();
+        (new RolePermissionService)->syncDefault();
     }
 }
-
-

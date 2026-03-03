@@ -93,7 +93,7 @@ class Level extends Model
 
         $configs = $this->getAllLevelConfigs();
         $xp = 0;
-        
+
         for ($i = 1; $i < $level; $i++) {
             $required = $configs->get($i)?->xp_required;
             if ($required === null) {
@@ -119,8 +119,7 @@ class Level extends Model
     private function getAllLevelConfigs(): \Illuminate\Support\Collection
     {
         return \Illuminate\Support\Facades\Cache::remember('gamification.level_configs', 3600, function () {
-             return \Modules\Common\Models\LevelConfig::all()->keyBy('level');
+            return \Modules\Common\Models\LevelConfig::all()->keyBy('level');
         });
     }
 }
-

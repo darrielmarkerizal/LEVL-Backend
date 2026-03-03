@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Listeners;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
 use Modules\Enrollments\Enums\EnrollmentStatus;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Learning\Events\AssignmentPublished;
 use Modules\Mail\Mail\Learning\AssignmentPublishedMail;
-
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Bus\Queueable;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class NotifyEnrolledUsersOnAssignmentPublished implements ShouldQueue
 {
@@ -33,7 +31,6 @@ class NotifyEnrolledUsersOnAssignmentPublished implements ShouldQueue
         $courseUrl = $this->getCourseUrl($course);
         $assignmentUrl = $this->getAssignmentUrl($course, $assignment);
 
-        
         Enrollment::query()
             ->where('course_id', $course->id)
             ->where('status', EnrollmentStatus::Active->value)
@@ -41,7 +38,7 @@ class NotifyEnrolledUsersOnAssignmentPublished implements ShouldQueue
             ->chunkById(100, function ($enrollments) use ($course, $assignment, $courseUrl, $assignmentUrl) {
                 foreach ($enrollments as $enrollment) {
                     if ($enrollment->user && $enrollment->user->email) {
-                        
+
                         Mail::to($enrollment->user->email)->queue(
                             new AssignmentPublishedMail(
                                 $enrollment->user,

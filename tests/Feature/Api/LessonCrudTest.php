@@ -217,4 +217,3 @@ it('admin cannot publish lesson in course they dont manage', function () {
 
     $response->assertStatus(403);
 });
-

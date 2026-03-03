@@ -6,15 +6,13 @@ namespace Modules\Common\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-
 use Modules\Common\Contracts\Services\ChallengeManagementServiceInterface;
 use Modules\Common\Repositories\ChallengeManagementRepository;
 use Modules\Gamification\Models\Challenge;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
-class ChallengeManagementService
-implements ChallengeManagementServiceInterface
+class ChallengeManagementService implements ChallengeManagementServiceInterface
 {
     public function __construct(private readonly ChallengeManagementRepository $repository) {}
 
@@ -54,6 +52,7 @@ implements ChallengeManagementServiceInterface
         return DB::transaction(function () use ($data) {
             $challenge = $this->repository->create($data);
             cache()->tags(['common', 'challenges'])->flush();
+
             return $challenge;
         });
     }
@@ -69,9 +68,11 @@ implements ChallengeManagementServiceInterface
         if (! $achievement) {
             return null;
         }
+
         return DB::transaction(function () use ($achievement, $data) {
             $updated = $this->repository->update($achievement, $data);
             cache()->tags(['common', 'challenges'])->flush();
+
             return $updated;
         });
     }
@@ -85,6 +86,7 @@ implements ChallengeManagementServiceInterface
             }
             $result = $this->repository->delete($achievement);
             cache()->tags(['common', 'challenges'])->flush();
+
             return $result;
         });
     }

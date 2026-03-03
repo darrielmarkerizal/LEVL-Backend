@@ -18,4 +18,3 @@ class CourseCompleted
         public Enrollment $enrollment
     ) {}
 }
-

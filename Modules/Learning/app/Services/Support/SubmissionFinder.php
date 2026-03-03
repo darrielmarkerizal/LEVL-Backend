@@ -32,15 +32,16 @@ class SubmissionFinder
     public function paginateByAssignment(int $assignmentId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, 100));
+
         return $this->listForAssignmentForIndex($assignment, $user, $filters);
     }
 
     public function listForAssignmentForIndex(Assignment $assignment, User $user, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
-        
+
         return cache()->tags(['learning', 'submissions'])->remember(
-            "learning:submissions:assignment:{$assignment->id}:user:{$user->id}:{$perPage}:" . md5(json_encode($filters)),
+            "learning:submissions:assignment:{$assignment->id}:user:{$user->id}:{$perPage}:".md5(json_encode($filters)),
             300,
             function () use ($assignment, $user, $perPage) {
                 $query = QueryBuilder::for(Submission::class)
@@ -75,7 +76,7 @@ class SubmissionFinder
                 'user',
                 'enrollment',
                 'grade',
-                'files'
+                'files',
             ])
             ->firstOrFail();
     }
@@ -130,7 +131,7 @@ class SubmissionFinder
         } else {
             $query = Question::whereIn('id', $questionIds)
                 ->with(['assignment', 'media'])
-                ->orderByRaw('array_position(ARRAY[' . implode(',', $questionIds) . '], id)');
+                ->orderByRaw('array_position(ARRAY['.implode(',', $questionIds).'], id)');
         }
 
         $paginator = $query->paginate($perPage);
@@ -149,7 +150,7 @@ class SubmissionFinder
     {
         return $this->repository->search($query, $filters, $options);
     }
-    
+
     public function listByAssignment(Assignment $assignment, array $filters = [])
     {
         return $this->repository->listForAssignment($assignment, null, $filters);

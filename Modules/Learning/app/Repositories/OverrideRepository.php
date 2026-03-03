@@ -17,20 +17,20 @@ class OverrideRepository extends BaseRepository implements OverrideRepositoryInt
         return Override::class;
     }
 
-        protected const DEFAULT_EAGER_LOAD = [
+    protected const DEFAULT_EAGER_LOAD = [
         'student:id,name,email',
         'grantor:id,name,email',
         'assignment:id,title',
     ];
 
-        public function create(array $attributes): Override
+    public function create(array $attributes): Override
     {
         $override = Override::create($attributes);
 
         return $override->load(self::DEFAULT_EAGER_LOAD);
     }
 
-        public function findActiveOverride(int $assignmentId, int $studentId, OverrideType $type): ?Override
+    public function findActiveOverride(int $assignmentId, int $studentId, OverrideType $type): ?Override
     {
         return Override::query()
             ->forAssignment($assignmentId)
@@ -41,7 +41,7 @@ class OverrideRepository extends BaseRepository implements OverrideRepositoryInt
             ->first();
     }
 
-        public function findActiveOverridesForStudent(int $assignmentId, int $studentId): Collection
+    public function findActiveOverridesForStudent(int $assignmentId, int $studentId): Collection
     {
         return Override::query()
             ->forAssignment($assignmentId)
@@ -51,7 +51,7 @@ class OverrideRepository extends BaseRepository implements OverrideRepositoryInt
             ->get();
     }
 
-        public function findByAssignment(int $assignmentId): Collection
+    public function findByAssignment(int $assignmentId): Collection
     {
         return Override::query()
             ->forAssignment($assignmentId)
@@ -69,7 +69,7 @@ class OverrideRepository extends BaseRepository implements OverrideRepositoryInt
             ->get();
     }
 
-        public function hasActiveOverride(int $assignmentId, int $studentId, OverrideType $type): bool
+    public function hasActiveOverride(int $assignmentId, int $studentId, OverrideType $type): bool
     {
         return Override::query()
             ->forAssignment($assignmentId)
@@ -79,7 +79,7 @@ class OverrideRepository extends BaseRepository implements OverrideRepositoryInt
             ->exists();
     }
 
-        public function findByStudent(int $studentId): Collection
+    public function findByStudent(int $studentId): Collection
     {
         return Override::query()
             ->forStudent($studentId)
@@ -88,7 +88,7 @@ class OverrideRepository extends BaseRepository implements OverrideRepositoryInt
             ->get();
     }
 
-        public function findByGrantor(int $grantorId): Collection
+    public function findByGrantor(int $grantorId): Collection
     {
         return Override::query()
             ->where('grantor_id', $grantorId)
@@ -97,7 +97,7 @@ class OverrideRepository extends BaseRepository implements OverrideRepositoryInt
             ->get();
     }
 
-        public function findAllActive(): Collection
+    public function findAllActive(): Collection
     {
         return Override::query()
             ->active()
@@ -106,7 +106,7 @@ class OverrideRepository extends BaseRepository implements OverrideRepositoryInt
             ->get();
     }
 
-        public function findExpired(): Collection
+    public function findExpired(): Collection
     {
         return Override::query()
             ->whereNotNull('expires_at')

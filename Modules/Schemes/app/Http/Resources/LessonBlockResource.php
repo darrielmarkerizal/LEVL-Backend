@@ -23,6 +23,7 @@ class LessonBlockResource extends JsonResource
             'order' => $this->order,
             'media' => (function () {
                 $media = $this->getFirstMedia('media');
+
                 return $media ? [
                     'url' => $media->getUrl(),
                     'id' => $media->id,

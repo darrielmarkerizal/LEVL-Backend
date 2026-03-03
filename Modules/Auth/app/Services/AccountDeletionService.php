@@ -7,7 +7,6 @@ namespace Modules\Auth\Services;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use Modules\Mail\Mail\Auth\AccountDeletionVerificationMail;
 use Modules\Auth\Models\OtpCode;
 use Modules\Auth\Models\User;
 use Modules\Common\Models\SystemSetting;
@@ -30,7 +29,6 @@ class AccountDeletionService
             ]);
         }
 
-        
         OtpCode::query()
             ->forUser($user)
             ->forPurpose(self::PURPOSE)
@@ -89,8 +87,6 @@ class AccountDeletionService
         $user->account_status = 'deleted';
         $user->save();
 
-        
-        
         $user->delete();
 
         return true;

@@ -8,16 +8,17 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
 use Modules\Common\Models\Category;
-use Modules\Schemes\Models\Course;
-use Modules\Schemes\Models\Tag;
 use Modules\Schemes\Enums\CourseStatus;
 use Modules\Schemes\Enums\CourseType;
 use Modules\Schemes\Enums\EnrollmentType;
 use Modules\Schemes\Enums\LevelTag;
+use Modules\Schemes\Models\Course;
+use Modules\Schemes\Models\Tag;
 
 class CourseSeederEnhanced extends Seeder
 {
     private const CHUNK_SIZE = 20;
+
     private const TOTAL_COURSES = 50;
 
     public function run(): void
@@ -29,7 +30,8 @@ class CourseSeederEnhanced extends Seeder
         })->get();
 
         if ($instructors->isEmpty()) {
-            $this->command->warn("  ⚠️  No instructors found. Please run UserSeeder first.");
+            $this->command->warn('  ⚠️  No instructors found. Please run UserSeeder first.');
+
             return;
         }
 
@@ -37,11 +39,12 @@ class CourseSeederEnhanced extends Seeder
         $tags = Tag::all();
 
         if ($categories->isEmpty() || $tags->isEmpty()) {
-            $this->command->warn("  ⚠️  No categories or tags found. Please run CategorySeeder and TagSeeder first.");
+            $this->command->warn('  ⚠️  No categories or tags found. Please run CategorySeeder and TagSeeder first.');
+
             return;
         }
 
-        $this->command->info("  📊 Creating " . self::TOTAL_COURSES . " courses across all scenarios...");
+        $this->command->info('  📊 Creating '.self::TOTAL_COURSES.' courses across all scenarios...');
 
         $distribution = [
             'published_auto' => 25,       // Published + Auto-accept enrollment
@@ -54,12 +57,12 @@ class CourseSeederEnhanced extends Seeder
         foreach ($distribution as $scenario => $count) {
             $this->command->info("\n  📝 Scenario: {$scenario} ({$count} courses)");
             $scenarioCourses = $this->createCoursesForScenario($scenario, $count, $categories, $instructors);
-            
+
             $this->assignInstructorsToCourses($scenarioCourses, $instructors);
             $this->attachTagsToCourses($scenarioCourses, $tags);
             $this->createCourseOutcomes($scenarioCourses);
             $this->attachMediaToCourses($scenarioCourses);
-            
+
             $created += $scenarioCourses->count();
             $this->command->info("    ✓ Created {$scenarioCourses->count()} courses for {$scenario}");
         }
@@ -85,7 +88,7 @@ class CourseSeederEnhanced extends Seeder
         return match ($scenario) {
             'published_auto' => $factory->published()->openEnrollment()->create(),
             'published_approval' => $factory->published()->state([
-                'enrollment_type' => EnrollmentType::Approval->value
+                'enrollment_type' => EnrollmentType::Approval->value,
             ])->create(),
             'published_key' => $factory->published()->state([
                 'enrollment_type' => EnrollmentType::KeyBased->value,
@@ -99,6 +102,7 @@ class CourseSeederEnhanced extends Seeder
     private function generateEnrollmentKey(): string
     {
         $plainKey = \Illuminate\Support\Str::random(12);
+
         return bcrypt($plainKey);
     }
 
@@ -113,7 +117,7 @@ class CourseSeederEnhanced extends Seeder
         foreach ($courses as $course) {
             $numInstructors = fake()->numberBetween(1, 3);
             $selectedInstructors = $instructors->random(min($numInstructors, $instructors->count()));
-            
+
             foreach ($selectedInstructors as $instructor) {
                 $courseAdmins[] = [
                     'course_id' => $course->id,
@@ -124,7 +128,7 @@ class CourseSeederEnhanced extends Seeder
             }
         }
 
-        if (!empty($courseAdmins)) {
+        if (! empty($courseAdmins)) {
             foreach (array_chunk($courseAdmins, 100) as $chunk) {
                 DB::table('course_admins')->insertOrIgnore($chunk);
             }
@@ -142,7 +146,7 @@ class CourseSeederEnhanced extends Seeder
         foreach ($courses as $course) {
             $numTags = fake()->numberBetween(3, 8);
             $selectedTags = $tags->random(min($numTags, $tags->count()));
-            
+
             foreach ($selectedTags as $tag) {
                 $courseTags[] = [
                     'course_id' => $course->id,
@@ -153,7 +157,7 @@ class CourseSeederEnhanced extends Seeder
             }
         }
 
-        if (!empty($courseTags)) {
+        if (! empty($courseTags)) {
             foreach (array_chunk($courseTags, 200) as $chunk) {
                 DB::table('course_tag_pivot')->insertOrIgnore($chunk);
             }
@@ -167,9 +171,9 @@ class CourseSeederEnhanced extends Seeder
         $byStatus = Course::select('status', DB::raw('count(*) as total'))
             ->groupBy('status')
             ->get();
-        
+
         foreach ($byStatus as $stat) {
-            $statusValue = (string)($stat->status instanceof CourseStatus ? $stat->status->value : $stat->status);
+            $statusValue = (string) ($stat->status instanceof CourseStatus ? $stat->status->value : $stat->status);
             $this->command->info("   • Status '{$statusValue}': {$stat->total}");
         }
 
@@ -177,9 +181,9 @@ class CourseSeederEnhanced extends Seeder
         $byEnrollment = Course::select('enrollment_type', DB::raw('count(*) as total'))
             ->groupBy('enrollment_type')
             ->get();
-        
+
         foreach ($byEnrollment as $stat) {
-            $enrollmentValue = (string)($stat->enrollment_type instanceof EnrollmentType ? $stat->enrollment_type->value : $stat->enrollment_type);
+            $enrollmentValue = (string) ($stat->enrollment_type instanceof EnrollmentType ? $stat->enrollment_type->value : $stat->enrollment_type);
             $this->command->info("   • {$enrollmentValue}: {$stat->total}");
         }
 
@@ -187,9 +191,9 @@ class CourseSeederEnhanced extends Seeder
         $byLevel = Course::select('level_tag', DB::raw('count(*) as total'))
             ->groupBy('level_tag')
             ->get();
-        
+
         foreach ($byLevel as $stat) {
-            $levelTagValue = (string)($stat->level_tag instanceof LevelTag ? $stat->level_tag->value : $stat->level_tag);
+            $levelTagValue = (string) ($stat->level_tag instanceof LevelTag ? $stat->level_tag->value : $stat->level_tag);
             $this->command->info("   • {$levelTagValue}: {$stat->total}");
         }
 
@@ -197,9 +201,9 @@ class CourseSeederEnhanced extends Seeder
         $byType = Course::select('type', DB::raw('count(*) as total'))
             ->groupBy('type')
             ->get();
-        
+
         foreach ($byType as $stat) {
-            $typeValue = (string)($stat->type instanceof CourseType ? $stat->type->value : $stat->type);
+            $typeValue = (string) ($stat->type instanceof CourseType ? $stat->type->value : $stat->type);
             $this->command->info("   • {$typeValue}: {$stat->total}");
         }
     }
@@ -240,7 +244,7 @@ class CourseSeederEnhanced extends Seeder
             }
         }
 
-        if (!empty($outcomes)) {
+        if (! empty($outcomes)) {
             foreach (array_chunk($outcomes, 500) as $chunk) {
                 DB::table('course_outcomes')->insertOrIgnore($chunk);
             }
@@ -253,11 +257,11 @@ class CourseSeederEnhanced extends Seeder
             try {
                 $course->addMediaFromUrl("https://picsum.photos/seed/{$course->id}/300")
                     ->toMediaCollection('thumbnail');
-                
+
                 $course->addMediaFromUrl("https://picsum.photos/seed/{$course->id}/800/600")
                     ->toMediaCollection('banner');
             } catch (\Exception $e) {
-                $this->command->warn("  ⚠️  Could not attach media for course {$course->id}: " . $e->getMessage());
+                $this->command->warn("  ⚠️  Could not attach media for course {$course->id}: ".$e->getMessage());
             }
         }
     }

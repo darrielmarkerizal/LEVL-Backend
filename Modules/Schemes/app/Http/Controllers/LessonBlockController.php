@@ -28,6 +28,7 @@ class LessonBlockController extends Controller
         $this->authorize('view', $lesson);
 
         $blocks = $this->service->list($lesson->id, $request->query('filter', []));
+
         return $this->success(LessonBlockResource::collection($blocks));
     }
 
@@ -37,6 +38,7 @@ class LessonBlockController extends Controller
         $this->authorize('update', $lesson);
 
         $block = $this->service->create($lesson->id, $request->validated(), $request->file('media'));
+
         return $this->created(new LessonBlockResource($block), __('messages.lesson_blocks.created'));
     }
 
@@ -54,6 +56,7 @@ class LessonBlockController extends Controller
         $this->authorize('update', $block);
 
         $updated = $this->service->update($lesson->id, $block->id, $request->validated(), $request->file('media'));
+
         return $this->success(new LessonBlockResource($updated), __('messages.lesson_blocks.updated'));
     }
 
@@ -63,6 +66,7 @@ class LessonBlockController extends Controller
         $this->authorize('delete', $block);
 
         $this->service->delete($lesson->id, $block->id);
+
         return $this->success([], __('messages.lesson_blocks.deleted'));
     }
 }

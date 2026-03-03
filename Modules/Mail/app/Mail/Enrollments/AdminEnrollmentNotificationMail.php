@@ -24,7 +24,7 @@ class AdminEnrollmentNotificationMail extends Mailable implements ShouldQueue
 
     public function build(): self
     {
-        return $this->subject('New Enrollment Pending Review - ' . $this->course->title)
+        return $this->subject('New Enrollment Pending Review - '.$this->course->title)
             ->view('mail::emails.enrollments.admin-enrollment-notification')
             ->with([
                 'admin' => $this->admin,

@@ -13,15 +13,13 @@ class NotifyAuthorOnReply
         private readonly NotificationService $notificationService
     ) {}
 
-     
     public function handle(ReplyCreated $event): void
     {
         $reply = $event->reply;
         $thread = $reply->thread;
 
-        
         if ($reply->parent_id) {
-            
+
             $parentReply = $reply->parent;
             if ($parentReply && $parentReply->author_id != $reply->author_id) {
                 $this->notificationService->send(
@@ -38,7 +36,7 @@ class NotifyAuthorOnReply
                 );
             }
         } else {
-            
+
             if ($thread->author_id != $reply->author_id) {
                 $this->notificationService->send(
                     $thread->author_id,

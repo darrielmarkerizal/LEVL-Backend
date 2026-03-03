@@ -57,7 +57,6 @@ class MentionUserSearchService
             ->values();
     }
 
-
     private function resolveCourseUserIds(Course $course): array
     {
         $enrolledIds = Enrollment::where('course_id', $course->id)

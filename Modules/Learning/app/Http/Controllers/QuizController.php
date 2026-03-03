@@ -59,8 +59,16 @@ class QuizController extends Controller
     public function show(Quiz $quiz): JsonResponse
     {
         $this->authorize('view', $quiz);
+        $user = auth('api')->user();
+        $quizWithRelations = $this->quizService->getWithRelations($quiz);
 
-        return $this->success(QuizResource::make($this->quizService->getWithRelations($quiz)));
+        if ($user && $user->hasRole('Student')) {
+            $enriched = $this->enrichmentService->enrichDetailForStudent($quizWithRelations, $user->id);
+
+            return $this->success(QuizResource::make($enriched));
+        }
+
+        return $this->success(QuizResource::make($quizWithRelations));
     }
 
     public function update(UpdateQuizRequest $request, Quiz $quiz): JsonResponse

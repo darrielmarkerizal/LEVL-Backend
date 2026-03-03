@@ -1,14 +1,13 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Modules\Learning\Repositories;
 
 use App\Repositories\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
 use Modules\Learning\Contracts\Repositories\QuizRepositoryInterface;
 use Modules\Learning\Models\Quiz;
-use Modules\Learning\Enums\QuizStatus;
 
 class QuizRepository extends BaseRepository implements QuizRepositoryInterface
 {
@@ -26,12 +25,14 @@ class QuizRepository extends BaseRepository implements QuizRepositoryInterface
     {
         assert($model instanceof Quiz);
         $model->fill($data)->save();
+
         return $model;
     }
 
     public function delete(\Illuminate\Database\Eloquent\Model $model): bool
     {
         assert($model instanceof Quiz);
+
         return $model->delete();
     }
 
@@ -40,6 +41,7 @@ class QuizRepository extends BaseRepository implements QuizRepositoryInterface
         return $quiz->loadMissing([
             'creator:id,name,email',
             'lesson:id,title,slug',
+            'lesson.unit:id,slug',
             'questions',
             'assignable',
         ]);

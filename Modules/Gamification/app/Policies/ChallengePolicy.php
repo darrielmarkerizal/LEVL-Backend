@@ -7,10 +7,9 @@ use Modules\Gamification\Models\Challenge;
 
 class ChallengePolicy
 {
-    
     public function viewAny(?User $user): bool
     {
-        return true; 
+        return true;
     }
 
     public function view(?User $user, Challenge $challenge): bool
@@ -35,6 +34,6 @@ class ChallengePolicy
 
     public function claim(User $user, Challenge $challenge): bool
     {
-        return true; 
+        return true;
     }
 }

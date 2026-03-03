@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Gamification\Services\Support;
 
 use Illuminate\Support\Facades\DB;
-use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Gamification\Repositories\GamificationRepository;
 
 class LeaderboardManager

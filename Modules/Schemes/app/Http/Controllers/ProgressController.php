@@ -23,13 +23,16 @@ class ProgressController extends Controller
     public function show(Request $request, Course $course)
     {
         $targetId = (int) ($request->query('user_id') ?? auth('api')->id());
-        // Simple auth check remains or moves to Policy if we want STRICT 5 lines. 
+        // Simple auth check remains or moves to Policy if we want STRICT 5 lines.
         // For now, we delegate the complex "can view?" logic to a Policy call we pretend exists or simple check.
         // Assuming we rely on service for data validation but Auth still needs to be somewhere.
         // Let's assume we create a Policy later or rely on existing 'viewAny' logic but condensed.
-        if ($targetId !== auth('api')->id()) $this->authorize('viewAny', [\Modules\Enrollments\Models\Enrollment::class, $course]);
-        
+        if ($targetId !== auth('api')->id()) {
+            $this->authorize('viewAny', [\Modules\Enrollments\Models\Enrollment::class, $course]);
+        }
+
         $result = $this->progression->validateAndGetProgress($course, $targetId, auth('api')->id());
+
         return $this->success(new ProgressResource($result));
     }
 
@@ -37,9 +40,9 @@ class ProgressController extends Controller
     {
         $enrollment = $this->progression->validateLessonAccess($course, $unit, $lesson, (int) auth('api')->id());
         $this->progression->markLessonCompleted($lesson, $enrollment);
-        
+
         return $this->success(
-            new ProgressResource($this->progression->getCourseProgressData($course, $enrollment)), 
+            new ProgressResource($this->progression->getCourseProgressData($course, $enrollment)),
             __('messages.progress.updated')
         );
     }
@@ -48,9 +51,9 @@ class ProgressController extends Controller
     {
         $enrollment = $this->progression->validateLessonAccess($course, $unit, $lesson, (int) auth('api')->id());
         $this->progression->markLessonUncompleted($lesson, $enrollment);
-        
+
         return $this->success(
-            new ProgressResource($this->progression->getCourseProgressData($course, $enrollment)), 
+            new ProgressResource($this->progression->getCourseProgressData($course, $enrollment)),
             __('messages.progress.updated')
         );
     }

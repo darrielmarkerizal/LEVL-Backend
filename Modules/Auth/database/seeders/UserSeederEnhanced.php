@@ -15,17 +15,18 @@ use Modules\Auth\Models\UserActivity;
 class UserSeederEnhanced extends Seeder
 {
     private const CHUNK_SIZE = 100;
-    
+
     private array $demoUsers = [];
+
     private array $specialUsers = [];
 
     public function run(): void
     {
         $this->command->info("\n👥 Creating users with realistic data...");
-        
+
         $this->createDemoUsers();
         $this->createSpecialStatusUsers();
-        
+
         $this->createUsersByRole('Superadmin', 50);
         $this->createUsersByRole('Admin', 100);
         $this->createUsersByRole('Instructor', 200);
@@ -39,7 +40,7 @@ class UserSeederEnhanced extends Seeder
 
     private function createDemoUsers(): void
     {
-        $this->command->info("  🎭 Creating demo users...");
+        $this->command->info('  🎭 Creating demo users...');
 
         $demos = [
             [
@@ -78,7 +79,7 @@ class UserSeederEnhanced extends Seeder
 
         $created = 0;
         foreach ($demos as $demo) {
-            if (!User::where('email', $demo['email'])->exists()) {
+            if (! User::where('email', $demo['email'])->exists()) {
                 $user = $this->createUserWithProfile($demo);
                 $this->demoUsers[] = $user;
                 $created++;
@@ -90,7 +91,7 @@ class UserSeederEnhanced extends Seeder
 
     private function createSpecialStatusUsers(): void
     {
-        $this->command->info("  🔧 Creating special status users...");
+        $this->command->info('  🔧 Creating special status users...');
 
         $specialCases = [
             [
@@ -171,13 +172,13 @@ class UserSeederEnhanced extends Seeder
 
         $created = 0;
         foreach ($specialCases as $special) {
-            if (!User::where('email', $special['email'])->withTrashed()->exists()) {
+            if (! User::where('email', $special['email'])->withTrashed()->exists()) {
                 $user = $this->createUserWithProfile($special);
-                
+
                 if ($special['soft_delete'] ?? false) {
                     $user->delete();
                 }
-                
+
                 $this->specialUsers[] = [
                     'user' => $user,
                     'description' => $special['description'],
@@ -192,7 +193,7 @@ class UserSeederEnhanced extends Seeder
     private function createUsersByRole(string $role, int $count): void
     {
         $this->command->info("\n  👤 Creating {$count} {$role} users...");
-        
+
         $activeCount = (int) ($count * 0.7);
         $pendingCount = (int) ($count * 0.15);
         $inactiveCount = (int) ($count * 0.1);
@@ -200,13 +201,13 @@ class UserSeederEnhanced extends Seeder
 
         $this->command->info("    • Active: {$activeCount}");
         $this->createUsersWithStatusChunked($role, $activeCount, UserStatus::Active, true);
-        
+
         $this->command->info("    • Pending: {$pendingCount}");
         $this->createUsersWithStatusChunked($role, $pendingCount, UserStatus::Pending, false);
-        
+
         $this->command->info("    • Inactive: {$inactiveCount}");
         $this->createUsersWithStatusChunked($role, $inactiveCount, UserStatus::Inactive, true);
-        
+
         $this->command->info("    • Banned: {$bannedCount}");
         $this->createUsersWithStatusChunked($role, $bannedCount, UserStatus::Banned, true);
 
@@ -234,7 +235,7 @@ class UserSeederEnhanced extends Seeder
 
             while ($users->count() < $chunkSize && $attempts < $maxAttempts) {
                 $attempts++;
-                
+
                 $attributes = UserFactory::new()
                     ->state([
                         'status' => $status->value,
@@ -255,7 +256,7 @@ class UserSeederEnhanced extends Seeder
             }
 
             foreach ($users as $user) {
-                if (!$user->hasRole($role)) {
+                if (! $user->hasRole($role)) {
                     $user->assignRole($role);
                 }
             }
@@ -268,9 +269,9 @@ class UserSeederEnhanced extends Seeder
             }
 
             $created += $users->count();
-            
+
             if ($chunks > 1) {
-                $this->command->info("      → Chunk " . ($chunk + 1) . "/{$chunks}: {$users->count()} users");
+                $this->command->info('      → Chunk '.($chunk + 1)."/{$chunks}: {$users->count()} users");
             }
         }
     }
@@ -316,14 +317,15 @@ class UserSeederEnhanced extends Seeder
     {
         $urls = [
             "https://api.dicebear.com/9.x/avataaars/png?seed={$user->username}",
-            'https://ui-avatars.com/api/?name=' . rawurlencode($user->name) . '&size=256&background=random',
+            'https://ui-avatars.com/api/?name='.rawurlencode($user->name).'&size=256&background=random',
         ];
         foreach ($urls as $url) {
             try {
                 $user->addMediaFromUrl($url)->toMediaCollection('avatar');
+
                 return;
             } catch (\Throwable $e) {
-                $this->command->warn("Avatar URL failed for {$user->username}, trying next: " . $e->getMessage());
+                $this->command->warn("Avatar URL failed for {$user->username}, trying next: ".$e->getMessage());
             }
         }
     }
@@ -359,7 +361,7 @@ class UserSeederEnhanced extends Seeder
 
     private function batchCreateUserActivities($users, UserStatus $status): void
     {
-        if (!DB::getSchemaBuilder()->hasTable('user_activities') || $users->isEmpty()) {
+        if (! DB::getSchemaBuilder()->hasTable('user_activities') || $users->isEmpty()) {
             return;
         }
 
@@ -399,20 +401,20 @@ class UserSeederEnhanced extends Seeder
                 }
             }
 
-            if (!empty($activities)) {
+            if (! empty($activities)) {
                 foreach (array_chunk($activities, 500) as $chunk) {
                     DB::table('user_activities')->insertOrIgnore($chunk);
                 }
             }
         } catch (\Exception $e) {
-            $this->command->warn("    ⚠️  Could not create activities: " . $e->getMessage());
+            $this->command->warn('    ⚠️  Could not create activities: '.$e->getMessage());
         }
     }
 
     private function printUserSummary(): void
     {
         $this->command->info("\n📋 User Distribution:");
-        
+
         $roles = ['Superadmin', 'Admin', 'Instructor', 'Student'];
         foreach ($roles as $role) {
             $count = User::role($role)->count();

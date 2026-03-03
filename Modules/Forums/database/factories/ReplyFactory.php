@@ -7,7 +7,6 @@ use Modules\Auth\Models\User;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 
- 
 class ReplyFactory extends Factory
 {
     protected $model = Reply::class;
@@ -31,7 +30,6 @@ class ReplyFactory extends Factory
         ]);
     }
 
-     
     public function nested(Reply $parent): static
     {
         return $this->state(fn (array $attributes) => [
@@ -41,7 +39,6 @@ class ReplyFactory extends Factory
         ]);
     }
 
-     
     public function accepted(): static
     {
         return $this->solution();

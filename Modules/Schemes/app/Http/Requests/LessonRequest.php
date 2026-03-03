@@ -21,7 +21,7 @@ class LessonRequest extends FormRequest
     {
         $unit = $this->route('unit');
         $unitId = $unit ? (is_object($unit) ? $unit->id : (int) $unit) : 0;
-        
+
         $lesson = $this->route('lesson');
         $lessonId = $lesson ? (is_object($lesson) ? $lesson->id : (int) $lesson) : 0;
 

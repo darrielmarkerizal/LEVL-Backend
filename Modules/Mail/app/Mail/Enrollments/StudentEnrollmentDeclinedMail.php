@@ -23,7 +23,7 @@ class StudentEnrollmentDeclinedMail extends Mailable implements ShouldQueue
 
     public function build(): self
     {
-        return $this->subject('Enrollment Ditolak - ' . $this->course->title)
+        return $this->subject('Enrollment Ditolak - '.$this->course->title)
             ->view('mail::emails.enrollments.student-enrollment-declined')
             ->with([
                 'student' => $this->student,

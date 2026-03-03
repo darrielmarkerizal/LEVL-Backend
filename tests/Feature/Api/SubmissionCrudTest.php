@@ -163,7 +163,7 @@ it('cannot update graded submission', function () {
         'answer_text' => 'Original answer',
         'status' => 'graded',
     ]);
-    
+
     \Modules\Grading\Models\Grade::create([
         'source_type' => 'assignment',
         'source_id' => $this->assignment->id,
@@ -272,4 +272,3 @@ it('cannot grade non-existent submission', function () {
 
     $response->assertStatus(404);
 });
-

@@ -30,6 +30,7 @@ class UserFinder
     {
         $perPage = max(1, min($perPage, 100));
         $filters = $search ? ['search' => $search] : [];
+
         return $this->listUsersForIndex($authUser, $filters, $perPage);
     }
 
@@ -40,11 +41,11 @@ class UserFinder
         }
 
         $search = data_get($filters, 'search');
-        
+
         $cleanFilters = Arr::except($filters, ['search']);
 
         return cache()->tags(['auth', 'users'])->remember(
-            "auth:users:index:{$authUser->id}:{$perPage}:" . md5(json_encode($filters)),
+            "auth:users:index:{$authUser->id}:{$perPage}:".md5(json_encode($filters)),
             300,
             function () use ($authUser, $cleanFilters, $search, $perPage) {
                 $requestData = $cleanFilters;
@@ -130,7 +131,7 @@ class UserFinder
         $target = $this->cacheService->getUser($userId);
 
         if (! $target) {
-            $query = QueryBuilder::for(User::class, $request ?? new Request())
+            $query = QueryBuilder::for(User::class, $request ?? new Request)
                 ->with(['roles:id,name,guard_name'])
                 ->allowedIncludes([
                     // Auth Module
@@ -155,9 +156,9 @@ class UserFinder
                     'threads',
                 ])
                 ->where('id', $userId);
-            
+
             $target = $query->firstOrFail();
-            
+
             // Always load course when enrollments is loaded (either via include or already loaded)
             if ($target->relationLoaded('enrollments')) {
                 $target->loadMissing('enrollments.course');
@@ -167,13 +168,13 @@ class UserFinder
             if (! $target->relationLoaded('roles')) {
                 $target->load('roles:id,name,guard_name');
             }
-            
+
             // Load other requested includes if specified
             if ($request && $request->has('include')) {
                 $includes = explode(',', $request->get('include'));
                 $includes = array_map('trim', $includes);
                 $includes = array_filter($includes); // Remove empty strings
-                
+
                 $allowedIncludes = [
                     'roles', 'privacySettings', 'enrollments', 'managedCourses',
                     'gamificationStats', 'badges', 'challenges', 'challengeCompletions',
@@ -181,20 +182,20 @@ class UserFinder
                     'submissions', 'assignments', 'receivedOverrides', 'grantedOverrides',
                     'threads',
                 ];
-                
+
                 // Validate includes - throw error if any invalid includes are requested
                 $invalidIncludes = array_diff($includes, $allowedIncludes);
-                if (!empty($invalidIncludes)) {
+                if (! empty($invalidIncludes)) {
                     throw new InvalidIncludeQuery(
                         Collection::make($invalidIncludes),
                         Collection::make($allowedIncludes)
                     );
                 }
-                
+
                 // Load valid includes
-                if (!empty($includes)) {
+                if (! empty($includes)) {
                     $target->load($includes);
-                    
+
                     // Always load course when enrollments is loaded
                     if (in_array('enrollments', $includes) && $target->relationLoaded('enrollments')) {
                         $target->loadMissing('enrollments.course');

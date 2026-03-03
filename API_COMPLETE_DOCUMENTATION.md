@@ -693,7 +693,60 @@ GET /courses?search=programming&filter[status]=published
 - `filter[status]` (string, optional): Filter by status
   - Values: `draft`, `published`, `archived`
 
-**Response:** Paginated list of quizzes in the course
+**Response (Student):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "title": "Week 1 Quiz",
+      "passing_grade": 70,
+      "max_score": 100,
+      "auto_grading": true,
+      "is_locked": false,
+      "unit_slug": "unit-1",
+      "questions_count": 10,
+      "scope_type": "lesson",
+      "created_at": "2024-01-15T10:00:00+00:00"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 5
+  }
+}
+```
+
+**Response (Instructor):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "title": "Week 1 Quiz",
+      "passing_grade": 70,
+      "max_score": 100,
+      "status": "published",
+      "status_label": "Published",
+      "auto_grading": true,
+      "unit_slug": "unit-1",
+      "questions_count": 10,
+      "available_from": "2024-01-15T00:00:00+00:00",
+      "deadline_at": "2024-01-22T23:59:59+00:00",
+      "scope_type": "lesson",
+      "created_at": "2024-01-15T10:00:00+00:00"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 5
+  }
+}
+```
 
 
 ---
@@ -704,7 +757,36 @@ GET /courses?search=programming&filter[status]=published
 
 **Access:** Authenticated users (must have view permission)
 
-**Response:**
+**Important Notes:**
+- **Students**: Questions array is NOT included in the response. Students must call `/quizzes/{quiz_id}/submissions/start` first to begin the quiz and get questions.
+- **Instructors**: Full quiz details including questions are visible.
+
+**Response (Student):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Week 1 Quiz",
+    "description": "Test your knowledge",
+    "passing_grade": 70,
+    "max_score": 100,
+    "max_attempts": 2,
+    "time_limit_minutes": 30,
+    "retake_enabled": true,
+    "auto_grading": true,
+    "review_mode": "after_deadline",
+    "is_locked": false,
+    "lesson_slug": "lesson-1",
+    "unit_slug": "unit-1",
+    "questions_count": 10,
+    "scope_type": "lesson",
+    "created_at": "2024-01-15T10:00:00+00:00"
+  }
+}
+```
+
+**Response (Instructor):**
 ```json
 {
   "success": true,
@@ -716,11 +798,40 @@ GET /courses?search=programming&filter[status]=published
     "auto_grading": true,
     "max_score": 100,
     "max_attempts": 2,
+    "cooldown_minutes": 30,
     "time_limit_minutes": 30,
+    "retake_enabled": true,
     "randomization_type": "random_order",
+    "question_bank_count": 10,
     "review_mode": "after_deadline",
     "status": "published",
-    "questions_count": 10
+    "available_from": "2024-01-15T00:00:00+00:00",
+    "deadline_at": "2024-01-22T23:59:59+00:00",
+    "tolerance_minutes": 30,
+    "late_penalty_percent": 10,
+    "scope_type": "lesson",
+    "assignable_type": "Lesson",
+    "assignable_id": 1,
+    "lesson_id": 1,
+    "created_by": 2,
+    "creator": {
+      "id": 2,
+      "name": "Instructor Name"
+    },
+    "questions_count": 10,
+    "questions": [
+      {
+        "id": 1,
+        "type": "multiple_choice",
+        "content": "What is 2 + 2?",
+        "options": ["3", "4", "5"],
+        "weight": 1,
+        "max_score": 10,
+        "order": 1
+      }
+    ],
+    "created_at": "2024-01-15T10:00:00+00:00",
+    "updated_at": "2024-01-15T10:00:00+00:00"
   }
 }
 ```
@@ -765,6 +876,12 @@ GET /courses?search=programming&filter[status]=published
 
 **Request Body:** None
 
+**Important Notes:**
+- This endpoint MUST be called before students can see quiz questions
+- Creates a new quiz submission in `draft` status
+- Returns submission details but NOT the questions yet
+- Students must then call `/quiz-submissions/{submission_id}/questions` to get the questions
+
 **Response:**
 ```json
 {
@@ -774,9 +891,11 @@ GET /courses?search=programming&filter[status]=published
     "id": 1,
     "quiz_id": 1,
     "user_id": 5,
-    "status": "in_progress",
+    "status": "draft",
+    "grading_status": "pending",
+    "attempt_number": 1,
     "started_at": "2024-01-15T10:00:00+00:00",
-    "expires_at": "2024-01-15T10:30:00+00:00"
+    "time_spent_seconds": 0
   }
 }
 ```
@@ -813,15 +932,41 @@ GET /courses?search=programming&filter[status]=published
 
 **Access:** Authenticated users (must own submission)
 
+**Important Notes:**
+- Answers are saved as DRAFT while the quiz is in progress
+- Students can update answers multiple times before submitting
+- Only when `/quiz-submissions/{submission_id}/submit` is called will answers be finalized
+
 **Request Body:**
 ```json
 {
-  "question_id": 1,
-  "answer": "Answer value"
+  "quiz_question_id": 1,
+  "content": "Text answer for essay questions",
+  "selected_options": [0, 2]
 }
 ```
 
-**Response:** Saved answer details
+**Validation Rules:**
+- `quiz_question_id`: required, integer, exists in quiz questions
+- `content`: nullable, string (for essay/short answer questions)
+- `selected_options`: nullable, array (for multiple choice/checkbox questions)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Answer saved",
+  "data": {
+    "id": 1,
+    "quiz_submission_id": 1,
+    "quiz_question_id": 1,
+    "content": "Text answer",
+    "selected_options": [0, 2],
+    "score": null,
+    "is_auto_graded": false
+  }
+}
+```
 
 ---
 
@@ -833,7 +978,41 @@ GET /courses?search=programming&filter[status]=published
 
 **Request Body:** None (or optional answers array)
 
-**Response:**
+**Important Notes:**
+- This finalizes the quiz submission
+- If `auto_grading` is `true` AND there are NO essay questions:
+  - Quiz is graded immediately
+  - `final_score` is calculated and returned
+  - `grading_status` is set to `graded`
+  - `status` is set to `graded`
+- If `auto_grading` is `false` OR there are essay questions:
+  - Quiz is marked as submitted but not graded
+  - `final_score` is `null`
+  - `grading_status` is set to `waiting_for_grading` or `partially_graded`
+  - `status` is set to `submitted`
+  - Instructor must manually grade essay questions
+
+**Response (Auto-graded, no essays):**
+```json
+{
+  "success": true,
+  "message": "Quiz submitted successfully",
+  "data": {
+    "id": 1,
+    "quiz_id": 1,
+    "status": "graded",
+    "grading_status": "graded",
+    "score": 85,
+    "final_score": 85,
+    "attempt_number": 1,
+    "is_passed": true,
+    "submitted_at": "2024-01-15T10:25:00+00:00",
+    "time_spent_seconds": 1500
+  }
+}
+```
+
+**Response (Manual grading required):**
 ```json
 {
   "success": true,
@@ -842,9 +1021,31 @@ GET /courses?search=programming&filter[status]=published
     "id": 1,
     "quiz_id": 1,
     "status": "submitted",
-    "score": 85,
-    "passed": true,
-    "submitted_at": "2024-01-15T10:25:00+00:00"
+    "grading_status": "waiting_for_grading",
+    "score": null,
+    "final_score": null,
+    "attempt_number": 1,
+    "submitted_at": "2024-01-15T10:25:00+00:00",
+    "time_spent_seconds": 1500
+  }
+}
+```
+
+**Response (Partially graded - has essays):**
+```json
+{
+  "success": true,
+  "message": "Quiz submitted successfully",
+  "data": {
+    "id": 1,
+    "quiz_id": 1,
+    "status": "submitted",
+    "grading_status": "partially_graded",
+    "score": 60,
+    "final_score": null,
+    "attempt_number": 1,
+    "submitted_at": "2024-01-15T10:25:00+00:00",
+    "time_spent_seconds": 1500
   }
 }
 ```

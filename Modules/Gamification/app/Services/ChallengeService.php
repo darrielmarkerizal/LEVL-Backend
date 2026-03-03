@@ -11,8 +11,8 @@ use Modules\Gamification\Models\UserChallengeAssignment;
 use Modules\Gamification\Services\Support\ChallengeAssignmentProcessor;
 use Modules\Gamification\Services\Support\ChallengeFinder;
 use Modules\Gamification\Services\Support\ChallengeProgressProcessor;
-use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class ChallengeService implements ChallengeServiceInterface
 {
@@ -29,19 +29,21 @@ class ChallengeService implements ChallengeServiceInterface
         $page = request()->get('page', 1);
 
         return cache()->tags(['gamification', 'challenges'])->remember(
-            "gamification:challenges:index:{$userId}:{$perPage}:{$page}:" . md5(json_encode($filters)),
+            "gamification:challenges:index:{$userId}:{$perPage}:{$page}:".md5(json_encode($filters)),
             300,
             function () use ($filters, $perPage, $userId) {
                 return QueryBuilder::for(Challenge::class, new \Illuminate\Http\Request($filters))
                     ->active()
-                    ->with("badge")
+                    ->with('badge')
                     ->allowedFilters([
                         AllowedFilter::exact('type'),
                         AllowedFilter::exact('status'),
                         AllowedFilter::exact('points_reward'),
                         AllowedFilter::callback('has_progress', function ($query, $value) use ($userId) {
-                            if (!$userId) return;
-                            
+                            if (! $userId) {
+                                return;
+                            }
+
                             if (filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
                                 $query->whereHas('userAssignments', function ($q) use ($userId) {
                                     $q->where('user_id', $userId);
@@ -93,7 +95,7 @@ class ChallengeService implements ChallengeServiceInterface
         $page = request()->get('page', 1);
 
         return cache()->tags(['gamification', 'challenges', 'completed'])->remember(
-            "gamification:challenges:completed:{$userId}:{$perPage}:{$page}:" . md5(json_encode($filters)),
+            "gamification:challenges:completed:{$userId}:{$perPage}:{$page}:".md5(json_encode($filters)),
             300,
             function () use ($userId, $filters, $perPage) {
                 return QueryBuilder::for(\Modules\Gamification\Models\UserChallengeCompletion::class, new \Illuminate\Http\Request($filters))
@@ -103,9 +105,9 @@ class ChallengeService implements ChallengeServiceInterface
                         AllowedFilter::partial('challenge.title'),
                         AllowedFilter::exact('challenge.type'),
                         AllowedFilter::callback('search', function ($query, $value) {
-                                $query->whereHas('challenge', function ($q) use ($value) {
-                                     $q->search($value);
-                                });
+                            $query->whereHas('challenge', function ($q) use ($value) {
+                                $q->search($value);
+                            });
                         }),
                     ])
                     ->allowedSorts(['completed_date', 'points_earned'])
@@ -145,6 +147,7 @@ class ChallengeService implements ChallengeServiceInterface
     {
         $result = $this->progressProcessor->claimReward($userId, $challengeId);
         cache()->tags(['gamification', 'challenges'])->flush();
+
         return $result;
     }
 

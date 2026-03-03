@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Modules\Auth\Support;
 
 class TokenPairDTO
@@ -25,5 +24,3 @@ class TokenPairDTO
         ];
     }
 }
-
-

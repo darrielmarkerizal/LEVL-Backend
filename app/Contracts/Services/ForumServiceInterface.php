@@ -10,13 +10,20 @@ use Modules\Forums\Models\Thread;
 interface ForumServiceInterface
 {
     public function createThread(array $data, User $user, int $courseId): Thread;
-    public function updateThread(Thread $thread, array $data): Thread;
-    public function deleteThread(Thread $thread, User $user): bool;
-    public function getThreadsForScheme(int $schemeId, array $filters = []): LengthAwarePaginator;
-    public function searchThreads(string $query, int $schemeId): LengthAwarePaginator;
-    public function getThreadDetail(int $threadId): ?Thread;
-    public function createReply(Thread $thread, array $data, User $user, ?int $parentId = null): Reply;
-    public function updateReply(Reply $reply, array $data): Reply;
-    public function deleteReply(Reply $reply, User $user): bool;
 
+    public function updateThread(Thread $thread, array $data): Thread;
+
+    public function deleteThread(Thread $thread, User $user): bool;
+
+    public function getThreadsForScheme(int $schemeId, array $filters = []): LengthAwarePaginator;
+
+    public function searchThreads(string $query, int $schemeId): LengthAwarePaginator;
+
+    public function getThreadDetail(int $threadId): ?Thread;
+
+    public function createReply(Thread $thread, array $data, User $user, ?int $parentId = null): Reply;
+
+    public function updateReply(Reply $reply, array $data): Reply;
+
+    public function deleteReply(Reply $reply, User $user): bool;
 }

@@ -11,7 +11,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class MediaResource extends JsonResource
 {
     /**
-     * @param Request $request
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array

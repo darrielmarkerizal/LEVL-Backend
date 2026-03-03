@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
-     * 
+     *
      * Drops the progression_mode column from courses table as the system
      * now enforces sequential access for all courses by default.
      */
@@ -20,7 +21,7 @@ return new class extends Migration {
 
     /**
      * Reverse the migrations.
-     * 
+     *
      * Restores the progression_mode column with default 'sequential' value
      * for rollback purposes.
      */
@@ -28,8 +29,8 @@ return new class extends Migration {
     {
         Schema::table('courses', function (Blueprint $table) {
             $table->enum('progression_mode', ['sequential', 'free'])
-                  ->default('sequential')
-                  ->after('enrollment_key');
+                ->default('sequential')
+                ->after('enrollment_key');
         });
     }
 };

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Modules\Auth\Http\Requests\Concerns;
 
 use Illuminate\Validation\Rules\Password as PasswordRule;

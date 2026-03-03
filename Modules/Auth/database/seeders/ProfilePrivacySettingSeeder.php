@@ -10,7 +10,7 @@ class ProfilePrivacySettingSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * Creates privacy settings for users that don't have them
      */
     public function run(): void

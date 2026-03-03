@@ -20,7 +20,7 @@ class SubmissionException extends LearningDomainException
     {
         return new self($message);
     }
-    
+
     public static function alreadyGraded(): self
     {
         return new self(__('messages.submissions.already_graded'));

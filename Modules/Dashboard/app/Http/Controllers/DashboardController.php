@@ -20,9 +20,9 @@ class DashboardController extends Controller
     public function index(): JsonResponse
     {
         $actor = auth('api')->user();
-        
+
         $data = $this->service->getDashboardData($actor);
-        
+
         return $this->success($data, 'messages.dashboard.retrieved');
     }
 }

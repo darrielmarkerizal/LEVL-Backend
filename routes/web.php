@@ -2,8 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get("/", function () {
-  return view("welcome");
+Route::get('/', function () {
+    return view('welcome');
 });
 
-require __DIR__ . "/test-browser.php";
+require __DIR__.'/test-browser.php';

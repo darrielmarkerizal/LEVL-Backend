@@ -32,15 +32,14 @@ class QuizResource extends JsonResource
             'time_limit_minutes' => $this->time_limit_minutes,
             'retake_enabled' => $this->retake_enabled,
             'auto_grading' => $this->auto_grading,
-            'review_mode' => $this->review_mode,
+            'review_mode' => $this->review_mode?->value ?? $this->review_mode,
+            'is_locked' => $this->when(isset($this->is_locked), $this->is_locked),
+            'unit_slug' => $this->unit->slug ?? null,
             'questions_count' => $this->when(
                 $this->relationLoaded('questions'),
                 fn () => $this->questions->count()
             ),
-            'questions' => $this->when(
-                $this->relationLoaded('questions'),
-                fn () => QuizQuestionResource::collection($this->questions)
-            ),
+            'scope_type' => $this->when(isset($this->scope_type), $this->scope_type),
             'attachments' => $this->when(
                 $this->relationLoaded('media'),
                 fn () => $this->getMedia('attachments')->map(fn ($m) => [

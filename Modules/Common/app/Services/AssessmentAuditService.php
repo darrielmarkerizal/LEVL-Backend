@@ -16,10 +16,15 @@ use Modules\Learning\Models\Submission;
 class AssessmentAuditService implements AuditServiceInterface
 {
     public const ACTION_SUBMISSION_CREATED = 'submission_created';
+
     public const ACTION_STATE_TRANSITION = 'state_transition';
+
     public const ACTION_GRADING = 'grading';
+
     public const ACTION_ANSWER_KEY_CHANGE = 'answer_key_change';
+
     public const ACTION_GRADE_OVERRIDE = 'grade_override';
+
     public const ACTION_OVERRIDE_GRANT = 'override_grant';
 
     public function __construct(

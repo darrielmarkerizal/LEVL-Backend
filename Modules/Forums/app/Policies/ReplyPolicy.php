@@ -11,7 +11,6 @@ use Modules\Forums\Models\Thread;
 
 class ReplyPolicy
 {
-     
     public function view(User $user, Reply $reply): bool
     {
         if ($user->hasRole(['Admin', 'Superadmin'])) {
@@ -23,7 +22,6 @@ class ReplyPolicy
             ->exists();
     }
 
-     
     public function create(User $user, Thread $thread): bool
     {
         if ($user->hasRole(['Admin', 'Superadmin'])) {
@@ -35,7 +33,6 @@ class ReplyPolicy
             ->exists();
     }
 
-     
     public function update(User $user, Reply $reply): bool
     {
         if ($user->hasRole(['Admin', 'Superadmin'])) {
@@ -45,20 +42,17 @@ class ReplyPolicy
         return $user->id === $reply->author_id;
     }
 
-     
     public function delete(User $user, Reply $reply): bool
     {
-        
+
         return $user->id === $reply->author_id || $this->isModerator($user, $reply->thread->course_id);
     }
 
-     
     public function markAsAccepted(User $user, Reply $reply): bool
     {
         return $this->isInstructor($user, $reply->thread->course_id);
     }
 
-     
     protected function isModerator(User $user, int $courseId): bool
     {
         if ($user->hasRole(['Admin', 'Superadmin'])) {

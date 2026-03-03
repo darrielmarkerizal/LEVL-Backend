@@ -34,5 +34,3 @@ class UpdateProgressOnUnitCompleted
         $this->progression->markUnitCompleted($unit, $enrollment);
     }
 }
-
-

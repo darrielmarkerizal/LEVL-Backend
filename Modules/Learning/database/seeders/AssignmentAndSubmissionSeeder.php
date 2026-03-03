@@ -7,15 +7,18 @@ use Illuminate\Database\Seeder;
 class AssignmentAndSubmissionSeeder extends Seeder
 {
     private array $pregenTitles = [];
+
     private array $pregenDescriptions = [];
+
     private array $pregenAnswers = [];
+
     private string $createdAt;
 
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
         ini_set('memory_limit', '1536M');
-        
+
         echo "Seeding assignments and submissions...\n";
 
         $this->pregenerateFakeData();
@@ -31,16 +34,18 @@ class AssignmentAndSubmissionSeeder extends Seeder
 
         if ($lessonCount === 0) {
             echo "⚠️  No lessons found. Skipping assignment seeding.\n";
+
             return;
         }
 
         if (empty($instructorIds)) {
             echo "⚠️  No instructors found. Skipping assignment seeding.\n";
+
             return;
         }
 
         echo "Creating assignments for $lessonCount lessons...\n";
-        
+
         $assignmentCount = 0;
         $assignments = [];
         $assignmentBatchSize = 100;
@@ -48,15 +53,17 @@ class AssignmentAndSubmissionSeeder extends Seeder
 
         foreach (\DB::table('lessons')->select('id')->orderBy('id')->cursor() as $lesson) {
             $processedLessons++;
-            
-            if (rand(1, 100) > 60) continue;
-            
+
+            if (rand(1, 100) > 60) {
+                continue;
+            }
+
             $assignmentsPerLesson = rand(1, 2);
             $instructorId = $instructorIds[array_rand($instructorIds)];
 
             for ($i = 0; $i < $assignmentsPerLesson; $i++) {
                 $submissionType = rand(1, 100) <= 50 ? 'file' : 'text';
-                
+
                 $assignments[] = [
                     'lesson_id' => $lesson->id,
                     'title' => $this->pregenTitles[array_rand($this->pregenTitles)],
@@ -70,26 +77,26 @@ class AssignmentAndSubmissionSeeder extends Seeder
                     'updated_at' => $this->createdAt,
                 ];
                 $assignmentCount++;
-                
+
                 if (count($assignments) >= $assignmentBatchSize) {
                     \DB::table('assignments')->insertOrIgnore($assignments);
                     $assignments = null;
                     unset($assignments);
                     $assignments = [];
                     gc_collect_cycles();
-                    
+
                     if ($assignmentCount % 1000 === 0) {
                         echo "   ✓ Created $assignmentCount assignments\n";
                     }
                 }
             }
-            
+
             if ($processedLessons % 500 === 0) {
                 gc_collect_cycles();
             }
         }
 
-        if (!empty($assignments)) {
+        if (! empty($assignments)) {
             \DB::table('assignments')->insertOrIgnore($assignments);
             unset($assignments);
         }
@@ -113,7 +120,7 @@ class AssignmentAndSubmissionSeeder extends Seeder
 
         $courseEnrollments = [];
         foreach (\DB::table('enrollments')->where('status', 'active')->get(['user_id', 'id', 'course_id']) as $e) {
-            if (!isset($courseEnrollments[$e->course_id])) {
+            if (! isset($courseEnrollments[$e->course_id])) {
                 $courseEnrollments[$e->course_id] = [];
             }
             $courseEnrollments[$e->course_id][$e->user_id] = $e->id;
@@ -121,42 +128,46 @@ class AssignmentAndSubmissionSeeder extends Seeder
 
         $assignmentIds = array_keys($assignmentCourseMap);
         shuffle($assignmentIds);
-        $assignmentIds = array_slice($assignmentIds, 0, (int)(count($assignmentIds) * 0.15));
+        $assignmentIds = array_slice($assignmentIds, 0, (int) (count($assignmentIds) * 0.15));
 
-        echo "Processing " . count($assignmentIds) . " assignments (15% of total)...\n";
+        echo 'Processing '.count($assignmentIds)." assignments (15% of total)...\n";
 
         foreach ($assignmentIds as $assignmentId) {
             $processedAssignments++;
-            
+
             $assignmentData = $assignmentCourseMap[$assignmentId] ?? null;
-            if (!$assignmentData) continue;
-            
+            if (! $assignmentData) {
+                continue;
+            }
+
             $courseId = $assignmentData->course_id;
             $maxScore = $assignmentData->max_score;
             $submissionType = $assignmentData->submission_type;
-            
+
             $enrollmentData = $courseEnrollments[$courseId] ?? [];
-            if (empty($enrollmentData)) continue;
-            
+            if (empty($enrollmentData)) {
+                continue;
+            }
+
             $enrollmentKeys = array_keys($enrollmentData);
             shuffle($enrollmentKeys);
             $selectedUsers = array_slice($enrollmentKeys, 0, min(3, count($enrollmentKeys)));
-            
+
             foreach ($selectedUsers as $userId) {
                 $enrollmentId = $enrollmentData[$userId];
-                
+
                 $statusRandom = rand(1, 100);
                 $status = match (true) {
                     $statusRandom <= 30 => 'submitted',
                     $statusRandom <= 70 => 'graded',
                     default => 'draft',
                 };
-                
+
                 $answerText = null;
                 if ($submissionType === 'text' && $status !== 'draft') {
                     $answerText = $this->pregenAnswers[array_rand($this->pregenAnswers)];
                 }
-                
+
                 $submissions[] = [
                     'assignment_id' => $assignmentId,
                     'user_id' => $userId,
@@ -172,28 +183,28 @@ class AssignmentAndSubmissionSeeder extends Seeder
                     'updated_at' => $this->createdAt,
                 ];
                 $submissionCount++;
-                
+
                 if (count($submissions) >= $submissionBatchSize) {
                     \DB::table('submissions')->insertOrIgnore($submissions);
                     $submissions = null;
                     unset($submissions);
                     $submissions = [];
                     gc_collect_cycles();
-                    
+
                     if ($submissionCount % 500 === 0) {
                         echo "  ✅ Inserted $submissionCount submissions\n";
                     }
                 }
             }
-            
+
             if ($processedAssignments % 50 === 0) {
                 gc_collect_cycles();
             }
         }
-        
+
         unset($assignmentCourseMap, $courseEnrollments, $assignmentIds);
 
-        if (!empty($submissions)) {
+        if (! empty($submissions)) {
             \DB::table('submissions')->insertOrIgnore($submissions);
             unset($submissions);
         }
@@ -206,11 +217,11 @@ class AssignmentAndSubmissionSeeder extends Seeder
 
         echo "✅ Assignment and submission seeding completed!\n";
         echo "Created $assignmentCount assignments with $submissionCount submissions\n";
-        
+
         $this->pregenTitles = [];
         $this->pregenDescriptions = [];
         $this->pregenAnswers = [];
-        
+
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
     }
@@ -218,13 +229,13 @@ class AssignmentAndSubmissionSeeder extends Seeder
     private function pregenerateFakeData(): void
     {
         $faker = \Faker\Factory::create('id_ID');
-        
+
         for ($i = 0; $i < 100; $i++) {
             $this->pregenTitles[] = $faker->sentence(3);
             $this->pregenDescriptions[] = $faker->text(80);
             $this->pregenAnswers[] = $faker->paragraph(3);
         }
-        
+
         unset($faker);
     }
 
@@ -240,6 +251,7 @@ class AssignmentAndSubmissionSeeder extends Seeder
 
         if (empty($instructorIds)) {
             echo "⚠️  No instructors found for grading.\n";
+
             return;
         }
 
@@ -257,7 +269,9 @@ class AssignmentAndSubmissionSeeder extends Seeder
                 ->where('id', $submission->assignment_id)
                 ->first(['max_score']);
 
-            if (!$assignment) continue;
+            if (! $assignment) {
+                continue;
+            }
 
             $grades[] = [
                 'source_type' => 'assignment',
@@ -282,7 +296,7 @@ class AssignmentAndSubmissionSeeder extends Seeder
             }
         }
 
-        if (!empty($grades)) {
+        if (! empty($grades)) {
             \DB::table('grades')->insertOrIgnore($grades);
         }
 
@@ -293,9 +307,10 @@ class AssignmentAndSubmissionSeeder extends Seeder
     private function attachFilesToSubmissions(): void
     {
         $dummyFilePath = public_path('dummy/pdf-sample_0.pdf');
-        
-        if (!file_exists($dummyFilePath)) {
+
+        if (! file_exists($dummyFilePath)) {
             echo "⚠️  Dummy file not found at: $dummyFilePath\n";
+
             return;
         }
 
@@ -308,6 +323,7 @@ class AssignmentAndSubmissionSeeder extends Seeder
 
         if ($fileSubmissions->isEmpty()) {
             echo "⚠️  No file-type submissions found.\n";
+
             return;
         }
 
@@ -315,16 +331,18 @@ class AssignmentAndSubmissionSeeder extends Seeder
 
         foreach ($fileSubmissions as $submissionData) {
             $submission = \Modules\Learning\Models\Submission::find($submissionData->id);
-            
-            if (!$submission) continue;
+
+            if (! $submission) {
+                continue;
+            }
 
             try {
                 $submission->addMedia($dummyFilePath)
                     ->preservingOriginal()
-                    ->usingName('submission-' . $submission->id)
-                    ->usingFileName('submission-' . $submission->id . '.pdf')
+                    ->usingName('submission-'.$submission->id)
+                    ->usingFileName('submission-'.$submission->id.'.pdf')
                     ->toMediaCollection('submissions', 'do');
-                
+
                 $fileCount++;
 
                 if ($fileCount % 50 === 0) {
@@ -339,4 +357,3 @@ class AssignmentAndSubmissionSeeder extends Seeder
         echo "✅ Attached $fileCount files to submissions\n";
     }
 }
-

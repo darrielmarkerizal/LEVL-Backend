@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Database\Seeders;
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Modules\Schemes\Models\Lesson;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Models\Enrollment;
-use Carbon\Carbon;
+use Modules\Schemes\Models\Lesson;
 
 class AssignmentSeederEnhanced extends Seeder
 {
@@ -39,7 +39,7 @@ class AssignmentSeederEnhanced extends Seeder
     public function run(): void
     {
         $this->command->info("\n╔══════════════════════════════════════════════════╗");
-        $this->command->info("║     📝 ASSIGNMENT & SUBMISSION SEEDER            ║");
+        $this->command->info('║     📝 ASSIGNMENT & SUBMISSION SEEDER            ║');
         $this->command->info("╚══════════════════════════════════════════════════╝\n");
 
         $instructorIds = User::whereHas('roles', fn ($q) => $q->where('name', 'Instructor'))
@@ -47,18 +47,20 @@ class AssignmentSeederEnhanced extends Seeder
             ->toArray();
 
         if (empty($instructorIds)) {
-            $this->command->warn("⚠️  No instructors found. Skipping assignment seeding.");
+            $this->command->warn('⚠️  No instructors found. Skipping assignment seeding.');
+
             return;
         }
 
-        $this->command->info("📚 Pre-fetching instructors: " . count($instructorIds));
+        $this->command->info('📚 Pre-fetching instructors: '.count($instructorIds));
 
         $lessons = Lesson::with(['unit.course'])->whereHas('unit.course', function ($q) {
             $q->where('status', 'published');
         })->get();
 
         if ($lessons->isEmpty()) {
-            $this->command->warn("⚠️  No published lessons found. Skipping assignment seeding.");
+            $this->command->warn('⚠️  No published lessons found. Skipping assignment seeding.');
+
             return;
         }
 
@@ -80,7 +82,7 @@ class AssignmentSeederEnhanced extends Seeder
                     : Carbon::now()->subDays(rand(7, 90));
 
                 $randomTitle = $this->assignmentTitles[array_rand($this->assignmentTitles)];
-                $titleVariation = $randomTitle . ' - ' . ucfirst(fake()->word());
+                $titleVariation = $randomTitle.' - '.ucfirst(fake()->word());
 
                 $assignments[] = [
                     'assignable_type' => 'Modules\\\\Schemes\\\\Models\\\\Lesson',
@@ -115,19 +117,19 @@ class AssignmentSeederEnhanced extends Seeder
             }
         }
 
-        if (!empty($assignments)) {
+        if (! empty($assignments)) {
             DB::table('assignments')->insertOrIgnore($assignments);
             $this->command->info("  ✅ Inserted {$assignmentCount} assignments (final batch)");
         }
 
         $this->command->info("\n📊 Assignment Creation Summary:");
         $this->command->info("  Total Assignments: {$assignmentCount}");
-        $this->command->info("  Average per Lesson: " . round($assignmentCount / $lessons->count(), 2));
+        $this->command->info('  Average per Lesson: '.round($assignmentCount / $lessons->count(), 2));
 
         $this->createSubmissions();
 
         $this->command->info("\n╔══════════════════════════════════════════════════╗");
-        $this->command->info("║   ✅ ASSIGNMENT SEEDING COMPLETED!               ║");
+        $this->command->info('║   ✅ ASSIGNMENT SEEDING COMPLETED!               ║');
         $this->command->info("╚══════════════════════════════════════════════════╝\n");
     }
 
@@ -196,14 +198,14 @@ class AssignmentSeederEnhanced extends Seeder
             }
         }
 
-        if (!empty($submissions)) {
+        if (! empty($submissions)) {
             DB::table('submissions')->insertOrIgnore($submissions);
             $this->command->info("  ✅ Inserted {$submissionCount} submissions (final batch)");
         }
 
         $this->command->info("\n📊 Submission Summary:");
         $this->command->info("  Total Submissions: {$submissionCount}");
-        $this->command->info("  Submission Rate: 50-70% of enrolled students");
+        $this->command->info('  Submission Rate: 50-70% of enrolled students');
 
         $statusDistribution = DB::table('submissions')
             ->select('status', DB::raw('count(*) as count'))
@@ -220,20 +222,20 @@ class AssignmentSeederEnhanced extends Seeder
     private function generateAssignmentDescription(): string
     {
         $templates = [
-            "Complete this assignment to demonstrate your understanding of the concepts covered in this lesson. " .
-            "Submit your work by the deadline and ensure all requirements are met.",
+            'Complete this assignment to demonstrate your understanding of the concepts covered in this lesson. '.
+            'Submit your work by the deadline and ensure all requirements are met.',
 
-            "This assignment will test your practical skills in implementing the techniques we've learned. " .
-            "Make sure to follow best practices and document your approach.",
+            "This assignment will test your practical skills in implementing the techniques we've learned. ".
+            'Make sure to follow best practices and document your approach.',
 
-            "Apply what you've learned to solve real-world problems. Your submission should include " .
-            "working code, documentation, and a brief explanation of your approach.",
+            "Apply what you've learned to solve real-world problems. Your submission should include ".
+            'working code, documentation, and a brief explanation of your approach.',
 
-            "Demonstrate mastery of this topic by completing the following tasks. " .
-            "Quality and attention to detail will be key factors in evaluation.",
+            'Demonstrate mastery of this topic by completing the following tasks. '.
+            'Quality and attention to detail will be key factors in evaluation.',
 
-            "This practical exercise will help reinforce your learning. Complete all sections and " .
-            "submit your best work. Late submissions may incur penalties.",
+            'This practical exercise will help reinforce your learning. Complete all sections and '.
+            'submit your best work. Late submissions may incur penalties.',
         ];
 
         return $templates[array_rand($templates)];
@@ -242,27 +244,28 @@ class AssignmentSeederEnhanced extends Seeder
     private function generateFeedback(): string
     {
         $positives = [
-            "Excellent work!",
-            "Great job!",
-            "Well done!",
-            "Good effort!",
-            "Nice implementation!",
+            'Excellent work!',
+            'Great job!',
+            'Well done!',
+            'Good effort!',
+            'Nice implementation!',
         ];
 
         $improvements = [
-            "Consider refactoring for better readability.",
-            "Add more test coverage for edge cases.",
-            "Improve error handling in some sections.",
-            "Documentation could be more comprehensive.",
-            "Consider performance optimizations.",
+            'Consider refactoring for better readability.',
+            'Add more test coverage for edge cases.',
+            'Improve error handling in some sections.',
+            'Documentation could be more comprehensive.',
+            'Consider performance optimizations.',
         ];
 
-        return $positives[array_rand($positives)] . " " . $improvements[array_rand($improvements)];
+        return $positives[array_rand($positives)].' '.$improvements[array_rand($improvements)];
     }
 
     private function getRandomMaxScore(): int
     {
         $scores = [10, 20, 25, 50, 100];
+
         return $scores[array_rand($scores)];
     }
 

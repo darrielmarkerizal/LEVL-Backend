@@ -66,6 +66,7 @@ class QuizAnswer extends Model
         if ($isGraded) {
             return $query->whereNotNull('score');
         }
+
         return $query->whereNull('score');
     }
 

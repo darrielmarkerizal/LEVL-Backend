@@ -80,7 +80,7 @@ class ActiveUsersSeeder extends Seeder
         // Add avatars: DiceBear first, fallback to ui-avatars.com
         $avatarUrls = fn ($user) => [
             "https://api.dicebear.com/9.x/avataaars/png?seed={$user->username}",
-            'https://ui-avatars.com/api/?name=' . rawurlencode($user->name) . '&size=256&background=random',
+            'https://ui-avatars.com/api/?name='.rawurlencode($user->name).'&size=256&background=random',
         ];
         foreach ([$superadmin, $admin, $instructor, $student] as $user) {
             if ($user->hasMedia('avatar')) {
@@ -91,7 +91,7 @@ class ActiveUsersSeeder extends Seeder
                     $user->addMediaFromUrl($url)->toMediaCollection('avatar');
                     break;
                 } catch (\Throwable $e) {
-                    $this->command->warn("Avatar URL failed for {$user->username}, trying next: " . $e->getMessage());
+                    $this->command->warn("Avatar URL failed for {$user->username}, trying next: ".$e->getMessage());
                 }
             }
         }

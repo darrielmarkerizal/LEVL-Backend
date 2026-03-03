@@ -46,16 +46,11 @@ class GradingServiceProvider extends ServiceProvider
     {
         $this->app->bind(GradingRepositoryInterface::class, GradingRepository::class);
 
-
     }
 
-    protected function registerCommands(): void
-    {
-    }
+    protected function registerCommands(): void {}
 
-    protected function registerCommandSchedules(): void
-    {
-    }
+    protected function registerCommandSchedules(): void {}
 
     public function registerTranslations(): void
     {

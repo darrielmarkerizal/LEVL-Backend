@@ -17,7 +17,7 @@ class AssignmentPrerequisitesSeeder extends Seeder
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
-        
+
         echo "Seeding assignment prerequisites...\n";
 
         // Check if assignments exist
@@ -25,6 +25,7 @@ class AssignmentPrerequisitesSeeder extends Seeder
 
         if ($assignmentIds->count() < 2) {
             echo "⚠️  Need at least 2 assignments to create prerequisites. Skipping.\n";
+
             return;
         }
 
@@ -54,7 +55,7 @@ class AssignmentPrerequisitesSeeder extends Seeder
             }
 
             // Get other assignment IDs (excluding current assignment)
-            $otherAssignmentIds = array_filter($assignmentIds, function($id) use ($assignmentId) {
+            $otherAssignmentIds = array_filter($assignmentIds, function ($id) use ($assignmentId) {
                 return $id != $assignmentId;
             });
 
@@ -71,7 +72,7 @@ class AssignmentPrerequisitesSeeder extends Seeder
                 $relationshipKey = "{$assignmentId}_{$prerequisiteId}";
 
                 // Check if the relationship already exists
-                if (!isset($existingRelationships[$relationshipKey])) {
+                if (! isset($existingRelationships[$relationshipKey])) {
                     $relationshipsToInsert[] = [
                         'assignment_id' => $assignmentId,
                         'prerequisite_id' => $prerequisiteId,
@@ -85,7 +86,7 @@ class AssignmentPrerequisitesSeeder extends Seeder
         }
 
         // Batch insert all relationships
-        if (!empty($relationshipsToInsert)) {
+        if (! empty($relationshipsToInsert)) {
             foreach (array_chunk($relationshipsToInsert, 1000) as $chunk) {
                 \DB::table('assignment_prerequisites')->insertOrIgnore($chunk);
             }
@@ -93,7 +94,7 @@ class AssignmentPrerequisitesSeeder extends Seeder
 
         echo "✅ Assignment prerequisites seeding completed!\n";
         echo "Created $prerequisiteCount prerequisite relationships\n";
-        
+
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
     }

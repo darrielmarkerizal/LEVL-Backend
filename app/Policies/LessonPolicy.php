@@ -14,12 +14,12 @@ class LessonPolicy
     public function view(User $user, Lesson $lesson)
     {
         $unit = $lesson->unit;
-        if (!$unit) {
+        if (! $unit) {
             return $this->deny(__('messages.unit_not_found'));
         }
 
         $course = $unit->course;
-        if (!$course) {
+        if (! $course) {
             return $this->deny(__('messages.course_not_found'));
         }
 
@@ -29,7 +29,7 @@ class LessonPolicy
                 ->whereIn('status', ['active', 'completed'])
                 ->exists();
 
-            if (!$isEnrolled) {
+            if (! $isEnrolled) {
                 return $this->deny(__('messages.enrollment_required'));
             }
         }

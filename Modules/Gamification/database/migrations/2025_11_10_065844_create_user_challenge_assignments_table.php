@@ -17,9 +17,9 @@ return new class extends Migration
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'challenge_id', 'assigned_date'], 'uca_user_challenge_date_unique');
-            
+
             $table->index(['user_id', 'assigned_date']);
             $table->index(['challenge_id', 'assigned_date']);
             $table->index('status');

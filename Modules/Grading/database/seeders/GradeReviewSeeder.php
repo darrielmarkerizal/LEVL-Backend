@@ -3,10 +3,7 @@
 namespace Modules\Grading\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Auth\Models\User;
 use Modules\Grading\Models\Grade;
-use Modules\Grading\Models\GradeReview;
-use Modules\Grading\Enums\GradeStatus;
 
 class GradeReviewSeeder extends Seeder
 {
@@ -33,6 +30,7 @@ class GradeReviewSeeder extends Seeder
 
         if (empty($instructorIds)) {
             echo "⚠️  No instructors found. Skipping grade review seeding.\n";
+
             return;
         }
 
@@ -41,11 +39,12 @@ class GradeReviewSeeder extends Seeder
 
         if ($totalGrades === 0) {
             echo "⚠️  No grades found. Skipping grade review seeding.\n";
+
             return;
         }
 
         echo "   📝 Processing $totalGrades grades...\n";
-        echo "   👥 Using " . count($instructorIds) . " instructors\n\n";
+        echo '   👥 Using '.count($instructorIds)." instructors\n\n";
 
         $reviewCount = 0;
         $chunkNum = 0;
@@ -103,11 +102,11 @@ class GradeReviewSeeder extends Seeder
             }
 
             // ✅ Batch insert reviews
-            if (!empty($reviews)) {
+            if (! empty($reviews)) {
                 \DB::table('grade_reviews')->insertOrIgnore($reviews);
             }
 
-            echo "      ✓ Chunk $chunkNum: $chunkGrades grades processed | Created Reviews: " . count($reviews) . "\n";
+            echo "      ✓ Chunk $chunkNum: $chunkGrades grades processed | Created Reviews: ".count($reviews)."\n";
 
             $offset += $chunkSize;
         }

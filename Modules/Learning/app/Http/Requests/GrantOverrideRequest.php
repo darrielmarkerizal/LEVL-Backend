@@ -12,7 +12,7 @@ class GrantOverrideRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; 
+        return true;
     }
 
     public function rules(): array
@@ -20,7 +20,7 @@ class GrantOverrideRequest extends FormRequest
         return [
             'student_id' => ['required', 'integer', 'exists:users,id'],
             'type' => ['required', Rule::enum(OverrideType::class)],
-            'reason' => ['required', 'string', 'min:10', 'max:1000'], 
+            'reason' => ['required', 'string', 'min:10', 'max:1000'],
             'value' => ['nullable', 'array'],
             'value.additional_attempts' => ['nullable', 'integer', 'min:1'],
             'value.extended_deadline' => ['nullable', 'date', 'after:now'],
@@ -36,7 +36,6 @@ class GrantOverrideRequest extends FormRequest
             $type = $this->input('type');
             $value = $this->input('value', []);
 
-            
             if ($type === OverrideType::Attempts->value) {
                 if (empty($value['additional_attempts'])) {
                     $validator->errors()->add(

@@ -19,52 +19,52 @@ class TagSeederEnhanced extends Seeder
             // Programming Languages
             'PHP', 'JavaScript', 'Python', 'Java', 'TypeScript', 'Go', 'Rust', 'C++', 'C#', 'Ruby',
             'Swift', 'Kotlin', 'Dart', 'R', 'Scala', 'Elixir',
-            
+
             // Frontend Technologies
             'React', 'Vue.js', 'Angular', 'Svelte', 'Next.js', 'Nuxt.js', 'HTML', 'CSS', 'SASS', 'Tailwind CSS',
             'Bootstrap', 'Material UI', 'Chakra UI',
-            
+
             // Backend Technologies
             'Laravel', 'Node.js', 'Express.js', 'Django', 'Flask', 'Spring Boot', 'ASP.NET', 'Ruby on Rails',
             'FastAPI', 'NestJS', 'Symfony',
-            
+
             // Databases
             'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'Elasticsearch', 'SQLite', 'Oracle', 'SQL Server',
             'DynamoDB', 'Cassandra', 'Neo4j',
-            
+
             // DevOps & Cloud
             'Docker', 'Kubernetes', 'AWS', 'Azure', 'Google Cloud', 'CI/CD', 'Jenkins', 'GitLab CI',
             'GitHub Actions', 'Terraform', 'Ansible', 'Nginx', 'Apache',
-            
+
             // Data & AI
             'Machine Learning', 'Deep Learning', 'TensorFlow', 'PyTorch', 'Pandas', 'NumPy', 'Scikit-learn',
             'Data Visualization', 'Power BI', 'Tableau', 'Apache Spark',
-            
+
             // Mobile Development
             'React Native', 'Flutter', 'iOS Development', 'Android Development', 'Xamarin', 'Ionic',
-            
+
             // Design
             'Figma', 'Adobe XD', 'Sketch', 'Photoshop', 'Illustrator', 'InDesign', 'Blender',
             'UI Design', 'UX Research', 'Design Systems', 'Prototyping',
-            
+
             // Methodologies & Practices
             'Agile', 'Scrum', 'Kanban', 'TDD', 'BDD', 'Clean Code', 'SOLID Principles', 'Design Patterns',
             'Microservices', 'RESTful API', 'GraphQL', 'WebSockets',
-            
+
             // Soft Skills
             'Communication', 'Leadership', 'Problem Solving', 'Critical Thinking', 'Teamwork',
             'Time Management', 'Public Speaking', 'Negotiation',
-            
+
             // Security
             'Ethical Hacking', 'Penetration Testing', 'OWASP', 'SSL/TLS', 'OAuth', 'JWT',
-            
+
             // Testing
             'Unit Testing', 'Integration Testing', 'E2E Testing', 'Selenium', 'Jest', 'PHPUnit', 'Pytest',
-            
+
             // Other Tools & Technologies
             'Git', 'GitHub', 'GitLab', 'VS Code', 'IntelliJ IDEA', 'Postman', 'Jira', 'Confluence',
             'Slack', 'Notion', 'Linux', 'Windows Server',
-            
+
             // Domains
             'E-commerce', 'FinTech', 'HealthTech', 'EdTech', 'Gaming', 'IoT', 'Blockchain', 'Cryptocurrency',
             'Artificial Intelligence', 'Augmented Reality', 'Virtual Reality',
@@ -75,8 +75,8 @@ class TagSeederEnhanced extends Seeder
 
         foreach ($tags as $tagName) {
             $slug = Str::slug($tagName);
-            
-            if (!Tag::where('slug', $slug)->exists()) {
+
+            if (! Tag::where('slug', $slug)->exists()) {
                 $tagData[] = [
                     'name' => $tagName,
                     'slug' => $slug,
@@ -87,7 +87,7 @@ class TagSeederEnhanced extends Seeder
             }
         }
 
-        if (!empty($tagData)) {
+        if (! empty($tagData)) {
             foreach (array_chunk($tagData, 50) as $chunk) {
                 DB::table('tags')->insertOrIgnore($chunk);
             }

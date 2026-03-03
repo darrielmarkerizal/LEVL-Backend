@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Modules\Auth\Http\Requests\ChangePasswordRequest;
-use Modules\Auth\Services\PasswordService;
 
 class ProfilePasswordController extends Controller
 {

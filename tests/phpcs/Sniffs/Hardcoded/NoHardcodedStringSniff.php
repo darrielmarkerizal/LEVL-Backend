@@ -2,8 +2,8 @@
 
 namespace Tests\PHPCS\Sniffs\Hardcoded;
 
-use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
 
 class NoHardcodedStringSniff implements Sniff
 {
@@ -27,7 +27,7 @@ class NoHardcodedStringSniff implements Sniff
         $prevTokenIndex = $phpcsFile->findPrevious(T_WHITESPACE, $stackPtr - 1, null, true);
         if ($prevTokenIndex !== false) {
             $prevToken = $tokens[$prevTokenIndex];
-            
+
             // If strictly inside __() or trans(), we might see ( before string.
             // But we want to flag strings that are NOT arguments to these.
             // Actually, simply checking if we are arguments to specific functions is complex in regex/simple loop.
@@ -44,17 +44,17 @@ class NoHardcodedStringSniff implements Sniff
                     }
                 }
             }
-            
-             // Ignore if it's an array key:  'key' => 'value'
-             // If this token is 'key', the next non-whitespace char is =>
-             $nextTokenIndex = $phpcsFile->findNext(T_WHITESPACE, $stackPtr + 1, null, true);
-             if ($nextTokenIndex !== false && $tokens[$nextTokenIndex]['code'] === T_DOUBLE_ARROW) {
-                 return; 
-             }
-             
-             // Ignore 'use' statements, namespace, etc. handled by other sniffs usually? 
-             // PHPCS tokenizing handles those as T_STRING often, but "use 'string'" isn't valid PHP. 
-             // "use Namespace;" uses T_STRING.
+
+            // Ignore if it's an array key:  'key' => 'value'
+            // If this token is 'key', the next non-whitespace char is =>
+            $nextTokenIndex = $phpcsFile->findNext(T_WHITESPACE, $stackPtr + 1, null, true);
+            if ($nextTokenIndex !== false && $tokens[$nextTokenIndex]['code'] === T_DOUBLE_ARROW) {
+                return;
+            }
+
+            // Ignore 'use' statements, namespace, etc. handled by other sniffs usually?
+            // PHPCS tokenizing handles those as T_STRING often, but "use 'string'" isn't valid PHP.
+            // "use Namespace;" uses T_STRING.
         }
 
         $phpcsFile->addWarning(

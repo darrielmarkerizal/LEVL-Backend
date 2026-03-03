@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Modules\Auth\Http\Middleware;
 
 use Closure;
@@ -29,5 +28,3 @@ class EnsureEmailVerified
         return redirect()->away(rtrim(config('app.url'), '/'));
     }
 }
-
-

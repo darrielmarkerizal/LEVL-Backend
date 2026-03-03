@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Modules\Auth\Contracts\Services;
 
 use Modules\Auth\Models\User;
@@ -46,7 +45,7 @@ interface AuthServiceInterface
     public function verifyEmail(string $token, string $uuid): array;
 
     public function sendEmailVerificationLink(User $user): ?string;
-    
+
     /** @return array<string,mixed> */
     public function setPassword(User $user, string $password): array;
 }

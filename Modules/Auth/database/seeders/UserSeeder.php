@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Modules\Auth\Database\Seeders;
@@ -14,14 +15,14 @@ class UserSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * Creates comprehensive user data with:
      * - 50 Superadmin users
      * - 100 Admin users
      * - 200 Instructor users
      * - 650 Student users
      * Total: 1000 users
-     * 
+     *
      * With distribution of statuses:
      * - 70% Active
      * - 15% Pending
@@ -31,7 +32,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
-        
+
         // Create demo users for testing
         $this->createDemoUsers();
 
@@ -53,7 +54,7 @@ class UserSeeder extends Seeder
 
         echo "✅ User seeding completed successfully!\n";
         echo "Total users created: 1000\n";
-        
+
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
     }
@@ -127,6 +128,7 @@ class UserSeeder extends Seeder
 
             if ($existingUser) {
                 echo "  ⚠️  User {$demoUser['username']} already exists, skipping...\n";
+
                 continue;
             }
 
@@ -139,7 +141,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => $demoUser['verified'] ? now() : null,
                 'is_password_set' => true,
                 'account_status' => 'active',
-                'phone' => '+62812' . rand(10000000, 99999999),
+                'phone' => '+62812'.rand(10000000, 99999999),
                 'bio' => 'Demo user for testing purposes.',
             ]);
 
@@ -161,7 +163,7 @@ class UserSeeder extends Seeder
         }
 
         // ✅ Batch insert privacy settings
-        if (!empty($privacySettings)) {
+        if (! empty($privacySettings)) {
             \Illuminate\Support\Facades\DB::table('profile_privacy_settings')->insertOrIgnore($privacySettings);
         }
 
@@ -211,7 +213,7 @@ class UserSeeder extends Seeder
 
         while ($users->count() < $count && $attempts < $maxAttempts) {
             $attempts++;
-            
+
             $attributes = UserFactory::new()
                 ->state([
                     'status' => $status->value,
@@ -232,10 +234,10 @@ class UserSeeder extends Seeder
 
         $counter = 0;
         foreach ($users as $user) {
-            if (!$user->hasRole($role)) {
+            if (! $user->hasRole($role)) {
                 $user->assignRole($role);
             }
-            
+
             $counter++;
             if ($counter % 5000 === 0) {
                 gc_collect_cycles();
@@ -273,7 +275,7 @@ class UserSeeder extends Seeder
      */
     private function createUserActivitiesBatch($users, UserStatus $status): void
     {
-        if (!\Illuminate\Support\Facades\Schema::hasTable('user_activities')) {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('user_activities')) {
             return;
         }
 
@@ -290,7 +292,7 @@ class UserSeeder extends Seeder
                 UserActivity::TYPE_BADGE_EARNED,
                 UserActivity::TYPE_CERTIFICATE_EARNED,
             ];
-            
+
             $relatedTypes = [null, 'Course', 'Lesson', 'Assignment'];
             $pregenTitles = ['Enrolled in course', 'Completed lesson', 'Submitted assignment', 'Earned badge', 'Achieved milestone'];
             $pregenDescriptions = ['Progress made', 'New achievement unlocked', 'Course completed successfully', 'Badge earned', 'Activity recorded'];
@@ -320,7 +322,7 @@ class UserSeeder extends Seeder
                         'created_at' => $createdAt,
                     ];
                 }
-                
+
                 if (count($activities) >= 500) {
                     \Illuminate\Support\Facades\DB::table('user_activities')->insertOrIgnore($activities);
                     $activities = [];
@@ -328,7 +330,7 @@ class UserSeeder extends Seeder
                 }
             }
 
-            if (!empty($activities)) {
+            if (! empty($activities)) {
                 \Illuminate\Support\Facades\DB::table('user_activities')->insertOrIgnore($activities);
             }
         } catch (\Exception $e) {

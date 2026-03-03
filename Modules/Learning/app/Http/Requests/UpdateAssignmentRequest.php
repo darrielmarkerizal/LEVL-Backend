@@ -16,7 +16,7 @@ class UpdateAssignmentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; 
+        return true;
     }
 
     public function rules(): array
@@ -25,8 +25,11 @@ class UpdateAssignmentRequest extends FormRequest
             'type' => ['sometimes', Rule::enum(AssignmentType::class)],
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'unit_id' => ['sometimes', 'integer', 'exists:units,id'],
+            'order' => ['sometimes', 'integer', 'min:1'],
             'submission_type' => ['sometimes', Rule::enum(SubmissionType::class)],
             'max_score' => ['nullable', 'integer', 'min:1', 'max:1000'],
+            'passing_grade' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'status' => ['sometimes', Rule::enum(AssignmentStatus::class)],
             'allow_resubmit' => ['nullable', 'boolean'],
             'time_limit_minutes' => ['nullable', 'integer', 'min:1'],
@@ -41,7 +44,6 @@ class UpdateAssignmentRequest extends FormRequest
             'delete_attachments' => ['nullable', 'array'],
             'delete_attachments.*' => ['integer', 'exists:media,id'],
         ];
-
     }
 
     public function attributes(): array
@@ -50,8 +52,11 @@ class UpdateAssignmentRequest extends FormRequest
             'type' => __('validation.attributes.type'),
             'title' => __('validation.attributes.title'),
             'description' => __('validation.attributes.description'),
+            'unit_id' => __('validation.attributes.unit_id'),
+            'order' => __('validation.attributes.order'),
             'submission_type' => __('validation.attributes.submission_type'),
             'max_score' => __('validation.attributes.max_score'),
+            'passing_grade' => __('validation.attributes.passing_grade'),
             'status' => __('validation.attributes.status'),
             'allow_resubmit' => __('validation.attributes.allow_resubmit'),
             'max_attempts' => __('validation.attributes.max_attempts'),

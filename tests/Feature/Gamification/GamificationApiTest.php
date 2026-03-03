@@ -2,15 +2,14 @@
 
 namespace Tests\Feature\Gamification;
 
-use Modules\Auth\Models\User;
-use Modules\Gamification\Models\UserGamificationStat;
-use Modules\Gamification\Models\UserBadge;
-use Modules\Gamification\Models\Badge;
-use Modules\Gamification\Models\Point;
-use Modules\Gamification\Models\Challenge;
-use Modules\Gamification\Models\UserChallengeAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Modules\Auth\Models\User;
+use Modules\Gamification\Models\Badge;
+use Modules\Gamification\Models\Challenge;
+use Modules\Gamification\Models\Point;
+use Modules\Gamification\Models\UserBadge;
+use Modules\Gamification\Models\UserChallengeAssignment;
+use Modules\Gamification\Models\UserGamificationStat;
 use Tests\TestCase;
 
 class GamificationApiTest extends TestCase
@@ -22,7 +21,7 @@ class GamificationApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create();
         $this->actingAs($this->user, 'api');
     }
@@ -50,11 +49,11 @@ class GamificationApiTest extends TestCase
                     '*' => [
                         'id',
                         'badge' => ['code', 'name'],
-                        'awarded_at'
-                    ]
-                ]
+                        'awarded_at',
+                    ],
+                ],
             ]);
-            
+
         // Assert it is NOT wrapped in 'badges' key inside data
         $this->assertArrayNotHasKey('badges', $response->json('data'));
     }
@@ -62,13 +61,13 @@ class GamificationApiTest extends TestCase
     public function test_user_completed_challenges_returns_direct_collection()
     {
         $challenge = Challenge::create([
-             'code' => 'CH001',
-             'name' => 'Test Challenge',
-             'type' => 'daily',
-             'description' => 'Test',
-             'criteria_type' => 'login_streak',
-             'criteria_threshold' => 1,
-             'xp_reward' => 100
+            'code' => 'CH001',
+            'name' => 'Test Challenge',
+            'type' => 'daily',
+            'description' => 'Test',
+            'criteria_type' => 'login_streak',
+            'criteria_threshold' => 1,
+            'xp_reward' => 100,
         ]);
 
         UserChallengeAssignment::create([
@@ -88,11 +87,11 @@ class GamificationApiTest extends TestCase
                 'data' => [
                     '*' => [
                         'challenge_id',
-                        'completed_at'
-                    ]
-                ]
+                        'completed_at',
+                    ],
+                ],
             ]);
-            
+
         // Assert it is NOT wrapped in 'completions' key inside data
         $this->assertArrayNotHasKey('completions', $response->json('data'));
     }
@@ -118,11 +117,11 @@ class GamificationApiTest extends TestCase
                     'my_rank' => [
                         'rank',
                         'total_xp',
-                        'level'
-                    ]
-                ]
+                        'level',
+                    ],
+                ],
             ]);
-            
+
         $this->assertEquals(1000, $response->json('meta.my_rank.total_xp'));
     }
 
@@ -133,7 +132,7 @@ class GamificationApiTest extends TestCase
             'points' => 10,
             'reason' => 'login_streak',
             'source_type' => 'system',
-            'source_id' => 1
+            'source_id' => 1,
         ]);
 
         $response = $this->getJson(route('user.gamification.points-history'));

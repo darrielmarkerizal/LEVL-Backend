@@ -16,6 +16,8 @@ class UpdateQuizRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'unit_id' => ['sometimes', 'integer', 'exists:units,id'],
+            'order' => ['sometimes', 'integer', 'min:1'],
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'passing_grade' => ['nullable', 'numeric', 'min:0', 'max:100'],

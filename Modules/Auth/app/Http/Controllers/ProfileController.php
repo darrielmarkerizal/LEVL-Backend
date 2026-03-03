@@ -22,10 +22,10 @@ class ProfileController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        if (!$user->relationLoaded('media')) {
+        if (! $user->relationLoaded('media')) {
             $user->load('media');
         }
-    $user->loadMissing('roles');
+        $user->loadMissing('roles');
         $profileData = $this->profileService->getProfileData($user);
 
         return $this->success(new \Modules\Auth\Http\Resources\ProfileResource($profileData));
@@ -35,7 +35,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $updatedUser = $this->profileService->updateProfile($user, $request->validated());
-    $updatedUser->loadMissing('roles');
+        $updatedUser->loadMissing('roles');
 
         return $this->success(
             $this->profileService->getProfileData($updatedUser),
@@ -46,7 +46,7 @@ class ProfileController extends Controller
     public function uploadAvatar(\Modules\Auth\Http\Requests\UploadAvatarRequest $request): JsonResponse
     {
         $user = $request->user();
-        if (!$user->relationLoaded('media')) {
+        if (! $user->relationLoaded('media')) {
             $user->load('media');
         }
         $avatarUrl = $this->profileService->uploadAvatar($user, $request->file('avatar'));
@@ -66,9 +66,9 @@ class ProfileController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        
+
         $uuid = $this->profileService->requestEmailChange(
-            $user, 
+            $user,
             $request->input('new_email'),
             $request->ip(),
             $request->userAgent()
@@ -89,7 +89,7 @@ class ProfileController extends Controller
         );
 
         if ($result['status'] !== 'ok') {
-            return $this->error(__('messages.auth.email_change_' . $result['status']), [], 422);
+            return $this->error(__('messages.auth.email_change_'.$result['status']), [], 422);
         }
 
         return $this->success([], __('messages.auth.email_change_success'));

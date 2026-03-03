@@ -21,8 +21,8 @@ class AssignmentDuplicator
         return DB::transaction(function () use ($assignmentId, $userId, $overrides) {
             $overrides['created_by'] = $userId;
             $original = $this->repository->findForDuplication($assignmentId);
-            
-            if (!$original) {
+
+            if (! $original) {
                 throw AssignmentException::notFound();
             }
 
@@ -52,7 +52,7 @@ class AssignmentDuplicator
             'cooldown_minutes' => $overrides['cooldown_minutes'] ?? $original->cooldown_minutes,
             'retake_enabled' => $overrides['retake_enabled'] ?? $original->retake_enabled,
             'review_mode' => $overrides['review_mode'] ?? ($original->review_mode?->value ?? $original->getRawOriginal('review_mode')),
-            'status' => $overrides['status'] ?? AssignmentStatus::Draft->value, 
+            'status' => $overrides['status'] ?? AssignmentStatus::Draft->value,
             'allow_resubmit' => $overrides['allow_resubmit'] ?? $original->allow_resubmit,
             'time_limit_minutes' => $original->time_limit_minutes,
         ];
@@ -67,20 +67,20 @@ class AssignmentDuplicator
                 'options' => $question->options,
                 'answer_key' => $question->answer_key,
                 'weight' => $question->weight,
-                'order' => $question->order, 
+                'order' => $question->order,
             ]);
-            // Note: Media duplication for questions might be needed if they have embedded media, 
+            // Note: Media duplication for questions might be needed if they have embedded media,
             // but for now relying on basic duplication logic.
         }
     }
 
     private function duplicatePrerequisites(Assignment $original, Assignment $newAssignment): void
     {
-        // Prerequisites are many-to-many. 
+        // Prerequisites are many-to-many.
         // Logic: Should the new assignment have the same prerequisites as the old one?
         // Usually yes.
         $prereqIds = $original->prerequisites->pluck('id')->toArray();
-        if (!empty($prereqIds)) {
+        if (! empty($prereqIds)) {
             $newAssignment->prerequisites()->attach($prereqIds);
         }
     }

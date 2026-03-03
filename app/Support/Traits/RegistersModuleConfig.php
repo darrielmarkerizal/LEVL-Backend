@@ -56,7 +56,7 @@ trait RegistersModuleConfig
     private function removeDuplicateSegments(array $segments): array
     {
         $normalized = [];
-        
+
         foreach ($segments as $segment) {
             if (end($normalized) !== $segment) {
                 $normalized[] = $segment;

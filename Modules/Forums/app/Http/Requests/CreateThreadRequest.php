@@ -63,7 +63,7 @@ class CreateThreadRequest extends FormRequest
     private function validateMentionedUsernames(string $content, $fail): void
     {
         preg_match_all('/@([a-zA-Z0-9._-]+)/', $content, $matches);
-        
+
         if (empty($matches[1])) {
             return;
         }
@@ -75,13 +75,12 @@ class CreateThreadRequest extends FormRequest
 
         $invalidUsernames = array_diff($mentionedUsernames, $existingUsernames);
 
-        if (!empty($invalidUsernames)) {
+        if (! empty($invalidUsernames)) {
             $fail(__('validation.mentioned_users_not_found', [
-                'usernames' => implode(', ', array_map(fn($u) => "@{$u}", $invalidUsernames))
+                'usernames' => implode(', ', array_map(fn ($u) => "@{$u}", $invalidUsernames)),
             ]));
         }
     }
-
 
     private function canAccessCourse(int $userId, int $courseId): bool
     {
@@ -96,6 +95,4 @@ class CreateThreadRequest extends FormRequest
 
         return Enrollment::where('user_id', $userId)->where('course_id', $courseId)->exists();
     }
-
-
 }

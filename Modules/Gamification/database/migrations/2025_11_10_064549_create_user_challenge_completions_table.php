@@ -16,9 +16,9 @@ return new class extends Migration
             $table->unsignedInteger('xp_earned')->default(0);
             $table->json('completion_data')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'challenge_id', 'completed_date'], 'ucc_user_challenge_date_unique');
-            
+
             $table->index(['user_id', 'completed_date']);
             $table->index(['challenge_id', 'completed_date']);
             $table->index('completed_date');

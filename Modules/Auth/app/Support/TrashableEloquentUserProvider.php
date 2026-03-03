@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Auth\Support;
 
 use Illuminate\Auth\EloquentUserProvider;
-use Illuminate\Contracts\Auth\Authenticatable;
 
 class TrashableEloquentUserProvider extends EloquentUserProvider
 {

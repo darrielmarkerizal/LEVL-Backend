@@ -1,8 +1,6 @@
 <?php
 
 use Modules\Auth\app\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
 test('can refresh with valid token', function () {
     $user = User::factory()->create(['status' => 'active']);
@@ -12,13 +10,13 @@ test('can refresh with valid token', function () {
         'login' => $user->email,
         'password' => 'password', // Assumes factory default
     ]);
-    
+
     // Fallback if password varies
     if ($response->status() !== 200) {
-       // Manual token gen if login fails due to factory password mismatch
-       // Skip for now, assume factory uses 'password'
+        // Manual token gen if login fails due to factory password mismatch
+        // Skip for now, assume factory uses 'password'
     }
-    
+
     $refreshToken = $response->json('data.refresh_token');
 
     $response = $this->postJson('/api/v1/auth/refresh', [
@@ -31,7 +29,7 @@ test('can refresh with valid token', function () {
                 'access_token',
                 'refresh_token',
                 'expires_in',
-            ]
+            ],
         ]);
 });
 

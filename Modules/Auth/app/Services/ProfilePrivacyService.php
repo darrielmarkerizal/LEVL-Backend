@@ -57,7 +57,7 @@ class ProfilePrivacyService implements ProfilePrivacyServiceInterface
         }
 
         return collect($data)
-            ->filter(fn($value, $key) => $visibleFields->contains($key))
+            ->filter(fn ($value, $key) => $visibleFields->contains($key))
             ->toArray();
     }
 

@@ -6,7 +6,6 @@ namespace Modules\Auth\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Modules\Auth\Models\PasswordResetToken;
 use Modules\Auth\Models\User;
 
 class PasswordResetTokenSeeder extends Seeder
@@ -46,7 +45,7 @@ class PasswordResetTokenSeeder extends Seeder
         }
 
         $allTokens = array_merge($expiredTokens, $validTokens);
-        
+
         foreach ($allTokens as $token) {
             DB::table('password_reset_tokens')->updateOrInsert(
                 ['email' => $token['email']],
@@ -54,9 +53,8 @@ class PasswordResetTokenSeeder extends Seeder
             );
         }
 
-        $this->command->info("  ✓ Created " . count($expiredTokens) . " expired tokens (> 1 hour)");
-        $this->command->info("  ✓ Created " . count($validTokens) . " valid tokens (< 1 hour)");
-        $this->command->info("✅ Total password reset tokens: " . count($allTokens));
+        $this->command->info('  ✓ Created '.count($expiredTokens).' expired tokens (> 1 hour)');
+        $this->command->info('  ✓ Created '.count($validTokens).' valid tokens (< 1 hour)');
+        $this->command->info('✅ Total password reset tokens: '.count($allTokens));
     }
 }
-

@@ -37,16 +37,16 @@ class QuestionService implements QuestionServiceInterface
             }
 
             // Temporarily unset options to process images after creation if needed
-            // But since Spatie needs a model, we create first. 
+            // But since Spatie needs a model, we create first.
             // We can just pass $data to create(), but options won't have image URLs yet if files are passed.
             // So we unset options from creation data if they contain files, or we update them after.
-            // Easier approach: Create with data (options might have UploadedFile objects which will likely fail JSON encoding or be ignored/error), 
+            // Easier approach: Create with data (options might have UploadedFile objects which will likely fail JSON encoding or be ignored/error),
             // So we should unset options if we plan to process them.
             // Let's copy options and unset from data passed to create.
-            
+
             $options = $data['options'] ?? null;
             if ($options) {
-                 unset($data['options']);
+                unset($data['options']);
             }
 
             $attachments = $data['attachments'] ?? null;
@@ -63,8 +63,9 @@ class QuestionService implements QuestionServiceInterface
             if ($attachments) {
                 $this->processQuestionAttachments($question, $attachments);
             }
-            
+
             cache()->tags(['learning', 'questions'])->flush();
+
             return $question;
         });
     }
@@ -76,17 +77,17 @@ class QuestionService implements QuestionServiceInterface
 
             if ($assignmentId !== null) {
                 $question = $this->questionRepository->find($questionId);
-                if (!$question || $question->assignment_id !== $assignmentId) {
+                if (! $question || $question->assignment_id !== $assignmentId) {
                     throw new \InvalidArgumentException(__('messages.questions.not_found'));
                 }
             } else {
-                 $question = $this->questionRepository->find($questionId);
+                $question = $this->questionRepository->find($questionId);
             }
 
             $options = $data['options'] ?? null;
             if ($options) {
-                 unset($data['options']);
-                 $this->processOptionImages($question, $options);
+                unset($data['options']);
+                $this->processOptionImages($question, $options);
             }
 
             $attachments = $data['attachments'] ?? null;
@@ -97,6 +98,7 @@ class QuestionService implements QuestionServiceInterface
 
             $updated = $this->questionRepository->updateQuestion($questionId, $data);
             cache()->tags(['learning', 'questions'])->flush();
+
             return $updated;
         });
     }
@@ -105,13 +107,14 @@ class QuestionService implements QuestionServiceInterface
     {
         if ($assignmentId !== null) {
             $question = $this->questionRepository->find($questionId);
-            if (!$question || $question->assignment_id !== $assignmentId) {
+            if (! $question || $question->assignment_id !== $assignmentId) {
                 throw new \InvalidArgumentException(__('messages.questions.not_found'));
             }
         }
 
         $result = $this->questionRepository->deleteQuestion($questionId);
         cache()->tags(['learning', 'questions'])->flush();
+
         return $result;
     }
 
@@ -162,7 +165,7 @@ class QuestionService implements QuestionServiceInterface
         $perPage = max(1, min($perPage, 100));
 
         return cache()->tags(['learning', 'questions'])->remember(
-            "learning:questions:assignment:{$assignmentId}:{$perPage}:" . md5(json_encode($filters)),
+            "learning:questions:assignment:{$assignmentId}:{$perPage}:".md5(json_encode($filters)),
             300,
             function () use ($assignmentId, $perPage, $filters) {
                 return \Spatie\QueryBuilder\QueryBuilder::for(Question::class)
@@ -190,18 +193,16 @@ class QuestionService implements QuestionServiceInterface
 
     private function validateQuestionData(array $data, bool $isUpdate = false): void
     {
-        
+
         if (isset($data['weight']) && $data['weight'] <= 0) {
             throw new \InvalidArgumentException(__('messages.questions.weight_must_be_positive'));
         }
 
-        
         if (! $isUpdate && isset($data['type'])) {
             $type = $data['type'] instanceof QuestionType
                 ? $data['type']
                 : QuestionType::from($data['type']);
 
-            
             if ($type->requiresOptions() && empty($data['options'])) {
                 throw new \InvalidArgumentException(__('messages.questions.options_required'));
             }
@@ -230,13 +231,13 @@ class QuestionService implements QuestionServiceInterface
     {
         $modified = false;
         foreach ($options as $key => &$option) {
-             if (is_array($option) && isset($option['image']) && $option['image'] instanceof \Illuminate\Http\UploadedFile) {
-                 $media = $question->addMedia($option['image'])->toMediaCollection('option_images');
-                 $option['image'] = $media->getUrl();
-                 $modified = true;
-             }
+            if (is_array($option) && isset($option['image']) && $option['image'] instanceof \Illuminate\Http\UploadedFile) {
+                $media = $question->addMedia($option['image'])->toMediaCollection('option_images');
+                $option['image'] = $media->getUrl();
+                $modified = true;
+            }
         }
-        
+
         $question->options = $options;
         $question->save();
     }

@@ -51,10 +51,10 @@ return new class extends Migration
     {
         if (Schema::hasTable('courses')) {
             Schema::table('courses', function (Blueprint $table) {
-                if (!Schema::hasColumn('courses', 'outcomes_json')) {
+                if (! Schema::hasColumn('courses', 'outcomes_json')) {
                     $table->json('outcomes_json')->nullable()->after('tags_json');
                 }
-                if (!Schema::hasColumn('courses', 'prereq_text')) {
+                if (! Schema::hasColumn('courses', 'prereq_text')) {
                     $table->text('prereq_text')->nullable()->after('outcomes_json');
                 }
             });

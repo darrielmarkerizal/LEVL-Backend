@@ -25,15 +25,11 @@ class StoreAssignmentRequest extends FormRequest
             'type' => ['required', Rule::enum(AssignmentType::class)],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'assignable_type' => [
-                'required',
-                'string',
-                Rule::in(['Course', 'Unit', 'Lesson']),
-            ],
-            'assignable_slug' => ['required', 'string'],
-            'assignable_id' => ['nullable', 'integer'],
+            'unit_id' => ['required', 'integer', 'exists:units,id'],
+            'order' => ['required', 'integer', 'min:1'],
             'submission_type' => ['required', Rule::enum(SubmissionType::class)],
             'max_score' => ['nullable', 'integer', 'min:1', 'max:1000'],
+            'passing_grade' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'status' => ['nullable', Rule::enum(AssignmentStatus::class)],
             'allow_resubmit' => ['nullable', 'boolean'],
             'time_limit_minutes' => ['nullable', 'integer', 'min:1'],
@@ -48,72 +44,29 @@ class StoreAssignmentRequest extends FormRequest
         ];
     }
 
-    private ?array $resolvedScope = null;
-
-    public function getResolvedScope(): ?array
-    {
-        return $this->resolvedScope;
-    }
-
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            // Validate assignable scope
-            $typeMap = [
-                'Course' => 'Modules\\Schemes\\Models\\Course',
-                'Unit' => 'Modules\\Schemes\\Models\\Unit',
-                'Lesson' => 'Modules\\Schemes\\Models\\Lesson',
-            ];
-
-            $assignableType = $this->input('assignable_type');
-            $assignableSlug = $this->input('assignable_slug');
-
-            if ($assignableType && isset($typeMap[$assignableType]) && $assignableSlug) {
-                $modelClass = $typeMap[$assignableType];
-                
-                $query = $modelClass::where('slug', $assignableSlug);
-                
-                if (in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, class_uses_recursive($modelClass))) {
-                    $query->whereNull('deleted_at');
-                }
-                
-                $model = $query->first();
-                
-                if (!$model) {
-                    $validator->errors()->add('assignable_slug', __('validation.exists', ['attribute' => 'assignable slug']));
-                } else {
-                    $this->resolvedScope = [
-                        'assignable_id' => $model->id,
-                        'assignable_type' => $modelClass,
-                    ];
-                    $this->merge($this->resolvedScope);
-                }
-            }
-
-            // Validate type-specific rules
             $type = $this->input('type');
-            
+
             if ($type === 'assignment') {
                 $submissionType = $this->input('submission_type');
-                if ($submissionType && !in_array($submissionType, ['file', 'mixed'])) {
+                if ($submissionType && ! in_array($submissionType, ['file', 'mixed'])) {
                     $validator->errors()->add('submission_type', 'Assignment type must use file or mixed submission type.');
                 }
-                
+
                 $reviewMode = $this->input('review_mode');
                 if ($reviewMode && $reviewMode !== 'manual') {
                     $validator->errors()->add('review_mode', 'Assignment type must use manual review mode.');
                 }
-                
+
                 if ($this->has('randomization_type')) {
                     $validator->errors()->add('randomization_type', 'Assignment type cannot have randomization type.');
                 }
-                
+
                 if ($this->has('question_bank_count')) {
                     $validator->errors()->add('question_bank_count', 'Assignment type cannot have question bank count.');
                 }
-            }
-            
-            if ($type === 'quiz') {
             }
         });
     }
@@ -124,16 +77,13 @@ class StoreAssignmentRequest extends FormRequest
             'type' => __('validation.attributes.type'),
             'title' => __('validation.attributes.title'),
             'description' => __('validation.attributes.description'),
-            'assignable_type' => __('validation.attributes.assignable_type'),
-            'assignable_slug' => __('validation.attributes.assignable_slug'),
+            'unit_id' => __('validation.attributes.unit_id'),
+            'order' => __('validation.attributes.order'),
             'submission_type' => __('validation.attributes.submission_type'),
             'max_score' => __('validation.attributes.max_score'),
-            'available_from' => __('validation.attributes.available_from'),
-            'deadline_at' => __('validation.attributes.deadline_at'),
+            'passing_grade' => __('validation.attributes.passing_grade'),
             'status' => __('validation.attributes.status'),
             'allow_resubmit' => __('validation.attributes.allow_resubmit'),
-            'late_penalty_percent' => __('validation.attributes.late_penalty_percent'),
-            'tolerance_minutes' => __('validation.attributes.tolerance_minutes'),
             'max_attempts' => __('validation.attributes.max_attempts'),
             'cooldown_minutes' => __('validation.attributes.cooldown_minutes'),
             'retake_enabled' => __('validation.attributes.retake_enabled'),
@@ -142,7 +92,6 @@ class StoreAssignmentRequest extends FormRequest
             'question_bank_count' => __('validation.attributes.question_bank_count'),
             'attachments' => __('validation.attributes.attachments'),
             'attachments.*' => __('validation.attributes.attachments'),
-            'assignable_id' => __('validation.attributes.assignable_id'),
         ];
     }
 }

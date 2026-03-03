@@ -130,7 +130,7 @@ class SubmissionService implements SubmissionServiceInterface
     {
         return $this->finder->getHighestScoreSubmission($assignmentId, $studentId);
     }
-    
+
     public function getSubmissionsWithHighestMarked(int $assignmentId, int $studentId): Collection
     {
         return $this->finder->getSubmissionsWithHighestMarked($assignmentId, $studentId);
@@ -140,12 +140,12 @@ class SubmissionService implements SubmissionServiceInterface
     {
         return $this->lifecycleProcessor->updateSubmissionScore($submission, $score);
     }
-    
+
     public function getDeadlineStatus(Assignment $assignment, int $userId): array
     {
         return $this->validator->getDeadlineStatus($assignment, $userId);
     }
-    
+
     public function grade(Submission $submission, int $score, int $gradedBy, ?string $feedback = null): Submission
     {
         return $this->lifecycleProcessor->grade($submission, $score, $gradedBy, $feedback);

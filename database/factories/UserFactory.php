@@ -15,22 +15,23 @@ use Modules\Auth\Models\User;
 class UserFactory extends Factory
 {
     protected $model = User::class;
+
     protected static ?string $password;
 
     public function definition(): array
     {
         fake()->addProvider(new Educator(fake()));
         fake()->addProvider(new Commerce(fake()));
-        
+
         $firstName = fake()->firstName();
         $lastName = fake()->lastName();
         $fullName = "$firstName $lastName";
-        $username = strtolower($firstName . '.' . $lastName . rand(10, 999));
+        $username = strtolower($firstName.'.'.$lastName.rand(10, 999));
 
         $bioTemplates = [
             "Passionate {$this->getEducatorRole()} with {$this->getYearsExperience()} years of experience in education.",
-            "Technology enthusiast and lifelong learner exploring new opportunities in online education.",
-            "Dedicated to making quality education accessible to everyone. Love teaching and mentoring.",
+            'Technology enthusiast and lifelong learner exploring new opportunities in online education.',
+            'Dedicated to making quality education accessible to everyone. Love teaching and mentoring.',
             "Former {$this->getIndustryRole()} transitioning to education. Excited about learning new skills.",
             "Student at heart, always curious about {$this->getInterestArea()}. Believer in continuous improvement.",
         ];
@@ -38,7 +39,7 @@ class UserFactory extends Factory
         return [
             'name' => $fullName,
             'username' => $username,
-            'email' => strtolower($firstName . '.' . $lastName . rand(100, 9999)) . '@' . fake()->safeEmailDomain(),
+            'email' => strtolower($firstName.'.'.$lastName.rand(100, 9999)).'@'.fake()->safeEmailDomain(),
             'phone' => fake()->optional(0.7)->e164PhoneNumber(),
             'bio' => fake()->optional(0.6)->randomElement($bioTemplates),
             'password' => static::$password ??= Hash::make('password'),
@@ -54,33 +55,33 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
         ];
     }
-    
+
     private function getEducatorRole(): string
     {
         return fake()->randomElement([
             'educator', 'instructor', 'teacher', 'lecturer', 'tutor',
-            'mentor', 'coach', 'trainer', 'facilitator'
+            'mentor', 'coach', 'trainer', 'facilitator',
         ]);
     }
-    
+
     private function getYearsExperience(): int
     {
         return fake()->numberBetween(1, 20);
     }
-    
+
     private function getIndustryRole(): string
     {
         return fake()->randomElement([
             'software engineer', 'data analyst', 'project manager', 'designer',
-            'marketing specialist', 'business analyst', 'consultant'
+            'marketing specialist', 'business analyst', 'consultant',
         ]);
     }
-    
+
     private function getInterestArea(): string
     {
         return fake()->randomElement([
             'technology', 'science', 'arts', 'business', 'languages',
-            'programming', 'design', 'data science', 'digital marketing'
+            'programming', 'design', 'data science', 'digital marketing',
         ]);
     }
 
@@ -160,7 +161,7 @@ class UserFactory extends Factory
     public function configure(): static
     {
         return $this->afterCreating(function (User $user) {
-            if (!$user->trashed()) {
+            if (! $user->trashed()) {
                 $user->gamificationStats()->firstOrCreate(
                     ['user_id' => $user->id],
                     [

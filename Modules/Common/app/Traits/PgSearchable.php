@@ -21,7 +21,7 @@ trait PgSearchable
         }
 
         $term = trim($term);
-        
+
         if ($threshold === null) {
             $len = strlen($term);
             if ($len <= 3) {

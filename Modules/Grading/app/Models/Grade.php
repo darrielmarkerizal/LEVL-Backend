@@ -149,6 +149,4 @@ class Grade extends Model
     {
         return $query->where('submission_id', $submissionId);
     }
-
-
 }

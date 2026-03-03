@@ -16,8 +16,8 @@ class StoreQuizRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'assignable_type' => ['required', 'string', 'in:lesson,unit,course'],
-            'assignable_id' => ['required', 'integer'],
+            'unit_id' => ['required', 'integer', 'exists:units,id'],
+            'order' => ['required', 'integer', 'min:1'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'passing_grade' => ['nullable', 'numeric', 'min:0', 'max:100'],
@@ -33,34 +33,5 @@ class StoreQuizRequest extends FormRequest
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file'],
         ];
-    }
-
-    public function getResolvedScope(): array
-    {
-        $typeMap = [
-            'lesson' => \Modules\Schemes\Models\Lesson::class,
-            'unit' => \Modules\Schemes\Models\Unit::class,
-            'course' => \Modules\Schemes\Models\Course::class,
-        ];
-
-        $type = $this->validated('assignable_type');
-
-        return [
-            'assignable_type' => $typeMap[$type] ?? $type,
-            'assignable_id' => $this->validated('assignable_id'),
-        ];
-    }
-
-    protected function prepareForValidation(): void
-    {
-        $typeMap = [
-            'lesson' => \Modules\Schemes\Models\Lesson::class,
-            'unit' => \Modules\Schemes\Models\Unit::class,
-            'course' => \Modules\Schemes\Models\Course::class,
-        ];
-
-        if ($this->has('assignable_type') && isset($typeMap[$this->assignable_type])) {
-            $this->merge(['_assignable_class' => $typeMap[$this->assignable_type]]);
-        }
     }
 }

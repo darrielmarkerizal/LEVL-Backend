@@ -49,7 +49,7 @@ class MediaUploadTest extends TestCase
         $this->assertDatabaseHas('temporary_media', [
             'user_id' => $user->id,
         ]);
-        
+
         $this->assertDatabaseHas('media', [
             'model_type' => 'Modules\Common\Models\TemporaryMedia',
             'collection_name' => 'globalmedia',

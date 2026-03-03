@@ -3,8 +3,8 @@
 namespace Modules\Learning\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\Learning\Models\Question;
 use Modules\Learning\Models\Assignment;
+use Modules\Learning\Models\Question;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Learning\Models\Question>

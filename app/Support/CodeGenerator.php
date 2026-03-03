@@ -32,7 +32,7 @@ class CodeGenerator
             if ($attempts >= $maxAttempts) {
                 throw new \RuntimeException(
                     "Unable to generate unique code after {$maxAttempts} attempts. ".
-                    "Consider increasing code length or reducing prefix length."
+                    'Consider increasing code length or reducing prefix length.'
                 );
             }
         } while ($exists);

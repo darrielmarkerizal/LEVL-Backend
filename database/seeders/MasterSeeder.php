@@ -11,7 +11,7 @@ class MasterSeeder extends Seeder
     public function run(): void
     {
         $this->command->info("\n╔══════════════════════════════════════════════════╗");
-        $this->command->info("║   MASTER SEEDER - Complete System Data Setup    ║");
+        $this->command->info('║   MASTER SEEDER - Complete System Data Setup    ║');
         $this->command->info("╚══════════════════════════════════════════════════╝\n");
 
         $startTime = microtime(true);
@@ -36,7 +36,7 @@ class MasterSeeder extends Seeder
 
         $duration = round(microtime(true) - $startTime, 2);
         $this->command->info("\n╔══════════════════════════════════════════════════╗");
-        $this->command->info("║          ✅ MASTER SEEDING COMPLETED!            ║");
+        $this->command->info('║          ✅ MASTER SEEDING COMPLETED!            ║');
         $this->command->info("║   Total Time: {$duration} seconds                   ║");
         $this->command->info("╚══════════════════════════════════════════════════╝\n");
     }

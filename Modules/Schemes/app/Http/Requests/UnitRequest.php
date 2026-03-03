@@ -16,20 +16,20 @@ class UnitRequest extends FormRequest
     {
         return [
             'code' => [
-                'required', 
-                'string', 
-                'max:50', 
-                \Illuminate\Validation\Rule::unique('units', 'code')->ignore($unitId)
+                'required',
+                'string',
+                'max:50',
+                \Illuminate\Validation\Rule::unique('units', 'code')->ignore($unitId),
             ],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'order' => [
-                'nullable', 
-                'integer', 
-                'min:1', 
+                'nullable',
+                'integer',
+                'min:1',
                 \Illuminate\Validation\Rule::unique('units')->where(function ($query) use ($courseId) {
                     return $query->where('course_id', $courseId);
-                })->ignore($unitId)
+                })->ignore($unitId),
             ],
             'status' => ['nullable', 'in:draft,published'],
         ];
@@ -68,13 +68,14 @@ class UnitRequest extends FormRequest
 
         if (is_string($course) || is_numeric($course)) {
             $q = \Modules\Schemes\Models\Course::query();
-             $q->where(function($sq) use ($course) {
+            $q->where(function ($sq) use ($course) {
                 $sq->where('slug', $course);
                 if (is_numeric($course)) {
                     $sq->orWhere('id', $course);
                 }
             });
             $id = $q->value('id');
+
             return $id ?? 0;
         }
 
@@ -84,26 +85,27 @@ class UnitRequest extends FormRequest
     private function resolveUnitId(int $courseId): int
     {
         $unit = $this->route('unit');
-        
+
         if ($unit instanceof \Modules\Schemes\Models\Unit) {
             return $unit->id;
         }
 
         if (is_string($unit) || is_numeric($unit)) {
             $q = \Modules\Schemes\Models\Unit::query();
-            
+
             if ($courseId) {
                 $q->where('course_id', $courseId);
             }
 
-            $q->where(function($sq) use ($unit) {
+            $q->where(function ($sq) use ($unit) {
                 $sq->where('slug', $unit);
-                 if (is_numeric($unit)) {
+                if (is_numeric($unit)) {
                     $sq->orWhere('id', $unit);
                 }
             });
 
             $id = $q->value('id');
+
             return $id ?? 0;
         }
 

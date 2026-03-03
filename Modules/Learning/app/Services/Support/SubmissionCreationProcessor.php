@@ -81,8 +81,8 @@ class SubmissionCreationProcessor
     }
 
     public function startSubmission(
-        int $assignmentId, 
-        int $studentId, 
+        int $assignmentId,
+        int $studentId,
         SubmissionValidator $validator
     ): Submission {
         $assignment = Assignment::findOrFail($assignmentId);
@@ -144,8 +144,10 @@ class SubmissionCreationProcessor
         if ($this->questionService) {
             $seed = random_int(1, PHP_INT_MAX);
             $questions = $this->questionService->generateQuestionSet($assignmentId, $seed);
+
             return $questions->pluck('id')->toArray();
         }
+
         return null;
     }
 }

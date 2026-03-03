@@ -76,51 +76,47 @@ class Submission extends Model
         return $this->state?->value;
     }
 
-
-
-        public function assignment(): BelongsTo
+    public function assignment(): BelongsTo
     {
         return $this->belongsTo(Assignment::class);
     }
 
-        public function user(): BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class);
     }
 
-        public function enrollment(): BelongsTo
+    public function enrollment(): BelongsTo
     {
         return $this->belongsTo(\Modules\Enrollments\Models\Enrollment::class);
     }
 
-        public function files(): HasMany
+    public function files(): HasMany
     {
         return $this->hasMany(SubmissionFile::class);
     }
 
-        public function answers(): HasMany
+    public function answers(): HasMany
     {
         return $this->hasMany(Answer::class);
     }
 
-        public function previousSubmission(): BelongsTo
+    public function previousSubmission(): BelongsTo
     {
         return $this->belongsTo(Submission::class, 'previous_submission_id');
     }
 
-        public function resubmissions(): HasMany
+    public function resubmissions(): HasMany
     {
         return $this->hasMany(Submission::class, 'previous_submission_id');
     }
 
-        public function grade(): HasOne
+    public function grade(): HasOne
     {
         return $this->hasOne(\Modules\Grading\Models\Grade::class, 'submission_id');
     }
 
-
-
-        public function getStateAttribute($value): ?SubmissionState
+    public function getStateAttribute($value): ?SubmissionState
     {
         if ($value) {
             if ($value instanceof SubmissionState) {
@@ -146,7 +142,7 @@ class Submission extends Model
         };
     }
 
-        public function transitionTo(SubmissionState $newState, int $actorId): bool
+    public function transitionTo(SubmissionState $newState, int $actorId): bool
     {
         $currentState = $this->state;
 
@@ -190,7 +186,7 @@ class Submission extends Model
         return $saved;
     }
 
-        public function canTransitionTo(SubmissionState $newState): bool
+    public function canTransitionTo(SubmissionState $newState): bool
     {
         $currentState = $this->state;
 
@@ -201,32 +197,32 @@ class Submission extends Model
         return $currentState->canTransitionTo($newState);
     }
 
-        public function scopeForStudent($query, int $userId)
+    public function scopeForStudent($query, int $userId)
     {
         return $query->where('user_id', $userId);
     }
 
-        public function scopeForAssignment($query, int $assignmentId)
+    public function scopeForAssignment($query, int $assignmentId)
     {
         return $query->where('assignment_id', $assignmentId);
     }
 
-        public function scopeWithStatus($query, SubmissionStatus $status)
+    public function scopeWithStatus($query, SubmissionStatus $status)
     {
         return $query->where('status', $status);
     }
 
-        public function scopeHighestScore($query)
+    public function scopeHighestScore($query)
     {
         return $query->orderByDesc('score');
     }
 
-        public function scopeLate($query, bool $isLate = true)
+    public function scopeLate($query, bool $isLate = true)
     {
         return $query->where('is_late', $isLate);
     }
 
-        public function scopePendingManualGrading($query)
+    public function scopePendingManualGrading($query)
     {
         return $query->where('status', SubmissionStatus::Submitted)
             ->whereDoesntHave('grade', function ($q) {
@@ -234,7 +230,7 @@ class Submission extends Model
             });
     }
 
-        public function getFeedbackAttribute()
+    public function getFeedbackAttribute()
     {
         if ($this->relationLoaded('grade')) {
             return $this->getRelation('grade')?->feedback;
@@ -243,7 +239,7 @@ class Submission extends Model
         return $this->grade?->feedback;
     }
 
-        public function getGradedAtAttribute()
+    public function getGradedAtAttribute()
     {
         if ($this->relationLoaded('grade')) {
             return $this->getRelation('grade')?->graded_at;
@@ -274,7 +270,7 @@ class Submission extends Model
         ]);
     }
 
-        public function getVisibleFeedback(?int $userId = null): ?string
+    public function getVisibleFeedback(?int $userId = null): ?string
     {
         $reviewModeService = app(\Modules\Learning\Contracts\Services\ReviewModeServiceInterface::class);
 
@@ -285,7 +281,7 @@ class Submission extends Model
         return $this->feedback;
     }
 
-        public function getVisibleAnswers(?int $userId = null): \Illuminate\Support\Collection
+    public function getVisibleAnswers(?int $userId = null): \Illuminate\Support\Collection
     {
         $reviewModeService = app(\Modules\Learning\Contracts\Services\ReviewModeServiceInterface::class);
 
@@ -300,14 +296,12 @@ class Submission extends Model
                 'is_auto_graded' => $answer->is_auto_graded,
             ];
 
-            
             if ($canViewAnswers) {
                 $data['content'] = $answer->content;
                 $data['selected_options'] = $answer->selected_options;
                 $data['file_paths'] = $answer->file_paths;
             }
 
-            
             if ($canViewFeedback) {
                 $data['feedback'] = $answer->feedback;
             }
@@ -316,7 +310,7 @@ class Submission extends Model
         });
     }
 
-        public function getVisibilityStatus(?int $userId = null): array
+    public function getVisibilityStatus(?int $userId = null): array
     {
         $reviewModeService = app(\Modules\Learning\Contracts\Services\ReviewModeServiceInterface::class);
 

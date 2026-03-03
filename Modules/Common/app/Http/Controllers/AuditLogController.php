@@ -65,4 +65,3 @@ class AuditLogController extends Controller
         return $this->success(['actions' => $actions]);
     }
 }
-
