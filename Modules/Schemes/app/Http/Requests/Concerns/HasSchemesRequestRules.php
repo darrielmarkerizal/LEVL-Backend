@@ -167,7 +167,7 @@ trait HasSchemesRequestRules
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'markdown_content' => ['nullable', 'string'],
-            'order' => ['sometimes', 'integer', 'min:1'],
+            'order' => ['nullable', 'integer', 'min:1'],
             'duration_minutes' => ['sometimes', 'integer', 'min:0'],
             'status' => ['sometimes', Rule::enum(CourseStatus::class)->only([CourseStatus::Draft, CourseStatus::Published])],
         ];

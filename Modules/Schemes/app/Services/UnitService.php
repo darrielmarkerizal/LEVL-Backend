@@ -433,4 +433,79 @@ class UnitService
 
         return $query->paginate($perPage);
     }
+
+    public function getContentOrder(Unit $unit): array
+    {
+        $lessons = $unit->lessons()->orderBy('order')->get(['id', 'title', 'order', 'status']);
+        $assignments = \Modules\Learning\Models\Assignment::where('unit_id', $unit->id)
+            ->orderBy('order')
+            ->get(['id', 'title', 'order', 'status']);
+        $quizzes = \Modules\Learning\Models\Quiz::where('unit_id', $unit->id)
+            ->orderBy('order')
+            ->get(['id', 'title', 'order', 'status']);
+
+        $content = collect();
+
+        foreach ($lessons as $lesson) {
+            $content->push([
+                'type' => 'lesson',
+                'id' => $lesson->id,
+                'title' => $lesson->title,
+                'order' => $lesson->order,
+                'status' => $lesson->status,
+            ]);
+        }
+
+        foreach ($assignments as $assignment) {
+            $content->push([
+                'type' => 'assignment',
+                'id' => $assignment->id,
+                'title' => $assignment->title,
+                'order' => $assignment->order,
+                'status' => $assignment->status->value,
+            ]);
+        }
+
+        foreach ($quizzes as $quiz) {
+            $content->push([
+                'type' => 'quiz',
+                'id' => $quiz->id,
+                'title' => $quiz->title,
+                'order' => $quiz->order,
+                'status' => $quiz->status->value,
+            ]);
+        }
+
+        return $content->sortBy('order')->values()->toArray();
+    }
+
+    public function reorderContent(Unit $unit, array $contentOrder): array
+    {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($unit, $contentOrder) {
+            foreach ($contentOrder as $item) {
+                $type = $item['type'] ?? null;
+                $id = $item['id'] ?? null;
+                $order = $item['order'] ?? null;
+
+                if (! $type || ! $id || ! $order) {
+                    continue;
+                }
+
+                match ($type) {
+                    'lesson' => \Modules\Schemes\Models\Lesson::where('id', $id)
+                        ->where('unit_id', $unit->id)
+                        ->update(['order' => $order]),
+                    'assignment' => \Modules\Learning\Models\Assignment::where('id', $id)
+                        ->where('unit_id', $unit->id)
+                        ->update(['order' => $order]),
+                    'quiz' => \Modules\Learning\Models\Quiz::where('id', $id)
+                        ->where('unit_id', $unit->id)
+                        ->update(['order' => $order]),
+                    default => null,
+                };
+            }
+
+            return $this->getContentOrder($unit);
+        });
+    }
 }
