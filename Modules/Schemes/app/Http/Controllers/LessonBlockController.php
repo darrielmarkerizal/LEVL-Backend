@@ -20,12 +20,23 @@ class LessonBlockController extends Controller
 {
     use ApiResponse, AuthorizesRequests;
 
-    public function __construct(private readonly LessonBlockService $service) {}
+    public function __construct(
+        private readonly LessonBlockService $service,
+        private readonly \Modules\Schemes\Services\PrerequisiteService $prerequisiteService
+    ) {}
 
     public function index(Request $request, Course $course, Unit $unit, Lesson $lesson)
     {
         $this->service->validateHierarchy($course->id, $unit->id, $lesson->id);
         $this->authorize('view', $lesson);
+
+        $user = auth('api')->user();
+        if ($user && $user->hasRole('Student')) {
+            $accessCheck = $this->prerequisiteService->checkLessonAccess($lesson, $user->id);
+            if (! $accessCheck['accessible']) {
+                return $this->error(__('messages.lessons.locked_prerequisite'), [], 403);
+            }
+        }
 
         $blocks = $this->service->list($lesson->id, $request->query('filter', []));
 
@@ -46,6 +57,14 @@ class LessonBlockController extends Controller
     {
         $this->service->validateHierarchy($course->id, $unit->id, $lesson->id);
         $this->authorize('view', $block);
+
+        $user = auth('api')->user();
+        if ($user && $user->hasRole('Student')) {
+            $accessCheck = $this->prerequisiteService->checkLessonAccess($lesson, $user->id);
+            if (! $accessCheck['accessible']) {
+                return $this->error(__('messages.lessons.locked_prerequisite'), [], 403);
+            }
+        }
 
         return $this->success(new LessonBlockResource($block));
     }

@@ -161,13 +161,30 @@ class AssignmentFinder
                     ->forCourse($course->id)
                     ->where('assignments.status', AssignmentStatus::Published->value);
 
-                // Left join with submissions to find incomplete assignments
                 $query->leftJoin('submissions', function ($join) use ($studentId) {
                     $join->on('assignments.id', '=', 'submissions.assignment_id')
                         ->where('submissions.user_id', $studentId)
-                        ->whereIn('submissions.status', ['submitted', 'graded']);
+                        ->whereIn('submissions.status', ['submitted', 'graded'])
+                        ->where(function ($q) use ($studentId) {
+                            $q->whereRaw('submissions.id = (
+                                SELECT id FROM submissions s2 
+                                WHERE s2.assignment_id = assignments.id 
+                                AND s2.user_id = ? 
+                                ORDER BY s2.submitted_at DESC 
+                                LIMIT 1
+                            )', [$studentId]);
+                        });
                 })
-                    ->whereNull('submissions.id')
+                    ->where(function ($q) {
+                        $q->whereNull('submissions.id')
+                            ->orWhere(function ($subQ) {
+                                $subQ->whereNotNull('submissions.id')
+                                    ->where(function ($scoreQ) {
+                                        $scoreQ->whereNull('submissions.score')
+                                            ->orWhereRaw('submissions.score < assignments.passing_grade');
+                                    });
+                            });
+                    })
                     ->select('assignments.*')
                     ->distinct();
 
@@ -182,7 +199,7 @@ class AssignmentFinder
         $filters = data_get($payload, 'filter', []);
 
         $builder = QueryBuilder::for(
-            Assignment::with(['creator', 'lesson.unit.course', 'assignable']),
+            Assignment::with(['creator', 'unit.course']),
             $this->buildQueryBuilderRequest($filters)
         );
 
@@ -195,7 +212,7 @@ class AssignmentFinder
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('submission_type'),
             ])
-            ->allowedIncludes(['questions', 'prerequisites', 'creator', 'lesson', 'assignable'])
+            ->allowedIncludes(['questions', 'prerequisites', 'creator', 'unit'])
             ->allowedSorts(['id', 'title', 'created_at', 'updated_at'])
             ->defaultSort('-created_at');
     }
@@ -206,7 +223,7 @@ class AssignmentFinder
         $filters = data_get($payload, 'filter', []);
 
         $builder = QueryBuilder::for(
-            Assignment::with(['creator:id,name,email', 'lesson:id,unit_id,title,slug', 'lesson.unit:id,course_id,title,slug', 'assignable:id,title,slug']),
+            Assignment::with(['creator:id,name,email', 'unit:id,course_id,title,slug']),
             $this->buildQueryBuilderRequest($filters)
         );
 

@@ -46,8 +46,28 @@ class PrerequisiteService
             return ['accessible' => true, 'missing' => []];
         }
 
+        $unit = Unit::find($unitId);
+        if (! $unit) {
+            return ['accessible' => true, 'missing' => []];
+        }
+
+        $missing = [];
+
+        if ($unit->order > 1) {
+            $previousUnits = Unit::where('course_id', $unit->course_id)
+                ->where('order', '<', $unit->order)
+                ->orderBy('order')
+                ->get();
+
+            foreach ($previousUnits as $prevUnit) {
+                $unitMissing = $this->getUnitIncompleteness($prevUnit, $userId);
+                $missing = array_merge($missing, $unitMissing);
+            }
+        }
+
         $allContent = $this->getUnitContentBeforeAssignment($unitId, $assignment);
-        $missing = $this->checkContentCompletion($allContent, $userId);
+        $currentUnitMissing = $this->checkContentCompletion($allContent, $userId, $unit);
+        $missing = array_merge($missing, $currentUnitMissing);
 
         return [
             'accessible' => empty($missing),
@@ -63,8 +83,28 @@ class PrerequisiteService
             return ['accessible' => true, 'missing' => []];
         }
 
+        $unit = Unit::find($unitId);
+        if (! $unit) {
+            return ['accessible' => true, 'missing' => []];
+        }
+
+        $missing = [];
+
+        if ($unit->order > 1) {
+            $previousUnits = Unit::where('course_id', $unit->course_id)
+                ->where('order', '<', $unit->order)
+                ->orderBy('order')
+                ->get();
+
+            foreach ($previousUnits as $prevUnit) {
+                $unitMissing = $this->getUnitIncompleteness($prevUnit, $userId);
+                $missing = array_merge($missing, $unitMissing);
+            }
+        }
+
         $allContent = $this->getUnitContentBeforeQuiz($unitId, $quiz);
-        $missing = $this->checkContentCompletion($allContent, $userId);
+        $currentUnitMissing = $this->checkContentCompletion($allContent, $userId, $unit);
+        $missing = array_merge($missing, $currentUnitMissing);
 
         return [
             'accessible' => empty($missing),
@@ -111,6 +151,7 @@ class PrerequisiteService
                     'type' => 'lesson',
                     'id' => $lesson->id,
                     'title' => $lesson->title,
+                    'slug' => $lesson->slug,
                     'unit_title' => $unit->title,
                 ];
             }
@@ -127,6 +168,7 @@ class PrerequisiteService
                     'type' => 'assignment',
                     'id' => $assignment->id,
                     'title' => $assignment->title,
+                    'slug' => $assignment->slug ?? null,
                     'unit_title' => $unit->title,
                     'passing_required' => true,
                 ];
@@ -144,6 +186,7 @@ class PrerequisiteService
                     'type' => 'quiz',
                     'id' => $quiz->id,
                     'title' => $quiz->title,
+                    'slug' => $quiz->slug ?? null,
                     'unit_title' => $unit->title,
                     'passing_required' => true,
                 ];
@@ -312,7 +355,7 @@ class PrerequisiteService
         return $content->sortBy('order');
     }
 
-    private function checkContentCompletion(Collection $content, int $userId): array
+    private function checkContentCompletion(Collection $content, int $userId, ?Unit $unit = null): array
     {
         $missing = [];
 
@@ -332,7 +375,8 @@ class PrerequisiteService
                     'type' => $type,
                     'id' => $model->id,
                     'title' => $model->title,
-                    'slug' => $model->slug,
+                    'slug' => $model->slug ?? null,
+                    'unit_title' => $unit?->title,
                 ];
             }
         }

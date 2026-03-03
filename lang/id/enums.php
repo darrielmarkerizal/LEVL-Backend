@@ -266,4 +266,18 @@ return [
         'inactive' => 'Tidak Aktif',
         'archived' => 'Diarsipkan',
     ],
+
+    'quiz_submission_status' => [
+        'draft' => 'Draf',
+        'submitted' => 'Dikumpulkan',
+        'graded' => 'Dinilai',
+        'missing' => 'Tidak Mengumpulkan',
+    ],
+
+    'quiz_grading_status' => [
+        'pending' => 'Menunggu',
+        'partially_graded' => 'Dinilai Sebagian',
+        'waiting_for_grading' => 'Menunggu Penilaian',
+        'graded' => 'Dinilai',
+    ],
 ];

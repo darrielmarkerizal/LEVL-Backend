@@ -44,8 +44,8 @@ class PrerequisiteCheckResult
                 'id' => $item['id'] ?? $item->id,
                 'title' => $item['title'] ?? $item->title,
                 'slug' => $item['slug'] ?? $item->slug ?? null,
+                'unit_title' => $item['unit_title'] ?? null,
             ])->toArray(),
-            'message' => $this->message,
         ];
     }
 }

@@ -20,17 +20,25 @@ class LessonCompletionController extends Controller
 
     public function markComplete(Lesson $lesson): JsonResponse
     {
-        $user = auth('api')->user();
-        $completion = $this->service->markAsCompleted($lesson, $user->id);
+        try {
+            $user = auth('api')->user();
+            $completion = $this->service->markAsCompleted($lesson, $user->id);
 
-        return $this->success($completion, __('messages.lesson_marked_complete'));
+            return $this->success($completion, __('messages.lessons.marked_complete'));
+        } catch (\Modules\Schemes\Exceptions\LessonCompletionException $e) {
+            return $this->error($e->getMessage(), [], $e->getCode() ?: 422);
+        }
     }
 
     public function markIncomplete(Lesson $lesson): JsonResponse
     {
-        $user = auth('api')->user();
-        $this->service->unmarkAsCompleted($lesson, $user->id);
+        try {
+            $user = auth('api')->user();
+            $this->service->unmarkAsCompleted($lesson, $user->id);
 
-        return $this->success(null, __('messages.lesson_marked_incomplete'));
+            return $this->success(null, __('messages.lessons.marked_incomplete'));
+        } catch (\Modules\Schemes\Exceptions\LessonCompletionException $e) {
+            return $this->error($e->getMessage(), [], $e->getCode() ?: 422);
+        }
     }
 }

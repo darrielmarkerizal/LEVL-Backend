@@ -43,8 +43,9 @@ class AssignmentController extends Controller
 
     public function indexIncomplete(Request $request, \Modules\Schemes\Models\Course $course): JsonResponse
     {
-        $paginator = $this->assignmentService->listIncomplete($course, auth('api')->id(), $request->all());
-        $paginator->getCollection()->transform(fn ($item) => new AssignmentResource($item));
+        $user = auth('api')->user();
+        $paginator = $this->assignmentService->listIncomplete($course, $user->id, $request->all());
+        $paginator = $this->enrichmentService->enrichForStudent($paginator, $user->id);
 
         return $this->paginateResponse($paginator, 'messages.assignments.incomplete_list_retrieved');
     }
@@ -61,6 +62,18 @@ class AssignmentController extends Controller
 
     public function show(Assignment $assignment): JsonResponse
     {
+        $user = auth('api')->user();
+
+        if ($user && $user->hasRole('Student')) {
+            $enriched = $this->enrichmentService->enrichSingleForStudent($assignment, $user->id);
+
+            if ($enriched['is_locked']) {
+                return $this->error(__('messages.assignments.locked'), [], 403);
+            }
+
+            return $this->success($enriched);
+        }
+
         return $this->success(AssignmentResource::make($this->assignmentService->getWithRelations($assignment)));
     }
 
@@ -102,8 +115,9 @@ class AssignmentController extends Controller
     public function checkPrerequisites(Assignment $assignment): JsonResponse
     {
         $result = $this->assignmentService->checkPrerequisites($assignment->id, auth('api')->id());
+        $data = $result->toArray();
 
-        return $this->success($result->toArray());
+        return $this->success($data, $data['message'] ?? __('messages.success'));
     }
 
     public function duplicate(DuplicateAssignmentRequest $request, Assignment $assignment): JsonResponse
