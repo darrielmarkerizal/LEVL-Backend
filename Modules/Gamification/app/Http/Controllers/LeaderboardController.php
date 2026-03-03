@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Modules\Gamification\Services\LeaderboardService;
+use Modules\Gamification\Contracts\Services\LeaderboardServiceInterface;
 use Modules\Gamification\Transformers\LeaderboardResource;
 use Modules\Gamification\Contracts\Services\GamificationServiceInterface;
 use Modules\Gamification\Transformers\PointResource;
@@ -18,7 +18,7 @@ class LeaderboardController extends Controller
     use ApiResponse;
 
     public function __construct(
-        private readonly LeaderboardService $leaderboardService,
+        private readonly LeaderboardServiceInterface $leaderboardService,
         private readonly GamificationServiceInterface $gamificationService
     ) {}
 
@@ -38,13 +38,15 @@ class LeaderboardController extends Controller
         $page = (int) ($request->input('page', 1));
         $courseId = null;
         $period = $request->input('filter.period', 'all_time');
+        $search = $request->query('search');
 
         $result = $this->leaderboardService->getLeaderboardWithRanks(
             $perPage,
             $page,
             $courseId,
             $request->user()?->id,
-            $period
+            $period,
+            $search
         );
 
         $result['leaderboard']->appends($request->query());
