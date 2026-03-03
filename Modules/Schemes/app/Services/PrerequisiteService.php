@@ -352,33 +352,34 @@ class PrerequisiteService
 
     private function isAssignmentPassed(Assignment $assignment, int $userId): bool
     {
-        $latestSubmission = $assignment->submissions()
+        $highestSubmission = $assignment->submissions()
             ->where('user_id', $userId)
             ->whereIn('status', ['graded'])
-            ->latest('submitted_at')
+            ->orderByDesc('score')
             ->first();
 
-        if (! $latestSubmission) {
+        if (! $highestSubmission) {
             return false;
         }
 
         $passingScore = $assignment->max_score * 0.6;
 
-        return $latestSubmission->score >= $passingScore;
+        return $highestSubmission->score >= $passingScore;
     }
 
     private function isQuizPassed(Quiz $quiz, int $userId): bool
     {
-        $latestSubmission = $quiz->submissions()
+        $highestSubmission = $quiz->submissions()
             ->where('user_id', $userId)
             ->where('status', 'graded')
-            ->latest('submitted_at')
+            ->whereNotNull('final_score')
+            ->orderByDesc('final_score')
             ->first();
 
-        if (! $latestSubmission) {
+        if (! $highestSubmission) {
             return false;
         }
 
-        return $latestSubmission->final_score >= $quiz->passing_grade;
+        return $highestSubmission->final_score >= $quiz->passing_grade;
     }
 }

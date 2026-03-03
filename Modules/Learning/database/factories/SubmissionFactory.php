@@ -29,12 +29,9 @@ class SubmissionFactory extends Factory
             'user_id' => User::factory(),
             'enrollment_id' => Enrollment::factory(),
             'answer_text' => fake()->optional(0.7)->paragraphs(3, true),
-            'status' => fake()->randomElement(['draft', 'submitted', 'graded', 'late']),
+            'status' => fake()->randomElement(['draft', 'submitted', 'graded']),
             'submitted_at' => fake()->boolean(70) ? $submittedAt : null,
             'attempt_number' => 1,
-            'is_late' => fake()->boolean(20),
-            'is_resubmission' => fake()->boolean(30),
-            'previous_submission_id' => null,
             'score' => fake()->optional(0.5)->randomFloat(2, 0, 100),
             'question_set' => null,
             'state' => fake()->optional(0.4)->randomElement(['started', 'in_progress', 'submitted']),
@@ -105,31 +102,6 @@ class SubmissionFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the submission is late.
-     */
-    public function late(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_late' => true,
-        ]);
-    }
-
-    /**
-     * Indicate that the submission is a resubmission.
-     */
-    public function resubmission(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_resubmission' => true,
-            'previous_submission_id' => Submission::factory(),
-            'attempt_number' => fake()->numberBetween(2, 5),
-        ]);
-    }
-
-    /**
-     * Set a specific score.
-     */
     public function withScore(float $score): static
     {
         return $this->state(fn (array $attributes) => [
@@ -145,17 +117,6 @@ class SubmissionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'question_set' => $questionIds,
-        ]);
-    }
-
-    /**
-     * Set a specific attempt number.
-     */
-    public function attempt(int $number): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'attempt_number' => $number,
-            'is_resubmission' => $number > 1,
         ]);
     }
 }

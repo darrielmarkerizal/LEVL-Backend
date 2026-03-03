@@ -64,6 +64,16 @@ class Unit extends Model
         return $this->hasMany(\Modules\Schemes\Models\Lesson::class);
     }
 
+    public function assignments()
+    {
+        return $this->hasMany(\Modules\Learning\Models\Assignment::class);
+    }
+
+    public function quizzes()
+    {
+        return $this->hasMany(\Modules\Learning\Models\Quiz::class);
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';

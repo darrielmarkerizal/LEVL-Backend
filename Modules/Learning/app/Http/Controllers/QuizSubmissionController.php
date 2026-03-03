@@ -44,15 +44,6 @@ class QuizSubmissionController extends Controller
     {
         $this->authorize('takeQuiz', $quiz);
         $user = auth('api')->user();
-        $existingDraft = $this->submissionService->checkExistingDraft($quiz->id, $user->id);
-
-        if ($existingDraft) {
-            return $this->validationError([
-                'quiz' => [__('messages.quiz_submissions.draft_exists')],
-                'submission_id' => $existingDraft->id,
-            ]);
-        }
-
         $submission = $this->submissionService->start($quiz, $user->id);
 
         return $this->created(QuizSubmissionResource::make($submission), __('messages.quiz_submissions.started'));

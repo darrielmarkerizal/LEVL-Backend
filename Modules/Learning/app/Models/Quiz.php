@@ -46,10 +46,7 @@ class Quiz extends Model implements HasMedia
         'passing_grade',
         'auto_grading',
         'max_score',
-        'max_attempts',
-        'cooldown_minutes',
         'time_limit_minutes',
-        'retake_enabled',
         'randomization_type',
         'question_bank_count',
         'review_mode',
@@ -62,13 +59,10 @@ class Quiz extends Model implements HasMedia
         'randomization_type' => RandomizationType::class,
         'passing_grade' => 'decimal:2',
         'max_score' => 'decimal:2',
-        'max_attempts' => 'integer',
-        'cooldown_minutes' => 'integer',
         'time_limit_minutes' => 'integer',
         'question_bank_count' => 'integer',
         'order' => 'integer',
         'auto_grading' => 'boolean',
-        'retake_enabled' => 'boolean',
     ];
 
     public function unit(): BelongsTo

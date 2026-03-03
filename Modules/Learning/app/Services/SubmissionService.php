@@ -9,20 +9,17 @@ use Illuminate\Support\Collection;
 use Modules\Auth\Models\User;
 use Modules\Learning\Contracts\Repositories\QuestionRepositoryInterface;
 use Modules\Learning\Contracts\Services\SubmissionServiceInterface;
-use Modules\Learning\Enums\OverrideType;
 use Modules\Learning\Models\Answer;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
 use Modules\Learning\Services\Support\SubmissionFinder;
 use Modules\Learning\Services\Support\SubmissionLifecycleProcessor;
-use Modules\Learning\Services\Support\SubmissionValidator;
 
 class SubmissionService implements SubmissionServiceInterface
 {
     public function __construct(
         private readonly SubmissionFinder $finder,
         private readonly SubmissionLifecycleProcessor $lifecycleProcessor,
-        private readonly SubmissionValidator $validator,
         private readonly QuestionRepositoryInterface $questionRepository
     ) {}
 
@@ -33,7 +30,7 @@ class SubmissionService implements SubmissionServiceInterface
 
     public function startSubmission(int $assignmentId, int $studentId): Submission
     {
-        return $this->lifecycleProcessor->startSubmission($assignmentId, $studentId, $this->validator);
+        return $this->lifecycleProcessor->startSubmission($assignmentId, $studentId);
     }
 
     public function update(Submission $submission, array $data): Submission
@@ -43,12 +40,12 @@ class SubmissionService implements SubmissionServiceInterface
 
     public function saveAnswer(Submission $submission, int $questionId, mixed $answer): Answer
     {
-        return $this->lifecycleProcessor->saveAnswer($submission, $questionId, $answer, $this->validator);
+        return $this->lifecycleProcessor->saveAnswer($submission, $questionId, $answer);
     }
 
     public function submitAnswers(int $submissionId, array $answers): Submission
     {
-        return $this->lifecycleProcessor->submitAnswers($submissionId, $answers, $this->validator, $this->questionRepository);
+        return $this->lifecycleProcessor->submitAnswers($submissionId, $answers, $this->questionRepository);
     }
 
     public function delete(Submission $submission): bool
@@ -96,36 +93,6 @@ class SubmissionService implements SubmissionServiceInterface
         return $this->finder->listByAssignment($assignment, $filters);
     }
 
-    public function checkAttemptLimits(Assignment $assignment, int $studentId): array
-    {
-        return $this->validator->checkAttemptLimits($assignment, $studentId);
-    }
-
-    public function checkAttemptLimitsWithOverride(Assignment $assignment, int $studentId): array
-    {
-        return $this->validator->checkAttemptLimitsWithOverride($assignment, $studentId);
-    }
-
-    public function checkCooldownPeriod(Assignment $assignment, int $studentId): array
-    {
-        return $this->validator->checkCooldownPeriod($assignment, $studentId);
-    }
-
-    public function checkDeadlineWithOverride(Assignment $assignment, int $studentId): bool
-    {
-        return $this->validator->checkDeadlineWithOverride($assignment, $studentId);
-    }
-
-    public function isSubmissionLate(Assignment $assignment, int $studentId): bool
-    {
-        return $this->validator->isSubmissionLate($assignment, $studentId);
-    }
-
-    public function hasActiveOverride(int $assignmentId, int $studentId, OverrideType $type): bool
-    {
-        return $this->validator->hasActiveOverride($assignmentId, $studentId, $type);
-    }
-
     public function getHighestScoreSubmission(int $assignmentId, int $studentId): ?Submission
     {
         return $this->finder->getHighestScoreSubmission($assignmentId, $studentId);
@@ -139,11 +106,6 @@ class SubmissionService implements SubmissionServiceInterface
     public function updateSubmissionScore(Submission $submission, float $score): Submission
     {
         return $this->lifecycleProcessor->updateSubmissionScore($submission, $score);
-    }
-
-    public function getDeadlineStatus(Assignment $assignment, int $userId): array
-    {
-        return $this->validator->getDeadlineStatus($assignment, $userId);
     }
 
     public function grade(Submission $submission, int $score, int $gradedBy, ?string $feedback = null): Submission

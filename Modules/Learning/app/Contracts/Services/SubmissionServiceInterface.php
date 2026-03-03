@@ -7,7 +7,6 @@ namespace Modules\Learning\Contracts\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Modules\Auth\Models\User;
-use Modules\Learning\Enums\OverrideType;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
 
@@ -41,16 +40,6 @@ interface SubmissionServiceInterface
 
     public function submitAnswers(int $submissionId, array $answers): Submission;
 
-    public function checkAttemptLimits(Assignment $assignment, int $studentId): array;
-
-    public function checkAttemptLimitsWithOverride(Assignment $assignment, int $studentId): array;
-
-    public function checkCooldownPeriod(Assignment $assignment, int $studentId): array;
-
-    public function checkDeadlineWithOverride(Assignment $assignment, int $studentId): bool;
-
-    public function hasActiveOverride(int $assignmentId, int $studentId, OverrideType $type): bool;
-
     public function getSubmissionsWithHighestMarked(int $assignmentId, int $studentId): Collection;
 
     public function searchSubmissions(string $query, array $filters = [], array $options = []): array;
@@ -58,8 +47,6 @@ interface SubmissionServiceInterface
     public function checkAndDispatchNewHighScore(Submission $submission): void;
 
     public function getSubmissionDetail(Submission $submission, ?int $userId): array;
-
-    public function getDeadlineStatus(Assignment $assignment, int $userId): array;
 
     public function getQuestionsForStudent(Submission $submission, int $page): array;
 }

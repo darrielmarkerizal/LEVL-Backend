@@ -48,12 +48,8 @@ class AssignmentDuplicator
             'description' => $overrides['description'] ?? $original->description,
             'submission_type' => $original->submission_type?->value ?? $original->getRawOriginal('submission_type'),
             'max_score' => $overrides['max_score'] ?? $original->max_score,
-            'max_attempts' => $overrides['max_attempts'] ?? $original->max_attempts,
-            'cooldown_minutes' => $overrides['cooldown_minutes'] ?? $original->cooldown_minutes,
-            'retake_enabled' => $overrides['retake_enabled'] ?? $original->retake_enabled,
             'review_mode' => $overrides['review_mode'] ?? ($original->review_mode?->value ?? $original->getRawOriginal('review_mode')),
             'status' => $overrides['status'] ?? AssignmentStatus::Draft->value,
-            'allow_resubmit' => $overrides['allow_resubmit'] ?? $original->allow_resubmit,
             'time_limit_minutes' => $original->time_limit_minutes,
         ];
     }

@@ -26,9 +26,6 @@ class QuizSubmission extends Model
         'submitted_at',
         'started_at',
         'time_spent_seconds',
-        'attempt_number',
-        'is_resubmission',
-        'previous_submission_id',
     ];
 
     protected $casts = [
@@ -36,9 +33,7 @@ class QuizSubmission extends Model
         'grading_status' => QuizGradingStatus::class,
         'submitted_at' => 'datetime',
         'started_at' => 'datetime',
-        'attempt_number' => 'integer',
         'time_spent_seconds' => 'integer',
-        'is_resubmission' => 'boolean',
         'score' => 'decimal:2',
         'final_score' => 'decimal:2',
         'question_set' => 'array',
@@ -62,16 +57,6 @@ class QuizSubmission extends Model
     public function answers(): HasMany
     {
         return $this->hasMany(QuizAnswer::class, 'quiz_submission_id');
-    }
-
-    public function previousSubmission(): BelongsTo
-    {
-        return $this->belongsTo(QuizSubmission::class, 'previous_submission_id');
-    }
-
-    public function resubmissions(): HasMany
-    {
-        return $this->hasMany(QuizSubmission::class, 'previous_submission_id');
     }
 
     public function isPassed(): bool

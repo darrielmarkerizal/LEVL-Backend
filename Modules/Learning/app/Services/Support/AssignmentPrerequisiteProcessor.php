@@ -18,17 +18,12 @@ class AssignmentPrerequisiteProcessor
 
     public function checkPrerequisites(
         int $assignmentId,
-        int $studentId,
-        AssignmentOverrideProcessor $overrideProcessor
+        int $studentId
     ): PrerequisiteCheckResult {
         $assignment = $this->repository->find($assignmentId);
 
         if (! $assignment) {
             throw AssignmentException::notFound();
-        }
-
-        if ($overrideProcessor->hasPrerequisiteOverride($assignmentId, $studentId)) {
-            return PrerequisiteCheckResult::pass();
         }
 
         $accessCheck = $this->prerequisiteService->checkAssignmentAccess($assignment, $studentId);

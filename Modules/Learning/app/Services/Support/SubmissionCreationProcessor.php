@@ -6,7 +6,6 @@ namespace Modules\Learning\Services\Support;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Modules\Common\Models\SystemSetting;
 use Modules\Enrollments\Contracts\Repositories\EnrollmentRepositoryInterface;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Learning\Contracts\Repositories\SubmissionRepositoryInterface;
@@ -52,18 +51,7 @@ class SubmissionCreationProcessor
                 throw SubmissionException::notAllowed(__('messages.submissions.assignment_unavailable'));
             }
 
-            $existingSubmission = $this->repository->latestCommittedSubmission($assignment, $userId);
-
-            $isResubmission = $existingSubmission !== null;
-            if ($isResubmission && ! $this->isResubmitAllowed($assignment)) {
-                throw SubmissionException::notAllowed(__('messages.submissions.resubmission_not_allowed'));
-            }
-
-            $attemptNumber = $isResubmission ? ($existingSubmission->attempt_number + 1) : 1;
-
-            if ($isResubmission && $existingSubmission) {
-                $this->repository->delete($existingSubmission);
-            }
+            $attemptNumber = $this->repository->countAttempts($userId, $assignment->id) + 1;
 
             $questionSet = $this->generateQuestionSet($assignment->id);
 
@@ -73,10 +61,8 @@ class SubmissionCreationProcessor
                 'enrollment_id' => $enrollment->id,
                 'answer_text' => $data['answer_text'] ?? null,
                 'status' => SubmissionStatus::Submitted->value,
-                'attempt_number' => $attemptNumber,
-                'is_resubmission' => $isResubmission,
-                'previous_submission_id' => null,
                 'submitted_at' => Carbon::now(),
+                'attempt_number' => $attemptNumber,
                 'question_set' => $questionSet,
             ]);
 
@@ -90,8 +76,7 @@ class SubmissionCreationProcessor
 
     public function startSubmission(
         int $assignmentId,
-        int $studentId,
-        SubmissionValidator $validator
+        int $studentId
     ): Submission {
         $assignment = Assignment::findOrFail($assignmentId);
 
@@ -102,33 +87,27 @@ class SubmissionCreationProcessor
             }
         }
 
-        $attemptCheck = $validator->checkAttemptLimitsWithOverride($assignment, $studentId);
-        if (! $attemptCheck['allowed']) {
-            throw SubmissionException::maxAttemptsReached(
-                $attemptCheck['message'] ?? __('messages.submissions.max_attempts_reached')
-            );
-        }
+        $pendingSubmission = Submission::where('assignment_id', $assignmentId)
+            ->where('user_id', $studentId)
+            ->whereIn('status', [SubmissionStatus::Draft->value, SubmissionStatus::Submitted->value])
+            ->first();
 
-        $cooldownCheck = $validator->checkCooldownPeriod($assignment, $studentId);
-        if (! $cooldownCheck['allowed']) {
-            throw SubmissionException::notAllowed(
-                $attemptCheck['message'] ?? __('messages.submissions.cooldown_active', ['time' => $cooldownCheck['next_attempt_at']->toDateTimeString()])
-            );
+        if ($pendingSubmission) {
+            if ($pendingSubmission->status === SubmissionStatus::Draft->value) {
+                throw SubmissionException::notAllowed(__('messages.submissions.draft_exists'));
+            }
+
+            throw SubmissionException::notAllowed(__('messages.submissions.pending_grading'));
         }
 
         $questionSet = $this->generateQuestionSet($assignmentId);
 
-        $attemptNumber = Submission::where('assignment_id', $assignmentId)
-            ->where('user_id', $studentId)
-            ->count() + 1;
-
-        return DB::transaction(function () use ($assignmentId, $studentId, $attemptNumber, $questionSet) {
+        return DB::transaction(function () use ($assignmentId, $studentId, $questionSet) {
             $submission = $this->repository->create([
                 'assignment_id' => $assignmentId,
                 'user_id' => $studentId,
                 'state' => SubmissionState::InProgress->value,
                 'status' => SubmissionStatus::Draft->value,
-                'attempt_number' => $attemptNumber,
                 'question_set' => $questionSet,
             ]);
 
@@ -145,13 +124,6 @@ class SubmissionCreationProcessor
         }
 
         return $this->enrollmentRepository->findActiveByUserAndCourse($userId, $lesson->unit->course->id);
-    }
-
-    private function isResubmitAllowed(Assignment $assignment): bool
-    {
-        return $assignment->allow_resubmit !== null
-            ? (bool) $assignment->allow_resubmit
-            : SystemSetting::get('learning.allow_resubmit', true);
     }
 
     private function generateQuestionSet(int $assignmentId): ?array

@@ -71,11 +71,10 @@ class SubmissionCompletionProcessor
         });
     }
 
-    public function saveAnswer(Submission $submission, int $questionId, mixed $answer, SubmissionValidator $validator): \Modules\Learning\Models\Answer
+    public function saveAnswer(Submission $submission, int $questionId, mixed $answer): \Modules\Learning\Models\Answer
     {
         return DB::transaction(function () use ($submission, $questionId, $answer) {
             $assignment = $submission->assignment;
-            $studentId = $submission->user_id;
 
             if ($submission->state !== SubmissionState::InProgress) {
                 throw SubmissionException::notAllowed(__('messages.submissions.cannot_modify'));
@@ -104,9 +103,9 @@ class SubmissionCompletionProcessor
         });
     }
 
-    public function submitAnswers(int $submissionId, array $answers, SubmissionValidator $validator, QuestionRepositoryInterface $questionRepo): Submission
+    public function submitAnswers(int $submissionId, array $answers, QuestionRepositoryInterface $questionRepo): Submission
     {
-        $submission = DB::transaction(function () use ($submissionId, $answers, $validator, $questionRepo) {
+        $submission = DB::transaction(function () use ($submissionId, $answers, $questionRepo) {
             $submission = Submission::findOrFail($submissionId);
             $assignment = $submission->assignment;
             $studentId = $submission->user_id;
@@ -115,7 +114,7 @@ class SubmissionCompletionProcessor
                 throw SubmissionException::notAllowed(__('messages.submissions.cannot_modify'));
             }
 
-            $this->processAnswers($submission, $answers, $validator);
+            $this->processAnswers($submission, $answers);
 
             $this->validateAllQuestionsAnswered($submission, $questionRepo);
 
@@ -124,7 +123,6 @@ class SubmissionCompletionProcessor
             }
 
             $submission->update([
-                'is_late' => $isLate,
                 'submitted_at' => Carbon::now(),
             ]);
 
@@ -221,7 +219,7 @@ class SubmissionCompletionProcessor
         $createdAnswer->update(['file_paths' => $paths]);
     }
 
-    private function processAnswers(Submission $submission, array $answers, SubmissionValidator $validator): void
+    private function processAnswers(Submission $submission, array $answers): void
     {
         if (empty($answers)) {
             return;
@@ -242,7 +240,7 @@ class SubmissionCompletionProcessor
             }
 
             if ($val !== null) {
-                $this->saveAnswer($submission, (int) $answerData['question_id'], $val, $validator);
+                $this->saveAnswer($submission, (int) $answerData['question_id'], $val);
             }
         }
     }
