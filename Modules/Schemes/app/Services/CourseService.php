@@ -169,4 +169,15 @@ class CourseService implements CourseServiceInterface
     {
         return $this->finder->listEnrolledCourses($userId, $filters, $perPage);
     }
+
+    public function findWithAdmins(int $id): ?Course
+    {
+        $course = $this->finder->find($id);
+
+        if ($course) {
+            $course->load('admins');
+        }
+
+        return $course;
+    }
 }

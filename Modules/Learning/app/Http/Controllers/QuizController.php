@@ -19,7 +19,6 @@ use Modules\Learning\Http\Resources\QuizQuestionResource;
 use Modules\Learning\Http\Resources\QuizResource;
 use Modules\Learning\Models\Quiz;
 use Modules\Learning\Models\QuizQuestion;
-use Modules\Learning\Services\Support\QuizEnrichmentService;
 
 class QuizController extends Controller
 {
@@ -28,20 +27,13 @@ class QuizController extends Controller
 
     public function __construct(
         private readonly QuizServiceInterface $quizService,
-        private readonly QuizQuestionServiceInterface $questionService,
-        private readonly QuizEnrichmentService $enrichmentService
+        private readonly QuizQuestionServiceInterface $questionService
     ) {}
 
     public function index(Request $request, \Modules\Schemes\Models\Course $course): JsonResponse
     {
         $user = auth('api')->user();
-        $paginator = $this->quizService->listForIndex($course, $request->all());
-
-        if ($user && $user->hasRole('Student')) {
-            $paginator = $this->enrichmentService->enrichForStudent($paginator, $user->id);
-        } else {
-            $paginator = $this->enrichmentService->enrichForInstructor($paginator);
-        }
+        $paginator = $this->quizService->listForIndexWithEnrichment($course, $request->all(), $user);
 
         return $this->paginateResponse($paginator, 'messages.quizzes.list_retrieved');
     }
@@ -60,15 +52,9 @@ class QuizController extends Controller
     {
         $this->authorize('view', $quiz);
         $user = auth('api')->user();
-        $quizWithRelations = $this->quizService->getWithRelations($quiz);
+        $enrichedQuiz = $this->quizService->getWithRelationsAndEnrichment($quiz, $user);
 
-        if ($user && $user->hasRole('Student')) {
-            $enriched = $this->enrichmentService->enrichDetailForStudent($quizWithRelations, $user->id);
-
-            return $this->success(QuizResource::make($enriched));
-        }
-
-        return $this->success(QuizResource::make($quizWithRelations));
+        return $this->success(QuizResource::make($enrichedQuiz));
     }
 
     public function update(UpdateQuizRequest $request, Quiz $quiz): JsonResponse
@@ -115,12 +101,7 @@ class QuizController extends Controller
     {
         $this->authorize('view', $quiz);
         $user = auth('api')->user();
-
-        if ($user && $user->hasRole('Student')) {
-            return $this->error(__('messages.quizzes.must_start_first'), [], 403);
-        }
-
-        $questions = $this->questionService->getQuizQuestions($quiz->id, $request->all());
+        $questions = $this->questionService->getQuizQuestionsForUser($quiz->id, $request->all(), $user);
 
         return $this->paginateResponse($questions, 'messages.quizzes.questions_retrieved');
     }
@@ -128,10 +109,7 @@ class QuizController extends Controller
     public function showQuestion(Quiz $quiz, QuizQuestion $question): JsonResponse
     {
         $this->authorize('view', $quiz);
-
-        if ($question->quiz_id !== $quiz->id) {
-            return $this->error(__('messages.questions.not_found'), [], 404);
-        }
+        $this->questionService->validateQuestionBelongsToQuiz($question->id, $quiz->id);
 
         return $this->success(QuizQuestionResource::make($question));
     }
@@ -160,11 +138,10 @@ class QuizController extends Controller
         return $this->success([], __('messages.questions.deleted'));
     }
 
-    public function reorderQuestions(Request $request, Quiz $quiz): JsonResponse
+    public function reorderQuestions(\Modules\Learning\Http\Requests\ReorderQuizQuestionsRequest $request, Quiz $quiz): JsonResponse
     {
         $this->authorize('update', $quiz);
-        $ids = $request->validate(['ids' => ['required', 'array'], 'ids.*' => ['integer']])['ids'];
-        $this->questionService->reorderQuestions($quiz->id, $ids);
+        $this->questionService->reorderQuestions($quiz->id, $request->validated('ids'));
 
         return $this->success([], __('messages.questions.reordered'));
     }

@@ -60,4 +60,6 @@ interface SubmissionServiceInterface
     public function getSubmissionDetail(Submission $submission, ?int $userId): array;
 
     public function getDeadlineStatus(Assignment $assignment, int $userId): array;
+
+    public function getQuestionsForStudent(Submission $submission, int $page): array;
 }

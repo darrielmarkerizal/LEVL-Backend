@@ -155,4 +155,28 @@ class SubmissionService implements SubmissionServiceInterface
     {
         $this->lifecycleProcessor->checkAndDispatchNewHighScore($submission);
     }
+
+    public function getQuestionsForStudent(Submission $submission, int $page): array
+    {
+        $questions = $this->finder->getSubmissionQuestions($submission);
+        $total = $questions->count();
+
+        if ($page < 1 || $page > $total) {
+            throw new \InvalidArgumentException(__('messages.submissions.invalid_page'));
+        }
+
+        $question = $questions->get($page - 1);
+
+        return [
+            'question' => $question,
+            'meta' => [
+                'pagination' => [
+                    'current_page' => $page,
+                    'total' => $total,
+                    'has_next' => $page < $total,
+                    'has_prev' => $page > 1,
+                ],
+            ],
+        ];
+    }
 }

@@ -146,4 +146,22 @@ class QuizQuestionService implements QuizQuestionServiceInterface
         $question->options = $options;
         $question->save();
     }
+
+    public function getQuizQuestionsForUser(int $quizId, array $filters, ?\Modules\Auth\Models\User $user): LengthAwarePaginator
+    {
+        if ($user && $user->hasRole('Student')) {
+            throw new \Symfony\Component\HttpKernel\Exception\HttpException(403, __('messages.quizzes.must_start_first'));
+        }
+
+        return $this->getQuizQuestions($quizId, $filters);
+    }
+
+    public function validateQuestionBelongsToQuiz(int $questionId, int $quizId): void
+    {
+        $question = $this->repository->find($questionId);
+
+        if (! $question || $question->quiz_id !== $quizId) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException(__('messages.questions.not_found'));
+        }
+    }
 }

@@ -21,7 +21,6 @@ use Modules\Learning\Http\Resources\AnswerResource;
 use Modules\Learning\Http\Resources\QuestionResource;
 use Modules\Learning\Http\Resources\SubmissionConfirmationResource;
 use Modules\Learning\Http\Resources\SubmissionDetailResource;
-use Modules\Learning\Http\Resources\SubmissionListResource;
 use Modules\Learning\Http\Resources\SubmissionResource;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
@@ -37,8 +36,16 @@ class SubmissionController extends Controller
 
     public function index(Request $request, Assignment $assignment): JsonResponse
     {
+        $user = auth('api')->user();
+
+        if ($user->hasRole('Student')) {
+            $submissions = $this->service->getSubmissionsWithHighestMarked($assignment->id, $user->id);
+
+            return $this->success(\Modules\Learning\Http\Resources\SubmissionListResource::collection($submissions));
+        }
+
         $this->authorize('viewAny', Submission::class);
-        $paginator = $this->service->listForAssignmentForIndex($assignment, auth('api')->user(), $request->all());
+        $paginator = $this->service->listForAssignmentForIndex($assignment, $user, $request->all());
         $paginator->getCollection()->transform(fn ($item) => new \Modules\Learning\Http\Resources\SubmissionIndexResource($item));
 
         return $this->paginateResponse($paginator, 'messages.submissions.list_retrieved');
@@ -83,25 +90,11 @@ class SubmissionController extends Controller
         $page = (int) $request->get('page', 1);
 
         if ($user && $user->hasRole('Student')) {
-            $questions = $this->service->getSubmissionQuestions($submission);
-            $total = $questions->count();
-
-            if ($page < 1 || $page > $total) {
-                return $this->error(__('messages.submissions.invalid_page'), [], 404);
-            }
-
-            $question = $questions->get($page - 1);
+            $result = $this->service->getQuestionsForStudent($submission, $page);
 
             return $this->success([
-                'data' => new QuestionResource($question),
-                'meta' => [
-                    'pagination' => [
-                        'current_page' => $page,
-                        'total' => $total,
-                        'has_next' => $page < $total,
-                        'has_prev' => $page > 1,
-                    ],
-                ],
+                'data' => new QuestionResource($result['question']),
+                'meta' => $result['meta'],
             ]);
         }
 
@@ -131,13 +124,6 @@ class SubmissionController extends Controller
     public function checkAttempts(Request $request, Assignment $assignment): JsonResponse
     {
         return $this->success($this->service->checkAttemptLimitsWithOverride($assignment, auth('api')->id()));
-    }
-
-    public function mySubmissions(Request $request, Assignment $assignment): JsonResponse
-    {
-        $submissions = $this->service->getSubmissionsWithHighestMarked($assignment->id, auth('api')->id());
-
-        return $this->success(SubmissionListResource::collection($submissions));
     }
 
     public function showForAssignment(Request $request, Assignment $assignment, Submission $submission): JsonResponse

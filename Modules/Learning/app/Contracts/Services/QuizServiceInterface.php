@@ -30,4 +30,8 @@ interface QuizServiceInterface
     public function archive(Quiz $quiz): Quiz;
 
     public function getWithRelations(Quiz $quiz): Quiz;
+
+    public function listForIndexWithEnrichment(\Modules\Schemes\Models\Course $course, array $filters, ?\Modules\Auth\Models\User $user): LengthAwarePaginator;
+
+    public function getWithRelationsAndEnrichment(Quiz $quiz, ?\Modules\Auth\Models\User $user): Quiz;
 }
