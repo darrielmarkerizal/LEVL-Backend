@@ -86,15 +86,6 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
     Route::post('assignments/{assignment}/submissions', [SubmissionController::class, 'store'])
         ->name('assignments.submissions.store');
 
-    Route::post('assignments/{assignment}/submissions/start', [SubmissionController::class, 'start'])
-        ->name('assignments.submissions.start');
-
-
-
-    Route::get('submissions/{submission}/questions', [SubmissionController::class, 'listQuestions'])
-        ->middleware('can:accessQuestions,submission')
-        ->name('submissions.questions.index');
-
     Route::put('submissions/{submission}', [SubmissionController::class, 'update'])
         ->middleware('can:update,submission')
         ->name('submissions.update');

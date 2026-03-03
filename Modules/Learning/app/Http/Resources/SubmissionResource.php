@@ -24,7 +24,7 @@ class SubmissionResource extends JsonResource
             'is_resubmission' => $this->is_resubmission,
             'question_set' => $this->question_set,
             'submitted_at' => $this->submitted_at,
-            'graded_at' => $this->graded_at,
+            'graded_at' => $this->status?->value === 'graded' ? $this->graded_at : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
