@@ -215,7 +215,8 @@ class SequentialProgressSeeder extends Seeder
             return false;
         }
 
-        $passingGrade = $assignment->passing_grade ?? ($assignment->max_score * 0.6);
+        $passingGrade = (float) ($assignment->passing_grade ?? ($assignment->max_score * 0.6));
+        $maxScore = (float) $assignment->max_score;
         $score = null;
 
         if ($status === 'graded') {
@@ -229,22 +230,22 @@ class SequentialProgressSeeder extends Seeder
             $willPass = rand(1, 100) <= $passRate;
 
             if ($willPass) {
-                $minScore = (int) max($passingGrade, $assignment->max_score * 0.7);
-                $maxScore = match ($studentType) {
-                    'complete' => $assignment->max_score,
-                    'high_progress' => (int) ($assignment->max_score * 0.95),
-                    'medium_progress' => (int) ($assignment->max_score * 0.85),
-                    'low_progress' => (int) min($passingGrade + 10, $assignment->max_score),
+                $minScore = (int) max($passingGrade, $maxScore * 0.7);
+                $maxScoreInt = match ($studentType) {
+                    'complete' => (int) $maxScore,
+                    'high_progress' => (int) ($maxScore * 0.95),
+                    'medium_progress' => (int) ($maxScore * 0.85),
+                    'low_progress' => (int) min($passingGrade + 10, $maxScore),
                 };
-                $score = rand($minScore, $maxScore);
+                $score = rand($minScore, $maxScoreInt);
             } else {
                 $maxFailScore = max(1, (int) ($passingGrade - 1));
-                $minFailScore = (int) ($assignment->max_score * 0.4);
+                $minFailScore = (int) ($maxScore * 0.4);
                 $minFailScore = min($minFailScore, $maxFailScore);
                 $score = rand($minFailScore, $maxFailScore);
             }
 
-            $score = min($score, $assignment->max_score);
+            $score = min($score, (int) $maxScore);
         }
 
         $answerText = null;
@@ -343,7 +344,7 @@ class SequentialProgressSeeder extends Seeder
             'question_set' => $questionSet,
         ]);
 
-        $passingGrade = $quiz->passing_grade ?? 75;
+        $passingGrade = (float) ($quiz->passing_grade ?? 75);
         $passRate = match ($studentType) {
             'complete' => 95,
             'high_progress' => 85,
@@ -366,7 +367,8 @@ class SequentialProgressSeeder extends Seeder
         foreach ($questionsToAnswer as $question) {
             $randomChance = rand(1, 100);
             $isCorrect = $randomChance <= $correctnessRate;
-            $questionScore = $isCorrect ? $question->weight : rand(0, (int) ($question->weight * 0.3));
+            $weight = (float) $question->weight;
+            $questionScore = $isCorrect ? $weight : rand(0, (int) ($weight * 0.3));
 
             $answerData = [
                 'quiz_submission_id' => $submission->id,
@@ -392,10 +394,10 @@ class SequentialProgressSeeder extends Seeder
                 $answerData['content'] = $this->pregenAnswers[array_rand($this->pregenAnswers)];
                 $answerData['is_auto_graded'] = false;
                 if ($isCorrect) {
-                    $answerData['score'] = rand((int) ($question->weight * 0.8), $question->weight);
+                    $answerData['score'] = rand((int) ($weight * 0.8), (int) $weight);
                     $answerData['feedback'] = 'Good answer';
                 } else {
-                    $answerData['score'] = rand((int) ($question->weight * 0.3), (int) ($question->weight * 0.6));
+                    $answerData['score'] = rand((int) ($weight * 0.3), (int) ($weight * 0.6));
                     $answerData['feedback'] = 'Needs improvement';
                 }
                 $questionScore = $answerData['score'];
