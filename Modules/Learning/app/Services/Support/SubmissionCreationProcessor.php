@@ -25,10 +25,18 @@ class SubmissionCreationProcessor
         private readonly SubmissionRepositoryInterface $repository,
         private readonly EnrollmentRepositoryInterface $enrollmentRepository,
         private readonly ?QuestionServiceInterface $questionService = null,
+        private readonly ?\Modules\Schemes\Services\PrerequisiteService $prerequisiteService = null,
     ) {}
 
     public function create(Assignment $assignment, int $userId, array $data): Submission
     {
+        if ($this->prerequisiteService) {
+            $accessCheck = $this->prerequisiteService->checkAssignmentAccess($assignment, $userId);
+            if (! $accessCheck['accessible']) {
+                throw SubmissionException::notAllowed(__('messages.assignments.locked_cannot_submit'));
+            }
+        }
+
         return DB::transaction(function () use ($assignment, $userId, $data) {
             $lesson = $assignment->lesson;
             if (! $lesson) {
@@ -86,6 +94,13 @@ class SubmissionCreationProcessor
         SubmissionValidator $validator
     ): Submission {
         $assignment = Assignment::findOrFail($assignmentId);
+
+        if ($this->prerequisiteService) {
+            $accessCheck = $this->prerequisiteService->checkAssignmentAccess($assignment, $studentId);
+            if (! $accessCheck['accessible']) {
+                throw SubmissionException::notAllowed(__('messages.assignments.locked_cannot_submit'));
+            }
+        }
 
         $attemptCheck = $validator->checkAttemptLimitsWithOverride($assignment, $studentId);
         if (! $attemptCheck['allowed']) {

@@ -40,10 +40,9 @@ class QuizRepository extends BaseRepository implements QuizRepositoryInterface
     {
         return $quiz->loadMissing([
             'creator:id,name,email',
-            'lesson:id,title,slug',
-            'lesson.unit:id,slug',
+            'unit:id,slug',
+            'unit.course:id,slug',
             'questions',
-            'assignable',
         ]);
     }
 
@@ -80,13 +79,13 @@ class QuizRepository extends BaseRepository implements QuizRepositoryInterface
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
 
+        $lesson = \Modules\Schemes\Models\Lesson::find($lessonId);
+        if (! $lesson) {
+            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
+        }
+
         return Quiz::query()
-            ->where(function ($q) use ($lessonId) {
-                $q->where(function ($subQ) use ($lessonId) {
-                    $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
-                        ->where('assignable_id', $lessonId);
-                })->orWhere('lesson_id', $lessonId);
-            })
+            ->where('unit_id', $lesson->unit_id)
             ->with(['creator:id,name,email', 'questions'])
             ->orderByDesc('created_at')
             ->paginate($perPage)

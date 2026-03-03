@@ -74,6 +74,10 @@ class PrerequisiteService
 
     public function checkUnitAccess(Unit $unit, int $userId): array
     {
+        if ($unit->order === 1) {
+            return ['accessible' => true, 'missing' => []];
+        }
+
         $previousUnit = Unit::where('course_id', $unit->course_id)
             ->where('order', '<', $unit->order)
             ->orderBy('order', 'desc')
@@ -83,21 +87,70 @@ class PrerequisiteService
             return ['accessible' => true, 'missing' => []];
         }
 
-        if (! $this->isUnitCompleted($previousUnit, $userId)) {
+        $missing = $this->getUnitIncompleteness($previousUnit, $userId);
+
+        if (! empty($missing)) {
             return [
                 'accessible' => false,
-                'missing' => [
-                    [
-                        'type' => 'unit',
-                        'id' => $previousUnit->id,
-                        'title' => $previousUnit->title,
-                        'message' => 'Complete all content in previous unit',
-                    ],
-                ],
+                'missing' => $missing,
+                'message' => 'Complete all lessons and pass all assignments/quizzes in previous unit',
             ];
         }
 
         return ['accessible' => true, 'missing' => []];
+    }
+
+    private function getUnitIncompleteness(Unit $unit, int $userId): array
+    {
+        $missing = [];
+
+        $lessons = $unit->lessons()->where('status', 'published')->orderBy('order')->get();
+        foreach ($lessons as $lesson) {
+            if (! $lesson->isCompletedBy($userId)) {
+                $missing[] = [
+                    'type' => 'lesson',
+                    'id' => $lesson->id,
+                    'title' => $lesson->title,
+                    'unit_title' => $unit->title,
+                ];
+            }
+        }
+
+        $assignments = Assignment::forUnit($unit->id)
+            ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
+            ->ordered()
+            ->get();
+
+        foreach ($assignments as $assignment) {
+            if (! $this->isAssignmentPassed($assignment, $userId)) {
+                $missing[] = [
+                    'type' => 'assignment',
+                    'id' => $assignment->id,
+                    'title' => $assignment->title,
+                    'unit_title' => $unit->title,
+                    'passing_required' => true,
+                ];
+            }
+        }
+
+        $quizzes = Quiz::forUnit($unit->id)
+            ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
+            ->ordered()
+            ->get();
+
+        foreach ($quizzes as $quiz) {
+            if (! $this->isQuizPassed($quiz, $userId)) {
+                $missing[] = [
+                    'type' => 'quiz',
+                    'id' => $quiz->id,
+                    'title' => $quiz->title,
+                    'unit_title' => $unit->title,
+                    'passing_required' => true,
+                ];
+            }
+        }
+
+        return $missing;
     }
 
     public function isUnitCompleted(Unit $unit, int $userId): bool

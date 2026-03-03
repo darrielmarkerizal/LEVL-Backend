@@ -339,7 +339,36 @@ GET /courses?search=programming&filter[status]=published
 **Path Parameters:**
 - `assignment_id` (integer, required): Assignment ID
 
-**Response:**
+**Response (Student):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Week 1 Assignment",
+    "description": "Complete the programming exercises",
+    "submission_type": "file",
+    "max_score": 100,
+    "max_attempts": 3,
+    "retake_enabled": true,
+    "review_mode": "manual",
+    "unit_slug": "unit-1",
+    "course_slug": "course-1",
+    "attachments": [
+      {
+        "id": 1,
+        "url": "https://example.com/file.pdf",
+        "file_name": "instructions.pdf",
+        "mime_type": "application/pdf",
+        "size": 102400
+      }
+    ],
+    "created_at": "2024-01-15T10:00:00+00:00"
+  }
+}
+```
+
+**Response (Instructor):**
 ```json
 {
   "success": true,
@@ -356,7 +385,6 @@ GET /courses?search=programming&filter[status]=published
     "status": "published",
     "allow_resubmit": true,
     "is_available": true,
-    "lesson_slug": "lesson-1",
     "unit_slug": "unit-1",
     "course_slug": "course-1",
     "questions_count": 5,
@@ -374,7 +402,9 @@ GET /courses?search=programming&filter[status]=published
         "id": 2,
         "title": "Previous Assignment"
       }
-    ]
+    ],
+    "created_at": "2024-01-15T10:00:00+00:00",
+    "updated_at": "2024-01-15T10:00:00+00:00"
   }
 }
 ```
@@ -707,7 +737,7 @@ GET /courses?search=programming&filter[status]=published
       "is_locked": false,
       "unit_slug": "unit-1",
       "questions_count": 10,
-      "scope_type": "lesson",
+      "scope_type": "unit",
       "created_at": "2024-01-15T10:00:00+00:00"
     }
   ],
@@ -736,7 +766,7 @@ GET /courses?search=programming&filter[status]=published
       "questions_count": 10,
       "available_from": "2024-01-15T00:00:00+00:00",
       "deadline_at": "2024-01-22T23:59:59+00:00",
-      "scope_type": "lesson",
+      "scope_type": "unit",
       "created_at": "2024-01-15T10:00:00+00:00"
     }
   ],
@@ -777,10 +807,9 @@ GET /courses?search=programming&filter[status]=published
     "auto_grading": true,
     "review_mode": "after_deadline",
     "is_locked": false,
-    "lesson_slug": "lesson-1",
     "unit_slug": "unit-1",
     "questions_count": 10,
-    "scope_type": "lesson",
+    "scope_type": "unit",
     "created_at": "2024-01-15T10:00:00+00:00"
   }
 }
@@ -809,10 +838,10 @@ GET /courses?search=programming&filter[status]=published
     "deadline_at": "2024-01-22T23:59:59+00:00",
     "tolerance_minutes": 30,
     "late_penalty_percent": 10,
-    "scope_type": "lesson",
-    "assignable_type": "Lesson",
-    "assignable_id": 1,
-    "lesson_id": 1,
+    "scope_type": "unit",
+    "assignable_type": null,
+    "assignable_id": null,
+    "lesson_id": null,
     "created_by": 2,
     "creator": {
       "id": 2,
@@ -835,6 +864,8 @@ GET /courses?search=programming&filter[status]=published
   }
 }
 ```
+
+**Note:** `assignable_type`, `assignable_id`, and `lesson_id` are now deprecated and will be `null`. Quizzes are now unit-level content identified by `unit_slug` and `scope_type` is always `"unit"`.
 
 ---
 
@@ -4247,7 +4278,11 @@ media: (file, optional, for image/video/file types)
 - `attachments`: nullable, array, max:5 files
 - `attachments.*`: file, mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,jpg,jpeg,png,webp, max:10240KB
 
-**Note:** If `order` is not provided, the system will automatically assign the next available order number after all existing content (lessons, assignments, quizzes) in the unit.
+**Important Notes:**
+- Assignments and quizzes are now unit-level content (not polymorphic)
+- They are ordered alongside lessons using the `order` field
+- If `order` is not provided, the system will automatically assign the next available order number after all existing content (lessons, assignments, quizzes) in the unit
+- `scope_type` is always `"unit"` for both assignments and quizzes
 
 **Response:**
 ```json
@@ -4259,7 +4294,8 @@ media: (file, optional, for image/video/file types)
     "title": "Week 1 Assignment",
     "type": "assignment",
     "status": "draft",
-    "order": 3,
+    "unit_slug": "unit-1",
+    "course_slug": "course-1",
     "created_at": "2024-01-15T10:00:00+00:00"
   }
 }
@@ -4350,10 +4386,13 @@ media: (file, optional, for image/video/file types)
 ```json
 {
   "title": "Copy of Week 1 Assignment",
-  "assignable_type": "Lesson",
-  "assignable_slug": "new-lesson-slug"
+  "unit_id": 2
 }
 ```
+
+**Validation Rules:**
+- `title`: nullable, string, max:255 (defaults to "Copy of [original title]")
+- `unit_id`: nullable, integer, exists:units,id (defaults to same unit as original)
 
 **Response:**
 ```json
@@ -4363,7 +4402,9 @@ media: (file, optional, for image/video/file types)
   "data": {
     "id": 2,
     "title": "Copy of Week 1 Assignment",
-    "status": "draft"
+    "status": "draft",
+    "unit_slug": "unit-2",
+    "course_slug": "course-1"
   }
 }
 ```
@@ -4545,7 +4586,11 @@ media: (file, optional, for image/video/file types)
 - `question_bank_count`: nullable, integer, min:1
 - `review_mode`: nullable, in:immediate,after_deadline,never
 
-**Note:** If `order` is not provided, the system will automatically assign the next available order number after all existing content (lessons, assignments, quizzes) in the unit.
+**Important Notes:**
+- Quizzes are now unit-level content (not polymorphic)
+- They are ordered alongside lessons and assignments using the `order` field
+- If `order` is not provided, the system will automatically assign the next available order number after all existing content (lessons, assignments, quizzes) in the unit
+- `scope_type` is always `"unit"` for quizzes
 
 **Response:**
 ```json
@@ -4556,7 +4601,8 @@ media: (file, optional, for image/video/file types)
     "id": 1,
     "title": "Week 1 Quiz",
     "status": "draft",
-    "order": 4,
+    "unit_slug": "unit-1",
+    "course_slug": "course-1",
     "created_at": "2024-01-15T10:00:00+00:00"
   }
 }

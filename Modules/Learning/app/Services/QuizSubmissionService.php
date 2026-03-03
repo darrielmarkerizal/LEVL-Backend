@@ -21,10 +21,22 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 {
     public function __construct(
         private readonly QuizSubmissionRepository $repository,
+        private readonly \Modules\Schemes\Services\PrerequisiteService $prerequisiteService,
     ) {}
 
     public function start(Quiz $quiz, int $userId, ?int $enrollmentId = null): QuizSubmission
     {
+        $accessCheck = $this->prerequisiteService->checkQuizAccess($quiz, $userId);
+
+        if (! $accessCheck['accessible']) {
+            throw new \Illuminate\Validation\ValidationException(
+                \Illuminate\Support\Facades\Validator::make([], [])->errors()->add(
+                    'quiz',
+                    __('messages.quizzes.locked_cannot_start')
+                )
+            );
+        }
+
         return DB::transaction(function () use ($quiz, $userId, $enrollmentId) {
             $attemptNumber = $this->repository->getAttemptCount($quiz->id, $userId) + 1;
 

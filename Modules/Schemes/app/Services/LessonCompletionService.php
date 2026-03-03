@@ -9,8 +9,23 @@ use Modules\Schemes\Models\LessonCompletion;
 
 class LessonCompletionService
 {
+    public function __construct(
+        private readonly PrerequisiteService $prerequisiteService
+    ) {}
+
     public function markAsCompleted(Lesson $lesson, int $userId): LessonCompletion
     {
+        $accessCheck = $this->prerequisiteService->checkLessonAccess($lesson, $userId);
+
+        if (! $accessCheck['accessible']) {
+            throw new \Illuminate\Validation\ValidationException(
+                \Illuminate\Support\Facades\Validator::make([], [])->errors()->add(
+                    'lesson',
+                    __('messages.lessons.locked_cannot_complete')
+                )
+            );
+        }
+
         return LessonCompletion::firstOrCreate(
             [
                 'lesson_id' => $lesson->id,
