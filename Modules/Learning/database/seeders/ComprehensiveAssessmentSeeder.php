@@ -427,7 +427,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
         $stats = ['submissions' => 0, 'answers' => 0];
 
         $quiz = DB::table('quizzes')->where('id', $quizId)->first();
-        $passingGrade = $quiz->passing_grade ?? 75;
+        $passingGrade = (float) ($quiz->passing_grade ?? 75);
 
         $submissionId = DB::table('quiz_submissions')->insertGetId([
             'quiz_id' => $quizId,
