@@ -129,6 +129,13 @@ class Handler extends ExceptionHandler
         }
 
         // Custom application exceptions
+        if ($e instanceof \Modules\Schemes\Exceptions\LessonCompletionException) {
+            $message = $e->getMessage();
+            $statusCode = $e->getCode() ?: 422;
+
+            return $this->error($message, [], $statusCode);
+        }
+
         if ($e instanceof InvalidFilterException) {
             // Use custom message if provided, otherwise use translation key
             $message = $e->getMessage() ?: 'messages.invalid_request';

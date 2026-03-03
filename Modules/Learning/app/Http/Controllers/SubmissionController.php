@@ -129,6 +129,32 @@ class SubmissionController extends Controller
             return $this->error(__('messages.submissions.not_found'), [], 404);
         }
 
+        $user = auth('api')->user();
+        if ($user && $user->hasRole('Student')) {
+            $assignment->load('unit.course');
+            $enrollment = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
+                ->where('course_id', $assignment->unit->course_id)
+                ->whereIn('status', ['active', 'completed'])
+                ->first();
+
+            if (! $enrollment) {
+                return $this->error(__('messages.submissions.not_enrolled'), [], 403);
+            }
+
+            $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
+            $prerequisiteCheck = $prerequisiteService->checkAssignmentAccess($assignment, $user->id);
+
+            if (! $prerequisiteCheck['accessible']) {
+                $missingCount = count($prerequisiteCheck['missing']);
+
+                return $this->error(
+                    __('messages.submissions.assignment_locked', ['count' => $missingCount]),
+                    ['missing_prerequisites_count' => $missingCount],
+                    403
+                );
+            }
+        }
+
         $data = $this->service->getSubmissionDetail($submission, auth('api')->id());
 
         return $this->success((new SubmissionDetailResource($data['submission']))->withVisibility($data['visibility']));
@@ -136,6 +162,33 @@ class SubmissionController extends Controller
 
     public function highestSubmission(Request $request, Assignment $assignment): JsonResponse
     {
+        $user = auth('api')->user();
+
+        if ($user && $user->hasRole('Student')) {
+            $assignment->load('unit.course');
+            $enrollment = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
+                ->where('course_id', $assignment->unit->course_id)
+                ->whereIn('status', ['active', 'completed'])
+                ->first();
+
+            if (! $enrollment) {
+                return $this->error(__('messages.submissions.not_enrolled'), [], 403);
+            }
+
+            $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
+            $prerequisiteCheck = $prerequisiteService->checkAssignmentAccess($assignment, $user->id);
+
+            if (! $prerequisiteCheck['accessible']) {
+                $missingCount = count($prerequisiteCheck['missing']);
+
+                return $this->error(
+                    __('messages.submissions.assignment_locked', ['count' => $missingCount]),
+                    ['missing_prerequisites_count' => $missingCount],
+                    403
+                );
+            }
+        }
+
         $submission = $this->service->getHighestScoreSubmission($assignment->id, auth('api')->id());
         if (! $submission) {
             return $this->error(__('messages.submissions.not_found'), [], 404);

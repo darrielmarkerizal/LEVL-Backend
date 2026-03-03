@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Services;
 
+use Modules\Schemes\Exceptions\LessonCompletionException;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\LessonCompletion;
 
@@ -18,30 +19,49 @@ class LessonCompletionService
         $accessCheck = $this->prerequisiteService->checkLessonAccess($lesson, $userId);
 
         if (! $accessCheck['accessible']) {
-            throw new \Illuminate\Validation\ValidationException(
-                \Illuminate\Support\Facades\Validator::make([], [])->errors()->add(
-                    'lesson',
-                    __('messages.lessons.locked_cannot_complete')
-                )
+            throw LessonCompletionException::lessonLocked(
+                __('messages.lessons.locked_cannot_complete')
             );
         }
 
-        return LessonCompletion::firstOrCreate(
-            [
-                'lesson_id' => $lesson->id,
-                'user_id' => $userId,
-            ],
-            [
-                'completed_at' => now(),
-            ]
-        );
+        $existing = LessonCompletion::where('lesson_id', $lesson->id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($existing) {
+            throw LessonCompletionException::alreadyCompleted(
+                __('messages.lessons.already_completed')
+            );
+        }
+
+        return LessonCompletion::create([
+            'lesson_id' => $lesson->id,
+            'user_id' => $userId,
+            'completed_at' => now(),
+        ]);
     }
 
     public function unmarkAsCompleted(Lesson $lesson, int $userId): bool
     {
-        return LessonCompletion::where('lesson_id', $lesson->id)
+        $accessCheck = $this->prerequisiteService->checkLessonAccess($lesson, $userId);
+
+        if (! $accessCheck['accessible']) {
+            throw LessonCompletionException::lessonLocked(
+                __('messages.lessons.locked_cannot_uncomplete')
+            );
+        }
+
+        $deleted = LessonCompletion::where('lesson_id', $lesson->id)
             ->where('user_id', $userId)
-            ->delete() > 0;
+            ->delete();
+
+        if ($deleted === 0) {
+            throw LessonCompletionException::notCompleted(
+                __('messages.lessons.not_completed')
+            );
+        }
+
+        return true;
     }
 
     public function isCompleted(Lesson $lesson, int $userId): bool

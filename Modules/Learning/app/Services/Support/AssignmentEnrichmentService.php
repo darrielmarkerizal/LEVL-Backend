@@ -30,7 +30,6 @@ class AssignmentEnrichmentService
             return [
                 'id' => $item->id,
                 'title' => $item->title,
-                'description' => $item->description,
                 'submission_type' => $item->submission_type->value,
                 'max_score' => $item->max_score,
                 'passing_grade' => $item->passing_grade,
@@ -88,7 +87,7 @@ class AssignmentEnrichmentService
             ->get()
             ->groupBy('assignment_id')
             ->map(fn ($subs) => $subs->sortByDesc('submitted_at')->first())
-            ->toArray();
+            ->all();
     }
 
     private function calculateSubmissionData(Assignment $assignment, ?Submission $submission, int $userId): array
@@ -131,5 +130,49 @@ class AssignmentEnrichmentService
             'returned' => 'Dikembalikan',
             default => 'Unknown',
         };
+    }
+
+    public function enrichSingleForStudent(Assignment $assignment, int $userId): array
+    {
+        $assignment->load(['unit:id,slug,course_id', 'unit.course:id,slug', 'creator:id,name', 'media']);
+
+        $submission = Submission::where('user_id', $userId)
+            ->where('assignment_id', $assignment->id)
+            ->orderByDesc('submitted_at')
+            ->first();
+
+        $submissionData = $this->calculateSubmissionData($assignment, $submission, $userId);
+        $prerequisiteCheck = $this->prerequisiteService->checkAssignmentAccess($assignment, $userId);
+
+        return [
+            'id' => $assignment->id,
+            'title' => $assignment->title,
+            'description' => $assignment->description,
+            'submission_type' => $assignment->submission_type->value,
+            'max_score' => $assignment->max_score,
+            'passing_grade' => $assignment->passing_grade,
+            'status' => $assignment->status->value,
+            'is_locked' => ! $prerequisiteCheck['accessible'],
+            'unit_slug' => $assignment->unit->slug ?? null,
+            'submission_status' => $submissionData['submission_status'],
+            'submission_status_label' => $submissionData['submission_status_label'],
+            'score' => $submissionData['score'],
+            'submitted_at' => $submissionData['submitted_at'],
+            'is_completed' => $submissionData['is_completed'],
+            'attempts_used' => $submissionData['attempts_used'],
+            'attachments' => $assignment->getMedia('attachments')->map(fn ($media) => [
+                'id' => $media->id,
+                'name' => $media->file_name,
+                'url' => $media->getUrl(),
+                'size' => $media->size,
+                'mime_type' => $media->mime_type,
+            ])->toArray(),
+            'created_at' => $assignment->created_at?->toIso8601String(),
+            'updated_at' => $assignment->updated_at?->toIso8601String(),
+            'creator' => $assignment->creator ? [
+                'id' => $assignment->creator->id,
+                'name' => $assignment->creator->name,
+            ] : null,
+        ];
     }
 }

@@ -31,6 +31,8 @@ class QuizResource extends JsonResource
             'time_limit_minutes' => $this->time_limit_minutes,
             'auto_grading' => $this->auto_grading,
             'review_mode' => $this->review_mode?->value ?? $this->review_mode,
+            'status' => $this->when(isset($this->status_value), $this->status_value) ?: $this->status?->value,
+            'status_label' => $this->when(isset($this->status_label), $this->status_label) ?: $this->status?->label(),
             'is_locked' => $this->when(isset($this->is_locked), $this->is_locked),
             'unit_slug' => $this->unit->slug ?? null,
             'questions_count' => $this->when(

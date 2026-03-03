@@ -278,6 +278,9 @@ class ComprehensiveAssessmentSeeder extends Seeder
     {
         $stats = ['submissions' => 0, 'grades' => 0];
 
+        $assignment = DB::table('assignments')->where('id', $assignmentId)->first();
+        $passingGrade = $assignment->passing_grade ?? 75;
+
         $states = [SubmissionState::Graded->value, SubmissionState::PendingManualGrading->value, SubmissionState::Released->value];
         $state = $states[array_rand($states)];
 
@@ -286,7 +289,9 @@ class ComprehensiveAssessmentSeeder extends Seeder
             default => SubmissionStatus::Graded->value,
         };
 
-        $totalScore = rand(60, 100);
+        $totalScore = in_array($state, [SubmissionState::Graded->value, SubmissionState::Released->value])
+            ? rand((int) $passingGrade, 100)
+            : null;
 
         $submissionId = DB::table('submissions')->insertGetId([
             'assignment_id' => $assignmentId,
@@ -295,7 +300,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'state' => $state,
             'submitted_at' => now()->subDays(rand(1, 14))->toDateTimeString(),
             'attempt_number' => 1,
-            'score' => in_array($state, [SubmissionState::Graded->value, SubmissionState::Released->value]) ? $totalScore : null,
+            'score' => $totalScore,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
         ]);
@@ -421,6 +426,9 @@ class ComprehensiveAssessmentSeeder extends Seeder
     {
         $stats = ['submissions' => 0, 'answers' => 0];
 
+        $quiz = DB::table('quizzes')->where('id', $quizId)->first();
+        $passingGrade = $quiz->passing_grade ?? 75;
+
         $submissionId = DB::table('quiz_submissions')->insertGetId([
             'quiz_id' => $quizId,
             'user_id' => $userId,
@@ -438,9 +446,13 @@ class ComprehensiveAssessmentSeeder extends Seeder
 
         $totalScore = 0;
         foreach ($questions as $question) {
-            $score = $this->createQuizAnswer($submissionId, $question);
+            $score = $this->createQuizAnswer($submissionId, $question, $passingGrade);
             $stats['answers']++;
             $totalScore += $score;
+        }
+
+        if ($totalScore < $passingGrade) {
+            $totalScore = rand((int) $passingGrade, 100);
         }
 
         DB::table('quiz_submissions')->where('id', $submissionId)->update([
@@ -492,7 +504,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
         return ['score' => $answerData['score']];
     }
 
-    private function createQuizAnswer(int $submissionId, array $question): float
+    private function createQuizAnswer(int $submissionId, array $question, float $passingGrade): float
     {
         $answerData = [
             'quiz_submission_id' => $submissionId,
@@ -506,7 +518,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'updated_at' => $this->createdAt,
         ];
 
-        $isCorrect = rand(0, 100) > 30;
+        $isCorrect = rand(0, 100) > 20;
 
         switch ($question['type']) {
             case QuizQuestionType::MultipleChoice->value:
@@ -523,7 +535,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             case QuizQuestionType::Essay->value:
                 $answerData['content'] = $this->pregenParagraphs[array_rand($this->pregenParagraphs)];
                 $answerData['is_auto_graded'] = false;
-                $answerData['score'] = rand(15, $question['weight']);
+                $answerData['score'] = rand((int) ($question['weight'] * 0.7), $question['weight']);
                 $answerData['feedback'] = $this->pregenSentences[array_rand($this->pregenSentences)];
                 break;
         }

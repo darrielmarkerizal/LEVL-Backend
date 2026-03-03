@@ -26,6 +26,8 @@ class QuizEnrichmentService
                 'passing_grade' => $item->passing_grade,
                 'max_score' => $item->max_score,
                 'auto_grading' => $item->auto_grading,
+                'status' => $item->status?->value,
+                'status_label' => $item->status?->label(),
                 'is_locked' => ! $prerequisiteCheck['accessible'],
                 'unit_slug' => $item->unit->slug ?? null,
                 'questions_count' => $item->relationLoaded('questions') ? $item->questions->count() : null,
@@ -43,6 +45,8 @@ class QuizEnrichmentService
 
         $quiz->is_locked = ! $prerequisiteCheck['accessible'];
         $quiz->scope_type = $quiz->getScopeTypeAttribute();
+        $quiz->status_value = $quiz->status?->value;
+        $quiz->status_label = $quiz->status?->label();
 
         return $quiz;
     }

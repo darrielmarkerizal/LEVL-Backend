@@ -261,4 +261,18 @@ return [
         'inactive' => 'Inactive',
         'archived' => 'Archived',
     ],
+
+    'quiz_submission_status' => [
+        'draft' => 'Draft',
+        'submitted' => 'Submitted',
+        'graded' => 'Graded',
+        'missing' => 'Missing',
+    ],
+
+    'quiz_grading_status' => [
+        'pending' => 'Pending',
+        'partially_graded' => 'Partially Graded',
+        'waiting_for_grading' => 'Waiting for Grading',
+        'graded' => 'Graded',
+    ],
 ];

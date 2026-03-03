@@ -23,7 +23,6 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
         'grade',
         'enrollment',
         'files',
-        'previousSubmission',
     ];
 
     protected const DETAILED_EAGER_LOAD = [

@@ -168,7 +168,7 @@ class AssignmentService implements AssignmentServiceInterface
                 }
             }
 
-            return $updated->fresh(['lesson', 'creator', 'media']);
+            return $updated->fresh(['unit', 'creator', 'media']);
         });
     }
 
@@ -189,18 +189,18 @@ class AssignmentService implements AssignmentServiceInterface
                 \Modules\Learning\Events\AssignmentPublished::dispatch($published);
             }
 
-            return $published->fresh(['lesson', 'creator']);
+            return $published->fresh(['unit', 'creator']);
         });
     }
 
     public function unpublish(Assignment $assignment): Assignment
     {
-        return DB::transaction(fn () => $this->repository->update($assignment, ['status' => AssignmentStatus::Draft->value])->fresh(['lesson', 'creator']));
+        return DB::transaction(fn () => $this->repository->update($assignment, ['status' => AssignmentStatus::Draft->value])->fresh(['unit', 'creator']));
     }
 
     public function archive(Assignment $assignment): Assignment
     {
-        return DB::transaction(fn () => $this->repository->update($assignment, ['status' => AssignmentStatus::Archived->value])->fresh(['lesson', 'creator']));
+        return DB::transaction(fn () => $this->repository->update($assignment, ['status' => AssignmentStatus::Archived->value])->fresh(['unit', 'creator']));
     }
 
     public function delete(Assignment $assignment): bool
@@ -216,5 +216,10 @@ class AssignmentService implements AssignmentServiceInterface
     public function duplicateAssignment(int $assignmentId, int $userId, array $overrides = []): Assignment
     {
         return $this->duplicator->duplicateAssignment($assignmentId, $userId, $overrides);
+    }
+
+    public function checkPrerequisites(int $assignmentId, int $studentId): PrerequisiteCheckResult
+    {
+        return $this->prerequisiteProcessor->checkPrerequisites($assignmentId, $studentId);
     }
 }
