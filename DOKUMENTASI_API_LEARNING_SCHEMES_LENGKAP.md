@@ -3228,3 +3228,309 @@ Response:
 }
 ```
 
+
+
+---
+
+## 21. Best Practices & Tips
+
+### For Students
+
+**Assignment/Quiz Workflow:**
+1. Selalu check prerequisites sebelum start
+2. Save answers secara berkala (draft)
+3. Review semua jawaban sebelum submit final
+4. Tunggu grading selesai sebelum retry
+5. Lihat feedback dari instruktur untuk improvement
+
+**Unlimited Attempts:**
+- Anda bisa retry unlimited times
+- Highest score yang digunakan untuk passing
+- Semua attempts history tersimpan
+- Tidak bisa start baru jika ada draft atau pending grading
+
+**Time Management (Quiz):**
+- Perhatikan `time_limit_minutes`
+- Quiz auto-submit jika waktu habis
+- Gunakan pagination untuk navigasi soal
+
+### For Instructors
+
+**Course Setup:**
+1. Create course → Create units → Create lessons/assignments/quizzes
+2. Publish dari bottom-up: lessons → units → course
+3. Set prerequisites dengan benar
+4. Test dengan student account sebelum publish
+
+**Grading:**
+- Grade submissions secepat mungkin
+- Berikan feedback yang konstruktif
+- Gunakan filter untuk prioritas grading
+- Monitor submission statistics
+
+**Content Management:**
+- Use `order` field untuk sequencing
+- Use `status` untuk draft/published workflow
+- Use `include` parameter untuk load relations
+- Use bulk operations untuk efficiency
+
+### For Developers
+
+**API Best Practices:**
+1. Always include `Authorization` header
+2. Use pagination untuk large datasets
+3. Use `include` parameter untuk eager loading
+4. Handle errors gracefully
+5. Cache responses when appropriate
+
+**Performance Tips:**
+- Use `per_page` parameter untuk limit results
+- Use specific `include` relations (jangan load semua)
+- Use filters untuk narrow down results
+- Use sort untuk optimize queries
+
+**Security:**
+- Never expose sensitive data (answer_key, passwords)
+- Always validate input
+- Use proper authorization checks
+- Sanitize user input
+
+---
+
+## 22. Changelog & Version History
+
+### Version 2.0 (March 2026)
+**Major Changes:**
+- ✅ Removed retake/resubmit/cooldown system
+- ✅ Implemented unlimited attempts with history
+- ✅ Added `attempt_number` tracking
+- ✅ Changed passing criteria to use highest score
+- ✅ Added validation for concurrent attempts
+- ✅ Preserved complete submission history
+
+**Breaking Changes:**
+- Removed fields: `max_attempts`, `cooldown_minutes`, `retake_enabled`
+- Removed fields: `is_late`, `is_resubmission`, `previous_submission_id`
+- Removed table: `overrides`
+- Changed behavior: Highest score used instead of latest
+
+**Migration Required:**
+- Run migration: `2026_03_03_100000_remove_retake_columns_from_assessments.php`
+- Run migration: `2026_03_03_081558_add_attempt_number_back_to_submissions.php`
+
+### Version 1.0 (January 2026)
+- Initial release with retake system
+
+---
+
+## 23. Troubleshooting
+
+### Common Issues
+
+**Issue: Cannot start new submission**
+```
+Error: "You have a draft submission"
+Solution: Complete or delete the draft submission first
+```
+
+**Issue: Cannot start new quiz**
+```
+Error: "You have a pending submission awaiting grading"
+Solution: Wait for instructor to grade the pending submission
+```
+
+**Issue: Assignment/Quiz is locked**
+```
+Error: "Prerequisites not met"
+Solution: Complete previous unit 100% (all lessons + all assessments passed)
+```
+
+**Issue: 401 Unauthorized**
+```
+Solution: Check if token is valid and included in Authorization header
+```
+
+**Issue: 403 Forbidden**
+```
+Solution: Check if user has correct role/permission for the action
+```
+
+**Issue: 404 Not Found**
+```
+Solution: Check if resource exists and slug/id is correct
+```
+
+**Issue: 422 Validation Error**
+```
+Solution: Check request body against validation rules
+```
+
+### Debug Tips
+
+**Check Authentication:**
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+     https://api.example.com/api/v1/courses
+```
+
+**Check Response Headers:**
+```bash
+curl -I https://api.example.com/api/v1/courses
+```
+
+**Validate JSON:**
+```bash
+echo '{"title":"Test"}' | jq .
+```
+
+---
+
+## 24. Support & Contact
+
+### Documentation
+- API Documentation: This file
+- Technical Documentation: `UNLIMITED_ATTEMPTS_SYSTEM.md`
+- Retake Removal Summary: `RETAKE_SYSTEM_COMPLETE_SUMMARY.md`
+
+### Resources
+- Base URL: `https://your-domain.com/api/v1`
+- Postman Collection: Available on request
+- Swagger/OpenAPI: Coming soon
+
+### Getting Help
+- Check this documentation first
+- Review error messages carefully
+- Test with Postman or curl
+- Contact development team if issue persists
+
+---
+
+## Appendix A: Complete Endpoint List
+
+### Public Endpoints (No Auth Required)
+```
+GET  /api/v1/courses
+GET  /api/v1/courses/{slug}
+```
+
+### Student Endpoints (Auth Required)
+```
+# Courses
+GET  /api/v1/my-courses
+
+# Units
+GET  /api/v1/units
+GET  /api/v1/units/{slug}
+GET  /api/v1/courses/{course_slug}/units
+GET  /api/v1/courses/{course_slug}/units/{unit_slug}
+GET  /api/v1/courses/{course_slug}/units/{unit_slug}/contents
+
+# Lessons
+GET  /api/v1/lessons
+GET  /api/v1/lessons/{slug}
+GET  /api/v1/courses/{course_slug}/units/{unit_slug}/lessons
+GET  /api/v1/courses/{course_slug}/units/{unit_slug}/lessons/{lesson_slug}
+POST /api/v1/lessons/{lesson_slug}/complete
+DEL  /api/v1/lessons/{lesson_slug}/complete
+
+# Lesson Blocks
+GET  /api/v1/courses/{course_slug}/units/{unit_slug}/lessons/{lesson_slug}/blocks
+GET  /api/v1/courses/{course_slug}/units/{unit_slug}/lessons/{lesson_slug}/blocks/{block_slug}
+
+# Progress
+GET  /api/v1/courses/{course_slug}/progress
+
+# Assignments
+GET  /api/v1/courses/{course_slug}/assignments
+GET  /api/v1/courses/{course_slug}/assignments/incomplete
+GET  /api/v1/assignments/{assignment_id}
+GET  /api/v1/assignments/{assignment_id}/prerequisites/check
+GET  /api/v1/assignments/{assignment_id}/submissions
+GET  /api/v1/assignments/{assignment_id}/submissions/highest
+GET  /api/v1/assignments/{assignment_id}/submissions/{submission_id}
+POST /api/v1/assignments/{assignment_id}/submissions
+POST /api/v1/submissions/{submission_id}/answers
+POST /api/v1/submissions/{submission_id}/submit
+PUT  /api/v1/submissions/{submission_id}
+
+# Quizzes
+GET  /api/v1/courses/{course_slug}/quizzes
+GET  /api/v1/quizzes/{quiz_id}
+GET  /api/v1/quizzes/{quiz_id}/submissions
+GET  /api/v1/quizzes/{quiz_id}/submissions/highest
+POST /api/v1/quizzes/{quiz_id}/submissions/start
+GET  /api/v1/quiz-submissions/{submission_id}
+GET  /api/v1/quiz-submissions/{submission_id}/questions
+GET  /api/v1/quiz-submissions/{submission_id}/questions/{order}
+POST /api/v1/quiz-submissions/{submission_id}/answers
+POST /api/v1/quiz-submissions/{submission_id}/submit
+```
+
+### Management Endpoints (Admin/Instructor Only)
+```
+# Courses
+POST /api/v1/courses
+PUT  /api/v1/courses/{slug}
+DEL  /api/v1/courses/{slug}
+PUT  /api/v1/courses/{slug}/publish
+PUT  /api/v1/courses/{slug}/unpublish
+POST /api/v1/courses/{slug}/enrollment-key/generate
+PUT  /api/v1/courses/{slug}/enrollment-key
+DEL  /api/v1/courses/{slug}/enrollment-key
+
+# Units
+POST /api/v1/courses/{course_slug}/units
+PUT  /api/v1/courses/{course_slug}/units/{unit_slug}
+DEL  /api/v1/courses/{course_slug}/units/{unit_slug}
+PUT  /api/v1/courses/{course_slug}/units/{unit_slug}/publish
+PUT  /api/v1/courses/{course_slug}/units/{unit_slug}/unpublish
+PUT  /api/v1/courses/{course_slug}/units/reorder
+GET  /api/v1/courses/{course_slug}/units/{unit_slug}/content-order
+PUT  /api/v1/courses/{course_slug}/units/{unit_slug}/content-order
+
+# Lessons
+POST /api/v1/courses/{course_slug}/units/{unit_slug}/lessons
+PUT  /api/v1/courses/{course_slug}/units/{unit_slug}/lessons/{lesson_slug}
+DEL  /api/v1/courses/{course_slug}/units/{unit_slug}/lessons/{lesson_slug}
+PUT  /api/v1/courses/{course_slug}/units/{unit_slug}/lessons/{lesson_slug}/publish
+PUT  /api/v1/courses/{course_slug}/units/{unit_slug}/lessons/{lesson_slug}/unpublish
+
+# Lesson Blocks
+POST /api/v1/courses/{course_slug}/units/{unit_slug}/lessons/{lesson_slug}/blocks
+PUT  /api/v1/courses/{course_slug}/units/{unit_slug}/lessons/{lesson_slug}/blocks/{block_slug}
+DEL  /api/v1/courses/{course_slug}/units/{unit_slug}/lessons/{lesson_slug}/blocks/{block_slug}
+
+# Assignments
+POST /api/v1/assignments
+PUT  /api/v1/assignments/{assignment_id}
+DEL  /api/v1/assignments/{assignment_id}
+PUT  /api/v1/assignments/{assignment_id}/publish
+PUT  /api/v1/assignments/{assignment_id}/unpublish
+PUT  /api/v1/assignments/{assignment_id}/archived
+POST /api/v1/assignments/{assignment_id}/duplicate
+POST /api/v1/submissions/{submission_id}/grade
+GET  /api/v1/submissions/search
+GET  /api/v1/courses/{course_slug}/assessments
+
+# Quizzes
+POST /api/v1/quizzes
+PUT  /api/v1/quizzes/{quiz_id}
+DEL  /api/v1/quizzes/{quiz_id}
+PUT  /api/v1/quizzes/{quiz_id}/publish
+PUT  /api/v1/quizzes/{quiz_id}/unpublish
+PUT  /api/v1/quizzes/{quiz_id}/archived
+GET  /api/v1/quizzes/{quiz_id}/questions
+GET  /api/v1/quizzes/{quiz_id}/questions/{question_id}
+POST /api/v1/quizzes/{quiz_id}/questions
+PUT  /api/v1/quizzes/{quiz_id}/questions/{question_id}
+DEL  /api/v1/quizzes/{quiz_id}/questions/{question_id}
+POST /api/v1/quizzes/{quiz_id}/questions/reorder
+```
+
+---
+
+**END OF DOCUMENTATION**
+
+Total Lines: ~2500+
+Last Updated: March 3, 2026
+Version: 2.0
