@@ -11,27 +11,55 @@ class SubmissionResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $user = $request->user();
+        $isStudent = $user && $user->hasRole('Student');
+
+        if ($isStudent) {
+            return $this->toStudentArray();
+        }
+
+        return $this->toInstructorArray();
+    }
+
+    private function toStudentArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'status' => $this->status,
+            'score' => $this->score,
+            'attempt_number' => $this->attempt_number,
+            'submitted_at' => $this->submitted_at,
+            'graded_at' => $this->status?->value === 'graded' ? $this->graded_at : null,
+            'assignment' => $this->whenLoaded('assignment', function () {
+                return [
+                    'id' => $this->assignment->id,
+                    'title' => $this->assignment->title,
+                ];
+            }),
+            'files' => $this->whenLoaded('files'),
+            'answers' => AnswerResource::collection($this->whenLoaded('answers')),
+        ];
+    }
+
+    private function toInstructorArray(): array
+    {
         return [
             'id' => $this->id,
             'assignment_id' => $this->assignment_id,
             'user_id' => $this->user_id,
             'enrollment_id' => $this->enrollment_id,
-            'answer_text' => $this->answer_text,
             'status' => $this->status,
             'state' => $this->state?->value,
             'score' => $this->score,
             'attempt_number' => $this->attempt_number,
             'is_resubmission' => $this->is_resubmission,
+            'answer_text' => $this->answer_text,
             'question_set' => $this->question_set,
             'submitted_at' => $this->submitted_at,
             'graded_at' => $this->status?->value === 'graded' ? $this->graded_at : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-
-            
             'is_highest' => $this->when(isset($this->is_highest), $this->is_highest),
-
-            
             'assignment' => $this->whenLoaded('assignment'),
             'user' => $this->whenLoaded('user', function () {
                 return [
@@ -45,7 +73,6 @@ class SubmissionResource extends JsonResource
             'answers' => AnswerResource::collection($this->whenLoaded('answers')),
             'previousSubmission' => $this->whenLoaded('previousSubmission'),
             'grade' => $this->whenLoaded('grade'),
-
         ];
     }
 }

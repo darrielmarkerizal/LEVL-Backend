@@ -17,6 +17,7 @@ use Modules\Learning\Http\Requests\UpdateAssignmentRequest;
 use Modules\Learning\Http\Resources\AssignmentResource;
 use Modules\Learning\Http\Resources\OverrideResource;
 use Modules\Learning\Models\Assignment;
+use Modules\Learning\Services\Support\AssignmentEnrichmentService;
 
 class AssignmentController extends Controller
 {
@@ -25,7 +26,7 @@ class AssignmentController extends Controller
 
     public function __construct(
         private readonly AssignmentServiceInterface $assignmentService,
-        private readonly \Modules\Schemes\Services\PrerequisiteService $prerequisiteService
+        private readonly AssignmentEnrichmentService $enrichmentService
     ) {}
 
     public function index(Request $request, \Modules\Schemes\Models\Course $course): JsonResponse
@@ -33,101 +34,13 @@ class AssignmentController extends Controller
         $user = auth('api')->user();
         $paginator = $this->assignmentService->listForIndex($course, $request->all());
 
-        $paginator->load('lesson.unit:id,slug');
-
         if ($user && $user->hasRole('Student')) {
-            $assignmentIds = $paginator->pluck('id')->toArray();
-            $submissions = \Modules\Learning\Models\Submission::where('user_id', $user->id)
-                ->whereIn('assignment_id', $assignmentIds)
-                ->get()
-                ->groupBy('assignment_id')
-                ->map(fn ($subs) => $subs->sortByDesc('submitted_at')->first());
-
-            $paginator->getCollection()->transform(function ($item) use ($submissions, $user) {
-                $resource = new \Modules\Learning\Http\Resources\AssignmentIndexResource($item);
-                $baseData = $resource->toArray(request());
-
-                $submission = $submissions[$item->id] ?? null;
-                $passingGrade = $item->passing_grade;
-                $isPassed = $submission && $submission->status->value === 'graded' && $submission->score >= $passingGrade;
-                $isFailed = $submission && $submission->status->value === 'graded' && $submission->score < $passingGrade;
-                $isWaitingGrade = $submission && $submission->status->value === 'submitted';
-
-                $submissionCount = \Modules\Learning\Models\Submission::where('user_id', $user->id)
-                    ->where('assignment_id', $item->id)
-                    ->whereIn('status', ['submitted', 'graded'])
-                    ->count();
-
-                $canRetake = $item->retake_enabled &&
-                            $isFailed &&
-                            ! $isWaitingGrade &&
-                            ($item->max_attempts === null || $submissionCount < $item->max_attempts);
-
-                $prerequisiteCheck = $this->prerequisiteService->checkAssignmentAccess($item, $user->id);
-                $isLocked = ! $prerequisiteCheck['accessible'];
-
-                return [
-                    'id' => $baseData['id'],
-                    'title' => $baseData['title'],
-                    'description' => $baseData['description'],
-                    'submission_type' => $baseData['submission_type'],
-                    'max_score' => $baseData['max_score'],
-                    'passing_grade' => $passingGrade,
-                    'status' => $baseData['status'],
-                    'is_locked' => $isLocked,
-                    'lesson_slug' => $item->lesson?->slug,
-                    'unit_slug' => $item->lesson?->unit?->slug,
-                    'submission_status' => $submission ? $submission->status->value : null,
-                    'submission_status_label' => $this->getSubmissionStatusLabel($submission, $isPassed),
-                    'score' => $submission?->score,
-                    'submitted_at' => $submission?->submitted_at?->toIso8601String(),
-                    'is_completed' => $isPassed || ($isFailed && ! $canRetake),
-                    'can_retake' => $canRetake,
-                    'attempts_used' => $submissionCount,
-                    'max_attempts' => $item->max_attempts,
-                    'created_at' => $baseData['created_at'],
-                    'updated_at' => $baseData['updated_at'],
-                    'creator' => $baseData['creator'] ?? null,
-                ];
-            });
+            $paginator = $this->enrichmentService->enrichForStudent($paginator, $user->id);
         } else {
-            $paginator->getCollection()->transform(function ($item) {
-                $resource = new \Modules\Learning\Http\Resources\AssignmentIndexResource($item);
-                $baseData = $resource->toArray(request());
-
-                return [
-                    'id' => $baseData['id'],
-                    'title' => $baseData['title'],
-                    'description' => $baseData['description'],
-                    'submission_type' => $baseData['submission_type'],
-                    'max_score' => $baseData['max_score'],
-                    'status' => $baseData['status'],
-                    'is_available' => $baseData['is_available'],
-                    'lesson_slug' => $item->lesson?->slug,
-                    'unit_slug' => $item->lesson?->unit?->slug,
-                    'created_at' => $baseData['created_at'],
-                    'updated_at' => $baseData['updated_at'],
-                    'creator' => $baseData['creator'] ?? null,
-                ];
-            });
+            $paginator = $this->enrichmentService->enrichForInstructor($paginator);
         }
 
         return $this->paginateResponse($paginator, 'messages.assignments.list_retrieved');
-    }
-
-    private function getSubmissionStatusLabel(?\Modules\Learning\Models\Submission $submission, bool $isPassed): string
-    {
-        if (! $submission) {
-            return 'Belum Dikerjakan';
-        }
-
-        return match ($submission->status->value) {
-            'draft' => 'Draft',
-            'submitted' => 'Menunggu Penilaian',
-            'graded' => $isPassed ? 'Lulus' : 'Tidak Lulus',
-            'returned' => 'Dikembalikan',
-            default => 'Unknown',
-        };
     }
 
     public function indexIncomplete(Request $request, \Modules\Schemes\Models\Course $course): JsonResponse
@@ -198,9 +111,15 @@ class AssignmentController extends Controller
     public function grantOverride(GrantOverrideRequest $request, Assignment $assignment): JsonResponse
     {
         $this->authorize('grantOverride', $assignment);
-        // We unpack args to keep service signature clean & explicit
-        $override = $this->assignmentService->grantOverride($assignment->id, (int) $request->validated('student_id'),
-            (string) $request->validated('type'), (string) $request->validated('reason'), $request->validated('value', []), auth('api')->id());
+
+        $override = $this->assignmentService->grantOverride(
+            $assignment->id,
+            (int) $request->validated('student_id'),
+            (string) $request->validated('type'),
+            (string) $request->validated('reason'),
+            $request->validated('value', []),
+            auth('api')->id()
+        );
 
         return $this->created(OverrideResource::make($override), __('messages.overrides.granted'));
     }
