@@ -258,6 +258,7 @@ class QueryFilter
         // Use PgSearchable if model has the trait
         if (in_array(\Modules\Common\Traits\PgSearchable::class, class_uses_recursive($model))) {
             $query->search($search);
+
             return;
         }
 

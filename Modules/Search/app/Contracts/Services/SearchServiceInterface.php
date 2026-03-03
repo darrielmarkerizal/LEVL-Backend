@@ -34,10 +34,6 @@ interface SearchServiceInterface
 
     /**
      * Perform global search across all integrated modules.
-     * 
-     * @param string $query
-     * @param int $limitPerCategory
-     * @return array
      */
     public function globalSearch(string $query, int $limitPerCategory = 5): array;
 }

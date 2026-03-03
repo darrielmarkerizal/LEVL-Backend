@@ -20,6 +20,7 @@ class RecalculateGradesJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 120;
 
     public function __construct(
@@ -79,6 +80,7 @@ class RecalculateGradesJob implements ShouldQueue
             Log::info('RecalculateGradesJob: No auto-graded answers found', [
                 'question_id' => $this->questionId,
             ]);
+
             return;
         }
 

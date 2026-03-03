@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+
 return new class extends Migration
 {
     /**
@@ -13,28 +14,28 @@ return new class extends Migration
         Schema::create('audits', function (Blueprint $table) {
             $table->id();
             $table->enum('action', [
-                'create', 'update', 'delete', 'login', 'logout', 
-                'assign', 'revoke', 'export', 'import', 'access', 
-                'error', 'system'
+                'create', 'update', 'delete', 'login', 'logout',
+                'assign', 'revoke', 'export', 'import', 'access',
+                'error', 'system',
             ])->default('system');
-            
+
             $table->string('actor_type')->nullable();
             $table->unsignedBigInteger('actor_id')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
-            
+
             $table->string('target_table', 100)->nullable();
             $table->string('target_type')->nullable();
             $table->unsignedBigInteger('target_id')->nullable();
-            
+
             $table->string('module', 100)->nullable();
             $table->enum('context', ['system', 'application'])->default('application');
-            
+
             $table->string('ip_address', 50)->nullable();
             $table->string('user_agent', 255)->nullable();
-            
+
             $table->json('meta')->nullable();
             $table->json('properties')->nullable();
-            
+
             $table->timestamp('logged_at')->useCurrent();
             $table->timestamps();
 
@@ -57,11 +58,11 @@ return new class extends Migration
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id();
             $table->enum('event', [
-                'create', 'update', 'delete', 'login', 'logout', 'assign', 'revoke', 'export', 'import', 'system'
+                'create', 'update', 'delete', 'login', 'logout', 'assign', 'revoke', 'export', 'import', 'system',
             ])->default('system');
-            $table->string('target_type')->nullable(); 
+            $table->string('target_type')->nullable();
             $table->unsignedBigInteger('target_id')->nullable();
-            $table->string('actor_type')->nullable();  
+            $table->string('actor_type')->nullable();
             $table->unsignedBigInteger('actor_id')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->json('properties')->nullable();
@@ -76,12 +77,12 @@ return new class extends Migration
             $table->id();
             $table->enum('action', ['create', 'update', 'delete', 'access', 'export', 'import', 'error'])->default('access');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->string('module', 100)->nullable(); 
+            $table->string('module', 100)->nullable();
             $table->string('target_table', 100)->nullable();
             $table->unsignedBigInteger('target_id')->nullable();
             $table->string('ip_address', 50)->nullable();
             $table->string('user_agent', 255)->nullable();
-            $table->json('meta')->nullable(); 
+            $table->json('meta')->nullable();
             $table->timestamp('logged_at')->useCurrent();
             $table->timestamps();
 

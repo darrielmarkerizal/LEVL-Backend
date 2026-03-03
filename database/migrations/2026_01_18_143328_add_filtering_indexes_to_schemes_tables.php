@@ -14,13 +14,13 @@ return new class extends Migration
         Schema::table('courses', function (Blueprint $table) {
             // Index for filtering by category
             $table->index('category_id', 'idx_courses_category');
-            
+
             // Index for filtering by instructor
             $table->index('instructor_id', 'idx_courses_instructor');
-            
+
             // Composite index for category + status (common filter)
             $table->index(['category_id', 'status'], 'idx_courses_category_status');
-            
+
             // Ensure unique slug index exists (if not already)
             // $table->unique('slug'); // Already exists in most schemes
         });

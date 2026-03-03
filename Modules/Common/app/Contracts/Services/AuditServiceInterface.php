@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Common\Contracts\Services;
 
 use Illuminate\Support\Collection;
-use Modules\Common\Models\AuditLog;
 use Modules\Grading\Models\Grade;
 use Modules\Learning\Models\Question;
 use Modules\Learning\Models\Submission;

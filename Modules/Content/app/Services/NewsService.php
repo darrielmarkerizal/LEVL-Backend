@@ -29,9 +29,9 @@ class NewsService implements NewsServiceInterface
         $page = request()->get('page', 1);
         $searchQuery = request('search');
         $sort = request('sort', '-published_at');
-        
+
         return cache()->tags(['content', 'news'])->remember(
-            "content:news:feed:{$perPage}:{$page}:{$searchQuery}:{$sort}:" . md5(json_encode($filters)),
+            "content:news:feed:{$perPage}:{$page}:{$searchQuery}:{$sort}:".md5(json_encode($filters)),
             300,
             function () use ($perPage, $searchQuery) {
                 $builder = QueryBuilder::for(News::class);
@@ -84,6 +84,7 @@ class NewsService implements NewsServiceInterface
 
             $news = $this->repository->create($data);
             cache()->tags(['content', 'news'])->flush();
+
             return $news;
         });
     }
@@ -95,6 +96,7 @@ class NewsService implements NewsServiceInterface
 
             $updated = $this->repository->update($news, $dto->toArrayWithoutNull());
             cache()->tags(['content', 'news'])->flush();
+
             return $updated;
         });
     }
@@ -103,6 +105,7 @@ class NewsService implements NewsServiceInterface
     {
         $result = $this->repository->delete($news, $user->id);
         cache()->tags(['content', 'news'])->flush();
+
         return $result;
     }
 
@@ -125,6 +128,7 @@ class NewsService implements NewsServiceInterface
             event(new NewsPublished($news->fresh()));
 
             cache()->tags(['content', 'news'])->flush();
+
             return $news->fresh();
         });
     }
@@ -144,6 +148,7 @@ class NewsService implements NewsServiceInterface
         ]);
 
         cache()->tags(['content', 'news'])->flush();
+
         return $news->fresh();
     }
 

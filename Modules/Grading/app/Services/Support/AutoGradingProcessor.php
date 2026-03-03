@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Grading\Services\Support;
 
-use Modules\Grading\Services\Support\GradeCalculator;
 use Modules\Grading\Strategies\GradingStrategyFactory;
 use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Models\Submission;
@@ -22,7 +21,9 @@ class AutoGradingProcessor
 
         foreach ($submission->answers as $answer) {
             $question = $answer->question;
-            if (! $question) continue;
+            if (! $question) {
+                continue;
+            }
 
             $strategy = GradingStrategyFactory::make($question->type);
 

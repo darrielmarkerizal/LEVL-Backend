@@ -7,7 +7,6 @@ use Modules\Auth\Models\User;
 use Modules\Forums\Models\Thread;
 use Modules\Schemes\Models\Course;
 
- 
 class ThreadFactory extends Factory
 {
     protected $model = Thread::class;

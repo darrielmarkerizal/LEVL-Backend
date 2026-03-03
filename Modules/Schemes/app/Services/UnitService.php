@@ -277,85 +277,113 @@ class UnitService
                 ->map(fn ($submissions) => $submissions->sortByDesc('submitted_at')->first());
         }
 
-        $quizzesByLesson = \Modules\Learning\Models\Quiz::where('assignable_type', \Modules\Schemes\Models\Lesson::class)
-            ->whereIn('assignable_id', $lessonIds)
+        $quizzes = \Modules\Learning\Models\Quiz::where('unit_id', $unit->id)
             ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
-            ->select('id', 'title', 'description', 'status', 'max_score', 'passing_grade', 'created_at', 'assignable_id')
-            ->get()
-            ->groupBy('assignable_id');
+            ->select('id', 'title', 'description', 'status', 'max_score', 'passing_grade', 'created_at', 'order', 'unit_id')
+            ->get();
 
-        $assignmentsByLesson = \Modules\Learning\Models\Assignment::whereIn('lesson_id', $lessonIds)
+        $assignments = \Modules\Learning\Models\Assignment::where('unit_id', $unit->id)
             ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
-            ->select('id', 'title', 'description', 'status', 'max_score', 'submission_type', 'created_at', 'lesson_id')
-            ->get()
-            ->groupBy('lesson_id');
+            ->select('id', 'title', 'description', 'status', 'max_score', 'submission_type', 'created_at', 'order', 'unit_id')
+            ->get();
+
+        $allContent = collect();
+
+        foreach ($lessons as $lesson) {
+            $allContent->push([
+                'type' => 'lesson',
+                'order' => $lesson->order,
+                'data' => $lesson,
+            ]);
+        }
+
+        foreach ($quizzes as $quiz) {
+            $allContent->push([
+                'type' => 'quiz',
+                'order' => $quiz->order,
+                'data' => $quiz,
+            ]);
+        }
+
+        foreach ($assignments as $assignment) {
+            $allContent->push([
+                'type' => 'assignment',
+                'order' => $assignment->order,
+                'data' => $assignment,
+            ]);
+        }
+
+        $allContent = $allContent->sortBy('order')->values();
 
         $contents = collect();
-        $previousLessonCompleted = true;
+        $previousContentCompleted = true;
 
-        foreach ($lessons as $index => $lesson) {
-            $isLessonCompleted = in_array($lesson->id, $completedLessonIds);
-            $isLessonLocked = $user ? ! $previousLessonCompleted : false;
+        foreach ($allContent as $contentItem) {
+            $type = $contentItem['type'];
+            $item = $contentItem['data'];
 
-            $contents->push([
-                'id' => $lesson->id,
-                'type' => 'lesson',
-                'title' => $lesson->title,
-                'slug' => $lesson->slug,
-                'description' => $lesson->description,
-                'order_index' => $lesson->order,
-                'status' => $lesson->status,
-                'created_at' => $lesson->created_at,
-                'is_completed' => $isLessonCompleted,
-                'is_locked' => $isLessonLocked,
-            ]);
+            if ($type === 'lesson') {
+                $isCompleted = in_array($item->id, $completedLessonIds);
+                $isLocked = $user ? ! $previousContentCompleted : false;
 
-            if (isset($quizzesByLesson[$lesson->id])) {
-                foreach ($quizzesByLesson[$lesson->id] as $quiz) {
-                    $submission = $submissionsByQuiz[$quiz->id] ?? null;
+                $contents->push([
+                    'id' => $item->id,
+                    'type' => 'lesson',
+                    'title' => $item->title,
+                    'slug' => $item->slug,
+                    'description' => $item->description,
+                    'order' => $item->order,
+                    'status' => $item->status,
+                    'created_at' => $item->created_at,
+                    'is_completed' => $isCompleted,
+                    'is_locked' => $isLocked,
+                ]);
 
-                    $contents->push([
-                        'id' => $quiz->id,
-                        'type' => 'quiz',
-                        'title' => $quiz->title,
-                        'description' => $quiz->description,
-                        'order_index' => $lesson->order + 0.1,
-                        'status' => $quiz->status->value,
-                        'max_score' => $quiz->max_score,
-                        'passing_grade' => $quiz->passing_grade,
-                        'created_at' => $quiz->created_at,
-                        'lesson_id' => $quiz->assignable_id,
-                        'submission_status' => $submission ? $submission->status->value : null,
-                        'score' => $submission?->score,
-                        'is_passed' => $submission ? ($submission->score >= $quiz->passing_grade) : false,
-                        'is_locked' => $user ? ! $isLessonCompleted : false,
-                    ]);
-                }
+                $previousContentCompleted = $isCompleted;
+            } elseif ($type === 'quiz') {
+                $submission = $submissionsByQuiz[$item->id] ?? null;
+                $isPassed = $submission ? ($submission->score >= $item->passing_grade) : false;
+                $isLocked = $user ? ! $previousContentCompleted : false;
+
+                $contents->push([
+                    'id' => $item->id,
+                    'type' => 'quiz',
+                    'title' => $item->title,
+                    'description' => $item->description,
+                    'order' => $item->order,
+                    'status' => $item->status->value,
+                    'max_score' => $item->max_score,
+                    'passing_grade' => $item->passing_grade,
+                    'created_at' => $item->created_at,
+                    'submission_status' => $submission ? $submission->status->value : null,
+                    'score' => $submission?->score,
+                    'is_passed' => $isPassed,
+                    'is_locked' => $isLocked,
+                ]);
+
+                $previousContentCompleted = $isPassed;
+            } elseif ($type === 'assignment') {
+                $submission = $submissionsByAssignment[$item->id] ?? null;
+                $isPassed = $submission && $submission->status->value === 'graded' && $submission->score >= ($item->max_score * 0.6);
+                $isLocked = $user ? ! $previousContentCompleted : false;
+
+                $contents->push([
+                    'id' => $item->id,
+                    'type' => 'assignment',
+                    'title' => $item->title,
+                    'description' => $item->description,
+                    'order' => $item->order,
+                    'status' => $item->status->value,
+                    'max_score' => $item->max_score,
+                    'submission_type' => $item->submission_type->value,
+                    'created_at' => $item->created_at,
+                    'submission_status' => $submission ? $submission->status->value : null,
+                    'score' => $submission?->score,
+                    'is_locked' => $isLocked,
+                ]);
+
+                $previousContentCompleted = $isPassed;
             }
-
-            if (isset($assignmentsByLesson[$lesson->id])) {
-                foreach ($assignmentsByLesson[$lesson->id] as $assignment) {
-                    $submission = $submissionsByAssignment[$assignment->id] ?? null;
-
-                    $contents->push([
-                        'id' => $assignment->id,
-                        'type' => 'assignment',
-                        'title' => $assignment->title,
-                        'description' => $assignment->description,
-                        'order_index' => $lesson->order + 0.2,
-                        'status' => $assignment->status->value,
-                        'max_score' => $assignment->max_score,
-                        'submission_type' => $assignment->submission_type->value,
-                        'created_at' => $assignment->created_at,
-                        'lesson_id' => $assignment->lesson_id,
-                        'submission_status' => $submission ? $submission->status->value : null,
-                        'score' => $submission?->score,
-                        'is_locked' => $user ? ! $isLessonCompleted : false,
-                    ]);
-                }
-            }
-
-            $previousLessonCompleted = $isLessonCompleted;
         }
 
         return $contents->toArray();

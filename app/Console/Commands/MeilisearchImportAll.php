@@ -36,7 +36,7 @@ class MeilisearchImportAll extends Command
     public function handle(): int
     {
         $fresh = $this->option('fresh');
-        
+
         if ($fresh) {
             $this->info('Flushing all indexes...');
             foreach ($this->models as $modelClass => $indexName) {
@@ -52,22 +52,23 @@ class MeilisearchImportAll extends Command
         $client = new Client(config('scout.meilisearch.host'), config('scout.meilisearch.key'));
 
         foreach ($this->models as $modelClass => $indexName) {
-            if (!class_exists($modelClass)) {
+            if (! class_exists($modelClass)) {
                 $this->warn("Model {$modelClass} not found, skipping...");
+
                 continue;
             }
 
             $this->info("Importing {$modelClass}...");
-            
+
             $model = new $modelClass;
             $index = $client->index($indexName);
-            
+
             $query = $model->newQuery();
-            
+
             if (method_exists($model, 'shouldBeSearchable')) {
                 $total = $query->count();
                 $searchable = 0;
-                
+
                 $query->chunkById(500, function ($records) use ($index, $model, &$searchable) {
                     $documents = [];
                     foreach ($records as $record) {
@@ -76,12 +77,12 @@ class MeilisearchImportAll extends Command
                             $searchable++;
                         }
                     }
-                    
-                    if (!empty($documents)) {
+
+                    if (! empty($documents)) {
                         $index->addDocuments($documents, $model->getKeyName());
                     }
                 });
-                
+
                 $this->line("  → Imported {$searchable}/{$total} records to {$indexName}");
             } else {
                 $total = $query->count();
@@ -89,7 +90,7 @@ class MeilisearchImportAll extends Command
                     $documents = $records->map(fn ($r) => $r->toSearchableArray())->toArray();
                     $index->addDocuments($documents, $model->getKeyName());
                 });
-                
+
                 $this->line("  → Imported {$total} records to {$indexName}");
             }
         }
@@ -105,6 +106,7 @@ class MeilisearchImportAll extends Command
             collect($this->models)->map(function ($indexName) use ($client) {
                 try {
                     $stats = $client->index($indexName)->stats();
+
                     return [$indexName, $stats['numberOfDocuments'], $stats['isIndexing'] ? 'Yes' : 'No'];
                 } catch (\Exception $e) {
                     return [$indexName, 'Error', '-'];
@@ -114,7 +116,7 @@ class MeilisearchImportAll extends Command
 
         $this->newLine();
         $this->info('All models imported successfully!');
-        
+
         return self::SUCCESS;
     }
 }

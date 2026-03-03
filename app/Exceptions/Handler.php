@@ -10,14 +10,14 @@ use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Spatie\QueryBuilder\Exceptions\InvalidFilterQuery;
+use Spatie\QueryBuilder\Exceptions\InvalidSortQuery;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
-use Spatie\QueryBuilder\Exceptions\InvalidFilterQuery;
-use Spatie\QueryBuilder\Exceptions\InvalidSortQuery;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -41,6 +41,7 @@ class Handler extends ExceptionHandler
         $this->renderable(function (AuthorizationException $e, Request $request) {
             if ($this->isApiRequest($request)) {
                 $message = $e->getMessage() ?: __('messages.forbidden');
+
                 return $this->forbidden($message);
             }
         });
@@ -106,12 +107,12 @@ class Handler extends ExceptionHandler
         if ($e instanceof AuthorizationException) {
             // Try to get message from exception first, then from response, then fallback to translation key
             $message = $e->getMessage();
-            
+
             // If getMessage() is empty but response has message, use that
             if (empty($message) && method_exists($e, 'response') && $e->response() && $e->response()->message()) {
                 $message = $e->response()->message();
             }
-            
+
             // Final fallback to translation key
             if (empty($message)) {
                 $message = $this->getExceptionMessageKey($e);

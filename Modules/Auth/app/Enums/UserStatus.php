@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Modules\Auth\Enums;
 
 enum UserStatus: string

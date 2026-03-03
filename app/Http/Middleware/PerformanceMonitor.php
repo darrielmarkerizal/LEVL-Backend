@@ -10,7 +10,7 @@ class PerformanceMonitor
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!app()->bound(\Laravel\Octane\Octane::class)) {
+        if (! app()->bound(\Laravel\Octane\Octane::class)) {
             // Only run performance monitoring outside of Octane
             return $next($request);
         }

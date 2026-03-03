@@ -17,7 +17,7 @@ class UnitPolicy
     public function view(User $user, Unit $unit): bool
     {
         $course = $unit->course;
-        if (!$course) {
+        if (! $course) {
             return false;
         }
 
@@ -51,7 +51,7 @@ class UnitPolicy
         }
 
         $course = $unit->course;
-        if (!$course) {
+        if (! $course) {
             return false;
         }
 
@@ -71,7 +71,7 @@ class UnitPolicy
         }
 
         $course = $unit->course;
-        if (!$course) {
+        if (! $course) {
             return false;
         }
 

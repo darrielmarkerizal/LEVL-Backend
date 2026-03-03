@@ -8,7 +8,7 @@ class EnrollmentsDatabaseSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * Seeds the Enrollments module with:
      * 1. 500-800 student enrollments in courses
      * 2. Progress tracking for each enrollment

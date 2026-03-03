@@ -11,12 +11,12 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-
 class BulkApplyFeedbackJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 300;
 
     public function __construct(
@@ -31,11 +31,13 @@ class BulkApplyFeedbackJob implements ShouldQueue
     {
         if (empty($this->submissionIds)) {
             Log::info('BulkApplyFeedbackJob: No submission IDs provided, skipping');
+
             return;
         }
 
         if (empty(trim($this->feedback))) {
             Log::warning('BulkApplyFeedbackJob: Empty feedback provided, skipping');
+
             return;
         }
 

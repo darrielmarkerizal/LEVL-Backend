@@ -14,7 +14,7 @@ return new class extends Migration
             $table->timestamp('last_used_at')->nullable()->after('revoked_at');
             $table->timestamp('idle_expires_at')->nullable()->after('expires_at');
             $table->timestamp('absolute_expires_at')->nullable()->after('idle_expires_at');
-            
+
             $table->index(['user_id', 'device_id', 'revoked_at']);
             $table->index(['user_id', 'replaced_by']);
         });
@@ -30,4 +30,3 @@ return new class extends Migration
         });
     }
 };
-

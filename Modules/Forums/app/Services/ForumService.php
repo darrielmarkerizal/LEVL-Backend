@@ -7,15 +7,15 @@ namespace Modules\Forums\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
+use Modules\Forums\Contracts\Repositories\ReactionRepositoryInterface;
 use Modules\Forums\Contracts\Services\ForumServiceInterface as ModuleForumServiceInterface;
+use Modules\Forums\Models\Reaction;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 use Modules\Forums\Repositories\ReplyRepository;
 use Modules\Forums\Repositories\ThreadRepository;
-use Modules\Forums\Contracts\Repositories\ReactionRepositoryInterface;
-use Modules\Forums\Models\Reaction;
 
-class ForumService implements ModuleForumServiceInterface, \App\Contracts\Services\ForumServiceInterface
+class ForumService implements \App\Contracts\Services\ForumServiceInterface, ModuleForumServiceInterface
 {
     public function __construct(
         private readonly ThreadRepository $threadRepository,
@@ -38,7 +38,7 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
 
             $thread = $this->threadRepository->create($threadData);
 
-            if (!empty($data['attachments'])) {
+            if (! empty($data['attachments'])) {
                 foreach ($data['attachments'] as $file) {
                     $thread->addMedia($file)
                         ->toMediaCollection('attachments');
@@ -55,8 +55,6 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
         });
     }
 
-
-
     public function updateThread(Thread $thread, array $data): Thread
     {
         $updateData = [];
@@ -70,7 +68,7 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
             $updateData['content'] = $data['content'];
         }
 
-        if (!empty($updateData)) {
+        if (! empty($updateData)) {
             $updateData['edited_at'] = now();
         }
 
@@ -92,6 +90,7 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
             cache()->tags(['forums', 'threads'])->flush();
             cache()->tags(['forums', 'replies', "thread:{$thread->id}"])->flush();
         }
+
         return $deleted;
     }
 
@@ -160,7 +159,7 @@ class ForumService implements ModuleForumServiceInterface, \App\Contracts\Servic
             'content' => $data['content'],
         ]);
 
-        if (!empty($data['attachments'])) {
+        if (! empty($data['attachments'])) {
             foreach ($data['attachments'] as $file) {
                 $reply->addMedia($file)
                     ->toMediaCollection('attachments');

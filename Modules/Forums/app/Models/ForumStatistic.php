@@ -11,7 +11,6 @@ class ForumStatistic extends Model
 {
     use HasFactory;
 
-     
     protected static function newFactory()
     {
         return \Modules\Forums\Database\Factories\ForumStatisticFactory::new();
@@ -41,37 +40,31 @@ class ForumStatistic extends Model
         'updated_at' => 'datetime',
     ];
 
-     
     public function scheme(): BelongsTo
     {
         return $this->belongsTo(Course::class, 'scheme_id');
     }
 
-     
     public function user(): BelongsTo
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class);
     }
 
-     
     public function scopeForScheme($query, int $schemeId)
     {
         return $query->where('scheme_id', $schemeId);
     }
 
-     
     public function scopeForUser($query, int $userId)
     {
         return $query->where('user_id', $userId);
     }
 
-     
     public function scopeSchemeWide($query)
     {
         return $query->whereNull('user_id');
     }
 
-     
     public function scopeForPeriod($query, $startDate, $endDate)
     {
         return $query->where('period_start', '>=', $startDate)

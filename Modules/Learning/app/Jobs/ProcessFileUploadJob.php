@@ -26,7 +26,7 @@ class ProcessFileUploadJob implements ShouldQueue
         public string $tempFilePath,
         public string $originalFileName,
         public array $allowedTypes = [],
-        public int $maxFileSize = 10485760 
+        public int $maxFileSize = 10485760
     ) {
         $this->onQueue('file-processing');
     }
@@ -49,7 +49,7 @@ class ProcessFileUploadJob implements ShouldQueue
         ]);
 
         try {
-            
+
             if (! Storage::exists($this->tempFilePath)) {
                 Log::error('ProcessFileUploadJob: Temporary file not found', [
                     'temp_path' => $this->tempFilePath,
@@ -58,7 +58,6 @@ class ProcessFileUploadJob implements ShouldQueue
                 return;
             }
 
-            
             $extension = strtolower(pathinfo($this->originalFileName, PATHINFO_EXTENSION));
             if (! empty($this->allowedTypes) && ! in_array($extension, $this->allowedTypes)) {
                 Log::warning('ProcessFileUploadJob: Invalid file type', [
@@ -66,13 +65,11 @@ class ProcessFileUploadJob implements ShouldQueue
                     'allowed_types' => $this->allowedTypes,
                 ]);
 
-                
                 Storage::delete($this->tempFilePath);
 
                 return;
             }
 
-            
             $fileSize = Storage::size($this->tempFilePath);
             if ($fileSize > $this->maxFileSize) {
                 Log::warning('ProcessFileUploadJob: File size exceeds limit', [
@@ -80,17 +77,14 @@ class ProcessFileUploadJob implements ShouldQueue
                     'max_size' => $this->maxFileSize,
                 ]);
 
-                
                 Storage::delete($this->tempFilePath);
 
                 return;
             }
 
-            
             $permanentPath = $this->generatePermanentPath($answer, $extension);
             Storage::move($this->tempFilePath, $permanentPath);
 
-            
             $filePaths = $answer->file_paths ?? [];
             $filePaths[] = [
                 'path' => $permanentPath,
@@ -112,7 +106,6 @@ class ProcessFileUploadJob implements ShouldQueue
                 'error' => $e->getMessage(),
             ]);
 
-            
             if (Storage::exists($this->tempFilePath)) {
                 Storage::delete($this->tempFilePath);
             }
@@ -140,7 +133,6 @@ class ProcessFileUploadJob implements ShouldQueue
             'trace' => $exception->getTraceAsString(),
         ]);
 
-        
         if (Storage::exists($this->tempFilePath)) {
             Storage::delete($this->tempFilePath);
         }

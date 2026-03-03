@@ -20,7 +20,7 @@ class QuizIndexResource extends JsonResource
             'auto_grading' => $this->auto_grading,
             'questions_count' => $this->when(
                 $this->relationLoaded('questions'),
-                fn() => $this->questions->count()
+                fn () => $this->questions->count()
             ),
             'available_from' => $this->available_from?->toISOString(),
             'deadline_at' => $this->deadline_at?->toISOString(),

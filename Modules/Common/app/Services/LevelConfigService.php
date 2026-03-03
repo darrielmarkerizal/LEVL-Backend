@@ -6,11 +6,9 @@ namespace Modules\Common\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-
 use Modules\Common\Contracts\Services\LevelConfigServiceInterface;
 use Modules\Common\Models\LevelConfig;
 use Modules\Common\Repositories\LevelConfigRepository;
-use Modules\Gamification\Models\Badge;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -58,6 +56,7 @@ class LevelConfigService implements LevelConfigServiceInterface
             $levelConfig = $this->repository->create($data);
             $this->syncBadgesFromRewards($levelConfig->id, $data['rewards'] ?? []);
             cache()->tags(['common', 'levels'])->flush();
+
             return $levelConfig->fresh();
         });
     }
@@ -79,6 +78,7 @@ class LevelConfigService implements LevelConfigServiceInterface
             $updated = $this->repository->update($config, $data);
             $this->syncBadgesFromRewards($updated->id, $data['rewards'] ?? []);
             cache()->tags(['common', 'levels'])->flush();
+
             return $updated->fresh();
         });
     }
@@ -92,6 +92,7 @@ class LevelConfigService implements LevelConfigServiceInterface
             }
             $result = $this->repository->delete($config);
             cache()->tags(['common', 'levels'])->flush();
+
             return $result;
         });
     }

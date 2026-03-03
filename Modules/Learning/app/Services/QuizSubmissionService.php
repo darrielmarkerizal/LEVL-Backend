@@ -68,6 +68,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
             if ($existing) {
                 $existing->fill($answerData)->save();
+
                 return $existing;
             }
 
@@ -217,6 +218,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         }
 
         $correctKey = $answerKey[0] ?? null;
+
         return ($selected[0] ?? null) === $correctKey ? $weight : 0.0;
     }
 
@@ -227,6 +229,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         }
 
         $correctKey = $answerKey[0] ?? null;
+
         return ($selected[0] ?? null) === $correctKey ? $weight : 0.0;
     }
 

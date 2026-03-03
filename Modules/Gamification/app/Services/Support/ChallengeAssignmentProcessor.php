@@ -48,7 +48,7 @@ class ChallengeAssignmentProcessor
                     $assignedCount++;
                 }
             }
-        }, 'id'); 
+        }, 'id');
 
         return $assignedCount;
     }

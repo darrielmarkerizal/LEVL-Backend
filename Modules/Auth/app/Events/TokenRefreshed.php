@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Modules\Auth\Events;
 
 class TokenRefreshed
@@ -12,5 +11,3 @@ class TokenRefreshed
         public readonly int $refreshTokenId,
     ) {}
 }
-
-

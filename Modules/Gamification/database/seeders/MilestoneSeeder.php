@@ -7,7 +7,6 @@ use Modules\Gamification\Models\Milestone;
 
 class MilestoneSeeder extends Seeder
 {
-    
     public function run(): void
     {
         $milestones = [

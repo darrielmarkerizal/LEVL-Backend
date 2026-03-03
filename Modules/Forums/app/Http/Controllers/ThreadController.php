@@ -12,10 +12,10 @@ use Modules\Forums\Http\Requests\CreateThreadRequest;
 use Modules\Forums\Http\Requests\UpdateThreadRequest;
 use Modules\Forums\Http\Resources\ThreadResource;
 use Modules\Forums\Models\Thread;
+use Modules\Forums\Services\ModerationService;
 use Modules\Forums\Services\ThreadDashboardService;
 use Modules\Forums\Services\ThreadReadService;
 use Modules\Forums\Services\ThreadService;
-use Modules\Forums\Services\ModerationService;
 use Modules\Schemes\Models\Course;
 
 class ThreadController extends Controller
@@ -25,6 +25,7 @@ class ThreadController extends Controller
     public function index(Request $request, Course $course, ThreadReadService $threadReadService): JsonResponse
     {
         $threads = $threadReadService->paginateCourseThreads($course->id, $request->input('search'), (int) $request->input('per_page', 20));
+
         return $this->paginateResponse($threads, __('messages.forums.threads_retrieved'));
     }
 
@@ -32,12 +33,14 @@ class ThreadController extends Controller
     {
         $thread = $threadService->create($request->validated(), $request->user(), $course->id, $request->file('attachments') ?? []);
         $threadWithIncludes = $dashboardService->getWithIncludes($thread);
+
         return $this->created(new ThreadResource($threadWithIncludes), __('messages.forums.thread_created'));
     }
 
     public function show(Request $request, Course $course, Thread $thread, ThreadReadService $threadReadService): JsonResponse
     {
         $threadDetail = $threadReadService->getThreadDetail($thread->id);
+
         return $this->success(new ThreadResource($threadDetail), __('messages.forums.thread_retrieved'));
     }
 
@@ -46,6 +49,7 @@ class ThreadController extends Controller
         $this->authorize('update', $thread);
         $updatedThread = $threadService->update($thread, $request->validated());
         $threadWithIncludes = $dashboardService->getWithIncludes($updatedThread);
+
         return $this->success(new ThreadResource($threadWithIncludes), __('messages.forums.thread_updated'));
     }
 
@@ -53,6 +57,7 @@ class ThreadController extends Controller
     {
         $this->authorize('delete', $thread);
         $threadService->delete($thread, $request->user());
+
         return $this->success(null, __('messages.forums.thread_deleted'));
     }
 
@@ -61,6 +66,7 @@ class ThreadController extends Controller
         $this->authorize('pin', $thread);
         $pinnedThread = $moderationService->pinThread($thread, $request->user());
         $threadWithIncludes = $dashboardService->getWithIncludes($pinnedThread);
+
         return $this->success(new ThreadResource($threadWithIncludes), __('messages.forums.thread_pinned'));
     }
 
@@ -69,6 +75,7 @@ class ThreadController extends Controller
         $this->authorize('unpin', $thread);
         $unpinnedThread = $moderationService->unpinThread($thread, $request->user());
         $threadWithIncludes = $dashboardService->getWithIncludes($unpinnedThread);
+
         return $this->success(new ThreadResource($threadWithIncludes), __('messages.forums.thread_unpinned'));
     }
 
@@ -77,6 +84,7 @@ class ThreadController extends Controller
         $this->authorize('close', $thread);
         $closedThread = $moderationService->closeThread($thread, $request->user());
         $threadWithIncludes = $dashboardService->getWithIncludes($closedThread);
+
         return $this->success(new ThreadResource($threadWithIncludes), __('messages.forums.thread_closed'));
     }
 
@@ -85,6 +93,7 @@ class ThreadController extends Controller
         $this->authorize('open', $thread);
         $openedThread = $moderationService->openThread($thread, $request->user());
         $threadWithIncludes = $dashboardService->getWithIncludes($openedThread);
+
         return $this->success(new ThreadResource($threadWithIncludes), __('messages.forums.thread_opened'));
     }
 
@@ -93,6 +102,7 @@ class ThreadController extends Controller
         $this->authorize('resolve', $thread);
         $resolvedThread = $moderationService->resolveThread($thread, $request->user());
         $threadWithIncludes = $dashboardService->getWithIncludes($resolvedThread);
+
         return $this->success(new ThreadResource($threadWithIncludes), __('messages.forums.thread_resolved'));
     }
 
@@ -101,6 +111,7 @@ class ThreadController extends Controller
         $this->authorize('unresolve', $thread);
         $unresolvedThread = $moderationService->unresolveThread($thread, $request->user());
         $threadWithIncludes = $dashboardService->getWithIncludes($unresolvedThread);
+
         return $this->success(new ThreadResource($threadWithIncludes), __('messages.forums.thread_unresolved'));
     }
 }

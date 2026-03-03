@@ -23,6 +23,7 @@ class ForumSeeder extends Seeder
 
         if ($users->isEmpty() || $courses->isEmpty()) {
             $this->command->warn('Not enough users or courses. Need at least 20 users and at least 1 course.');
+
             return;
         }
 
@@ -150,12 +151,13 @@ class ForumSeeder extends Seeder
     private function selectMentionedUsers($users, int $excludeUserId, int $count = 1)
     {
         $availableUsers = $users->where('id', '!=', $excludeUserId);
-        
+
         if ($availableUsers->isEmpty()) {
             return collect();
         }
 
         $count = min($count, $availableUsers->count());
+
         return $availableUsers->random($count);
     }
 
@@ -214,8 +216,8 @@ class ForumSeeder extends Seeder
                 "\n\n",
             ];
             $prefix = $mentionPrefixes[array_rand($mentionPrefixes)];
-            $mentions = $mentionedUsers->map(fn($u) => "@{$u->username}")->implode(' ');
-            $content .= $prefix . $mentions;
+            $mentions = $mentionedUsers->map(fn ($u) => "@{$u->username}")->implode(' ');
+            $content .= $prefix.$mentions;
         }
 
         return $content;
@@ -243,12 +245,12 @@ class ForumSeeder extends Seeder
         if ($mentionedUsers->isNotEmpty()) {
             $mentionPositions = ['prefix', 'suffix'];
             $position = $mentionPositions[array_rand($mentionPositions)];
-            $mentions = $mentionedUsers->map(fn($u) => "@{$u->username}")->implode(' ');
+            $mentions = $mentionedUsers->map(fn ($u) => "@{$u->username}")->implode(' ');
 
             if ($position === 'prefix') {
-                $content = $mentions . ' ' . $content;
+                $content = $mentions.' '.$content;
             } else {
-                $content .= ' ' . $mentions;
+                $content .= ' '.$mentions;
             }
         }
 
@@ -257,13 +259,14 @@ class ForumSeeder extends Seeder
 
     private function seedUserMentions($users, $courses): void
     {
-        $this->command->line("  → Ensuring all users have at least one mention...");
+        $this->command->line('  → Ensuring all users have at least one mention...');
 
         $mentionedUserIds = Mention::distinct('user_id')->pluck('user_id')->toArray();
         $unmentionedUsers = $users->whereNotIn('id', $mentionedUserIds);
 
         if ($unmentionedUsers->isEmpty()) {
-            $this->command->info("    ✓ All users already have mentions");
+            $this->command->info('    ✓ All users already have mentions');
+
             return;
         }
 
@@ -272,17 +275,17 @@ class ForumSeeder extends Seeder
         foreach ($unmentionedUsers as $targetUser) {
             $course = $courses->random();
             $author = $users->where('id', '!=', $targetUser->id)->random();
-            
+
             $otherMentions = rand(0, 2);
             $mentionedUsers = collect([$targetUser]);
-            
+
             if ($otherMentions > 0) {
                 $additionalUsers = $this->selectMentionedUsers(
-                    $users, 
-                    $author->id, 
+                    $users,
+                    $author->id,
                     $otherMentions
-                )->filter(fn($u) => $u->id !== $targetUser->id);
-                
+                )->filter(fn ($u) => $u->id !== $targetUser->id);
+
                 $mentionedUsers = $mentionedUsers->merge($additionalUsers)->unique('id');
             }
 
@@ -306,8 +309,8 @@ class ForumSeeder extends Seeder
                 $this->createMention($thread, $user);
             }
 
-            $this->command->info("    ✓ Created thread mentioning @{$targetUser->username}" . 
-                ($mentionedUsers->count() > 1 ? " (+" . ($mentionedUsers->count() - 1) . " others)" : ""));
+            $this->command->info("    ✓ Created thread mentioning @{$targetUser->username}".
+                ($mentionedUsers->count() > 1 ? ' (+'.($mentionedUsers->count() - 1).' others)' : ''));
         }
     }
 }

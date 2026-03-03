@@ -3,11 +3,10 @@
 namespace Modules\Learning\Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Learning\Models\Answer;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Question;
 use Modules\Learning\Models\Submission;
-use Modules\Learning\Models\Answer;
-use Modules\Learning\Enums\QuestionType;
 
 class QuestionAndAnswerSeeder extends Seeder
 {
@@ -23,7 +22,7 @@ class QuestionAndAnswerSeeder extends Seeder
     {
         \DB::connection()->disableQueryLog();
         ini_set('memory_limit', '1536M');
-        
+
         echo "Seeding questions and answers...\n";
 
         // Cleanup invalid question types from previous failed runs
@@ -38,7 +37,7 @@ class QuestionAndAnswerSeeder extends Seeder
         $pregenUuids = [];
         $pregenFilenames = [];
         $createdAt = now()->toDateTimeString();
-        
+
         for ($i = 0; $i < 200; $i++) {
             $pregenSentences[] = $faker->sentence(10);
             $pregenWords[] = $faker->word();
@@ -48,13 +47,15 @@ class QuestionAndAnswerSeeder extends Seeder
         }
         unset($faker);
 
-        if (!Assignment::exists()) {
+        if (! Assignment::exists()) {
             echo "⚠️  No assignments found. Skipping question and answer seeding.\n";
+
             return;
         }
 
-        if (!Submission::exists()) {
+        if (! Submission::exists()) {
             echo "⚠️  No submissions found. Skipping answer seeding.\n";
+
             return;
         }
 
@@ -70,7 +71,7 @@ class QuestionAndAnswerSeeder extends Seeder
                 for ($i = 0; $i < $numQuestions; $i++) {
                     $questionTypes = ['essay', 'multiple_choice', 'file_upload'];
                     $questionType = $questionTypes[array_rand($questionTypes)];
-                    
+
                     $questionData = [
                         'assignment_id' => $assignment->id,
                         'type' => $questionType,
@@ -111,7 +112,7 @@ class QuestionAndAnswerSeeder extends Seeder
                 }
             }
 
-            if (!empty($questions)) {
+            if (! empty($questions)) {
                 foreach (array_chunk($questions, 500) as $chunk) {
                     \Illuminate\Support\Facades\DB::table('assignment_questions')->insertOrIgnore($chunk);
                 }
@@ -122,16 +123,18 @@ class QuestionAndAnswerSeeder extends Seeder
             gc_collect_cycles();
         });
 
-        Submission::with('assignment.questions')->chunkById(300, function ($submissions) use (&$answerCount, $pregenParagraphs, $pregenFilenames, $createdAt) {
+        Submission::with('assignment.questions')->chunkById(300, function ($submissions) use (&$answerCount, $pregenParagraphs, $createdAt) {
             $answers = [];
 
             foreach ($submissions as $submission) {
-                if (!$submission->assignment || !$submission->assignment->questions || $submission->assignment->questions->isEmpty()) {
+                if (! $submission->assignment || ! $submission->assignment->questions || $submission->assignment->questions->isEmpty()) {
                     continue;
                 }
 
                 foreach ($submission->assignment->questions as $question) {
-                    if (rand(1, 100) <= 30) continue;
+                    if (rand(1, 100) <= 30) {
+                        continue;
+                    }
 
                     $answerData = [
                         'submission_id' => $submission->id,
@@ -147,16 +150,15 @@ class QuestionAndAnswerSeeder extends Seeder
                             $options = $question->options;
                             if ($options) {
                                 $answerData['selected_options'] = json_encode([
-                                    $options[rand(0, count($options)-1)]['id']
+                                    $options[rand(0, count($options) - 1)]['id'],
                                 ]);
                             }
                             break;
-                        
-                            
+
                         case 'essay':
                             $answerData['content'] = $pregenParagraphs[array_rand($pregenParagraphs)];
                             break;
-                            
+
                         case 'file_upload':
                             $answerData['file_paths'] = json_encode([
                                 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
@@ -181,7 +183,7 @@ class QuestionAndAnswerSeeder extends Seeder
                 }
             }
 
-            if (!empty($answers)) {
+            if (! empty($answers)) {
                 foreach (array_chunk($answers, 500) as $chunk) {
                     \Illuminate\Support\Facades\DB::table('answers')->insertOrIgnore($chunk);
                 }
@@ -194,9 +196,9 @@ class QuestionAndAnswerSeeder extends Seeder
 
         echo "✅ Question and answer seeding completed!\n";
         echo "Created $questionCount questions with $answerCount answers\n";
-        
+
         $this->updateSubmissionStates();
-        
+
         unset($pregenSentences, $pregenWords, $pregenParagraphs, $pregenUuids, $pregenFilenames);
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();

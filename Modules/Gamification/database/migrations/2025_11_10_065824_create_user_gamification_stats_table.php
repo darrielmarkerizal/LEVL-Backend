@@ -20,9 +20,9 @@ return new class extends Migration
             $table->unsignedInteger('completed_challenges')->default(0);
             $table->date('last_activity_date')->nullable();
             $table->timestamp('stats_updated_at')->useCurrent();
-            
+
             $table->timestamps();
-            
+
             $table->index('total_xp');
             $table->index('total_points');
             $table->index('global_level');

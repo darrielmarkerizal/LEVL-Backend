@@ -62,7 +62,7 @@ class ReplyRepository extends BaseRepository implements ReplyRepositoryInterface
                         'reactions',
                         'children' => function ($query) {
                             $query->with(['author.media', 'mentions.user.media', 'media', 'reactions'])
-                                  ->withCount('children');
+                                ->withCount('children');
                         },
                     ])
                     ->withCount(['reactions', 'children'])

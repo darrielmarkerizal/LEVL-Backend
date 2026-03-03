@@ -10,19 +10,21 @@ class AuditLogSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::first(); 
-        if (!$admin) return;
+        $admin = User::first();
+        if (! $admin) {
+            return;
+        }
 
         $actions = [
             'submission_created',
             'state_transition',
             'grading',
-            'grade_override'
+            'grade_override',
         ];
 
         for ($i = 0; $i < 50; $i++) {
             $action = $actions[array_rand($actions)];
-            
+
             AuditLog::logAction(
                 $action,
                 $admin, // Subject (mocking user as subject for simplicity)
@@ -32,7 +34,7 @@ class AuditLogSeeder extends Seeder
                     'student_id' => rand(1, 5),
                     'old_status' => 'pending',
                     'new_status' => 'submitted',
-                    'reason' => 'Seeded data'
+                    'reason' => 'Seeded data',
                 ]
             );
         }

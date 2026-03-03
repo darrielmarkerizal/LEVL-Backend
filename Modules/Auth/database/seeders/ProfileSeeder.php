@@ -11,7 +11,7 @@ class ProfileSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * Ensures all users have complete profile data:
      * - Privacy settings
      * - User activities based on role and enrollments
@@ -21,7 +21,7 @@ class ProfileSeeder extends Seeder
     {
         \DB::connection()->disableQueryLog();
         ini_set('memory_limit', '1536M');
-        
+
         echo "Seeding profile data for all users...\n";
 
         $users = User::with('privacySettings', 'roles')
@@ -30,6 +30,7 @@ class ProfileSeeder extends Seeder
 
         if ($users->isEmpty()) {
             echo "⚠️  No users found. Skipping profile seeding.\n";
+
             return;
         }
 
@@ -42,10 +43,10 @@ class ProfileSeeder extends Seeder
 
         $privacySettings = [];
         foreach ($users as $user) {
-            if (!$user->privacySettings) {
+            if (! $user->privacySettings) {
                 $isAdmin = $user->roles->whereIn('name', ['Superadmin', 'Admin', 'Instructor'])->count() > 0;
-                $visibility = $isAdmin 
-                    ? ProfilePrivacySetting::VISIBILITY_PUBLIC 
+                $visibility = $isAdmin
+                    ? ProfilePrivacySetting::VISIBILITY_PUBLIC
                     : $visibilities[array_rand($visibilities)];
 
                 $privacySettings[] = [
@@ -60,7 +61,7 @@ class ProfileSeeder extends Seeder
                     'updated_at' => $createdAt,
                 ];
                 $privacyCount++;
-                
+
                 if (count($privacySettings) >= 200) {
                     \Illuminate\Support\Facades\DB::table('profile_privacy_settings')->insertOrIgnore($privacySettings);
                     $privacySettings = [];
@@ -69,7 +70,7 @@ class ProfileSeeder extends Seeder
             }
         }
 
-        if (!empty($privacySettings)) {
+        if (! empty($privacySettings)) {
             \Illuminate\Support\Facades\DB::table('profile_privacy_settings')->insertOrIgnore($privacySettings);
         }
 
@@ -82,7 +83,7 @@ class ProfileSeeder extends Seeder
         echo "✅ Created $privacyCount privacy settings\n";
         echo "✅ Created $activityCount user activities\n";
         echo "✅ Profile seeding completed!\n";
-        
+
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
     }
@@ -90,9 +91,9 @@ class ProfileSeeder extends Seeder
     /**
      * Batch create user activities for active users
      */
-private function createUserActivitiesBatch(array $userIds): int
+    private function createUserActivitiesBatch(array $userIds): int
     {
-        if (!\Illuminate\Support\Facades\Schema::hasTable('user_activities')) {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('user_activities')) {
             return 0;
         }
 
@@ -109,7 +110,7 @@ private function createUserActivitiesBatch(array $userIds): int
                 UserActivity::TYPE_BADGE_EARNED,
                 UserActivity::TYPE_CERTIFICATE_EARNED,
             ];
-            
+
             $relatedTypes = [null, 'Course', 'Lesson', 'Quiz', 'Assignment'];
             $pregenTitles = ['Enrolled in course', 'Completed lesson', 'Submitted assignment', 'Earned badge', 'Achieved milestone', 'Started quiz', 'Finished module'];
             $pregenDescriptions = ['Progress made', 'New achievement', 'Course completed', 'Badge earned', 'Activity recorded', 'Learning milestone'];
@@ -136,7 +137,7 @@ private function createUserActivitiesBatch(array $userIds): int
                     ];
                     $totalCount++;
                 }
-                
+
                 if (count($activities) >= 500) {
                     \Illuminate\Support\Facades\DB::table('user_activities')->insertOrIgnore($activities);
                     $activities = [];
@@ -144,7 +145,7 @@ private function createUserActivitiesBatch(array $userIds): int
                 }
             }
 
-            if (!empty($activities)) {
+            if (! empty($activities)) {
                 \Illuminate\Support\Facades\DB::table('user_activities')->insertOrIgnore($activities);
             }
 
@@ -154,5 +155,3 @@ private function createUserActivitiesBatch(array $userIds): int
         }
     }
 }
-    
-

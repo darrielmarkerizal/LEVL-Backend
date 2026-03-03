@@ -12,7 +12,6 @@ class ReactionAdded
 
     public Reaction $reaction;
 
-     
     public function __construct(Reaction $reaction)
     {
         $this->reaction = $reaction;

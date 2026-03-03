@@ -6,7 +6,6 @@ namespace Modules\Common\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-
 use Modules\Common\Contracts\Services\BadgeServiceInterface;
 use Modules\Common\Repositories\BadgeRepository;
 use Modules\Gamification\Models\Badge;
@@ -29,7 +28,7 @@ class BadgeService implements BadgeServiceInterface
             300,
             function () use ($perPage, $search) {
                 $query = Badge::query();
-                
+
                 if ($search && trim($search) !== '') {
                     $query->search($search);
                 }
@@ -54,13 +53,14 @@ class BadgeService implements BadgeServiceInterface
         return DB::transaction(function () use ($data, $files) {
             $badge = $this->repository->create($data);
 
-            if (!empty($data['rules'])) {
+            if (! empty($data['rules'])) {
                 $this->syncRules($badge->id, $data['rules']);
             }
 
             $this->handleMedia($badge, $files);
 
             cache()->tags(['common', 'badges'])->flush();
+
             return $badge->fresh();
         });
     }
@@ -87,6 +87,7 @@ class BadgeService implements BadgeServiceInterface
         }
 
         cache()->tags(['common', 'badges'])->flush();
+
         return $badge->fresh();
     }
 
@@ -113,6 +114,7 @@ class BadgeService implements BadgeServiceInterface
             $this->handleMedia($updated, $files);
 
             cache()->tags(['common', 'badges'])->flush();
+
             return $updated->fresh();
         });
     }
@@ -139,11 +141,10 @@ class BadgeService implements BadgeServiceInterface
             $badge->clearMediaCollection('icon');
             $result = $this->repository->delete($badge);
             cache()->tags(['common', 'badges'])->flush();
+
             return $result;
         });
     }
-
-
 
     private function syncRules(int $badgeId, array $rules): void
     {

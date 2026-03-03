@@ -3,14 +3,12 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Mockery;
 use Modules\Auth\Models\User;
 use Modules\Forums\Models\Thread;
-use Modules\Forums\Models\Reply;
 use Modules\Notifications\Services\NotificationService;
 use Modules\Schemes\Models\Course;
 use Tests\TestCase;
-use Mockery;
 
 class ReactionNotificationTest extends TestCase
 {
@@ -52,7 +50,7 @@ class ReactionNotificationTest extends TestCase
         $response->assertStatus(200);
         $this->assertNotNull($response->json('data.id'));
         $this->assertEquals('like', $response->json('data.type'));
-        
+
         // Additional assertion: Check if reaction is in DB
         $this->assertDatabaseHas('reactions', [
             'user_id' => $user->id,

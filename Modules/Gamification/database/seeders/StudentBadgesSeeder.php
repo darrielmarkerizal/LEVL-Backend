@@ -18,7 +18,7 @@ class StudentBadgesSeeder extends Seeder
 
         foreach ($students as $student) {
             // Award 'First Step' badge
-            if ($badges->has('first_step') && !$this->badgeManager->hasBadge($student->id, 'first_step')) {
+            if ($badges->has('first_step') && ! $this->badgeManager->hasBadge($student->id, 'first_step')) {
                 $this->badgeManager->awardBadge(
                     $student->id,
                     'first_step',
@@ -28,7 +28,7 @@ class StudentBadgesSeeder extends Seeder
             }
 
             // Award 'Rookie' badge (just as an example/default set)
-            if ($badges->has('rookie') && !$this->badgeManager->hasBadge($student->id, 'rookie')) {
+            if ($badges->has('rookie') && ! $this->badgeManager->hasBadge($student->id, 'rookie')) {
                 $this->badgeManager->awardBadge(
                     $student->id,
                     'rookie',

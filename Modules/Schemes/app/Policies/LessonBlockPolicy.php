@@ -12,12 +12,12 @@ class LessonBlockPolicy
     public function view(User $user, LessonBlock $block): bool
     {
         $lesson = $block->lesson;
-        if (!$lesson) {
+        if (! $lesson) {
             return false;
         }
 
         $course = $lesson->unit?->course;
-        if (!$course) {
+        if (! $course) {
             return false;
         }
 
@@ -43,7 +43,7 @@ class LessonBlockPolicy
         }
 
         $course = $block->lesson?->unit?->course;
-        if (!$course) {
+        if (! $course) {
             return false;
         }
 
@@ -63,7 +63,7 @@ class LessonBlockPolicy
         }
 
         $course = $block->lesson?->unit?->course;
-        if (!$course) {
+        if (! $course) {
             return false;
         }
 

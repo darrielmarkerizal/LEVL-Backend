@@ -22,8 +22,8 @@ class SubmissionLifecycleProcessor
     }
 
     public function startSubmission(
-        int $assignmentId, 
-        int $studentId, 
+        int $assignmentId,
+        int $studentId,
         SubmissionValidator $validator
     ): Submission {
         return $this->creationProcessor->startSubmission($assignmentId, $studentId, $validator);
@@ -38,7 +38,7 @@ class SubmissionLifecycleProcessor
     {
         return $this->completionProcessor->grade($submission, $score, $gradedBy, $feedback);
     }
-    
+
     public function saveAnswer(Submission $submission, int $questionId, mixed $answer, SubmissionValidator $validator): Answer
     {
         return $this->completionProcessor->saveAnswer($submission, $questionId, $answer, $validator);
@@ -53,7 +53,7 @@ class SubmissionLifecycleProcessor
     {
         return $this->completionProcessor->updateSubmissionScore($submission, $score);
     }
-    
+
     public function delete(Submission $submission): bool
     {
         return $this->completionProcessor->delete($submission);

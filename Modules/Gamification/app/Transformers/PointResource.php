@@ -27,7 +27,7 @@ class PointResource extends JsonResource
         $sourceId = $this->source_id;
         $sourceType = $this->source_type?->value;
 
-        if (!$sourceId || !$sourceType) {
+        if (! $sourceId || ! $sourceType) {
             return $context;
         }
 
@@ -53,40 +53,40 @@ class PointResource extends JsonResource
                     $context['course'] = ['id' => $lesson->unit?->course_id, 'title' => $lesson->unit?->course?->title];
                 }
                 break;
-            // Handle assignment if needed, usually mapped to lesson or unit
+                // Handle assignment if needed, usually mapped to lesson or unit
             case 'assignment':
-                 $assignment = \Modules\Learning\Models\Assignment::with(['assignable', 'lesson.unit.course'])->find($sourceId);
-                 if ($assignment) {
-                     $context['assignment'] = ['id' => $assignment->id, 'title' => $assignment->title];
-                     
-                     // Resolve parent structure
-                     if ($assignment->assignable_type === \Modules\Schemes\Models\Course::class) {
-                         $course = $assignment->assignable;
-                         if ($course) {
-                             $context['course'] = ['id' => $course->id, 'title' => $course->title];
-                         }
-                     } elseif ($assignment->assignable_type === \Modules\Schemes\Models\Unit::class) {
-                         $unit = $assignment->assignable;
-                         if ($unit) {
-                             $context['unit'] = ['id' => $unit->id, 'title' => $unit->title];
-                             $context['course'] = ['id' => $unit->course_id, 'title' => $unit->course?->title];
-                         }
-                     } elseif ($assignment->assignable_type === \Modules\Schemes\Models\Lesson::class) {
-                         $lesson = $assignment->assignable;
-                         if ($lesson) {
-                             $context['lesson'] = ['id' => $lesson->id, 'title' => $lesson->title];
-                             $context['unit'] = ['id' => $lesson->unit_id, 'title' => $lesson->unit?->title];
-                             $context['course'] = ['id' => $lesson->unit?->course_id, 'title' => $lesson->unit?->course?->title];
-                         }
-                     } elseif ($assignment->lesson_id) {
-                         $lesson = $assignment->lesson;
-                         if ($lesson) {
-                             $context['lesson'] = ['id' => $lesson->id, 'title' => $lesson->title];
-                             $context['unit'] = ['id' => $lesson->unit_id, 'title' => $lesson->unit?->title];
-                             $context['course'] = ['id' => $lesson->unit?->course_id, 'title' => $lesson->unit?->course?->title];
-                         }
-                     }
-                 }
+                $assignment = \Modules\Learning\Models\Assignment::with(['assignable', 'lesson.unit.course'])->find($sourceId);
+                if ($assignment) {
+                    $context['assignment'] = ['id' => $assignment->id, 'title' => $assignment->title];
+
+                    // Resolve parent structure
+                    if ($assignment->assignable_type === \Modules\Schemes\Models\Course::class) {
+                        $course = $assignment->assignable;
+                        if ($course) {
+                            $context['course'] = ['id' => $course->id, 'title' => $course->title];
+                        }
+                    } elseif ($assignment->assignable_type === \Modules\Schemes\Models\Unit::class) {
+                        $unit = $assignment->assignable;
+                        if ($unit) {
+                            $context['unit'] = ['id' => $unit->id, 'title' => $unit->title];
+                            $context['course'] = ['id' => $unit->course_id, 'title' => $unit->course?->title];
+                        }
+                    } elseif ($assignment->assignable_type === \Modules\Schemes\Models\Lesson::class) {
+                        $lesson = $assignment->assignable;
+                        if ($lesson) {
+                            $context['lesson'] = ['id' => $lesson->id, 'title' => $lesson->title];
+                            $context['unit'] = ['id' => $lesson->unit_id, 'title' => $lesson->unit?->title];
+                            $context['course'] = ['id' => $lesson->unit?->course_id, 'title' => $lesson->unit?->course?->title];
+                        }
+                    } elseif ($assignment->lesson_id) {
+                        $lesson = $assignment->lesson;
+                        if ($lesson) {
+                            $context['lesson'] = ['id' => $lesson->id, 'title' => $lesson->title];
+                            $context['unit'] = ['id' => $lesson->unit_id, 'title' => $lesson->unit?->title];
+                            $context['course'] = ['id' => $lesson->unit?->course_id, 'title' => $lesson->unit?->course?->title];
+                        }
+                    }
+                }
                 break;
         }
 

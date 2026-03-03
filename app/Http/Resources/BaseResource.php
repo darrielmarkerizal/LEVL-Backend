@@ -51,7 +51,7 @@ abstract class BaseResource extends JsonResource
 
         if ($resource && method_exists($resource, 'loadMissing')) {
             $instance = new static($resource);
-            
+
             if (! empty($instance->defaultRelations)) {
                 $resource->loadMissing($instance->defaultRelations);
             }
@@ -71,7 +71,7 @@ abstract class BaseResource extends JsonResource
         // Load relationships for each item in the collection
         if ($resource instanceof \Illuminate\Support\Collection || is_array($resource)) {
             $instance = new static(null);
-            
+
             if (! empty($instance->defaultRelations)) {
                 foreach ($resource as $item) {
                     if (method_exists($item, 'loadMissing')) {

@@ -4,9 +4,8 @@ namespace Modules\Learning\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-
-use Modules\Learning\Models\SubmissionFile;
 use Illuminate\Support\Facades\Storage;
+use Modules\Learning\Models\SubmissionFile;
 
 class SubmissionFileSeeder extends Seeder
 {
@@ -14,7 +13,7 @@ class SubmissionFileSeeder extends Seeder
     {
         DB::connection()->disableQueryLog();
 
-        $this->command->info("Seeding submission files with Object Storage uploads...");
+        $this->command->info('Seeding submission files with Object Storage uploads...');
 
         $fileUploadAssignmentIds = DB::table('assignment_questions')
             ->where('type', 'file_upload')
@@ -23,11 +22,12 @@ class SubmissionFileSeeder extends Seeder
             ->toArray();
 
         if (empty($fileUploadAssignmentIds)) {
-            $this->command->warn("⚠️  No assignments with file upload questions found.");
+            $this->command->warn('⚠️  No assignments with file upload questions found.');
+
             return;
         }
 
-        $this->command->info("   📁 Found " . count($fileUploadAssignmentIds) . " assignments");
+        $this->command->info('   📁 Found '.count($fileUploadAssignmentIds).' assignments');
 
         // Get submissions that need files
         $submissions = DB::table('submissions')
@@ -36,7 +36,8 @@ class SubmissionFileSeeder extends Seeder
             ->get(); // We use get() here to iterate easier, assuming not millions suitable for cursor yet for complex logic
 
         if ($submissions->isEmpty()) {
-            $this->command->warn("⚠️  No submissions found.");
+            $this->command->warn('⚠️  No submissions found.');
+
             return;
         }
 
@@ -54,6 +55,7 @@ class SubmissionFileSeeder extends Seeder
             if (rand(1, 100) > 80) {
                 $processed++;
                 $bar->advance();
+
                 continue;
             }
 
@@ -67,10 +69,10 @@ class SubmissionFileSeeder extends Seeder
 
                     // Create a dummy file
                     $fileName = "submission_{$submission->id}_file_{$i}.txt";
-                    $fileContent = "This is a dummy submission file for Submission ID: {$submission->id}.\nGenerated at: " . now();
-                    
+                    $fileContent = "This is a dummy submission file for Submission ID: {$submission->id}.\nGenerated at: ".now();
+
                     // Use a temporary path
-                    $tempPath = sys_get_temp_dir() . '/' . $fileName;
+                    $tempPath = sys_get_temp_dir().'/'.$fileName;
                     file_put_contents($tempPath, $fileContent);
 
                     // Upload to Media Library (Object Storage)
@@ -79,30 +81,30 @@ class SubmissionFileSeeder extends Seeder
                         ->toMediaCollection('file');
 
                     $fileCount++;
-                    
+
                     // Cleanup temp file
                     if (file_exists($tempPath)) {
                         unlink($tempPath);
                     }
 
                 } catch (\Exception $e) {
-                    $this->command->error("\nFailed to upload file for submission {$submission->id}: " . $e->getMessage());
+                    $this->command->error("\nFailed to upload file for submission {$submission->id}: ".$e->getMessage());
                 }
             }
 
             $processed++;
             $bar->advance();
-            
+
             // Clean memory occasionally
             if ($processed % 100 === 0) {
-                 gc_collect_cycles();
+                gc_collect_cycles();
             }
         }
 
         $bar->finish();
         $this->command->newLine();
         $this->command->info("✅ Created and uploaded $fileCount submission files to Object Storage.");
-        
+
         DB::connection()->enableQueryLog();
     }
 }

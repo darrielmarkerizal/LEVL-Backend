@@ -11,42 +11,42 @@ use Modules\Learning\Services\LearningPageService;
 
 class LearningController extends Controller
 {
-  use ApiResponse;
+    use ApiResponse;
 
-  public function __construct(private readonly LearningPageService $service) {}
+    public function __construct(private readonly LearningPageService $service) {}
 
-  public function index(): mixed
-  {
-    return $this->service->render("index");
-  }
+    public function index(): mixed
+    {
+        return $this->service->render('index');
+    }
 
-  public function create(): mixed
-  {
-    return $this->service->render("create");
-  }
+    public function create(): mixed
+    {
+        return $this->service->render('create');
+    }
 
-  public function store(Request $request): JsonResponse
-  {
-    return $this->error(__("messages.feature_unavailable"), 501);
-  }
+    public function store(Request $request): JsonResponse
+    {
+        return $this->error(__('messages.feature_unavailable'), 501);
+    }
 
-  public function show(string $id): mixed
-  {
-    return $this->service->render("show");
-  }
+    public function show(string $id): mixed
+    {
+        return $this->service->render('show');
+    }
 
-  public function edit(string $id): mixed
-  {
-    return $this->service->render("edit");
-  }
+    public function edit(string $id): mixed
+    {
+        return $this->service->render('edit');
+    }
 
-  public function update(Request $request, string $id): JsonResponse
-  {
-    return $this->error(__("messages.feature_unavailable"), 501);
-  }
+    public function update(Request $request, string $id): JsonResponse
+    {
+        return $this->error(__('messages.feature_unavailable'), 501);
+    }
 
-  public function destroy(string $id): JsonResponse
-  {
-    return $this->error(__("messages.feature_unavailable"), 501);
-  }
+    public function destroy(string $id): JsonResponse
+    {
+        return $this->error(__('messages.feature_unavailable'), 501);
+    }
 }

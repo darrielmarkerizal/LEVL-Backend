@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('lessons', function (Blueprint $table) {
@@ -13,7 +14,7 @@ return new class extends Migration {
             $table->string('slug', 100)->unique();
             $table->string('title', 255);
             $table->text('description')->nullable();
-            $table->longText('markdown_content')->nullable(); 
+            $table->longText('markdown_content')->nullable();
             $table->enum('content_type', ['markdown', 'video', 'link'])->default('markdown');
             $table->string('content_url')->nullable();
             $table->integer('order')->default(1);

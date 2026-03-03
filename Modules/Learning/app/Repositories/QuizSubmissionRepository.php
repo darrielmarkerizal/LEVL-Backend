@@ -1,11 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Modules\Learning\Repositories;
 
 use App\Repositories\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
 use Modules\Learning\Contracts\Repositories\QuizSubmissionRepositoryInterface;
 use Modules\Learning\Models\QuizSubmission;
 
@@ -24,6 +25,7 @@ class QuizSubmissionRepository extends BaseRepository implements QuizSubmissionR
     public function updateSubmission(QuizSubmission $submission, array $data): QuizSubmission
     {
         $submission->fill($data)->save();
+
         return $submission;
     }
 

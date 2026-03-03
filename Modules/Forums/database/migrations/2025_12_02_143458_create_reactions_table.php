@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-     
     public function up(): void
     {
         if (! Schema::hasTable('reactions')) {
@@ -17,13 +16,11 @@ return new class extends Migration
                 $table->enum('type', ['like', 'helpful', 'solved']);
                 $table->timestamp('created_at')->useCurrent();
 
-                
                 $table->unique(['user_id', 'reactable_type', 'reactable_id', 'type'], 'unique_user_reaction');
             });
         }
     }
 
-     
     public function down(): void
     {
         Schema::dropIfExists('reactions');

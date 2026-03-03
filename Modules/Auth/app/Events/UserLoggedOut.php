@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Modules\Auth\Events;
 
 class UserLoggedOut
@@ -11,5 +10,3 @@ class UserLoggedOut
         public readonly int $userId,
     ) {}
 }
-
-

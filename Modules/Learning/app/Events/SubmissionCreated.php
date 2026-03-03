@@ -17,4 +17,3 @@ class SubmissionCreated
         public Submission $submission
     ) {}
 }
-

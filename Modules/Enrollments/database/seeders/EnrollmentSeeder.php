@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Modules\Enrollments\Database\Seeders;
@@ -11,8 +12,8 @@ class EnrollmentSeeder extends Seeder
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
-        
-        $this->command->info("Seeding enrollments and progress...");
+
+        $this->command->info('Seeding enrollments and progress...');
 
         // ✅ Use raw SQL for minimal memory footprint
         $studentIds = \DB::table('users')
@@ -22,7 +23,7 @@ class EnrollmentSeeder extends Seeder
             ->limit(800)
             ->pluck('users.id')
             ->toArray();
-        
+
         $courseIds = \DB::table('courses')
             ->where('status', 'published')
             ->pluck('id')
@@ -30,15 +31,16 @@ class EnrollmentSeeder extends Seeder
 
         if (empty($studentIds) || empty($courseIds)) {
             echo "⚠️  No students or courses found. Skipping enrollment seeding.\n";
+
             return;
         }
 
-        $this->command->info("Creating enrollments for " . count($studentIds) . " students...");
+        $this->command->info('Creating enrollments for '.count($studentIds).' students...');
 
         // Pre-fetch existing enrollments
         $existingPairs = \DB::table('enrollments')
             ->get(['user_id', 'course_id'])
-            ->map(fn($r) => $r->user_id . ':' . $r->course_id)
+            ->map(fn ($r) => $r->user_id.':'.$r->course_id)
             ->flip()
             ->all();
 
@@ -52,7 +54,7 @@ class EnrollmentSeeder extends Seeder
             $selectedCourses = is_array($selectedCourses) ? $selectedCourses : [$selectedCourses];
 
             foreach ($selectedCourses as $courseId) {
-                $pairKey = $studentId . ':' . $courseId;
+                $pairKey = $studentId.':'.$courseId;
                 if (isset($existingPairs[$pairKey])) {
                     continue;
                 }
@@ -78,11 +80,11 @@ class EnrollmentSeeder extends Seeder
                 if (count($enrollments) >= $enrollmentBatchSize) {
                     \DB::table('enrollments')->insertOrIgnore($enrollments);
                     $this->command->info("  ✅ Inserted $totalEnrollments enrollments");
-                    
+
                     $enrollments = [];
                     unset($enrollments);
                     $enrollments = [];
-                    
+
                     if ($totalEnrollments % 1000 === 0) {
                         gc_collect_cycles();
                     }
@@ -90,7 +92,7 @@ class EnrollmentSeeder extends Seeder
             }
         }
 
-        if (!empty($enrollments)) {
+        if (! empty($enrollments)) {
             \DB::table('enrollments')->insertOrIgnore($enrollments);
             unset($enrollments);
         }
@@ -99,11 +101,11 @@ class EnrollmentSeeder extends Seeder
         gc_collect_cycles();
 
         // ✅ Create progress records using chunked processing
-        $this->command->info("Creating progress records...");
+        $this->command->info('Creating progress records...');
         $this->createProgressRecordsChunked();
 
-        $this->command->info("✅ Enrollment seeding completed!");
-        
+        $this->command->info('✅ Enrollment seeding completed!');
+
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
     }
@@ -175,19 +177,19 @@ class EnrollmentSeeder extends Seeder
                 }
 
                 // Insert in batches
-                if (!empty($courseProgress)) {
+                if (! empty($courseProgress)) {
                     foreach (array_chunk($courseProgress, 300) as $chunk) {
                         \DB::table('course_progress')->insertOrIgnore($chunk);
                     }
                 }
 
-                if (!empty($unitProgress)) {
+                if (! empty($unitProgress)) {
                     foreach (array_chunk($unitProgress, 300) as $chunk) {
                         \DB::table('unit_progress')->insertOrIgnore($chunk);
                     }
                 }
 
-                if (!empty($lessonProgress)) {
+                if (! empty($lessonProgress)) {
                     foreach (array_chunk($lessonProgress, 300) as $chunk) {
                         \DB::table('lesson_progress')->insertOrIgnore($chunk);
                     }
@@ -195,7 +197,7 @@ class EnrollmentSeeder extends Seeder
 
                 $totalProcessed += count($enrollmentChunk);
                 unset($courseProgress, $unitProgress, $lessonProgress);
-                
+
                 if ($totalProcessed % 200 === 0) {
                     gc_collect_cycles();
                     $this->command->info("   ✓ Created progress for $totalProcessed enrollments");

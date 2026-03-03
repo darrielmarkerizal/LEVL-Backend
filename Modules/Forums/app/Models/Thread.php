@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Common\Traits\PgSearchable;
 use Spatie\MediaLibrary\HasMedia;
@@ -17,7 +16,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Thread extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, PgSearchable, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, PgSearchable, SoftDeletes;
 
     protected array $searchable_columns = [
         'title',
@@ -159,12 +158,13 @@ class Thread extends Model implements HasMedia
                 $q->where('user_id', auth()->id());
             }]);
         }
+
         return $query;
     }
 
     public function scopeIsMentioned($query, $state = true)
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return $query;
         }
 
@@ -174,8 +174,6 @@ class Thread extends Model implements HasMedia
             $q->where('user_id', auth()->id());
         });
     }
-
-
 
     public function registerMediaCollections(): void
     {

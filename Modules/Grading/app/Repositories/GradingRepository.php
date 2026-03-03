@@ -75,7 +75,7 @@ class GradingRepository implements GradingRepositoryInterface
         $perPage = max(1, min($perPage, 100));
 
         return \Illuminate\Support\Facades\Cache::tags(['grades'])->remember(
-            "grades:paginate:{$perPage}:" . request('page', 1),
+            "grades:paginate:{$perPage}:".request('page', 1),
             self::CACHE_TTL,
             function () use ($perPage) {
                 return $this->model
@@ -89,7 +89,7 @@ class GradingRepository implements GradingRepositoryInterface
     public function create(array $data): Grade
     {
         $grade = $this->model->create($data);
-        
+
         $this->invalidateCache($grade);
 
         return $grade->load(self::DEFAULT_EAGER_LOAD);
@@ -98,7 +98,7 @@ class GradingRepository implements GradingRepositoryInterface
     public function update(Grade $grade, array $data): Grade
     {
         $grade->update($data);
-        
+
         $this->invalidateCache($grade);
 
         return $grade->fresh()->load(self::DEFAULT_EAGER_LOAD);
@@ -107,13 +107,14 @@ class GradingRepository implements GradingRepositoryInterface
     public function delete(Grade $grade): bool
     {
         $this->invalidateCache($grade);
+
         return $grade->delete();
     }
 
     public function findPendingManualGrading(array $filters = []): Collection
     {
         return \Illuminate\Support\Facades\Cache::tags(['grades', 'grading', 'queue'])->remember(
-            "grades:pending_manual:" . md5(json_encode($filters)),
+            'grades:pending_manual:'.md5(json_encode($filters)),
             300,
             function () use ($filters) {
                 return \Spatie\QueryBuilder\QueryBuilder::for($this->model, new \Illuminate\Http\Request($filters))
@@ -224,17 +225,17 @@ class GradingRepository implements GradingRepositoryInterface
 
         $cache->forget("grade:{$grade->id}");
         $cache->forget("grade:{$grade->id}:details");
-        
+
         if ($grade->submission_id) {
             $cache->forget("grade:submission:{$grade->submission_id}");
             $cache->forget("grade:submission:{$grade->submission_id}:details");
         }
-        
+
         if ($grade->user_id) {
             $cache->forget("grades:user:{$grade->user_id}");
         } elseif ($grade->submission) {
             // Try to load relation if not set on model
-             $cache->forget("grades:user:{$grade->submission->user_id}");
+            $cache->forget("grades:user:{$grade->submission->user_id}");
         }
 
         // Flush grading queue cache

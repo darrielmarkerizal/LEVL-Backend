@@ -87,6 +87,7 @@ class AuthApiController extends Controller
 
         $data = \Illuminate\Support\Facades\Cache::tags(['user_profile'])->remember('user_profile:'.$user->id, 3600, function () use ($user) {
             $user->load(['roles', 'media']);
+
             return (new UserResource($user))->resolve();
         });
 
@@ -113,7 +114,7 @@ class AuthApiController extends Controller
         $result = $this->authService->verifyEmail($request->input('token'), $request->input('uuid'));
 
         if ($result['status'] !== 'ok') {
-            return $this->error(__('messages.auth.verification_' . $result['status']), [], 422);
+            return $this->error(__('messages.auth.verification_'.$result['status']), [], 422);
         }
 
         return $this->success([], __('messages.auth.email_verified'));
@@ -126,7 +127,7 @@ class AuthApiController extends Controller
 
         $uuid = $this->authService->sendEmailVerificationLink($user);
 
-        if (!$uuid) {
+        if (! $uuid) {
             return $this->error(__('messages.auth.email_already_verified'), [], 422);
         }
 
@@ -154,7 +155,7 @@ class AuthApiController extends Controller
 
             $user = User::where('email', $googleUser->getEmail())->first();
 
-            if (!$user) {
+            if (! $user) {
                 $user = $this->authService->createUserFromGoogle($googleUser);
             }
 

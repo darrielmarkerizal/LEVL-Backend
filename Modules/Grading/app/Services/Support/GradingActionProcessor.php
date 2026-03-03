@@ -137,7 +137,7 @@ class GradingActionProcessor
     public function returnToQueue(Submission $submission): void
     {
         if ($submission->state !== \Modules\Learning\Enums\SubmissionState::Graded) {
-             throw new \InvalidArgumentException(__('messages.grading.submission_not_graded'));
+            throw new \InvalidArgumentException(__('messages.grading.submission_not_graded'));
         }
 
         $submission->update(['state' => \Modules\Learning\Enums\SubmissionState::PendingManualGrading->value]);

@@ -22,7 +22,7 @@ class ChallengeSeeder extends Seeder
         for ($i = 0; $i < 50; $i++) {
             $type = $faker->randomElement(['daily', 'weekly']);
             $points = $type === 'daily' ? $faker->numberBetween(10, 50) : $faker->numberBetween(100, 500);
-            
+
             // Criteria templates
             $criteriaOptions = [
                 ['type' => 'lessons_completed', 'target_range' => [1, 5], 'desc' => 'Selesaikan :target lesson'],
@@ -33,23 +33,26 @@ class ChallengeSeeder extends Seeder
 
             $selectedCriteria = $faker->randomElement($criteriaOptions);
             $target = $faker->numberBetween($selectedCriteria['target_range'][0], $selectedCriteria['target_range'][1]);
-            
+
             // Adjust target higher for weekly
             if ($type === 'weekly') {
                 $target = (int) ceil($target * 3.5);
             }
 
             $description = str_replace(':target', (string) $target, $selectedCriteria['desc']);
-            if ($type === 'daily') $description .= ' hari ini.';
-            else $description .= ' minggu ini.';
+            if ($type === 'daily') {
+                $description .= ' hari ini.';
+            } else {
+                $description .= ' minggu ini.';
+            }
 
             // 40% chance to have a badge reward
-            $badgeId = ($faker->boolean(40) && $badges->isNotEmpty()) 
-                ? $badges->random()->id 
+            $badgeId = ($faker->boolean(40) && $badges->isNotEmpty())
+                ? $badges->random()->id
                 : null;
 
             $challengesToCreate[] = [
-                'title' => $faker->words(3, true) . ($type === 'daily' ? ' Harian' : ' Mingguan'),
+                'title' => $faker->words(3, true).($type === 'daily' ? ' Harian' : ' Mingguan'),
                 'description' => ucfirst($description),
                 'type' => $type,
                 'criteria' => json_encode([
@@ -71,13 +74,13 @@ class ChallengeSeeder extends Seeder
         }
 
         $this->command->info('✅ 50 Challenges seeded successfully!');
-        
+
         // Count stats
         $badgeCount = Challenge::whereNotNull('badge_id')->count();
         $this->command->info("   - With Badges: $badgeCount");
-        $this->command->info("   - Daily: " . Challenge::where('type', 'daily')->count());
-        $this->command->info("   - Weekly: " . Challenge::where('type', 'weekly')->count());
-        
+        $this->command->info('   - Daily: '.Challenge::where('type', 'daily')->count());
+        $this->command->info('   - Weekly: '.Challenge::where('type', 'weekly')->count());
+
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
     }

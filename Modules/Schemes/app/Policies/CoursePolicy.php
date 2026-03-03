@@ -47,6 +47,7 @@ class CoursePolicy
             if ($course->relationLoaded('admins')) {
                 return $course->admins->contains('id', $user->id);
             }
+
             return $course->admins()->where('user_id', $user->id)->exists();
         }
 
@@ -65,6 +66,7 @@ class CoursePolicy
             if ($course->relationLoaded('admins')) {
                 return $course->admins->contains('id', $user->id);
             }
+
             return $course->admins()->where('user_id', $user->id)->exists();
         }
 
@@ -92,6 +94,7 @@ class CoursePolicy
             if ($course->relationLoaded('admins')) {
                 return $course->admins->contains('id', $user->id);
             }
+
             return $course->admins()->where('user_id', $user->id)->exists();
         }
 

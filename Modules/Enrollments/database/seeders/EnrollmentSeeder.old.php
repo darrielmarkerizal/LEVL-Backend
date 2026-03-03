@@ -1,21 +1,22 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Modules\Enrollments\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
-use Modules\Schemes\Models\Course;
-use Modules\Enrollments\Models\Enrollment;
 use Modules\Enrollments\Enums\ProgressStatus;
+use Modules\Enrollments\Models\Enrollment;
+use Modules\Schemes\Models\Course;
 
 class EnrollmentSeeder extends Seeder
 {
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
-        
-        $this->command->info("Seeding enrollments and progress...");
+
+        $this->command->info('Seeding enrollments and progress...');
 
         $students = User::whereHas('roles', function ($q) {
             $q->where('name', 'Student');
@@ -25,10 +26,11 @@ class EnrollmentSeeder extends Seeder
 
         if ($students->isEmpty() || $courses->isEmpty()) {
             echo "⚠️  No students or courses found. Skipping enrollment seeding.\n";
+
             return;
         }
 
-        $this->command->info("Creating 500-800 enrollments...");
+        $this->command->info('Creating 500-800 enrollments...');
 
         $enrollments = [];
         $courseProgressData = [];
@@ -39,7 +41,7 @@ class EnrollmentSeeder extends Seeder
         $existingPairs = \Illuminate\Support\Facades\DB::table('enrollments')
             ->select(['user_id', 'course_id'])
             ->get()
-            ->map(fn($r) => $r->user_id . ':' . $r->course_id)
+            ->map(fn ($r) => $r->user_id.':'.$r->course_id)
             ->flip()
             ->all();
 
@@ -50,13 +52,13 @@ class EnrollmentSeeder extends Seeder
                 gc_collect_cycles();
                 echo "      ✓ Processed $processedStudents students\n";
             }
-            
+
             $enrollmentCount = rand(3, 8);
             $randomCourses = $courses->random(min($enrollmentCount, $courses->count()));
             // ... (rest of loop)
 
             foreach ($randomCourses as $course) {
-                $pairKey = $student->id . ':' . $course->id;
+                $pairKey = $student->id.':'.$course->id;
                 if (isset($existingPairs[$pairKey])) {
                     continue;
                 }
@@ -118,16 +120,16 @@ class EnrollmentSeeder extends Seeder
             }
         }
 
-        if (!empty($enrollments)) {
+        if (! empty($enrollments)) {
             foreach (array_chunk($enrollments, 1000) as $chunk) {
                 \Illuminate\Support\Facades\DB::table('enrollments')->insertOrIgnore($chunk);
-                $this->command->info("  ✅ Inserted " . count($chunk) . " enrollments");
+                $this->command->info('  ✅ Inserted '.count($chunk).' enrollments');
             }
             $this->insertProgressData($enrollments, $courseProgressData, $unitProgressData, $lessonProgressData);
         }
 
-        $this->command->info("✅ Enrollment seeding completed!");
-        
+        $this->command->info('✅ Enrollment seeding completed!');
+
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
     }
@@ -145,22 +147,22 @@ class EnrollmentSeeder extends Seeder
             return;
         }
 
-        if (!empty($enrollmentModels)) {
+        if (! empty($enrollmentModels)) {
             $pairToId = [];
             foreach ($enrollmentModels as $model) {
-                $pairToId[$model->user_id . ':' . $model->course_id] = $model->id;
+                $pairToId[$model->user_id.':'.$model->course_id] = $model->id;
             }
 
             $indexToId = [];
             foreach ($enrollments as $idx => $enroll) {
-                $key = $enroll['user_id'] . ':' . $enroll['course_id'];
+                $key = $enroll['user_id'].':'.$enroll['course_id'];
                 if (isset($pairToId[$key])) {
                     $indexToId[$idx] = $pairToId[$key];
                 }
             }
 
             // Insert Course Progress
-            if (!empty($courseProgressData) && \Illuminate\Support\Facades\Schema::hasTable('course_progress')) {
+            if (! empty($courseProgressData) && \Illuminate\Support\Facades\Schema::hasTable('course_progress')) {
                 $courseBatch = [];
                 foreach ($courseProgressData as $idx => $data) {
                     if (isset($indexToId[$idx])) {
@@ -168,7 +170,7 @@ class EnrollmentSeeder extends Seeder
                         $courseBatch[] = $data;
                     }
                 }
-                if (!empty($courseBatch)) {
+                if (! empty($courseBatch)) {
                     foreach (array_chunk($courseBatch, 1000) as $chunk) {
                         \Illuminate\Support\Facades\DB::table('course_progress')->insertOrIgnore($chunk);
                     }
@@ -176,7 +178,7 @@ class EnrollmentSeeder extends Seeder
             }
 
             // Insert Unit Progress
-            if (!empty($unitProgressData) && \Illuminate\Support\Facades\Schema::hasTable('unit_progress')) {
+            if (! empty($unitProgressData) && \Illuminate\Support\Facades\Schema::hasTable('unit_progress')) {
                 $unitBatch = [];
                 foreach ($unitProgressData as $data) {
                     $idx = $data['enrollment_id'];
@@ -186,7 +188,7 @@ class EnrollmentSeeder extends Seeder
                     }
                 }
 
-                if (!empty($unitBatch)) {
+                if (! empty($unitBatch)) {
                     foreach (array_chunk($unitBatch, 1000) as $chunk) {
                         \Illuminate\Support\Facades\DB::table('unit_progress')->insertOrIgnore($chunk);
                     }
@@ -194,7 +196,7 @@ class EnrollmentSeeder extends Seeder
             }
 
             // Insert Lesson Progress
-            if (!empty($lessonProgressData) && \Illuminate\Support\Facades\Schema::hasTable('lesson_progress')) {
+            if (! empty($lessonProgressData) && \Illuminate\Support\Facades\Schema::hasTable('lesson_progress')) {
                 $lessonBatch = [];
                 foreach ($lessonProgressData as $data) {
                     $idx = $data['enrollment_id'];
@@ -203,9 +205,9 @@ class EnrollmentSeeder extends Seeder
                         $lessonBatch[] = $data;
                     }
                 }
-                if (!empty($lessonBatch)) {
+                if (! empty($lessonBatch)) {
                     foreach (array_chunk($lessonBatch, 1000) as $chunk) {
-                         \Illuminate\Support\Facades\DB::table('lesson_progress')->insertOrIgnore($chunk);
+                        \Illuminate\Support\Facades\DB::table('lesson_progress')->insertOrIgnore($chunk);
                     }
                 }
             }

@@ -49,7 +49,7 @@ class AssignmentFinder
 
         // Cache based on inputs
         return cache()->tags(['learning', 'assignments'])->remember(
-            "learning:assignments:index:{$course->id}:" . md5(json_encode($filters)),
+            "learning:assignments:index:{$course->id}:".md5(json_encode($filters)),
             300,
             function () use ($course, $filters, $unitSlug, $lessonSlug) {
                 if ($lessonSlug) {
@@ -61,24 +61,24 @@ class AssignmentFinder
 
                     $lesson->loadMissing('unit');
                     if ($lesson->unit && $lesson->unit->course_id !== $course->id) {
-                         throw new \InvalidArgumentException(__('messages.assignments.invalid_scope_hierarchy'));
+                        throw new \InvalidArgumentException(__('messages.assignments.invalid_scope_hierarchy'));
                     }
 
                     return $this->listByLessonForIndex($lesson, $filters);
                 }
 
                 if ($unitSlug) {
-                     $unit = \Modules\Schemes\Models\Unit::where('slug', $unitSlug)->first();
+                    $unit = \Modules\Schemes\Models\Unit::where('slug', $unitSlug)->first();
 
-                     if (! $unit) {
-                         throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.units.not_found'));
-                     }
+                    if (! $unit) {
+                        throw new \Illuminate\Database\Eloquent\ModelNotFoundException(__('messages.units.not_found'));
+                    }
 
-                     if ($unit->course_id !== $course->id) {
-                          throw new \InvalidArgumentException(__('messages.assignments.invalid_scope_hierarchy'));
-                     }
+                    if ($unit->course_id !== $course->id) {
+                        throw new \InvalidArgumentException(__('messages.assignments.invalid_scope_hierarchy'));
+                    }
 
-                     return $this->listByUnitForIndex($unit, $filters);
+                    return $this->listByUnitForIndex($unit, $filters);
                 }
 
                 return $this->listByCourseForIndex($course, $filters);
@@ -154,7 +154,7 @@ class AssignmentFinder
         $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
 
         return cache()->tags(['learning', 'assignments'])->remember(
-            "learning:assignments:incomplete:{$course->id}:{$studentId}:{$perPage}:" . md5(json_encode($filters)),
+            "learning:assignments:incomplete:{$course->id}:{$studentId}:{$perPage}:".md5(json_encode($filters)),
             300,
             function () use ($course, $studentId, $filters, $perPage) {
                 $query = $this->buildQuery($filters)
@@ -164,12 +164,12 @@ class AssignmentFinder
                 // Left join with submissions to find incomplete assignments
                 $query->leftJoin('submissions', function ($join) use ($studentId) {
                     $join->on('assignments.id', '=', 'submissions.assignment_id')
-                         ->where('submissions.user_id', $studentId)
-                         ->whereIn('submissions.status', ['submitted', 'graded']);
+                        ->where('submissions.user_id', $studentId)
+                        ->whereIn('submissions.status', ['submitted', 'graded']);
                 })
-                ->whereNull('submissions.id')
-                ->select('assignments.*')
-                ->distinct();
+                    ->whereNull('submissions.id')
+                    ->select('assignments.*')
+                    ->distinct();
 
                 return $query->paginate($perPage);
             }

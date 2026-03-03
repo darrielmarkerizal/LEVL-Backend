@@ -18,7 +18,9 @@ class SendNotificationJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 60;
+
     public int $backoff = 10;
 
     public function __construct(
@@ -33,6 +35,7 @@ class SendNotificationJob implements ShouldQueue
     {
         if (empty($this->userIds)) {
             Log::info('SendNotificationJob: No user IDs provided, skipping');
+
             return;
         }
 
@@ -40,6 +43,7 @@ class SendNotificationJob implements ShouldQueue
             Log::error('SendNotificationJob: Notification class does not exist', [
                 'notification_class' => $this->notificationClass,
             ]);
+
             return;
         }
 
@@ -55,6 +59,7 @@ class SendNotificationJob implements ShouldQueue
                 Log::warning('SendNotificationJob: No users found for provided IDs', [
                     'user_ids' => $this->userIds,
                 ]);
+
                 return;
             }
 

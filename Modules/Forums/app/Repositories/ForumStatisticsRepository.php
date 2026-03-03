@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Forums\Repositories;
 
+use Carbon\Carbon;
 use Modules\Forums\Contracts\Repositories\ForumStatisticsRepositoryInterface;
 use Modules\Forums\Models\ForumStatistic;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
-use Carbon\Carbon;
 
 class ForumStatisticsRepository implements ForumStatisticsRepositoryInterface
 {

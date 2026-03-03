@@ -7,7 +7,6 @@ namespace Modules\Gamification\Services\Support;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Modules\Enrollments\Enums\EnrollmentStatus;
-use Modules\Enrollments\Models\Enrollment;
 use Modules\Gamification\Enums\ChallengeAssignmentStatus;
 use Modules\Gamification\Models\Challenge;
 use Modules\Gamification\Models\UserChallengeAssignment;
@@ -15,7 +14,6 @@ use Modules\Gamification\Models\UserChallengeCompletion;
 
 class ChallengeFinder
 {
-    
     public function getUserChallengesQuery(int $userId): \Illuminate\Database\Eloquent\Builder
     {
         return UserChallengeAssignment::with('challenge.badge')
@@ -36,10 +34,11 @@ class ChallengeFinder
     {
         return $this->getUserChallengesQuery($userId)->get();
     }
-    
+
     public function getUserChallengesPaginated(int $userId, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, 100));
+
         return $this->getUserChallengesQuery($userId)->paginate($perPage);
     }
 
@@ -47,7 +46,7 @@ class ChallengeFinder
     {
         return \Illuminate\Support\Facades\Cache::remember(
             "challenge_active_{$challengeId}",
-            now()->addMinutes(10), 
+            now()->addMinutes(10),
             fn () => Challenge::active()->find($challengeId)
         );
     }
@@ -74,7 +73,7 @@ class ChallengeFinder
 
     public function hasActiveAssignment(int $userId, int $challengeId, string $challengeType): bool
     {
-        
+
         $query = UserChallengeAssignment::where('user_id', $userId)
             ->whereIn('status', [
                 ChallengeAssignmentStatus::Pending,

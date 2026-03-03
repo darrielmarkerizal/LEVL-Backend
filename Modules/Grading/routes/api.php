@@ -1,12 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
 use Modules\Grading\Http\Controllers\GradingController;
 
 Route::middleware(['auth:api'])->prefix('v1')->group(function () {
-
-
 
     Route::middleware(['role:Superadmin|Admin|Instructor'])->group(function () {
         Route::get('grading', [GradingController::class, 'queue'])->name('grading.index');

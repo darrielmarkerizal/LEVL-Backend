@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Services\Support;
 
-use Illuminate\Support\Str;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\OtpCode;
 use Modules\Auth\Models\User;
@@ -12,6 +11,7 @@ use Modules\Auth\Models\User;
 class VerificationValidator
 {
     public const PURPOSE_REGISTER = 'register_verification';
+
     public const PURPOSE_CHANGE_EMAIL = 'email_change_verification';
 
     public function verifyByCode(string $uuidOrToken, string $code): array

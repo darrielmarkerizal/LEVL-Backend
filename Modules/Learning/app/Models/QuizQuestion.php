@@ -112,6 +112,7 @@ class QuizQuestion extends Model implements HasMedia
                 QuizQuestionType::TrueFalse->value,
             ]);
         }
+
         return $query->whereNotIn('type', [
             QuizQuestionType::MultipleChoice->value,
             QuizQuestionType::Checkbox->value,

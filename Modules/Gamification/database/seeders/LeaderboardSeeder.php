@@ -21,7 +21,7 @@ class LeaderboardSeeder extends Seeder
             $this->leaderboardService->updateRankings();
             $this->command->info('✅ Leaderboards (Global & Course) updated successfully.');
         } catch (\Exception $e) {
-            $this->command->error('❌ Failed to update leaderboards: ' . $e->getMessage());
+            $this->command->error('❌ Failed to update leaderboards: '.$e->getMessage());
         }
     }
 }

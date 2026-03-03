@@ -7,9 +7,7 @@ namespace Modules\Forums\Repositories;
 use App\Repositories\BaseRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Cache;
 use Modules\Forums\Contracts\Repositories\ThreadRepositoryInterface;
-use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
 use Spatie\QueryBuilder\AllowedFilter;
 
@@ -36,7 +34,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return cache()->tags(['forums', 'threads'])->remember(
-            "forums:threads:paginate:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            "forums:threads:paginate:{$perPage}:".request('page', 1).':'.md5(json_encode($filters)),
             300,
             function () use ($filters, $perPage) {
                 $query = $this->query();
@@ -110,8 +108,9 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
     public function getThreadsByCourse(int $courseId, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, min((int) ($filters['per_page'] ?? 20), 100));
+
         return cache()->tags(['forums', 'threads', "course:{$courseId}"])->remember(
-            "forums:threads:course:{$courseId}:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            "forums:threads:course:{$courseId}:{$perPage}:".request('page', 1).':'.md5(json_encode($filters)),
             300,
             function () use ($courseId, $filters) {
                 $query = Thread::query()
@@ -145,8 +144,9 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
     public function searchThreadsByCourse(string $searchQuery, int $courseId, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, min((int) ($filters['per_page'] ?? 20), 100));
+
         return cache()->tags(['forums', 'threads', "course:{$courseId}"])->remember(
-            "forums:threads:search:course:{$courseId}:{$searchQuery}:{$perPage}:" . request('page', 1) . ":" . md5(json_encode($filters)),
+            "forums:threads:search:course:{$courseId}:{$searchQuery}:{$perPage}:".request('page', 1).':'.md5(json_encode($filters)),
             300,
             function () use ($searchQuery, $courseId, $filters) {
                 $query = Thread::query()
@@ -207,8 +207,9 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
     public function getAllThreads(array $filters = [], ?string $search = null): LengthAwarePaginator
     {
         $perPage = max(1, min((int) ($filters['per_page'] ?? 20), 100));
+
         return cache()->tags(['forums', 'threads'])->remember(
-            "forums:threads:all:{$perPage}:" . request('page', 1) . ":" . md5(json_encode([$filters, $search])),
+            "forums:threads:all:{$perPage}:".request('page', 1).':'.md5(json_encode([$filters, $search])),
             300,
             function () use ($filters, $search) {
                 $query = Thread::query()
@@ -240,8 +241,9 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
     public function getInstructorThreads(int $instructorId, array $filters = [], ?string $search = null): LengthAwarePaginator
     {
         $perPage = max(1, min((int) ($filters['per_page'] ?? 20), 100));
+
         return cache()->tags(['forums', 'threads', "instructor:{$instructorId}"])->remember(
-            "forums:threads:instructor:{$instructorId}:{$perPage}:" . request('page', 1) . ":" . md5(json_encode([$filters, $search])),
+            "forums:threads:instructor:{$instructorId}:{$perPage}:".request('page', 1).':'.md5(json_encode([$filters, $search])),
             300,
             function () use ($instructorId, $filters, $search) {
                 $courseIds = \Modules\Schemes\Models\Course::where('instructor_id', $instructorId)
@@ -278,8 +280,9 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
     public function getUserThreads(int $userId, array $filters = [], ?string $search = null): LengthAwarePaginator
     {
         $perPage = max(1, min((int) ($filters['per_page'] ?? 20), 100));
+
         return cache()->tags(['forums', 'threads', "user:{$userId}"])->remember(
-            "forums:threads:user:{$userId}:{$perPage}:" . request('page', 1) . ":" . md5(json_encode([$filters, $search])),
+            "forums:threads:user:{$userId}:{$perPage}:".request('page', 1).':'.md5(json_encode([$filters, $search])),
             300,
             function () use ($userId, $filters, $search) {
                 $query = Thread::query()
@@ -357,7 +360,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                     [
                         AllowedFilter::callback('period', function ($query, $value): void {
                             $period = (string) $value;
-                            $startDate = match($period) {
+                            $startDate = match ($period) {
                                 '24hours' => now()->subDay(),
                                 '7days' => now()->subDays(7),
                                 '30days' => now()->subDays(30),
@@ -404,7 +407,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                     [
                         AllowedFilter::callback('period', function ($query, $value): void {
                             $period = (string) $value;
-                            $startDate = match($period) {
+                            $startDate = match ($period) {
                                 '24hours' => now()->subDay(),
                                 '7days' => now()->subDays(7),
                                 '30days' => now()->subDays(30),

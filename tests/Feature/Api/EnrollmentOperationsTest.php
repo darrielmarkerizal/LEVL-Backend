@@ -298,4 +298,3 @@ it('student cannot decline enrollment', function () {
 
     $response->assertStatus(403);
 });
-

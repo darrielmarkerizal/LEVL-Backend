@@ -118,6 +118,7 @@ class UserBulkService implements UserBulkServiceInterface
 
         $deleted = $this->repository->bulkDelete($userIds);
         cache()->tags(['auth', 'users'])->flush();
+
         return $deleted;
     }
 

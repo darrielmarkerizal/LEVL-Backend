@@ -15,7 +15,7 @@ return new class extends Migration
             $table->unsignedInteger('xp_earned')->default(0);
             $table->timestamps();
             $table->unique(['user_id', 'activity_date']);
-            
+
             $table->index(['user_id', 'activity_date']);
             $table->index('activity_date');
         });

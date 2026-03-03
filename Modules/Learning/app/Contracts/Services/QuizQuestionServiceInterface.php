@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Learning\Contracts\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
 use Modules\Learning\Models\QuizQuestion;
 
 interface QuizQuestionServiceInterface

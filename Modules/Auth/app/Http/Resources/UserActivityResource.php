@@ -6,7 +6,6 @@ namespace Modules\Auth\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Auth\Models\UserActivity;
 
 class UserActivityResource extends JsonResource
 {

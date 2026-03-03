@@ -30,7 +30,7 @@ class ProfileActivityController extends Controller
         ];
 
         $paginator = $this->activityService->getActivities($user, $filters);
-        $paginator->getCollection()->transform(fn($activity) => new \Modules\Auth\Http\Resources\UserActivityResource($activity));
+        $paginator->getCollection()->transform(fn ($activity) => new \Modules\Auth\Http\Resources\UserActivityResource($activity));
 
         return $this->paginateResponse($paginator);
     }

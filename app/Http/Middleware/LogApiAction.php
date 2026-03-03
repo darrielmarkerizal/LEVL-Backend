@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Modules\Common\Models\Audit;
 use Symfony\Component\HttpFoundation\Response;
 
 class LogApiAction
@@ -83,9 +82,11 @@ class LogApiAction
                             if (property_exists($value, 'id')) {
                                 return $value->id;
                             }
+
                             // Fallback to stringable representation
                             return method_exists($value, '__toString') ? (string) $value : get_class($value);
                         }
+
                         return $value;
                     })
                     ->toArray();

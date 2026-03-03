@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Http\Requests;
 
+use Illuminate\Foundation\Http\FormRequest;
 use Modules\Learning\Enums\QuestionType;
 use Modules\Learning\Models\Question;
-
-use Illuminate\Foundation\Http\FormRequest;
 
 class SaveAnswerRequest extends FormRequest
 {
@@ -98,7 +97,7 @@ class SaveAnswerRequest extends FormRequest
                         }
                     }
                 },
-            ], 
+            ],
         ];
     }
 

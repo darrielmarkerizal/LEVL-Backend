@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Grading\Services;
 
-use Illuminate\Support\Facades\DB;
 use Modules\Grading\DTOs\BulkOperationDTO;
 use Modules\Grading\Jobs\BulkApplyFeedbackJob;
 use Modules\Grading\Jobs\BulkReleaseGradesJob;
 use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Models\Submission;
-use Modules\Grading\Services\GradingEntryService;
 
 class GradingBulkService
 {
@@ -35,14 +33,14 @@ class GradingBulkService
 
         if ($data->async) {
             BulkApplyFeedbackJob::dispatch(
-                $data->submissionIds, 
-                (string) $data->feedback, 
+                $data->submissionIds,
+                (string) $data->feedback,
                 $data->performerId
             );
         } else {
             $this->bulkApplyFeedback(
-                $data->submissionIds, 
-                (string) $data->feedback, 
+                $data->submissionIds,
+                (string) $data->feedback,
                 $data->performerId
             );
         }
@@ -59,6 +57,7 @@ class GradingBulkService
                 continue;
             }
         }
+
         return $count;
     }
 
@@ -76,6 +75,7 @@ class GradingBulkService
                 continue;
             }
         }
+
         return $count;
     }
 
@@ -84,18 +84,18 @@ class GradingBulkService
         $invalidCount = Submission::whereIn('id', $submissionIds)
             ->where(function ($q) {
                 $q->where('state', '!=', SubmissionState::Graded->value)
-                  ->where('state', '!=', SubmissionState::Released->value); 
+                    ->where('state', '!=', SubmissionState::Released->value);
             })
             ->count();
 
         if ($invalidCount > 0) {
             throw new \InvalidArgumentException(__('messages.grading.bulk_release_invalid_state'));
         }
-        
+
         $draftCount = \Modules\Grading\Models\Grade::whereIn('submission_id', $submissionIds)
             ->where('is_draft', true)
             ->count();
-            
+
         if ($draftCount > 0) {
             throw new \InvalidArgumentException(__('messages.grading.bulk_release_draft_grades'));
         }
@@ -105,7 +105,7 @@ class GradingBulkService
     {
         $count = Submission::whereIn('id', $submissionIds)->count();
         if ($count !== count($submissionIds)) {
-             throw new \InvalidArgumentException(__('messages.grading.invalid_submission_ids'));
+            throw new \InvalidArgumentException(__('messages.grading.invalid_submission_ids'));
         }
     }
 }

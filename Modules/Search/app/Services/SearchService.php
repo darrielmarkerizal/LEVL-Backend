@@ -124,6 +124,7 @@ class SearchService implements SearchServiceInterface
                     'results_count' => $resultsCount,
                     'created_at' => now(),
                 ]);
+
                 return;
             }
 
@@ -139,6 +140,7 @@ class SearchService implements SearchServiceInterface
                     'results_count' => $resultsCount,
                     'created_at' => now(),
                 ]);
+
                 return;
             }
         }

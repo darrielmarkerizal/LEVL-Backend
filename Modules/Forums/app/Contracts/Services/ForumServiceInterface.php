@@ -29,4 +29,3 @@ interface ForumServiceInterface
 
     public function searchGlobal(string $query, int $limit = 5): \Illuminate\Support\Collection;
 }
-

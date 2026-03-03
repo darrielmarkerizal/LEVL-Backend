@@ -28,22 +28,22 @@ class Override extends Model
         'expires_at' => 'datetime',
     ];
 
-        public function assignment(): BelongsTo
+    public function assignment(): BelongsTo
     {
         return $this->belongsTo(Assignment::class);
     }
 
-        public function student(): BelongsTo
+    public function student(): BelongsTo
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class, 'student_id');
     }
 
-        public function grantor(): BelongsTo
+    public function grantor(): BelongsTo
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class, 'grantor_id');
     }
 
-        public function isActive(): bool
+    public function isActive(): bool
     {
         if ($this->expires_at === null) {
             return true;
@@ -52,12 +52,12 @@ class Override extends Model
         return now()->lt($this->expires_at);
     }
 
-        public function isExpired(): bool
+    public function isExpired(): bool
     {
         return ! $this->isActive();
     }
 
-        public function scopeActive($query, bool $isActive = true)
+    public function scopeActive($query, bool $isActive = true)
     {
         if ($isActive) {
             return $query->where(function ($q) {
@@ -65,25 +65,26 @@ class Override extends Model
                     ->orWhere('expires_at', '>', now());
             });
         }
+
         return $query->where('expires_at', '<=', now());
     }
 
-        public function scopeOfType($query, OverrideType $type)
+    public function scopeOfType($query, OverrideType $type)
     {
         return $query->where('type', $type);
     }
 
-        public function scopeForStudent($query, int $studentId)
+    public function scopeForStudent($query, int $studentId)
     {
         return $query->where('student_id', $studentId);
     }
 
-        public function scopeForAssignment($query, int $assignmentId)
+    public function scopeForAssignment($query, int $assignmentId)
     {
         return $query->where('assignment_id', $assignmentId);
     }
 
-        public function getExtendedDeadline(): ?\Carbon\Carbon
+    public function getExtendedDeadline(): ?\Carbon\Carbon
     {
         if ($this->type !== OverrideType::Deadline) {
             return null;
@@ -94,7 +95,7 @@ class Override extends Model
         return $deadline ? \Carbon\Carbon::parse($deadline) : null;
     }
 
-        public function getAdditionalAttempts(): ?int
+    public function getAdditionalAttempts(): ?int
     {
         if ($this->type !== OverrideType::Attempts) {
             return null;
@@ -103,7 +104,7 @@ class Override extends Model
         return $this->value['additional_attempts'] ?? null;
     }
 
-        public function getBypassedPrerequisites(): ?array
+    public function getBypassedPrerequisites(): ?array
     {
         if ($this->type !== OverrideType::Prerequisite) {
             return null;

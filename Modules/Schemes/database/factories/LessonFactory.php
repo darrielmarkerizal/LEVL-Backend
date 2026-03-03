@@ -3,9 +3,9 @@
 namespace Modules\Schemes\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Schemes\Enums\ContentType;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Unit;
-use Modules\Schemes\Enums\ContentType;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Schemes\Models\Lesson>

@@ -3,8 +3,8 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class InjectQueryDetectorStatus
@@ -16,7 +16,7 @@ class InjectQueryDetectorStatus
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!app()->isLocal()) {
+        if (! app()->isLocal()) {
             return $next($request);
         }
 
@@ -25,15 +25,15 @@ class InjectQueryDetectorStatus
         // Only inject for JSON responses
         if ($response instanceof JsonResponse && config('querydetector.enabled')) {
             $data = $response->getData(true);
-            
+
             // If query_detector not already set (no N+1 detected)
-            if (!isset($data['query_detector'])) {
+            if (! isset($data['query_detector'])) {
                 $data['query_detector'] = [
                     'status' => 'clean',
                     'message' => 'No N+1 queries detected',
-                    'queries_count' => 0
+                    'queries_count' => 0,
                 ];
-                
+
                 $response->setData($data);
             }
         }

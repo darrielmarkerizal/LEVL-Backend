@@ -12,7 +12,6 @@ class ThreadCreated
 
     public Thread $thread;
 
-     
     public function __construct(Thread $thread)
     {
         $this->thread = $thread;

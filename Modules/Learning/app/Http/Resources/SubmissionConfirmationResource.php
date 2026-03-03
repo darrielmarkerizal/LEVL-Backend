@@ -29,7 +29,7 @@ class SubmissionConfirmationResource extends JsonResource
             'status' => $this->status,
             'attempt_number' => $this->attempt_number,
             'is_late' => $this->is_late,
-            'submitted_at' => $this->submitted_at, 
+            'submitted_at' => $this->submitted_at,
             'duration' => $this->duration,
             'duration_formatted' => $this->formatted_duration,
             'summary' => [

@@ -264,4 +264,3 @@ it('admin can unpublish assignment', function () {
     $response->assertStatus(200)
         ->assertJsonPath('data.assignment.status', 'draft');
 });
-

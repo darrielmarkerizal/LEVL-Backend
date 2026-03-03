@@ -3,14 +3,13 @@
 namespace Modules\Auth\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Auth\Models\JwtRefreshToken;
 use Modules\Auth\Models\User;
 
 class JwtRefreshTokenSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * Creates JWT refresh tokens for users:
      * - Active users: 2-5 valid tokens (multi-device)
      * - Pending users: 0 tokens
@@ -23,9 +22,10 @@ class JwtRefreshTokenSeeder extends Seeder
 
         // ✅ Load all users at once (no query per user)
         $users = User::whereNull('deleted_at')->get();
-        
+
         if ($users->isEmpty()) {
             echo "⚠️  No users found. Skipping JWT token seeding.\n";
+
             return;
         }
 
@@ -49,15 +49,15 @@ class JwtRefreshTokenSeeder extends Seeder
                 // ✅ Build token data for batch insert
                 $tokens[] = [
                     'user_id' => $user->id,
-                    'device_id' => hash('sha256', fake()->ipv4() . fake()->userAgent() . $user->id),
+                    'device_id' => hash('sha256', fake()->ipv4().fake()->userAgent().$user->id),
                     'token' => hash('sha256', \Illuminate\Support\Str::random(64)),
                     'ip' => fake()->ipv4(),
                     'user_agent' => fake()->userAgent(),
                     'last_used_at' => now()->subDays(rand(0, 7)),
                     'idle_expires_at' => now()->addDays(14),
                     'absolute_expires_at' => now()->addDays(90),
-                    'revoked_at' => in_array($user->status, ['inactive', 'banned']) 
-                        ? now()->subDays(rand(1, 30)) 
+                    'revoked_at' => in_array($user->status, ['inactive', 'banned'])
+                        ? now()->subDays(rand(1, 30))
                         : null,
                     'replaced_by' => null,
                     'created_at' => now()->subDays(rand(0, 30)),
@@ -68,7 +68,7 @@ class JwtRefreshTokenSeeder extends Seeder
         }
 
         // ✅ Batch insert all tokens at once
-        if (!empty($tokens)) {
+        if (! empty($tokens)) {
             foreach (array_chunk($tokens, 1000) as $chunk) {
                 \Illuminate\Support\Facades\DB::table('jwt_refresh_tokens')->insertOrIgnore($chunk);
             }

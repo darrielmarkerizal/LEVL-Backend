@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Modules\Common\Traits\PgSearchable;
 use Modules\Learning\Enums\AssignmentStatus;
 use Modules\Learning\Enums\AssignmentType;
@@ -47,9 +46,8 @@ class Assignment extends Model implements HasMedia
     }
 
     protected $fillable = [
-        'lesson_id',
-        'assignable_type',
-        'assignable_id',
+        'unit_id',
+        'order',
         'created_by',
         'title',
         'description',
@@ -79,6 +77,7 @@ class Assignment extends Model implements HasMedia
         'max_attempts' => 'integer',
         'cooldown_minutes' => 'integer',
         'question_bank_count' => 'integer',
+        'order' => 'integer',
         'allow_resubmit' => 'boolean',
         'retake_enabled' => 'boolean',
         'allow_multiple' => 'boolean',
@@ -89,14 +88,9 @@ class Assignment extends Model implements HasMedia
         return \Modules\Learning\Database\Factories\AssignmentFactory::new();
     }
 
-    public function assignable(): MorphTo
+    public function unit(): BelongsTo
     {
-        return $this->morphTo();
-    }
-
-    public function lesson(): BelongsTo
-    {
-        return $this->belongsTo(\Modules\Schemes\Models\Lesson::class);
+        return $this->belongsTo(\Modules\Schemes\Models\Unit::class);
     }
 
     public function creator(): BelongsTo
@@ -129,68 +123,25 @@ class Assignment extends Model implements HasMedia
         return $this->status === AssignmentStatus::Published;
     }
 
-    public function getScopeTypeAttribute(): ?string
+    public function getScopeTypeAttribute(): string
     {
-        if ($this->assignable_type) {
-            return match ($this->assignable_type) {
-                \Modules\Schemes\Models\Lesson::class => 'lesson',
-                \Modules\Schemes\Models\Unit::class => 'unit',
-                \Modules\Schemes\Models\Course::class => 'course',
-                default => null,
-            };
-        }
-
-        if ($this->lesson_id) {
-            return 'lesson';
-        }
-
-        return null;
+        return 'unit';
     }
 
-    public function scopeForLesson($query, int $lessonId)
+    public function scopeOrdered($query)
     {
-        return $query->where(function ($q) use ($lessonId) {
-            $q->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
-                ->where('assignable_id', $lessonId);
-        })->orWhere('lesson_id', $lessonId);
+        return $query->orderBy('order');
     }
 
     public function scopeForUnit($query, int $unitId)
     {
-        $lessonIds = \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)->pluck('id')->toArray();
-
-        return $query->where(function ($q) use ($unitId, $lessonIds) {
-            $q->where(function ($subQ) use ($unitId) {
-                $subQ->where('assignable_type', \Modules\Schemes\Models\Unit::class)
-                    ->where('assignable_id', $unitId);
-            })
-                ->orWhere(function ($subQ) use ($lessonIds) {
-                    $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
-                        ->whereIn('assignable_id', $lessonIds);
-                })
-                ->orWhereIn('lesson_id', $lessonIds);
-        });
+        return $query->where('unit_id', $unitId);
     }
 
     public function scopeForCourse($query, int $courseId)
     {
-        $unitIds = \Modules\Schemes\Models\Unit::where('course_id', $courseId)->pluck('id')->toArray();
-        $lessonIds = \Modules\Schemes\Models\Lesson::whereIn('unit_id', $unitIds)->pluck('id')->toArray();
-
-        return $query->where(function ($q) use ($courseId, $unitIds, $lessonIds) {
-            $q->where(function ($subQ) use ($courseId) {
-                $subQ->where('assignable_type', \Modules\Schemes\Models\Course::class)
-                    ->where('assignable_id', $courseId);
-            })
-                ->orWhere(function ($subQ) use ($unitIds) {
-                    $subQ->where('assignable_type', \Modules\Schemes\Models\Unit::class)
-                        ->whereIn('assignable_id', $unitIds);
-                })
-                ->orWhere(function ($subQ) use ($lessonIds) {
-                    $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
-                        ->whereIn('assignable_id', $lessonIds);
-                })
-                ->orWhereIn('lesson_id', $lessonIds);
+        return $query->whereHas('unit', function ($q) use ($courseId) {
+            $q->where('course_id', $courseId);
         });
     }
 
@@ -212,40 +163,11 @@ class Assignment extends Model implements HasMedia
         return $query->where('status', '!=', AssignmentStatus::Published);
     }
 
-    public function hasValidScope(): bool
-    {
-        $hasPolymorphic = $this->assignable_type && $this->assignable_id;
-        $hasLegacy = (bool) $this->lesson_id;
-
-        return $hasPolymorphic xor $hasLegacy;
-    }
-
     public function getCourseId(): ?int
     {
+        $this->loadMissing('unit');
 
-        if ($this->assignable_type === \Modules\Schemes\Models\Course::class) {
-            return $this->assignable_id;
-        }
-
-        if ($this->assignable_type === \Modules\Schemes\Models\Unit::class) {
-            $unit = $this->assignable;
-
-            return $unit?->course_id;
-        }
-
-        if ($this->assignable_type === \Modules\Schemes\Models\Lesson::class) {
-            $lesson = $this->assignable;
-
-            return $lesson?->unit?->course_id;
-        }
-
-        if ($this->lesson_id) {
-            $this->loadMissing('lesson.unit');
-
-            return $this->lesson?->unit?->course_id;
-        }
-
-        return null;
+        return $this->unit?->course_id;
     }
 
     /**

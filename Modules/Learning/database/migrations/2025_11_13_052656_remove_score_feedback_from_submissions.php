@@ -23,7 +23,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (Schema::hasTable('submissions') && !Schema::hasColumn('submissions', 'score')) {
+        if (Schema::hasTable('submissions') && ! Schema::hasColumn('submissions', 'score')) {
             Schema::table('submissions', function (Blueprint $table) {
                 $table->integer('score')->nullable()->after('status');
                 $table->text('feedback')->nullable()->after('score');

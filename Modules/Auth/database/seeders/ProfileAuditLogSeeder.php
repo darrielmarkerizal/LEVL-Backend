@@ -3,14 +3,13 @@
 namespace Modules\Auth\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Auth\Models\ProfileAuditLog;
 use Modules\Auth\Models\User;
 
 class ProfileAuditLogSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * Creates audit logs for profile changes
      */
     public function run(): void
@@ -24,6 +23,7 @@ class ProfileAuditLogSeeder extends Seeder
 
         if ($activeUsers->isEmpty()) {
             echo "⚠️  No active users found. Skipping profile audit log seeding.\n";
+
             return;
         }
 
@@ -75,7 +75,7 @@ class ProfileAuditLogSeeder extends Seeder
         }
 
         // ✅ Batch insert all audit logs at once
-        if (!empty($auditLogs)) {
+        if (! empty($auditLogs)) {
             foreach (array_chunk($auditLogs, 1000) as $chunk) {
                 \Illuminate\Support\Facades\DB::table('profile_audit_logs')->insertOrIgnore($chunk);
             }

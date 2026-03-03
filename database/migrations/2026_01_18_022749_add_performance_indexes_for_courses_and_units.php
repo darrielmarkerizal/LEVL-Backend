@@ -10,7 +10,7 @@ return new class extends Migration
      * Run the migrations.
      *
      * Performance optimization indexes based on benchmark analysis.
-     * 
+     *
      * Bottleneck identified: Course listing query (13 RPS)
      * Expected improvement: 13 RPS → 250-300 RPS (20x faster)
      */

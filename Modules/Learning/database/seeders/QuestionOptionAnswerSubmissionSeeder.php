@@ -10,16 +10,20 @@ use Modules\Learning\Enums\SubmissionStatus;
 class QuestionOptionAnswerSubmissionSeeder extends Seeder
 {
     private array $pregenSentences = [];
+
     private array $pregenWords = [];
+
     private array $pregenParagraphs = [];
+
     private array $pregenUuids = [];
+
     private string $createdAt;
 
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
         ini_set('memory_limit', '1536M');
-        
+
         echo "Seeding questions, options, answers, and submissions...\n";
 
         $this->pregenerateFakeData();
@@ -30,11 +34,13 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
 
         if ($userCount === 0) {
             echo "⚠️  No users found. Please run user seeders first.\n";
+
             return;
         }
 
         if ($assignmentCount === 0) {
             echo "⚠️  No assignments found. Please run assignment seeders first.\n";
+
             return;
         }
 
@@ -55,7 +61,7 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
         ];
 
         $userIds = \DB::table('users')->limit(50)->pluck('id')->toArray();
-        
+
         $questionCount = 0;
         $submissionCount = 0;
         $answerCount = 0;
@@ -63,16 +69,18 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
 
         foreach (\DB::table('assignments')->select('id', 'title')->orderBy('id')->cursor() as $assignment) {
             $processedAssignments++;
-            
-            if (rand(1, 100) > 20) continue;
-            
+
+            if (rand(1, 100) > 20) {
+                continue;
+            }
+
             $numQuestions = rand(2, 3);
             $questionIds = [];
 
             for ($i = 0; $i < $numQuestions; $i++) {
                 $questionType = $questionTypes[array_rand($questionTypes)];
                 $maxScore = [10, 20, 25, 50][rand(0, 3)];
-                
+
                 $questionData = [
                     'assignment_id' => $assignment->id,
                     'type' => $questionType,
@@ -127,7 +135,7 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
             foreach ($selectedUsers as $userId) {
                 $stateIdx = array_rand($submissionStates);
                 $state = $submissionStates[$stateIdx];
-                
+
                 $status = match ($state) {
                     SubmissionState::InProgress->value => SubmissionStatus::Draft->value,
                     SubmissionState::Submitted->value => SubmissionStatus::Submitted->value,
@@ -174,7 +182,7 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
                             break;
 
                         case QuestionType::FileUpload->value:
-                            $answerData['file_paths'] = json_encode([$this->pregenWords[array_rand($this->pregenWords)] . '.pdf']);
+                            $answerData['file_paths'] = json_encode([$this->pregenWords[array_rand($this->pregenWords)].'.pdf']);
                             break;
                     }
 
@@ -187,7 +195,7 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
                     $answerCount++;
                 }
             }
-            
+
             if ($processedAssignments % 50 === 0) {
                 gc_collect_cycles();
                 echo "Processed $processedAssignments assignments. Q: $questionCount, S: $submissionCount, A: $answerCount\n";
@@ -196,27 +204,27 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
 
         echo "✅ Question, option, answer, and submission seeding completed!\n";
         echo "Created $questionCount questions, $submissionCount submissions, and $answerCount answers\n";
-        
+
         $this->pregenSentences = [];
         $this->pregenWords = [];
         $this->pregenParagraphs = [];
         $this->pregenUuids = [];
-        
+
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
     }
-    
+
     private function pregenerateFakeData(): void
     {
         $faker = \Faker\Factory::create('id_ID');
-        
+
         for ($i = 0; $i < 100; $i++) {
             $this->pregenSentences[] = $faker->sentence(8);
             $this->pregenWords[] = $faker->word();
             $this->pregenParagraphs[] = $faker->paragraph(1);
             $this->pregenUuids[] = $faker->uuid();
         }
-        
+
         unset($faker);
     }
 }

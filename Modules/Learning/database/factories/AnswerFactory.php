@@ -4,8 +4,8 @@ namespace Modules\Learning\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Learning\Models\Answer;
-use Modules\Learning\Models\Submission;
 use Modules\Learning\Models\Question;
+use Modules\Learning\Models\Submission;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Learning\Models\Answer>
@@ -63,8 +63,8 @@ class AnswerFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'file_paths' => json_encode([
-                fake()->sha256() . '.pdf',
-                fake()->sha256() . '.docx',
+                fake()->sha256().'.pdf',
+                fake()->sha256().'.docx',
             ]),
             'file_metadata' => json_encode([
                 'total_size' => fake()->numberBetween(100000, 5000000),

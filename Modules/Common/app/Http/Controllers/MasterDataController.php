@@ -89,4 +89,3 @@ class MasterDataController extends Controller
         return $this->success(null, __('messages.master_data.deleted'));
     }
 }
-

@@ -356,7 +356,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*') || $request->is('v1/*')) {
                 $model = $e->getModel();
                 $message = __('messages.not_found');
-                
+
                 // Provide specific messages based on model type
                 if ($model) {
                     $modelName = class_basename($model);
@@ -372,7 +372,7 @@ return Application::configure(basePath: dirname(__DIR__))
                         default => __('messages.not_found'),
                     };
                 }
-                
+
                 return response()->json(
                     [
                         'success' => false,
@@ -391,7 +391,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*') || $request->is('v1/*')) {
                 $prev = $e->getPrevious();
                 $message = __('messages.not_found');
-                
+
                 if ($prev instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
                     $model = $prev->getModel();
                     if ($model) {

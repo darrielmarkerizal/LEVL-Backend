@@ -24,20 +24,17 @@ class ModerationService implements ModerationServiceInterface
         private readonly ReplyRepository $replyRepository
     ) {}
 
-     
     public function pinThread(Thread $thread, User $moderator): Thread
     {
         $this->threadRepository->update($thread, ['is_pinned' => true]);
 
         $this->logModerationAction('pin_thread', $moderator, $thread);
 
-        
         event(new \Modules\Forums\Events\ThreadPinned($thread));
 
         return $thread->fresh();
     }
 
-     
     public function unpinThread(Thread $thread, User $moderator): Thread
     {
         $this->threadRepository->update($thread, ['is_pinned' => false]);
@@ -47,7 +44,6 @@ class ModerationService implements ModerationServiceInterface
         return $thread->fresh();
     }
 
-     
     public function closeThread(Thread $thread, User $actor): Thread
     {
         $thread->is_closed = true;
@@ -87,7 +83,7 @@ class ModerationService implements ModerationServiceInterface
 
         return $thread->fresh();
     }
-     
+
     public function reopenThread(Thread $thread, User $moderator): Thread
     {
         $this->threadRepository->update($thread, ['is_closed' => false]);
@@ -97,13 +93,11 @@ class ModerationService implements ModerationServiceInterface
         return $thread->fresh();
     }
 
-     
     public function markAsAcceptedAnswer(Reply $reply, User $user): Reply
     {
         return DB::transaction(function () use ($reply, $user) {
             $this->replyRepository->markAsAccepted($reply);
 
-            
             $thread = $reply->thread;
             $this->threadRepository->update($thread, ['is_resolved' => true]);
 
@@ -113,13 +107,11 @@ class ModerationService implements ModerationServiceInterface
         });
     }
 
-     
     public function unmarkAsAcceptedAnswer(Reply $reply, User $user): Reply
     {
         return DB::transaction(function () use ($reply, $user) {
             $this->replyRepository->unmarkAsAccepted($reply);
 
-            
             $thread = $reply->thread;
             $this->threadRepository->update($thread, ['is_resolved' => false]);
 
@@ -129,7 +121,6 @@ class ModerationService implements ModerationServiceInterface
         });
     }
 
-     
     public function moderateDelete($content, User $moderator, string $reason): bool
     {
         $result = false;
@@ -151,7 +142,6 @@ class ModerationService implements ModerationServiceInterface
         return $result;
     }
 
-     
     protected function logModerationAction(string $action, User $moderator, $content, array $extra = []): void
     {
         $logData = [

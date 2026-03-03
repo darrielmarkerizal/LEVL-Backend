@@ -6,11 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Modules\Gamification\Models\Challenge;
 use Modules\Gamification\Services\ChallengeService;
 use Modules\Gamification\Transformers\ChallengeCompletionResource;
 use Modules\Gamification\Transformers\ChallengeResource;
-use Modules\Gamification\Transformers\UserChallengeAssignmentResource;
 
 class ChallengeController extends Controller
 {
@@ -22,62 +20,62 @@ class ChallengeController extends Controller
     {
         $userId = $request->user()?->id;
 
-        $perPage = (int) ($request->input("per_page") ?? 15);
+        $perPage = (int) ($request->input('per_page') ?? 15);
         $perPage = $perPage > 0 ? $perPage : 15;
 
         $challenges = $this->challengeService->getChallenges($request->query(), $perPage);
         $challenges->appends($request->query());
 
         if ($userId) {
-            $userChallenges = $this->challengeService->getUserChallenges($userId)->keyBy("challenge_id");
+            $userChallenges = $this->challengeService->getUserChallenges($userId)->keyBy('challenge_id');
 
-            
             $challenges->getCollection()->transform(function ($challenge) use ($userChallenges) {
                 $challenge->user_progress = $userChallenges->get($challenge->id)
                     ? [
-                        "current" => $userChallenges->get($challenge->id)->current_progress,
-                        "target" => $challenge->criteria_target,
-                        "percentage" => $userChallenges->get($challenge->id)->getProgressPercentage(),
-                        "status" => $userChallenges->get($challenge->id)->status->value,
-                        "expires_at" => $userChallenges->get($challenge->id)->expires_at,
+                        'current' => $userChallenges->get($challenge->id)->current_progress,
+                        'target' => $challenge->criteria_target,
+                        'percentage' => $userChallenges->get($challenge->id)->getProgressPercentage(),
+                        'status' => $userChallenges->get($challenge->id)->status->value,
+                        'expires_at' => $userChallenges->get($challenge->id)->expires_at,
                     ]
                     : null;
+
                 return $challenge;
             });
         }
 
-        $challenges->getCollection()->transform(fn($item) => new ChallengeResource($item));
+        $challenges->getCollection()->transform(fn ($item) => new ChallengeResource($item));
 
-        return $this->paginateResponse($challenges, __("messages.challenges.list_retrieved"));
+        return $this->paginateResponse($challenges, __('messages.challenges.list_retrieved'));
     }
 
     public function show(int $challengeId, Request $request): JsonResponse
     {
         $challenge = $this->challengeService->getActiveChallenge($challengeId);
 
-        if (!$challenge) {
-            return $this->notFound(__("messages.challenges.not_found"));
+        if (! $challenge) {
+            return $this->notFound(__('messages.challenges.not_found'));
         }
 
         $userId = $request->user()?->id;
 
         if ($userId) {
-             $userChallenges = $this->challengeService->getUserChallenges($userId)->keyBy("challenge_id");
-             $assignment = $userChallenges->get($challenge->id);
-             
-             if ($assignment) {
-                 $challenge->user_progress = [
-                    "current" => $assignment->current_progress,
-                    "target" => $challenge->criteria_target,
-                    "percentage" => $assignment->getProgressPercentage(),
-                    "status" => $assignment->status->value,
-                    "expires_at" => $assignment->expires_at,
-                    "is_claimable" => $assignment->isClaimable(),
-                 ];
-             }
+            $userChallenges = $this->challengeService->getUserChallenges($userId)->keyBy('challenge_id');
+            $assignment = $userChallenges->get($challenge->id);
+
+            if ($assignment) {
+                $challenge->user_progress = [
+                    'current' => $assignment->current_progress,
+                    'target' => $challenge->criteria_target,
+                    'percentage' => $assignment->getProgressPercentage(),
+                    'status' => $assignment->status->value,
+                    'expires_at' => $assignment->expires_at,
+                    'is_claimable' => $assignment->isClaimable(),
+                ];
+            }
         }
 
-        return $this->success(new ChallengeResource($challenge), __("messages.challenges.retrieved"));
+        return $this->success(new ChallengeResource($challenge), __('messages.challenges.retrieved'));
     }
 
     public function myChallenges(Request $request): JsonResponse
@@ -88,7 +86,7 @@ class ChallengeController extends Controller
         $challenges = $this->challengeService->getUserChallengesPaginated($userId, $perPage);
         $challenges->appends($request->query());
 
-        return $this->paginateResponse($challenges, __("messages.challenges.list_retrieved"));
+        return $this->paginateResponse($challenges, __('messages.challenges.list_retrieved'));
     }
 
     public function completed(Request $request): JsonResponse
@@ -100,11 +98,11 @@ class ChallengeController extends Controller
         $completions = $this->challengeService->getCompletedChallengesPaginated($userId, $request->query(), $perPage);
         $completions->appends($request->query());
 
-        $completions->getCollection()->transform(fn($item) => new ChallengeCompletionResource($item));
+        $completions->getCollection()->transform(fn ($item) => new ChallengeCompletionResource($item));
 
-        return $this->paginateResponse($completions, __("gamification.completions_retrieved"));
+        return $this->paginateResponse($completions, __('gamification.completions_retrieved'));
     }
-  
+
     public function claim(int $challengeId, Request $request): JsonResponse
     {
         $userId = $request->user()->id;
@@ -113,17 +111,18 @@ class ChallengeController extends Controller
             $rewards = $this->challengeService->claimReward($userId, $challengeId);
 
             return $this->success([
-                "message" => __("messages.challenges.reward_claimed"),
-                "rewards" => $rewards,
-            ], __("messages.challenges.reward_claimed"));
+                'message' => __('messages.challenges.reward_claimed'),
+                'rewards' => $rewards,
+            ], __('messages.challenges.reward_claimed'));
         } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e) {
             return $this->notFound($e->getMessage());
         } catch (\Symfony\Component\HttpKernel\Exception\BadRequestHttpException $e) {
             // Use translation if key matches, otherwise use message
             $message = $e->getMessage();
-            return $this->error($message, [], 400); 
+
+            return $this->error($message, [], 400);
         } catch (\Exception $e) {
-            return $this->error(__("messages.server_error"), 500);
+            return $this->error(__('messages.server_error'), 500);
         }
     }
 }

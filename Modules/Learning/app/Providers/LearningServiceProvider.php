@@ -113,13 +113,7 @@ class LearningServiceProvider extends ServiceProvider
         ]);
     }
 
-    protected function registerCommandSchedules(): void
-    {
-        
-        
-        
-        
-    }
+    protected function registerCommandSchedules(): void {}
 
     public function registerTranslations(): void
     {

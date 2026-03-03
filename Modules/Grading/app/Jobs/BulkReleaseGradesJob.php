@@ -11,12 +11,12 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-
 class BulkReleaseGradesJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 300;
 
     public function __construct(
@@ -30,6 +30,7 @@ class BulkReleaseGradesJob implements ShouldQueue
     {
         if (empty($this->submissionIds)) {
             Log::info('BulkReleaseGradesJob: No submission IDs provided, skipping');
+
             return;
         }
 

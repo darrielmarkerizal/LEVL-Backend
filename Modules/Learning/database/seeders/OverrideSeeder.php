@@ -4,9 +4,9 @@ namespace Modules\Learning\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
+use Modules\Learning\Enums\OverrideType;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Override;
-use Modules\Learning\Enums\OverrideType;
 
 class OverrideSeeder extends Seeder
 {
@@ -21,7 +21,7 @@ class OverrideSeeder extends Seeder
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
-        
+
         echo "Seeding overrides...\n";
 
         // Check if we have users and assignments to link to
@@ -34,16 +34,19 @@ class OverrideSeeder extends Seeder
 
         if ($instructorIds->isEmpty()) {
             echo "⚠️  No instructors found. Skipping override seeding.\n";
+
             return;
         }
 
         if ($assignmentIds->isEmpty()) {
             echo "⚠️  No assignments found. Skipping override seeding.\n";
+
             return;
         }
 
         if ($studentIds->isEmpty()) {
             echo "⚠️  No students found. Skipping override seeding.\n";
+
             return;
         }
 
@@ -121,7 +124,7 @@ class OverrideSeeder extends Seeder
         }
 
         // Batch insert all overrides
-        if (!empty($overridesToInsert)) {
+        if (! empty($overridesToInsert)) {
             foreach (array_chunk($overridesToInsert, 1000) as $chunk) {
                 \DB::table('overrides')->insertOrIgnore($chunk);
             }
@@ -129,7 +132,7 @@ class OverrideSeeder extends Seeder
 
         echo "✅ Override seeding completed!\n";
         echo "Created $overrideCount overrides\n";
-        
+
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
     }

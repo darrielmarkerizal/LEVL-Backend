@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\Gamification\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Gamification\Models\Badge;
 use Modules\Gamification\Enums\BadgeType;
+use Modules\Gamification\Models\Badge;
 
 class BadgeSeeder extends Seeder
 {
@@ -44,7 +44,7 @@ class BadgeSeeder extends Seeder
                 'type' => BadgeType::Achievement,
                 'threshold' => 5,
             ],
-            
+
             // Levels / Ranks
             [
                 'code' => 'rookie',
@@ -93,16 +93,17 @@ class BadgeSeeder extends Seeder
         ];
 
         $this->command->info('Downloading placeholder icon...');
-        $tempPath = sys_get_temp_dir() . '/badge_placeholder.jpg';
-        
+        $tempPath = sys_get_temp_dir().'/badge_placeholder.jpg';
+
         // Download once if not exists (or always to be fresh? lets check existence to speed up)
         // actually user said "download dulu 1", implied download once.
         try {
-             $content = file_get_contents('https://picsum.photos/128/128');
-             file_put_contents($tempPath, $content);
+            $content = file_get_contents('https://picsum.photos/128/128');
+            file_put_contents($tempPath, $content);
         } catch (\Exception $e) {
-            $this->command->error("Failed to download placeholder: " . $e->getMessage());
-            // Fallback or exit? usage of picsum might fail. 
+            $this->command->error('Failed to download placeholder: '.$e->getMessage());
+
+            // Fallback or exit? usage of picsum might fail.
             // Let's create a blank image if fetch fails or just let it fail?
             // User wants to ensure upload.
             return;
@@ -117,37 +118,37 @@ class BadgeSeeder extends Seeder
             // Re-upload if missing or recently created
             if ($badge->wasRecentlyCreated || $badge->getMedia('icon')->isEmpty()) {
                 $badge->clearMediaCollection('icon');
-                
+
                 try {
                     $badge->addMedia($tempPath)
                         ->preservingOriginal()
                         ->withCustomProperties(['seeded' => true])
                         ->toMediaCollection('icon');
                 } catch (\Exception $e) {
-                     $this->command->error("Failed to attach media to {$badge->code}: " . $e->getMessage());
+                    $this->command->error("Failed to attach media to {$badge->code}: ".$e->getMessage());
                 }
             }
 
             // Sync Rules
             if (in_array($badge->code, ['first_step', 'course_finisher'])) {
-                 $criterion = match ($badge->code) {
-                     'first_step' => 'lesson_count',
-                     'course_finisher' => 'course_count',
-                     default => null,
-                 };
-                 
-                 if ($criterion) {
-                     \Modules\Gamification\Models\BadgeRule::firstOrCreate(
-                         ['badge_id' => $badge->id, 'criterion' => $criterion],
-                         [
-                             'operator' => '>=', 
-                             'value' => 1
-                         ]
-                     );
-                 }
+                $criterion = match ($badge->code) {
+                    'first_step' => 'lesson_count',
+                    'course_finisher' => 'course_count',
+                    default => null,
+                };
+
+                if ($criterion) {
+                    \Modules\Gamification\Models\BadgeRule::firstOrCreate(
+                        ['badge_id' => $badge->id, 'criterion' => $criterion],
+                        [
+                            'operator' => '>=',
+                            'value' => 1,
+                        ]
+                    );
+                }
             }
         }
-        
+
         // Clean up temp file
         @unlink($tempPath);
 

@@ -258,4 +258,3 @@ it('admin cannot publish unit in course they dont manage', function () {
 
     $response->assertStatus(403);
 });
-

@@ -9,14 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('submissions', function (Blueprint $table) {
-            
+
             $table->string('state', 30)->nullable()->after('status');
 
-            
             $table->index('state', 'idx_submissions_state');
         });
 
-        
         DB::statement("
             UPDATE submissions 
             SET state = CASE 

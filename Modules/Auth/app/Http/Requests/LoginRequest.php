@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-
 namespace Modules\Auth\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Modules\Common\Http\Requests\Concerns\HasApiValidation;
 use Modules\Auth\Http\Requests\Concerns\HasAuthRequestRules;
+use Modules\Common\Http\Requests\Concerns\HasApiValidation;
 
 class LoginRequest extends FormRequest
 {

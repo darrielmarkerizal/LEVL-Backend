@@ -23,8 +23,6 @@ class SearchController extends Controller
         private SearchHistoryRepositoryInterface $searchHistoryRepository
     ) {}
 
-
-
     /**
      * Saran Pencarian
      *
@@ -114,12 +112,11 @@ class SearchController extends Controller
      *
      * @response 200 scenario="Success" {"success":true,"data":{"users":[],"courses":[],"forums":[]}}
      * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-     *
      */
     public function globalSearch(Request $request): JsonResponse
     {
         $query = $request->input('q', '') ?? '';
-        
+
         $results = $this->searchService->globalSearch($query, 5);
 
         // Save search history for authenticated users

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\Schemes\Listeners;
 
 use Illuminate\Support\Facades\Mail;
-use Modules\Schemes\Events\CourseCompleted;
 use Modules\Mail\Mail\Schemes\CourseCompletedMail;
+use Modules\Schemes\Events\CourseCompleted;
 
 class SendCourseCompletedEmail
 {

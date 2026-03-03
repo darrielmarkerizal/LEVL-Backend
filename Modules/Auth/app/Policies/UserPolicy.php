@@ -21,12 +21,12 @@ class UserPolicy
             return true;
         }
 
-        if (!$authUser->hasRole('Admin')) {
+        if (! $authUser->hasRole('Admin')) {
             return false;
         }
 
         // Admin can view other Admins (but not Superadmin)
-        if ($targetUser->hasRole('Admin') && !$targetUser->hasRole('Superadmin')) {
+        if ($targetUser->hasRole('Admin') && ! $targetUser->hasRole('Superadmin')) {
             return true;
         }
 
@@ -56,7 +56,7 @@ class UserPolicy
 
     public function delete(User $authUser, User $targetUser): bool
     {
-        if (!$authUser->hasRole('Superadmin')) {
+        if (! $authUser->hasRole('Superadmin')) {
             return false;
         }
 

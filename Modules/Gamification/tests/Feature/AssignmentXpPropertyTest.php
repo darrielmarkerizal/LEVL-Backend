@@ -17,9 +17,9 @@ test('Property 1: One-time XP award per assignment', function () {
     $assignment = Assignment::factory()->create([
         'allow_multiple' => false,
     ]);
-    
+
     $gamificationService = app(GamificationService::class);
-    
+
     $result1 = $gamificationService->awardXp(
         $user->id,
         50,
@@ -31,9 +31,9 @@ test('Property 1: One-time XP award per assignment', function () {
             'allow_multiple' => false,
         ]
     );
-    
+
     expect($result1)->not->toBeNull();
-    
+
     $result2 = $gamificationService->awardXp(
         $user->id,
         50,
@@ -45,14 +45,14 @@ test('Property 1: One-time XP award per assignment', function () {
             'allow_multiple' => false,
         ]
     );
-    
+
     expect($result2)->toBeNull();
-    
+
     $count = Point::where('user_id', $user->id)
         ->where('source_type', 'assignment')
         ->where('source_id', $assignment->id)
         ->where('reason', 'achievement')
         ->count();
-    
+
     expect($count)->toBe(1);
 })->repeat(100);

@@ -26,7 +26,7 @@ class CleanupDeletedAccounts extends Command
     public function handle()
     {
         $days = (int) ((\Modules\Common\Models\SystemSetting::get('auth_account_retention_days', 30)) ?? 30);
-        
+
         $users = \Modules\Auth\Models\User::onlyTrashed()
             ->where('account_status', 'deleted')
             ->where('deleted_at', '<=', now()->subDays($days))

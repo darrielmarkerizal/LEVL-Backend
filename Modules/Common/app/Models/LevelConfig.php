@@ -30,6 +30,4 @@ class LevelConfig extends Model
         'xp_required' => 'integer',
         'rewards' => 'array',
     ];
-
-
 }

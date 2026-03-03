@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Modules\Auth\DTOs;
 
 final class LoginDTO

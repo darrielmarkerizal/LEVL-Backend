@@ -12,7 +12,6 @@ class ReplyCreated
 
     public Reply $reply;
 
-     
     public function __construct(Reply $reply)
     {
         $this->reply = $reply;

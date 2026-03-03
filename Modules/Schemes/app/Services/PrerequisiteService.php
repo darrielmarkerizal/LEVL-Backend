@@ -164,8 +164,8 @@ class PrerequisiteService
     public function getUnitContentOrder(Unit $unit): array
     {
         $lessons = $unit->lessons()->orderBy('order')->get();
-        $assignments = Assignment::forUnit($unit->id)->get();
-        $quizzes = Quiz::forUnit($unit->id)->get();
+        $assignments = Assignment::forUnit($unit->id)->ordered()->get();
+        $quizzes = Quiz::forUnit($unit->id)->ordered()->get();
 
         $content = collect();
 
@@ -175,7 +175,6 @@ class PrerequisiteService
                 'id' => $lesson->id,
                 'title' => $lesson->title,
                 'order' => $lesson->order,
-                'order_index' => $lesson->order,
             ]);
         }
 
@@ -184,8 +183,7 @@ class PrerequisiteService
                 'type' => 'assignment',
                 'id' => $assignment->id,
                 'title' => $assignment->title,
-                'order' => $assignment->id,
-                'order_index' => $assignment->id,
+                'order' => $assignment->order,
             ]);
         }
 
@@ -194,12 +192,11 @@ class PrerequisiteService
                 'type' => 'quiz',
                 'id' => $quiz->id,
                 'title' => $quiz->title,
-                'order' => $quiz->id,
-                'order_index' => $quiz->id,
+                'order' => $quiz->order,
             ]);
         }
 
-        return $content->sortBy('order_index')->values()->toArray();
+        return $content->sortBy('order')->values()->toArray();
     }
 
     private function getUnitContentBeforeAssignment(int $unitId, Assignment $assignment): Collection
@@ -208,26 +205,28 @@ class PrerequisiteService
 
         $lessons = Lesson::where('unit_id', $unitId)->orderBy('order')->get();
         foreach ($lessons as $lesson) {
-            $content->push(['type' => 'lesson', 'model' => $lesson]);
+            $content->push(['type' => 'lesson', 'model' => $lesson, 'order' => $lesson->order]);
         }
 
         $assignments = Assignment::forUnit($unitId)
-            ->where('id', '<', $assignment->id)
+            ->where('order', '<', $assignment->order)
+            ->ordered()
             ->get();
 
         foreach ($assignments as $prevAssignment) {
-            $content->push(['type' => 'assignment', 'model' => $prevAssignment]);
+            $content->push(['type' => 'assignment', 'model' => $prevAssignment, 'order' => $prevAssignment->order]);
         }
 
         $quizzes = Quiz::forUnit($unitId)
-            ->where('id', '<', $assignment->id)
+            ->where('order', '<', $assignment->order)
+            ->ordered()
             ->get();
 
         foreach ($quizzes as $quiz) {
-            $content->push(['type' => 'quiz', 'model' => $quiz]);
+            $content->push(['type' => 'quiz', 'model' => $quiz, 'order' => $quiz->order]);
         }
 
-        return $content;
+        return $content->sortBy('order');
     }
 
     private function getUnitContentBeforeQuiz(int $unitId, Quiz $quiz): Collection
@@ -236,26 +235,28 @@ class PrerequisiteService
 
         $lessons = Lesson::where('unit_id', $unitId)->orderBy('order')->get();
         foreach ($lessons as $lesson) {
-            $content->push(['type' => 'lesson', 'model' => $lesson]);
+            $content->push(['type' => 'lesson', 'model' => $lesson, 'order' => $lesson->order]);
         }
 
         $assignments = Assignment::forUnit($unitId)
-            ->where('id', '<', $quiz->id)
+            ->where('order', '<', $quiz->order)
+            ->ordered()
             ->get();
 
         foreach ($assignments as $assignment) {
-            $content->push(['type' => 'assignment', 'model' => $assignment]);
+            $content->push(['type' => 'assignment', 'model' => $assignment, 'order' => $assignment->order]);
         }
 
         $quizzes = Quiz::forUnit($unitId)
-            ->where('id', '<', $quiz->id)
+            ->where('order', '<', $quiz->order)
+            ->ordered()
             ->get();
 
         foreach ($quizzes as $prevQuiz) {
-            $content->push(['type' => 'quiz', 'model' => $prevQuiz]);
+            $content->push(['type' => 'quiz', 'model' => $prevQuiz, 'order' => $prevQuiz->order]);
         }
 
-        return $content;
+        return $content->sortBy('order');
     }
 
     private function checkContentCompletion(Collection $content, int $userId): array
@@ -288,36 +289,12 @@ class PrerequisiteService
 
     private function getAssignmentUnitId(Assignment $assignment): ?int
     {
-        if ($assignment->lesson_id) {
-            return $assignment->lesson->unit_id ?? null;
-        }
-
-        if ($assignment->assignable_type === 'Modules\\Schemes\\Models\\Lesson') {
-            return $assignment->assignable->unit_id ?? null;
-        }
-
-        if ($assignment->assignable_type === 'Modules\\Schemes\\Models\\Unit') {
-            return $assignment->assignable_id;
-        }
-
-        return null;
+        return $assignment->unit_id;
     }
 
     private function getQuizUnitId(Quiz $quiz): ?int
     {
-        if ($quiz->lesson_id) {
-            return $quiz->lesson->unit_id ?? null;
-        }
-
-        if ($quiz->assignable_type === 'Modules\\Schemes\\Models\\Lesson') {
-            return $quiz->assignable->unit_id ?? null;
-        }
-
-        if ($quiz->assignable_type === 'Modules\\Schemes\\Models\\Unit') {
-            return $quiz->assignable_id;
-        }
-
-        return null;
+        return $quiz->unit_id;
     }
 
     private function isAssignmentPassed(Assignment $assignment, int $userId): bool

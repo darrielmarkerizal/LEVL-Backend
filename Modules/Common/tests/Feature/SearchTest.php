@@ -55,8 +55,8 @@ class SearchTest extends TestCase
         $this->assertCount(1, $results);
         $this->assertEquals($user->id, $results->first()->id);
     }
-    
-     public function test_empty_search_returns_all_query(): void
+
+    public function test_empty_search_returns_all_query(): void
     {
         User::factory()->count(3)->create();
 
@@ -64,6 +64,7 @@ class SearchTest extends TestCase
 
         $this->assertCount(3, $results);
     }
+
     public function test_search_by_slug(): void
     {
         $course = \Modules\Schemes\Models\Course::factory()->create([

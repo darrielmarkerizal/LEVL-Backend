@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Modules\Learning\Console\Commands;
 
 use Illuminate\Console\Command;
-use Modules\Learning\Models\Assignment;
-use Modules\Learning\Enums\AssignmentStatus;
 use Illuminate\Support\Facades\DB;
+use Modules\Learning\Enums\AssignmentStatus;
+use Modules\Learning\Models\Assignment;
 
 class PublishScheduledAssignments extends Command
 {
@@ -42,6 +42,7 @@ class PublishScheduledAssignments extends Command
 
             if ($assignmentsToPublish->isEmpty()) {
                 $this->info('No assignments to publish at this time.');
+
                 return self::SUCCESS;
             }
 
@@ -52,6 +53,7 @@ class PublishScheduledAssignments extends Command
                 foreach ($assignmentsToPublish as $assignment) {
                     $this->line("  - [{$assignment->id}] {$assignment->title} (available from: {$assignment->available_from})");
                 }
+
                 return self::SUCCESS;
             }
 
@@ -69,7 +71,8 @@ class PublishScheduledAssignments extends Command
 
             return self::SUCCESS;
         } catch (\Exception $e) {
-            $this->error('Error publishing assignments: ' . $e->getMessage());
+            $this->error('Error publishing assignments: '.$e->getMessage());
+
             return self::FAILURE;
         }
     }

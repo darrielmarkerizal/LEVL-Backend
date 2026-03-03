@@ -8,7 +8,7 @@ class AuthDatabaseSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * Seeds the Auth module with:
      * 1. Role and Permission setup
      * 2. 1000+ comprehensive users with all status types

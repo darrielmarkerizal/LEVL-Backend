@@ -21,10 +21,10 @@ return [
      * the "posts" attribute and the "Post::class", since the relation can get resolved in multiple ways.
      */
     'except' => [
-        //Author::class => [
+        // Author::class => [
         //    Post::class,
         //    'posts',
-        //]
+        // ]
     ],
 
     /*
@@ -65,5 +65,5 @@ return [
     'output' => [
         \BeyondCode\QueryDetector\Outputs\Json::class,       // For Postman/API clients
         \BeyondCode\QueryDetector\Outputs\Log::class,        // For log files
-    ]
+    ],
 ];

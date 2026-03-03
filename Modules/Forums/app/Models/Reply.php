@@ -10,23 +10,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Common\Traits\PgSearchable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-use Modules\Common\Traits\PgSearchable;
-
 class Reply extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, PgSearchable;
+    use HasFactory, InteractsWithMedia, PgSearchable, SoftDeletes;
 
     protected array $searchable_columns = [
         'content',
     ];
 
-     
     const MAX_DEPTH = 5;
 
-     
     protected static function newFactory()
     {
         return \Modules\Forums\Database\Factories\ReplyFactory::new();
@@ -52,12 +49,10 @@ class Reply extends Model implements HasMedia
         'deleted_at' => 'datetime',
     ];
 
-     
     protected static function boot()
     {
         parent::boot();
 
-        
         static::creating(function ($reply) {
             if ($reply->parent_id) {
                 $parent = static::find($reply->parent_id);
@@ -68,37 +63,31 @@ class Reply extends Model implements HasMedia
         });
     }
 
-     
     public function thread(): BelongsTo
     {
         return $this->belongsTo(Thread::class);
     }
 
-     
     public function author(): BelongsTo
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class, 'author_id');
     }
 
-     
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Reply::class, 'parent_id');
     }
 
-     
     public function children(): HasMany
     {
         return $this->hasMany(Reply::class, 'parent_id');
     }
 
-     
     public function deletedBy(): BelongsTo
     {
         return $this->belongsTo(\Modules\Auth\Models\User::class, 'deleted_by');
     }
 
-     
     public function reactions(): MorphMany
     {
         return $this->morphMany(Reaction::class, 'reactable');
@@ -109,31 +98,26 @@ class Reply extends Model implements HasMedia
         return $this->morphMany(Mention::class, 'mentionable');
     }
 
-     
     public function isAcceptedAnswer(): bool
     {
         return $this->is_accepted_answer;
     }
 
-     
     public function getDepth(): int
     {
         return $this->depth;
     }
 
-     
     public function canHaveChildren(): bool
     {
         return $this->depth < self::MAX_DEPTH;
     }
 
-     
     public function scopeTopLevel($query)
     {
         return $query->whereNull('parent_id');
     }
 
-     
     public function scopeAccepted($query)
     {
         return $query->where('is_accepted_answer', true);
@@ -158,6 +142,4 @@ class Reply extends Model implements HasMedia
             ->height(600)
             ->performOnCollections('attachments');
     }
-
-
 }

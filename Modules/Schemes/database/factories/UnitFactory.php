@@ -3,8 +3,8 @@
 namespace Modules\Schemes\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Models\Course;
+use Modules\Schemes\Models\Unit;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Schemes\Models\Unit>

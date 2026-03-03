@@ -29,7 +29,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (Schema::hasTable('enrollments') && !Schema::hasColumn('enrollments', 'progress_percent')) {
+        if (Schema::hasTable('enrollments') && ! Schema::hasColumn('enrollments', 'progress_percent')) {
             Schema::table('enrollments', function (Blueprint $table) {
                 $table->float('progress_percent')->default(0)->after('completed_at');
             });

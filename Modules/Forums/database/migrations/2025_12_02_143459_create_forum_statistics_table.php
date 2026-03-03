@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-     
     public function up(): void
     {
         Schema::create('forum_statistics', function (Blueprint $table) {
@@ -22,15 +21,12 @@ return new class extends Migration
             $table->date('period_end');
             $table->timestamps();
 
-            
             $table->unique(['scheme_id', 'user_id', 'period_start', 'period_end'], 'unique_stat');
 
-            
             $table->index(['scheme_id', 'period_start', 'period_end']);
         });
     }
 
-     
     public function down(): void
     {
         Schema::dropIfExists('forum_statistics');

@@ -119,6 +119,7 @@ class UserResource extends JsonResource
         if ($date instanceof \DateTimeInterface) {
             return $date->format(\DateTimeInterface::ATOM);
         }
+
         return $date ? (string) $date : null;
     }
 
@@ -133,15 +134,15 @@ class UserResource extends JsonResource
                 return $roles;
             }
         }
-        
+
         // If resource is a User model object
         if ($this->resource instanceof \Modules\Auth\Models\User) {
             return $this->resource->roles->toArray();
         }
-        
+
         // Fallback for generic object with roles relation
         if (is_object($this->resource) && isset($this->resource->roles)) {
-             return $this->resource->roles->toArray();
+            return $this->resource->roles->toArray();
         }
 
         return [];

@@ -46,6 +46,7 @@ class UserIndexResource extends JsonResource
         if ($date instanceof \DateTimeInterface) {
             return $date->format(\DateTimeInterface::ATOM);
         }
+
         return $date ? (string) $date : null;
     }
 }

@@ -5,7 +5,6 @@ namespace Modules\Gamification\Providers;
 use App\Support\Traits\RegistersModuleConfig;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
-use Modules\Gamification\Services\GamificationService;
 use Nwidart\Modules\Traits\PathNamespace;
 
 class GamificationServiceProvider extends ServiceProvider

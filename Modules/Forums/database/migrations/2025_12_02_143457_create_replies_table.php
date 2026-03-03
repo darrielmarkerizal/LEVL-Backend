@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-     
     public function up(): void
     {
         Schema::create('replies', function (Blueprint $table) {
@@ -22,14 +21,12 @@ return new class extends Migration
             $table->foreignId('deleted_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
 
-            
             $table->index(['thread_id', 'created_at']);
             $table->index('parent_id');
             $table->index(['thread_id', 'is_accepted_answer']);
         });
     }
 
-     
     public function down(): void
     {
         Schema::dropIfExists('replies');

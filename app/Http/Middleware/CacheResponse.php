@@ -68,15 +68,12 @@ class CacheResponse
 
     /**
      * Generate cache key from request.
-     *
-     * @param  Request  $request
-     * @return string
      */
     private function getCacheKey(Request $request): string
     {
         $url = $request->fullUrl();
         $userId = $request->user()?->id ?? 'guest';
-        
+
         return 'response:'.md5($url.':'.$userId);
     }
 }

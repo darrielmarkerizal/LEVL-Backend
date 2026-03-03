@@ -13,19 +13,19 @@ return new class extends Migration
 
         Schema::table('notification_preferences', function (Blueprint $table) {
             if (DB::getDriverName() === 'pgsql') {
-                DB::statement("ALTER TABLE notification_preferences DROP CONSTRAINT IF EXISTS notification_preferences_category_check");
+                DB::statement('ALTER TABLE notification_preferences DROP CONSTRAINT IF EXISTS notification_preferences_category_check');
                 DB::statement("ALTER TABLE notification_preferences ADD CONSTRAINT notification_preferences_category_check CHECK (category::text IN ('system', 'assignment', 'assessment', 'grading', 'gamification', 'news', 'custom', 'course_completed', 'enrollment', 'forum_reply_to_thread', 'forum_reply_to_reply'))");
 
-                DB::statement("ALTER TABLE notification_preferences DROP CONSTRAINT IF EXISTS notification_preferences_channel_check");
+                DB::statement('ALTER TABLE notification_preferences DROP CONSTRAINT IF EXISTS notification_preferences_channel_check');
                 DB::statement("ALTER TABLE notification_preferences ADD CONSTRAINT notification_preferences_channel_check CHECK (channel::text IN ('in_app', 'email', 'push'))");
 
-                DB::statement("ALTER TABLE notification_preferences DROP CONSTRAINT IF EXISTS notification_preferences_frequency_check");
+                DB::statement('ALTER TABLE notification_preferences DROP CONSTRAINT IF EXISTS notification_preferences_frequency_check');
                 DB::statement("ALTER TABLE notification_preferences ADD CONSTRAINT notification_preferences_frequency_check CHECK (frequency::text IN ('immediate', 'daily', 'weekly', 'never'))");
             } else {
                 $table->enum('category', [
                     'system', 'assignment', 'assessment', 'grading', 'gamification',
                     'news', 'custom', 'course_completed', 'enrollment',
-                    'forum_reply_to_thread', 'forum_reply_to_reply'
+                    'forum_reply_to_thread', 'forum_reply_to_reply',
                 ])->change();
 
                 $table->enum('channel', ['in_app', 'email', 'push'])->change();

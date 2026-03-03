@@ -25,7 +25,7 @@ class AuditLogQueryService
     {
         $perPage = (int) ($validated['per_page'] ?? 15);
         $perPage = max(1, min($perPage, 100));
-        
+
         $query = AuditLog::query();
         $search = $validated['search'] ?? null;
 
@@ -34,7 +34,7 @@ class AuditLogQueryService
         }
 
         return cache()->tags(['common', 'audit_logs'])->remember(
-            "common:audit_logs:paginate:{$perPage}:" . md5(json_encode($validated)),
+            "common:audit_logs:paginate:{$perPage}:".md5(json_encode($validated)),
             300,
             function () use ($query, $perPage) {
                 return QueryBuilder::for($query)

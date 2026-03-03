@@ -22,6 +22,7 @@ class ReactionController extends Controller
     public function storeThreadReaction(ToggleReactionRequest $request, Course $course, Thread $thread, ReactionService $reactionService): JsonResponse
     {
         $reaction = $reactionService->addThread($request->user(), $thread, $request->input('type'));
+
         return $this->success(['id' => $reaction->id, 'type' => $reaction->type], __('messages.forums.reaction_added'));
     }
 
@@ -32,6 +33,7 @@ class ReactionController extends Controller
         }
         $this->authorize('delete', $reaction);
         $reactionService->delete($reaction);
+
         return $this->success(null, __('messages.forums.reaction_removed'));
     }
 
@@ -39,6 +41,7 @@ class ReactionController extends Controller
     {
         $reply = Reply::findOrFail($replyId);
         $reaction = $reactionService->addReply($request->user(), $reply, $request->input('type'));
+
         return $this->success(['id' => $reaction->id, 'type' => $reaction->type], __('messages.forums.reaction_added'));
     }
 
@@ -46,12 +49,13 @@ class ReactionController extends Controller
     {
         $reply = Reply::findOrFail($replyId);
         $reaction = Reaction::findOrFail($reactionId);
-        
+
         if ($reaction->reactable_type !== Reply::class || $reaction->reactable_id !== $reply->id) {
             return $this->notFound(__('messages.forums.reaction_not_found'));
         }
         $this->authorize('delete', $reaction);
         $reactionService->delete($reaction);
+
         return $this->success(null, __('messages.forums.reaction_removed'));
     }
 }

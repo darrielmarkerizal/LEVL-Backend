@@ -7,27 +7,28 @@ namespace Modules\Learning\Database\Seeders;
 use Illuminate\Database\Seeder;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Quiz;
-use Modules\Learning\Models\Submission;
 use Modules\Learning\Models\QuizSubmission;
+use Modules\Learning\Models\Submission;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Unit;
-use Carbon\Carbon;
 
 class SequentialProgressSeeder extends Seeder
 {
     private array $userProgress = [];
+
     private array $pregenAnswers = [];
+
     private string $createdAt;
 
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
         ini_set('memory_limit', '2048M');
-        
+
         echo "🎯 Seeding sequential progress for students...\n";
-        
+
         $shouldClean = $this->command->confirm('Do you want to clean existing progress data first?', true);
-        
+
         if ($shouldClean) {
             $this->cleanExistingProgress();
         }
@@ -45,10 +46,11 @@ class SequentialProgressSeeder extends Seeder
 
         if ($students->isEmpty()) {
             echo "⚠️  No students found.\n";
+
             return;
         }
 
-        echo "Processing " . count($students) . " students...\n";
+        echo 'Processing '.count($students)." students...\n";
 
         foreach ($students as $student) {
             $this->processStudentProgress($student->id);
@@ -56,7 +58,7 @@ class SequentialProgressSeeder extends Seeder
         }
 
         echo "✅ Sequential progress seeding completed!\n";
-        
+
         \DB::connection()->enableQueryLog();
     }
 
@@ -80,8 +82,8 @@ class SequentialProgressSeeder extends Seeder
 
         foreach ($units as $unit) {
             $shouldContinue = $this->processUnitProgress($studentId, $unit, $enrollmentId);
-            
-            if (!$shouldContinue) {
+
+            if (! $shouldContinue) {
                 break;
             }
         }
@@ -95,8 +97,8 @@ class SequentialProgressSeeder extends Seeder
 
         foreach ($lessons as $lesson) {
             $shouldContinue = $this->processLessonProgress($studentId, $lesson, $enrollmentId);
-            
-            if (!$shouldContinue) {
+
+            if (! $shouldContinue) {
                 return false;
             }
         }
@@ -107,7 +109,7 @@ class SequentialProgressSeeder extends Seeder
     private function processLessonProgress(int $studentId, Lesson $lesson, int $enrollmentId): bool
     {
         $completionChance = rand(1, 100);
-        
+
         if ($completionChance > 70) {
             return false;
         }
@@ -126,8 +128,8 @@ class SequentialProgressSeeder extends Seeder
 
         foreach ($assignments as $assignment) {
             $shouldContinue = $this->processAssignmentProgress($studentId, $assignment, $enrollmentId);
-            
-            if (!$shouldContinue) {
+
+            if (! $shouldContinue) {
                 return false;
             }
         }
@@ -138,8 +140,8 @@ class SequentialProgressSeeder extends Seeder
 
         foreach ($quizzes as $quiz) {
             $shouldContinue = $this->processQuizProgress($studentId, $quiz, $enrollmentId);
-            
-            if (!$shouldContinue) {
+
+            if (! $shouldContinue) {
                 return false;
             }
         }
@@ -150,7 +152,7 @@ class SequentialProgressSeeder extends Seeder
     private function processAssignmentProgress(int $studentId, Assignment $assignment, int $enrollmentId): bool
     {
         $completionChance = rand(1, 100);
-        
+
         if ($completionChance > 80) {
             return false;
         }
@@ -199,7 +201,7 @@ class SequentialProgressSeeder extends Seeder
     private function processQuizProgress(int $studentId, Quiz $quiz, int $enrollmentId): bool
     {
         $completionChance = rand(1, 100);
-        
+
         if ($completionChance > 80) {
             return false;
         }
@@ -223,9 +225,10 @@ class SequentialProgressSeeder extends Seeder
     private function attachFileToSubmission(Submission $submission): void
     {
         $dummyFilePath = public_path('dummy/pdf-sample_0.pdf');
-        
-        if (!file_exists($dummyFilePath)) {
+
+        if (! file_exists($dummyFilePath)) {
             echo "⚠️  Dummy file not found: {$dummyFilePath}\n";
+
             return;
         }
 
@@ -236,11 +239,11 @@ class SequentialProgressSeeder extends Seeder
 
             $submissionFile->addMedia($dummyFilePath)
                 ->preservingOriginal()
-                ->usingName('submission-' . $submission->id)
-                ->usingFileName('submission-' . $submission->id . '.pdf')
+                ->usingName('submission-'.$submission->id)
+                ->usingFileName('submission-'.$submission->id.'.pdf')
                 ->toMediaCollection('file', 'do');
         } catch (\Exception $e) {
-            echo "⚠️  Failed to attach file for submission {$submission->id}: " . $e->getMessage() . "\n";
+            echo "⚠️  Failed to attach file for submission {$submission->id}: ".$e->getMessage()."\n";
         }
     }
 
@@ -277,38 +280,38 @@ class SequentialProgressSeeder extends Seeder
     private function pregenerateFakeData(): void
     {
         $faker = \Faker\Factory::create('id_ID');
-        
+
         for ($i = 0; $i < 50; $i++) {
             $this->pregenAnswers[] = $faker->paragraph(3);
         }
-        
+
         unset($faker);
     }
 
     private function cleanExistingProgress(): void
     {
         echo "🧹 Cleaning existing progress data...\n";
-        
+
         \DB::table('grades')->whereIn('source_type', ['assignment', 'quiz'])->delete();
         echo "  ✓ Cleaned grades\n";
-        
+
         \DB::table('media')->where('collection_name', 'file')->whereIn('model_id', function ($query) {
             $query->select('id')->from('submission_files');
         })->delete();
         echo "  ✓ Cleaned submission files media\n";
-        
+
         \DB::table('submission_files')->delete();
         echo "  ✓ Cleaned submission files\n";
-        
+
         \DB::table('submissions')->delete();
         echo "  ✓ Cleaned submissions\n";
-        
+
         \DB::table('quiz_submissions')->delete();
         echo "  ✓ Cleaned quiz submissions\n";
-        
+
         \DB::table('lesson_completions')->delete();
         echo "  ✓ Cleaned lesson completions\n";
-        
+
         echo "✅ Existing progress data cleaned!\n\n";
     }
 }

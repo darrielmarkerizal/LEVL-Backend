@@ -12,6 +12,7 @@ use Modules\Auth\Services\Support\VerificationValidator;
 class EmailVerificationService implements EmailVerificationServiceInterface
 {
     public const PURPOSE = VerificationTokenManager::PURPOSE_REGISTER;
+
     public const PURPOSE_CHANGE_EMAIL = VerificationTokenManager::PURPOSE_CHANGE_EMAIL;
 
     public function __construct(

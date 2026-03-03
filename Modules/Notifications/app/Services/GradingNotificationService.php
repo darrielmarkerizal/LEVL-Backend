@@ -6,7 +6,6 @@ namespace Modules\Notifications\Services;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-
 use Modules\Learning\Models\Submission;
 use Modules\Notifications\Contracts\Services\GradingNotificationServiceInterface;
 

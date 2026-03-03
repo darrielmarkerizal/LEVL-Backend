@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('points', function (Blueprint $table) {
             // First drop existing non-unique index if exists (just in case)
             // $table->dropIndex(['user_id', 'source_type', 'source_id', 'reason']);
-            
+
             // Add unique index for strict duplicate prevention
             $table->unique(['user_id', 'source_type', 'source_id', 'reason'], 'points_unique_transaction');
         });

@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -28,12 +26,12 @@ return new class extends Migration
                     'properties' => $row->activity_data, // Already JSON string or needs encoding? DB::table returns object, json columns are strings usually unless cast.
                     // Warning: activity_log.properties is JSON column. If row->activity_data is string, we might need to verify.
                     // Usually raw DB selection returns string for JSON columns in array fetch mode, but let's assume raw string insert is safe or we decode-encode if needed.
-                    // Laravel DB::table insert takes array. 
+                    // Laravel DB::table insert takes array.
                     'created_at' => $row->created_at,
                     'updated_at' => $row->created_at,
                 ];
             }
-            if (!empty($data)) {
+            if (! empty($data)) {
                 DB::table('activity_log')->insert($data);
             }
         });
@@ -56,7 +54,7 @@ return new class extends Migration
                     'updated_at' => $row->created_at,
                 ];
             }
-            if (!empty($data)) {
+            if (! empty($data)) {
                 DB::table('activity_log')->insert($data);
             }
         });
@@ -67,8 +65,8 @@ return new class extends Migration
             $data = [];
             foreach ($rows as $row) {
                 $props = [];
-                if (!empty($row->changes)) {
-                     // Check if 'changes' is already a string (it usually is from DB::table)
+                if (! empty($row->changes)) {
+                    // Check if 'changes' is already a string (it usually is from DB::table)
                     $decoded = is_string($row->changes) ? json_decode($row->changes, true) : $row->changes;
                     $props = ['attributes' => $decoded];
                 }
@@ -86,7 +84,7 @@ return new class extends Migration
                     'updated_at' => $row->created_at,
                 ];
             }
-            if (!empty($data)) {
+            if (! empty($data)) {
                 DB::table('activity_log')->insert($data);
             }
         });

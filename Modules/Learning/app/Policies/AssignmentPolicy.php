@@ -16,7 +16,7 @@ class AssignmentPolicy
             3600, // 1 hour
             function () use ($user, $courseId) {
                 $course = \Modules\Schemes\Models\Course::find($courseId);
-                if (!$course) {
+                if (! $course) {
                     return false;
                 }
 
@@ -24,6 +24,7 @@ class AssignmentPolicy
             }
         );
     }
+
     public function viewAny(?User $user): bool
     {
         return true;
@@ -31,7 +32,7 @@ class AssignmentPolicy
 
     public function view(?User $user, Assignment $assignment): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -40,12 +41,13 @@ class AssignmentPolicy
         }
 
         $courseId = $assignment->getCourseId();
-        if (!$courseId) {
+        if (! $courseId) {
             return false;
         }
 
         if ($user->hasRole('Instructor')) {
             $assignment->loadMissing('lesson.unit.course');
+
             return $assignment->lesson?->unit?->course?->instructor_id === $user->id;
         }
 
@@ -62,9 +64,10 @@ class AssignmentPolicy
     public function resolveCourseFromAssignment(Assignment $assignment): ?\Modules\Schemes\Models\Course
     {
         $courseId = $assignment->getCourseId();
-        if (!$courseId) {
+        if (! $courseId) {
             return null;
         }
+
         return \Modules\Schemes\Models\Course::find($courseId);
     }
 
@@ -88,7 +91,7 @@ class AssignmentPolicy
         }
 
         $course = $this->resolveCourseFromAssignment($assignment);
-        if (!$course) {
+        if (! $course) {
             return false;
         }
 
@@ -106,7 +109,7 @@ class AssignmentPolicy
         }
 
         $course = $this->resolveCourseFromAssignment($assignment);
-        if (!$course) {
+        if (! $course) {
             return false;
         }
 
@@ -129,7 +132,7 @@ class AssignmentPolicy
         }
 
         $course = $this->resolveCourseFromAssignment($assignment);
-        if (!$course) {
+        if (! $course) {
             return false;
         }
 
@@ -152,14 +155,14 @@ class AssignmentPolicy
         }
 
         $courseId = $assignment->getCourseId();
-        
-        if (!$courseId) {
+
+        if (! $courseId) {
             return false;
         }
 
         $course = \Modules\Schemes\Models\Course::find($courseId);
-        
-        if (!$course) {
+
+        if (! $course) {
             return false;
         }
 
@@ -188,14 +191,14 @@ class AssignmentPolicy
         }
 
         $courseId = $assignment->getCourseId();
-        
-        if (!$courseId) {
+
+        if (! $courseId) {
             return false;
         }
 
         $course = \Modules\Schemes\Models\Course::find($courseId);
-        
-        if (!$course) {
+
+        if (! $course) {
             return false;
         }
 

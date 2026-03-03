@@ -57,6 +57,7 @@ class QuizPolicy
 
         if ($user->hasRole('Instructor')) {
             $course = \Modules\Schemes\Models\Course::find($courseId);
+
             return $course?->instructor_id === $user->id;
         }
 

@@ -2,13 +2,13 @@
 
 use App\Http\Controllers\Api\ActivityLogController;
 use Illuminate\Support\Facades\Route;
+use Modules\Common\app\Http\Controllers\MediaController;
 use Modules\Common\Http\Controllers\AuditLogController;
 use Modules\Common\Http\Controllers\BadgesController;
 use Modules\Common\Http\Controllers\CategoriesController;
 use Modules\Common\Http\Controllers\ChallengeManagementController;
 use Modules\Common\Http\Controllers\LevelConfigsController;
 use Modules\Common\Http\Controllers\MasterDataController;
-use Modules\Common\app\Http\Controllers\MediaController;
 use Modules\Schemes\Http\Controllers\TagController;
 
 Route::prefix('v1')->group(function () {
@@ -32,7 +32,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('tags')->name('tags.')->group(function () {
         Route::get('/', [TagController::class, 'index'])->name('index');
         Route::get('/{tag:slug}', [TagController::class, 'show'])->name('show');
-        
+
         // Allowed for Superadmin, Admin, and Instructor
         Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
             Route::post('/', [TagController::class, 'store'])->name('store');
@@ -44,15 +44,15 @@ Route::prefix('v1')->group(function () {
     Route::prefix('master-data')->name('master-data.')->group(function () {
         // Types List
         Route::get('types', [MasterDataController::class, 'types'])->name('types.index');
-        
+
         // Data Items (Paginated)
         Route::get('{type}', [MasterDataController::class, 'index'])->name('index');
         // Data Items (All - helpers)
         Route::get('{type}/all', [MasterDataController::class, 'get'])->name('all');
-        
+
         // CRUD Items
         Route::get('{type}/{id}', [MasterDataController::class, 'show'])->name('show');
-        
+
         Route::middleware(['auth:api', 'role:Superadmin'])->group(function () {
             Route::post('{type}', [MasterDataController::class, 'store'])->name('store');
             Route::put('{type}/{id}', [MasterDataController::class, 'update'])->name('update');

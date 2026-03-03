@@ -21,6 +21,7 @@ class CoursePolicy
         if ($user->hasRole('Superadmin') || $user->hasRole('Admin')) {
             return Response::allow();
         }
+
         return $this->deny(__('messages.admin_only'));
     }
 

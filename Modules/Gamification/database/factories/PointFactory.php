@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\Models\User;
 use Modules\Gamification\Models\Point;
 
-
 class PointFactory extends Factory
 {
     protected $model = Point::class;

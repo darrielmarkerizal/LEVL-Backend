@@ -6,7 +6,6 @@ namespace Modules\Learning\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Learning\Models\Override;
 
 class OverrideResource extends JsonResource
 {
@@ -28,7 +27,6 @@ class OverrideResource extends JsonResource
             'created_at' => $override->created_at?->toIso8601String(),
             'updated_at' => $override->updated_at?->toIso8601String(),
 
-            
             'student' => $this->whenLoaded('student', function () use ($override) {
                 return [
                     'id' => $override->student->id,

@@ -7,7 +7,6 @@ namespace Modules\Learning\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Modules\Common\Traits\PgSearchable;
 use Modules\Learning\Enums\QuizStatus;
 use Modules\Learning\Enums\RandomizationType;
@@ -39,9 +38,8 @@ class Quiz extends Model implements HasMedia
     }
 
     protected $fillable = [
-        'assignable_type',
-        'assignable_id',
-        'lesson_id',
+        'unit_id',
+        'order',
         'created_by',
         'title',
         'description',
@@ -68,18 +66,14 @@ class Quiz extends Model implements HasMedia
         'cooldown_minutes' => 'integer',
         'time_limit_minutes' => 'integer',
         'question_bank_count' => 'integer',
+        'order' => 'integer',
         'auto_grading' => 'boolean',
         'retake_enabled' => 'boolean',
     ];
 
-    public function assignable(): MorphTo
+    public function unit(): BelongsTo
     {
-        return $this->morphTo();
-    }
-
-    public function lesson(): BelongsTo
-    {
-        return $this->belongsTo(\Modules\Schemes\Models\Lesson::class);
+        return $this->belongsTo(\Modules\Schemes\Models\Unit::class);
     }
 
     public function creator(): BelongsTo
@@ -122,45 +116,16 @@ class Quiz extends Model implements HasMedia
         return $this->hasEssayQuestions() && ! $this->hasOnlyEssayQuestions();
     }
 
-    public function getScopeTypeAttribute(): ?string
+    public function getScopeTypeAttribute(): string
     {
-        if ($this->assignable_type) {
-            return match ($this->assignable_type) {
-                \Modules\Schemes\Models\Lesson::class => 'lesson',
-                \Modules\Schemes\Models\Unit::class => 'unit',
-                \Modules\Schemes\Models\Course::class => 'course',
-                default => null,
-            };
-        }
-
-        if ($this->lesson_id) {
-            return 'lesson';
-        }
-
-        return null;
+        return 'unit';
     }
 
     public function getCourseId(): ?int
     {
-        if ($this->assignable_type === \Modules\Schemes\Models\Course::class) {
-            return $this->assignable_id;
-        }
+        $this->loadMissing('unit');
 
-        if ($this->assignable_type === \Modules\Schemes\Models\Unit::class) {
-            return $this->assignable?->course_id;
-        }
-
-        if ($this->assignable_type === \Modules\Schemes\Models\Lesson::class) {
-            return $this->assignable?->unit?->course_id;
-        }
-
-        if ($this->lesson_id) {
-            $this->loadMissing('lesson.unit');
-
-            return $this->lesson?->unit?->course_id;
-        }
-
-        return null;
+        return $this->unit?->course_id;
     }
 
     public function scopePublished($query, bool $isPublished = true)
@@ -181,42 +146,20 @@ class Quiz extends Model implements HasMedia
         return $query->where('status', '!=', QuizStatus::Published);
     }
 
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order');
+    }
+
     public function scopeForUnit($query, int $unitId)
     {
-        $lessonIds = \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)->pluck('id')->toArray();
-
-        return $query->where(function ($q) use ($unitId, $lessonIds) {
-            $q->where(function ($subQ) use ($unitId) {
-                $subQ->where('assignable_type', \Modules\Schemes\Models\Unit::class)
-                    ->where('assignable_id', $unitId);
-            })
-                ->orWhere(function ($subQ) use ($lessonIds) {
-                    $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
-                        ->whereIn('assignable_id', $lessonIds);
-                })
-                ->orWhereIn('lesson_id', $lessonIds);
-        });
+        return $query->where('unit_id', $unitId);
     }
 
     public function scopeForCourse($query, int $courseId)
     {
-        $unitIds = \Modules\Schemes\Models\Unit::where('course_id', $courseId)->pluck('id')->toArray();
-        $lessonIds = \Modules\Schemes\Models\Lesson::whereIn('unit_id', $unitIds)->pluck('id')->toArray();
-
-        return $query->where(function ($q) use ($courseId, $unitIds, $lessonIds) {
-            $q->where(function ($subQ) use ($courseId) {
-                $subQ->where('assignable_type', \Modules\Schemes\Models\Course::class)
-                    ->where('assignable_id', $courseId);
-            })
-                ->orWhere(function ($subQ) use ($unitIds) {
-                    $subQ->where('assignable_type', \Modules\Schemes\Models\Unit::class)
-                        ->whereIn('assignable_id', $unitIds);
-                })
-                ->orWhere(function ($subQ) use ($lessonIds) {
-                    $subQ->where('assignable_type', \Modules\Schemes\Models\Lesson::class)
-                        ->whereIn('assignable_id', $lessonIds);
-                })
-                ->orWhereIn('lesson_id', $lessonIds);
+        return $query->whereHas('unit', function ($q) use ($courseId) {
+            $q->where('course_id', $courseId);
         });
     }
 }

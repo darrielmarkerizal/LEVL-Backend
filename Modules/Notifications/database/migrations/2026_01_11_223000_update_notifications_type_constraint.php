@@ -1,9 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -20,18 +18,18 @@ return new class extends Migration
 
         // Add the new values needed
         $newValues = array_merge($oldValues, [
-            'assignments', 
-            'forum', 
-            'achievements', 
-            'course_updates', 
+            'assignments',
+            'forum',
+            'achievements',
+            'course_updates',
             'promotions',
-            'schedule_reminder'
+            'schedule_reminder',
         ]);
 
         $allowed = implode("','", $newValues);
 
         // PostgreSQL specific raw SQL to update the check constraint
-        DB::statement("ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_type_check");
+        DB::statement('ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_type_check');
         DB::statement("ALTER TABLE notifications ADD CONSTRAINT notifications_type_check CHECK (type::text = ANY (ARRAY['$allowed'::character varying]::text[]))");
     }
 
@@ -40,7 +38,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // We can't easily reverse this without potentially invalidating data, 
+        // We can't easily reverse this without potentially invalidating data,
         // but we can try to restore the original constraint if data allows.
         // For now, we'll leave it as is or could implement a restore logic if critical.
     }

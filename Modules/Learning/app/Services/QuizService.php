@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Learning\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Learning\Contracts\Services\QuizServiceInterface;
 use Modules\Learning\Enums\QuizStatus;
@@ -99,7 +98,7 @@ class QuizService implements QuizServiceInterface
 
     public function delete(Quiz $quiz): bool
     {
-        return DB::transaction(fn() => $this->repository->delete($quiz));
+        return DB::transaction(fn () => $this->repository->delete($quiz));
     }
 
     public function publish(Quiz $quiz): Quiz
@@ -121,13 +120,13 @@ class QuizService implements QuizServiceInterface
 
     public function unpublish(Quiz $quiz): Quiz
     {
-        return DB::transaction(fn() => $this->repository->update($quiz, ['status' => QuizStatus::Draft->value])
+        return DB::transaction(fn () => $this->repository->update($quiz, ['status' => QuizStatus::Draft->value])
             ->fresh(['lesson', 'creator']));
     }
 
     public function archive(Quiz $quiz): Quiz
     {
-        return DB::transaction(fn() => $this->repository->update($quiz, ['status' => QuizStatus::Archived->value])
+        return DB::transaction(fn () => $this->repository->update($quiz, ['status' => QuizStatus::Archived->value])
             ->fresh(['lesson', 'creator']));
     }
 

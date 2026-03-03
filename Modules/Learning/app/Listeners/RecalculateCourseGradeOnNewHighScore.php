@@ -6,7 +6,6 @@ namespace Modules\Learning\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
-
 use Modules\Learning\Events\NewHighScoreAchieved;
 
 class RecalculateCourseGradeOnNewHighScore implements ShouldQueue
@@ -27,7 +26,6 @@ class RecalculateCourseGradeOnNewHighScore implements ShouldQueue
             'new_high_score' => $event->newHighScore,
         ]);
 
-        
         $this->gradingEntryService->recalculateCourseGrade(
             $submission->user_id,
             $submission->assignment->getCourseId()

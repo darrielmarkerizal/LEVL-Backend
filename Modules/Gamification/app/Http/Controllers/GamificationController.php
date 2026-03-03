@@ -43,7 +43,7 @@ class GamificationController extends Controller
         $points = $this->gamificationService->getPointsHistory($userId, $perPage);
         $points->appends($request->query());
 
-        $points->getCollection()->transform(fn($item) => new PointResource($item));
+        $points->getCollection()->transform(fn ($item) => new PointResource($item));
 
         return $this->paginateResponse($points, __('gamification.points_history_retrieved'));
     }
@@ -60,11 +60,12 @@ class GamificationController extends Controller
     {
         $userId = $request->user()->id;
         $course = \Modules\Schemes\Models\Course::where('slug', $slug)->firstOrFail();
-        
+
         $data = $this->gamificationService->getUnitLevels($userId, $course->id);
 
         return $this->success($data, __('gamification.levels_retrieved'));
     }
+
     public function level(Request $request): JsonResponse
     {
         $userId = $request->user()->id;

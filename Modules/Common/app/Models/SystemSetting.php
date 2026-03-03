@@ -102,11 +102,11 @@ class SystemSetting extends Model
     protected static function booted(): void
     {
         static::saved(function (SystemSetting $setting) {
-            \Illuminate\Support\Facades\Cache::forget('system_setting:' . $setting->key);
+            \Illuminate\Support\Facades\Cache::forget('system_setting:'.$setting->key);
         });
 
         static::deleted(function (SystemSetting $setting) {
-            \Illuminate\Support\Facades\Cache::forget('system_setting:' . $setting->key);
+            \Illuminate\Support\Facades\Cache::forget('system_setting:'.$setting->key);
         });
     }
 
@@ -115,8 +115,9 @@ class SystemSetting extends Model
      */
     public static function get(string $key, $default = null): mixed
     {
-        return \Illuminate\Support\Facades\Cache::rememberForever('system_setting:' . $key, function () use ($key, $default) {
+        return \Illuminate\Support\Facades\Cache::rememberForever('system_setting:'.$key, function () use ($key, $default) {
             $setting = static::find($key);
+
             return $setting ? $setting->typed_value : $default;
         });
     }

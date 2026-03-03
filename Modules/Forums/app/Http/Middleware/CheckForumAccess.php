@@ -16,7 +16,7 @@ class CheckForumAccess
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthenticated.',
@@ -28,7 +28,7 @@ class CheckForumAccess
             ? $routeCourse->id
             : Course::where('slug', (string) $routeCourse)->value('id');
 
-        if (!$courseId) {
+        if (! $courseId) {
             return response()->json([
                 'success' => false,
                 'message' => 'Course slug is required.',
@@ -53,7 +53,7 @@ class CheckForumAccess
             ->where('course_id', (int) $courseId)
             ->exists();
 
-        if (!$isEnrolled) {
+        if (! $isEnrolled) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have access to this forum.',

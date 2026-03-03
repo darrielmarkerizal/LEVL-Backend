@@ -1,20 +1,18 @@
 <?php
 
-use Modules\Auth\app\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Event;
-use Tests\TestCase;
+use Illuminate\Support\Facades\Hash;
+use Modules\Auth\app\Models\User;
 
 test('user can change password', function () {
-    Event::fake(); 
+    Event::fake();
 
     $user = User::factory()->create([
-        'password' => Hash::make('OldPassword123!')
+        'password' => Hash::make('OldPassword123!'),
     ]);
     $token = auth()->login($user);
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile/password', [
             'current_password' => 'OldPassword123!',
             'new_password' => 'NewPassword123!',
@@ -27,11 +25,11 @@ test('user can change password', function () {
 
 test('change password fails with wrong current password', function () {
     $user = User::factory()->create([
-        'password' => Hash::make('OldPassword123!')
+        'password' => Hash::make('OldPassword123!'),
     ]);
     $token = auth()->login($user);
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile/password', [
             'current_password' => 'WrongPassword',
             'new_password' => 'NewPassword123!',
@@ -46,7 +44,7 @@ test('change password fails with weak new password', function () {
     $user = User::factory()->create(['password' => Hash::make('OldPassword123!')]);
     $token = auth()->login($user);
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile/password', [
             'current_password' => 'OldPassword123!',
             'new_password' => 'weak',

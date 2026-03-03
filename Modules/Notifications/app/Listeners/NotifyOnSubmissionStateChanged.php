@@ -21,11 +21,13 @@ class NotifyOnSubmissionStateChanged
 
         if ($newState === SubmissionState::PendingManualGrading) {
             $this->notificationService->notifyManualGradingRequired($submission);
+
             return;
         }
 
         if ($newState === SubmissionState::Graded || $newState === SubmissionState::AutoGraded) {
             $this->notificationService->notifySubmissionGraded($submission);
+
             return;
         }
     }

@@ -6,16 +6,17 @@ namespace Modules\Auth\Services\Support;
 
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use Modules\Mail\Mail\Auth\ChangeEmailVerificationMail;
-use Modules\Mail\Mail\Auth\VerifyEmailLinkMail;
+use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\OtpCode;
 use Modules\Auth\Models\User;
-use Modules\Auth\Enums\UserStatus;
 use Modules\Common\Models\SystemSetting;
+use Modules\Mail\Mail\Auth\ChangeEmailVerificationMail;
+use Modules\Mail\Mail\Auth\VerifyEmailLinkMail;
 
 class VerificationTokenManager
 {
     public const PURPOSE_REGISTER = 'register_verification';
+
     public const PURPOSE_CHANGE_EMAIL = 'email_change_verification';
 
     public function sendVerificationLink(User $user): ?string
@@ -78,7 +79,7 @@ class VerificationTokenManager
             'code' => 'magic',
             'meta' => [
                 'token_hash' => $tokenHash,
-                'new_email' => $newEmail
+                'new_email' => $newEmail,
             ],
             'expires_at' => now()->addMinutes($ttlMinutes),
         ]);

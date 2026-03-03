@@ -21,7 +21,7 @@ class AssessmentController extends Controller
     {
         $this->authorize('viewAny', Assignment::class);
 
-        $assignments = Assignment::forCourse($course->id)->get()->map(fn($item) => [
+        $assignments = Assignment::forCourse($course->id)->get()->map(fn ($item) => [
             'id' => $item->id,
             'type' => 'assignment',
             'title' => $item->title,
@@ -31,7 +31,7 @@ class AssessmentController extends Controller
             'created_at' => $item->created_at,
         ]);
 
-        $quizzes = Quiz::forCourse($course->id)->get()->map(fn($item) => [
+        $quizzes = Quiz::forCourse($course->id)->get()->map(fn ($item) => [
             'id' => $item->id,
             'type' => 'quiz',
             'title' => $item->title,

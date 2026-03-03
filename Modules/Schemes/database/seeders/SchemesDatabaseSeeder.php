@@ -8,7 +8,7 @@ class SchemesDatabaseSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * Seeds the Schemes module with:
      * 1. Tags
      * 2. 50 comprehensive courses with units and lessons

@@ -46,6 +46,7 @@ class AuditService
         array $options = []
     ): Audit {
         $options['context'] = 'system';
+
         return $this->log($action, $user, $request, $target, $options);
     }
 
@@ -57,12 +58,13 @@ class AuditService
         array $options = []
     ): Audit {
         $options['context'] = 'application';
+
         return $this->log($action, $user, $request, $target, $options);
     }
 
     private function extractTargetData($target): array
     {
-        if (!$target) {
+        if (! $target) {
             return ['table' => null, 'type' => null, 'id' => null];
         }
 
@@ -87,11 +89,10 @@ class AuditService
 
     private function extractActorData(?User $user): array
     {
-        if (!$user) {
+        if (! $user) {
             return ['type' => null, 'id' => null];
         }
 
         return ['type' => get_class($user), 'id' => $user->id];
     }
 }
-

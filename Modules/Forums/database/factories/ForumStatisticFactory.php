@@ -10,13 +10,11 @@ use Modules\Schemes\Models\Course;
 
 class ForumStatisticFactory extends Factory
 {
-     
     protected $model = ForumStatistic::class;
 
-     
     public function definition(): array
     {
-        
+
         $month = $this->faker->unique()->numberBetween(1, 12);
         $year = $this->faker->numberBetween(2020, 2025);
         $periodStart = Carbon::create($year, $month, 1)->startOfMonth();
@@ -35,7 +33,6 @@ class ForumStatisticFactory extends Factory
         ];
     }
 
-     
     public function forUser(?User $user = null): static
     {
         return $this->state(fn (array $attributes) => [

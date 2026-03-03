@@ -1,18 +1,16 @@
 <?php
 
-use Modules\Auth\app\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Tests\TestCase;
+use Modules\Auth\app\Models\User;
 
 test('user can reset password with valid token', function () {
     $user = User::factory()->create([
-        'email' => 'test@example.com', 
-        'password' => Hash::make('OldPassword123!')
+        'email' => 'test@example.com',
+        'password' => Hash::make('OldPassword123!'),
     ]);
-    
+
     $token = Str::random(64);
     DB::table('password_reset_tokens')->insert([
         'email' => 'test@example.com',
@@ -46,7 +44,7 @@ test('reset fails with expired token', function () {
     DB::table('password_reset_tokens')->insert([
         'email' => 'test@example.com',
         'token' => Hash::make($token),
-        'created_at' => now()->subHours(2), 
+        'created_at' => now()->subHours(2),
     ]);
 
     $response = $this->postJson('/api/v1/auth/password/forgot/confirm', [

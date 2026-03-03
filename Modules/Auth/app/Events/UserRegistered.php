@@ -15,6 +15,6 @@ class UserRegistered
 
     public function __construct(
         public User $user,
-        public ?string $passwordPlain = null 
+        public ?string $passwordPlain = null
     ) {}
 }

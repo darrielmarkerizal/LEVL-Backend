@@ -19,7 +19,7 @@ class QuizQuestionResource extends JsonResource
             'options' => $this->options,
             'answer_key' => $this->when(
                 $this->userCanSeeAnswerKey($request),
-                fn() => $this->answer_key
+                fn () => $this->answer_key
             ),
             'weight' => $this->weight,
             'order' => $this->order,
@@ -28,7 +28,7 @@ class QuizQuestionResource extends JsonResource
             'requires_options' => $this->requiresOptions(),
             'option_images' => $this->when(
                 $this->relationLoaded('media'),
-                fn() => $this->getMedia('option_images')->map(fn($m) => ['id' => $m->id, 'url' => $m->getUrl()])
+                fn () => $this->getMedia('option_images')->map(fn ($m) => ['id' => $m->id, 'url' => $m->getUrl()])
             ),
             'created_at' => $this->created_at?->toISOString(),
         ];
