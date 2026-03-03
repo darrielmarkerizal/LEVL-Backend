@@ -101,14 +101,16 @@ class SubmissionCreationProcessor
         }
 
         $questionSet = $this->generateQuestionSet($assignmentId);
+        $attemptNumber = $this->repository->countAttempts($studentId, $assignmentId) + 1;
 
-        return DB::transaction(function () use ($assignmentId, $studentId, $questionSet) {
+        return DB::transaction(function () use ($assignmentId, $studentId, $questionSet, $attemptNumber) {
             $submission = $this->repository->create([
                 'assignment_id' => $assignmentId,
                 'user_id' => $studentId,
                 'state' => SubmissionState::InProgress->value,
                 'status' => SubmissionStatus::Draft->value,
                 'question_set' => $questionSet,
+                'attempt_number' => $attemptNumber,
             ]);
 
             return $submission->fresh(['assignment', 'user']);

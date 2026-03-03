@@ -25,6 +25,7 @@ class SubmissionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'attempt_number' => $this->attempt_number,
             'status' => $this->status,
             'score' => $this->score,
             'submitted_at' => $this->submitted_at,
@@ -47,6 +48,7 @@ class SubmissionResource extends JsonResource
             'assignment_id' => $this->assignment_id,
             'user_id' => $this->user_id,
             'enrollment_id' => $this->enrollment_id,
+            'attempt_number' => $this->attempt_number,
             'status' => $this->status,
             'state' => $this->state?->value,
             'score' => $this->score,
