@@ -17,7 +17,7 @@ class StoreQuizRequest extends FormRequest
     {
         return [
             'unit_id' => ['required', 'integer', 'exists:units,id'],
-            'order' => ['required', 'integer', 'min:1'],
+            'order' => ['nullable', 'integer', 'min:1'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'passing_grade' => ['nullable', 'numeric', 'min:0', 'max:100'],

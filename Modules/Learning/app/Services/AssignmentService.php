@@ -113,6 +113,10 @@ class AssignmentService implements AssignmentServiceInterface
     public function create(array $data, int $createdBy): Assignment
     {
         return DB::transaction(function () use ($data, $createdBy) {
+            if (! isset($data['order']) || $data['order'] === null) {
+                $data['order'] = $this->getNextOrderForUnit($data['unit_id']);
+            }
+
             $isAssignment = ($data['type'] ?? null) === AssignmentType::Assignment->value || ($data['type'] ?? null) === 'assignment';
 
             $assignmentData = array_merge($data, [
@@ -142,8 +146,17 @@ class AssignmentService implements AssignmentServiceInterface
                 }
             }
 
-            return $assignment->fresh(['lesson', 'creator', 'media']);
+            return $assignment->fresh(['unit', 'creator', 'media']);
         });
+    }
+
+    private function getNextOrderForUnit(int $unitId): int
+    {
+        $maxLessonOrder = \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)->max('order') ?? 0;
+        $maxAssignmentOrder = Assignment::where('unit_id', $unitId)->max('order') ?? 0;
+        $maxQuizOrder = \Modules\Learning\Models\Quiz::where('unit_id', $unitId)->max('order') ?? 0;
+
+        return max($maxLessonOrder, $maxAssignmentOrder, $maxQuizOrder) + 1;
     }
 
     public function update(Assignment $assignment, array $data): Assignment

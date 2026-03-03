@@ -141,4 +141,24 @@ class UnitController extends Controller
 
         return $this->success(new UnitResource($unitWithIncludes));
     }
+
+    public function getContentOrder(Course $course, Unit $unit)
+    {
+        $this->service->validateHierarchy($course->id, $unit->id);
+        $this->authorize('view', $unit);
+
+        $content = $this->service->getContentOrder($unit);
+
+        return $this->success($content, __('messages.units.content_order_retrieved'));
+    }
+
+    public function reorderContent(\Modules\Schemes\Http\Requests\ReorderUnitContentRequest $request, Course $course, Unit $unit)
+    {
+        $this->service->validateHierarchy($course->id, $unit->id);
+        $this->authorize('update', $unit);
+
+        $content = $this->service->reorderContent($unit, $request->validated('content'));
+
+        return $this->success($content, __('messages.units.content_reordered'));
+    }
 }

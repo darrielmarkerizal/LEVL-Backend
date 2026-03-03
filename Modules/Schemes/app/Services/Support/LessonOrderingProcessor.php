@@ -31,14 +31,22 @@ class LessonOrderingProcessor
                     ->where('order', '>=', $attributes['order'])
                     ->increment('order');
             } else {
-                $maxOrder = Lesson::where('unit_id', $unitId)->max('order');
-                $attributes['order'] = $maxOrder ? $maxOrder + 1 : 1;
+                $attributes['order'] = $this->getNextOrderForUnit($unitId);
             }
 
             $attributes = Arr::except($attributes, ['slug']);
 
             return $this->repository->create($attributes);
         });
+    }
+
+    private function getNextOrderForUnit(int $unitId): int
+    {
+        $maxLessonOrder = Lesson::where('unit_id', $unitId)->max('order') ?? 0;
+        $maxAssignmentOrder = \Modules\Learning\Models\Assignment::where('unit_id', $unitId)->max('order') ?? 0;
+        $maxQuizOrder = \Modules\Learning\Models\Quiz::where('unit_id', $unitId)->max('order') ?? 0;
+
+        return max($maxLessonOrder, $maxAssignmentOrder, $maxQuizOrder) + 1;
     }
 
     public function update(Lesson $lesson, UpdateLessonDTO|array $data): Lesson

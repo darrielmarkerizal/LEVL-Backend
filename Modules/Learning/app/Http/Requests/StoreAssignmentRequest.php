@@ -26,7 +26,7 @@ class StoreAssignmentRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'unit_id' => ['required', 'integer', 'exists:units,id'],
-            'order' => ['required', 'integer', 'min:1'],
+            'order' => ['nullable', 'integer', 'min:1'],
             'submission_type' => ['required', Rule::enum(SubmissionType::class)],
             'max_score' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'passing_grade' => ['nullable', 'numeric', 'min:0', 'max:100'],

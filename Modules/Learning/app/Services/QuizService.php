@@ -55,6 +55,10 @@ class QuizService implements QuizServiceInterface
     public function create(array $data, int $createdBy): Quiz
     {
         return DB::transaction(function () use ($data, $createdBy) {
+            if (! isset($data['order']) || $data['order'] === null) {
+                $data['order'] = $this->getNextOrderForUnit($data['unit_id']);
+            }
+
             $quiz = $this->repository->create(array_merge($data, [
                 'created_by' => $createdBy,
                 'status' => $data['status'] ?? QuizStatus::Draft->value,
@@ -73,8 +77,17 @@ class QuizService implements QuizServiceInterface
                 }
             }
 
-            return $quiz->fresh(['lesson', 'creator', 'media']);
+            return $quiz->fresh(['unit', 'creator', 'media']);
         });
+    }
+
+    private function getNextOrderForUnit(int $unitId): int
+    {
+        $maxLessonOrder = \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)->max('order') ?? 0;
+        $maxAssignmentOrder = \Modules\Learning\Models\Assignment::where('unit_id', $unitId)->max('order') ?? 0;
+        $maxQuizOrder = Quiz::where('unit_id', $unitId)->max('order') ?? 0;
+
+        return max($maxLessonOrder, $maxAssignmentOrder, $maxQuizOrder) + 1;
     }
 
     public function update(Quiz $quiz, array $data): Quiz
