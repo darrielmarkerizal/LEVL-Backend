@@ -3822,6 +3822,136 @@ banner: (file, optional, image, max:5MB)
 
 ---
 
+### Get Unit Content Order
+
+**Endpoint:** `GET /courses/{course_slug}/units/{unit_slug}/content-order`
+
+**Access:** Authenticated users (must have view permission on unit)
+
+**Purpose:** Get the current order of all content (lessons, assignments, quizzes) within a unit.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Content order retrieved successfully",
+  "data": [
+    {
+      "type": "lesson",
+      "id": 1,
+      "title": "Introduction to Variables",
+      "order": 1,
+      "status": "published"
+    },
+    {
+      "type": "lesson",
+      "id": 2,
+      "title": "Data Types",
+      "order": 2,
+      "status": "published"
+    },
+    {
+      "type": "assignment",
+      "id": 1,
+      "title": "Variables Practice",
+      "order": 3,
+      "status": "published"
+    },
+    {
+      "type": "quiz",
+      "id": 1,
+      "title": "Variables Quiz",
+      "order": 4,
+      "status": "published"
+    }
+  ]
+}
+```
+
+---
+
+### Reorder Unit Content
+
+**Endpoint:** `PUT /courses/{course_slug}/units/{unit_slug}/content-order`
+
+**Access:** Superadmin, Admin, Instructor (must have update permission on unit)
+
+**Purpose:** Reorder all content (lessons, assignments, quizzes) within a unit in a single request.
+
+**Request Body:**
+```json
+{
+  "content": [
+    {
+      "type": "lesson",
+      "id": 1,
+      "order": 1
+    },
+    {
+      "type": "quiz",
+      "id": 1,
+      "order": 2
+    },
+    {
+      "type": "lesson",
+      "id": 2,
+      "order": 3
+    },
+    {
+      "type": "assignment",
+      "id": 1,
+      "order": 4
+    }
+  ]
+}
+```
+
+**Validation Rules:**
+- `content`: required, array, min:1
+- `content.*.type`: required, string, in:lesson,assignment,quiz
+- `content.*.id`: required, integer
+- `content.*.order`: required, integer, min:1
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Content reordered successfully",
+  "data": [
+    {
+      "type": "lesson",
+      "id": 1,
+      "title": "Introduction to Variables",
+      "order": 1,
+      "status": "published"
+    },
+    {
+      "type": "quiz",
+      "id": 1,
+      "title": "Variables Quiz",
+      "order": 2,
+      "status": "published"
+    },
+    {
+      "type": "lesson",
+      "id": 2,
+      "title": "Data Types",
+      "order": 3,
+      "status": "published"
+    },
+    {
+      "type": "assignment",
+      "id": 1,
+      "title": "Variables Practice",
+      "order": 4,
+      "status": "published"
+    }
+  ]
+}
+```
+
+---
+
 ### List All Units (Global - Management Only)
 
 **Endpoint:** `GET /units`
@@ -3882,9 +4012,11 @@ banner: (file, optional, image, max:5MB)
 **Validation Rules:**
 - `title`: required, string, max:255
 - `content`: nullable, string (markdown content, NOT sanitized at input)
-- `order`: nullable, integer, min:1, unique within unit
+- `order`: nullable, integer, min:1 (auto-assigned if not provided - will be placed after all existing content in the unit)
 - `status`: nullable, in:draft,published
 - `duration_minutes`: nullable, integer, min:1
+
+**Note:** If `order` is not provided, the system will automatically assign the next available order number after all existing content (lessons, assignments, quizzes) in the unit.
 
 **Response:**
 ```json
@@ -4078,8 +4210,8 @@ media: (file, optional, for image/video/file types)
   "type": "assignment",
   "title": "Week 1 Assignment",
   "description": "Complete the programming exercises",
-  "assignable_type": "Lesson",
-  "assignable_slug": "lesson-slug",
+  "unit_id": 1,
+  "order": 3,
   "submission_type": "file",
   "max_score": 100,
   "status": "draft",
@@ -4097,8 +4229,8 @@ media: (file, optional, for image/video/file types)
 - `type`: required, enum (assignment, quiz)
 - `title`: required, string, max:255
 - `description`: nullable, string
-- `assignable_type`: required, in:Course,Unit,Lesson
-- `assignable_slug`: required, string (must exist)
+- `unit_id`: required, integer, exists:units,id
+- `order`: nullable, integer, min:1 (auto-assigned if not provided - will be placed after all existing content in the unit)
 - `submission_type`: required, enum (file, text, mixed, online) - assignment must use file/mixed
 - `max_score`: nullable, integer, min:1, max:1000
 - `status`: nullable, enum (draft, published, archived)
@@ -4113,6 +4245,8 @@ media: (file, optional, for image/video/file types)
 - `attachments`: nullable, array, max:5 files
 - `attachments.*`: file, mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,jpg,jpeg,png,webp, max:10240KB
 
+**Note:** If `order` is not provided, the system will automatically assign the next available order number after all existing content (lessons, assignments, quizzes) in the unit.
+
 **Response:**
 ```json
 {
@@ -4123,6 +4257,7 @@ media: (file, optional, for image/video/file types)
     "title": "Week 1 Assignment",
     "type": "assignment",
     "status": "draft",
+    "order": 3,
     "created_at": "2024-01-15T10:00:00+00:00"
   }
 }
@@ -4375,8 +4510,8 @@ media: (file, optional, for image/video/file types)
 **Request Body:**
 ```json
 {
-  "assignable_type": "lesson",
-  "assignable_id": 1,
+  "unit_id": 1,
+  "order": 4,
   "title": "Week 1 Quiz",
   "description": "Test your knowledge",
   "passing_grade": 70,
@@ -4393,8 +4528,8 @@ media: (file, optional, for image/video/file types)
 ```
 
 **Validation Rules:**
-- `assignable_type`: required, in:lesson,unit,course
-- `assignable_id`: required, integer
+- `unit_id`: required, integer, exists:units,id
+- `order`: nullable, integer, min:1 (auto-assigned if not provided - will be placed after all existing content in the unit)
 - `title`: required, string, max:255
 - `description`: nullable, string
 - `passing_grade`: nullable, numeric, min:0, max:100
@@ -4408,7 +4543,22 @@ media: (file, optional, for image/video/file types)
 - `question_bank_count`: nullable, integer, min:1
 - `review_mode`: nullable, in:immediate,after_deadline,never
 
-**Response:** Created quiz details
+**Note:** If `order` is not provided, the system will automatically assign the next available order number after all existing content (lessons, assignments, quizzes) in the unit.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Quiz created successfully",
+  "data": {
+    "id": 1,
+    "title": "Week 1 Quiz",
+    "status": "draft",
+    "order": 4,
+    "created_at": "2024-01-15T10:00:00+00:00"
+  }
+}
+```
 
 
 ---
