@@ -14,7 +14,7 @@ use Modules\Enrollments\Models\LessonProgress;
 use Modules\Gamification\Models\Point;
 use Modules\Gamification\Models\UserBadge;
 use Modules\Gamification\Models\UserGamificationStat;
-use Modules\Learning\Models\Question;
+use Modules\Learning\Models\QuizQuestion;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\LessonBlock;
 
@@ -130,6 +130,7 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
     public function getRegistrationQueue(User $user, int $limit = 5): array
     {
         $query = Enrollment::with(['user', 'course'])
+            ->where('status', EnrollmentStatus::Pending)
             ->latest();
 
         if ($user->hasRole('Instructor')) {
@@ -145,6 +146,7 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
         }
 
         return $query->limit($limit)->get()->map(fn ($enrollment) => [
+            'id' => $enrollment->id,
             'status' => $enrollment->status->value,
             'user_name' => $enrollment->user?->name,
             'course_name' => $enrollment->course?->title,
@@ -155,15 +157,15 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
     public function getContentStatistics(User $user): array
     {
         $lessonBlockQuery = LessonBlock::query();
-        $questionQuery = Question::query();
+        $quizQuestionQuery = QuizQuestion::query();
 
         if ($user->hasRole('Instructor')) {
             $lessonBlockQuery->whereHas('lesson.unit.course', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
             });
 
-            $questionQuery->whereHas('assignment', function ($q) use ($user) {
-                $q->where('created_by', $user->id);
+            $quizQuestionQuery->whereHas('quiz.unit.course', function ($q) use ($user) {
+                $q->where('instructor_id', $user->id);
             });
         } elseif ($user->hasRole('Admin')) {
             $lessonBlockQuery->whereHas('lesson.unit.course', function ($q) use ($user) {
@@ -172,7 +174,7 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
                 });
             });
 
-            $questionQuery->whereHas('assignment.lesson.unit.course.admins', function ($q) use ($user) {
+            $quizQuestionQuery->whereHas('quiz.unit.course.admins', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             });
         }
@@ -189,20 +191,29 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             $blockPercentages[$type] = $totalBlocks > 0 ? round(($count / $totalBlocks) * 100, 2) : 0;
         }
 
-        // Get question types breakdown
-        $questionTypes = $questionQuery->select('type', DB::raw('count(*) as total'))
-            ->groupBy('type')
-            ->pluck('total', 'type')
-            ->toArray();
+        // Get quiz IDs based on role filtering
+        $quizIds = $quizQuestionQuery->distinct()->pluck('quiz_id')->toArray();
 
-        $totalQuestions = $questionQuery->count();
+        // Get quiz question types breakdown using raw query for proper grouping
+        $quizQuestionTypes = [];
+        if (! empty($quizIds)) {
+            $quizQuestionTypes = DB::table('quiz_questions')
+                ->whereIn('quiz_id', $quizIds)
+                ->selectRaw('type, count(*) as total')
+                ->groupBy('type')
+                ->pluck('total', 'type')
+                ->toArray();
+        }
 
-        // Calculate question type counts and percentages
+        $totalQuestions = array_sum($quizQuestionTypes);
+
+        // Map question types to standard format
+        // Quiz questions use: multiple_choice, checkbox, true_false, essay
         $questionByType = [
-            'multiple_choice' => $questionTypes['multiple_choice'] ?? 0,
-            'checkbox' => $questionTypes['checkbox'] ?? 0,
-            'essay' => $questionTypes['essay'] ?? 0,
-            'file_upload' => $questionTypes['file_upload'] ?? 0,
+            'multiple_choice' => $quizQuestionTypes['multiple_choice'] ?? 0,
+            'checkbox' => $quizQuestionTypes['checkbox'] ?? 0,
+            'true_false' => $quizQuestionTypes['true_false'] ?? 0,
+            'essay' => $quizQuestionTypes['essay'] ?? 0,
         ];
 
         $questionPercentages = [];
