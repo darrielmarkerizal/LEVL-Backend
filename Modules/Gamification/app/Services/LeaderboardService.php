@@ -21,13 +21,19 @@ class LeaderboardService implements LeaderboardServiceInterface
         int $page = 1,
         ?int $courseId = null,
         ?int $currentUserId = null,
-        ?string $period = 'all_time'
+        ?string $period = 'all_time',
+        ?string $search = null
     ): array {
-        $leaderboard = $this->getGlobalLeaderboard($perPage, $page, $courseId, $period);
+        $leaderboard = $this->getGlobalLeaderboard($perPage, $page, $courseId, $period, $search);
 
-        $leaderboard->getCollection()->transform(function ($stat, $index) use ($leaderboard) {
-            $rank = ($leaderboard->currentPage() - 1) * $leaderboard->perPage() + $index + 1;
-            $stat->rank = $rank;
+        $leaderboard->getCollection()->transform(function ($stat, $index) use ($leaderboard, $search, $period) {
+            if ($search) {
+                $rankData = $this->getUserRank($stat->user_id, $period);
+                $stat->rank = $rankData['rank'];
+            } else {
+                $rank = ($leaderboard->currentPage() - 1) * $leaderboard->perPage() + $index + 1;
+                $stat->rank = $rank;
+            }
 
             return $stat;
         });
@@ -56,25 +62,31 @@ class LeaderboardService implements LeaderboardServiceInterface
         ];
     }
 
-    public function getGlobalLeaderboard(int $perPage = 10, int $page = 1, ?int $courseId = null, ?string $period = 'all_time'): LengthAwarePaginator
+    public function getGlobalLeaderboard(int $perPage = 10, int $page = 1, ?int $courseId = null, ?string $period = 'all_time', ?string $search = null): LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, 100));
         $period = $period ?? 'all_time';
 
-        $cacheKey = 'gamification:leaderboard:'.md5(json_encode(compact('perPage', 'page', 'courseId', 'period')));
+        $cacheKey = 'gamification:leaderboard:'.md5(json_encode(compact('perPage', 'page', 'courseId', 'period', 'search')));
 
         return cache()->tags(['gamification', 'leaderboard'])->remember(
             $cacheKey,
             300,
-            function () use ($courseId, $period, $perPage, $page) {
+            function () use ($courseId, $period, $perPage, $page, $search) {
                 if ($courseId) {
                     $query = QueryBuilder::for(Leaderboard::class)
                         ->allowedFilters([
                             AllowedFilter::exact('course_id'),
                         ])
                         ->with(['user:id,name', 'user.media'])
-                        ->where('course_id', $courseId)
-                        ->orderBy('rank');
+                        ->where('course_id', $courseId);
+                        
+                    if ($search) {
+                        $query->whereHas('user', function ($q) use ($search) {
+                            $q->search($search);
+                        });
+                    }
+                    $query->orderBy('rank');
                 } else {
                     if ($period === 'all_time') {
                         $query = QueryBuilder::for(UserGamificationStat::class)
@@ -83,8 +95,14 @@ class LeaderboardService implements LeaderboardServiceInterface
                                     // Handled manually below via $this->applyPeriodFilter()
                                 }),
                             ])
-                            ->with(['user:id,name', 'user.media'])
-                            ->orderByDesc('total_xp');
+                            ->with(['user:id,name', 'user.media']);
+
+                        if ($search) {
+                            $query->whereHas('user', function ($q) use ($search) {
+                                $q->search($search);
+                            });
+                        }
+                        $query->orderByDesc('total_xp');
 
                         $this->applyPeriodFilter($query, $period);
                     } else {
@@ -95,8 +113,14 @@ class LeaderboardService implements LeaderboardServiceInterface
                                 AllowedFilter::callback('period', function ($query, $value) {
                                 }),
                             ])
-                            ->with(['user:id,name', 'user.media', 'user.gamificationStats'])
-                            ->orderByDesc('total_xp');
+                            ->with(['user:id,name', 'user.media', 'user.gamificationStats']);
+                            
+                        if ($search) {
+                            $query->whereHas('user', function ($q) use ($search) {
+                                $q->search($search);
+                            });
+                        }
+                        $query->orderByDesc('total_xp');
 
                         $this->applyPeriodFilter($query, $period, true);
                     }
