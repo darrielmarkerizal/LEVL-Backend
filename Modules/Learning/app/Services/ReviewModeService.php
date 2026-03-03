@@ -28,6 +28,7 @@ class ReviewModeService implements ReviewModeServiceInterface
 
         return match ($reviewMode) {
             ReviewMode::Immediate => $this->isSubmitted($submission),
+            ReviewMode::Manual => $this->isGraded($submission),
             ReviewMode::Deferred => $this->isReleased($submission),
             ReviewMode::Hidden => false,
         };
@@ -50,6 +51,7 @@ class ReviewModeService implements ReviewModeServiceInterface
 
         return match ($reviewMode) {
             ReviewMode::Immediate => $this->isGraded($submission),
+            ReviewMode::Manual => $this->isGraded($submission),
             ReviewMode::Deferred => $this->isReleased($submission),
             ReviewMode::Hidden => false,
         };

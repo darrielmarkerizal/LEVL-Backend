@@ -83,7 +83,7 @@ class SubmissionFinder
     public function getSubmissionDetail(Submission $submission, ?int $userId): array
     {
         $submission = $this->getSubmission($submission->id, []);
-        $submission->loadMissing(['assignment', 'answers.question']);
+        $submission->loadMissing(['assignment', 'answers.question', 'files']);
 
         $visibility = $this->reviewModeService?->getVisibilityStatus($submission, $userId) ?? [];
 

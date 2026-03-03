@@ -169,7 +169,7 @@ class SequentialProgressSeeder extends Seeder
         $score = $status === 'graded' ? rand(60, 100) : null;
 
         $answerText = null;
-        if ($assignment->submission_type === 'text') {
+        if ($assignment->submission_type === \Modules\Learning\Enums\SubmissionType::Text) {
             $answerText = $this->pregenAnswers[array_rand($this->pregenAnswers)];
         }
 
@@ -185,7 +185,7 @@ class SequentialProgressSeeder extends Seeder
             'attempt_number' => 1,
         ]);
 
-        if ($assignment->submission_type === 'file') {
+        if ($assignment->submission_type === \Modules\Learning\Enums\SubmissionType::File) {
             $this->attachFileToSubmission($submission);
         }
 
@@ -225,16 +225,22 @@ class SequentialProgressSeeder extends Seeder
         $dummyFilePath = public_path('dummy/pdf-sample_0.pdf');
         
         if (!file_exists($dummyFilePath)) {
+            echo "⚠️  Dummy file not found: {$dummyFilePath}\n";
             return;
         }
 
         try {
-            $submission->addMedia($dummyFilePath)
+            $submissionFile = \Modules\Learning\Models\SubmissionFile::create([
+                'submission_id' => $submission->id,
+            ]);
+
+            $submissionFile->addMedia($dummyFilePath)
                 ->preservingOriginal()
                 ->usingName('submission-' . $submission->id)
                 ->usingFileName('submission-' . $submission->id . '.pdf')
-                ->toMediaCollection('submissions', 'do');
+                ->toMediaCollection('file', 'do');
         } catch (\Exception $e) {
+            echo "⚠️  Failed to attach file for submission {$submission->id}: " . $e->getMessage() . "\n";
         }
     }
 
@@ -286,7 +292,12 @@ class SequentialProgressSeeder extends Seeder
         \DB::table('grades')->whereIn('source_type', ['assignment', 'quiz'])->delete();
         echo "  ✓ Cleaned grades\n";
         
-        \DB::table('media')->where('collection_name', 'submissions')->delete();
+        \DB::table('media')->where('collection_name', 'file')->whereIn('model_id', function ($query) {
+            $query->select('id')->from('submission_files');
+        })->delete();
+        echo "  ✓ Cleaned submission files media\n";
+        
+        \DB::table('submission_files')->delete();
         echo "  ✓ Cleaned submission files\n";
         
         \DB::table('submissions')->delete();

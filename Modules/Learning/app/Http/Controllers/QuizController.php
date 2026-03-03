@@ -28,13 +28,62 @@ class QuizController extends Controller
 
     public function __construct(
         private readonly QuizServiceInterface $quizService,
-        private readonly QuizQuestionServiceInterface $questionService
+        private readonly QuizQuestionServiceInterface $questionService,
+        private readonly \Modules\Schemes\Services\PrerequisiteService $prerequisiteService
     ) {}
 
     public function index(Request $request, \Modules\Schemes\Models\Course $course): JsonResponse
     {
+        $user = auth('api')->user();
         $paginator = $this->quizService->listForIndex($course, $request->all());
-        $paginator->getCollection()->transform(fn($item) => new QuizIndexResource($item));
+
+        $paginator->load('lesson.unit:id,slug');
+
+        if ($user && $user->hasRole('Student')) {
+            $paginator->getCollection()->transform(function ($item) use ($user) {
+                $resource = new QuizIndexResource($item);
+                $baseData = $resource->toArray(request());
+
+                $prerequisiteCheck = $this->prerequisiteService->checkQuizAccess($item, $user->id);
+                $isLocked = ! $prerequisiteCheck['accessible'];
+
+                return [
+                    'id' => $baseData['id'],
+                    'title' => $baseData['title'],
+                    'passing_grade' => $baseData['passing_grade'],
+                    'max_score' => $baseData['max_score'],
+                    'auto_grading' => $baseData['auto_grading'],
+                    'is_locked' => $isLocked,
+                    'lesson_slug' => $item->lesson?->slug,
+                    'unit_slug' => $item->lesson?->unit?->slug,
+                    'questions_count' => $baseData['questions_count'] ?? null,
+                    'scope_type' => $baseData['scope_type'],
+                    'created_at' => $baseData['created_at'],
+                ];
+            });
+        } else {
+            $paginator->getCollection()->transform(function ($item) {
+                $resource = new QuizIndexResource($item);
+                $baseData = $resource->toArray(request());
+
+                return [
+                    'id' => $baseData['id'],
+                    'title' => $baseData['title'],
+                    'passing_grade' => $baseData['passing_grade'],
+                    'max_score' => $baseData['max_score'],
+                    'status' => $baseData['status'],
+                    'status_label' => $baseData['status_label'],
+                    'auto_grading' => $baseData['auto_grading'],
+                    'lesson_slug' => $item->lesson?->slug,
+                    'unit_slug' => $item->lesson?->unit?->slug,
+                    'questions_count' => $baseData['questions_count'] ?? null,
+                    'available_from' => $baseData['available_from'] ?? null,
+                    'deadline_at' => $baseData['deadline_at'] ?? null,
+                    'scope_type' => $baseData['scope_type'],
+                    'created_at' => $baseData['created_at'],
+                ];
+            });
+        }
 
         return $this->paginateResponse($paginator, 'messages.quizzes.list_retrieved');
     }
