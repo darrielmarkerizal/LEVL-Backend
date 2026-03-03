@@ -6,6 +6,7 @@ namespace Modules\Common\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Modules\Schemes\Models\Course;
 use Illuminate\Support\Facades\Cache;
 use Modules\Common\Models\MasterDataItem;
 use Modules\Common\Repositories\MasterDataRepository;
@@ -94,6 +95,17 @@ class MasterDataService
         }
 
         return $this->repository->update($item, $data);
+    }
+
+    public function getCourses(?string $search = null): Collection
+    {
+        $query = Course::select(['title', 'slug']);
+
+        if (!empty($search)) {
+            $query->search($search);
+        }
+
+        return $query->orderBy('title')->get();
     }
 
     public function delete(string $type, int $id): bool

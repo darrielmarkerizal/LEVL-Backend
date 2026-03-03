@@ -31,6 +31,7 @@ use Modules\Schemes\Enums\CourseStatus;
 use Modules\Schemes\Enums\CourseType;
 use Modules\Schemes\Enums\EnrollmentType;
 use Modules\Schemes\Enums\LevelTag;
+use Modules\Schemes\Models\Course;
 use Spatie\Permission\Models\Role;
 
 class MasterDataEnumMapper
@@ -40,6 +41,7 @@ class MasterDataEnumMapper
         return [
             'user-status' => fn () => $this->transformEnum(UserStatus::class),
             'roles' => fn () => $this->getRoles(),
+            'courses' => fn () => $this->getCourses(),
             'course-status' => fn () => $this->transformEnum(CourseStatus::class),
             'course-types' => fn () => $this->transformEnum(CourseType::class),
             'enrollment-types' => fn () => $this->transformEnum(EnrollmentType::class),
@@ -91,6 +93,18 @@ class MasterDataEnumMapper
             ->map(fn ($role) => [
                 'value' => $role->name,
                 'label' => __('enums.roles.'.strtolower($role->name)),
+            ])
+            ->toArray();
+    }
+
+    private function getCourses(): array
+    {
+        return Course::select(['title', 'slug'])
+            ->orderBy('title')
+            ->get()
+            ->map(fn ($course) => [
+                'value' => $course->slug,
+                'label' => $course->title,
             ])
             ->toArray();
     }
