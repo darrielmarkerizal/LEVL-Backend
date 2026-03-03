@@ -94,11 +94,6 @@ class AssignmentSeederEnhanced extends Seeder
                     'max_score' => $this->getRandomMaxScore(),
                     'available_from' => $availableFrom,
                     'deadline_at' => $deadline,
-                    'tolerance_minutes' => rand(0, 30),
-                    'time_limit_minutes' => rand(0, 1) ? rand(30, 180) : null,
-                    'max_attempts' => $this->getRandomAttempts(),
-                    'cooldown_minutes' => rand(0, 60),
-                    'retake_enabled' => (bool) rand(0, 1),
                     'review_mode' => fake()->randomElement(['immediate', 'deferred', 'hidden']),
                     'randomization_type' => fake()->randomElement(['static', 'random_order', 'bank']),
                     'status' => 'published',
@@ -182,7 +177,7 @@ class AssignmentSeederEnhanced extends Seeder
                         'submitted_at' => $submittedAt,
                         'started_at' => $submittedAt ? $submittedAt->subMinutes(rand(5, 120)) : null,
                         'score' => $status === 'graded' ? rand(0, (int) $assignment->max_score) : null,
-                        'attempt_number' => rand(1, min(3, (int) $assignment->max_attempts)),
+                        'attempt_number' => 1,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
@@ -269,25 +264,4 @@ class AssignmentSeederEnhanced extends Seeder
         return $scores[array_rand($scores)];
     }
 
-    private function getRandomAttempts(): int
-    {
-        $weights = [
-            1 => 20,
-            2 => 30,
-            3 => 35,
-            99 => 15,
-        ];
-
-        $rand = rand(1, 100);
-        $cumulative = 0;
-
-        foreach ($weights as $attempts => $weight) {
-            $cumulative += $weight;
-            if ($rand <= $cumulative) {
-                return $attempts;
-            }
-        }
-
-        return 3;
-    }
 }

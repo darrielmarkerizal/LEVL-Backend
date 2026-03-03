@@ -11,11 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Learning\Contracts\Services\AssignmentServiceInterface;
 use Modules\Learning\Http\Requests\DuplicateAssignmentRequest;
-use Modules\Learning\Http\Requests\GrantOverrideRequest;
 use Modules\Learning\Http\Requests\StoreAssignmentRequest;
 use Modules\Learning\Http\Requests\UpdateAssignmentRequest;
 use Modules\Learning\Http\Resources\AssignmentResource;
-use Modules\Learning\Http\Resources\OverrideResource;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Services\Support\AssignmentEnrichmentService;
 
@@ -106,29 +104,6 @@ class AssignmentController extends Controller
         $result = $this->assignmentService->checkPrerequisites($assignment->id, auth('api')->id());
 
         return $this->success($result->toArray());
-    }
-
-    public function grantOverride(GrantOverrideRequest $request, Assignment $assignment): JsonResponse
-    {
-        $this->authorize('grantOverride', $assignment);
-
-        $override = $this->assignmentService->grantOverride(
-            $assignment->id,
-            (int) $request->validated('student_id'),
-            (string) $request->validated('type'),
-            (string) $request->validated('reason'),
-            $request->validated('value', []),
-            auth('api')->id()
-        );
-
-        return $this->created(OverrideResource::make($override), __('messages.overrides.granted'));
-    }
-
-    public function listOverrides(Assignment $assignment): JsonResponse
-    {
-        $this->authorize('viewOverrides', $assignment);
-
-        return $this->success(OverrideResource::collection($this->assignmentService->getOverridesForAssignment($assignment->id)));
     }
 
     public function duplicate(DuplicateAssignmentRequest $request, Assignment $assignment): JsonResponse

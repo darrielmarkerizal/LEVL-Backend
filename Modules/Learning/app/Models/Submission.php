@@ -30,18 +30,11 @@ class Submission extends Model
         'score',
         'question_set',
         'submitted_at',
-        'attempt_number',
-        'is_late',
-        'is_resubmission',
-        'previous_submission_id',
     ];
 
     protected $casts = [
         'status' => SubmissionStatus::class,
         'submitted_at' => 'datetime',
-        'attempt_number' => 'integer',
-        'is_late' => 'boolean',
-        'is_resubmission' => 'boolean',
         'score' => 'decimal:2',
         'question_set' => 'array',
     ];
@@ -101,16 +94,6 @@ class Submission extends Model
         return $this->hasMany(Answer::class);
     }
 
-    public function previousSubmission(): BelongsTo
-    {
-        return $this->belongsTo(Submission::class, 'previous_submission_id');
-    }
-
-    public function resubmissions(): HasMany
-    {
-        return $this->hasMany(Submission::class, 'previous_submission_id');
-    }
-
     public function grade(): HasOne
     {
         return $this->hasOne(\Modules\Grading\Models\Grade::class, 'submission_id');
@@ -161,9 +144,7 @@ class Submission extends Model
 
         $statusValue = match ($newState) {
             SubmissionState::InProgress => 'draft',
-            SubmissionState::Submitted => ($this->status?->value === 'missing')
-                ? 'missing'
-                : ($this->is_late ? 'late' : 'submitted'),
+            SubmissionState::Submitted => ($this->status?->value === 'missing') ? 'missing' : 'submitted',
             SubmissionState::AutoGraded => 'graded',
             SubmissionState::PendingManualGrading => 'submitted',
             SubmissionState::Graded => 'graded',
@@ -215,11 +196,6 @@ class Submission extends Model
     public function scopeHighestScore($query)
     {
         return $query->orderByDesc('score');
-    }
-
-    public function scopeLate($query, bool $isLate = true)
-    {
-        return $query->where('is_late', $isLate);
     }
 
     public function scopePendingManualGrading($query)

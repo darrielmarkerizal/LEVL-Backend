@@ -39,6 +39,29 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             );
         }
 
+        $pendingSubmission = QuizSubmission::where('quiz_id', $quiz->id)
+            ->where('user_id', $userId)
+            ->whereIn('status', [QuizSubmissionStatus::Draft->value, QuizSubmissionStatus::Submitted->value])
+            ->first();
+
+        if ($pendingSubmission) {
+            if ($pendingSubmission->status === QuizSubmissionStatus::Draft->value) {
+                throw new \Illuminate\Validation\ValidationException(
+                    \Illuminate\Support\Facades\Validator::make([], [])->errors()->add(
+                        'quiz',
+                        __('messages.quiz_submissions.draft_exists')
+                    )
+                );
+            }
+
+            throw new \Illuminate\Validation\ValidationException(
+                \Illuminate\Support\Facades\Validator::make([], [])->errors()->add(
+                    'quiz',
+                    __('messages.quiz_submissions.pending_grading')
+                )
+            );
+        }
+
         return DB::transaction(function () use ($quiz, $userId, $enrollmentId) {
             $attemptNumber = $this->repository->getAttemptCount($quiz->id, $userId) + 1;
 

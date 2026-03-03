@@ -10,75 +10,86 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Modules\Learning\Enums\SubmissionState;
-use Modules\Learning\Enums\SubmissionStatus;
 use Modules\Learning\Models\Assignment;
+use Modules\Learning\Models\Quiz;
 use Modules\Learning\Models\Submission;
+use Modules\Learning\Models\QuizSubmission;
 
 class MarkMissingSubmissionsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries = 2;
-
-    public int $timeout = 60;
-
     public function __construct()
     {
-        $this->onQueue('maintenance');
     }
 
     public function handle(): void
     {
-        // Find assignments with deadlines passed tolerance and mark in-progress submissions as missing
-        $assignments = Assignment::whereNotNull('deadline_at')
-            ->where('status', '!=', 'archived')
+        $now = now();
+        $markedCount = 0;
+
+        $overdueAssignments = Assignment::where('status', 'published')
+            ->whereNotNull('deadline_at')
+            ->where('deadline_at', '<', $now)
             ->get();
 
-        $affected = 0;
+        foreach ($overdueAssignments as $assignment) {
+            $enrolledUsers = $assignment->unit->course->enrollments()
+                ->where('status', 'active')
+                ->pluck('user_id');
 
-        foreach ($assignments as $assignment) {
-            if (! $assignment->isPastTolerance()) {
-                continue;
-            }
+            foreach ($enrolledUsers as $userId) {
+                $hasSubmission = Submission::where('assignment_id', $assignment->id)
+                    ->where('user_id', $userId)
+                    ->exists();
 
-            $submissions = Submission::query()
-                ->where('assignment_id', $assignment->id)
-                ->where('state', SubmissionState::InProgress)
-                ->get();
-
-            foreach ($submissions as $submission) {
-                // Set status to Missing and mark as submitted (without answers)
-                $submission->status = SubmissionStatus::Missing;
-                $submission->is_late = true;
-                $submission->submitted_at = now();
-                $submission->save();
-
-                // Transition to Submitted to finalize state and trigger events
-                try {
-                    $submission->transitionTo(SubmissionState::Submitted, $submission->user_id);
-                } catch (\Throwable $e) {
-                    Log::warning('Failed to transition missing submission', [
-                        'submission_id' => $submission->id,
-                        'error' => $e->getMessage(),
+                if (!$hasSubmission) {
+                    Submission::create([
+                        'assignment_id' => $assignment->id,
+                        'user_id' => $userId,
+                        'status' => 'missing',
+                        'state' => 'pending_grading',
                     ]);
+                    $markedCount++;
                 }
-
-                $affected++;
             }
         }
 
-        if ($affected > 0) {
-            Log::info('MarkMissingSubmissionsJob: marked missing submissions', [
-                'count' => $affected,
+        $overdueQuizzes = Quiz::where('status', 'published')
+            ->whereNotNull('deadline_at')
+            ->where('deadline_at', '<', $now)
+            ->get();
+
+        foreach ($overdueQuizzes as $quiz) {
+            $enrolledUsers = $quiz->unit->course->enrollments()
+                ->where('status', 'active')
+                ->pluck('user_id');
+
+            foreach ($enrolledUsers as $userId) {
+                $hasSubmission = QuizSubmission::where('quiz_id', $quiz->id)
+                    ->where('user_id', $userId)
+                    ->exists();
+
+                if (!$hasSubmission) {
+                    QuizSubmission::create([
+                        'quiz_id' => $quiz->id,
+                        'user_id' => $userId,
+                        'status' => 'missing',
+                    ]);
+                    $markedCount++;
+                }
+            }
+        }
+
+        if ($markedCount > 0) {
+            Log::info(__('learning::messages.mark_missing_submissions_completed'), [
+                'count' => $markedCount,
             ]);
         }
     }
 
     public function tags(): array
     {
-        return [
-            'mark-missing-submissions',
-        ];
+        return ['mark-missing-submissions'];
     }
 }

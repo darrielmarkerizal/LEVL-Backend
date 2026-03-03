@@ -65,8 +65,6 @@ class QuizService implements QuizServiceInterface
                 'passing_grade' => $data['passing_grade'] ?? 75.00,
                 'max_score' => $data['max_score'] ?? 100,
                 'auto_grading' => isset($data['auto_grading']) ? (bool) $data['auto_grading'] : true,
-                'cooldown_minutes' => $data['cooldown_minutes'] ?? 0,
-                'retake_enabled' => isset($data['retake_enabled']) ? (bool) $data['retake_enabled'] : false,
                 'review_mode' => $data['review_mode'] ?? 'immediate',
                 'randomization_type' => $data['randomization_type'] ?? 'static',
             ]));

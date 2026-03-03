@@ -13,11 +13,9 @@ use Modules\Learning\Enums\AssignmentStatus;
 use Modules\Learning\Enums\RandomizationType;
 use Modules\Learning\Enums\ReviewMode;
 use Modules\Learning\Models\Assignment;
-use Modules\Learning\Models\Override;
 use Modules\Learning\Repositories\AssignmentRepository;
 use Modules\Learning\Services\Support\AssignmentDuplicator;
 use Modules\Learning\Services\Support\AssignmentFinder;
-use Modules\Learning\Services\Support\AssignmentOverrideProcessor;
 use Modules\Learning\Services\Support\AssignmentPrerequisiteProcessor;
 
 class AssignmentService implements AssignmentServiceInterface
@@ -26,7 +24,6 @@ class AssignmentService implements AssignmentServiceInterface
         private readonly AssignmentRepository $repository,
         private readonly AssignmentFinder $finder,
         private readonly AssignmentPrerequisiteProcessor $prerequisiteProcessor,
-        private readonly AssignmentOverrideProcessor $overrideProcessor,
         private readonly AssignmentDuplicator $duplicator
     ) {}
 
@@ -124,9 +121,6 @@ class AssignmentService implements AssignmentServiceInterface
                 'status' => $data['status'] ?? AssignmentStatus::Draft->value,
                 'submission_type' => $data['submission_type'] ?? 'text',
                 'max_score' => $data['max_score'] ?? 100,
-                'allow_resubmit' => data_get($data, 'allow_resubmit') !== null ? (bool) $data['allow_resubmit'] : null,
-                'cooldown_minutes' => $data['cooldown_minutes'] ?? 0,
-                'retake_enabled' => isset($data['retake_enabled']) ? (bool) $data['retake_enabled'] : false,
             ]);
 
             if ($isAssignment) {
@@ -217,26 +211,6 @@ class AssignmentService implements AssignmentServiceInterface
     public function getWithRelations(Assignment $assignment): Assignment
     {
         return $this->repository->findWithRelations($assignment);
-    }
-
-    public function getOverridesForAssignment(int $assignmentId): Collection
-    {
-        return $this->overrideProcessor->getOverridesForAssignment($assignmentId);
-    }
-
-    public function checkPrerequisites(int $assignmentId, int $studentId): PrerequisiteCheckResult
-    {
-        return $this->prerequisiteProcessor->checkPrerequisites($assignmentId, $studentId, $this->overrideProcessor);
-    }
-
-    public function hasCircularDependency(int $assignmentId, int $prerequisiteId): bool
-    {
-        return $this->prerequisiteProcessor->hasCircularDependency($assignmentId, $prerequisiteId);
-    }
-
-    public function grantOverride(int $assignmentId, int $studentId, string $overrideType, string $reason, array $value = [], ?int $grantorId = null): Override
-    {
-        return $this->overrideProcessor->grantOverride($assignmentId, $studentId, $overrideType, $reason, $value, $grantorId);
     }
 
     public function duplicateAssignment(int $assignmentId, int $userId, array $overrides = []): Assignment

@@ -9,7 +9,6 @@ enum QuizSubmissionStatus: string
     case Draft = 'draft';
     case Submitted = 'submitted';
     case Graded = 'graded';
-    case Late = 'late';
     case Missing = 'missing';
 
     public static function values(): array
@@ -28,7 +27,6 @@ enum QuizSubmissionStatus: string
             self::Draft => __('enums.quiz_submission_status.draft'),
             self::Submitted => __('enums.quiz_submission_status.submitted'),
             self::Graded => __('enums.quiz_submission_status.graded'),
-            self::Late => __('enums.quiz_submission_status.late'),
             self::Missing => __('enums.quiz_submission_status.missing'),
         };
     }

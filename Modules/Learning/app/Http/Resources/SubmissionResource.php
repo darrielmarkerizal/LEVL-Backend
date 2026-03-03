@@ -27,7 +27,6 @@ class SubmissionResource extends JsonResource
             'id' => $this->id,
             'status' => $this->status,
             'score' => $this->score,
-            'attempt_number' => $this->attempt_number,
             'submitted_at' => $this->submitted_at,
             'graded_at' => $this->status?->value === 'graded' ? $this->graded_at : null,
             'assignment' => $this->whenLoaded('assignment', function () {
@@ -51,8 +50,6 @@ class SubmissionResource extends JsonResource
             'status' => $this->status,
             'state' => $this->state?->value,
             'score' => $this->score,
-            'attempt_number' => $this->attempt_number,
-            'is_resubmission' => $this->is_resubmission,
             'answer_text' => $this->answer_text,
             'question_set' => $this->question_set,
             'submitted_at' => $this->submitted_at,
@@ -71,7 +68,6 @@ class SubmissionResource extends JsonResource
             'enrollment' => $this->whenLoaded('enrollment'),
             'files' => $this->whenLoaded('files'),
             'answers' => AnswerResource::collection($this->whenLoaded('answers')),
-            'previousSubmission' => $this->whenLoaded('previousSubmission'),
             'grade' => $this->whenLoaded('grade'),
         ];
     }

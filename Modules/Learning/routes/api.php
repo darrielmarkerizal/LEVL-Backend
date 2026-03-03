@@ -26,9 +26,6 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
     Route::get('assignments/{assignment}/prerequisites/check', [AssignmentController::class, 'checkPrerequisites'])
         ->name('assignments.prerequisites.check');
 
-    Route::get('assignments/{assignment}/attempts/check', [SubmissionController::class, 'checkAttempts'])
-        ->name('assignments.attempts.check');
-
     Route::get('assignments/{assignment}/submissions', [SubmissionController::class, 'index'])
         ->name('assignments.submissions.index');
 
@@ -62,14 +59,6 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         Route::put('assignments/{assignment}/archived', [AssignmentController::class, 'archive'])
             ->middleware('can:update,assignment')
             ->name('assignments.archive');
-
-        Route::get('assignments/{assignment}/overrides', [AssignmentController::class, 'listOverrides'])
-            ->middleware('can:viewOverrides,assignment')
-            ->name('assignments.overrides.index');
-
-        Route::post('assignments/{assignment}/overrides', [AssignmentController::class, 'grantOverride'])
-            ->middleware('can:grantOverride,assignment')
-            ->name('assignments.overrides.store');
 
         Route::post('assignments/{assignment}/duplicate', [AssignmentController::class, 'duplicate'])
             ->middleware('can:duplicate,assignment')

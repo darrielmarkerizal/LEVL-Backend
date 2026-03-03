@@ -32,15 +32,7 @@ class AssignmentFactory extends Factory
             'description' => fake()->paragraph(),
             'submission_type' => fake()->randomElement(['text', 'file', 'mixed']),
             'max_score' => fake()->numberBetween(50, 100),
-            'available_from' => now(),
-            'deadline_at' => now()->addDays(7),
             'status' => 'published',
-            'allow_resubmit' => fake()->boolean(60),
-            'late_penalty_percent' => fake()->optional(0.4)->numberBetween(5, 25),
-            'tolerance_minutes' => 0,
-            'max_attempts' => fake()->optional(0.3)->numberBetween(1, 3),
-            'cooldown_minutes' => 0,
-            'retake_enabled' => false,
             'review_mode' => 'immediate',
             'randomization_type' => 'static',
             'question_bank_count' => null,
@@ -104,89 +96,6 @@ class AssignmentFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the assignment allows resubmission.
-     */
-    public function allowResubmit(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'allow_resubmit' => true,
-        ]);
-    }
-
-    /**
-     * Indicate that the assignment has a late penalty.
-     */
-    public function withLatePenalty(int $percent = 10): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'late_penalty_percent' => $percent,
-        ]);
-    }
-
-    /**
-     * Indicate that the assignment is past deadline.
-     */
-    public function pastDeadline(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'deadline_at' => now()->subDays(1),
-        ]);
-    }
-
-    /**
-     * Indicate that the assignment is not yet available.
-     */
-    public function notYetAvailable(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'available_from' => now()->addDays(1),
-        ]);
-    }
-
-    /**
-     * Set deadline tolerance in minutes.
-     */
-    public function withTolerance(int $minutes): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'tolerance_minutes' => $minutes,
-        ]);
-    }
-
-    /**
-     * Set maximum attempts.
-     */
-    public function withMaxAttempts(int $attempts): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'max_attempts' => $attempts,
-        ]);
-    }
-
-    /**
-     * Set cooldown period between attempts.
-     */
-    public function withCooldown(int $minutes): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'cooldown_minutes' => $minutes,
-        ]);
-    }
-
-    /**
-     * Enable re-take mode.
-     */
-    public function withRetake(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'retake_enabled' => true,
-        ]);
-    }
-
-    /**
-     * Set review mode.
-     */
     public function withReviewMode(ReviewMode $mode): static
     {
         return $this->state(fn (array $attributes) => [
@@ -194,17 +103,11 @@ class AssignmentFactory extends Factory
         ]);
     }
 
-    /**
-     * Set deferred review mode.
-     */
     public function deferredReview(): static
     {
         return $this->withReviewMode(ReviewMode::Deferred);
     }
 
-    /**
-     * Set hidden review mode.
-     */
     public function hiddenReview(): static
     {
         return $this->withReviewMode(ReviewMode::Hidden);

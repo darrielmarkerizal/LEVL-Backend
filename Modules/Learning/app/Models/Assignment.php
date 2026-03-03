@@ -55,14 +55,10 @@ class Assignment extends Model implements HasMedia
         'submission_type',
         'max_score',
         'passing_grade',
-        'max_attempts',
-        'cooldown_minutes',
-        'retake_enabled',
         'review_mode',
         'randomization_type',
         'question_bank_count',
         'status',
-        'allow_resubmit',
         'time_limit_minutes',
         'allow_multiple',
     ];
@@ -74,12 +70,8 @@ class Assignment extends Model implements HasMedia
         'review_mode' => ReviewMode::class,
         'randomization_type' => RandomizationType::class,
         'passing_grade' => 'decimal:2',
-        'max_attempts' => 'integer',
-        'cooldown_minutes' => 'integer',
         'question_bank_count' => 'integer',
         'order' => 'integer',
-        'allow_resubmit' => 'boolean',
-        'retake_enabled' => 'boolean',
         'allow_multiple' => 'boolean',
     ];
 
@@ -106,16 +98,6 @@ class Assignment extends Model implements HasMedia
     public function questions(): HasMany
     {
         return $this->hasMany(Question::class)->ordered();
-    }
-
-    public function overrides(): HasMany
-    {
-        return $this->hasMany(Override::class);
-    }
-
-    public function activeOverrides(): HasMany
-    {
-        return $this->hasMany(Override::class)->active();
     }
 
     public function isAvailable(): bool

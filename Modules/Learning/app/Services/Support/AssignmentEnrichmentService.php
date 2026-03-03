@@ -42,9 +42,7 @@ class AssignmentEnrichmentService
                 'score' => $submissionData['score'],
                 'submitted_at' => $submissionData['submitted_at'],
                 'is_completed' => $submissionData['is_completed'],
-                'can_retake' => $submissionData['can_retake'],
                 'attempts_used' => $submissionData['attempts_used'],
-                'max_attempts' => $item->max_attempts,
                 'created_at' => $item->created_at?->toIso8601String(),
                 'updated_at' => $item->updated_at?->toIso8601String(),
                 'creator' => $item->creator ? [
@@ -102,33 +100,24 @@ class AssignmentEnrichmentService
                 'score' => null,
                 'submitted_at' => null,
                 'is_completed' => false,
-                'can_retake' => false,
                 'attempts_used' => 0,
             ];
         }
 
         $passingGrade = $assignment->passing_grade;
         $isPassed = $submission->status->value === 'graded' && $submission->score >= $passingGrade;
-        $isFailed = $submission->status->value === 'graded' && $submission->score < $passingGrade;
-        $isWaitingGrade = $submission->status->value === 'submitted';
 
         $submissionCount = Submission::where('user_id', $userId)
             ->where('assignment_id', $assignment->id)
             ->whereIn('status', ['submitted', 'graded'])
             ->count();
 
-        $canRetake = $assignment->retake_enabled &&
-                    $isFailed &&
-                    ! $isWaitingGrade &&
-                    ($assignment->max_attempts === null || $submissionCount < $assignment->max_attempts);
-
         return [
             'submission_status' => $submission->status->value,
             'submission_status_label' => $this->getSubmissionStatusLabel($submission, $isPassed),
             'score' => $submission->score,
             'submitted_at' => $submission->submitted_at?->toIso8601String(),
-            'is_completed' => $isPassed || ($isFailed && ! $canRetake),
-            'can_retake' => $canRetake,
+            'is_completed' => $isPassed,
             'attempts_used' => $submissionCount,
         ];
     }

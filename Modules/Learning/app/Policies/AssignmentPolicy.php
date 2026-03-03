@@ -125,29 +125,6 @@ class AssignmentPolicy
         return $this->update($user, $assignment);
     }
 
-    public function grantOverride(User $user, Assignment $assignment): bool
-    {
-        if ($user->hasRole('Superadmin')) {
-            return true;
-        }
-
-        $course = $this->resolveCourseFromAssignment($assignment);
-        if (! $course) {
-            return false;
-        }
-
-        if ($user->hasRole('Admin')) {
-            return $this->isCourseAdmin($user, $course->id);
-        }
-
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
-    }
-
-    public function viewOverrides(User $user, Assignment $assignment): bool
-    {
-        return $this->grantOverride($user, $assignment);
-    }
-
     public function duplicate(User $user, Assignment $assignment): bool
     {
         if ($user->hasRole('Superadmin')) {
