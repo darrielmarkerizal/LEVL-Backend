@@ -37,7 +37,20 @@ class QuizSubmissionController extends Controller
     public function start(Quiz $quiz): JsonResponse
     {
         $this->authorize('takeQuiz', $quiz);
-        $submission = $this->submissionService->start($quiz, auth('api')->id());
+        $userId = auth('api')->id();
+
+        $existingDraft = QuizSubmission::where('quiz_id', $quiz->id)
+            ->where('user_id', $userId)
+            ->where('status', \Modules\Learning\Enums\QuizSubmissionStatus::Draft)
+            ->first();
+
+        if ($existingDraft) {
+            return $this->error(__('messages.quiz_submissions.already_started'), [
+                'submission_id' => $existingDraft->id,
+            ], 422);
+        }
+
+        $submission = $this->submissionService->start($quiz, $userId);
 
         return $this->created(QuizSubmissionResource::make($submission), __('messages.quiz_submissions.started'));
     }
@@ -79,7 +92,33 @@ class QuizSubmissionController extends Controller
     public function listQuestions(QuizSubmission $submission): JsonResponse
     {
         $this->authorize('view', $submission);
-        $questions = $this->submissionService->listQuestions($submission, auth('api')->id());
+        $user = auth('api')->user();
+        $page = (int) request()->get('page', 1);
+
+        if ($user && $user->hasRole('Student')) {
+            $questions = $this->submissionService->listQuestions($submission, $user->id);
+            $total = $questions->count();
+
+            if ($page < 1 || $page > $total) {
+                return $this->error(__('messages.quiz_submissions.invalid_page'), [], 404);
+            }
+
+            $question = $questions->get($page - 1);
+
+            return $this->success([
+                'data' => new \Modules\Learning\Http\Resources\QuizQuestionResource($question),
+                'meta' => [
+                    'pagination' => [
+                        'current_page' => $page,
+                        'total' => $total,
+                        'has_next' => $page < $total,
+                        'has_prev' => $page > 1,
+                    ],
+                ],
+            ]);
+        }
+
+        $questions = $this->submissionService->listQuestions($submission, $submission->user_id);
 
         return $this->success(\Modules\Learning\Http\Resources\QuizQuestionResource::collection($questions));
     }

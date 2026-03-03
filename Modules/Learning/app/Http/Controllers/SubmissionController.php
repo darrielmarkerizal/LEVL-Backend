@@ -79,6 +79,32 @@ class SubmissionController extends Controller
     public function listQuestions(Request $request, Submission $submission): JsonResponse
     {
         $this->authorize('accessQuestions', $submission);
+        $user = auth('api')->user();
+        $page = (int) $request->get('page', 1);
+
+        if ($user && $user->hasRole('Student')) {
+            $questions = $this->service->getSubmissionQuestions($submission);
+            $total = $questions->count();
+
+            if ($page < 1 || $page > $total) {
+                return $this->error(__('messages.submissions.invalid_page'), [], 404);
+            }
+
+            $question = $questions->get($page - 1);
+
+            return $this->success([
+                'data' => new QuestionResource($question),
+                'meta' => [
+                    'pagination' => [
+                        'current_page' => $page,
+                        'total' => $total,
+                        'has_next' => $page < $total,
+                        'has_prev' => $page > 1,
+                    ],
+                ],
+            ]);
+        }
+
         if ($request->hasAny(['page', 'per_page'])) {
             return $this->paginateResponse($this->service->getSubmissionQuestionsPaginated($submission, (int) $request->query('per_page', 1))->through(fn ($i) => new QuestionResource($i)));
         }

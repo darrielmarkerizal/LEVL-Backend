@@ -252,31 +252,6 @@ class UnitService
             ->orderBy('order')
             ->get();
 
-        $submissionsByQuiz = [];
-        $submissionsByAssignment = [];
-
-        if ($user) {
-            $quizIds = \Modules\Learning\Models\Quiz::where('assignable_type', \Modules\Schemes\Models\Lesson::class)
-                ->whereIn('assignable_id', $lessonIds)
-                ->pluck('id');
-
-            $submissionsByQuiz = \Modules\Learning\Models\QuizSubmission::where('user_id', $user->id)
-                ->whereIn('quiz_id', $quizIds)
-                ->get()
-                ->groupBy('quiz_id')
-                ->map(fn ($submissions) => $submissions->sortByDesc('submitted_at')->first());
-
-            $submissionsByAssignment = \Modules\Learning\Models\Submission::where('user_id', $user->id)
-                ->whereIn('assignment_id', function ($query) use ($lessonIds) {
-                    $query->select('id')
-                        ->from('assignments')
-                        ->whereIn('lesson_id', $lessonIds);
-                })
-                ->get()
-                ->groupBy('assignment_id')
-                ->map(fn ($submissions) => $submissions->sortByDesc('submitted_at')->first());
-        }
-
         $quizzes = \Modules\Learning\Models\Quiz::where('unit_id', $unit->id)
             ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
             ->select('id', 'title', 'description', 'status', 'max_score', 'passing_grade', 'created_at', 'order', 'unit_id')
@@ -286,6 +261,29 @@ class UnitService
             ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
             ->select('id', 'title', 'description', 'status', 'max_score', 'submission_type', 'created_at', 'order', 'unit_id')
             ->get();
+
+        $submissionsByQuiz = [];
+        $submissionsByAssignment = [];
+
+        if ($user && $quizzes->isNotEmpty()) {
+            $quizIds = $quizzes->pluck('id');
+
+            $submissionsByQuiz = \Modules\Learning\Models\QuizSubmission::where('user_id', $user->id)
+                ->whereIn('quiz_id', $quizIds)
+                ->get()
+                ->groupBy('quiz_id')
+                ->map(fn ($submissions) => $submissions->sortByDesc('submitted_at')->first());
+        }
+
+        if ($user && $assignments->isNotEmpty()) {
+            $assignmentIds = $assignments->pluck('id');
+
+            $submissionsByAssignment = \Modules\Learning\Models\Submission::where('user_id', $user->id)
+                ->whereIn('assignment_id', $assignmentIds)
+                ->get()
+                ->groupBy('assignment_id')
+                ->map(fn ($submissions) => $submissions->sortByDesc('submitted_at')->first());
+        }
 
         $allContent = collect();
 

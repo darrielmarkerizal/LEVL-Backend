@@ -114,6 +114,12 @@ class QuizController extends Controller
     public function listQuestions(Request $request, Quiz $quiz): JsonResponse
     {
         $this->authorize('view', $quiz);
+        $user = auth('api')->user();
+
+        if ($user && $user->hasRole('Student')) {
+            return $this->error(__('messages.quizzes.must_start_first'), [], 403);
+        }
+
         $questions = $this->questionService->getQuizQuestions($quiz->id, $request->all());
 
         return $this->paginateResponse($questions, 'messages.quizzes.questions_retrieved');
