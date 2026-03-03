@@ -130,7 +130,7 @@ class LearningContentSeeder extends Seeder
         for ($i = 1; $i <= $count; $i++) {
             $title = $unitTitles[$i - 1] ?? "Unit {$i}: ".fake()->words(3, true);
             $code = sprintf('U%d_%d_%s', $course->id, $i, bin2hex(random_bytes(3)));
-            $slug = \Illuminate\Support\Str::slug($title).'-'.$course->id;
+            $slug = \Illuminate\Support\Str::slug($title).'-'.$course->id.'-'.bin2hex(random_bytes(3));
 
             $units->push(Unit::create([
                 'course_id' => $course->id,
