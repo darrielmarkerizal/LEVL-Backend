@@ -55,8 +55,8 @@ class UserFinder
                 $request = new Request($requestData);
 
                 $query = QueryBuilder::for(User::class, $request)
-                    ->select(['id', 'name', 'email', 'username', 'status', 'account_status', 'created_at', 'email_verified_at'])
-                    ->with(['roles:id,name,guard_name']);
+                    ->select(['id', 'name', 'email', 'username', 'status', 'account_status', 'specialization_id', 'created_at', 'email_verified_at'])
+                    ->with(['roles:id,name,guard_name', 'specialization:id,name,value']);
 
                 if ($search && trim((string) $search) !== '') {
                     $query->search($search);
@@ -132,7 +132,7 @@ class UserFinder
 
         if (! $target) {
             $query = QueryBuilder::for(User::class, $request ?? new Request)
-                ->with(['roles:id,name,guard_name'])
+                ->with(['roles:id,name,guard_name', 'specialization:id,name,value'])
                 ->allowedIncludes([
                     // Auth Module
                     'roles',
@@ -167,6 +167,11 @@ class UserFinder
             // If cached, load roles if not already loaded
             if (! $target->relationLoaded('roles')) {
                 $target->load('roles:id,name,guard_name');
+            }
+
+            // Load specialization if not already loaded
+            if (! $target->relationLoaded('specialization')) {
+                $target->load('specialization:id,name,value');
             }
 
             // Load other requested includes if specified
