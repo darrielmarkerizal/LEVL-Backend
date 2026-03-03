@@ -24,6 +24,7 @@ class UserIndexResource extends JsonResource
                 ? $this['status']->value
                 : (string) ($this['status'] ?? (is_object($this->resource) ? $this->status : null)),
             'account_status' => $this['account_status'] ?? (is_object($this->resource) ? $this->account_status : null),
+            'specialization' => $this->getSpecialization(),
             'created_at' => $this->formatDate($this['created_at'] ?? (is_object($this->resource) ? $this->created_at : null)),
             'email_verified_at' => $this->formatDate($this->getEmailVerifiedAt()),
             'role_names' => $this->whenLoaded('roles') ? $this->roles->pluck('name')->values()->toArray() : [],
@@ -48,5 +49,18 @@ class UserIndexResource extends JsonResource
         }
 
         return $date ? (string) $date : null;
+    }
+
+    protected function getSpecialization(): ?array
+    {
+        if (is_object($this->resource) && $this->resource->relationLoaded('specialization') && $this->resource->specialization) {
+            return [
+                'id' => $this->resource->specialization->id,
+                'name' => $this->resource->specialization->name,
+                'value' => $this->resource->specialization->value,
+            ];
+        }
+
+        return null;
     }
 }

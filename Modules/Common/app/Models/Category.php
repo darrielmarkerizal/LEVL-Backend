@@ -51,4 +51,9 @@ class Category extends Model
     {
         return \Database\Factories\CategoryFactory::new();
     }
+
+    public function instructors()
+    {
+        return $this->hasMany(\Modules\Auth\Models\User::class, 'specialization_id');
+    }
 }

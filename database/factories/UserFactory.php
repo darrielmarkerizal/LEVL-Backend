@@ -42,6 +42,7 @@ class UserFactory extends Factory
             'email' => strtolower($firstName.'.'.$lastName.rand(100, 9999)).'@'.fake()->safeEmailDomain(),
             'phone' => fake()->optional(0.7)->e164PhoneNumber(),
             'bio' => fake()->optional(0.6)->randomElement($bioTemplates),
+            'specialization_id' => null, // Will be set for instructors
             'password' => static::$password ??= Hash::make('password'),
             'status' => fake()->randomElement([
                 UserStatus::Active->value,
@@ -155,6 +156,23 @@ class UserFactory extends Factory
             'phone' => null,
             'bio' => null,
             'last_profile_update' => null,
+        ]);
+    }
+
+    public function instructor(): static
+    {
+        // Get active categories from database
+        $categoryIds = \Modules\Common\Models\Category::where('status', 'active')
+            ->pluck('id')
+            ->toArray();
+
+        // Fallback to null if no categories available
+        $specializationId = !empty($categoryIds) ? fake()->randomElement($categoryIds) : null;
+
+        return $this->state(fn (array $attributes) => [
+            'specialization_id' => $specializationId,
+            'status' => UserStatus::Active->value,
+            'email_verified_at' => now()->subDays(rand(1, 365)),
         ]);
     }
 

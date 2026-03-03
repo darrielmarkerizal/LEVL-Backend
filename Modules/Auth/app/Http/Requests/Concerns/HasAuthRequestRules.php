@@ -81,6 +81,12 @@ trait HasAuthRequestRules
             ],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'role' => ['required', 'string', 'in:Student,Instructor,Admin,Superadmin'],
+            'specialization_id' => [
+                'nullable',
+                'required_if:role,Instructor',
+                'integer',
+                'exists:categories,id',
+            ],
         ];
     }
 
@@ -101,6 +107,9 @@ trait HasAuthRequestRules
             'email.unique' => __('validation.unique', ['attribute' => 'email']),
             'role.required' => __('validation.required', ['attribute' => 'role']),
             'role.in' => __('validation.in', ['attribute' => 'role']),
+            'specialization_id.required_if' => __('validation.required_if', ['attribute' => 'specialization', 'other' => 'role', 'value' => 'Instructor']),
+            'specialization_id.integer' => __('validation.integer', ['attribute' => 'specialization']),
+            'specialization_id.exists' => __('validation.exists', ['attribute' => 'specialization']),
         ];
     }
 

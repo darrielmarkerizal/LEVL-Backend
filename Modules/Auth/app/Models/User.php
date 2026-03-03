@@ -86,6 +86,7 @@ class User extends Authenticatable implements HasMedia, JWTSubject
         'email_verified_at',
         'remember_token',
         'bio',
+        'specialization_id',
         'phone',
         'account_status',
         'last_profile_update',
@@ -232,6 +233,11 @@ class User extends Authenticatable implements HasMedia, JWTSubject
             'user_id',
             'course_id',
         );
+    }
+
+    public function specialization()
+    {
+        return $this->belongsTo(\Modules\Common\Models\Category::class, 'specialization_id');
     }
 
     protected static function newFactory()
