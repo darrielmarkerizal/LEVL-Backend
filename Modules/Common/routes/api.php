@@ -45,6 +45,9 @@ Route::prefix('v1')->group(function () {
         // Types List
         Route::get('types', [MasterDataController::class, 'types'])->name('types.index');
 
+        // Courses (static - with search, no pagination)
+        Route::get('courses', [MasterDataController::class, 'courses'])->name('courses');
+
         // Data Items (Paginated)
         Route::get('{type}', [MasterDataController::class, 'index'])->name('index');
         // Data Items (All - helpers)

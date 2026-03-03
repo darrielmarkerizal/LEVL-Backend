@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Common\Http\Resources\CourseMasterDataResource;
 use Modules\Common\Http\Resources\MasterDataTypeResource;
 use Modules\Common\Services\MasterDataService;
 
@@ -26,6 +27,17 @@ class MasterDataController extends Controller
         $paginator->getCollection()->transform(fn ($item) => new MasterDataTypeResource($item));
 
         return $this->paginateResponse($paginator, __('messages.master_data.types_retrieved'));
+    }
+
+    public function courses(Request $request): JsonResponse
+    {
+        $search = $request->query('search');
+        $data = $this->service->getCourses($search);
+
+        return $this->success(
+            CourseMasterDataResource::collection($data),
+            __('messages.master_data.retrieved')
+        );
     }
 
     public function get(string $type): JsonResponse

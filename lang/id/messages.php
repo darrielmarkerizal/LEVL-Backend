@@ -190,6 +190,7 @@ return [
         'grade_source_types' => 'Daftar sumber nilai',
         'category_statuses' => 'Daftar status kategori',
         'setting_types' => 'Daftar tipe pengaturan',
+        'courses' => 'Daftar kursus',
     ],
 
     'courses' => [

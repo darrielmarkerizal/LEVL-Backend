@@ -222,6 +222,7 @@ return [
         'grade_source_types' => 'Grade source list',
         'category_statuses' => 'Category status list',
         'setting_types' => 'Setting type list',
+        'courses' => 'Course list',
     ],
 
     // Courses Module
