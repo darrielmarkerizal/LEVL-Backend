@@ -10,6 +10,53 @@ class QuizResource extends JsonResource
 {
     public function toArray($request): array
     {
+        $user = $request->user();
+        $isStudent = $user && $user->hasRole('Student');
+
+        if ($isStudent) {
+            return $this->toStudentArray();
+        }
+
+        return $this->toInstructorArray();
+    }
+
+    private function toStudentArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'description' => $this->description,
+            'passing_grade' => $this->passing_grade,
+            'max_score' => $this->max_score,
+            'max_attempts' => $this->max_attempts,
+            'time_limit_minutes' => $this->time_limit_minutes,
+            'retake_enabled' => $this->retake_enabled,
+            'auto_grading' => $this->auto_grading,
+            'review_mode' => $this->review_mode,
+            'questions_count' => $this->when(
+                $this->relationLoaded('questions'),
+                fn () => $this->questions->count()
+            ),
+            'questions' => $this->when(
+                $this->relationLoaded('questions'),
+                fn () => QuizQuestionResource::collection($this->questions)
+            ),
+            'attachments' => $this->when(
+                $this->relationLoaded('media'),
+                fn () => $this->getMedia('attachments')->map(fn ($m) => [
+                    'id' => $m->id,
+                    'name' => $m->name,
+                    'url' => $m->getUrl(),
+                    'mime_type' => $m->mime_type,
+                    'size' => $m->size,
+                ])
+            ),
+            'created_at' => $this->created_at?->toISOString(),
+        ];
+    }
+
+    private function toInstructorArray(): array
+    {
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -37,19 +84,19 @@ class QuizResource extends JsonResource
             'created_by' => $this->created_by,
             'creator' => $this->when(
                 $this->relationLoaded('creator'),
-                fn() => ['id' => $this->creator?->id, 'name' => $this->creator?->name]
+                fn () => ['id' => $this->creator?->id, 'name' => $this->creator?->name]
             ),
             'questions_count' => $this->when(
                 $this->relationLoaded('questions'),
-                fn() => $this->questions->count()
+                fn () => $this->questions->count()
             ),
             'questions' => $this->when(
                 $this->relationLoaded('questions'),
-                fn() => QuizQuestionResource::collection($this->questions)
+                fn () => QuizQuestionResource::collection($this->questions)
             ),
             'attachments' => $this->when(
                 $this->relationLoaded('media'),
-                fn() => $this->getMedia('attachments')->map(fn($m) => [
+                fn () => $this->getMedia('attachments')->map(fn ($m) => [
                     'id' => $m->id,
                     'name' => $m->name,
                     'url' => $m->getUrl(),

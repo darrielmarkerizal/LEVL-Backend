@@ -15,11 +15,11 @@ use Modules\Learning\Http\Requests\StoreQuizQuestionRequest;
 use Modules\Learning\Http\Requests\StoreQuizRequest;
 use Modules\Learning\Http\Requests\UpdateQuizQuestionRequest;
 use Modules\Learning\Http\Requests\UpdateQuizRequest;
-use Modules\Learning\Http\Resources\QuizIndexResource;
 use Modules\Learning\Http\Resources\QuizQuestionResource;
 use Modules\Learning\Http\Resources\QuizResource;
 use Modules\Learning\Models\Quiz;
 use Modules\Learning\Models\QuizQuestion;
+use Modules\Learning\Services\Support\QuizEnrichmentService;
 
 class QuizController extends Controller
 {
@@ -29,7 +29,7 @@ class QuizController extends Controller
     public function __construct(
         private readonly QuizServiceInterface $quizService,
         private readonly QuizQuestionServiceInterface $questionService,
-        private readonly \Modules\Schemes\Services\PrerequisiteService $prerequisiteService
+        private readonly QuizEnrichmentService $enrichmentService
     ) {}
 
     public function index(Request $request, \Modules\Schemes\Models\Course $course): JsonResponse
@@ -37,52 +37,10 @@ class QuizController extends Controller
         $user = auth('api')->user();
         $paginator = $this->quizService->listForIndex($course, $request->all());
 
-        $paginator->load('lesson.unit:id,slug');
-
         if ($user && $user->hasRole('Student')) {
-            $paginator->getCollection()->transform(function ($item) use ($user) {
-                $resource = new QuizIndexResource($item);
-                $baseData = $resource->toArray(request());
-
-                $prerequisiteCheck = $this->prerequisiteService->checkQuizAccess($item, $user->id);
-                $isLocked = ! $prerequisiteCheck['accessible'];
-
-                return [
-                    'id' => $baseData['id'],
-                    'title' => $baseData['title'],
-                    'passing_grade' => $baseData['passing_grade'],
-                    'max_score' => $baseData['max_score'],
-                    'auto_grading' => $baseData['auto_grading'],
-                    'is_locked' => $isLocked,
-                    'lesson_slug' => $item->lesson?->slug,
-                    'unit_slug' => $item->lesson?->unit?->slug,
-                    'questions_count' => $baseData['questions_count'] ?? null,
-                    'scope_type' => $baseData['scope_type'],
-                    'created_at' => $baseData['created_at'],
-                ];
-            });
+            $paginator = $this->enrichmentService->enrichForStudent($paginator, $user->id);
         } else {
-            $paginator->getCollection()->transform(function ($item) {
-                $resource = new QuizIndexResource($item);
-                $baseData = $resource->toArray(request());
-
-                return [
-                    'id' => $baseData['id'],
-                    'title' => $baseData['title'],
-                    'passing_grade' => $baseData['passing_grade'],
-                    'max_score' => $baseData['max_score'],
-                    'status' => $baseData['status'],
-                    'status_label' => $baseData['status_label'],
-                    'auto_grading' => $baseData['auto_grading'],
-                    'lesson_slug' => $item->lesson?->slug,
-                    'unit_slug' => $item->lesson?->unit?->slug,
-                    'questions_count' => $baseData['questions_count'] ?? null,
-                    'available_from' => $baseData['available_from'] ?? null,
-                    'deadline_at' => $baseData['deadline_at'] ?? null,
-                    'scope_type' => $baseData['scope_type'],
-                    'created_at' => $baseData['created_at'],
-                ];
-            });
+            $paginator = $this->enrichmentService->enrichForInstructor($paginator);
         }
 
         return $this->paginateResponse($paginator, 'messages.quizzes.list_retrieved');
@@ -156,6 +114,7 @@ class QuizController extends Controller
     public function showQuestion(Quiz $quiz, QuizQuestion $question): JsonResponse
     {
         $this->authorize('view', $quiz);
+
         if ($question->quiz_id !== $quiz->id) {
             return $this->error(__('messages.questions.not_found'), [], 404);
         }

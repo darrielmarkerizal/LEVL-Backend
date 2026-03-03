@@ -6,54 +6,88 @@ namespace Modules\Learning\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Learning\Models\Assignment;
 
 class AssignmentResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $assignment = $this->resource;
+        $user = $request->user();
+        $isStudent = $user && $user->hasRole('Student');
 
+        if ($isStudent) {
+            return $this->toStudentArray();
+        }
+
+        return $this->toInstructorArray();
+    }
+
+    private function toStudentArray(): array
+    {
         return [
-            'id' => $assignment->id,
-            'title' => $assignment->title,
-            'description' => $assignment->description,
-            'submission_type' => $assignment->submission_type?->value ?? $assignment->submission_type,
-            'max_score' => $assignment->max_score,
-            'max_attempts' => $assignment->max_attempts,
-            'cooldown_minutes' => $assignment->cooldown_minutes,
-            'retake_enabled' => $assignment->retake_enabled,
-            'review_mode' => $assignment->review_mode?->value ?? $assignment->review_mode,
-            'status' => $assignment->status?->value ?? $assignment->status,
-            'allow_resubmit' => $assignment->allow_resubmit,
-            'lesson_slug' => $assignment->lesson?->slug,
-            'unit_slug' => $assignment->lesson?->unit?->slug,
-            'course_slug' => $assignment->lesson?->unit?->course?->slug,
-            'is_available' => $assignment->isAvailable(),
-            'created_at' => $assignment->created_at?->toIso8601String(),
-            'updated_at' => $assignment->updated_at?->toIso8601String(),
-
-            
-            'creator' => $this->whenLoaded('creator', function () use ($assignment) {
+            'id' => $this->resource->id,
+            'title' => $this->resource->title,
+            'description' => $this->resource->description,
+            'submission_type' => $this->resource->submission_type?->value ?? $this->resource->submission_type,
+            'max_score' => $this->resource->max_score,
+            'max_attempts' => $this->resource->max_attempts,
+            'retake_enabled' => $this->resource->retake_enabled,
+            'review_mode' => $this->resource->review_mode?->value ?? $this->resource->review_mode,
+            'lesson_slug' => $this->resource->lesson?->slug,
+            'unit_slug' => $this->resource->lesson?->unit?->slug,
+            'course_slug' => $this->resource->lesson?->unit?->course?->slug,
+            'attachments' => $this->resource->getMedia('attachments')->map(function ($media) {
                 return [
-                    'id' => $assignment->creator->id,
-                    'name' => $assignment->creator->name,
-                    'email' => $assignment->creator->email,
+                    'id' => $media->id,
+                    'file_name' => $media->file_name,
+                    'url' => $media->getUrl(),
+                    'mime_type' => $media->mime_type,
+                    'size' => $media->size,
+                ];
+            }),
+            'created_at' => $this->resource->created_at?->toIso8601String(),
+        ];
+    }
+
+    private function toInstructorArray(): array
+    {
+        return [
+            'id' => $this->resource->id,
+            'title' => $this->resource->title,
+            'description' => $this->resource->description,
+            'submission_type' => $this->resource->submission_type?->value ?? $this->resource->submission_type,
+            'max_score' => $this->resource->max_score,
+            'max_attempts' => $this->resource->max_attempts,
+            'cooldown_minutes' => $this->resource->cooldown_minutes,
+            'retake_enabled' => $this->resource->retake_enabled,
+            'review_mode' => $this->resource->review_mode?->value ?? $this->resource->review_mode,
+            'status' => $this->resource->status?->value ?? $this->resource->status,
+            'allow_resubmit' => $this->resource->allow_resubmit,
+            'lesson_slug' => $this->resource->lesson?->slug,
+            'unit_slug' => $this->resource->lesson?->unit?->slug,
+            'course_slug' => $this->resource->lesson?->unit?->course?->slug,
+            'is_available' => $this->resource->isAvailable(),
+            'created_at' => $this->resource->created_at?->toIso8601String(),
+            'updated_at' => $this->resource->updated_at?->toIso8601String(),
+            'creator' => $this->whenLoaded('creator', function () {
+                return [
+                    'id' => $this->resource->creator->id,
+                    'name' => $this->resource->creator->name,
+                    'email' => $this->resource->creator->email,
                 ];
             }),
             'questions_count' => $this->when(
-                $assignment->questions_count !== null,
-                $assignment->questions_count
+                $this->resource->questions_count !== null,
+                $this->resource->questions_count
             ),
-            'prerequisites' => $this->whenLoaded('prerequisites', function () use ($assignment) {
-                return $assignment->prerequisites->map(function ($prereq) {
+            'prerequisites' => $this->whenLoaded('prerequisites', function () {
+                return $this->resource->prerequisites->map(function ($prereq) {
                     return [
                         'id' => $prereq->id,
                         'title' => $prereq->title,
                     ];
                 });
             }),
-            'attachments' => $assignment->getMedia('attachments')->map(function ($media) {
+            'attachments' => $this->resource->getMedia('attachments')->map(function ($media) {
                 return [
                     'id' => $media->id,
                     'url' => $media->getUrl(),
@@ -63,6 +97,5 @@ class AssignmentResource extends JsonResource
                 ];
             }),
         ];
-
     }
 }
