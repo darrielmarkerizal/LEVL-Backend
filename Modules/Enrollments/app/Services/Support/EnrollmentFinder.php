@@ -306,7 +306,11 @@ class EnrollmentFinder
             });
         }
 
-        $builder->with(['user' => fn ($q) => $q->select('id', 'name', 'email')->with('media'), 'course'])
+        $builder->with([
+            'user' => fn ($q) => $q->select('id', 'name', 'email')->with('media'), 
+            'course',
+            'courseProgress'
+        ])
             ->allowedFilters($this->getAllowedFilters())
             ->allowedIncludes(['user', 'course']);
 
@@ -357,7 +361,11 @@ class EnrollmentFinder
             });
         }
 
-        $builder->with(['user' => fn ($q) => $q->select('id', 'name', 'email')->with('media'), 'course:id,title,slug,code'])
+        $builder->with([
+            'user' => fn ($q) => $q->select('id', 'name', 'email')->with('media'), 
+            'course:id,title,slug,code',
+            'courseProgress'
+        ])
             ->allowedFilters($this->getAllowedFilters());
 
         $userNameSort = $this->makeUserNameSort();

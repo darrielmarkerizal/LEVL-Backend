@@ -48,7 +48,7 @@ class EnrollmentsController extends Controller
     {
         $enrollment = \Spatie\QueryBuilder\QueryBuilder::for(Enrollment::class)
             ->allowedIncludes(['user', 'course'])
-            ->with(['user', 'course'])
+            ->with(['user', 'course', 'courseProgress'])
             ->findOrFail($id);
 
         $this->authorize('view', $enrollment);
