@@ -64,6 +64,10 @@ class BadgeSeeder extends Seeder
     {
         $badges = [];
 
+        // 0. ONBOARDING BADGES (Added for StudentBadgesSeeder compatibility)
+        $badges[] = ['code' => 'first_step', 'name' => 'Langkah Pertama', 'description' => 'Bagian dari permulaan perjalanan LMS Anda.', 'type' => BadgeType::Completion, 'threshold' => 1, 'rules' => [['event_trigger' => 'account_created']]];
+        $badges[] = ['code' => 'rookie', 'name' => 'Pendatang Baru', 'description' => 'Mengeksplorasi LMS untuk pertama kali.', 'type' => BadgeType::Completion, 'threshold' => 1, 'rules' => [['event_trigger' => 'profile_updated']]];
+
         // 1. COMPLETION BADGES (20 Badges)
         $badges[] = ['code' => 'uiux_master', 'name' => 'UI/UX Design Master', 'description' => 'Menyelesaikan Skema UI/UX Design.', 'type' => BadgeType::Completion, 'threshold' => 1, 'rules' => [['event_trigger' => 'course_completed', 'conditions' => ['course_slug' => 'ui-ux-design']]]];
         $badges[] = ['code' => 'webdev_master', 'name' => 'Web Dev Master', 'description' => 'Menyelesaikan Skema Backend Web Development.', 'type' => BadgeType::Completion, 'threshold' => 1, 'rules' => [['event_trigger' => 'course_completed', 'conditions' => ['course_slug' => 'web-development']]]];
@@ -74,7 +78,7 @@ class BadgeSeeder extends Seeder
                 'name' => "Penyelesai Modul Level {$i}",
                 'description' => "Menyelesaikan {$i} unit kursus dengan baik.",
                 'type' => BadgeType::Completion,
-                'threshold' => 1,
+                'threshold' => $i,
                 'rules' => [['event_trigger' => 'unit_completed']]
             ];
         }
@@ -88,9 +92,9 @@ class BadgeSeeder extends Seeder
             $badges[] = [
                 'code' => "quality_streak_{$i}",
                 'name' => "Quality Assured {$i}x",
-                'description' => "Secara konsisten menjaga performa evaluasi berkualitas.",
+                'description' => "Secara konsisten menjaga performa evaluasi berkualitas sebanyak {$i} kali.",
                 'type' => BadgeType::Quality,
-                'threshold' => 1,
+                'threshold' => $i,
                 'rules' => [['event_trigger' => 'assignment_graded', 'conditions' => ['min_score' => 85]]]
             ];
         }
@@ -103,9 +107,9 @@ class BadgeSeeder extends Seeder
             $badges[] = [
                 'code' => "speedy_submission_{$i}",
                 'name' => "Penyetor Cepat Level {$i}",
-                'description' => "Mengeksekusi latihan dalam tenggat waktu yang mengesankan.",
+                'description' => "Mengeksekusi latihan dalam tenggat waktu yang mengesankan sebanyak {$i} kali.",
                 'type' => BadgeType::Speed,
-                'threshold' => 1,
+                'threshold' => $i,
                 'rules' => [['event_trigger' => 'assignment_submitted', 'conditions' => ['max_duration_days' => 1]]]
             ];
         }
@@ -113,7 +117,7 @@ class BadgeSeeder extends Seeder
         // 4. HABIT BADGES (20 Badges)
         $badges[] = ['code' => 'login_streak_7', 'name' => 'Konsisten 7 Hari', 'description' => 'Login 7 hari berturut-turut.', 'type' => BadgeType::Habit, 'threshold' => 1, 'rules' => [['event_trigger' => 'login', 'conditions' => ['min_streak_days' => 7]]]];
         $badges[] = ['code' => 'login_streak_30', 'name' => 'Dedikasi Bulanan', 'description' => 'Login 30 hari berturut-turut.', 'type' => BadgeType::Habit, 'threshold' => 1, 'rules' => [['event_trigger' => 'login', 'conditions' => ['min_streak_days' => 30]]]];
-        $badges[] = ['code' => 'morning_bird', 'name' => 'Burung Pagi', 'description' => 'Login sebelum jam 6:00 AM.', 'type' => BadgeType::Habit, 'threshold' => 1, 'rules' => [['event_trigger' => 'login', 'conditions' => ['time_before' => '06:00:00']]]];
+        $badges[] = ['code' => 'morning_bird', 'name' => 'Burung Pagi', 'description' => 'Login sebelum jam 6:00 AM.', 'type' => BadgeType::Habit, 'threshold' => 5, 'rules' => [['event_trigger' => 'login', 'conditions' => ['time_before' => '06:00:00']]]];
         $badges[] = ['code' => 'weekend_warrior_unit', 'name' => 'Pejuang Akhir Pekan', 'description' => 'Menyelesaikan 5 Unit di akhir pekan.', 'type' => BadgeType::Habit, 'threshold' => 5, 'rules' => [['event_trigger' => 'unit_completed', 'conditions' => ['is_weekend' => true]]]];
         $badges[] = ['code' => 'weekend_warrior_lesson', 'name' => 'Belajar Tanpa Henti', 'description' => 'Menyelesaikan 5 Lesson di akhir pekan.', 'type' => BadgeType::Habit, 'threshold' => 5, 'rules' => [['event_trigger' => 'lesson_completed', 'conditions' => ['is_weekend' => true]]]];
 
@@ -137,7 +141,7 @@ class BadgeSeeder extends Seeder
             $badges[] = [
                 'code' => "social_butterfly_{$i}",
                 'name' => "Social Butterfly Bintang {$i}",
-                'description' => "Terlibat dalam interaksi kolektif dan komunal LMS.",
+                'description' => "Terlibat dalam interaksi kolektif dan komunal LMS sebanyak " . ($i * 5) . " kali.",
                 'type' => BadgeType::Social,
                 'threshold' => ($i * 5),
                 'rules' => [['event_trigger' => 'forum_reply_created']]
@@ -145,7 +149,7 @@ class BadgeSeeder extends Seeder
         }
 
         // 6. HIDDEN / EASTER EGG BADGES (10 Badges)
-        $badges[] = ['code' => 'night_owl', 'name' => 'Kelelawar Malam', 'description' => 'Mengumpulkan tugas di atas jam 12 Malam.', 'type' => BadgeType::Hidden, 'threshold' => 1, 'rules' => [['event_trigger' => 'assignment_submitted', 'conditions' => ['time_after' => '00:00:00', 'time_before' => '04:00:00']]]];
+        $badges[] = ['code' => 'night_owl', 'name' => 'Kelelawar Malam', 'description' => 'Mengumpulkan tugas di atas jam 12 Malam.', 'type' => BadgeType::Hidden, 'threshold' => 5, 'rules' => [['event_trigger' => 'assignment_submitted', 'conditions' => ['time_after' => '00:00:00', 'time_before' => '04:00:00']]]];
         $badges[] = ['code' => 'bug_hunter', 'name' => 'Pemburu Kutu', 'description' => 'Melaporkan bug pada sistem LMS.', 'type' => BadgeType::Hidden, 'threshold' => 1, 'rules' => [['event_trigger' => 'bug_reported']]];
         
         for ($i = 1; $i <= 8; $i++) {

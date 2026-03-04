@@ -78,12 +78,16 @@ class UserGamificationSeeder extends Seeder
             $validSourceTypes = array_filter(PointSourceType::cases(), fn ($type) => $type !== PointSourceType::Grade);
 
             for ($i = 0; $i < rand(5, 15); $i++) {
-                Point::create([
+                $sourceType = $validSourceTypes[array_rand($validSourceTypes)];
+                $reason = PointReason::cases()[array_rand(PointReason::cases())];
+                
+                Point::updateOrCreate([
                     'user_id' => $user->id,
-                    'source_type' => $validSourceTypes[array_rand($validSourceTypes)],
-                    'source_id' => $i + 1, // Ensure uniqueness per transaction
+                    'source_type' => $sourceType,
+                    'source_id' => $i + 1,
+                    'reason' => $reason,
+                ], [
                     'points' => rand(10, 100),
-                    'reason' => PointReason::cases()[array_rand(PointReason::cases())],
                     'description' => 'Simulated activity reward',
                     'created_at' => now()->subDays(rand(1, 30)),
                 ]);
@@ -94,12 +98,14 @@ class UserGamificationSeeder extends Seeder
                 foreach ($badges as $badge) {
                     $shouldAward = false;
 
-                    if ($badge->type === BadgeType::Milestone) {
+                    if ($badge->type === BadgeType::Habit || $badge->type === BadgeType::Speed) {
                         $shouldAward = $level >= $badge->threshold;
-                    } elseif ($badge->type === BadgeType::Achievement) {
+                    } elseif ($badge->type === BadgeType::Quality || $badge->type === BadgeType::Social) {
                         $shouldAward = $activityLevel >= 2 && rand(0, 100) < 70;
                     } elseif ($badge->type === BadgeType::Completion) {
-                        $shouldAward = $activityLevel >= 2 && rand(0, 100) < 50;
+                        $shouldAward = $activityLevel >= 1 && rand(0, 100) < 80;
+                    } elseif ($badge->type === BadgeType::Hidden) {
+                        $shouldAward = $activityLevel >= 3 && rand(0, 100) < 10;
                     }
 
                     if ($shouldAward) {
