@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Common\Contracts\Services;
+namespace Modules\Gamification\Contracts\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Modules\Gamification\Models\Badge;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Common\Http\Resources;
+namespace Modules\Gamification\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -20,6 +20,15 @@ class BadgeResource extends JsonResource
             'threshold' => $this->threshold,
             'icon_url' => $this->icon_url,
             'icon_thumb_url' => $this->icon_thumb_url,
+            'rules' => $this->whenLoaded('rules', function () {
+                return $this->rules->map(function ($rule) {
+                    return [
+                        'id' => $rule->id,
+                        'event_trigger' => $rule->event_trigger,
+                        'conditions' => $rule->conditions,
+                    ];
+                });
+            }),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

@@ -23,7 +23,8 @@ class AuthSessionProcessor
         private readonly AuthRepositoryInterface $authRepository,
         private readonly JWTAuth $jwt,
         private readonly EmailVerificationService $emailVerification,
-        private readonly LoginThrottlingService $throttle
+        private readonly LoginThrottlingService $throttle,
+        private \Modules\Gamification\Services\Support\BadgeRuleEvaluator $badgeEvaluator
     ) {}
 
     public function login(
@@ -117,6 +118,11 @@ class AuthSessionProcessor
         $userArray['status'] = $user->status instanceof UserStatus ? $user->status->value : (string) $user->status;
 
         $response = ['user' => $userArray] + $pair->toArray();
+
+        // Evaluate Dynamic Badge Rules (Habit Validation)
+        $this->badgeEvaluator->evaluate($user, 'login', [
+            'time' => now()->format('H:i:s'),
+        ]);
 
         if (
             $user->status === UserStatus::Pending &&

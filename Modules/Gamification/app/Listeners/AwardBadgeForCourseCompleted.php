@@ -48,6 +48,11 @@ class AwardBadgeForCourseCompleted
         }
 
         // Evaluate Dynamic Badge Rules
-        $this->evaluator->evaluate($enrollment->user, 'course_completed');
+        $payload = [
+            'course_id' => $course->id,
+            'course_slug' => $course->slug,
+            'duration_days' => $enrollment->created_at->diffInDays($enrollment->completed_at ?? now()),
+        ];
+        $this->evaluator->evaluate($enrollment->user, 'course_completed', $payload);
     }
 }

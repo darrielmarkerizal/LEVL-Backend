@@ -63,6 +63,10 @@ class GamificationServiceProvider extends ServiceProvider
             \Modules\Gamification\Contracts\Repositories\PointRepositoryInterface::class,
             \Modules\Gamification\Repositories\PointRepository::class
         );
+        $this->app->bind(
+            \Modules\Gamification\Contracts\Repositories\BadgeRepositoryInterface::class,
+            \Modules\Gamification\Repositories\BadgeRepository::class
+        );
 
         $this->app->singleton(
             \Modules\Gamification\Contracts\Services\GamificationServiceInterface::class,
@@ -75,6 +79,10 @@ class GamificationServiceProvider extends ServiceProvider
         $this->app->singleton(
             \Modules\Gamification\Contracts\Services\LeaderboardServiceInterface::class,
             \Modules\Gamification\Services\LeaderboardService::class
+        );
+        $this->app->singleton(
+            \Modules\Gamification\Contracts\Services\BadgeServiceInterface::class,
+            \Modules\Gamification\Services\BadgeService::class
         );
 
         $this->app->singleton(

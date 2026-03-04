@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Modules\Common\Services;
+namespace Modules\Gamification\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Modules\Common\Contracts\Services\BadgeServiceInterface;
-use Modules\Common\Repositories\BadgeRepository;
+use Modules\Gamification\Contracts\Services\BadgeServiceInterface;
+use Modules\Gamification\Repositories\BadgeRepository;
 use Modules\Gamification\Models\Badge;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -27,7 +27,7 @@ class BadgeService implements BadgeServiceInterface
             "common:badges:paginate:{$perPage}:{$page}:{$search}:{$sort}",
             300,
             function () use ($perPage, $search) {
-                $query = Badge::query();
+                $query = Badge::with('rules');
 
                 if ($search && trim($search) !== '') {
                     $query->search($search);
@@ -42,6 +42,7 @@ class BadgeService implements BadgeServiceInterface
                         AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
                     ])
                     ->allowedSorts(['id', 'code', 'name', 'type', 'threshold', 'created_at', 'updated_at'])
+                    ->allowedIncludes(['rules'])
                     ->defaultSort('-created_at')
                     ->paginate($perPage);
             }
@@ -153,9 +154,8 @@ class BadgeService implements BadgeServiceInterface
         foreach ($rules as $rule) {
             \Modules\Gamification\Models\BadgeRule::create([
                 'badge_id' => $badgeId,
-                'criterion' => $rule['criterion'],
-                'operator' => $rule['operator'],
-                'value' => $rule['value'],
+                'event_trigger' => $rule['event_trigger'] ?? null,
+                'conditions' => $rule['conditions'] ?? null,
             ]);
         }
     }

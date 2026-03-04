@@ -4,9 +4,12 @@ namespace Modules\Gamification\Enums;
 
 enum BadgeType: string
 {
-    case Achievement = 'achievement';
-    case Milestone = 'milestone';
     case Completion = 'completion';
+    case Quality = 'quality';
+    case Speed = 'speed';
+    case Habit = 'habit';
+    case Social = 'social';
+    case Hidden = 'hidden';
 
     public static function values(): array
     {
@@ -21,9 +24,12 @@ enum BadgeType: string
     public function label(): string
     {
         return match ($this) {
-            self::Achievement => __('enums.badge_type.achievement'),
-            self::Milestone => __('enums.badge_type.milestone'),
             self::Completion => __('enums.badge_type.completion'),
+            self::Quality => __('enums.badge_type.quality'),
+            self::Speed => __('enums.badge_type.speed'),
+            self::Habit => __('enums.badge_type.habit'),
+            self::Social => __('enums.badge_type.social'),
+            self::Hidden => __('enums.badge_type.hidden'),
         };
     }
 }

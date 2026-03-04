@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Common\Http\Requests;
+namespace Modules\Gamification\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Modules\Common\Http\Requests\Concerns\HasApiValidation;

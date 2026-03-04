@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 use Modules\Common\app\Http\Controllers\MediaController;
 use Modules\Common\Http\Controllers\AuditLogController;
-use Modules\Common\Http\Controllers\BadgesController;
+
 use Modules\Common\Http\Controllers\CategoriesController;
 use Modules\Common\Http\Controllers\ChallengeManagementController;
 use Modules\Common\Http\Controllers\LevelConfigsController;
@@ -74,16 +74,7 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    Route::prefix('badges')->name('badges.')->group(function () {
-        Route::get('/', [BadgesController::class, 'index'])->name('index');
-        Route::get('/{badge}', [BadgesController::class, 'show'])->name('show');
 
-        Route::middleware(['auth:api', 'role:Superadmin'])->group(function () {
-            Route::post('/', [BadgesController::class, 'store'])->name('store');
-            Route::put('/{badge}', [BadgesController::class, 'update'])->name('update');
-            Route::delete('/{badge}', [BadgesController::class, 'destroy'])->name('destroy');
-        });
-    });
 
     Route::prefix('level-configs')->name('level-configs.')->group(function () {
         Route::get('/', [LevelConfigsController::class, 'index'])->name('index');

@@ -43,6 +43,21 @@ class AwardXpForGradeReleased
                     'allow_multiple' => false,
                 ]
             );
+
+            // Evaluate Dynamic Badge Rules
+            $user = \Modules\Auth\Models\User::find($submission->user_id);
+            if ($user && $this->evaluator) {
+                $payload = [
+                    'assignment_id' => $assignment->id,
+                    'course_id' => $assignment->course_id,
+                    'score' => $grade->effective_score,
+                    'attempts' => $submission->attempt,
+                    'is_first_submission' => $submission->attempt === 1,
+                    // Assume time formatting for rule condition checking (e.g. "23:00:00")
+                    'time' => $submission->created_at->format('H:i:s'),
+                ];
+                $this->evaluator->evaluate($user, 'assignment_graded', $payload);
+            }
         }
     }
 }

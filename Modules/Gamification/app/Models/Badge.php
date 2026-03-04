@@ -62,12 +62,25 @@ class Badge extends Model implements HasMedia
     {
         $media = $this->getFirstMedia('icon');
 
-        return $media?->getUrl('thumb');
+        if (! $media) {
+            return null;
+        }
+
+        if (str_contains($media->mime_type, 'svg')) {
+            return $media->getUrl(); // SVG is vector, no thumb generation needed
+        }
+
+        return $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : $media->getUrl();
     }
 
     public function users(): HasMany
     {
         return $this->hasMany(UserBadge::class);
+    }
+
+    public function rules(): HasMany
+    {
+        return $this->hasMany(BadgeRule::class);
     }
 
     public function scopeAchievement($query)

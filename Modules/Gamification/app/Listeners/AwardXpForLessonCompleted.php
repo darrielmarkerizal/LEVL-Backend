@@ -39,7 +39,12 @@ class AwardXpForLessonCompleted
         // Evaluate Dynamic Badge Rules
         $user = \Modules\Auth\Models\User::find($userId);
         if ($user) {
-            $this->evaluator->evaluate($user, 'lesson_completed');
+            $payload = [
+                'lesson_id' => $lesson->id,
+                'course_id' => $lesson->unit->course_id,
+                'is_weekend' => now()->isWeekend(),
+            ];
+            $this->evaluator->evaluate($user, 'lesson_completed', $payload);
         }
     }
 }
