@@ -14,27 +14,36 @@ class StudentBadgesSeeder extends Seeder
     public function run(): void
     {
         $students = User::role('Student')->get();
-        $badges = Badge::whereIn('code', ['first_step', 'rookie'])->get()->keyBy('code');
+        $badges = Badge::all();
+
+        if ($badges->isEmpty()) {
+            $this->command->warn('No badges found. Skipping Student Badges Seeding.');
+            return;
+        }
 
         foreach ($students as $student) {
-            // Award 'First Step' badge
-            if ($badges->has('first_step') && ! $this->badgeManager->hasBadge($student->id, 'first_step')) {
+            // First step is given to everyone as a common standard
+            $firstStep = $badges->where('code', 'first_step')->first();
+            if ($firstStep && ! $this->badgeManager->hasBadge($student->id, 'first_step')) {
                 $this->badgeManager->awardBadge(
                     $student->id,
                     'first_step',
-                    $badges['first_step']->name,
-                    $badges['first_step']->description
+                    $firstStep->name,
+                    $firstStep->description
                 );
             }
 
-            // Award 'Rookie' badge (just as an example/default set)
-            if ($badges->has('rookie') && ! $this->badgeManager->hasBadge($student->id, 'rookie')) {
-                $this->badgeManager->awardBadge(
-                    $student->id,
-                    'rookie',
-                    $badges['rookie']->name,
-                    $badges['rookie']->description
-                );
+            // Assign a random 5-15 badges to each student to simulate varied gamification profiles
+            $randomBadges = $badges->where('code', '!=', 'first_step')->random(rand(5, 15));
+            foreach ($randomBadges as $badge) {
+                if (! $this->badgeManager->hasBadge($student->id, $badge->code)) {
+                    $this->badgeManager->awardBadge(
+                        $student->id,
+                        $badge->code,
+                        $badge->name,
+                        $badge->description
+                    );
+                }
             }
         }
     }
