@@ -13,7 +13,7 @@ class BadgeRuleEvaluator
         private readonly PointManager $pointManager
     ) {}
 
-    public function evaluate(User $user, string $triggerAction): void
+    public function evaluate(User $user, string $triggerAction, array $payload = []): void
     {
         // 1. Get all rules relevant to this trigger
         // Optimization: Cache rules to avoid repeated DB calls on every event (Octane friendly)
@@ -21,19 +21,7 @@ class BadgeRuleEvaluator
             return BadgeRule::with('badge')->get();
         });
 
-        // Mapping Triggers to Criteria
-        $relevantCriteria = match ($triggerAction) {
-            'lesson_completed' => ['lesson_count'],
-            'course_completed' => ['course_count'],
-            'login' => ['login_streak'],
-            default => []
-        };
-
-        if (empty($relevantCriteria)) {
-            return;
-        }
-
-        $relevantRules = $rules->whereIn('criterion', $relevantCriteria);
+        $relevantRules = $rules->where('event_trigger', $triggerAction);
 
         if ($relevantRules->isEmpty()) {
             return;
@@ -41,7 +29,7 @@ class BadgeRuleEvaluator
 
         // 2. Evaluate each rule
         foreach ($relevantRules as $rule) {
-            if ($this->checkRule($user, $rule)) {
+            if (empty($rule->conditions) || $this->isConditionMet($rule->conditions, $payload, $user)) {
                 $this->badgeManager->awardBadge(
                     $user->id,
                     $rule->badge->code,
@@ -52,37 +40,73 @@ class BadgeRuleEvaluator
         }
     }
 
-    private function checkRule(User $user, BadgeRule $rule): bool
+    private function isConditionMet(array $conditions, array $payload, User $user): bool
     {
-        $currentValue = 0;
-
-        switch ($rule->criterion) {
-            case 'lesson_count':
-                // Count completed lessons (from UserScopeStat or direct DB count)
-                // For performance, let's use UserSameStat or direct count if not exists
-                // Assuming we can count completed lessons via DB
-                $currentValue = \Modules\Schemes\Models\LessonUser::where('user_id', $user->id)
-                    ->whereNotNull('completed_at')
-                    ->count();
-                break;
-
-            case 'course_count':
-                $currentValue = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
-                    ->where('status', 'completed')
-                    ->count();
-                break;
-
-            case 'login_streak':
-                $stats = $this->pointManager->getOrCreateStats($user->id);
-                $currentValue = $stats->current_streak;
-                break;
+        // Target Matching (Course Slug)
+        if (isset($conditions['course_slug'])) {
+            if (! isset($payload['course_slug']) || $payload['course_slug'] !== $conditions['course_slug']) {
+                return false;
+            }
         }
 
-        return match ($rule->operator) {
-            '>=' => $currentValue >= $rule->value,
-            '>' => $currentValue > $rule->value,
-            '=' => $currentValue == $rule->value,
-            default => false
-        };
+        // Quality Scoring
+        if (isset($conditions['min_score'])) {
+            if (! isset($payload['score']) || $payload['score'] < $conditions['min_score']) {
+                return false;
+            }
+        }
+
+        if (isset($conditions['max_attempts'])) {
+            if (! isset($payload['attempts']) || $payload['attempts'] > $conditions['max_attempts']) {
+                return false;
+            }
+        }
+        
+        if (isset($conditions['is_passed'])) {
+            if (! isset($payload['is_passed']) || $payload['is_passed'] !== $conditions['is_passed']) {
+                return false;
+            }
+        }
+
+        // Speed Validation
+        if (isset($conditions['max_duration_days'])) {
+            if (! isset($payload['duration_days']) || $payload['duration_days'] > $conditions['max_duration_days']) {
+                return false;
+            }
+        }
+        
+        if (isset($conditions['is_first_submission'])) {
+            if (! isset($payload['is_first_submission']) || $payload['is_first_submission'] !== $conditions['is_first_submission']) {
+                return false;
+            }
+        }
+
+        // Habit Validation
+        if (isset($conditions['is_weekend'])) {
+            if (! isset($payload['is_weekend']) || $payload['is_weekend'] !== $conditions['is_weekend']) {
+                return false;
+            }
+        }
+
+        if (isset($conditions['min_streak_days'])) {
+            $stats = $this->pointManager->getOrCreateStats($user->id);
+            if ($stats->current_streak < $conditions['min_streak_days']) {
+                return false;
+            }
+        }
+
+        if (isset($conditions['time_before'])) {
+            if (! isset($payload['time']) || $payload['time'] > $conditions['time_before']) {
+                return false;
+            }
+        }
+        
+        if (isset($conditions['time_after'])) {
+            if (! isset($payload['time']) || $payload['time'] < $conditions['time_after']) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

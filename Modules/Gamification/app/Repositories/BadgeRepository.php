@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Common\Repositories;
+namespace Modules\Gamification\Repositories;
 
 use App\Repositories\BaseRepository;
 use Modules\Gamification\Models\Badge;

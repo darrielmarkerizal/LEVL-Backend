@@ -67,11 +67,6 @@ class CommonServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            \Modules\Common\Contracts\Services\BadgeServiceInterface::class,
-            \Modules\Common\Services\BadgeService::class
-        );
-
-        $this->app->bind(
             \Modules\Common\Contracts\Services\LevelConfigServiceInterface::class,
             \Modules\Common\Services\LevelConfigService::class
         );

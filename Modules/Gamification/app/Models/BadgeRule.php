@@ -11,14 +11,13 @@ class BadgeRule extends Model
 
     protected $fillable = [
         'badge_id',
-        'criterion',
-        'operator',
-        'value',
+        'event_trigger',
+        'conditions',
     ];
 
     protected $casts = [
         'badge_id' => 'integer',
-        'value' => 'integer',
+        'conditions' => 'array',
     ];
 
     public function badge(): BelongsTo

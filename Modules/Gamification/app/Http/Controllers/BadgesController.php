@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Common\Http\Controllers;
+namespace Modules\Gamification\Http\Controllers;
 
 use App\Support\ApiResponse;
 use App\Support\Traits\HandlesFiltering;
@@ -11,10 +11,10 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Modules\Common\Http\Requests\BadgeStoreRequest;
-use Modules\Common\Http\Requests\BadgeUpdateRequest;
-use Modules\Common\Http\Resources\BadgeResource;
-use Modules\Common\Services\BadgeService;
+use Modules\Gamification\Http\Requests\BadgeStoreRequest;
+use Modules\Gamification\Http\Requests\BadgeUpdateRequest;
+use Modules\Gamification\Http\Resources\BadgeResource;
+use Modules\Gamification\Services\BadgeService;
 use Modules\Gamification\Models\Badge;
 
 class BadgesController extends Controller
@@ -30,7 +30,7 @@ class BadgesController extends Controller
     {
         $this->authorize('viewAny', Badge::class);
         $params = $this->extractFilterParams($request);
-        $perPage = $params['per_page'] ?? 15;
+        $perPage = (int) ($params['per_page'] ?? 15);
         $paginator = $this->service->paginate($perPage, $params);
         $paginator->getCollection()->transform(fn ($item) => new BadgeResource($item));
 
@@ -56,6 +56,8 @@ class BadgesController extends Controller
         }
 
         $this->authorize('view', $model);
+        
+        $model->load('rules');
 
         return $this->success(new BadgeResource($model));
     }
