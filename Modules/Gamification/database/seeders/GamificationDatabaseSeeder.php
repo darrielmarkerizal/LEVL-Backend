@@ -14,7 +14,6 @@ class GamificationDatabaseSeeder extends Seeder
         $this->call([
             BadgeSeeder::class,
             MilestoneSeeder::class,
-            ChallengeSeeder::class,
             UserGamificationSeeder::class,
             LeaderboardSeeder::class,
         ]);
