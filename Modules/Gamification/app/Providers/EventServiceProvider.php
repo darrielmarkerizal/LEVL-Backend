@@ -9,10 +9,6 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         \Modules\Schemes\Events\LessonCompleted::class => [
             \Modules\Gamification\Listeners\AwardXpForLessonCompleted::class,
-            \Modules\Gamification\Listeners\UpdateChallengeProgressOnLessonCompleted::class,
-        ],
-        \Modules\Learning\Events\SubmissionCreated::class => [
-            \Modules\Gamification\Listeners\UpdateChallengeProgressOnSubmissionCreated::class,
         ],
         \Modules\Schemes\Events\CourseCompleted::class => [
             \Modules\Gamification\Listeners\AwardBadgeForCourseCompleted::class,

@@ -11,6 +11,5 @@ return [
     'levels_retrieved' => 'Data level berhasil diambil.',
     'summary_retrieved' => 'Ringkasan gamifikasi berhasil diambil.',
     'rank_retrieved' => 'Rank berhasil diambil.',
-    'completions_retrieved' => 'Riwayat penyelesaian challenge berhasil diambil.',
     'level_retrieved' => 'Data level berhasil diambil.',
 ];

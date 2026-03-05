@@ -603,27 +603,6 @@ return [
         'updated' => 'Progress berhasil diperbarui.',
     ],
 
-    // Challenges Module
-    'challenges' => [
-        'created' => 'Tantangan berhasil dibuat.',
-        'completed' => 'Tantangan berhasil diselesaikan.',
-        'not_found' => 'Challenge tidak ditemukan.',
-        'retrieved' => 'Challenge berhasil diambil.',
-        'completions_retrieved' => 'Riwayat penyelesaian challenge berhasil diambil.',
-        'reward_claimed' => 'Reward berhasil diklaim!',
-        'assigning_daily' => 'Membagikan tantangan harian...',
-        'assigned_daily' => ':count tantangan harian diberikan ke user.',
-        'assigning_weekly' => 'Membagikan tantangan mingguan...',
-        'assigned_weekly' => ':count tantangan mingguan diberikan ke user.',
-        'expiring' => 'Mengecek tantangan kedaluwarsa...',
-        'expired_count' => ':count tantangan kedaluwarsa telah diperbarui.',
-        'list_retrieved' => 'Daftar tantangan berhasil diambil.',
-        'reward_claimed' => 'Hadiah tantangan berhasil diklaim.',
-        'not_found_or_not_assigned' => 'Tantangan tidak ditemukan atau belum diberikan kepada Anda.',
-        'reward_already_claimed' => 'Hadiah tantangan ini sudah diklaim sebelumnya.',
-        'not_completed_cannot_claim' => 'Tantangan belum selesai, tidak dapat mengklaim hadiah.',
-    ],
-
     // Forums Module
     'forums' => [
         'reaction_added' => 'Reaksi berhasil ditambahkan.',

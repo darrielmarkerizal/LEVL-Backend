@@ -29,10 +29,6 @@ class GamificationServiceProvider extends ServiceProvider
     protected function registerPolicies(): void
     {
         \Illuminate\Support\Facades\Gate::policy(
-            \Modules\Gamification\Models\Challenge::class,
-            \Modules\Gamification\Policies\ChallengePolicy::class
-        );
-        \Illuminate\Support\Facades\Gate::policy(
             \Modules\Gamification\Models\Badge::class,
             \Modules\Gamification\Policies\BadgePolicy::class
         );
@@ -46,10 +42,6 @@ class GamificationServiceProvider extends ServiceProvider
         $this->app->bind(
             \Modules\Gamification\Contracts\Repositories\GamificationRepositoryInterface::class,
             \Modules\Gamification\Repositories\GamificationRepository::class
-        );
-        $this->app->bind(
-            \Modules\Gamification\Contracts\Repositories\ChallengeRepositoryInterface::class,
-            \Modules\Gamification\Repositories\ChallengeRepository::class
         );
         $this->app->bind(
             \Modules\Gamification\Contracts\Repositories\UserGamificationStatRepositoryInterface::class,
@@ -73,10 +65,6 @@ class GamificationServiceProvider extends ServiceProvider
             \Modules\Gamification\Services\GamificationService::class
         );
         $this->app->singleton(
-            \Modules\Gamification\Contracts\Services\ChallengeServiceInterface::class,
-            \Modules\Gamification\Services\ChallengeService::class
-        );
-        $this->app->singleton(
             \Modules\Gamification\Contracts\Services\LeaderboardServiceInterface::class,
             \Modules\Gamification\Services\LeaderboardService::class
         );
@@ -93,9 +81,6 @@ class GamificationServiceProvider extends ServiceProvider
     protected function registerCommands(): void
     {
         $this->commands([
-            \Modules\Gamification\Console\Commands\AssignDailyChallenges::class,
-            \Modules\Gamification\Console\Commands\AssignWeeklyChallenges::class,
-            \Modules\Gamification\Console\Commands\ExpireChallenges::class,
             \Modules\Gamification\Console\Commands\UpdateLeaderboard::class,
             \Modules\Gamification\Console\Commands\ResetInactiveStreaks::class,
         ]);
@@ -106,9 +91,6 @@ class GamificationServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
             $schedule->command('streaks:reset-inactive')->dailyAt('00:00')->timezone('Asia/Jakarta');
-            $schedule->command('challenges:assign-daily')->dailyAt('00:01');
-            $schedule->command('challenges:assign-weekly')->weeklyOn(1, '00:01');
-            $schedule->command('challenges:expire')->hourly();
             $schedule->command('leaderboard:update')->everyFiveMinutes();
         });
     }

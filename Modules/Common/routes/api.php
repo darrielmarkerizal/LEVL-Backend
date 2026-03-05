@@ -4,9 +4,7 @@ use App\Http\Controllers\Api\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 use Modules\Common\app\Http\Controllers\MediaController;
 use Modules\Common\Http\Controllers\AuditLogController;
-
 use Modules\Common\Http\Controllers\CategoriesController;
-use Modules\Common\Http\Controllers\ChallengeManagementController;
 use Modules\Common\Http\Controllers\LevelConfigsController;
 use Modules\Common\Http\Controllers\MasterDataController;
 use Modules\Schemes\Http\Controllers\TagController;
@@ -74,8 +72,6 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-
-
     Route::prefix('level-configs')->name('level-configs.')->group(function () {
         Route::get('/', [LevelConfigsController::class, 'index'])->name('index');
         Route::get('/{level_config}', [LevelConfigsController::class, 'show'])->name('show');
@@ -84,17 +80,6 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [LevelConfigsController::class, 'store'])->name('store');
             Route::put('/{level_config}', [LevelConfigsController::class, 'update'])->name('update');
             Route::delete('/{level_config}', [LevelConfigsController::class, 'destroy'])->name('destroy');
-        });
-    });
-
-    Route::prefix('management/challenges')->name('management.challenges.')->group(function () {
-        Route::get('/', [ChallengeManagementController::class, 'index'])->name('index');
-        Route::get('/{challenge}', [ChallengeManagementController::class, 'show'])->name('show');
-
-        Route::middleware(['auth:api', 'role:Superadmin'])->group(function () {
-            Route::post('/', [ChallengeManagementController::class, 'store'])->name('store');
-            Route::put('/{challenge}', [ChallengeManagementController::class, 'update'])->name('update');
-            Route::delete('/{challenge}', [ChallengeManagementController::class, 'destroy'])->name('destroy');
         });
     });
 });

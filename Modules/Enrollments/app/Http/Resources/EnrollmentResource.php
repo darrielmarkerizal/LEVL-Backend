@@ -13,7 +13,7 @@ class EnrollmentResource extends JsonResource
     {
         // Calculate progress
         $progress = 0;
-        
+
         // If status is pending, progress is 0
         if ($this->status->value === 'pending') {
             $progress = 0;

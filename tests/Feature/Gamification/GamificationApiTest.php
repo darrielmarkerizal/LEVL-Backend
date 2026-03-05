@@ -5,10 +5,8 @@ namespace Tests\Feature\Gamification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Auth\Models\User;
 use Modules\Gamification\Models\Badge;
-use Modules\Gamification\Models\Challenge;
 use Modules\Gamification\Models\Point;
 use Modules\Gamification\Models\UserBadge;
-use Modules\Gamification\Models\UserChallengeAssignment;
 use Modules\Gamification\Models\UserGamificationStat;
 use Tests\TestCase;
 
@@ -56,44 +54,6 @@ class GamificationApiTest extends TestCase
 
         // Assert it is NOT wrapped in 'badges' key inside data
         $this->assertArrayNotHasKey('badges', $response->json('data'));
-    }
-
-    public function test_user_completed_challenges_returns_direct_collection()
-    {
-        $challenge = Challenge::create([
-            'code' => 'CH001',
-            'name' => 'Test Challenge',
-            'type' => 'daily',
-            'description' => 'Test',
-            'criteria_type' => 'login_streak',
-            'criteria_threshold' => 1,
-            'xp_reward' => 100,
-        ]);
-
-        UserChallengeAssignment::create([
-            'user_id' => $this->user->id,
-            'challenge_id' => $challenge->id,
-            'status' => 'completed',
-            'progress' => ['current' => 1, 'target' => 1],
-            'completed_at' => now(),
-        ]);
-
-        $response = $this->getJson(route('user.challenges.completed'));
-
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'success',
-                'message',
-                'data' => [
-                    '*' => [
-                        'challenge_id',
-                        'completed_at',
-                    ],
-                ],
-            ]);
-
-        // Assert it is NOT wrapped in 'completions' key inside data
-        $this->assertArrayNotHasKey('completions', $response->json('data'));
     }
 
     public function test_leaderboard_includes_my_rank_meta()

@@ -18,6 +18,7 @@ class StudentBadgesSeeder extends Seeder
 
         if ($badges->isEmpty()) {
             $this->command->warn('No badges found. Skipping Student Badges Seeding.');
+
             return;
         }
 

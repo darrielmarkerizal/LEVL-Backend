@@ -209,9 +209,6 @@ return [
         'content_statuses' => 'Content status list',
         'priorities' => 'Priority list',
         'target_types' => 'Target type list',
-        'challenge_types' => 'Challenge type list',
-        'challenge_assignment_statuses' => 'User challenge status list',
-        'challenge_criteria_types' => 'Challenge criteria type list',
         'badge_types' => 'Badge type list',
         'point_source_types' => 'Point source list',
         'point_reasons' => 'Point reason list',
@@ -635,22 +632,6 @@ return [
         'lesson_not_in_unit' => 'Lesson not found in this unit.',
         'enrollment_not_found' => 'Enrollment not found.',
         'updated' => 'Progress updated successfully.',
-    ],
-
-    // Challenges Module
-    'challenges' => [
-        'created' => 'Challenge created successfully.',
-        'completed' => 'Challenge completed successfully.',
-        'not_found' => 'Challenge not found.',
-        'retrieved' => 'Challenge retrieved successfully.',
-        'completions_retrieved' => 'Challenge completions retrieved successfully.',
-        'reward_claimed' => 'Reward successfully claimed!',
-        'assigning_daily' => 'Assigning daily challenges...',
-        'assigned_daily' => 'Assigned :count daily challenge(s) to users.',
-        'assigning_weekly' => 'Assigning weekly challenges...',
-        'assigned_weekly' => 'Assigned :count weekly challenge(s) to users.',
-        'expiring' => 'Expiring overdue challenges...',
-        'expired_count' => 'Expired :count overdue challenge(s).',
     ],
 
     // Gamification Module

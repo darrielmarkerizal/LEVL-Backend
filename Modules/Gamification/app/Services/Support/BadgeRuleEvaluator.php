@@ -4,7 +4,6 @@ namespace Modules\Gamification\Services\Support;
 
 use Modules\Auth\Models\User;
 use Modules\Gamification\Models\BadgeRule;
-use Modules\Gamification\Models\UserScopeStat;
 
 class BadgeRuleEvaluator
 {
@@ -61,7 +60,7 @@ class BadgeRuleEvaluator
                 return false;
             }
         }
-        
+
         if (isset($conditions['is_passed'])) {
             if (! isset($payload['is_passed']) || $payload['is_passed'] !== $conditions['is_passed']) {
                 return false;
@@ -74,7 +73,7 @@ class BadgeRuleEvaluator
                 return false;
             }
         }
-        
+
         if (isset($conditions['is_first_submission'])) {
             if (! isset($payload['is_first_submission']) || $payload['is_first_submission'] !== $conditions['is_first_submission']) {
                 return false;
@@ -100,7 +99,7 @@ class BadgeRuleEvaluator
                 return false;
             }
         }
-        
+
         if (isset($conditions['time_after'])) {
             if (! isset($payload['time']) || $payload['time'] < $conditions['time_after']) {
                 return false;

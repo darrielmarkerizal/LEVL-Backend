@@ -263,5 +263,4 @@ class AssignmentSeederEnhanced extends Seeder
 
         return $scores[array_rand($scores)];
     }
-
 }

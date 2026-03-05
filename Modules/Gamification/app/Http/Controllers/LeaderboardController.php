@@ -8,9 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Gamification\Contracts\Services\GamificationServiceInterface;
 use Modules\Gamification\Contracts\Services\LeaderboardServiceInterface;
 use Modules\Gamification\Transformers\LeaderboardResource;
-use Modules\Gamification\Contracts\Services\GamificationServiceInterface;
 use Modules\Gamification\Transformers\PointResource;
 
 class LeaderboardController extends Controller
@@ -28,6 +28,7 @@ class LeaderboardController extends Controller
      * Retrieves the global leaderboard with optional pagination and period filtering.
      *
      * @unauthenticated
+     *
      * @queryParam filter.period string The time period to filter by. Example: today, this_week, this_month, this_year, all_time
      * @queryParam per_page int Number of items per page. Example: 15
      * @queryParam page int The page number. Example: 1

@@ -11,6 +11,5 @@ return [
     'levels_retrieved' => 'Level data retrieved successfully.',
     'summary_retrieved' => 'Gamification summary retrieved successfully.',
     'rank_retrieved' => 'Rank retrieved successfully.',
-    'completions_retrieved' => 'Challenge completion history retrieved successfully.',
     'level_retrieved' => 'Level data retrieved successfully.',
 ];

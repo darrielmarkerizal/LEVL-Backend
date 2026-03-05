@@ -7,8 +7,8 @@ namespace Modules\Gamification\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Modules\Gamification\Contracts\Services\BadgeServiceInterface;
-use Modules\Gamification\Repositories\BadgeRepository;
 use Modules\Gamification\Models\Badge;
+use Modules\Gamification\Repositories\BadgeRepository;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 

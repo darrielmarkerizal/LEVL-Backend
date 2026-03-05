@@ -167,7 +167,7 @@ class UserFactory extends Factory
             ->toArray();
 
         // Fallback to null if no categories available
-        $specializationId = !empty($categoryIds) ? fake()->randomElement($categoryIds) : null;
+        $specializationId = ! empty($categoryIds) ? fake()->randomElement($categoryIds) : null;
 
         return $this->state(fn (array $attributes) => [
             'specialization_id' => $specializationId,

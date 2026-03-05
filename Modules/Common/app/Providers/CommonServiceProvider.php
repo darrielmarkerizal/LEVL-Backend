@@ -10,12 +10,10 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Common\Models\Category;
 use Modules\Common\Models\LevelConfig;
-use Modules\Common\Policies\AchievementPolicy;
 use Modules\Common\Policies\BadgePolicy;
 use Modules\Common\Policies\CategoryPolicy;
 use Modules\Common\Policies\LevelConfigPolicy;
 use Modules\Gamification\Models\Badge;
-use Modules\Gamification\Models\Challenge;
 use Nwidart\Modules\Traits\PathNamespace;
 
 class CommonServiceProvider extends ServiceProvider
@@ -72,11 +70,6 @@ class CommonServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            \Modules\Common\Contracts\Services\ChallengeManagementServiceInterface::class,
-            \Modules\Common\Services\ChallengeManagementService::class
-        );
-
-        $this->app->bind(
             \Modules\Common\app\Services\Contracts\MediaServiceInterface::class,
             \Modules\Common\app\Services\MediaService::class
         );
@@ -109,7 +102,6 @@ class CommonServiceProvider extends ServiceProvider
         Gate::policy(Category::class, CategoryPolicy::class);
         Gate::policy(Badge::class, BadgePolicy::class);
         Gate::policy(LevelConfig::class, LevelConfigPolicy::class);
-        Gate::policy(Challenge::class, AchievementPolicy::class);
     }
 
     public function registerViews(): void

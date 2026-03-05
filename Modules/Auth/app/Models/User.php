@@ -132,16 +132,6 @@ class User extends Authenticatable implements HasMedia, JWTSubject
         return $this->hasMany(\Modules\Gamification\Models\UserBadge::class);
     }
 
-    public function challenges()
-    {
-        return $this->hasMany(\Modules\Gamification\Models\UserChallengeAssignment::class);
-    }
-
-    public function challengeCompletions()
-    {
-        return $this->hasMany(\Modules\Gamification\Models\UserChallengeCompletion::class);
-    }
-
     public function points()
     {
         return $this->hasMany(\Modules\Gamification\Models\Point::class);
