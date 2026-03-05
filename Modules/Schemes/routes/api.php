@@ -12,7 +12,9 @@ Route::prefix('v1')->scopeBindings()->group(function () {
 
     // Public course routes
     Route::get('courses', [CourseController::class, 'index'])->name('courses.index');
-    Route::get('courses/{course:slug}', [CourseController::class, 'show'])->name('courses.show');
+    Route::get('courses/{course:slug}', [CourseController::class, 'show'])
+        ->middleware('can:view,course')
+        ->name('courses.show');
 
     // Student enrolled courses
     Route::middleware(['auth:api'])->group(function () {
@@ -78,6 +80,8 @@ Route::prefix('v1')->scopeBindings()->group(function () {
 
     // Unit management routes (Admin, Instructor)
     Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
+        Route::post('courses/{course:slug}/units/{unit:slug}/contents', [UnitController::class, 'storeContent'])
+            ->name('courses.units.contents.store');
         Route::post('courses/{course:slug}/units', [UnitController::class, 'store'])
             ->name('courses.units.store');
         Route::put('courses/{course:slug}/units/reorder', [UnitController::class, 'reorder'])

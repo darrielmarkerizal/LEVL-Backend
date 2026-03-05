@@ -142,10 +142,15 @@ class CourseSeederEnhanced extends Seeder
         }
 
         $courseTags = [];
+        $courseTagNames = [];
 
         foreach ($courses as $course) {
             $numTags = fake()->numberBetween(3, 8);
             $selectedTags = $tags->random(min($numTags, $tags->count()));
+
+            if ($selectedTags instanceof Tag) {
+                $selectedTags = collect([$selectedTags]);
+            }
 
             foreach ($selectedTags as $tag) {
                 $courseTags[] = [
@@ -154,12 +159,25 @@ class CourseSeederEnhanced extends Seeder
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
+
+                $courseTagNames[$course->id][] = $tag->name;
             }
         }
 
         if (! empty($courseTags)) {
             foreach (array_chunk($courseTags, 200) as $chunk) {
                 DB::table('course_tag_pivot')->insertOrIgnore($chunk);
+            }
+        }
+
+        if (! empty($courseTagNames)) {
+            foreach ($courseTagNames as $courseId => $names) {
+                DB::table('courses')
+                    ->where('id', $courseId)
+                    ->update([
+                        'tags_json' => json_encode(array_values(array_unique($names))),
+                        'updated_at' => now(),
+                    ]);
             }
         }
     }

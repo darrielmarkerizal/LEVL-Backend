@@ -35,7 +35,7 @@ class LessonFinder
                         AllowedFilter::exact('content_type'),
                         AllowedFilter::exact('status'),
                     ])
-                    ->allowedIncludes(['unit', 'blocks', 'assignments'])
+                    ->allowedIncludes(['unit', 'blocks'])
                     ->allowedSorts(['order', 'title', 'created_at'])
                     ->defaultSort('order')
                     ->paginate($perPage);
@@ -88,6 +88,14 @@ class LessonFinder
             $query->whereHas('unit.course', function ($q) use ($user) {
                 if ($user->hasRole(['Admin', 'Instructor'])) {
                     $q->where('instructor_id', $user->id);
+                } elseif ($user->hasRole('Student')) {
+                    $q->whereHas('enrollments', function ($enrollmentQuery) use ($user) {
+                        $enrollmentQuery
+                            ->where('user_id', $user->id)
+                            ->whereIn('status', ['active', 'completed']);
+                    });
+                } else {
+                    $q->whereRaw('1 = 0');
                 }
             });
         }

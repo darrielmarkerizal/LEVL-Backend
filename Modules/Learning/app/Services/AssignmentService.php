@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Learning\Contracts\Services\AssignmentServiceInterface;
 use Modules\Learning\DTOs\PrerequisiteCheckResult;
 use Modules\Learning\Enums\AssignmentStatus;
+use Modules\Learning\Enums\AssignmentType;
 use Modules\Learning\Enums\RandomizationType;
 use Modules\Learning\Enums\ReviewMode;
 use Modules\Learning\Models\Assignment;

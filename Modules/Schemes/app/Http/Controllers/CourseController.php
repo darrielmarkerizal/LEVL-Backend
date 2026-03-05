@@ -50,6 +50,8 @@ class CourseController extends Controller
 
     public function show(Course $course)
     {
+        $this->authorize('view', $course);
+
         $courseWithIncludes = $this->service->findBySlugWithIncludes($course->slug);
 
         if (! $courseWithIncludes) {
