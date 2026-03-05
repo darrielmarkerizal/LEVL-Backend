@@ -12,16 +12,14 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Quiz;
-use Modules\Learning\Models\Submission;
 use Modules\Learning\Models\QuizSubmission;
+use Modules\Learning\Models\Submission;
 
 class MarkMissingSubmissionsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function handle(): void
     {
@@ -43,7 +41,7 @@ class MarkMissingSubmissionsJob implements ShouldQueue
                     ->where('user_id', $userId)
                     ->exists();
 
-                if (!$hasSubmission) {
+                if (! $hasSubmission) {
                     Submission::create([
                         'assignment_id' => $assignment->id,
                         'user_id' => $userId,
@@ -70,7 +68,7 @@ class MarkMissingSubmissionsJob implements ShouldQueue
                     ->where('user_id', $userId)
                     ->exists();
 
-                if (!$hasSubmission) {
+                if (! $hasSubmission) {
                     QuizSubmission::create([
                         'quiz_id' => $quiz->id,
                         'user_id' => $userId,

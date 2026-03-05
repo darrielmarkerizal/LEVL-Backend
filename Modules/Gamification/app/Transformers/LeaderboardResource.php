@@ -12,7 +12,7 @@ class LeaderboardResource extends JsonResource
         $stat = $this->resource['stat'] ?? $this->resource;
 
         if (
-            $stat instanceof \Modules\Gamification\Models\UserGamificationStat || 
+            $stat instanceof \Modules\Gamification\Models\UserGamificationStat ||
             $stat instanceof \Modules\Gamification\Models\Point
         ) {
             return [

@@ -7,7 +7,6 @@ namespace Modules\Gamification\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
-use Modules\Gamification\Contracts\Services\ChallengeServiceInterface;
 use Modules\Gamification\Contracts\Services\GamificationServiceInterface;
 use Modules\Gamification\Contracts\Services\LeaderboardServiceInterface;
 use Modules\Gamification\Models\Point;
@@ -26,7 +25,6 @@ class GamificationService implements GamificationServiceInterface
         private readonly PointManager $pointManager,
         private readonly BadgeManager $badgeManager,
         private readonly LeaderboardManager $leaderboardManager,
-        private readonly ChallengeServiceInterface $challengeService,
         private readonly LeaderboardServiceInterface $leaderboardService,
         ?GamificationRepository $repository = null
     ) {
@@ -94,7 +92,6 @@ class GamificationService implements GamificationServiceInterface
     {
         $stats = $this->pointManager->getOrCreateStats($userId);
         $rankData = $this->leaderboardService->getUserRank($userId);
-        $activeChallenges = $this->challengeService->getUserChallenges($userId)->count();
         $badgesCount = $this->badgeManager->countUserBadges($userId);
 
         return [
@@ -106,7 +103,6 @@ class GamificationService implements GamificationServiceInterface
             'current_streak' => $stats->current_streak,
             'longest_streak' => $stats->longest_streak,
             'rank' => $rankData['rank'],
-            'active_challenges' => $activeChallenges,
         ];
     }
 

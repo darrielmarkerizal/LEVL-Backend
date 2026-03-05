@@ -121,7 +121,6 @@ class SubmissionController extends Controller
         return $this->success(SubmissionResource::make($graded), __('messages.submissions.graded'));
     }
 
-
     public function showForAssignment(Request $request, Assignment $assignment, Submission $submission): JsonResponse
     {
         $this->authorize('view', $submission);

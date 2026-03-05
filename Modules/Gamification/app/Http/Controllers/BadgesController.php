@@ -14,8 +14,8 @@ use Illuminate\Routing\Controller;
 use Modules\Gamification\Http\Requests\BadgeStoreRequest;
 use Modules\Gamification\Http\Requests\BadgeUpdateRequest;
 use Modules\Gamification\Http\Resources\BadgeResource;
-use Modules\Gamification\Services\BadgeService;
 use Modules\Gamification\Models\Badge;
+use Modules\Gamification\Services\BadgeService;
 
 class BadgesController extends Controller
 {
@@ -56,7 +56,7 @@ class BadgesController extends Controller
         }
 
         $this->authorize('view', $model);
-        
+
         $model->load('rules');
 
         return $this->success(new BadgeResource($model));

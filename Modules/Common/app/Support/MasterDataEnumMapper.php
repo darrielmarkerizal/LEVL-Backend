@@ -13,9 +13,6 @@ use Modules\Content\Enums\TargetType;
 use Modules\Enrollments\Enums\EnrollmentStatus;
 use Modules\Enrollments\Enums\ProgressStatus;
 use Modules\Gamification\Enums\BadgeType;
-use Modules\Gamification\Enums\ChallengeAssignmentStatus;
-use Modules\Gamification\Enums\ChallengeCriteriaType;
-use Modules\Gamification\Enums\ChallengeType;
 use Modules\Gamification\Enums\PointReason;
 use Modules\Gamification\Enums\PointSourceType;
 use Modules\Grading\Enums\GradeStatus;
@@ -55,9 +52,6 @@ class MasterDataEnumMapper
             'content-status' => fn () => $this->transformEnum(ContentStatus::class),
             'priorities' => fn () => $this->transformEnum(Priority::class),
             'target-types' => fn () => $this->transformEnum(TargetType::class),
-            'challenge-types' => fn () => $this->transformEnum(ChallengeType::class),
-            'challenge-assignment-status' => fn () => $this->transformEnum(ChallengeAssignmentStatus::class),
-            'challenge-criteria-types' => fn () => $this->transformEnum(ChallengeCriteriaType::class),
             'badge-types' => fn () => $this->transformEnum(BadgeType::class),
             'point-source-types' => fn () => $this->transformEnum(PointSourceType::class),
             'point-reasons' => fn () => $this->transformEnum(PointReason::class),

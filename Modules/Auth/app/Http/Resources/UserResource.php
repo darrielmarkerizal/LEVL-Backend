@@ -9,8 +9,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Enrollments\Http\Resources\EnrollmentResource;
 use Modules\Forums\Http\Resources\ThreadResource;
-use Modules\Gamification\Transformers\ChallengeCompletionResource;
-use Modules\Gamification\Transformers\UserChallengeAssignmentResource;
 use Modules\Learning\Http\Resources\AssignmentIndexResource;
 use Modules\Learning\Http\Resources\OverrideResource;
 use Modules\Learning\Http\Resources\SubmissionIndexResource;
@@ -55,12 +53,6 @@ class UserResource extends JsonResource
             $data['badges'] = $this->resource->relationLoaded('badges')
                 ? $this->resource->badges->toArray()
                 : null;
-            $data['challenges'] = $this->resource->relationLoaded('challenges')
-                ? UserChallengeAssignmentResource::collection($this->resource->challenges)
-                : null;
-            $data['challengeCompletions'] = $this->resource->relationLoaded('challengeCompletions')
-                ? ChallengeCompletionResource::collection($this->resource->challengeCompletions)
-                : null;
             $data['points'] = $this->resource->relationLoaded('points')
                 ? $this->resource->points->toArray()
                 : null;
@@ -93,8 +85,6 @@ class UserResource extends JsonResource
                 'managedCourses',
                 'gamificationStats',
                 'badges',
-                'challenges',
-                'challengeCompletions',
                 'points',
                 'levels',
                 'learningStreaks',

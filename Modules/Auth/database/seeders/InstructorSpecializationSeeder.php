@@ -22,6 +22,7 @@ class InstructorSpecializationSeeder extends Seeder
 
         if (! $instructorRole) {
             $this->command->warn('Instructor role not found. Skipping seeder.');
+
             return;
         }
 
@@ -33,10 +34,11 @@ class InstructorSpecializationSeeder extends Seeder
 
         if (empty($categoryIds)) {
             $this->command->warn('No active categories found. Please run CategorySeeder first.');
+
             return;
         }
 
-        $this->command->info('Found ' . count($categoryIds) . ' active categories.');
+        $this->command->info('Found '.count($categoryIds).' active categories.');
 
         // Count instructors
         $this->command->info('Counting instructors...');
@@ -44,6 +46,7 @@ class InstructorSpecializationSeeder extends Seeder
 
         if ($totalInstructors === 0) {
             $this->command->info('No instructors found. Skipping seeder.');
+
             return;
         }
 
@@ -63,6 +66,6 @@ class InstructorSpecializationSeeder extends Seeder
                 $this->command->info("Processed {$updated} instructor(s)...");
             });
 
-        $this->command->info("✓ Updated {$updated} instructor(s) with random specializations from " . count($categoryIds) . " available categories.");
+        $this->command->info("✓ Updated {$updated} instructor(s) with random specializations from ".count($categoryIds).' available categories.');
     }
 }

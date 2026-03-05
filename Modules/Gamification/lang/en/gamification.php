@@ -12,7 +12,6 @@ return [
     'insufficient_points' => 'Insufficient points.',
     'reward_redeemed' => 'Reward redeemed successfully.',
     'badge_earned_description' => 'Badge :name earned!',
-    'completions_retrieved' => 'Completed challenges retrieved.',
     'completed_tasks' => 'Tasks Completed',
     'points_earned' => 'Points Earned',
     'current_streak' => 'Current Streak',

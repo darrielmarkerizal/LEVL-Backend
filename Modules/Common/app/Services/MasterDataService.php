@@ -6,11 +6,11 @@ namespace Modules\Common\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Modules\Schemes\Models\Course;
 use Illuminate\Support\Facades\Cache;
 use Modules\Common\Models\MasterDataItem;
 use Modules\Common\Repositories\MasterDataRepository;
 use Modules\Common\Support\MasterDataEnumMapper;
+use Modules\Schemes\Models\Course;
 
 class MasterDataService
 {
@@ -101,7 +101,7 @@ class MasterDataService
     {
         $query = Course::select(['title', 'slug']);
 
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->search($search);
         }
 

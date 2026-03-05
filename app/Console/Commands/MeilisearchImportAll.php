@@ -27,7 +27,6 @@ class MeilisearchImportAll extends Command
         \Modules\Forums\Models\Thread::class => 'threads_index',
         \Modules\Forums\Models\Reply::class => 'replies_index',
         \Modules\Gamification\Models\Badge::class => 'badges_index',
-        \Modules\Gamification\Models\Challenge::class => 'challenges_index',
         \Modules\Grading\Models\Grade::class => 'grades_index',
         \Modules\Common\Models\AuditLog::class => 'audit_logs_index',
         \Modules\Common\Models\LevelConfig::class => 'level_configs_index',

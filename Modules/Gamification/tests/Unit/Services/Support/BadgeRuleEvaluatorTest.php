@@ -3,14 +3,13 @@
 namespace Modules\Gamification\Tests\Unit\Services\Support;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery\MockInterface;
 use Modules\Auth\Models\User;
 use Modules\Gamification\Models\Badge;
 use Modules\Gamification\Models\BadgeRule;
-use Modules\Gamification\Models\UserScopeStat;
 use Modules\Gamification\Services\Support\BadgeManager;
 use Modules\Gamification\Services\Support\BadgeRuleEvaluator;
 use Modules\Gamification\Services\Support\PointManager;
-use Mockery\MockInterface;
 use Tests\TestCase;
 
 class BadgeRuleEvaluatorTest extends TestCase
@@ -18,9 +17,13 @@ class BadgeRuleEvaluatorTest extends TestCase
     use RefreshDatabase;
 
     private BadgeRuleEvaluator $evaluator;
+
     private MockInterface $badgeManagerMock;
+
     private MockInterface $pointManagerMock;
+
     private User $user;
+
     private Badge $badge;
 
     protected function setUp(): void

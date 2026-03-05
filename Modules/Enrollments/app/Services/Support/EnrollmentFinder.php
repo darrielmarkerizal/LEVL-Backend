@@ -307,9 +307,9 @@ class EnrollmentFinder
         }
 
         $builder->with([
-            'user' => fn ($q) => $q->select('id', 'name', 'email')->with('media'), 
+            'user' => fn ($q) => $q->select('id', 'name', 'email')->with('media'),
             'course',
-            'courseProgress'
+            'courseProgress',
         ])
             ->allowedFilters($this->getAllowedFilters())
             ->allowedIncludes(['user', 'course']);
@@ -362,9 +362,9 @@ class EnrollmentFinder
         }
 
         $builder->with([
-            'user' => fn ($q) => $q->select('id', 'name', 'email')->with('media'), 
+            'user' => fn ($q) => $q->select('id', 'name', 'email')->with('media'),
             'course:id,title,slug,code',
-            'courseProgress'
+            'courseProgress',
         ])
             ->allowedFilters($this->getAllowedFilters());
 

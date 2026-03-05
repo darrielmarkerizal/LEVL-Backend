@@ -106,8 +106,6 @@ class UserFinder
                         // Gamification Module (milestones table has no user_id - global catalog only)
                         'gamificationStats',
                         'badges',
-                        'challenges',
-                        'challengeCompletions',
                         'points',
                         'levels',
                         'learningStreaks',
@@ -142,8 +140,6 @@ class UserFinder
                     // Gamification Module (milestones table has no user_id - global catalog only)
                     'gamificationStats',
                     'badges',
-                    'challenges',
-                    'challengeCompletions',
                     'points',
                     'levels',
                     'learningStreaks',
@@ -182,7 +178,7 @@ class UserFinder
 
                 $allowedIncludes = [
                     'roles', 'privacySettings', 'enrollments', 'managedCourses',
-                    'gamificationStats', 'badges', 'challenges', 'challengeCompletions',
+                    'gamificationStats', 'badges',
                     'points', 'levels', 'learningStreaks',
                     'submissions', 'assignments', 'receivedOverrides', 'grantedOverrides',
                     'threads',

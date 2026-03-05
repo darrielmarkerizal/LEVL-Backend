@@ -40,7 +40,7 @@ return new class extends Migration
     {
         DB::statement('DROP INDEX IF EXISTS submissions_assignment_id_user_id_attempt_number_index');
         DB::statement('ALTER TABLE submissions DROP COLUMN IF EXISTS attempt_number');
-        
+
         DB::statement('DROP INDEX IF EXISTS quiz_submissions_quiz_id_user_id_attempt_number_index');
         DB::statement('ALTER TABLE quiz_submissions DROP COLUMN IF EXISTS attempt_number');
     }

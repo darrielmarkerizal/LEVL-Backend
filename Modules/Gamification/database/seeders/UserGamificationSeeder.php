@@ -7,14 +7,11 @@ namespace Modules\Gamification\Database\Seeders;
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
 use Modules\Gamification\Enums\BadgeType;
-use Modules\Gamification\Enums\ChallengeAssignmentStatus;
 use Modules\Gamification\Enums\PointReason;
 use Modules\Gamification\Enums\PointSourceType;
 use Modules\Gamification\Models\Badge;
-use Modules\Gamification\Models\Challenge;
 use Modules\Gamification\Models\Point;
 use Modules\Gamification\Models\UserBadge;
-use Modules\Gamification\Models\UserChallengeAssignment;
 use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Gamification\Models\UserScopeStat;
 use Modules\Schemes\Models\Course;
@@ -27,7 +24,6 @@ class UserGamificationSeeder extends Seeder
 
         $users = User::all();
         $badges = Badge::all();
-        $challenges = Challenge::all();
 
         if ($users->isEmpty()) {
             $this->command->warn('No users found. Skipping User Gamification Seeding.');
@@ -80,7 +76,7 @@ class UserGamificationSeeder extends Seeder
             for ($i = 0; $i < rand(5, 15); $i++) {
                 $sourceType = $validSourceTypes[array_rand($validSourceTypes)];
                 $reason = PointReason::cases()[array_rand(PointReason::cases())];
-                
+
                 Point::updateOrCreate([
                     'user_id' => $user->id,
                     'source_type' => $sourceType,
@@ -119,26 +115,6 @@ class UserGamificationSeeder extends Seeder
                 }
             }
 
-            // 4. Assign Challenges
-            if ($challenges->isNotEmpty()) {
-                $assignedChallenges = $challenges->random(min($challenges->count(), rand(1, 2)));
-                foreach ($assignedChallenges as $challenge) {
-                    $status = rand(0, 1) ? ChallengeAssignmentStatus::Completed : ChallengeAssignmentStatus::InProgress;
-
-                    UserChallengeAssignment::firstOrCreate([
-                        'user_id' => $user->id,
-                        'challenge_id' => $challenge->id,
-                    ], [
-                        'current_progress' => rand(0, $challenge->target_count ?? 10),
-                        'status' => $status,
-                        'assigned_date' => now()->subDays(rand(1, 7)),
-                        'completed_at' => $status === ChallengeAssignmentStatus::Completed ? now() : null,
-                    ]);
-                }
-            }
-
-            // 5. Generate Course-Specific Stats (UserScopeStat)
-            // Assign user to 1-3 random courses
             $courses = Course::inRandomOrder()->limit(rand(1, 3))->get();
             foreach ($courses as $course) {
                 $courseXp = rand(50, min($xp, 2000));

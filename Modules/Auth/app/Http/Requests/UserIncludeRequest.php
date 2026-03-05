@@ -17,7 +17,6 @@ class UserIncludeRequest extends FormRequest
         'received_overrides',
         'granted_overrides',
         'badges',
-        'challenges',
         'points',
         'levels',
         'milestones',

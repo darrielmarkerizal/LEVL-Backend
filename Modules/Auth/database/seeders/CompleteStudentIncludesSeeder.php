@@ -12,13 +12,10 @@ use Modules\Auth\Models\User;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Forums\Models\Thread;
 use Modules\Gamification\Models\Badge;
-use Modules\Gamification\Models\Challenge;
 use Modules\Gamification\Models\LearningStreak;
 use Modules\Gamification\Models\Level;
 use Modules\Gamification\Models\Point;
 use Modules\Gamification\Models\UserBadge;
-use Modules\Gamification\Models\UserChallengeAssignment;
-use Modules\Gamification\Models\UserChallengeCompletion;
 use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Learning\Enums\OverrideType;
 use Modules\Learning\Models\Assignment;
@@ -215,46 +212,6 @@ class CompleteStudentIncludesSeeder extends Seeder
             $this->onlyExistingColumns('user_badges', ['earned_at' => now()->subDays(2)]),
         );
 
-        // Gamification: challenge + assignment + completion
-        $challenge = Challenge::firstOrCreate(
-            ['title' => 'Seed Challenge: Complete Student'],
-            $this->onlyExistingColumns('challenges', [
-                'description' => 'Challenge created by CompleteStudentIncludesSeeder.',
-                'type' => 'daily',
-                'criteria' => ['type' => 'lessons_completed', 'target' => 1],
-                'target_count' => 1,
-                'points_reward' => 50,
-                'badge_id' => $badge->id,
-                'start_at' => now()->subDays(1),
-                'end_at' => now()->addDays(7),
-            ]),
-        );
-
-        UserChallengeAssignment::firstOrCreate(
-            ['user_id' => $student->id, 'challenge_id' => $challenge->id],
-            $this->onlyExistingColumns('user_challenge_assignments', [
-                'assigned_date' => now()->toDateString(),
-                'status' => 'in_progress',
-                'current_progress' => 1,
-                'completed_at' => null,
-                'reward_claimed' => false,
-                'expires_at' => null,
-            ]),
-        );
-
-        UserChallengeCompletion::firstOrCreate(
-            [
-                'user_id' => $student->id,
-                'challenge_id' => $challenge->id,
-                'completed_date' => now()->toDateString(),
-            ],
-            $this->onlyExistingColumns('user_challenge_completions', [
-                'xp_earned' => 100,
-                'completion_data' => ['seeded' => true],
-            ]),
-        );
-
-        // Gamification: points
         Point::firstOrCreate(
             [
                 'user_id' => $student->id,
@@ -390,7 +347,7 @@ class CompleteStudentIncludesSeeder extends Seeder
         $this->command?->info('✅ CompleteStudentIncludesSeeder done.');
         $this->command?->info("   Student email: {$studentEmail}");
         $this->command?->info("   Student id: {$student->id}");
-        $this->command?->info('   Try: GET /api/v1/users/'.$student->id.'?include=roles,privacySettings,enrollments,managedCourses,gamificationStats,badges,challenges,challengeCompletions,points,levels,learningStreaks,submissions,assignments,receivedOverrides,grantedOverrides,threads');
+        $this->command?->info('   Try: GET /api/v1/users/'.$student->id.'?include=roles,privacySettings,enrollments,managedCourses,gamificationStats,badges,points,levels,learningStreaks,submissions,assignments,receivedOverrides,grantedOverrides,threads');
     }
 
     /**

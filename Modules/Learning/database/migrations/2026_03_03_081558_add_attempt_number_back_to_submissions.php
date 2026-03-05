@@ -68,13 +68,13 @@ return new class extends Migration
         $schemaName = $connection->getConfig('schema') ?: 'public';
 
         $result = $connection->selectOne(
-            "SELECT EXISTS (
+            'SELECT EXISTS (
                 SELECT 1 
                 FROM pg_indexes 
                 WHERE schemaname = ? 
                 AND tablename = ? 
                 AND indexname = ?
-            ) as exists",
+            ) as exists',
             [$schemaName, $table, $indexName]
         );
 
