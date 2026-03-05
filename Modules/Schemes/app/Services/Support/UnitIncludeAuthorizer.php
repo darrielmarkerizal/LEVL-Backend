@@ -15,6 +15,9 @@ class UnitIncludeAuthorizer
 
     private const ENROLLED_STUDENT_INCLUDES = [
         'lessons',
+    ];
+
+    private const MANAGER_INCLUDES = [
         'lessons.blocks',
     ];
 
@@ -26,7 +29,7 @@ class UnitIncludeAuthorizer
             $course = $unit->course;
 
             if ($this->isManager($user, $course)) {
-                $allowed = array_merge($allowed, self::ENROLLED_STUDENT_INCLUDES);
+                $allowed = array_merge($allowed, self::ENROLLED_STUDENT_INCLUDES, self::MANAGER_INCLUDES);
             } elseif ($this->isEnrolledStudent($user, $course)) {
                 $allowed = array_merge($allowed, self::ENROLLED_STUDENT_INCLUDES);
             }

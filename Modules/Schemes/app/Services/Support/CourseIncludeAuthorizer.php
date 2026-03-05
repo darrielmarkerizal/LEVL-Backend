@@ -21,13 +21,13 @@ class CourseIncludeAuthorizer
         'quizzes',
         'assignments',
         'units.lessons',
-        'units.lessons.blocks',
     ];
 
     private const MANAGER_INCLUDES = [
         'enrollments',
         'enrollments.user',
         'admins',
+        'units.lessons.blocks',
     ];
 
     public function getPublicIncludes(): array

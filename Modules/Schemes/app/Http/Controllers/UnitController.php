@@ -8,6 +8,7 @@ use App\Support\ApiResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Schemes\Http\Requests\CreateUnitContentElementRequest;
 use Modules\Schemes\Http\Requests\UnitRequest;
 use Modules\Schemes\Http\Resources\UnitResource;
 use Modules\Schemes\Models\Course;
@@ -108,6 +109,16 @@ class UnitController extends Controller
         $contents = $this->service->getContents($unit, $user);
 
         return $this->success($contents);
+    }
+
+    public function storeContent(CreateUnitContentElementRequest $request, Course $course, Unit $unit)
+    {
+        $this->service->validateHierarchy($course->id, $unit->id);
+        $this->authorize('update', $unit);
+
+        $createdElement = $this->service->createContentElement($unit, $request->validated(), (int) auth('api')->id());
+
+        return $this->created($createdElement, __('messages.success'));
     }
 
     public function indexAll(Request $request)

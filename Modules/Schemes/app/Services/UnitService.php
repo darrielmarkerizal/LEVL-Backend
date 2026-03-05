@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Modules\Schemes\Services;
 
 use App\Support\CodeGenerator;
+use BackedEnum;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
+use Modules\Learning\Contracts\Services\AssignmentServiceInterface;
+use Modules\Learning\Contracts\Services\QuizServiceInterface;
+use Modules\Learning\Enums\AssignmentType;
 use Modules\Schemes\Contracts\Repositories\UnitRepositoryInterface;
 use Modules\Schemes\DTOs\CreateUnitDTO;
 use Modules\Schemes\DTOs\UpdateUnitDTO;
@@ -22,7 +26,10 @@ class UnitService
     public function __construct(
         private readonly UnitRepositoryInterface $repository,
         private readonly SchemesCacheService $cacheService,
-        private readonly UnitIncludeAuthorizer $includeAuthorizer
+        private readonly UnitIncludeAuthorizer $includeAuthorizer,
+        private readonly LessonService $lessonService,
+        private readonly QuizServiceInterface $quizService,
+        private readonly AssignmentServiceInterface $assignmentService,
     ) {}
 
     public function validateHierarchy(int $courseId, int $unitId): void
@@ -405,6 +412,14 @@ class UnitService
             $query->whereHas('course', function ($q) use ($user) {
                 if ($user->hasRole(['Admin', 'Instructor'])) {
                     $q->where('instructor_id', $user->id);
+                } elseif ($user->hasRole('Student')) {
+                    $q->whereHas('enrollments', function ($enrollmentQuery) use ($user) {
+                        $enrollmentQuery
+                            ->where('user_id', $user->id)
+                            ->whereIn('status', ['active', 'completed']);
+                    });
+                } else {
+                    $q->whereRaw('1 = 0');
                 }
             });
         }
@@ -475,6 +490,45 @@ class UnitService
         }
 
         return $content->sortBy('order')->values()->toArray();
+    }
+
+    public function createContentElement(Unit $unit, array $data, int $createdBy): array
+    {
+        $type = $data['type'];
+        $title = trim((string) $data['title']);
+
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($unit, $type, $title, $createdBy) {
+            $created = match ($type) {
+                'lesson' => $this->lessonService->create($unit->id, [
+                    'title' => $title,
+                ]),
+                'quiz' => $this->quizService->create([
+                    'unit_id' => $unit->id,
+                    'title' => $title,
+                ], $createdBy),
+                'assignment' => $this->assignmentService->create([
+                    'unit_id' => $unit->id,
+                    'type' => AssignmentType::Assignment->value,
+                    'title' => $title,
+                ], $createdBy),
+                default => throw new \InvalidArgumentException('Invalid content type.'),
+            };
+
+            $status = $created->status;
+            if ($status instanceof BackedEnum) {
+                $status = $status->value;
+            }
+
+            return [
+                'id' => $created->id,
+                'type' => $type,
+                'unit_id' => $unit->id,
+                'title' => $created->title,
+                'order' => $created->order,
+                'status' => $status,
+                'next_action' => 'Use PUT endpoint to complete the element data.',
+            ];
+        });
     }
 
     public function reorderContent(Unit $unit, array $contentOrder): array

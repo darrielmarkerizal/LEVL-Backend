@@ -21,7 +21,8 @@ class CourseLifecycleProcessor
 {
     public function __construct(
         private readonly CourseRepositoryInterface $repository,
-        private readonly SchemesCacheService $cacheService
+        private readonly SchemesCacheService $cacheService,
+        private readonly \Modules\Schemes\Services\TagService $tagService,
     ) {}
 
     public function create(CreateCourseDTO|array $data, ?User $actor = null, array $files = []): Course
@@ -38,13 +39,21 @@ class CourseLifecycleProcessor
                     $attributes['instructor_id'] = null;
                 }
 
-                $tags = $attributes['tags'] ?? null;
-                $attributes = Arr::except($attributes, ['slug', 'tags']);
+                $hasTagsInput = array_key_exists('tags', $attributes)
+                    || array_key_exists('tags_list', $attributes)
+                    || array_key_exists('tags_json', $attributes);
+
+                $tags = $attributes['tags'] ?? $attributes['tags_list'] ?? $attributes['tags_json'] ?? null;
+                if (! is_array($tags) && $tags !== null) {
+                    $tags = [(string) $tags];
+                }
+
+                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json']);
 
                 $course = $this->repository->create($attributes);
 
-                if ($tags) {
-                    $course->tags()->sync($tags);
+                if ($hasTagsInput && is_array($tags)) {
+                    $this->tagService->syncCourseTags($course, $tags);
                 }
 
                 if ($actor && $actor->hasRole(['Superadmin', 'Admin'])) {
@@ -78,13 +87,21 @@ class CourseLifecycleProcessor
             return DB::transaction(function () use ($course, $data, $files) {
                 $attributes = $data instanceof UpdateCourseDTO ? $data->toArrayWithoutNull() : $data;
 
-                $tags = $attributes['tags'] ?? null;
-                $attributes = Arr::except($attributes, ['slug', 'tags']);
+                $hasTagsInput = array_key_exists('tags', $attributes)
+                    || array_key_exists('tags_list', $attributes)
+                    || array_key_exists('tags_json', $attributes);
+
+                $tags = $attributes['tags'] ?? $attributes['tags_list'] ?? $attributes['tags_json'] ?? null;
+                if (! is_array($tags) && $tags !== null) {
+                    $tags = [(string) $tags];
+                }
+
+                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json']);
 
                 $this->repository->update($course, $attributes);
 
-                if ($tags !== null) {
-                    $course->tags()->sync($tags);
+                if ($hasTagsInput && is_array($tags)) {
+                    $this->tagService->syncCourseTags($course, $tags);
                 }
 
                 $this->handleMedia($course, $files);
