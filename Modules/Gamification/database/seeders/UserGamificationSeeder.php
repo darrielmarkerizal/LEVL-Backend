@@ -71,7 +71,13 @@ class UserGamificationSeeder extends Seeder
             );
 
             // 2. Generate Point History (Last 5-10 entries to simulate history)
-            $validSourceTypes = array_filter(PointSourceType::cases(), fn ($type) => $type !== PointSourceType::Grade);
+            // Keep seed data aligned with DB enum/check constraint on points.source_type.
+            $validSourceTypes = [
+                PointSourceType::Lesson,
+                PointSourceType::Assignment,
+                PointSourceType::Attempt,
+                PointSourceType::System,
+            ];
 
             for ($i = 0; $i < rand(5, 15); $i++) {
                 $sourceType = $validSourceTypes[array_rand($validSourceTypes)];
