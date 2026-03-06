@@ -65,6 +65,15 @@ class MasterDataService
         return $this->repository->paginateByType($type, [], $perPage);
     }
 
+    public function getAll(string $type, array $params = []): Collection|array
+    {
+        if ($this->enumMapper->isStaticType($type)) {
+            return $this->get($type);
+        }
+
+        return $this->repository->allByType($type, $params);
+    }
+
     public function isCrudAllowed(string $type): bool
     {
         return ! $this->enumMapper->isStaticType($type);

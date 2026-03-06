@@ -19,7 +19,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Assignment extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, PgSearchable;
+    use HasFactory, InteractsWithMedia, PgSearchable, \Modules\Common\Traits\PublishedOnlyScope;
 
     protected array $searchable_columns = [
         'title',

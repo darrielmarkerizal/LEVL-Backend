@@ -14,11 +14,31 @@ class UnitPolicy
         return true;
     }
 
-    public function view(User $user, Unit $unit): bool
+    public function view(?User $user, Unit $unit): bool
     {
         $course = $unit->course;
         if (! $course) {
             return false;
+        }
+
+        if ($unit->status === 'published' && $course->status === 'published') {
+            return true;
+        }
+
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('Superadmin')) {
+            return true;
+        }
+
+        if ($user->hasRole('Admin')) {
+            return $course->admins()->where('user_id', $user->id)->exists();
+        }
+
+        if ($user->hasRole('Instructor')) {
+            return $course->instructor_id === $user->id;
         }
 
         if ($user->hasRole('Student')) {
@@ -28,7 +48,7 @@ class UnitPolicy
                 ->exists();
         }
 
-        return true;
+        return false;
     }
 
     public function create(User $user, \Modules\Schemes\Models\Course $course): bool

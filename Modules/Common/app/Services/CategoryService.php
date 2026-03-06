@@ -50,6 +50,29 @@ class CategoryService implements CategoryServiceInterface
         return $this->list([], $perPage);
     }
 
+    public function all(): \Illuminate\Database\Eloquent\Collection
+    {
+        return cache()->tags(['common', 'categories'])->remember(
+            "common:categories:all:".request('search', ''),
+            300,
+            function () {
+                $eloquentQuery = Category::query();
+                if (request()->has('search') && request('search')) {
+                    $eloquentQuery->search(request('search'));
+                }
+
+                return QueryBuilder::for($eloquentQuery)
+                    ->allowedFilters([
+                        AllowedFilter::partial('name'),
+                        AllowedFilter::callback('search', fn ($query, $value) => $query->search($value)),
+                    ])
+                    ->allowedSorts(['name', 'created_at'])
+                    ->defaultSort('name')
+                    ->get();
+            }
+        );
+    }
+
     public function create(CreateCategoryDTO|array $data): Category
     {
         return DB::transaction(function () use ($data) {

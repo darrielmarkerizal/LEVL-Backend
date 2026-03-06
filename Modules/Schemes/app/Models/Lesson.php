@@ -16,7 +16,7 @@ use Spatie\Sluggable\SlugOptions;
 
 class Lesson extends Model
 {
-    use HasFactory, HasSlug, LogsActivity, PgSearchable;
+    use HasFactory, HasSlug, LogsActivity, PgSearchable, \Modules\Common\Traits\PublishedOnlyScope;
 
     protected array $searchable_columns = [
         'title',
