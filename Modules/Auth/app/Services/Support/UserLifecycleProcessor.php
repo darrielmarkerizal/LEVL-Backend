@@ -74,26 +74,25 @@ class UserLifecycleProcessor
     {
         $role = $validated['role'];
 
-        if ($role === config('auth.default_role', 'Student')) {
-            throw ValidationException::withMessages([
-                'role' => [__('messages.auth.student_creation_forbidden')],
-            ]);
-        }
-
         if ($authUser->hasRole('Admin') && ! $authUser->hasRole('Superadmin')) {
-            if (! in_array($role, ['Admin', 'Instructor'])) {
+            if (! in_array($role, ['Student', 'Admin', 'Instructor'])) {
                 throw new AuthorizationException(__('messages.forbidden'));
             }
         } elseif ($authUser->hasRole('Superadmin')) {
-            if (! in_array($role, ['Superadmin', 'Admin', 'Instructor'])) {
+            if (! in_array($role, ['Student', 'Superadmin', 'Admin', 'Instructor'])) {
                 throw new AuthorizationException(__('messages.forbidden'));
             }
         } else {
             throw new AuthorizationException(__('messages.unauthorized'));
         }
 
-        $passwordPlain = Str::random(12);
-        unset($validated['role']);
+        $passwordPlain = $validated['password'] ?? Str::random(12);
+
+        if (empty($validated['username'])) {
+            $validated['username'] = $this->generateUniqueUsername($validated['name'], $validated['email']);
+        }
+
+        unset($validated['role'], $validated['password']);
         $validated['password'] = Hash::make($passwordPlain);
 
         $user = $this->authRepository->createUser($validated + ['is_password_set' => false]);
@@ -140,5 +139,35 @@ class UserLifecycleProcessor
         $loginUrl = rtrim(config('app.frontend_url', 'http://localhost:3000'), '/').'/login';
 
         Mail::to($user->email)->send(new UserCredentialsMail($user, $passwordPlain, $loginUrl));
+    }
+
+    protected function generateUniqueUsername(string $name, string $email): string
+    {
+        $baseUsername = $this->sanitizeUsername($name);
+
+        if (empty($baseUsername)) {
+            $baseUsername = explode('@', $email)[0];
+            $baseUsername = $this->sanitizeUsername($baseUsername);
+        }
+
+        $username = $baseUsername;
+        $counter = 1;
+
+        while (User::where('username', $username)->exists()) {
+            $username = $baseUsername.$counter;
+            $counter++;
+        }
+
+        return $username;
+    }
+
+    protected function sanitizeUsername(string $input): string
+    {
+        $username = strtolower($input);
+        $username = preg_replace('/[^a-z0-9_\.\-]/', '', $username);
+        $username = preg_replace('/[_\.\-]+/', '_', $username);
+        $username = trim($username, '_.-');
+
+        return substr($username, 0, 50);
     }
 }

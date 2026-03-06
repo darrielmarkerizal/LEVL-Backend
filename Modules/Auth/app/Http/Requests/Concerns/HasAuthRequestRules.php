@@ -72,7 +72,7 @@ trait HasAuthRequestRules
         return [
             'name' => ['required', 'string', 'max:255'],
             'username' => [
-                'required',
+                'nullable',
                 'string',
                 'min:3',
                 'max:255',
@@ -80,6 +80,7 @@ trait HasAuthRequestRules
                 'unique:users,username',
             ],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['nullable', 'string', 'min:8'],
             'role' => ['required', 'string', 'in:Student,Instructor,Admin,Superadmin'],
             'specialization_id' => [
                 'nullable',
@@ -96,7 +97,6 @@ trait HasAuthRequestRules
             'name.required' => __('validation.required', ['attribute' => 'name']),
             'name.string' => __('validation.string', ['attribute' => 'name']),
             'name.max' => __('validation.max.string', ['attribute' => 'name']),
-            'username.required' => __('validation.required', ['attribute' => 'username']),
             'username.string' => __('validation.string', ['attribute' => 'username']),
             'username.min' => __('validation.min.string', ['attribute' => 'username']),
             'username.max' => __('validation.max.string', ['attribute' => 'username']),
@@ -105,6 +105,8 @@ trait HasAuthRequestRules
             'email.required' => __('validation.required', ['attribute' => 'email']),
             'email.email' => __('validation.email', ['attribute' => 'email']),
             'email.unique' => __('validation.unique', ['attribute' => 'email']),
+            'password.string' => __('validation.string', ['attribute' => 'password']),
+            'password.min' => __('validation.min.string', ['attribute' => 'password']),
             'role.required' => __('validation.required', ['attribute' => 'role']),
             'role.in' => __('validation.in', ['attribute' => 'role']),
             'specialization_id.required_if' => __('validation.required_if', ['attribute' => 'specialization', 'other' => 'role', 'value' => 'Instructor']),
