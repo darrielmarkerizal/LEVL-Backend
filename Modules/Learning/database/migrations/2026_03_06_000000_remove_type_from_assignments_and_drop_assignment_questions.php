@@ -10,6 +10,13 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('answers') && Schema::hasColumn('answers', 'question_id')) {
+            Schema::table('answers', function (Blueprint $table) {
+                $table->dropForeign(['question_id']);
+                $table->dropColumn('question_id');
+            });
+        }
+
         if (Schema::hasTable('assignment_questions')) {
             Schema::dropIfExists('assignment_questions');
         }
@@ -45,6 +52,13 @@ return new class extends Migration
                 $table->index('assignment_id', 'idx_assignment_questions_assignment');
                 $table->index('type', 'idx_assignment_questions_type');
                 $table->index('order', 'idx_assignment_questions_order');
+            });
+        }
+
+        if (Schema::hasTable('answers') && ! Schema::hasColumn('answers', 'question_id')) {
+            Schema::table('answers', function (Blueprint $table) {
+                $table->foreignId('question_id')->after('submission_id')->constrained('assignment_questions')->onDelete('cascade');
+                $table->index('question_id', 'idx_answers_question');
             });
         }
     }
