@@ -49,23 +49,17 @@ class MasterDataController extends Controller
 
     public function index(Request $request, string $type): JsonResponse
     {
-        if ($type === 'categories') {
-            $data = $this->service->get($type);
-
-            return $this->success($data, __('messages.master_data.retrieved'));
-        }
-
         $data = $this->service->getAll($type, $request->query->all());
 
         return $this->success($data, __('messages.master_data.retrieved'));
     }
 
-    public function show(string $type, int $id): JsonResponse
+    public function show(string $type, int|string $id): JsonResponse
     {
-        $item = $this->service->find($type, $id);
+        $item = $this->service->find($type, (int) $id);
 
         if (! $item) {
-            return $this->error(__('messages.master_data.not_found'), 404);
+            return $this->error(__('messages.master_data.not_found'), [], 404);
         }
 
         return $this->success($item, __('messages.master_data.retrieved'));
@@ -83,25 +77,25 @@ class MasterDataController extends Controller
         return $this->success($item, __('messages.master_data.created'));
     }
 
-    public function update(Request $request, string $type, int $id): JsonResponse
+    public function update(Request $request, string $type, int|string $id): JsonResponse
     {
         if (! $this->service->isCrudAllowed($type)) {
             return $this->forbidden(__('messages.master_data.crud_not_allowed'));
         }
 
         $data = $request->validate($this->service->getValidationRules(true));
-        $item = $this->service->update($type, $id, $data);
+        $item = $this->service->update($type, (int) $id, $data);
 
         return $this->success($item, __('messages.master_data.updated'));
     }
 
-    public function destroy(string $type, int $id): JsonResponse
+    public function destroy(string $type, int|string $id): JsonResponse
     {
         if (! $this->service->isCrudAllowed($type)) {
             return $this->forbidden(__('messages.master_data.crud_not_allowed'));
         }
 
-        $this->service->delete($type, $id);
+        $this->service->delete($type, (int) $id);
 
         return $this->success(null, __('messages.master_data.deleted'));
     }
