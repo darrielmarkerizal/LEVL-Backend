@@ -111,14 +111,15 @@ class UnitController extends Controller
         return $this->success($contents);
     }
 
-    public function storeContent(CreateUnitContentElementRequest $request, Course $course, Unit $unit)
+    public function storeContent(\Modules\Schemes\Http\Requests\StoreContentRequest $request, Course $course, Unit $unit)
     {
         $this->service->validateHierarchy($course->id, $unit->id);
         $this->authorize('update', $unit);
 
-        $createdElement = $this->service->createContentElement($unit, $request->validated(), (int) auth('api')->id());
+        $contentService = app(\Modules\Schemes\Services\ContentService::class);
+        $createdContent = $contentService->createContent($unit, $request->validated(), (int) auth('api')->id());
 
-        return $this->created($createdElement, __('messages.success'));
+        return $this->created($createdContent, __('messages.content.created'));
     }
 
     public function indexAll(Request $request)

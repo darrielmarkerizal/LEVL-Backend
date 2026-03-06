@@ -13,6 +13,7 @@ Dokumentasi ini berisi spesifikasi lengkap untuk semua form pembuatan konten pem
 5. [Assignment (Tugas)](#5-assignment-tugas)
 6. [Quiz (Kuis)](#6-quiz-kuis)
 7. [Quiz Question (Pertanyaan Kuis)](#7-quiz-question-pertanyaan-kuis)
+8. [**BARU: Unified Content Creation**](#8-unified-content-creation)
 
 ---
 
@@ -720,5 +721,364 @@ Semua endpoint menggunakan format response standar:
 ---
 
 **Versi**: 1.0  
+**Terakhir Update**: 6 Maret 2026  
+**Kontak**: Backend Team
+
+
+---
+
+## 8. UNIFIED CONTENT CREATION
+
+### 🆕 API Baru untuk Membuat Konten dengan Satu Endpoint
+
+Endpoint ini memungkinkan Anda membuat Lesson, Assignment, atau Quiz dalam satu API call dengan field yang dinamis berdasarkan `type`.
+
+### Endpoint
+```
+POST /api/v1/courses/{course_slug}/units/{unit_slug}/contents
+```
+
+### Authorization
+- Role: Superadmin, Admin, atau Instructor
+- Permission: `update` pada Unit
+
+### Content-Type
+`multipart/form-data` (jika ada attachment) atau `application/json`
+
+### Field Spesifikasi
+
+#### Field Wajib (Semua Type)
+
+| Field | Tipe | Required | Validasi | Keterangan |
+|-------|------|----------|----------|------------|
+| `type` | enum | ✅ Ya | lesson, assignment, quiz | Jenis konten yang akan dibuat |
+| `title` | string | ✅ Ya | max:255 | Judul konten |
+| `order` | integer | ❌ Tidak | min:1 | Urutan tampilan (auto-generate jika kosong) |
+
+#### Field Tambahan (Conditional)
+
+| Field | Tipe | Required | Validasi | Keterangan |
+|-------|------|----------|----------|------------|
+| `submission_type` | enum | ✅ Ya (untuk assignment) | file, mixed | **Required hanya untuk type=assignment** |
+
+**Catatan Penting**:
+- API ini hanya untuk membuat konten **dasar** (skeleton)
+- Detail konten (description, markdown_content, passing_grade, dll) diisi kemudian via **UPDATE** endpoint
+- Workflow: **Create → Update → Publish**
+
+---
+
+## Contoh Request
+
+### 1. Membuat Lesson (Minimal)
+
+```json
+{
+  "type": "lesson",
+  "title": "Struktur Dasar HTML",
+  "order": 1
+}
+```
+
+### 2. Membuat Assignment (Minimal)
+
+```json
+{
+  "type": "assignment",
+  "title": "Tugas Membuat Website Portfolio",
+  "submission_type": "file",
+  "order": 2
+}
+```
+
+**Catatan**: `submission_type` REQUIRED untuk assignment karena tidak bisa diubah setelah ada submission.
+
+### 3. Membuat Quiz (Minimal)
+
+```json
+{
+  "type": "quiz",
+  "title": "Quiz HTML Dasar",
+  "order": 3
+}
+```
+
+---
+
+## Workflow: Create → Update → Publish
+
+### Step 1: Create (Skeleton)
+Buat konten dasar dengan minimal fields:
+
+```json
+POST /api/v1/courses/{slug}/units/{slug}/contents
+{
+  "type": "lesson",
+  "title": "Struktur Dasar HTML"
+}
+```
+
+### Step 2: Update (Fill Details)
+Isi detail konten menggunakan endpoint update yang sesuai:
+
+```json
+// Untuk Lesson
+PUT /api/v1/units/{unit_slug}/lessons/{lesson_slug}
+{
+  "description": "Mempelajari struktur dasar dokumen HTML",
+  "markdown_content": "# Struktur HTML...",
+  "duration_minutes": 30
+}
+
+// Untuk Assignment
+PUT /api/v1/assignments/{assignment_id}
+{
+  "description": "Buatlah website portfolio...",
+  "max_score": 100,
+  "passing_grade": 70,
+  "time_limit_minutes": 120
+}
+
+// Untuk Quiz
+PUT /api/v1/quizzes/{quiz_id}
+{
+  "description": "Kuis untuk menguji pemahaman...",
+  "passing_grade": 80,
+  "time_limit_minutes": 30
+}
+```
+
+### Step 3: Publish
+Ubah status menjadi published:
+
+```json
+// Untuk Lesson
+PUT /api/v1/units/{unit_slug}/lessons/{lesson_slug}
+{ "status": "published" }
+
+// Untuk Assignment
+PUT /api/v1/assignments/{assignment_id}/publish
+
+// Untuk Quiz
+PUT /api/v1/quizzes/{quiz_id}/publish
+```
+
+---
+
+## Response Format
+
+Response akan mengembalikan informasi konten yang dibuat dengan format unified:
+
+```json
+{
+  "success": true,
+  "message": "Content created successfully",
+  "data": {
+    "type": "lesson",
+    "id": 123,
+    "slug": "struktur-dasar-html",
+    "title": "Struktur Dasar HTML",
+    "order": 1,
+    "status": "draft",
+    "data": {
+      "id": 123,
+      "slug": "struktur-dasar-html",
+      "title": "Struktur Dasar HTML",
+      "description": "Mempelajari struktur dasar dokumen HTML",
+      "markdown_content": "# Struktur HTML...",
+      "duration_minutes": 30,
+      "status": "draft",
+      "unit_id": 5,
+      "order": 1,
+      "created_at": "2026-03-06T10:00:00Z",
+      "updated_at": "2026-03-06T10:00:00Z"
+    }
+  }
+}
+```
+
+**Catatan Response**:
+- `type`: Jenis konten yang dibuat (lesson/assignment/quiz)
+- `id`: ID dari konten yang dibuat
+- `slug`: Slug konten (hanya untuk lesson, null untuk assignment/quiz)
+- `title`: Judul konten
+- `order`: Urutan konten
+- `status`: Status publikasi
+- `data`: Object lengkap dari konten yang dibuat
+
+---
+
+## Keuntungan Menggunakan Unified API
+
+### ✅ Untuk Frontend Developer
+
+1. **Quick Content Creation**: Buat konten cepat dengan minimal fields
+2. **Satu Endpoint**: Tidak perlu switch endpoint berdasarkan type
+3. **Flexible Workflow**: Create first, fill details later
+4. **Consistent Response**: Response format yang sama untuk semua type
+5. **Easy Reordering**: Buat semua konten dulu, atur order, baru isi detail
+
+### ✅ Untuk Backend
+
+1. **Centralized Logic**: Validasi dan routing di satu tempat
+2. **Easy to Extend**: Mudah menambah type baru di masa depan
+3. **Consistent Authorization**: Authorization check di satu tempat
+
+---
+
+## Use Case: Content Builder UI
+
+```javascript
+// Step 1: User adds multiple content items quickly
+const contents = [
+  { type: 'lesson', title: 'Intro to HTML' },
+  { type: 'lesson', title: 'HTML Tags' },
+  { type: 'assignment', title: 'Build a Page', submission_type: 'file' },
+  { type: 'quiz', title: 'HTML Quiz' }
+];
+
+// Create all content skeletons
+contents.forEach((content, index) => {
+  POST /api/v1/courses/{slug}/units/{slug}/contents
+  { ...content, order: index + 1 }
+});
+
+// Step 2: User fills details for each content
+// Click on content → Show detail form → Update via specific endpoint
+
+// Step 3: User publishes when ready
+```
+
+---
+
+## Validasi Khusus
+
+### Untuk type = "lesson"
+- Field `submission_type` TIDAK BOLEH ada
+- Field `passing_grade`, `max_score`, `time_limit_minutes` TIDAK BOLEH ada (kecuali `duration_minutes`)
+
+### Untuk type = "assignment"
+- Field `submission_type` **REQUIRED**
+- Field `submission_type` hanya boleh `file` atau `mixed`
+- Field `markdown_content`, `duration_minutes` TIDAK BOLEH ada
+
+### Untuk type = "quiz"
+- Field `submission_type` TIDAK BOLEH ada
+- Field `markdown_content`, `duration_minutes` TIDAK BOLEH ada
+- Setelah membuat quiz, tambahkan questions menggunakan endpoint terpisah
+
+---
+
+## Error Response
+
+### Type Tidak Valid
+```json
+{
+  "success": false,
+  "message": "Validation error",
+  "errors": {
+    "type": ["Tipe konten harus lesson, assignment, atau quiz"]
+  }
+}
+```
+
+### Field Required Tidak Ada
+```json
+{
+  "success": false,
+  "message": "Validation error",
+  "errors": {
+    "submission_type": ["Tipe submission harus diisi untuk assignment"]
+  }
+}
+```
+
+---
+
+## Workflow Rekomendasi
+
+### Menggunakan Unified API
+
+```javascript
+// 1. User pilih type di dropdown
+const contentType = "lesson"; // atau "assignment" atau "quiz"
+
+// 2. Form fields muncul dinamis berdasarkan type
+if (contentType === "lesson") {
+  showFields(["title", "description", "markdown_content", "duration_minutes", "status"]);
+} else if (contentType === "assignment") {
+  showFields(["title", "description", "submission_type", "max_score", "passing_grade", "time_limit_minutes", "attachments"]);
+} else if (contentType === "quiz") {
+  showFields(["title", "description", "passing_grade", "auto_grading", "time_limit_minutes", "randomization_type", "review_mode"]);
+}
+
+// 3. Submit ke unified endpoint
+POST /api/v1/courses/{course_slug}/units/{unit_slug}/contents
+{
+  "type": contentType,
+  "title": "...",
+  // ... field lainnya sesuai type
+}
+
+// 4. Jika Quiz, lanjutkan tambah questions
+if (contentType === "quiz") {
+  POST /api/v1/quizzes/{quiz_id}/questions
+  // ... tambah pertanyaan
+}
+```
+
+---
+
+## Perbandingan: Unified vs Separated API
+
+### Unified API (Baru) ✅
+```
+POST /api/v1/courses/{slug}/units/{slug}/contents
+{
+  "type": "lesson",
+  "title": "..."
+}
+```
+
+**Keuntungan**:
+- ✅ Satu endpoint untuk semua type
+- ✅ Form dinamis lebih mudah
+- ✅ Konsisten untuk UI/UX
+
+### Separated API (Lama) ✅
+```
+POST /api/v1/units/{slug}/lessons
+POST /api/v1/assignments
+POST /api/v1/quizzes
+```
+
+**Keuntungan**:
+- ✅ Separation of concerns lebih jelas
+- ✅ Validasi lebih spesifik per entity
+- ✅ Lebih RESTful
+
+**Kesimpulan**: Kedua cara VALID dan bisa digunakan sesuai kebutuhan!
+
+---
+
+## Catatan Penting
+
+1. **Unified API adalah TAMBAHAN**, bukan pengganti endpoint yang sudah ada
+2. Anda masih bisa menggunakan endpoint terpisah:
+   - `POST /api/v1/units/{slug}/lessons`
+   - `POST /api/v1/assignments`
+   - `POST /api/v1/quizzes`
+3. Unified API cocok untuk:
+   - Form builder dinamis
+   - Content management system
+   - Drag-and-drop content creator
+4. Separated API cocok untuk:
+   - Form spesifik per type
+   - Workflow yang berbeda per type
+   - API yang lebih RESTful
+
+---
+
+**Versi**: 1.1  
 **Terakhir Update**: 6 Maret 2026  
 **Kontak**: Backend Team
