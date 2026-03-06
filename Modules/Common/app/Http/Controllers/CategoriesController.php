@@ -32,7 +32,7 @@ class CategoriesController extends Controller
         $data = $this->service->all();
         $metadata = $this->buildCategoryMetadata();
 
-        return $this->success(CategoryResource::collection($data), __('messages.categories.retrieved'), additionalMeta: $metadata);
+        return $this->success(CategoryResource::collection($data), __('messages.categories.retrieved'), [], 200, $metadata);
     }
 
     public function store(CategoryStoreRequest $request): JsonResponse
@@ -48,7 +48,7 @@ class CategoriesController extends Controller
         $model = $this->service->find($category);
 
         if (! $model) {
-            return $this->error(__('messages.categories.not_found'), 404);
+            return $this->error(__('messages.categories.not_found'), [], 404);
         }
 
         $this->authorize('view', $model);
@@ -61,7 +61,7 @@ class CategoriesController extends Controller
         $model = $this->service->find($category);
 
         if (! $model) {
-            return $this->error(__('messages.categories.not_found'), 404);
+            return $this->error(__('messages.categories.not_found'), [], 404);
         }
 
         $this->authorize('update', $model);
@@ -75,7 +75,7 @@ class CategoriesController extends Controller
         $model = $this->service->find($category);
 
         if (! $model) {
-            return $this->error(__('messages.categories.not_found'), 404);
+            return $this->error(__('messages.categories.not_found'), [], 404);
         }
 
         $this->authorize('delete', $model);
