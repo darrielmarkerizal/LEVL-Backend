@@ -16,7 +16,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Quiz extends Model implements HasMedia
 {
-    use InteractsWithMedia, PgSearchable;
+    use InteractsWithMedia, PgSearchable, \Modules\Common\Traits\PublishedOnlyScope;
 
     protected array $searchable_columns = [
         'title',

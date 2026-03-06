@@ -12,7 +12,6 @@ class CourseIncludeAuthorizer
     private const PUBLIC_INCLUDES = [
         'tags',
         'category',
-        'instructor',
         'units',
     ];
 
@@ -27,7 +26,7 @@ class CourseIncludeAuthorizer
         'enrollments',
         'enrollments.user',
         'admins',
-        'units.lessons.blocks',
+        'instructor',
     ];
 
     public function getPublicIncludes(): array
@@ -82,9 +81,28 @@ class CourseIncludeAuthorizer
         if ($user) {
             if ($this->isManager($user, $course)) {
                 $allowed = array_merge($allowed, self::ENROLLED_STUDENT_INCLUDES, self::MANAGER_INCLUDES);
+                $allowed[] = \Spatie\QueryBuilder\AllowedInclude::relationship('instructorList', 'admins');
+                $allowed[] = \Spatie\QueryBuilder\AllowedInclude::count('instructorCount', 'admins');
+                $allowed[] = \Spatie\QueryBuilder\AllowedInclude::count('enrollmentsCount', 'enrollments');
             } elseif ($this->isEnrolledStudent($user, $course)) {
                 $allowed = array_merge($allowed, self::ENROLLED_STUDENT_INCLUDES);
             }
+        }
+
+        return $allowed;
+    }
+
+    public function getAllowedIncludesForIndex(?User $user): array
+    {
+        $allowed = self::PUBLIC_INCLUDES;
+
+        if ($user && $user->hasAnyRole(['Superadmin', 'Admin', 'Instructor'])) {
+            $allowed[] = 'instructor';
+            $allowed[] = 'admins';
+            $allowed[] = \Spatie\QueryBuilder\AllowedInclude::relationship('instructorList', 'admins');
+            $allowed[] = \Spatie\QueryBuilder\AllowedInclude::count('instructorCount', 'admins');
+            $allowed[] = \Spatie\QueryBuilder\AllowedInclude::relationship('enrollments', 'enrollments');
+            $allowed[] = \Spatie\QueryBuilder\AllowedInclude::count('enrollmentsCount', 'enrollments');
         }
 
         return $allowed;

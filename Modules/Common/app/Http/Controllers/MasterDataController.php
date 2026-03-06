@@ -49,10 +49,15 @@ class MasterDataController extends Controller
 
     public function index(Request $request, string $type): JsonResponse
     {
-        $perPage = (int) $request->query('per_page', 15);
-        $paginator = $this->service->paginate($type, $perPage);
+        if ($type === 'categories') {
+            $data = $this->service->get($type);
 
-        return $this->paginateResponse($paginator, __('messages.master_data.retrieved'));
+            return $this->success($data, __('messages.master_data.retrieved'));
+        }
+
+        $data = $this->service->getAll($type, $request->query->all());
+
+        return $this->success($data, __('messages.master_data.retrieved'));
     }
 
     public function show(string $type, int $id): JsonResponse

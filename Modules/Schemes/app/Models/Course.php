@@ -25,7 +25,7 @@ use Spatie\Sluggable\SlugOptions;
 
 class Course extends Model implements HasMedia
 {
-    use HasFactory, HasSlug, InteractsWithMedia, LogsActivity, PgSearchable, SoftDeletes;
+    use HasFactory, HasSlug, InteractsWithMedia, LogsActivity, PgSearchable, SoftDeletes, \Modules\Common\Traits\PublishedOnlyScope;
 
     protected array $searchable_columns = [
         'title',

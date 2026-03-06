@@ -148,8 +148,6 @@ class CourseFinder
 
         return QueryBuilder::for(Course::class, $request)
             ->where('slug', $slug)
-            ->with('instructor')
-            ->withCount(['admins', 'enrollments'])
             ->allowedIncludes($allowedIncludes)
             ->first();
     }
@@ -176,14 +174,14 @@ class CourseFinder
 
         return $builder
             ->with('instructor')
-            ->withCount(['admins', 'enrollments'])
+            ->withCount(['enrollments'])
             ->allowedFilters([
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('level_tag'),
                 AllowedFilter::exact('type'),
                 AllowedFilter::exact('category_id'),
             ])
-            ->allowedIncludes($this->includeAuthorizer->getPublicIncludes())
+            ->allowedIncludes($this->includeAuthorizer->getAllowedIncludesForIndex(auth('api')->user()))
             ->allowedSorts(['id', 'code', 'title', 'created_at', 'updated_at', 'published_at'])
             ->defaultSort('title');
     }
@@ -216,15 +214,13 @@ class CourseFinder
         }
 
         return $builder
-            ->with('instructor')
-            ->withCount(['admins', 'enrollments'])
             ->allowedFilters([
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('level_tag'),
                 AllowedFilter::exact('type'),
                 AllowedFilter::exact('category_id'),
             ])
-            ->allowedIncludes($this->includeAuthorizer->getPublicIncludes())
+            ->allowedIncludes($this->includeAuthorizer->getAllowedIncludesForIndex(auth('api')->user()))
             ->allowedSorts(['id', 'code', 'title', 'created_at', 'updated_at', 'published_at'])
             ->defaultSort('title');
     }
@@ -277,16 +273,15 @@ class CourseFinder
                     ]);
                 }
             })
-            ->with(['instructor', 'enrollments' => function ($query) use ($userId) {
+            ->with(['enrollments' => function ($query) use ($userId) {
                 $query->where('user_id', $userId);
             }])
-            ->withCount(['admins', 'enrollments'])
             ->allowedFilters([
                 AllowedFilter::exact('level_tag'),
                 AllowedFilter::exact('type'),
                 AllowedFilter::exact('category_id'),
             ])
-            ->allowedIncludes($this->includeAuthorizer->getPublicIncludes())
+            ->allowedIncludes($this->includeAuthorizer->getAllowedIncludesForIndex(auth('api')->user()))
             ->allowedSorts(['title', 'created_at', 'updated_at'])
             ->defaultSort('-updated_at');
 

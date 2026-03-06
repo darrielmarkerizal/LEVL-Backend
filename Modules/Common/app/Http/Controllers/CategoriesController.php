@@ -29,13 +29,10 @@ class CategoriesController extends Controller
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Category::class);
-        $params = $this->extractFilterParams($request);
-        $perPage = $params['per_page'] ?? 15;
-        $paginator = $this->service->paginate($perPage);
-        $paginator->getCollection()->transform(fn ($item) => new CategoryResource($item));
+        $data = $this->service->all();
         $metadata = $this->buildCategoryMetadata();
 
-        return $this->paginateResponse($paginator, additionalMeta: $metadata);
+        return $this->success(CategoryResource::collection($data), __('messages.categories.retrieved'), additionalMeta: $metadata);
     }
 
     public function store(CategoryStoreRequest $request): JsonResponse
