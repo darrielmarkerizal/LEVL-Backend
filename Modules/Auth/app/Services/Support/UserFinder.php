@@ -66,6 +66,11 @@ class UserFinder
                 }
 
                 if ($authUser->hasRole('Admin') && ! $authUser->hasRole('Superadmin')) {
+                    // Admin must never receive Superadmin records in index response.
+                    $query->whereDoesntHave('roles', function (Builder $roleQuery) {
+                        $roleQuery->where('name', 'Superadmin');
+                    });
+
                     $managedCourseIds = CourseAdmin::query()
                         ->where('user_id', $authUser->id)
                         ->pluck('course_id')
