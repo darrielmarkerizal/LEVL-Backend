@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             MasterDataSeeder::class,
             \Modules\Auth\Database\Seeders\AuthComprehensiveDataSeeder::class,
             \Modules\Auth\Database\Seeders\ProfileSeeder::class,
+            \Modules\Auth\Database\Seeders\InstructorSpecializationSeeder::class,
             \Modules\Schemes\Database\Seeders\SchemesDatabaseSeeder::class,
             \Modules\Enrollments\Database\Seeders\EnrollmentsDatabaseSeeder::class,
             \Modules\Learning\Database\Seeders\LearningDatabaseSeeder::class,
