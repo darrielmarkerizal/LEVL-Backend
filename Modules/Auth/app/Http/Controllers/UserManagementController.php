@@ -54,10 +54,23 @@ class UserManagementController extends Controller
 
     public function update(UpdateUserRequest $request, int $id): JsonResponse
     {
+        $validated = $request->validated();
+        $data = [];
+        
+        if (isset($validated['username'])) {
+            $data['username'] = $validated['username'];
+        }
+        if (isset($validated['status'])) {
+            $data['status'] = $validated['status'];
+        }
+        if (isset($validated['password'])) {
+            $data['password'] = $validated['password'];
+        }
+
         $user = $this->userManagementService->updateUser(
             auth()->user(),
             $id,
-            $request->only(['username', 'status'])
+            $data
         );
 
         return $this->success(new UserResource($user), 'messages.auth.user_updated');

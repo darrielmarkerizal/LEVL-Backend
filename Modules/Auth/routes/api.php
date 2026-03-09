@@ -105,10 +105,14 @@ Route::prefix('v1')
                 'users.mentions.search',
             );
 
-            // User Management (Refactored)
-            Route::middleware(['role:Admin,Superadmin'])->group(function () {
+            // User Management read-only (Admin, Superadmin, Instructor)
+            Route::middleware(['role:Admin,Superadmin,Instructor'])->group(function () {
                 Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
                 Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
+            });
+
+            // User Management write actions (Admin, Superadmin)
+            Route::middleware(['role:Admin,Superadmin'])->group(function () {
                 Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
                 Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
                 Route::put('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
