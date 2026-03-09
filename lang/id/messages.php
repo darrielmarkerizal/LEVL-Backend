@@ -20,7 +20,7 @@ return [
     'session_blacklisted' => 'Sesi telah diblokir. Silakan login kembali.',
     'session_not_found' => 'Sesi tidak ditemukan. Silakan login kembali.',
     'user_data_not_found' => 'Data pengguna tidak ditemukan.',
-    'invalid_credentials' => 'Kredensial tidak valid.',
+    'invalid_credentials' => 'Email/username atau password salah. Silakan periksa kembali.'
 
     // Common messages
     'common' => [
@@ -230,7 +230,7 @@ return [
         'logout_success' => 'Logout berhasil.',
         'register_success' => 'Registrasi berhasil. Silakan cek email Anda untuk verifikasi.',
         'user_created_success' => 'User berhasil dibuat.',
-        'invalid_credentials' => 'Kredensial tidak valid.',
+        'invalid_credentials' => 'Email/username atau password salah. Silakan periksa kembali.'
         'account_inactive' => 'Akun Anda tidak aktif.',
         'account_suspended' => 'Akun Anda telah ditangguhkan.',
         'email_not_verified' => 'Silakan verifikasi email Anda terlebih dahulu.',
