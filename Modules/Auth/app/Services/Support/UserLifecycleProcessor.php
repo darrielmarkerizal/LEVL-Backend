@@ -89,12 +89,18 @@ class UserLifecycleProcessor
                 $updated = true;
             }
 
+            // Update specialization if provided (nullable for non-instructor users)
+            if (array_key_exists('specialization_id', $data)) {
+                $user->specialization_id = $data['specialization_id'];
+                $updated = true;
+            }
+
             if ($updated) {
                 $user->save();
                 $this->cacheService->invalidateUser($user->id);
             }
 
-            return $user->fresh();
+            return $user->fresh()->load('specialization:id,name,value');
         });
     }
 
@@ -167,7 +173,7 @@ class UserLifecycleProcessor
 
         $this->sendCredentialsEmail($user, $passwordPlain);
 
-        return $user;
+        return $user->fresh()->load('specialization:id,name,value');
     }
 
     public function updateProfile(User $user, array $validated, ?string $ip, ?string $userAgent): User

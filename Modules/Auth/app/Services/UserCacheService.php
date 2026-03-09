@@ -21,10 +21,10 @@ class UserCacheService
             ->remember("user.{$id}", self::TTL_USER, function () use ($id) {
                 return User::select([
                     'id', 'name', 'email', 'username',
-                    'status', 'created_at', 'email_verified_at',
+                    'status', 'specialization_id', 'created_at', 'email_verified_at',
                     'is_password_set',
                 ])
-                    ->with(['roles:id,name,guard_name', 'media'])
+                    ->with(['roles:id,name,guard_name', 'media', 'specialization:id,name,value'])
                     ->find($id);
             });
     }

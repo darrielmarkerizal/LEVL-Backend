@@ -49,6 +49,12 @@ class UpdateUserRequest extends FormRequest
                 'regex:/[^A-Za-z0-9]/',
                 'not_regex:/\s/',
             ],
+            'specialization_id' => [
+                'sometimes',
+                'nullable',
+                'integer',
+                'exists:categories,id',
+            ],
         ];
     }
 
@@ -63,6 +69,8 @@ class UpdateUserRequest extends FormRequest
             'password.min' => __('validation.min.string', ['attribute' => 'password', 'min' => 8]),
             'password.regex' => __('messages.auth.password_requirements'),
             'password.not_regex' => __('form.user.password_error'),
+            'specialization_id.integer' => __('validation.integer', ['attribute' => 'specialization']),
+            'specialization_id.exists' => __('validation.exists', ['attribute' => 'specialization']),
         ];
     }
 }
