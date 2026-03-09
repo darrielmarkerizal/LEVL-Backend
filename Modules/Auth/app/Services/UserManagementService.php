@@ -37,6 +37,11 @@ class UserManagementService implements UserManagementServiceInterface
         return $this->finder->listUserEnrolledCourses($authUser, $userId, $request, $perPage);
     }
 
+    public function listInstructorAssignedSchemes(User $authUser, int $userId, ?\Illuminate\Http\Request $request = null, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->finder->listInstructorAssignedSchemes($authUser, $userId, $request, $perPage);
+    }
+
     public function updateUser(User $authUser, int $userId, array $data): User
     {
         return $this->lifecycleProcessor->updateUser($authUser, $userId, $data);

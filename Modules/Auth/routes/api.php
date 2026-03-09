@@ -110,6 +110,7 @@ Route::prefix('v1')
                 Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
                 Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
                 Route::get('/users/{user}/enrolled-course', [UserManagementController::class, 'enrolledCourse'])->name('users.enrolled-course');
+                Route::get('/users/{user}/assigned-schemes', [UserManagementController::class, 'assignedSchemes'])->name('users.assigned-schemes');
             });
 
             // User Management write actions (Admin, Superadmin)

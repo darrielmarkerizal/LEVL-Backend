@@ -310,6 +310,10 @@ class UserFinder
             $this->hydrateStudentDetail($target);
         }
 
+        if ($target->hasRole('Instructor')) {
+            $this->hydrateInstructorDetail($target);
+        }
+
         return $target;
     }
 
@@ -346,6 +350,40 @@ class UserFinder
             ])
             ->allowedSorts(['enrolled_at', 'created_at', 'status'])
             ->defaultSort('-enrolled_at')
+            ->paginate($perPage);
+    }
+
+    public function listInstructorAssignedSchemes(User $authUser, int $userId, ?Request $request = null, int $perPage = 15): LengthAwarePaginator
+    {
+        $perPage = max(1, min($perPage, 100));
+
+        $target = User::query()
+            ->select(['id'])
+            ->with('roles:id,name,guard_name')
+            ->findOrFail($userId);
+
+        if (! $authUser->can('view', $target)) {
+            throw new AuthorizationException(__('messages.auth.no_access_to_user'));
+        }
+
+        return QueryBuilder::for(\Modules\Schemes\Models\Course::class, $request ?? new Request)
+            ->where('instructor_id', $userId)
+            ->with(['enrollments' => function ($query) {
+                $query->select('id', 'course_id', 'user_id', 'status');
+            }])
+            ->select(['id', 'title', 'slug', 'code', 'status', 'instructor_id', 'created_at'])
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::callback('scheme_name', function (Builder $query, $value) {
+                    if (! is_string($value) || trim($value) === '') {
+                        return;
+                    }
+
+                    $query->where('title', 'like', '%'.trim($value).'%');
+                }),
+            ])
+            ->allowedSorts(['created_at', 'title', 'status'])
+            ->defaultSort('-created_at')
             ->paginate($perPage);
     }
 
@@ -420,6 +458,65 @@ class UserFinder
         $target->setAttribute('last_login_at', $lastLoginAt);
         $target->setAttribute('rank', $rank);
         $target->setAttribute('total_xp', $target->gamificationStats?->total_xp ?? 0);
+        
+        // Reset dirty attributes to prevent these non-database fields from being saved
+        $target->syncChanges();
+    }
+
+    private function hydrateInstructorDetail(User $target): void
+    {
+        // Count courses taught (as instructor)
+        $coursesTaught = \Modules\Schemes\Models\Course::query()
+            ->where('instructor_id', $target->id)
+            ->count();
+
+        // Count total students across all courses
+        $totalStudents = \Modules\Enrollments\Models\Enrollment::query()
+            ->whereHas('course', function ($query) use ($target) {
+                $query->where('instructor_id', $target->id);
+            })
+            ->whereIn('status', [
+                EnrollmentStatus::Active->value,
+                EnrollmentStatus::Completed->value,
+            ])
+            ->distinct('user_id')
+            ->count('user_id');
+
+        // Count assignments graded by this instructor
+        $assignmentsGraded = Submission::query()
+            ->whereHas('assignment.unit.course', function ($query) use ($target) {
+                $query->where('instructor_id', $target->id);
+            })
+            ->where('status', SubmissionStatus::Graded->value)
+            ->count();
+
+        $lastLoginAt = Activity::query()
+            ->where('log_name', 'auth')
+            ->where('causer_type', User::class)
+            ->where('causer_id', $target->id)
+            ->where('event', 'created')
+            ->where(function (Builder $query) {
+                $query
+                    ->where('properties->action', 'login')
+                    ->orWhere('description', __('messages.auth.log_user_login'));
+            })
+            ->latest('created_at')
+            ->value('created_at');
+
+        if (! $lastLoginAt) {
+            $lastLoginAt = JwtRefreshToken::query()
+                ->where('user_id', $target->id)
+                ->latest('last_used_at')
+                ->value('last_used_at');
+        }
+
+        $target->setAttribute('learning_statistics', [
+            'courses_taught' => $coursesTaught,
+            'total_students' => $totalStudents,
+            'assignments_graded' => $assignmentsGraded,
+            'quizzes_graded' => 0,
+        ]);
+        $target->setAttribute('last_login_at', $lastLoginAt);
         
         // Reset dirty attributes to prevent these non-database fields from being saved
         $target->syncChanges();

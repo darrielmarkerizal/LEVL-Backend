@@ -97,15 +97,29 @@ class UserResource extends JsonResource
                 ? ThreadResource::collection($this->resource->threads)
                 : null;
 
-            if ($isStudent) {
+            $isInstructor = method_exists($this->resource, 'hasRole') && $this->resource->hasRole('Instructor');
+
+            // Add learning statistics for Student and Instructor
+            if ($isStudent || $isInstructor) {
                 $lastLoginAt = $this->formatDate($this->resource->getAttribute('last_login_at'));
                 $data['last_login_at'] = $lastLoginAt;
-                $data['learning_statistics'] = $this->resource->getAttribute('learning_statistics') ?? [
-                    'enrolled' => 0,
-                    'completed' => 0,
-                    'assignments_graded' => 0,
-                    'quizzes_graded' => 0,
-                ];
+                $data['learning_statistics'] = $this->resource->getAttribute('learning_statistics')
+                    ?? ($isInstructor
+                        ? [
+                            'courses_taught' => 0,
+                            'total_students' => 0,
+                            'assignments_graded' => 0,
+                            'quizzes_graded' => 0,
+                        ]
+                        : [
+                            'enrolled' => 0,
+                            'completed' => 0,
+                            'assignments_graded' => 0,
+                            'quizzes_graded' => 0,
+                        ]);
+            }
+
+            if ($isStudent) {
                 $data['rank'] = $this->resource->getAttribute('rank');
                 $data['total_xp'] = (int) ($this->resource->getAttribute('total_xp') ?? 0);
 
