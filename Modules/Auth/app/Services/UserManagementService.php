@@ -32,6 +32,11 @@ class UserManagementService implements UserManagementServiceInterface
         return $this->finder->showUser($authUser, $userId, $request);
     }
 
+    public function updateUser(User $authUser, int $userId, array $data): User
+    {
+        return $this->lifecycleProcessor->updateUser($authUser, $userId, $data);
+    }
+
     public function updateUserStatus(User $authUser, int $userId, string $status): User
     {
         return $this->lifecycleProcessor->updateUserStatus($authUser, $userId, $status);

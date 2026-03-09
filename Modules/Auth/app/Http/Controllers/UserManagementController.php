@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Modules\Auth\Contracts\Services\UserManagementServiceInterface;
 use Modules\Auth\Http\Requests\AdminResetPasswordRequest;
 use Modules\Auth\Http\Requests\CreateUserRequest;
-use Modules\Auth\Http\Requests\UpdateUserStatusRequest;
+use Modules\Auth\Http\Requests\UpdateUserRequest;
 use Modules\Auth\Http\Resources\UserResource;
 
 class UserManagementController extends Controller
@@ -52,15 +52,15 @@ class UserManagementController extends Controller
         return $this->created(new UserResource($user), 'messages.auth.user_created_success');
     }
 
-    public function update(UpdateUserStatusRequest $request, int $id): JsonResponse
+    public function update(UpdateUserRequest $request, int $id): JsonResponse
     {
-        $user = $this->userManagementService->updateUserStatus(
+        $user = $this->userManagementService->updateUser(
             auth()->user(),
             $id,
-            $request->input('status')
+            $request->only(['username', 'status'])
         );
 
-        return $this->success(new UserResource($user), 'messages.auth.status_updated');
+        return $this->success(new UserResource($user), 'messages.auth.user_updated');
     }
 
     public function resetPassword(AdminResetPasswordRequest $request, int $id): JsonResponse

@@ -20,7 +20,7 @@ return [
     'session_blacklisted' => 'Sesi telah diblokir. Silakan login kembali.',
     'session_not_found' => 'Sesi tidak ditemukan. Silakan login kembali.',
     'user_data_not_found' => 'Data pengguna tidak ditemukan.',
-    'invalid_credentials' => 'Email/username atau password salah. Silakan periksa kembali.'
+    'invalid_credentials' => 'Email/username atau password salah. Silakan periksa kembali.',
 
     // Common messages
     'common' => [
@@ -230,7 +230,7 @@ return [
         'logout_success' => 'Logout berhasil.',
         'register_success' => 'Registrasi berhasil. Silakan cek email Anda untuk verifikasi.',
         'user_created_success' => 'User berhasil dibuat.',
-        'invalid_credentials' => 'Email/username atau password salah. Silakan periksa kembali.'
+        'invalid_credentials' => 'Email/username atau password salah. Silakan periksa kembali.',
         'account_inactive' => 'Akun Anda tidak aktif.',
         'account_suspended' => 'Akun Anda telah ditangguhkan.',
         'email_not_verified' => 'Silakan verifikasi email Anda terlebih dahulu.',
@@ -257,6 +257,7 @@ return [
         'user_not_found' => 'User tidak ditemukan',
         'admin_only' => 'Hanya untuk akun Admin, Superadmin, atau Instructor dengan status pending.',
         'status_updated' => 'Status user berhasil diperbarui.',
+        'user_updated' => 'User berhasil diperbarui.',
         'student_creation_forbidden' => 'Pendaftaran Student tidak diperbolehkan melalui Admin API. Student harus melakukan registrasi secara mandiri.',
         'status_cannot_be_pending' => 'Mengubah status ke pending tidak diperbolehkan.',
         'status_cannot_be_changed_from_pending' => "Status user yang masih 'pending' tidak dapat diubah secara manual.",
