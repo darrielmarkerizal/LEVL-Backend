@@ -1,22 +1,25 @@
-<x-mail::email-layout :title="__('mail.reset.title')">
+@component('mail::components.email-layout', ['title' => __('mail.reset.title')])
     <h1>{{ __('mail.reset.title') }}</h1>
     
     <p>{!! __('mail.reset.greeting', ['name' => $user->name]) !!}</p>
     <p>{{ __('mail.reset.body') }}</p>
 
-    <x-mail::button :url="$resetUrl" :text="__('mail.reset.button')" />
+    @include('mail::components.button', [
+        'url' => $resetUrl,
+        'text' => __('mail.reset.button'),
+    ])
 
-    <x-mail::info-box type="warning">
+    @component('mail::components.info-box', ['type' => 'warning'])
         {!! __('mail.reset.info', ['minutes' => $ttlMinutes]) !!}
-    </x-mail::info-box>
+    @endcomponent
 
-    <x-mail::divider />
+    @include('mail::components.divider')
 
-    <x-mail::url-box :url="$resetUrl" />
+    @include('mail::components.url-box', ['url' => $resetUrl])
 
-    <x-slot name="footer">
+    @slot('footer')
         <p>{{ __('mail.reset.footer') }}</p>
-    </x-slot>
-</x-mail::email-layout>
+    @endslot
+@endcomponent
 
 

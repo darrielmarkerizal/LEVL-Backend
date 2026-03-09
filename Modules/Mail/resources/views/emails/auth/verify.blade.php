@@ -1,23 +1,23 @@
-<x-mail::email-layout :title="__('mail.verify.title')">
+@component('mail::components.email-layout', ['title' => __('mail.verify.title')])
     <h1>{{ __('mail.verify.title') }}</h1>
     
     <p>{!! __('mail.verify.greeting', ['name' => $user->name]) !!}</p>
     <p>{{ __('mail.verify.body') }}</p>
 
-    <x-mail::button :url="$verifyUrl" :text="__('mail.verify.button')" />
+    @include('mail::components.button', [
+        'url' => $verifyUrl,
+        'text' => __('mail.verify.button'),
+    ])
 
-    <x-mail::info-box type="warning">
+    @component('mail::components.info-box', ['type' => 'warning'])
         {!! __('mail.verify.info', ['minutes' => $ttlMinutes]) !!}
-    </x-mail::info-box>
+    @endcomponent
 
-    <x-mail::divider />
+    @include('mail::components.divider')
 
-    <x-mail::url-box :url="$verifyUrl" />
+    @include('mail::components.url-box', ['url' => $verifyUrl])
 
-    <x-slot name="footer">
+    @slot('footer')
         <p>{{ __('mail.verify.footer') }}</p>
-    </x-slot>
-</x-mail::email-layout>
-    </div>
-</body>
-</html>
+    @endslot
+@endcomponent

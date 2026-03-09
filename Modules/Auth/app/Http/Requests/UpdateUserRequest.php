@@ -37,6 +37,11 @@ class UpdateUserRequest extends FormRequest
                     UserStatus::Banned,
                 ]),
             ],
+            'role' => [
+                'sometimes',
+                'string',
+                Rule::in(['Student', 'Instructor', 'Admin', 'Superadmin']),
+            ],
             'password' => [
                 'sometimes',
                 'nullable',
@@ -66,6 +71,7 @@ class UpdateUserRequest extends FormRequest
             'username.regex' => __('validation.regex', ['attribute' => 'username']),
             'username.unique' => __('validation.unique', ['attribute' => 'username']),
             'status.enum' => __('validation.enum', ['attribute' => 'status']),
+            'role.in' => __('validation.in', ['attribute' => 'role']),
             'password.min' => __('validation.min.string', ['attribute' => 'password', 'min' => 8]),
             'password.regex' => __('messages.auth.password_requirements'),
             'password.not_regex' => __('form.user.password_error'),

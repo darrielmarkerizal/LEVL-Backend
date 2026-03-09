@@ -1,23 +1,26 @@
-<x-mail::email-layout :title="__('mail.change_email.title')">
+@component('mail::components.email-layout', ['title' => __('mail.change_email.title')])
     <h1>{{ __('mail.change_email.title') }}</h1>
     
     <p>{!! __('mail.change_email.greeting', ['name' => $user->name]) !!}</p>
     <p>{!! __('mail.change_email.body', ['new_email' => $newEmail]) !!}</p>
     <p>{{ __('mail.change_email.body_confirm') }}</p>
     
-    <x-mail::button :url="$verifyUrl" :text="__('mail.change_email.button')" />
+    @include('mail::components.button', [
+        'url' => $verifyUrl,
+        'text' => __('mail.change_email.button'),
+    ])
 
-    <x-mail::info-box type="warning">
+    @component('mail::components.info-box', ['type' => 'warning'])
         {!! __('mail.change_email.info', ['minutes' => $ttlMinutes]) !!}
-    </x-mail::info-box>
+    @endcomponent
 
-    <x-mail::divider />
+    @include('mail::components.divider')
 
-    <x-mail::url-box :url="$verifyUrl" />
+    @include('mail::components.url-box', ['url' => $verifyUrl])
 
-    <x-slot name="footer">
+    @slot('footer')
         <p>{{ __('mail.change_email.footer') }}</p>
-    </x-slot>
-</x-mail::email-layout>
+    @endslot
+@endcomponent
 
 

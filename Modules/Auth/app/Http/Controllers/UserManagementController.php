@@ -63,6 +63,9 @@ class UserManagementController extends Controller
         if (isset($validated['status'])) {
             $data['status'] = $validated['status'];
         }
+        if (isset($validated['role'])) {
+            $data['role'] = $validated['role'];
+        }
         if (isset($validated['password'])) {
             $data['password'] = $validated['password'];
         }

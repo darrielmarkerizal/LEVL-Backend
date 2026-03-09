@@ -82,6 +82,28 @@ class UserLifecycleProcessor
                 $updated = true;
             }
 
+            // Update role if provided.
+            if (! empty($data['role'] ?? null)) {
+                $targetRole = $data['role'];
+
+                if ($authUser->hasRole('Admin') && ! $authUser->hasRole('Superadmin')) {
+                    if ($targetRole !== 'Admin') {
+                        throw new AuthorizationException(__('messages.forbidden'));
+                    }
+                } elseif ($authUser->hasRole('Superadmin')) {
+                    if (! in_array($targetRole, ['Student', 'Instructor', 'Admin', 'Superadmin'], true)) {
+                        throw new AuthorizationException(__('messages.forbidden'));
+                    }
+                } else {
+                    throw new AuthorizationException(__('messages.unauthorized'));
+                }
+
+                if (! $user->hasRole($targetRole)) {
+                    $user->syncRoles([$targetRole]);
+                    $updated = true;
+                }
+            }
+
             // Update password if provided
             if (! empty($data['password'] ?? null)) {
                 $user->password = Hash::make($data['password']);
