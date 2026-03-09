@@ -18,6 +18,10 @@ class UserResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $isStudent = $this->resource instanceof \Illuminate\Database\Eloquent\Model
+            && method_exists($this->resource, 'hasRole')
+            && $this->resource->hasRole('Student');
+
         $data = [
             'id' => $this['id'] ?? (is_object($this->resource) ? $this->id : null),
             'name' => $this['name'] ?? (is_object($this->resource) ? $this->name : null),
@@ -35,17 +39,17 @@ class UserResource extends JsonResource
         ];
 
         if ($this->resource instanceof \Illuminate\Database\Eloquent\Model) {
-            $data['specialization'] = $this->resource->relationLoaded('specialization')
-                ? ($this->resource->specialization
-                    ? [
-                        'id' => $this->resource->specialization->id,
-                        'name' => $this->resource->specialization->name,
-                        'value' => $this->resource->specialization->value,
-                    ]
-                    : null)
-                : null;
+            if (! $isStudent && $this->resource->relationLoaded('specialization') && $this->resource->specialization) {
+                $data['specialization'] = [
+                    'id' => $this->resource->specialization->id,
+                    'name' => $this->resource->specialization->name,
+                    'value' => $this->resource->specialization->value,
+                ];
+            }
         } elseif (is_array($this->resource) && array_key_exists('specialization', $this->resource)) {
-            $data['specialization'] = $this->resource['specialization'];
+            if ($this->resource['specialization'] !== null) {
+                $data['specialization'] = $this->resource['specialization'];
+            }
         }
 
         // For endpoints that pass an array into the resource (e.g. login),
@@ -60,12 +64,14 @@ class UserResource extends JsonResource
             $data['managedCourses'] = $this->resource->relationLoaded('managedCourses')
                 ? CourseIndexResource::collection($this->resource->managedCourses)
                 : null;
-            $data['gamificationStats'] = $this->resource->relationLoaded('gamificationStats')
-                ? ($this->resource->gamificationStats ? $this->resource->gamificationStats->toArray() : null)
-                : null;
-            $data['badges'] = $this->resource->relationLoaded('badges')
-                ? $this->resource->badges->toArray()
-                : null;
+            if (! $isStudent) {
+                $data['gamificationStats'] = $this->resource->relationLoaded('gamificationStats')
+                    ? ($this->resource->gamificationStats ? $this->resource->gamificationStats->toArray() : null)
+                    : null;
+                $data['badges'] = $this->resource->relationLoaded('badges')
+                    ? $this->resource->badges->toArray()
+                    : null;
+            }
             $data['points'] = $this->resource->relationLoaded('points')
                 ? $this->resource->points->toArray()
                 : null;
@@ -91,9 +97,7 @@ class UserResource extends JsonResource
                 ? ThreadResource::collection($this->resource->threads)
                 : null;
 
-            if ($this->resource->hasRole('Student')) {
-                $data['full_name'] = $this->resource->name;
-                $data['joined_at'] = $this->formatDate($this->resource->created_at);
+            if ($isStudent) {
                 $data['login_at'] = $this->formatDate($this->resource->getAttribute('last_login_at'));
                 $data['learning_statistics'] = $this->resource->getAttribute('learning_statistics') ?? [
                     'enrolled' => 0,
@@ -149,11 +153,59 @@ class UserResource extends JsonResource
             }
         }
 
-        // Remove null keys (but keep empty arrays/false/0), except specialization.
-        return array_filter(
+        // Remove null keys (but keep empty arrays/false/0).
+        $filtered = array_filter(
             $data,
-            static fn ($v, $k) => $k === 'specialization' || $v !== null,
-            ARRAY_FILTER_USE_BOTH
+            static fn ($v) => $v !== null,
+        );
+
+        $orderedKeys = [
+            'id',
+            'name',
+            'email',
+            'username',
+            'avatar_url',
+            'status',
+            'created_at',
+            'email_verified_at',
+            'roles',
+            'specialization',
+            'login_at',
+            'learning_statistics',
+            'rank',
+            'total_xp',
+            'recent_badges',
+            'privacySettings',
+            'enrollments',
+            'managedCourses',
+            'gamificationStats',
+            'badges',
+            'points',
+            'levels',
+            'learningStreaks',
+            'submissions',
+            'assignments',
+            'receivedOverrides',
+            'grantedOverrides',
+            'threads',
+        ];
+
+        $ordered = [];
+        foreach ($orderedKeys as $key) {
+            if (array_key_exists($key, $filtered)) {
+                $ordered[$key] = $filtered[$key];
+            }
+        }
+
+        foreach ($filtered as $key => $value) {
+            if (! array_key_exists($key, $ordered)) {
+                $ordered[$key] = $value;
+            }
+        }
+
+        return array_filter(
+            $ordered,
+            static fn ($v) => $v !== null
         );
     }
 
