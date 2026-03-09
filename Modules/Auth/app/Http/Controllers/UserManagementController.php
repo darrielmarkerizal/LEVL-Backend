@@ -12,6 +12,7 @@ use Modules\Auth\Contracts\Services\UserManagementServiceInterface;
 use Modules\Auth\Http\Requests\AdminResetPasswordRequest;
 use Modules\Auth\Http\Requests\CreateUserRequest;
 use Modules\Auth\Http\Requests\UpdateUserRequest;
+use Modules\Auth\Http\Resources\UserEnrolledCourseResource;
 use Modules\Auth\Http\Resources\UserResource;
 
 class UserManagementController extends Controller
@@ -40,6 +41,22 @@ class UserManagementController extends Controller
         $user = $this->userManagementService->showUser(auth()->user(), $id, $request);
 
         return $this->success(new UserResource($user), 'messages.data_retrieved');
+    }
+
+    public function enrolledCourse(Request $request, int $id): JsonResponse
+    {
+        $enrolledCourses = $this->userManagementService->listUserEnrolledCourses(
+            $request->user(),
+            $id,
+            $request,
+            (int) $request->query('per_page', 15)
+        );
+
+        $enrolledCourses->getCollection()->transform(
+            fn ($enrollment) => new UserEnrolledCourseResource($enrollment)
+        );
+
+        return $this->paginateResponse($enrolledCourses, 'messages.data_retrieved');
     }
 
     public function store(CreateUserRequest $request): JsonResponse

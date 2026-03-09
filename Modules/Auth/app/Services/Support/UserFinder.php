@@ -17,6 +17,12 @@ use Modules\Auth\Services\UserCacheService;
 use Modules\Schemes\Models\CourseAdmin;
 use Modules\Schemes\Models\Course;
 use Modules\Enrollments\Enums\EnrollmentStatus;
+use Modules\Gamification\Models\Leaderboard;
+use Modules\Learning\Enums\QuizGradingStatus;
+use Modules\Learning\Enums\SubmissionStatus;
+use Modules\Learning\Models\QuizSubmission;
+use Modules\Learning\Models\Submission;
+use Modules\Enrollments\Models\Enrollment;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\Exceptions\InvalidIncludeQuery;
@@ -299,6 +305,10 @@ class UserFinder
             throw new AuthorizationException(__('messages.auth.no_access_to_user'));
         }
 
+        if ($target->hasRole('Student')) {
+            $this->hydrateStudentDetail($target);
+        }
+
         return $target;
     }
 
@@ -312,5 +322,101 @@ class UserFinder
             ->with(['media'])
             ->limit($limit)
             ->get();
+    }
+
+    public function listUserEnrolledCourses(User $authUser, int $userId, ?Request $request = null, int $perPage = 15): LengthAwarePaginator
+    {
+        $perPage = max(1, min($perPage, 100));
+
+        $target = User::query()
+            ->select(['id'])
+            ->with('roles:id,name,guard_name')
+            ->findOrFail($userId);
+
+        if (! $authUser->can('view', $target)) {
+            throw new AuthorizationException(__('messages.auth.no_access_to_user'));
+        }
+
+        return QueryBuilder::for(Enrollment::class, $request ?? new Request)
+            ->where('user_id', $userId)
+            ->with([
+                'course:id,title,slug,code',
+                'courseProgress:id,enrollment_id,progress_percent,status',
+            ])
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::callback('scheme_name', function (Builder $query, $value) {
+                    if (! is_string($value) || trim($value) === '') {
+                        return;
+                    }
+
+                    $query->whereHas('course', function (Builder $courseQuery) use ($value) {
+                        $courseQuery->where('title', 'like', '%'.trim($value).'%');
+                    });
+                }),
+            ])
+            ->allowedSorts(['enrolled_at', 'created_at', 'status'])
+            ->defaultSort('-enrolled_at')
+            ->paginate($perPage);
+    }
+
+    private function hydrateStudentDetail(User $target): void
+    {
+        $target->loadMissing([
+            'gamificationStats:user_id,total_xp,global_level',
+            'badges' => function ($query) {
+                $query->select(['id', 'user_id', 'badge_id', 'earned_at'])
+                    ->latest('earned_at')
+                    ->limit(3)
+                    ->with([
+                        'badge:id,code,name,description,type,threshold',
+                        'badge.media',
+                    ]);
+            },
+        ]);
+
+        $enrolledCount = $target->enrollments()
+            ->whereIn('status', [
+                EnrollmentStatus::Pending->value,
+                EnrollmentStatus::Active->value,
+                EnrollmentStatus::Completed->value,
+            ])
+            ->count();
+
+        $completedCount = $target->enrollments()
+            ->where('status', EnrollmentStatus::Completed->value)
+            ->count();
+
+        $gradedAssignmentsCount = Submission::query()
+            ->where('user_id', $target->id)
+            ->where('status', SubmissionStatus::Graded->value)
+            ->count();
+
+        $gradedQuizzesCount = QuizSubmission::query()
+            ->where('user_id', $target->id)
+            ->where('grading_status', QuizGradingStatus::Graded->value)
+            ->count();
+
+        $lastLoginAt = Activity::query()
+            ->where('log_name', 'auth')
+            ->where('causer_type', User::class)
+            ->where('causer_id', $target->id)
+            ->latest('created_at')
+            ->value('created_at');
+
+        $rank = Leaderboard::query()
+            ->whereNull('course_id')
+            ->where('user_id', $target->id)
+            ->value('rank');
+
+        $target->setAttribute('learning_statistics', [
+            'enrolled' => $enrolledCount,
+            'completed' => $completedCount,
+            'assignments_graded' => $gradedAssignmentsCount,
+            'quizzes_graded' => $gradedQuizzesCount,
+        ]);
+        $target->setAttribute('last_login_at', $lastLoginAt);
+        $target->setAttribute('rank', $rank);
+        $target->setAttribute('total_xp', $target->gamificationStats?->total_xp ?? 0);
     }
 }

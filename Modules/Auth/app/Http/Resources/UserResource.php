@@ -90,6 +90,41 @@ class UserResource extends JsonResource
             $data['threads'] = $this->resource->relationLoaded('threads')
                 ? ThreadResource::collection($this->resource->threads)
                 : null;
+
+            if ($this->resource->hasRole('Student')) {
+                $data['full_name'] = $this->resource->name;
+                $data['joined_at'] = $this->formatDate($this->resource->created_at);
+                $data['login_at'] = $this->formatDate($this->resource->getAttribute('last_login_at'));
+                $data['learning_statistics'] = $this->resource->getAttribute('learning_statistics') ?? [
+                    'enrolled' => 0,
+                    'completed' => 0,
+                    'assignments_graded' => 0,
+                    'quizzes_graded' => 0,
+                ];
+                $data['rank'] = $this->resource->getAttribute('rank');
+                $data['total_xp'] = (int) ($this->resource->getAttribute('total_xp') ?? 0);
+
+                $recentBadges = collect($this->resource->badges ?? [])->take(3)->map(function ($userBadge) {
+                    $badge = $userBadge->badge;
+
+                    return [
+                        'id' => $userBadge->id,
+                        'earned_at' => $this->formatDate($userBadge->earned_at),
+                        'badge' => $badge ? [
+                            'id' => $badge->id,
+                            'code' => $badge->code,
+                            'name' => $badge->name,
+                            'description' => $badge->description,
+                            'type' => is_object($badge->type) && property_exists($badge->type, 'value')
+                                ? $badge->type->value
+                                : $badge->type,
+                            'icon_url' => $badge->icon_url,
+                        ] : null,
+                    ];
+                })->values();
+
+                $data['recent_badges'] = $recentBadges;
+            }
         } elseif (is_array($this->resource)) {
             // If the resource is an array, only include keys that exist.
             foreach ([
