@@ -21,7 +21,7 @@ class UserCacheService
             ->remember("user.{$id}", self::TTL_USER, function () use ($id) {
                 return User::select([
                     'id', 'name', 'email', 'username',
-                    'status', 'account_status', 'created_at', 'email_verified_at',
+                    'status', 'created_at', 'email_verified_at',
                     'is_password_set',
                 ])
                     ->with(['roles:id,name,guard_name', 'media'])

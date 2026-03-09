@@ -7,6 +7,7 @@ namespace Modules\Auth\Services;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\OtpCode;
 use Modules\Auth\Models\User;
 use Modules\Common\Models\SystemSetting;
@@ -17,7 +18,7 @@ class AccountDeletionService
 
     public function requestDeletion(User $user, string $password): string
     {
-        if ($user->account_status === 'deleted') {
+        if ($user->trashed()) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'account' => [__('messages.account.deletion_in_progress')],
             ]);
@@ -84,7 +85,7 @@ class AccountDeletionService
         }
 
         $otp->markAsConsumed();
-        $user->account_status = 'deleted';
+        $user->status = UserStatus::Inactive;
         $user->save();
 
         $user->delete();

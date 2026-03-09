@@ -68,7 +68,6 @@ class CourseIndexResource extends JsonResource
             'username' => $user->username,
             'avatar_url' => $user->avatar_url,
             'status' => $user->status,
-            'account_status' => $user->account_status,
         ];
     }
 

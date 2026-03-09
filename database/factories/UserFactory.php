@@ -51,7 +51,6 @@ class UserFactory extends Factory
             ]),
             'email_verified_at' => fake()->boolean(80) ? now()->subDays(rand(1, 365)) : null,
             'is_password_set' => true,
-            'account_status' => 'active',
             'last_profile_update' => fake()->optional(0.8)->dateTimeBetween('-6 months'),
             'remember_token' => Str::random(10),
         ];
@@ -129,7 +128,7 @@ class UserFactory extends Factory
     public function deleted(): static
     {
         return $this->state(fn (array $attributes) => [
-            'account_status' => 'deleted',
+            'status' => UserStatus::Inactive->value,
         ])->trashed();
     }
 

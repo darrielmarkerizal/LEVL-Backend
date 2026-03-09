@@ -15,11 +15,8 @@ return new class extends Migration
             if (! Schema::hasColumn('users', 'phone')) {
                 $table->string('phone', 20)->nullable()->after('avatar_path');
             }
-            if (! Schema::hasColumn('users', 'account_status')) {
-                $table->enum('account_status', ['active', 'suspended', 'deleted'])->default('active')->after('status');
-            }
             if (! Schema::hasColumn('users', 'last_profile_update')) {
-                $table->timestamp('last_profile_update')->nullable()->after('account_status');
+                $table->timestamp('last_profile_update')->nullable()->after('phone');
             }
         });
     }
@@ -27,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $columns = ['bio', 'phone', 'account_status', 'last_profile_update'];
+            $columns = ['bio', 'phone', 'last_profile_update'];
             foreach ($columns as $column) {
                 if (Schema::hasColumn('users', $column)) {
                     $table->dropColumn($column);

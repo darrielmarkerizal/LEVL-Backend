@@ -41,12 +41,12 @@ class AdminProfileController extends Controller
             'email' => "sometimes|email|unique:users,email,{$userId}",
             'phone' => 'sometimes|nullable|string|max:20',
             'bio' => 'sometimes|nullable|string|max:1000',
-            'account_status' => 'sometimes|in:active,suspended,deleted',
+            'status' => 'sometimes|in:active,inactive,banned,pending',
         ]);
 
         $user = User::with(['roles', 'media'])->findOrFail($userId);
         $admin = $request->user();
-        $oldData = $user->only(['name', 'email', 'phone', 'bio', 'account_status']);
+        $oldData = $user->only(['name', 'email', 'phone', 'bio', 'status']);
 
         $updatedUser = $this->profileService->updateProfile($user, $request->all());
 
@@ -56,7 +56,7 @@ class AdminProfileController extends Controller
             'action' => 'profile_updated',
             'changes' => [
                 'old' => $oldData,
-                'new' => $updatedUser->only(['name', 'email', 'phone', 'bio', 'account_status']),
+                'new' => $updatedUser->only(['name', 'email', 'phone', 'bio', 'status']),
             ],
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
@@ -73,14 +73,14 @@ class AdminProfileController extends Controller
         $user = User::with('roles')->findOrFail($userId);
         $admin = $request->user();
 
-        $user->account_status = 'suspended';
+        $user->status = 'banned';
         $user->save();
 
         $this->auditLogRepository->create([
             'user_id' => $user->id,
             'admin_id' => $admin->id,
             'action' => 'account_suspended',
-            'changes' => ['status' => 'suspended'],
+            'changes' => ['status' => 'banned'],
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
@@ -93,7 +93,7 @@ class AdminProfileController extends Controller
         $user = User::with('roles')->findOrFail($userId);
         $admin = $request->user();
 
-        $user->account_status = 'active';
+        $user->status = 'active';
         $user->save();
 
         $this->auditLogRepository->create([
