@@ -27,7 +27,6 @@ class UserResource extends JsonResource
             'status' => isset($this['status']) && $this['status'] instanceof UserStatus
                 ? $this['status']->value
                 : (string) ($this['status'] ?? (is_object($this->resource) ? $this->status : null)),
-            'account_status' => $this['account_status'] ?? (is_object($this->resource) ? $this->account_status : null),
             'created_at' => $this->formatDate($this['created_at'] ?? (is_object($this->resource) ? $this->created_at : null)),
             'email_verified_at' => $this->formatDate($this['email_verified_at'] ?? (is_object($this->resource) ? $this->email_verified_at : null)),
 

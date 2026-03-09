@@ -8,6 +8,7 @@ use App\Contracts\Services\ProfileServiceInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Contracts\Services\AuthServiceInterface;
 use Modules\Auth\Contracts\Services\EmailVerificationServiceInterface;
 use Modules\Auth\Events\AccountDeleted;
@@ -84,8 +85,7 @@ class ProfileService implements ProfileServiceInterface
             'phone' => $user->phone,
             'bio' => $user->bio,
             'avatar_url' => $user->avatar_url,
-            'account_status' => $user->account_status,
-            'status' => $user->account_status,
+            'status' => $user->status instanceof UserStatus ? $user->status->value : (string) $user->status,
             'role' => $primaryRole,
             'roles' => $roleNames->all(),
             'email_verified_at' => $user->email_verified_at,
@@ -154,7 +154,7 @@ class ProfileService implements ProfileServiceInterface
             throw new \Exception(__('messages.auth.password_incorrect'));
         }
 
-        $user->account_status = 'deleted';
+        $user->status = UserStatus::Inactive;
         $user->save();
         $user->delete();
 
@@ -165,7 +165,7 @@ class ProfileService implements ProfileServiceInterface
 
     public function restoreAccount(User $user): bool
     {
-        if ($user->account_status !== 'deleted' || ! $user->trashed()) {
+        if (! $user->trashed()) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'account' => [__('messages.account.restore_not_deleted')],
             ]);
@@ -180,7 +180,7 @@ class ProfileService implements ProfileServiceInterface
         }
 
         $user->restore();
-        $user->account_status = 'active';
+        $user->status = UserStatus::Active;
         $user->save();
 
         return true;

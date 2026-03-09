@@ -286,7 +286,6 @@ class UserSeederEnhanced extends Seeder
             'status' => $data['status']->value ?? $data['status'],
             'email_verified_at' => ($data['verified'] ?? true) ? now() : null,
             'is_password_set' => $data['is_password_set'] ?? true,
-            'account_status' => 'active',
             'phone' => fake()->e164PhoneNumber(),
             'bio' => fake()->paragraph(),
         ]);

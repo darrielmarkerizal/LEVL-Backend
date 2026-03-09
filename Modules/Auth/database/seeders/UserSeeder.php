@@ -140,7 +140,6 @@ class UserSeeder extends Seeder
                 'status' => $demoUser['status'],
                 'email_verified_at' => $demoUser['verified'] ? now() : null,
                 'is_password_set' => true,
-                'account_status' => 'active',
                 'phone' => '+62812'.rand(10000000, 99999999),
                 'bio' => 'Demo user for testing purposes.',
             ]);

@@ -88,7 +88,6 @@ class User extends Authenticatable implements HasMedia, JWTSubject
         'bio',
         'specialization_id',
         'phone',
-        'account_status',
         'last_profile_update',
         'is_password_set',
     ];
@@ -180,21 +179,15 @@ class User extends Authenticatable implements HasMedia, JWTSubject
     public function scopeActive($query, bool $isActive = true)
     {
         if ($isActive) {
-            return $query->where(function ($builder) {
-                $builder->where('account_status', 'active')
-                    ->orWhere('status', UserStatus::Active);
-            });
+            return $query->where('status', UserStatus::Active);
         }
 
-        return $query->where(function ($builder) {
-            $builder->where('account_status', '!=', 'active')
-                ->where('status', '!=', UserStatus::Active);
-        });
+        return $query->where('status', '!=', UserStatus::Active);
     }
 
     public function scopeSuspended($query)
     {
-        return $query->where('account_status', 'suspended');
+        return $query->where('status', UserStatus::Banned);
     }
 
     public function getJWTIdentifier()

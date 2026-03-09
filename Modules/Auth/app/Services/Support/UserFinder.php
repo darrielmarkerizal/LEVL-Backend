@@ -55,7 +55,7 @@ class UserFinder
                 $request = new Request($requestData);
 
                 $query = QueryBuilder::for(User::class, $request)
-                    ->select(['id', 'name', 'email', 'username', 'status', 'account_status', 'specialization_id', 'created_at', 'email_verified_at'])
+                    ->select(['id', 'name', 'email', 'username', 'status', 'specialization_id', 'created_at', 'email_verified_at'])
                     ->with(['roles:id,name,guard_name', 'specialization:id,name,value']);
 
                 if ($search && trim((string) $search) !== '') {

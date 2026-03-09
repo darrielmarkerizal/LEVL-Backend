@@ -63,7 +63,6 @@ class ActivityLogResource extends JsonResource
             'username' => $user->username,
             'avatar_url' => $user->avatar_url,
             'status' => $user->status instanceof \Modules\Auth\Enums\UserStatus ? $user->status->value : $user->status,
-            'account_status' => $user->account_status,
         ];
     }
 }

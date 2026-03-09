@@ -23,7 +23,6 @@ class UserIndexResource extends JsonResource
             'status' => isset($this['status']) && $this['status'] instanceof UserStatus
                 ? $this['status']->value
                 : (string) ($this['status'] ?? (is_object($this->resource) ? $this->status : null)),
-            'account_status' => $this['account_status'] ?? (is_object($this->resource) ? $this->account_status : null),
             'specialization' => $this->getSpecialization(),
             'created_at' => $this->formatDate($this['created_at'] ?? (is_object($this->resource) ? $this->created_at : null)),
             'email_verified_at' => $this->formatDate($this->getEmailVerifiedAt()),

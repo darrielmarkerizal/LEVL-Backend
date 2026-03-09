@@ -87,7 +87,6 @@ return [
             'users_index' => [
                 'filterableAttributes' => [
                     'status',
-                    'account_status',
                 ],
                 'sortableAttributes' => [
                     'name',
