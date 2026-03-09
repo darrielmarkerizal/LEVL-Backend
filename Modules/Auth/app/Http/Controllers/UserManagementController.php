@@ -13,6 +13,7 @@ use Modules\Auth\Http\Requests\AdminResetPasswordRequest;
 use Modules\Auth\Http\Requests\CreateUserRequest;
 use Modules\Auth\Http\Requests\UpdateUserRequest;
 use Modules\Auth\Http\Resources\UserEnrolledCourseResource;
+use Modules\Auth\Http\Resources\InstructorAssignedSchemeResource;
 use Modules\Auth\Http\Resources\UserResource;
 
 class UserManagementController extends Controller
@@ -57,6 +58,22 @@ class UserManagementController extends Controller
         );
 
         return $this->paginateResponse($enrolledCourses, 'messages.data_retrieved');
+    }
+
+    public function assignedSchemes(Request $request, int $id): JsonResponse
+    {
+        $assignedSchemes = $this->userManagementService->listInstructorAssignedSchemes(
+            $request->user(),
+            $id,
+            $request,
+            (int) $request->query('per_page', 15)
+        );
+
+        $assignedSchemes->getCollection()->transform(
+            fn ($course) => new InstructorAssignedSchemeResource($course)
+        );
+
+        return $this->paginateResponse($assignedSchemes, 'messages.data_retrieved');
     }
 
     public function store(CreateUserRequest $request): JsonResponse
