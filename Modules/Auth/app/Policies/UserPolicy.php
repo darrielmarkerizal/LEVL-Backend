@@ -142,27 +142,17 @@ class UserPolicy
             return true;
         }
 
-        // Only Admin role can reset passwords
+        // Instructor (and other non-admin roles) cannot reset passwords at all.
         if (! $authUser->hasRole('Admin')) {
             return false;
         }
 
-        // Admin cannot reset password for other Admins or Superadmins
-        if ($targetUser->hasRole(['Admin', 'Superadmin'])) {
+        // Admin must never reset Superadmin password.
+        if ($targetUser->hasRole('Superadmin')) {
             return false;
         }
 
-        // Admin can reset password for Students/Instructors in courses they manage
-        if ($targetUser->hasRole(['Instructor', 'Student'])) {
-            $managedCourseIds = CourseAdmin::where('user_id', $authUser->id)
-                ->pluck('course_id')
-                ->unique();
-
-            return Enrollment::where('user_id', $targetUser->id)
-                ->whereIn('course_id', $managedCourseIds)
-                ->exists();
-        }
-
-        return false;
+        // Admin can reset password only for users within their access scope.
+        return $this->view($authUser, $targetUser);
     }
 }

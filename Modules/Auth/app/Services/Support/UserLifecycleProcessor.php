@@ -56,7 +56,7 @@ class UserLifecycleProcessor
     {
         $user = $this->finder->showUser($authUser, $userId);
 
-        return DB::transaction(function () use ($user, $data) {
+        return DB::transaction(function () use ($authUser, $user, $data) {
             $updated = false;
 
             // Update username if provided
@@ -107,6 +107,10 @@ class UserLifecycleProcessor
 
             // Update password if provided
             if (! empty($data['password'] ?? null)) {
+                if (! $authUser->can('resetPassword', $user)) {
+                    throw new AuthorizationException(__('messages.forbidden'));
+                }
+
                 $user->password = Hash::make($data['password']);
                 $user->is_password_set = true;
                 $updated = true;
