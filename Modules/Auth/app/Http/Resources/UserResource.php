@@ -34,6 +34,20 @@ class UserResource extends JsonResource
             'roles' => $this->getRoles(),
         ];
 
+        if ($this->resource instanceof \Illuminate\Database\Eloquent\Model) {
+            $data['specialization'] = $this->resource->relationLoaded('specialization')
+                ? ($this->resource->specialization
+                    ? [
+                        'id' => $this->resource->specialization->id,
+                        'name' => $this->resource->specialization->name,
+                        'value' => $this->resource->specialization->value,
+                    ]
+                    : null)
+                : null;
+        } elseif (is_array($this->resource) && array_key_exists('specialization', $this->resource)) {
+            $data['specialization'] = $this->resource['specialization'];
+        }
+
         // For endpoints that pass an array into the resource (e.g. login),
         // we cannot use whenLoaded() because relationLoaded() doesn't exist on arrays.
         if ($this->resource instanceof \Illuminate\Database\Eloquent\Model) {
@@ -92,6 +106,7 @@ class UserResource extends JsonResource
                 'receivedOverrides',
                 'grantedOverrides',
                 'threads',
+                'specialization',
             ] as $key) {
                 if (array_key_exists($key, $this->resource)) {
                     $data[$key] = $this->resource[$key];
@@ -99,8 +114,12 @@ class UserResource extends JsonResource
             }
         }
 
-        // Remove null keys (but keep empty arrays/false/0)
-        return array_filter($data, static fn ($v) => $v !== null);
+        // Remove null keys (but keep empty arrays/false/0), except specialization.
+        return array_filter(
+            $data,
+            static fn ($v, $k) => $k === 'specialization' || $v !== null,
+            ARRAY_FILTER_USE_BOTH
+        );
     }
 
     protected function formatDate(mixed $date): ?string

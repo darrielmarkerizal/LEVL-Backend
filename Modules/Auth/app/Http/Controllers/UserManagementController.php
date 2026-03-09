@@ -66,6 +66,9 @@ class UserManagementController extends Controller
         if (isset($validated['password'])) {
             $data['password'] = $validated['password'];
         }
+        if (array_key_exists('specialization_id', $validated)) {
+            $data['specialization_id'] = $validated['specialization_id'];
+        }
 
         $user = $this->userManagementService->updateUser(
             auth()->user(),

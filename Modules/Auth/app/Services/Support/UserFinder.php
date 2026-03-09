@@ -207,6 +207,12 @@ class UserFinder
     {
         $target = $this->cacheService->getUser($userId);
 
+        // Old cached entries may not contain specialization_id (before cache schema update).
+        if ($target && ! array_key_exists('specialization_id', $target->getAttributes())) {
+            $this->cacheService->invalidateUser($userId);
+            $target = null;
+        }
+
         if (! $target) {
             $query = QueryBuilder::for(User::class, $request ?? new Request)
                 ->with(['roles:id,name,guard_name', 'specialization:id,name,value'])
