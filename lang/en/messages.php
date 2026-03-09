@@ -31,7 +31,7 @@ return [
     'session_blacklisted' => 'Session blacklisted. Please login again.',
     'session_not_found' => 'Session not found. Please login again.',
     'user_data_not_found' => 'User data not found.',
-    'invalid_credentials' => 'Invalid credentials.',
+    'invalid_credentials' => 'Invalid credentials. Please check your email/username and password.'
 
     // Common messages
     'common' => [
@@ -260,7 +260,7 @@ return [
         'logout_success' => 'Logout successful.',
         'register_success' => 'Registration successful. Please check your email for verification.',
         'user_created_success' => 'User created successfully.',
-        'invalid_credentials' => 'Invalid credentials.',
+        'invalid_credentials' => 'Invalid credentials. Please check your email/username and password.'
         'account_inactive' => 'Your account is inactive.',
         'account_suspended' => 'Your account has been suspended.',
         'email_not_verified' => 'Please verify your email first.',
