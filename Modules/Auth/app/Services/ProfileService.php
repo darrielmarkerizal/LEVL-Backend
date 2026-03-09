@@ -27,6 +27,12 @@ class ProfileService implements ProfileServiceInterface
 
     public function updateProfile(User $user, array $data): User
     {
+        if (array_key_exists('phone_number', $data) && ! array_key_exists('phone', $data)) {
+            $data['phone'] = $data['phone_number'];
+        }
+
+        unset($data['phone_number']);
+
         $oldEmail = $user->email;
 
         $user->fill($data);
@@ -83,7 +89,9 @@ class ProfileService implements ProfileServiceInterface
             'username' => $user->username,
             'email' => $user->email,
             'phone' => $user->phone,
+            'phone_number' => $user->phone,
             'bio' => $user->bio,
+            'location' => $user->location,
             'avatar_url' => $user->avatar_url,
             'status' => $user->status instanceof UserStatus ? $user->status->value : (string) $user->status,
             'role' => $primaryRole,

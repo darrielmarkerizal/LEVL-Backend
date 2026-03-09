@@ -88,6 +88,7 @@ class User extends Authenticatable implements HasMedia, JWTSubject
         'bio',
         'specialization_id',
         'phone',
+        'location',
         'last_profile_update',
         'is_password_set',
     ];

@@ -27,6 +27,11 @@ class UserResource extends JsonResource
             'name' => $this['name'] ?? (is_object($this->resource) ? $this->name : null),
             'email' => $this['email'] ?? (is_object($this->resource) ? $this->email : null),
             'username' => $this['username'] ?? (is_object($this->resource) ? $this->username : null),
+            'phone' => $this['phone'] ?? (is_object($this->resource) ? $this->phone : null),
+            'phone_number' => $this['phone_number'] ?? ($this['phone'] ?? (is_object($this->resource) ? $this->phone : null)),
+            'bio' => $this['bio'] ?? (is_object($this->resource) ? $this->bio : null),
+            'location' => $this['location'] ?? (is_object($this->resource) ? $this->location : null),
+            'specialization' => null,
             'avatar_url' => $this['avatar_url'] ?? (is_object($this->resource) ? $this->resource->avatar_url ?? null : null),
             'status' => isset($this['status']) && $this['status'] instanceof UserStatus
                 ? $this['status']->value
@@ -39,12 +44,16 @@ class UserResource extends JsonResource
         ];
 
         if ($this->resource instanceof \Illuminate\Database\Eloquent\Model) {
-            if (! $isStudent && $this->resource->relationLoaded('specialization') && $this->resource->specialization) {
-                $data['specialization'] = [
-                    'id' => $this->resource->specialization->id,
-                    'name' => $this->resource->specialization->name,
-                    'value' => $this->resource->specialization->value,
-                ];
+            if (! $isStudent) {
+                if ($this->resource->relationLoaded('specialization') && $this->resource->specialization) {
+                    $data['specialization'] = [
+                        'id' => $this->resource->specialization->id,
+                        'name' => $this->resource->specialization->name,
+                        'value' => $this->resource->specialization->value,
+                    ];
+                } else {
+                    $data['specialization'] = null;
+                }
             }
         } elseif (is_array($this->resource) && array_key_exists('specialization', $this->resource)) {
             if ($this->resource['specialization'] !== null) {
@@ -161,6 +170,10 @@ class UserResource extends JsonResource
                 'grantedOverrides',
                 'threads',
                 'specialization',
+                'phone',
+                'phone_number',
+                'bio',
+                'location',
             ] as $key) {
                 if (array_key_exists($key, $this->resource)) {
                     $data[$key] = $this->resource[$key];
@@ -168,7 +181,14 @@ class UserResource extends JsonResource
             }
         }
 
-        $preserveNullKeys = ['last_login_at'];
+        $preserveNullKeys = [
+            'last_login_at',
+            'specialization',
+            'bio',
+            'phone',
+            'phone_number',
+            'location',
+        ];
 
         // Remove null keys (but keep empty arrays/false/0), except preserved keys.
         $filtered = array_filter(
@@ -182,6 +202,10 @@ class UserResource extends JsonResource
             'name',
             'email',
             'username',
+            'phone',
+            'phone_number',
+            'bio',
+            'location',
             'avatar_url',
             'status',
             'created_at',
