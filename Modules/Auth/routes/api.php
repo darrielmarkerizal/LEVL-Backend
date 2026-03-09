@@ -109,6 +109,7 @@ Route::prefix('v1')
             Route::middleware(['role:Admin,Superadmin,Instructor'])->group(function () {
                 Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
                 Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
+                Route::get('/users/{user}/enrolled-course', [UserManagementController::class, 'enrolledCourse'])->name('users.enrolled-course');
             });
 
             // User Management write actions (Admin, Superadmin)

@@ -16,6 +16,8 @@ interface UserManagementServiceInterface
 
     public function showUser(User $authUser, int $userId, ?Request $request = null): User;
 
+    public function listUserEnrolledCourses(User $authUser, int $userId, ?Request $request = null, int $perPage = 15): LengthAwarePaginator;
+
     public function updateUser(User $authUser, int $userId, array $data): User;
 
     public function updateUserStatus(User $authUser, int $userId, string $status): User;
