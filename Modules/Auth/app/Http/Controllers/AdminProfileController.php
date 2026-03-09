@@ -40,13 +40,15 @@ class AdminProfileController extends Controller
             'name' => 'sometimes|string|max:100',
             'email' => "sometimes|email|unique:users,email,{$userId}",
             'phone' => 'sometimes|nullable|string|max:20',
+            'phone_number' => 'sometimes|nullable|string|max:20',
             'bio' => 'sometimes|nullable|string|max:1000',
+            'location' => 'sometimes|nullable|string|max:255',
             'status' => 'sometimes|in:active,inactive,banned,pending',
         ]);
 
         $user = User::with(['roles', 'media'])->findOrFail($userId);
         $admin = $request->user();
-        $oldData = $user->only(['name', 'email', 'phone', 'bio', 'status']);
+        $oldData = $user->only(['name', 'email', 'phone', 'bio', 'location', 'status']);
 
         $updatedUser = $this->profileService->updateProfile($user, $request->all());
 
@@ -56,7 +58,7 @@ class AdminProfileController extends Controller
             'action' => 'profile_updated',
             'changes' => [
                 'old' => $oldData,
-                'new' => $updatedUser->only(['name', 'email', 'phone', 'bio', 'status']),
+                'new' => $updatedUser->only(['name', 'email', 'phone', 'bio', 'location', 'status']),
             ],
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),

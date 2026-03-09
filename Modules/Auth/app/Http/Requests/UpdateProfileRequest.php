@@ -21,7 +21,9 @@ class UpdateProfileRequest extends FormRequest
             'name' => 'sometimes|string|max:100',
             'email' => "sometimes|email|max:191|unique:users,email,{$userId}",
             'phone' => 'sometimes|nullable|string|max:20|regex:/^[0-9+\-\s()]+$/',
+            'phone_number' => 'sometimes|nullable|string|max:20|regex:/^[0-9+\-\s()]+$/',
             'bio' => 'sometimes|nullable|string|max:1000',
+            'location' => 'sometimes|nullable|string|max:255',
         ];
     }
 
@@ -32,7 +34,9 @@ class UpdateProfileRequest extends FormRequest
             'email.email' => __('validation.email', ['attribute' => __('validation.attributes.email')]),
             'email.unique' => __('validation.unique', ['attribute' => __('validation.attributes.email')]),
             'phone.regex' => __('validation.regex', ['attribute' => __('validation.attributes.phone')]),
+            'phone_number.regex' => __('validation.regex', ['attribute' => __('validation.attributes.phone')]),
             'bio.max' => __('validation.max.string', ['attribute' => __('validation.attributes.bio'), 'max' => 1000]),
+            'location.max' => __('validation.max.string', ['attribute' => 'location', 'max' => 255]),
         ];
     }
 }
