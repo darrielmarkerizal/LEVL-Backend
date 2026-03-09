@@ -31,7 +31,7 @@ return [
     'session_blacklisted' => 'Session blacklisted. Please login again.',
     'session_not_found' => 'Session not found. Please login again.',
     'user_data_not_found' => 'User data not found.',
-    'invalid_credentials' => 'Invalid credentials. Please check your email/username and password.'
+    'invalid_credentials' => 'Invalid credentials. Please check your email/username and password.',
 
     // Common messages
     'common' => [
@@ -260,7 +260,7 @@ return [
         'logout_success' => 'Logout successful.',
         'register_success' => 'Registration successful. Please check your email for verification.',
         'user_created_success' => 'User created successfully.',
-        'invalid_credentials' => 'Invalid credentials. Please check your email/username and password.'
+        'invalid_credentials' => 'Invalid credentials. Please check your email/username and password.',
         'account_inactive' => 'Your account is inactive.',
         'account_suspended' => 'Your account has been suspended.',
         'email_not_verified' => 'Please verify your email first.',
@@ -287,6 +287,7 @@ return [
         'user_not_found' => 'User not found',
         'admin_only' => 'Only for Admin, Superadmin, or Instructor accounts with pending status.',
         'status_updated' => 'User status updated successfully.',
+        'user_updated' => 'User updated successfully.',
         'student_creation_forbidden' => 'Student creation is forbidden via Admin API. Students must register themselves.',
         'status_cannot_be_pending' => 'Changing status to pending is not allowed.',
         'status_cannot_be_changed_from_pending' => "User status that is still 'pending' cannot be changed manually.",

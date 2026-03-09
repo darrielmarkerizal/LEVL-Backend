@@ -51,6 +51,46 @@ class UserLifecycleProcessor
         });
     }
 
+    public function updateUser(User $authUser, int $userId, array $data): User
+    {
+        $user = $this->finder->showUser($authUser, $userId);
+
+        return DB::transaction(function () use ($user, $data) {
+            $updated = false;
+
+            // Update username if provided
+            if (isset($data['username']) && $data['username'] !== null && $data['username'] !== '') {
+                $user->username = $data['username'];
+                $updated = true;
+            }
+
+            // Update status if provided
+            if (isset($data['status'])) {
+                if ($data['status'] === UserStatus::Pending->value) {
+                    throw ValidationException::withMessages([
+                        'status' => [__('messages.auth.status_cannot_be_pending')],
+                    ]);
+                }
+
+                if ($user->status === UserStatus::Pending) {
+                    throw ValidationException::withMessages([
+                        'status' => [__('messages.auth.status_cannot_be_changed_from_pending')],
+                    ]);
+                }
+
+                $user->status = UserStatus::from($data['status']);
+                $updated = true;
+            }
+
+            if ($updated) {
+                $user->save();
+                $this->cacheService->invalidateUser($user->id);
+            }
+
+            return $user->fresh();
+        });
+    }
+
     public function resetPassword(User $authUser, int $userId, string $newPassword): User
     {
         $user = $this->finder->showUser($authUser, $userId);
