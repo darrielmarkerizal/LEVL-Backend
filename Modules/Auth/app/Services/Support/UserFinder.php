@@ -387,6 +387,48 @@ class UserFinder
             ->paginate($perPage);
     }
 
+    public function listUserLatestActivities(User $authUser, int $userId, ?Request $request = null, int $perPage = 15): LengthAwarePaginator
+    {
+        $perPage = max(1, min($perPage, 100));
+
+        $target = User::query()
+            ->select(['id'])
+            ->with('roles:id,name,guard_name')
+            ->findOrFail($userId);
+
+        if (! $authUser->can('view', $target)) {
+            throw new AuthorizationException(__('messages.auth.no_access_to_user'));
+        }
+
+        return QueryBuilder::for(Activity::class, $request ?? new Request)
+            ->where('causer_type', User::class)
+            ->where('causer_id', $userId)
+            ->select(['id', 'event', 'description', 'properties', 'created_at'])
+            ->allowedFilters([
+                AllowedFilter::callback('action_type', function (Builder $query, $value) {
+                    if (! is_string($value) || trim($value) === '') {
+                        return;
+                    }
+
+                    $query->where(function (Builder $subQuery) use ($value) {
+                        $subQuery
+                            ->where('event', 'like', '%'.trim($value).'%')
+                            ->orWhere('properties->action', 'like', '%'.trim($value).'%');
+                    });
+                }),
+                AllowedFilter::callback('description', function (Builder $query, $value) {
+                    if (! is_string($value) || trim($value) === '') {
+                        return;
+                    }
+
+                    $query->where('description', 'like', '%'.trim($value).'%');
+                }),
+            ])
+            ->allowedSorts(['created_at', 'event'])
+            ->defaultSort('-created_at')
+            ->paginate($perPage);
+    }
+
     private function hydrateStudentDetail(User $target): void
     {
         $target->loadMissing([

@@ -113,6 +113,11 @@ Route::prefix('v1')
                 Route::get('/users/{user}/assigned-schemes', [UserManagementController::class, 'assignedSchemes'])->name('users.assigned-schemes');
             });
 
+            // Latest activities endpoint (Admin, Superadmin)
+            Route::middleware(['role:Admin,Superadmin'])->group(function () {
+                Route::get('/user/{user}/latest-activity', [UserManagementController::class, 'latestActivity'])->name('users.latest-activity');
+            });
+
             // User Management write actions (Admin, Superadmin)
             Route::middleware(['role:Admin,Superadmin'])->group(function () {
                 Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');

@@ -14,6 +14,7 @@ use Modules\Auth\Http\Requests\CreateUserRequest;
 use Modules\Auth\Http\Requests\UpdateUserRequest;
 use Modules\Auth\Http\Resources\UserEnrolledCourseResource;
 use Modules\Auth\Http\Resources\InstructorAssignedSchemeResource;
+use Modules\Auth\Http\Resources\UserLatestActivityResource;
 use Modules\Auth\Http\Resources\UserResource;
 
 class UserManagementController extends Controller
@@ -74,6 +75,22 @@ class UserManagementController extends Controller
         );
 
         return $this->paginateResponse($assignedSchemes, 'messages.data_retrieved');
+    }
+
+    public function latestActivity(Request $request, int $id): JsonResponse
+    {
+        $activities = $this->userManagementService->listUserLatestActivities(
+            $request->user(),
+            $id,
+            $request,
+            (int) $request->query('per_page', 15)
+        );
+
+        $activities->getCollection()->transform(
+            fn ($activity) => new UserLatestActivityResource($activity)
+        );
+
+        return $this->paginateResponse($activities, 'messages.data_retrieved');
     }
 
     public function store(CreateUserRequest $request): JsonResponse
