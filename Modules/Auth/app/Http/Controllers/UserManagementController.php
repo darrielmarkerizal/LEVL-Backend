@@ -9,6 +9,7 @@ use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Auth\Contracts\Services\UserManagementServiceInterface;
+use Modules\Auth\Http\Requests\AdminResetPasswordRequest;
 use Modules\Auth\Http\Requests\CreateUserRequest;
 use Modules\Auth\Http\Requests\UpdateUserStatusRequest;
 use Modules\Auth\Http\Resources\UserResource;
@@ -60,6 +61,17 @@ class UserManagementController extends Controller
         );
 
         return $this->success(new UserResource($user), 'messages.auth.status_updated');
+    }
+
+    public function resetPassword(AdminResetPasswordRequest $request, int $id): JsonResponse
+    {
+        $user = $this->userManagementService->resetPassword(
+            auth()->user(),
+            $id,
+            $request->input('password')
+        );
+
+        return $this->success(new UserResource($user), 'messages.auth.password_reset_success');
     }
 
     public function destroy(int $id): JsonResponse

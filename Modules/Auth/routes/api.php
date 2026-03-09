@@ -111,6 +111,7 @@ Route::prefix('v1')
                 Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
                 Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
                 Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+                Route::put('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
 
                 // Superadmin only: Delete
                 Route::middleware(['role:Superadmin'])->group(function () {

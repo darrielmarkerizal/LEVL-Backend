@@ -18,6 +18,8 @@ interface UserManagementServiceInterface
 
     public function updateUserStatus(User $authUser, int $userId, string $status): User;
 
+    public function resetPassword(User $authUser, int $userId, string $newPassword): User;
+
     public function deleteUser(User $authUser, int $userId): void;
 
     public function createUser(User $authUser, array $validated): User;
