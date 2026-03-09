@@ -37,6 +37,11 @@ class UserManagementService implements UserManagementServiceInterface
         return $this->lifecycleProcessor->updateUserStatus($authUser, $userId, $status);
     }
 
+    public function resetPassword(User $authUser, int $userId, string $newPassword): User
+    {
+        return $this->lifecycleProcessor->resetPassword($authUser, $userId, $newPassword);
+    }
+
     public function deleteUser(User $authUser, int $userId): void
     {
         $this->lifecycleProcessor->deleteUser($authUser, $userId);

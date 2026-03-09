@@ -51,6 +51,26 @@ class UserLifecycleProcessor
         });
     }
 
+    public function resetPassword(User $authUser, int $userId, string $newPassword): User
+    {
+        $user = $this->finder->showUser($authUser, $userId);
+
+        // Authorize via policy
+        if (! auth()->user()->can('resetPassword', $user)) {
+            throw new AuthorizationException(__('messages.forbidden'));
+        }
+
+        return DB::transaction(function () use ($user, $newPassword) {
+            $user->password = Hash::make($newPassword);
+            $user->is_password_set = true;
+            $user->save();
+
+            $this->cacheService->invalidateUser($user->id);
+
+            return $user->fresh();
+        });
+    }
+
     public function deleteUser(User $authUser, int $userId): void
     {
         $user = $this->finder->showUser($authUser, $userId);

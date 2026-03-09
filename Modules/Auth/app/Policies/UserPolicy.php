@@ -72,4 +72,35 @@ class UserPolicy
     {
         return $this->view($authUser, $targetUser);
     }
+
+    public function resetPassword(User $authUser, User $targetUser): bool
+    {
+        // Superadmin can reset password for anyone
+        if ($authUser->hasRole('Superadmin')) {
+            return true;
+        }
+
+        // Only Admin role can reset passwords
+        if (! $authUser->hasRole('Admin')) {
+            return false;
+        }
+
+        // Admin cannot reset password for other Admins or Superadmins
+        if ($targetUser->hasRole(['Admin', 'Superadmin'])) {
+            return false;
+        }
+
+        // Admin can reset password for Students/Instructors in courses they manage
+        if ($targetUser->hasRole(['Instructor', 'Student'])) {
+            $managedCourseIds = CourseAdmin::where('user_id', $authUser->id)
+                ->pluck('course_id')
+                ->unique();
+
+            return Enrollment::where('user_id', $targetUser->id)
+                ->whereIn('course_id', $managedCourseIds)
+                ->exists();
+        }
+
+        return false;
+    }
 }
