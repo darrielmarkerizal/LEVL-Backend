@@ -6,7 +6,6 @@ namespace Modules\Learning\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Modules\Learning\Enums\AssignmentType;
 use Modules\Learning\Enums\QuestionType;
 use Modules\Learning\Enums\QuizGradingStatus;
 use Modules\Learning\Enums\QuizQuestionType;
@@ -174,11 +173,9 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'created_by' => $this->instructorIds[array_rand($this->instructorIds)],
             'title' => $this->pregenSentences[array_rand($this->pregenSentences)],
             'description' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
-            'type' => AssignmentType::Assignment->value,
             'submission_type' => 'file',
             'max_score' => 100,
             'passing_grade' => rand(60, 80),
-            'review_mode' => 'manual',
             'status' => 'published',
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
