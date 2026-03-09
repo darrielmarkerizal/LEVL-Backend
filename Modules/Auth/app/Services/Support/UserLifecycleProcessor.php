@@ -59,13 +59,13 @@ class UserLifecycleProcessor
             $updated = false;
 
             // Update username if provided
-            if (isset($data['username']) && $data['username'] !== null && $data['username'] !== '') {
+            if (! empty($data['username'] ?? null)) {
                 $user->username = $data['username'];
                 $updated = true;
             }
 
             // Update status if provided
-            if (isset($data['status'])) {
+            if (! empty($data['status'] ?? null)) {
                 if ($data['status'] === UserStatus::Pending->value) {
                     throw ValidationException::withMessages([
                         'status' => [__('messages.auth.status_cannot_be_pending')],
@@ -79,6 +79,13 @@ class UserLifecycleProcessor
                 }
 
                 $user->status = UserStatus::from($data['status']);
+                $updated = true;
+            }
+
+            // Update password if provided
+            if (! empty($data['password'] ?? null)) {
+                $user->password = Hash::make($data['password']);
+                $user->is_password_set = true;
                 $updated = true;
             }
 

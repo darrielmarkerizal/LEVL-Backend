@@ -17,7 +17,7 @@ class UpdateUserRequest extends FormRequest
 
     public function rules(): array
     {
-        $userId = $this->route('user');
+        $userId = (int) $this->route('user');
 
         return [
             'username' => [
@@ -27,7 +27,7 @@ class UpdateUserRequest extends FormRequest
                 'min:3',
                 'max:255',
                 'regex:/^[a-zA-Z0-9._-]+$/',
-                Rule::unique('users', 'username')->ignore($userId),
+                Rule::unique('users', 'username')->ignore($userId, 'id'),
             ],
             'status' => [
                 'sometimes',
@@ -36,6 +36,18 @@ class UpdateUserRequest extends FormRequest
                     UserStatus::Inactive,
                     UserStatus::Banned,
                 ]),
+            ],
+            'password' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'min:8',
+                'max:255',
+                'regex:/[A-Z]/',
+                'regex:/[a-z]/',
+                'regex:/[0-9]/',
+                'regex:/[^A-Za-z0-9]/',
+                'not_regex:/\s/',
             ],
         ];
     }
@@ -48,6 +60,9 @@ class UpdateUserRequest extends FormRequest
             'username.regex' => __('validation.regex', ['attribute' => 'username']),
             'username.unique' => __('validation.unique', ['attribute' => 'username']),
             'status.enum' => __('validation.enum', ['attribute' => 'status']),
+            'password.min' => __('validation.min.string', ['attribute' => 'password', 'min' => 8]),
+            'password.regex' => __('messages.auth.password_requirements'),
+            'password.not_regex' => __('form.user.password_error'),
         ];
     }
 }
