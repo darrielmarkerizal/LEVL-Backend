@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course Selesai</title>
+    <title>{{ __('mail.course_completed.subject') }}</title>
     <style>
         body {
             margin: 0;
@@ -23,6 +23,7 @@
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             color: #ffffff;
             text-align: center;
+            border-bottom: 1px solid #e5e5e5;
         }
         .logo {
             font-size: 24px;
@@ -56,10 +57,11 @@
             margin: 0 0 16px 0;
         }
         .course-info {
-            background-color: #f9f9f9;
+            background-color: #f0fdf4;
             border-left: 4px solid #059669;
             padding: 20px;
             margin: 24px 0;
+            border-radius: 6px;
         }
         .course-info h2 {
             font-size: 18px;
@@ -69,7 +71,7 @@
         }
         .course-info p {
             font-size: 14px;
-            color: #666666;
+            color: #166534;
             margin: 8px 0;
         }
         .stats {
@@ -94,7 +96,7 @@
             color: #666666;
             margin: 4px 0 0 0;
         }
-        .btn-primary {
+        .btn-success {
             display: inline-block;
             padding: 14px 32px;
             background-color: #059669;
@@ -103,7 +105,7 @@
             border-radius: 6px;
             font-size: 15px;
             font-weight: 500;
-            margin: 24px 0;
+            margin: 24px auto;
             text-align: center;
         }
         .btn-container {
@@ -111,13 +113,13 @@
         }
         .email-footer {
             padding: 32px 40px;
-            background-color: #f9f9f9;
+            background-color: #fafafa;
             border-top: 1px solid #e5e5e5;
             text-align: center;
         }
         .email-footer p {
             font-size: 13px;
-            color: #666666;
+            color: #737373;
             margin: 0;
         }
     </style>
@@ -125,27 +127,27 @@
 <body>
     <div class="email-container">
         <div class="email-header">
-            <h1 class="logo">LSP Prep</h1>
+            <h1 class="logo">{{ config('app.name', 'Levl') }}</h1>
             <div class="celebration-icon">🎉</div>
         </div>
         <div class="email-body">
-            <h1>Selamat!</h1>
-            <p class="congratulations">Anda telah menyelesaikan course!</p>
-            <p>Halo, <strong>{{ $user->name }}</strong>!</p>
-            <p>Kami ingin mengucapkan selamat karena Anda telah berhasil menyelesaikan course berikut:</p>
+            <h1>{{ __('mail.course_completed.title') }}</h1>
+            <p class="congratulations">{{ __('mail.course_completed.subtitle') }}</p>
+            <p>{!! __('mail.course_completed.greeting', ['name' => $user->name]) !!}</p>
+            <p>{{ __('mail.course_completed.body') }}</p>
             
             <div class="course-info">
                 <h2>{{ $course->title }}</h2>
                 @if($course->code)
-                <p><strong>Kode Course:</strong> {{ $course->code }}</p>
+                <p><strong>{{ __('mail.course_completed.course_code_label') }}:</strong> {{ $course->code }}</p>
                 @endif
                 @if($enrollment->completed_at)
-                <p><strong>Tanggal Selesai:</strong> {{ $enrollment->completed_at->format('d F Y, H:i') }}</p>
+                <p><strong>{{ __('mail.course_completed.completed_date_label') }}:</strong> {{ $enrollment->completed_at->format('d F Y, H:i') }}</p>
                 @endif
                 @php
                     $progress = $enrollment->courseProgress?->progress_percent ?? 0;
                 @endphp
-                <p><strong>Progress:</strong> {{ number_format($progress, 1) }}%</p>
+                <p><strong>{{ __('mail.course_completed.progress_label') }}:</strong> {{ number_format($progress, 1) }}%</p>
             </div>
 
             <div class="stats">
@@ -154,22 +156,22 @@
                 @endphp
                 <div class="stat-item">
                     <p class="stat-value">{{ number_format($progress, 0) }}%</p>
-                    <p class="stat-label">Progress</p>
+                    <p class="stat-label">{{ __('mail.course_completed.stat_progress') }}</p>
                 </div>
                 <div class="stat-item">
                     <p class="stat-value">✓</p>
-                    <p class="stat-label">Selesai</p>
+                    <p class="stat-label">{{ __('mail.course_completed.stat_completed') }}</p>
                 </div>
             </div>
 
-            <p>Terima kasih telah menyelesaikan course ini. Kami harap Anda mendapatkan pengetahuan dan keterampilan yang bermanfaat.</p>
+            <p>{{ __('mail.course_completed.thanks') }}</p>
 
             <div class="btn-container">
-                <a href="{{ $courseUrl }}" class="btn-primary">Lihat Course</a>
+                <a href="{{ $courseUrl }}" class="btn-success">{{ __('mail.course_completed.button') }}</a>
             </div>
         </div>
         <div class="email-footer">
-            <p>Email ini dikirim secara otomatis. Mohon tidak membalas email ini.</p>
+            <p>{{ __('mail.course_completed.footer') }}</p>
         </div>
     </div>
 </body>
