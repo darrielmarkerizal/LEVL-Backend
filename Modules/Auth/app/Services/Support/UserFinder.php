@@ -12,6 +12,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Modules\Auth\Contracts\UserAccessPolicyInterface;
+use Modules\Auth\Models\JwtRefreshToken;
 use Modules\Auth\Models\User;
 use Modules\Auth\Services\UserCacheService;
 use Modules\Schemes\Models\CourseAdmin;
@@ -389,8 +390,21 @@ class UserFinder
             ->where('log_name', 'auth')
             ->where('causer_type', User::class)
             ->where('causer_id', $target->id)
+            ->where('event', 'created')
+            ->where(function (Builder $query) {
+                $query
+                    ->where('properties->action', 'login')
+                    ->orWhere('description', __('messages.auth.log_user_login'));
+            })
             ->latest('created_at')
             ->value('created_at');
+
+        if (! $lastLoginAt) {
+            $lastLoginAt = JwtRefreshToken::query()
+                ->where('user_id', $target->id)
+                ->latest('last_used_at')
+                ->value('last_used_at');
+        }
 
         $rank = Leaderboard::query()
             ->whereNull('course_id')
@@ -406,5 +420,8 @@ class UserFinder
         $target->setAttribute('last_login_at', $lastLoginAt);
         $target->setAttribute('rank', $rank);
         $target->setAttribute('total_xp', $target->gamificationStats?->total_xp ?? 0);
+        
+        // Reset dirty attributes to prevent these non-database fields from being saved
+        $target->syncChanges();
     }
 }

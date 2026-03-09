@@ -43,6 +43,13 @@ class UserLifecycleProcessor
 
         return DB::transaction(function () use ($user, $status) {
             $user->status = UserStatus::from($status);
+            
+            // Remove computed attributes that should not be persisted to database
+            unset($user['learning_statistics']);
+            unset($user['last_login_at']);
+            unset($user['rank']);
+            unset($user['total_xp']);
+            
             $user->save();
 
             $this->cacheService->invalidateUser($user->id);
@@ -123,6 +130,12 @@ class UserLifecycleProcessor
             }
 
             if ($updated) {
+                // Remove computed attributes that should not be persisted to database
+                unset($user['learning_statistics']);
+                unset($user['last_login_at']);
+                unset($user['rank']);
+                unset($user['total_xp']);
+                
                 $user->save();
                 $this->cacheService->invalidateUser($user->id);
                 $this->cacheService->invalidateAllUsers();

@@ -98,7 +98,8 @@ class UserResource extends JsonResource
                 : null;
 
             if ($isStudent) {
-                $data['login_at'] = $this->formatDate($this->resource->getAttribute('last_login_at'));
+                $lastLoginAt = $this->formatDate($this->resource->getAttribute('last_login_at'));
+                $data['last_login_at'] = $lastLoginAt;
                 $data['learning_statistics'] = $this->resource->getAttribute('learning_statistics') ?? [
                     'enrolled' => 0,
                     'completed' => 0,
@@ -153,10 +154,13 @@ class UserResource extends JsonResource
             }
         }
 
-        // Remove null keys (but keep empty arrays/false/0).
+        $preserveNullKeys = ['last_login_at'];
+
+        // Remove null keys (but keep empty arrays/false/0), except preserved keys.
         $filtered = array_filter(
             $data,
-            static fn ($v) => $v !== null,
+            static fn ($v, $key) => $v !== null || in_array($key, $preserveNullKeys, true),
+            ARRAY_FILTER_USE_BOTH,
         );
 
         $orderedKeys = [
@@ -170,7 +174,7 @@ class UserResource extends JsonResource
             'email_verified_at',
             'roles',
             'specialization',
-            'login_at',
+            'last_login_at',
             'learning_statistics',
             'rank',
             'total_xp',
@@ -205,7 +209,8 @@ class UserResource extends JsonResource
 
         return array_filter(
             $ordered,
-            static fn ($v) => $v !== null
+            static fn ($v, $key) => $v !== null || in_array($key, $preserveNullKeys, true),
+            ARRAY_FILTER_USE_BOTH,
         );
     }
 
