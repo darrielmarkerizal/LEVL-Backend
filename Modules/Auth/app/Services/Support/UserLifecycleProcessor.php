@@ -46,6 +46,7 @@ class UserLifecycleProcessor
             $user->save();
 
             $this->cacheService->invalidateUser($user->id);
+            $this->cacheService->invalidateAllUsers();
 
             return $user->fresh();
         });
@@ -120,6 +121,7 @@ class UserLifecycleProcessor
             if ($updated) {
                 $user->save();
                 $this->cacheService->invalidateUser($user->id);
+                $this->cacheService->invalidateAllUsers();
             }
 
             return $user->fresh()->load('specialization:id,name,value');
@@ -162,7 +164,9 @@ class UserLifecycleProcessor
             }
         }
 
+        $this->cacheService->invalidateUser($user->id);
         $user->delete();
+        $this->cacheService->invalidateAllUsers();
     }
 
     public function createUser(User $authUser, array $validated): User
@@ -194,6 +198,8 @@ class UserLifecycleProcessor
         $user->assignRole($role);
 
         $this->sendCredentialsEmail($user, $passwordPlain);
+
+        $this->cacheService->invalidateAllUsers();
 
         return $user->fresh()->load('specialization:id,name,value');
     }
