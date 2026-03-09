@@ -312,18 +312,6 @@ class UserFinder
         return $target;
     }
 
-    public function searchGlobal(string $query, int $limit = 5): \Illuminate\Support\Collection
-    {
-        if (empty(trim($query))) {
-            return collect();
-        }
-
-        return User::search($query)
-            ->with(['media'])
-            ->limit($limit)
-            ->get();
-    }
-
     public function listUserEnrolledCourses(User $authUser, int $userId, ?Request $request = null, int $perPage = 15): LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, 100));

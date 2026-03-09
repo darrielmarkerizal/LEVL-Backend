@@ -11,8 +11,8 @@ class UserEnrolledCourseResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $status = $this->status?->value ?? (string) $this->status;
-        $progressPercent = $status === 'pending'
+        $statusValue = $this->status?->value ?? (string) $this->status;
+        $progressPercent = $statusValue === 'pending'
             ? 0
             : (float) ($this->courseProgress?->progress_percent ?? 0);
 
@@ -20,7 +20,7 @@ class UserEnrolledCourseResource extends JsonResource
             'enrollment_id' => $this->id,
             'scheme_name' => $this->course?->title,
             'progress_percentage' => round($progressPercent, 2),
-            'status' => $status,
+            'status' => $this->status,
             'enrolled_at' => $this->enrolled_at?->toISOString(),
         ];
     }
