@@ -26,12 +26,7 @@ class SequentialProgressSeeder extends Seeder
         ini_set('memory_limit', '2048M');
 
         echo "🎯 Seeding sequential progress for students...\n";
-
-        $shouldClean = $this->command->confirm('Do you want to clean existing progress data first?', true);
-
-        if ($shouldClean) {
-            $this->cleanExistingProgress();
-        }
+        $this->cleanExistingProgress();
 
         $this->pregenerateFakeData();
         $this->createdAt = now()->toDateTimeString();
