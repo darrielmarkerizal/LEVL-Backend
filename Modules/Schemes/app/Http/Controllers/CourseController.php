@@ -9,6 +9,7 @@ use App\Support\ApiResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Schemes\Jobs\DeleteCourseJob;
 use Modules\Schemes\Contracts\Services\CourseServiceInterface;
 use Modules\Schemes\Http\Requests\CourseRequest;
 use Modules\Schemes\Http\Requests\PublishCourseRequest;
@@ -79,9 +80,17 @@ class CourseController extends Controller
     {
         $courseWithAdmins = $this->service->findWithAdmins($course->id);
         $this->authorize('delete', $courseWithAdmins);
-        $this->service->delete($course->id);
+        DeleteCourseJob::dispatch($course->id, auth('api')->id());
 
-        return $this->success([], __('messages.courses.deleted'));
+        return $this->success(
+            [
+                'queued' => true,
+                'course_id' => $course->id,
+            ],
+            'messages.courses.delete_queued',
+            [],
+            202
+        );
     }
 
     public function publish(Course $course)

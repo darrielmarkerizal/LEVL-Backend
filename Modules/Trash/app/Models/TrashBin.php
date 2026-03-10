@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace Modules\Trash\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Modules\Common\Traits\PgSearchable;
 
 class TrashBin extends Model
 {
     use PgSearchable;
+
+    protected $appends = [
+        'resource_label',
+    ];
 
     protected array $searchable_columns = [
         'resource_type',
@@ -45,4 +50,17 @@ class TrashBin extends Model
         'restored_at' => 'datetime',
         'force_deleted_at' => 'datetime',
     ];
+
+    public function getResourceLabelAttribute(): string
+    {
+        $type = (string) ($this->resource_type ?? '');
+        $key = "messages.trash_bins.source_type_labels.{$type}";
+        $translated = __($key);
+
+        if ($translated !== $key) {
+            return $translated;
+        }
+
+        return (string) Str::of($type)->replace('_', ' ')->title();
+    }
 }
