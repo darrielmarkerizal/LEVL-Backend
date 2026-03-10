@@ -152,8 +152,6 @@ class TrashBinService
             $model->saveQuietly();
         }
 
-        $this->cascadeRestoreChildren($model);
-
         if ($bin) {
             $bin->delete();
         }
@@ -169,22 +167,7 @@ class TrashBinService
 
     public function restoreFromTrashBin(TrashBin $bin): bool
     {
-        return DB::transaction(function () use ($bin): bool {
-            if ($this->isRootBin($bin)) {
-                $bins = TrashBin::query()
-                    ->where('group_uuid', $bin->group_uuid)
-                    ->orderByDesc('id')
-                    ->get();
-
-                foreach ($bins as $item) {
-                    $this->restoreSingle($item);
-                }
-
-                return true;
-            }
-
-            return $this->restoreSingle($bin);
-        });
+        return DB::transaction(fn () => $this->restoreSingle($bin));
     }
 
     public function forceDeleteFromTrashBin(TrashBin $bin): bool
@@ -449,29 +432,6 @@ class TrashBinService
                 if (! $assignment->trashed()) {
                     $assignment->delete();
                 }
-            });
-        }
-    }
-
-    private function cascadeRestoreChildren(Model $model): void
-    {
-        if ($model instanceof \Modules\Schemes\Models\Course) {
-            $model->units()->onlyTrashed()->get()->each(function ($unit): void {
-                $unit->restore();
-            });
-        }
-
-        if ($model instanceof \Modules\Schemes\Models\Unit) {
-            $model->lessons()->onlyTrashed()->get()->each(function ($lesson): void {
-                $lesson->restore();
-            });
-
-            $model->quizzes()->onlyTrashed()->get()->each(function ($quiz): void {
-                $quiz->restore();
-            });
-
-            $model->assignments()->onlyTrashed()->get()->each(function ($assignment): void {
-                $assignment->restore();
             });
         }
     }
