@@ -31,7 +31,11 @@ class TrashBinController extends Controller
 
     public function restore(int $trashBinId): JsonResponse
     {
-        $this->service->restore(auth('api')->user(), $trashBinId);
+        $result = $this->service->restore(auth('api')->user(), $trashBinId);
+
+        if (($result['queued'] ?? false) === true) {
+            return $this->success($result, 'messages.trash_bins.restore_queued', [], 202);
+        }
 
         return $this->success(null, 'messages.trash_bins.restored');
     }
@@ -39,32 +43,28 @@ class TrashBinController extends Controller
     public function restoreAll(Request $request): JsonResponse
     {
         $resourceType = $request->query('resource_type');
-        $count = $this->service->restoreAll(
+        $result = $this->service->restoreAll(
             auth('api')->user(),
             is_string($resourceType) && $resourceType !== '' ? $resourceType : null
         );
 
-        return $this->success(
-            ['restored' => $count],
-            'messages.trash_bins.restore_all',
-            ['count' => $count]
-        );
+        return $this->success($result, 'messages.trash_bins.restore_all_queued', [], 202);
     }
 
     public function bulkRestore(BulkRestoreTrashBinsRequest $request): JsonResponse
     {
-        $count = $this->service->bulkRestore(auth('api')->user(), $request->validated('ids'));
+        $result = $this->service->bulkRestore(auth('api')->user(), $request->validated('ids'));
 
-        return $this->success(
-            ['restored' => $count],
-            'messages.trash_bins.bulk_restored',
-            ['count' => $count]
-        );
+        return $this->success($result, 'messages.trash_bins.bulk_restore_queued', [], 202);
     }
 
     public function forceDelete(int $trashBinId): JsonResponse
     {
-        $this->service->forceDelete(auth('api')->user(), $trashBinId);
+        $result = $this->service->forceDelete(auth('api')->user(), $trashBinId);
+
+        if (($result['queued'] ?? false) === true) {
+            return $this->success($result, 'messages.trash_bins.force_delete_queued', [], 202);
+        }
 
         return $this->success(null, 'messages.trash_bins.force_deleted');
     }
@@ -73,27 +73,19 @@ class TrashBinController extends Controller
     {
         $resourceType = $request->query('resource_type');
 
-        $count = $this->service->forceDeleteAll(
+        $result = $this->service->forceDeleteAll(
             auth('api')->user(),
             is_string($resourceType) && $resourceType !== '' ? $resourceType : null
         );
 
-        return $this->success(
-            ['deleted' => $count],
-            'messages.trash_bins.force_deleted_all',
-            ['count' => $count]
-        );
+        return $this->success($result, 'messages.trash_bins.force_delete_all_queued', [], 202);
     }
 
     public function bulkForceDelete(BulkForceDeleteTrashBinsRequest $request): JsonResponse
     {
-        $count = $this->service->bulkForceDelete(auth('api')->user(), $request->validated('ids'));
+        $result = $this->service->bulkForceDelete(auth('api')->user(), $request->validated('ids'));
 
-        return $this->success(
-            ['deleted' => $count],
-            'messages.trash_bins.bulk_force_deleted',
-            ['count' => $count]
-        );
+        return $this->success($result, 'messages.trash_bins.bulk_force_delete_queued', [], 202);
     }
 
     public function sourceTypes(): JsonResponse

@@ -69,6 +69,11 @@ class TrashBinRepository implements TrashBinRepositoryInterface
         return TrashBin::query()->whereIn('id', $ids)->orderBy('id')->get();
     }
 
+    public function countByGroupUuid(string $groupUuid): int
+    {
+        return TrashBin::query()->where('group_uuid', $groupUuid)->count();
+    }
+
     public function getSourceTypes(): array
     {
         return TrashBin::query()

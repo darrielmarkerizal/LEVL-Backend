@@ -16,6 +16,8 @@ interface TrashBinRepositoryInterface
 
     public function findManyByIds(array $ids): Collection;
 
+    public function countByGroupUuid(string $groupUuid): int;
+
     public function getSourceTypes(): array;
 
     public function getSourceTypesForAccess(int $actorId, array $accessibleCourseIds): array;
