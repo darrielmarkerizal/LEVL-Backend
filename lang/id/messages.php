@@ -201,6 +201,7 @@ return [
         'created' => 'Course berhasil dibuat.',
         'updated' => 'Course berhasil diperbarui.',
         'deleted' => 'Course berhasil dihapus.',
+        'delete_queued' => 'Permintaan hapus course diterima dan sedang diproses di background.',
         'published' => 'Course berhasil dipublish.',
         'unpublished' => 'Course berhasil diunpublish.',
         'enrollment_settings_updated' => 'Pengaturan enrollment berhasil diperbarui.',

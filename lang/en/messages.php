@@ -231,6 +231,7 @@ return [
         'created' => 'Course created successfully.',
         'updated' => 'Course updated successfully.',
         'deleted' => 'Course deleted successfully.',
+        'delete_queued' => 'Course delete request accepted and is being processed in background.',
         'published' => 'Course published successfully.',
         'unpublished' => 'Course unpublished successfully.',
         'enrollment_settings_updated' => 'Enrollment settings updated successfully.',

@@ -11,6 +11,7 @@ use Illuminate\Routing\Controller;
 use Modules\Trash\Contracts\Services\TrashBinManagementServiceInterface;
 use Modules\Trash\Http\Requests\BulkForceDeleteTrashBinsRequest;
 use Modules\Trash\Http\Requests\BulkRestoreTrashBinsRequest;
+use Modules\Trash\Http\Resources\TrashBinResource;
 
 class TrashBinController extends Controller
 {
@@ -23,6 +24,7 @@ class TrashBinController extends Controller
     public function index(Request $request): JsonResponse
     {
         $paginator = $this->service->paginate(auth('api')->user(), $request->query());
+        $paginator->setCollection(TrashBinResource::collection($paginator->getCollection())->collection);
 
         return $this->paginateResponse($paginator, 'messages.trash_bins.list_retrieved');
     }
