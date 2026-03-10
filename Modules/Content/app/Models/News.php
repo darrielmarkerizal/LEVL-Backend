@@ -2,6 +2,7 @@
 
 namespace Modules\Content\Models;
 
+use App\Models\Concerns\TracksTrashBin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,7 +25,7 @@ use Spatie\Sluggable\SlugOptions;
 
 class News extends Model implements HasMedia
 {
-    use HasContentRevisions, HasFactory, HasSlug, InteractsWithMedia, LogsActivity, PgSearchable, SoftDeletes;
+    use HasContentRevisions, HasFactory, HasSlug, InteractsWithMedia, LogsActivity, PgSearchable, SoftDeletes, TracksTrashBin;
 
     protected array $searchable_columns = [
         'title',

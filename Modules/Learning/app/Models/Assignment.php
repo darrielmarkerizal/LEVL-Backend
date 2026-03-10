@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Models;
 
+use App\Models\Concerns\TracksTrashBin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Common\Traits\PgSearchable;
 use Modules\Learning\Enums\AssignmentStatus;
 use Modules\Learning\Enums\AssignmentType;
@@ -19,7 +21,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Assignment extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, PgSearchable, \Modules\Common\Traits\PublishedOnlyScope;
+    use HasFactory, InteractsWithMedia, PgSearchable, SoftDeletes, TracksTrashBin, \Modules\Common\Traits\PublishedOnlyScope;
 
     protected array $searchable_columns = [
         'title',

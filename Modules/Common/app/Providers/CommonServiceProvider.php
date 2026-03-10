@@ -70,8 +70,8 @@ class CommonServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            \Modules\Common\app\Services\Contracts\MediaServiceInterface::class,
-            \Modules\Common\app\Services\MediaService::class
+            \Modules\Common\Services\Contracts\MediaServiceInterface::class,
+            \Modules\Common\Services\MediaService::class
         );
     }
 

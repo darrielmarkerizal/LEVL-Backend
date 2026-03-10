@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Models;
 
+use App\Models\Concerns\TracksTrashBin;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Common\Traits\PgSearchable;
 use Modules\Learning\Enums\QuizStatus;
 use Modules\Learning\Enums\RandomizationType;
@@ -16,7 +18,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Quiz extends Model implements HasMedia
 {
-    use InteractsWithMedia, PgSearchable, \Modules\Common\Traits\PublishedOnlyScope;
+    use InteractsWithMedia, PgSearchable, SoftDeletes, TracksTrashBin, \Modules\Common\Traits\PublishedOnlyScope;
 
     protected array $searchable_columns = [
         'title',

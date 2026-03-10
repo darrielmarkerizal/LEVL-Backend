@@ -139,7 +139,6 @@ class BadgeService implements BadgeServiceInterface
         }
 
         return DB::transaction(function () use ($badge) {
-            $badge->clearMediaCollection('icon');
             $result = $this->repository->delete($badge);
             cache()->tags(['common', 'badges'])->flush();
 

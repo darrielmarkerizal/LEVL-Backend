@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modules\Common\app\Http\Controllers;
+namespace Modules\Common\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Modules\Common\app\Http\Requests\UploadMediaRequest;
-use Modules\Common\app\Http\Resources\MediaResource;
-use Modules\Common\app\Services\Contracts\MediaServiceInterface;
+use Modules\Common\Http\Requests\UploadMediaRequest;
+use Modules\Common\Http\Resources\MediaResource;
+use Modules\Common\Services\Contracts\MediaServiceInterface;
 
 class MediaController extends Controller
 {
@@ -28,7 +28,7 @@ class MediaController extends Controller
 
         return $this->created(
             new MediaResource($media),
-            'Media uploaded successfully'
+            'messages.media.uploaded'
         );
     }
 }

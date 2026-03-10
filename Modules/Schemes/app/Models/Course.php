@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Models;
 
+use App\Models\Concerns\TracksTrashBin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,7 +26,7 @@ use Spatie\Sluggable\SlugOptions;
 
 class Course extends Model implements HasMedia
 {
-    use HasFactory, HasSlug, InteractsWithMedia, LogsActivity, PgSearchable, SoftDeletes, \Modules\Common\Traits\PublishedOnlyScope;
+    use HasFactory, HasSlug, InteractsWithMedia, LogsActivity, PgSearchable, SoftDeletes, TracksTrashBin, \Modules\Common\Traits\PublishedOnlyScope;
 
     protected array $searchable_columns = [
         'title',
