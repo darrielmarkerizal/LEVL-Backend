@@ -45,6 +45,10 @@ return [
         'not_found' => 'Kategori tidak ditemukan.',
     ],
 
+    'media' => [
+        'uploaded' => 'Media berhasil diunggah.',
+    ],
+
     // Tags Module
     'tags' => [
         'created' => 'Tag berhasil dibuat.',
@@ -631,6 +635,15 @@ return [
     'search' => [
         'history_cleared' => 'Riwayat pencarian berhasil dihapus',
         'history_deleted' => 'Riwayat pencarian berhasil dihapus',
+    ],
+
+    'trash_bins' => [
+        'list_retrieved' => 'Item trash berhasil diambil.',
+        'restored' => 'Item trash berhasil dipulihkan.',
+        'force_deleted' => 'Item trash berhasil dihapus permanen.',
+        'force_deleted_all' => 'Berhasil menghapus permanen :count item trash.',
+        'purge_description' => 'Hapus permanen item trash yang telah melewati masa retensi.',
+        'purge_success' => 'Berhasil membersihkan :count item trash yang kedaluwarsa.',
     ],
 
     // Common action messages

@@ -56,6 +56,10 @@ return [
         'not_found' => 'Category not found.',
     ],
 
+    'media' => [
+        'uploaded' => 'Media uploaded successfully.',
+    ],
+
     'badges' => [
         'created' => 'Badge created successfully.',
         'updated' => 'Badge updated successfully.',
@@ -685,6 +689,15 @@ return [
     'search' => [
         'history_cleared' => 'Search history cleared successfully',
         'history_deleted' => 'Search history entry deleted successfully',
+    ],
+
+    'trash_bins' => [
+        'list_retrieved' => 'Trash items retrieved successfully.',
+        'restored' => 'Trash item restored successfully.',
+        'force_deleted' => 'Trash item permanently deleted successfully.',
+        'force_deleted_all' => 'Successfully permanently deleted :count trash item(s).',
+        'purge_description' => 'Permanently delete trash items that have reached retention expiry.',
+        'purge_success' => 'Purged :count expired trash item(s).',
     ],
 
     // Permission messages

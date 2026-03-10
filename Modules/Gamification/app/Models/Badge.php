@@ -2,8 +2,10 @@
 
 namespace Modules\Gamification\Models;
 
+use App\Models\Concerns\TracksTrashBin;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Common\Traits\PgSearchable;
 use Modules\Gamification\Enums\BadgeType;
 use Spatie\MediaLibrary\HasMedia;
@@ -14,6 +16,8 @@ class Badge extends Model implements HasMedia
 {
     use InteractsWithMedia;
     use PgSearchable;
+    use SoftDeletes;
+    use TracksTrashBin;
 
     protected array $searchable_columns = [
         'code',

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Modules\Common\app\Services;
+namespace Modules\Common\Services;
 
-use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Modules\Common\app\Services\Contracts\MediaServiceInterface;
+use Modules\Auth\Models\User;
+use Modules\Common\Services\Contracts\MediaServiceInterface;
 use Modules\Common\Models\TemporaryMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Models;
 
+use App\Models\Concerns\TracksTrashBin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -30,6 +31,7 @@ class User extends Authenticatable implements HasMedia, JWTSubject
         Notifiable,
         PgSearchable,
         SoftDeletes,
+        TracksTrashBin,
         TracksUserActivity;
 
     protected array $searchable_columns = [

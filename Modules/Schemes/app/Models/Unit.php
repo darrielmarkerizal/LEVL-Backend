@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Models;
 
+use App\Models\Concerns\TracksTrashBin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Common\Traits\PgSearchable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -14,7 +16,7 @@ use Spatie\Sluggable\SlugOptions;
 
 class Unit extends Model
 {
-    use HasFactory, HasSlug, LogsActivity, PgSearchable, \Modules\Common\Traits\PublishedOnlyScope;
+    use HasFactory, HasSlug, LogsActivity, PgSearchable, SoftDeletes, TracksTrashBin, \Modules\Common\Traits\PublishedOnlyScope;
 
     protected array $searchable_columns = [
         'title',

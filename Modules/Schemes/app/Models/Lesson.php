@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Models;
 
+use App\Models\Concerns\TracksTrashBin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Common\Traits\PgSearchable;
 use Modules\Schemes\Enums\ContentType;
 use Spatie\Activitylog\LogOptions;
@@ -16,7 +18,7 @@ use Spatie\Sluggable\SlugOptions;
 
 class Lesson extends Model
 {
-    use HasFactory, HasSlug, LogsActivity, PgSearchable, \Modules\Common\Traits\PublishedOnlyScope;
+    use HasFactory, HasSlug, LogsActivity, PgSearchable, SoftDeletes, TracksTrashBin, \Modules\Common\Traits\PublishedOnlyScope;
 
     protected array $searchable_columns = [
         'title',

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Common\Contracts\Services\LevelConfigServiceInterface;
 use Modules\Common\Models\LevelConfig;
 use Modules\Common\Repositories\LevelConfigRepository;
+use Modules\Gamification\Services\BadgeService;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
