@@ -13,7 +13,6 @@ use Modules\Trash\Jobs\BulkRestoreTrashBinsJob;
 use Modules\Trash\Jobs\ForceDeleteAllTrashBinsJob;
 use Modules\Trash\Jobs\ForceDeleteTrashBinJob;
 use Modules\Trash\Jobs\RestoreAllTrashBinsJob;
-use Modules\Trash\Jobs\RestoreTrashBinJob;
 use Modules\Trash\Contracts\Repositories\TrashBinRepositoryInterface;
 use Modules\Trash\Contracts\Services\TrashBinManagementServiceInterface;
 use Modules\Trash\Models\TrashBin;
@@ -36,20 +35,6 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
     {
         $bin = $this->repository->findByIdOrFail($trashBinId);
         $this->assertCanAccessBin($actor, $bin);
-
-        $groupCount = $this->repository->countByGroupUuid($bin->group_uuid);
-        if ($this->trashService->shouldRunAsyncCascade($bin, $groupCount)) {
-
-            RestoreTrashBinJob::dispatch($bin->id, $actor->id);
-
-            return [
-                'queued' => true,
-                'trash_bin_id' => $bin->id,
-                'group_uuid' => $bin->group_uuid,
-                'group_items' => $groupCount,
-                'resource_type' => $bin->resource_type,
-            ];
-        }
 
         $this->trashService->restoreFromTrashBin($bin);
 
@@ -169,29 +154,43 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
     private function assertCanAccessBin(User $actor, TrashBin $bin): void
     {
-        if ($actor->hasRole('Superadmin')) {
-            return;
-        }
-
-        if ((int) $bin->deleted_by === (int) $actor->id) {
-            return;
-        }
-
-        if (! ($actor->hasRole('Admin') || $actor->hasRole('Instructor'))) {
+        if (! $this->hasTrashAccessRole($actor)) {
             throw new AuthorizationException(__('messages.forbidden'));
+        }
+
+        if (
+            $actor->hasRole('Superadmin')
+            || (int) $bin->deleted_by === (int) $actor->id
+            || $this->canManageBinCourse($actor, $bin)
+        ) {
+            return;
+        }
+
+        throw new AuthorizationException(__('messages.forbidden'));
+    }
+
+    private function hasTrashAccessRole(User $actor): bool
+    {
+        return $actor->hasRole('Superadmin')
+            || $actor->hasRole('Admin')
+            || $actor->hasRole('Instructor');
+    }
+
+    private function canManageBinCourse(User $actor, TrashBin $bin): bool
+    {
+        if (! ($actor->hasRole('Admin') || $actor->hasRole('Instructor'))) {
+            return false;
         }
 
         $courseId = $this->resolveCourseId($bin);
         if ($courseId === null) {
-            throw new AuthorizationException(__('messages.forbidden'));
+            return false;
         }
 
         $isManaged = $actor->managedCourses()->where('courses.id', $courseId)->exists();
         $isInstructor = Course::query()->where('id', $courseId)->where('instructor_id', $actor->id)->exists();
 
-        if (! ($isManaged || $isInstructor)) {
-            throw new AuthorizationException(__('messages.forbidden'));
-        }
+        return $isManaged || $isInstructor;
     }
 
     private function resolveAccessContext(User $actor): array

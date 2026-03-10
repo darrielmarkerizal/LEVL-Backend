@@ -26,7 +26,8 @@ Catatan akses service layer:
 
 Catatan eksekusi async:
 - Operasi berat tidak memblok request HTTP dan akan diproses melalui queue.
-- Endpoint single restore / single force delete dapat mengembalikan `202 Accepted` jika item adalah root group yang memiliki cascade child.
+- Endpoint single restore mengembalikan `200 OK` dan hanya memulihkan item yang dipilih.
+- Endpoint single force delete dapat mengembalikan `202 Accepted` jika item adalah root group yang memiliki cascade child.
 - Endpoint bulk restore, bulk force delete, restore all, dan force delete all diproses async dan mengembalikan `202 Accepted`.
 
 ## 2. Daftar Endpoint
@@ -253,11 +254,11 @@ Array object:
 ---
 
 ### 3.4 PATCH /api/v1/trash-bins/{trashBinId}
-Restore satu item trash (dengan cascade group jika item adalah root group).
+Restore satu item trash tanpa cascade restore ke item turunan.
 
 ### Perilaku Eksekusi
-- Jika item ringan, endpoint mengembalikan `200 OK`.
-- Jika item adalah root group dengan child cascade, endpoint mengembalikan `202 Accepted` dan proses restore dijalankan di background.
+- Endpoint mengembalikan `200 OK`.
+- Jika item adalah Course atau parent lain, data turunan tetap dalam kondisi deleted dan perlu direstore manual satu per satu.
 
 ### Path Param
 - `trashBinId` (required, integer, exists di `trash_bins.id`).
@@ -278,25 +279,6 @@ Restore satu item trash (dengan cascade group jika item adalah root group).
   "errors": null
 }
 ```
-
-### Contoh Response Async
-```json
-{
-  "success": true,
-  "message": "Permintaan restore trash berhasil diterima dan sedang diproses di background.",
-  "data": {
-    "queued": true,
-    "trash_bin_id": 74,
-    "group_uuid": "99b4abaa-c7c7-4ba7-9618-4bab9cd16e2c",
-    "group_items": 15,
-    "resource_type": "course"
-  },
-  "meta": null,
-  "errors": null
-}
-```
-
----
 
 ### 3.5 DELETE /api/v1/trash-bins/{trashBinId}
 Hapus permanen satu item trash (dengan cascade group jika item adalah root group).
@@ -527,7 +509,8 @@ Terjadi jika `trashBinId` tidak ditemukan.
 ## 5. Catatan Teknis Penting
 
 - Retensi trash: 30 hari, lalu dapat dipurge permanen oleh command scheduler.
-- Restore/delete per item dapat melakukan cascade berdasarkan `group_uuid`.
+- Restore per item tidak melakukan cascade berdasarkan `group_uuid`.
+- Hapus permanen per item masih dapat melakukan cascade berdasarkan `group_uuid`.
 - Operasi async pada modul Trash memerlukan worker queue `schemes` aktif di environment runtime.
 - Field `metadata.course_id` dipakai untuk akses berbasis relasi course (Admin/Instructor).
 - Endpoint list menggunakan Spatie Query Builder + PgSearchable (`search`) + ILIKE pada `metadata.title`.
