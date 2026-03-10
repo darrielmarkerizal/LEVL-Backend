@@ -8,6 +8,7 @@ use App\Support\ApiResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Schemes\Jobs\DeleteUnitJob;
 use Modules\Schemes\Http\Requests\CreateUnitContentElementRequest;
 use Modules\Schemes\Http\Requests\UnitRequest;
 use Modules\Schemes\Http\Resources\UnitResource;
@@ -69,9 +70,17 @@ class UnitController extends Controller
         $this->service->validateHierarchy($course->id, $unit->id);
         $this->authorize('delete', $unit);
 
-        $this->service->delete($unit->id);
+        DeleteUnitJob::dispatch($unit->id, auth('api')->id());
 
-        return $this->success([], __('messages.units.deleted'));
+        return $this->success(
+            [
+                'queued' => true,
+                'unit_id' => $unit->id,
+            ],
+            'messages.units.delete_queued',
+            [],
+            202
+        );
     }
 
     public function publish(Course $course, Unit $unit)

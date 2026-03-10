@@ -320,6 +320,11 @@ class TrashBinService
         return $this->toSourceTypeOptions($this->getSupportedResourceTypes());
     }
 
+    public function shouldRunAsyncCascade(TrashBin $bin, int $groupCount): bool
+    {
+        return $this->isRootBin($bin) && $groupCount > 1;
+    }
+
     /**
      * @param array<int, string> $types
      * @return array<int, array{value: string, label: string}>

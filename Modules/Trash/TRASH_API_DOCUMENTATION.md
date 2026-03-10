@@ -24,6 +24,11 @@ Catatan akses service layer:
 - Superadmin: akses seluruh data trash dan aksi global (`restoreAll`, `forceDeleteAll`).
 - Admin/Instructor: akses item milik sendiri (`deleted_by`) atau item terkait course yang dikelola/diampu.
 
+Catatan eksekusi async:
+- Operasi berat tidak memblok request HTTP dan akan diproses melalui queue.
+- Endpoint single restore / single force delete dapat mengembalikan `202 Accepted` jika item adalah root group yang memiliki cascade child.
+- Endpoint bulk restore, bulk force delete, restore all, dan force delete all diproses async dan mengembalikan `202 Accepted`.
+
 ## 2. Daftar Endpoint
 
 1. `GET /api/v1/trash-bins`
@@ -250,6 +255,10 @@ Array object:
 ### 3.4 PATCH /api/v1/trash-bins/{trashBinId}
 Restore satu item trash (dengan cascade group jika item adalah root group).
 
+### Perilaku Eksekusi
+- Jika item ringan, endpoint mengembalikan `200 OK`.
+- Jika item adalah root group dengan child cascade, endpoint mengembalikan `202 Accepted` dan proses restore dijalankan di background.
+
 ### Path Param
 - `trashBinId` (required, integer, exists di `trash_bins.id`).
 
@@ -270,10 +279,31 @@ Restore satu item trash (dengan cascade group jika item adalah root group).
 }
 ```
 
+### Contoh Response Async
+```json
+{
+  "success": true,
+  "message": "Permintaan restore trash berhasil diterima dan sedang diproses di background.",
+  "data": {
+    "queued": true,
+    "trash_bin_id": 74,
+    "group_uuid": "99b4abaa-c7c7-4ba7-9618-4bab9cd16e2c",
+    "group_items": 15,
+    "resource_type": "course"
+  },
+  "meta": null,
+  "errors": null
+}
+```
+
 ---
 
 ### 3.5 DELETE /api/v1/trash-bins/{trashBinId}
 Hapus permanen satu item trash (dengan cascade group jika item adalah root group).
+
+### Perilaku Eksekusi
+- Jika item ringan, endpoint mengembalikan `200 OK`.
+- Jika item adalah root group dengan child cascade, endpoint mengembalikan `202 Accepted` dan proses hapus permanen dijalankan di background.
 
 ### Path Param
 - `trashBinId` (required, integer, exists di `trash_bins.id`).
@@ -295,10 +325,30 @@ Hapus permanen satu item trash (dengan cascade group jika item adalah root group
 }
 ```
 
+### Contoh Response Async
+```json
+{
+  "success": true,
+  "message": "Permintaan hapus permanen trash berhasil diterima dan sedang diproses di background.",
+  "data": {
+    "queued": true,
+    "trash_bin_id": 74,
+    "group_uuid": "99b4abaa-c7c7-4ba7-9618-4bab9cd16e2c",
+    "group_items": 15,
+    "resource_type": "course"
+  },
+  "meta": null,
+  "errors": null
+}
+```
+
 ---
 
 ### 3.6 PATCH /api/v1/trash-bins
 Restore semua item trash. Hanya Superadmin.
+
+### Perilaku Eksekusi
+- Endpoint ini diproses async dan mengembalikan `202 Accepted`.
 
 ### Query Params
 - `resource_type` (optional, string): filter restore global per tipe.
@@ -313,9 +363,10 @@ Restore semua item trash. Hanya Superadmin.
 ```json
 {
   "success": true,
-  "message": "Berhasil memulihkan 12 item trash.",
+  "message": "Permintaan restore semua trash berhasil diterima dan sedang diproses di background.",
   "data": {
-    "restored": 12
+    "queued": true,
+    "resource_type": "course"
   },
   "meta": null,
   "errors": null
@@ -326,6 +377,9 @@ Restore semua item trash. Hanya Superadmin.
 
 ### 3.7 DELETE /api/v1/trash-bins
 Hapus permanen semua item trash. Hanya Superadmin.
+
+### Perilaku Eksekusi
+- Endpoint ini diproses async dan mengembalikan `202 Accepted`.
 
 ### Query Params
 - `resource_type` (optional, string): filter delete global per tipe.
@@ -340,9 +394,10 @@ Hapus permanen semua item trash. Hanya Superadmin.
 ```json
 {
   "success": true,
-  "message": "Berhasil menghapus permanen 8 item trash.",
+  "message": "Permintaan hapus permanen semua trash berhasil diterima dan sedang diproses di background.",
   "data": {
-    "deleted": 8
+    "queued": true,
+    "resource_type": "course"
   },
   "meta": null,
   "errors": null
@@ -353,6 +408,9 @@ Hapus permanen semua item trash. Hanya Superadmin.
 
 ### 3.8 PATCH /api/v1/trash-bins/bulk/restore
 Restore banyak item trash berdasarkan IDs.
+
+### Perilaku Eksekusi
+- Endpoint ini diproses async dan mengembalikan `202 Accepted`.
 
 ### Body Params
 - `ids` (required, array, min 1)
@@ -372,9 +430,11 @@ Restore banyak item trash berdasarkan IDs.
 ```json
 {
   "success": true,
-  "message": "Berhasil memulihkan 3 item trash terpilih.",
+  "message": "Permintaan bulk restore trash berhasil diterima dan sedang diproses di background.",
   "data": {
-    "restored": 3
+    "queued": true,
+    "ids": [1, 2, 3],
+    "count": 3
   },
   "meta": null,
   "errors": null
@@ -385,6 +445,9 @@ Restore banyak item trash berdasarkan IDs.
 
 ### 3.9 POST /api/v1/trash-bins/bulk
 Hapus permanen banyak item trash berdasarkan IDs.
+
+### Perilaku Eksekusi
+- Endpoint ini diproses async dan mengembalikan `202 Accepted`.
 
 ### Body Params
 - `ids` (required, array, min 1)
@@ -404,9 +467,11 @@ Hapus permanen banyak item trash berdasarkan IDs.
 ```json
 {
   "success": true,
-  "message": "Berhasil menghapus permanen 3 item trash terpilih.",
+  "message": "Permintaan bulk hapus permanen trash berhasil diterima dan sedang diproses di background.",
   "data": {
-    "deleted": 3
+    "queued": true,
+    "ids": [4, 5, 6],
+    "count": 3
   },
   "meta": null,
   "errors": null
@@ -463,6 +528,7 @@ Terjadi jika `trashBinId` tidak ditemukan.
 
 - Retensi trash: 30 hari, lalu dapat dipurge permanen oleh command scheduler.
 - Restore/delete per item dapat melakukan cascade berdasarkan `group_uuid`.
+- Operasi async pada modul Trash memerlukan worker queue `schemes` aktif di environment runtime.
 - Field `metadata.course_id` dipakai untuk akses berbasis relasi course (Admin/Instructor).
 - Endpoint list menggunakan Spatie Query Builder + PgSearchable (`search`) + ILIKE pada `metadata.title`.
 - Parameter `include` tidak tersedia pada seluruh endpoint Trash saat ini.

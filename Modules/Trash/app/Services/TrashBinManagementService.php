@@ -8,6 +8,12 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Modules\Auth\Models\User;
 use Modules\Schemes\Models\Course;
+use Modules\Trash\Jobs\BulkForceDeleteTrashBinsJob;
+use Modules\Trash\Jobs\BulkRestoreTrashBinsJob;
+use Modules\Trash\Jobs\ForceDeleteAllTrashBinsJob;
+use Modules\Trash\Jobs\ForceDeleteTrashBinJob;
+use Modules\Trash\Jobs\RestoreAllTrashBinsJob;
+use Modules\Trash\Jobs\RestoreTrashBinJob;
 use Modules\Trash\Contracts\Repositories\TrashBinRepositoryInterface;
 use Modules\Trash\Contracts\Services\TrashBinManagementServiceInterface;
 use Modules\Trash\Models\TrashBin;
@@ -26,62 +32,114 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
         return $this->repository->paginateForAccess($actor->id, $isSuperadmin, $courseIds, $params);
     }
 
-    public function restore(User $actor, int $trashBinId): void
+    public function restore(User $actor, int $trashBinId): array
     {
         $bin = $this->repository->findByIdOrFail($trashBinId);
         $this->assertCanAccessBin($actor, $bin);
+
+        $groupCount = $this->repository->countByGroupUuid($bin->group_uuid);
+        if ($this->trashService->shouldRunAsyncCascade($bin, $groupCount)) {
+
+            RestoreTrashBinJob::dispatch($bin->id, $actor->id);
+
+            return [
+                'queued' => true,
+                'trash_bin_id' => $bin->id,
+                'group_uuid' => $bin->group_uuid,
+                'group_items' => $groupCount,
+                'resource_type' => $bin->resource_type,
+            ];
+        }
+
         $this->trashService->restoreFromTrashBin($bin);
+
+        return [
+            'queued' => false,
+        ];
     }
 
-    public function restoreAll(User $actor, ?string $resourceType = null): int
+    public function restoreAll(User $actor, ?string $resourceType = null): array
     {
         $this->assertSuperadmin($actor);
 
-        return $this->trashService->restoreAll($resourceType);
+        RestoreAllTrashBinsJob::dispatch($resourceType, $actor->id);
+
+        return [
+            'queued' => true,
+            'resource_type' => $resourceType,
+        ];
     }
 
-    public function bulkRestore(User $actor, array $ids): int
+    public function bulkRestore(User $actor, array $ids): array
     {
         $bins = $this->repository->findManyByIds($ids);
-        $count = 0;
 
         foreach ($bins as $bin) {
             $this->assertCanAccessBin($actor, $bin);
-            if ($this->trashService->restoreFromTrashBin($bin)) {
-                $count++;
-            }
         }
 
-        return $count;
+        BulkRestoreTrashBinsJob::dispatch($bins->pluck('id')->values()->all(), $actor->id);
+
+        return [
+            'queued' => true,
+            'ids' => $bins->pluck('id')->values()->all(),
+            'count' => $bins->count(),
+        ];
     }
 
-    public function forceDelete(User $actor, int $trashBinId): void
+    public function forceDelete(User $actor, int $trashBinId): array
     {
         $bin = $this->repository->findByIdOrFail($trashBinId);
         $this->assertCanAccessBin($actor, $bin);
+
+        $groupCount = $this->repository->countByGroupUuid($bin->group_uuid);
+        if ($this->trashService->shouldRunAsyncCascade($bin, $groupCount)) {
+
+            ForceDeleteTrashBinJob::dispatch($bin->id, $actor->id);
+
+            return [
+                'queued' => true,
+                'trash_bin_id' => $bin->id,
+                'group_uuid' => $bin->group_uuid,
+                'group_items' => $groupCount,
+                'resource_type' => $bin->resource_type,
+            ];
+        }
+
         $this->trashService->forceDeleteFromTrashBin($bin);
+
+        return [
+            'queued' => false,
+        ];
     }
 
-    public function forceDeleteAll(User $actor, ?string $resourceType = null): int
+    public function forceDeleteAll(User $actor, ?string $resourceType = null): array
     {
         $this->assertSuperadmin($actor);
 
-        return $this->trashService->forceDeleteAll($resourceType);
+        ForceDeleteAllTrashBinsJob::dispatch($resourceType, $actor->id);
+
+        return [
+            'queued' => true,
+            'resource_type' => $resourceType,
+        ];
     }
 
-    public function bulkForceDelete(User $actor, array $ids): int
+    public function bulkForceDelete(User $actor, array $ids): array
     {
         $bins = $this->repository->findManyByIds($ids);
-        $count = 0;
 
         foreach ($bins as $bin) {
             $this->assertCanAccessBin($actor, $bin);
-            if ($this->trashService->forceDeleteFromTrashBin($bin)) {
-                $count++;
-            }
         }
 
-        return $count;
+        BulkForceDeleteTrashBinsJob::dispatch($bins->pluck('id')->values()->all(), $actor->id);
+
+        return [
+            'queued' => true,
+            'ids' => $bins->pluck('id')->values()->all(),
+            'count' => $bins->count(),
+        ];
     }
 
     public function getSourceTypes(User $actor): array
