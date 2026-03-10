@@ -639,9 +639,23 @@ return [
 
     'trash_bins' => [
         'list_retrieved' => 'Item trash berhasil diambil.',
+        'source_types_retrieved' => 'Tipe sumber trash bin berhasil diambil.',
+        'source_type_labels' => [
+            'assignment' => 'Tugas',
+            'badge' => 'Lencana',
+            'course' => 'Kursus',
+            'lesson' => 'Pelajaran',
+            'news' => 'Berita',
+            'quiz' => 'Kuis',
+            'unit' => 'Unit',
+            'user' => 'Pengguna',
+        ],
         'restored' => 'Item trash berhasil dipulihkan.',
+        'restore_all' => 'Berhasil memulihkan :count item trash.',
+        'bulk_restored' => 'Berhasil memulihkan :count item trash terpilih.',
         'force_deleted' => 'Item trash berhasil dihapus permanen.',
         'force_deleted_all' => 'Berhasil menghapus permanen :count item trash.',
+        'bulk_force_deleted' => 'Berhasil menghapus permanen :count item trash terpilih.',
         'purge_description' => 'Hapus permanen item trash yang telah melewati masa retensi.',
         'purge_success' => 'Berhasil membersihkan :count item trash yang kedaluwarsa.',
     ],

@@ -693,9 +693,23 @@ return [
 
     'trash_bins' => [
         'list_retrieved' => 'Trash items retrieved successfully.',
+        'source_types_retrieved' => 'Trash source types retrieved successfully.',
+        'source_type_labels' => [
+            'assignment' => 'Assignment',
+            'badge' => 'Badge',
+            'course' => 'Course',
+            'lesson' => 'Lesson',
+            'news' => 'News',
+            'quiz' => 'Quiz',
+            'unit' => 'Unit',
+            'user' => 'User',
+        ],
         'restored' => 'Trash item restored successfully.',
+        'restore_all' => 'Successfully restored :count trash item(s).',
+        'bulk_restored' => 'Successfully restored :count selected trash item(s).',
         'force_deleted' => 'Trash item permanently deleted successfully.',
         'force_deleted_all' => 'Successfully permanently deleted :count trash item(s).',
+        'bulk_force_deleted' => 'Successfully permanently deleted :count selected trash item(s).',
         'purge_description' => 'Permanently delete trash items that have reached retention expiry.',
         'purge_success' => 'Purged :count expired trash item(s).',
     ],

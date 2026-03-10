@@ -14,5 +14,6 @@
     "Questions": true,
     "Benchmark": true,
     "Mail": true,
-    "Dashboard": true
+    "Dashboard": true,
+    "Trash": true
 }

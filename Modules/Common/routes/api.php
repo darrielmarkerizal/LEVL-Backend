@@ -7,7 +7,6 @@ use Modules\Common\Http\Controllers\AuditLogController;
 use Modules\Common\Http\Controllers\CategoriesController;
 use Modules\Common\Http\Controllers\LevelConfigsController;
 use Modules\Common\Http\Controllers\MasterDataController;
-use Modules\Common\Http\Controllers\TrashBinController;
 use Modules\Schemes\Http\Controllers\TagController;
 
 Route::prefix('v1')->group(function () {
@@ -27,16 +26,6 @@ Route::prefix('v1')->group(function () {
             Route::get('audit-logs/{id}', [AuditLogController::class, 'show'])->name('show');
             Route::get('audit-logs/meta/actions', [AuditLogController::class, 'actions'])->name('actions');
         });
-
-   Route::middleware(['auth:api', 'role:Admin|Superadmin'])
-    ->prefix('trash-bins')
-    ->name('trash-bins.')
-    ->group(function () {
-        Route::get('/', [TrashBinController::class, 'index'])->name('index');
-        Route::delete('/', [TrashBinController::class, 'deleteAll'])->name('delete-all');
-        Route::patch('/{trashBinId}', [TrashBinController::class, 'restore'])->name('restore');
-        Route::delete('/{trashBinId}', [TrashBinController::class, 'delete'])->name('delete');
-    });
 
     Route::prefix('tags')->name('tags.')->group(function () {
         Route::get('/', [TagController::class, 'index'])->name('index');

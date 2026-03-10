@@ -1,0 +1,11 @@
+{
+    "name": "Trash",
+    "alias": "trash",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Trash\\Providers\\TrashServiceProvider"
+    ],
+    "files": []
+}
