@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Services\Trash\TrashBinService;
 use Illuminate\Console\Command;
+use Modules\Trash\Services\TrashBinService;
 
 class PurgeExpiredTrashBins extends Command
 {

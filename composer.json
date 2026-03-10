@@ -104,6 +104,9 @@
       "Modules\\Search\\": "Modules/Search/app/",
       "Modules\\Search\\Database\\Factories\\": "Modules/Search/database/factories/",
       "Modules\\Search\\Database\\Seeders\\": "Modules/Search/database/seeders/",
+      "Modules\\Trash\\": "Modules/Trash/app/",
+      "Modules\\Trash\\Database\\Factories\\": "Modules/Trash/database/factories/",
+      "Modules\\Trash\\Database\\Seeders\\": "Modules/Trash/database/seeders/",
       "Modules\\Questions\\": "Modules/Questions/app/",
       "Modules\\Questions\\Database\\Factories\\": "Modules/Questions/database/factories/",
       "Modules\\Questions\\Database\\Seeders\\": "Modules/Questions/database/seeders/",
@@ -131,6 +134,7 @@
       "Modules\\Forums\\Tests\\": "Modules/Forums/tests/",
       "Modules\\Content\\Tests\\": "Modules/Content/tests/",
       "Modules\\Search\\Tests\\": "Modules/Search/tests/",
+      "Modules\\Trash\\Tests\\": "Modules/Trash/tests/",
       "Modules\\Questions\\Tests\\": "Modules/Questions/tests/",
       "Modules\\Benchmark\\Tests\\": "Modules/Benchmark/tests/",
       "Modules\\Dashboard\\Tests\\": "Modules/Dashboard/tests/"
