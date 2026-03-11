@@ -276,6 +276,12 @@ class Course extends Model implements HasMedia
 
     public function hasAdmin($user): bool
     {
+        if ($this->relationLoaded('admins')) {
+            $userId = is_object($user) ? $user->id : $user;
+
+            return $this->admins->contains('id', $userId);
+        }
+
         return $this->admins()
             ->where('user_id', is_object($user) ? $user->id : $user)
             ->exists();

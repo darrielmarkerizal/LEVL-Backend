@@ -126,7 +126,7 @@ class EnrollmentLifecycleProcessor
             $enrollment->save();
             $this->invalidateEnrollmentCache($enrollment);
 
-            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email', 'user.media']);
         });
     }
 
@@ -142,7 +142,7 @@ class EnrollmentLifecycleProcessor
             $enrollment->save();
             $this->invalidateEnrollmentCache($enrollment);
 
-            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email', 'user.media']);
         });
     }
 
@@ -159,7 +159,7 @@ class EnrollmentLifecycleProcessor
             $enrollment->save();
             $this->invalidateEnrollmentCache($enrollment);
 
-            $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
+            $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email', 'user.media']);
             $course = $freshEnrollment->course;
             $student = $freshEnrollment->user;
 
@@ -184,7 +184,7 @@ class EnrollmentLifecycleProcessor
             $enrollment->save();
             $this->invalidateEnrollmentCache($enrollment);
 
-            $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
+            $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email', 'user.media']);
             $course = $freshEnrollment->course;
             $student = $freshEnrollment->user;
 
@@ -208,7 +208,7 @@ class EnrollmentLifecycleProcessor
             $enrollment->save();
             $this->invalidateEnrollmentCache($enrollment);
 
-            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email']);
+            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email', 'user.media']);
         });
     }
 
