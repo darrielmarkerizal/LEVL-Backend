@@ -32,6 +32,10 @@ class TrashServiceProvider extends ServiceProvider
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
 
+        $this->app->scoped(
+            \Modules\Trash\Services\TrashDeleteContext::class,
+        );
+
         $this->app->bind(
             \Modules\Trash\Contracts\Repositories\TrashBinRepositoryInterface::class,
             \Modules\Trash\Repositories\TrashBinRepository::class

@@ -39,24 +39,9 @@ class TrashBinService
         \Modules\Content\Models\News::class => 'archived',
     ];
 
-    private static int $activeDeleteOps = 0;
-
-    private static ?string $activeGroupUuid = null;
-
-    /** @var array<string, string> */
-    private static array $groupByModel = [];
-
-    /** @var array<string, array{type: string, id: int}> */
-    private static array $rootByModel = [];
-
-    /** @var array<string, string|null> */
-    private static array $originalStatusByModel = [];
-
-    /** @var array<string, string|null> */
-    private static array $trashedStatusByModel = [];
-
-    /** @var array<string, bool> */
-    private static array $processedDeleteModels = [];
+    public function __construct(
+        private readonly TrashDeleteContext $context,
+    ) {}
 
     public function beforeSoftDelete(Model $model): void
     {
@@ -65,32 +50,32 @@ class TrashBinService
         }
 
         $key = $this->modelKey($model);
-        if (isset(self::$processedDeleteModels[$key])) {
+        if (isset($this->context->processedDeleteModels[$key])) {
             return;
         }
 
-        if (self::$activeDeleteOps === 0) {
-            self::$activeGroupUuid = (string) Str::uuid();
-            self::$rootByModel[$key] = [
+        if ($this->context->activeDeleteOps === 0) {
+            $this->context->activeGroupUuid = (string) Str::uuid();
+            $this->context->rootByModel[$key] = [
                 'type' => get_class($model),
                 'id' => (int) $model->getKey(),
             ];
         }
 
-        self::$activeDeleteOps++;
-        self::$processedDeleteModels[$key] = true;
-        self::$groupByModel[$key] = (string) self::$activeGroupUuid;
+        $this->context->activeDeleteOps++;
+        $this->context->processedDeleteModels[$key] = true;
+        $this->context->groupByModel[$key] = (string) $this->context->activeGroupUuid;
 
-        if (! isset(self::$rootByModel[$key])) {
-            $firstRoot = reset(self::$rootByModel);
-            self::$rootByModel[$key] = $firstRoot ?: [
+        if (! isset($this->context->rootByModel[$key])) {
+            $firstRoot = reset($this->context->rootByModel);
+            $this->context->rootByModel[$key] = $firstRoot ?: [
                 'type' => get_class($model),
                 'id' => (int) $model->getKey(),
             ];
         }
 
-        self::$originalStatusByModel[$key] = $this->readStatusValue($model);
-        self::$trashedStatusByModel[$key] = $this->resolveTrashedStatus($model);
+        $this->context->originalStatusByModel[$key] = $this->readStatusValue($model);
+        $this->context->trashedStatusByModel[$key] = $this->resolveTrashedStatus($model);
 
         $this->applyTrashedStatus($model);
         $this->cascadeDeleteChildren($model);
@@ -104,7 +89,7 @@ class TrashBinService
 
         $key = $this->modelKey($model);
         $resourceType = self::RESOURCE_TYPES[get_class($model)] ?? 'unknown';
-        $root = self::$rootByModel[$key] ?? [
+        $root = $this->context->rootByModel[$key] ?? [
             'type' => get_class($model),
             'id' => (int) $model->getKey(),
         ];
@@ -116,11 +101,11 @@ class TrashBinService
             ],
             [
                 'resource_type' => $resourceType,
-                'group_uuid' => self::$groupByModel[$key] ?? (string) Str::uuid(),
+                'group_uuid' => $this->context->groupByModel[$key] ?? (string) Str::uuid(),
                 'root_resource_type' => $root['type'],
                 'root_resource_id' => $root['id'],
-                'original_status' => self::$originalStatusByModel[$key] ?? null,
-                'trashed_status' => self::$trashedStatusByModel[$key] ?? null,
+                'original_status' => $this->context->originalStatusByModel[$key] ?? null,
+                'trashed_status' => $this->context->trashedStatusByModel[$key] ?? null,
                 'deleted_by' => $this->resolveActorId(),
                 'deleted_at' => now(),
                 'expires_at' => now()->addDays(self::RETENTION_DAYS),
@@ -208,13 +193,23 @@ class TrashBinService
         return $count;
     }
 
-    public function forceDeleteAll(?string $resourceType = null): int
+    public function forceDeleteAll(?string $resourceType = null, ?int $actorId = null, array $accessibleCourseIds = []): int
     {
         $count = 0;
 
         $query = TrashBin::query()->orderBy('id');
         if ($resourceType !== null) {
             $query->where('resource_type', $resourceType);
+        }
+
+        if ($actorId !== null) {
+            $query->where(function ($sub) use ($actorId, $accessibleCourseIds): void {
+                $sub->where('deleted_by', $actorId);
+
+                if (! empty($accessibleCourseIds)) {
+                    $sub->orWhereIn(\Illuminate\Support\Facades\DB::raw("(metadata->>'course_id')::bigint"), $accessibleCourseIds);
+                }
+            });
         }
 
         $query->chunkById(100, function ($bins) use (&$count): void {
@@ -246,13 +241,23 @@ class TrashBinService
         return $count;
     }
 
-    public function restoreAll(?string $resourceType = null): int
+    public function restoreAll(?string $resourceType = null, ?int $actorId = null, array $accessibleCourseIds = []): int
     {
         $count = 0;
 
         $query = TrashBin::query()->orderBy('id');
         if ($resourceType !== null) {
             $query->where('resource_type', $resourceType);
+        }
+
+        if ($actorId !== null) {
+            $query->where(function ($sub) use ($actorId, $accessibleCourseIds): void {
+                $sub->where('deleted_by', $actorId);
+
+                if (! empty($accessibleCourseIds)) {
+                    $sub->orWhereIn(\Illuminate\Support\Facades\DB::raw("(metadata->>'course_id')::bigint"), $accessibleCourseIds);
+                }
+            });
         }
 
         $query->chunkById(100, function ($bins) use (&$count): void {
@@ -360,6 +365,7 @@ class TrashBinService
             $model->restore();
         }
 
+        $bin->forceFill(['restored_at' => now()])->saveQuietly();
         $bin->delete();
 
         return true;
@@ -389,6 +395,7 @@ class TrashBinService
             }
         }
 
+        $bin->forceFill(['force_deleted_at' => now()])->saveQuietly();
         $bin->delete();
 
         return true;
@@ -562,23 +569,18 @@ class TrashBinService
 
     private function releaseDeleteContext(string $key): void
     {
-        self::$activeDeleteOps = max(0, self::$activeDeleteOps - 1);
+        $this->context->activeDeleteOps = max(0, $this->context->activeDeleteOps - 1);
 
         unset(
-            self::$processedDeleteModels[$key],
-            self::$groupByModel[$key],
-            self::$rootByModel[$key],
-            self::$originalStatusByModel[$key],
-            self::$trashedStatusByModel[$key]
+            $this->context->processedDeleteModels[$key],
+            $this->context->groupByModel[$key],
+            $this->context->rootByModel[$key],
+            $this->context->originalStatusByModel[$key],
+            $this->context->trashedStatusByModel[$key]
         );
 
-        if (self::$activeDeleteOps === 0) {
-            self::$activeGroupUuid = null;
-            self::$groupByModel = [];
-            self::$rootByModel = [];
-            self::$originalStatusByModel = [];
-            self::$trashedStatusByModel = [];
-            self::$processedDeleteModels = [];
+        if ($this->context->activeDeleteOps === 0) {
+            $this->context->reset();
         }
     }
 }

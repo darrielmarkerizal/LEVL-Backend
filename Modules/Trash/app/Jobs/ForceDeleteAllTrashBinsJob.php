@@ -22,12 +22,14 @@ class ForceDeleteAllTrashBinsJob implements ShouldQueue
     public function __construct(
         public ?string $resourceType = null,
         public ?int $actorId = null,
+        public ?int $scopedActorId = null,
+        public array $accessibleCourseIds = [],
     ) {
         $this->onQueue('schemes');
     }
 
     public function handle(TrashBinService $trashBinService): void
     {
-        $trashBinService->forceDeleteAll($this->resourceType);
+        $trashBinService->forceDeleteAll($this->resourceType, $this->scopedActorId, $this->accessibleCourseIds);
     }
 }
