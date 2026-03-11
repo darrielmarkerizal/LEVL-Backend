@@ -462,6 +462,11 @@ return [
         'enrollment_success' => 'Enrollment successful.',
         'enrollment_failed' => 'Enrollment failed. Please try again.',
         'bulk_action_completed' => 'Bulk action completed.',
+        'invitations_retrieved' => 'Pending invitations retrieved successfully.',
+        'invitation_retrieved' => 'Invitation retrieved successfully.',
+        'invitation_not_found' => 'Invitation not found or already processed.',
+        'invitation_accepted' => 'Invitation accepted. You are now enrolled in this course.',
+        'invitation_declined' => 'Invitation declined successfully.',
     ],
 
     // Assignments Module

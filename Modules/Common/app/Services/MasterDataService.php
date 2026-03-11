@@ -108,7 +108,19 @@ class MasterDataService
 
     public function getCourses(?string $search = null): Collection
     {
-        $query = Course::select(['title', 'slug']);
+        $user = auth('api')->user();
+        $query = Course::select(['id', 'title', 'slug', 'instructor_id', 'status']);
+
+        if ($user && ! $user->hasRole('Superadmin')) {
+            if ($user->hasRole(['Admin', 'Instructor'])) {
+                $query->where(function ($q) use ($user) {
+                    $q->where('instructor_id', $user->id)
+                        ->orWhereHas('admins', fn ($subQuery) => $subQuery->where('user_id', $user->id));
+                });
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
 
         if (! empty($search)) {
             $query->search($search);
