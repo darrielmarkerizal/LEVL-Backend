@@ -50,9 +50,18 @@ class TrashBinRepository implements TrashBinRepositoryInterface
         }
 
         if ($search) {
-            $query->where(function ($subQuery) use ($search): void {
+            $threshold = strlen($search) <= 3 ? 0.5 : (strlen($search) <= 5 ? 0.4 : 0.3);
+
+            $query->where(function ($subQuery) use ($search, $threshold): void {
                 $subQuery->search($search)
-                    ->orWhereRaw("COALESCE(metadata->>'title', '') ILIKE ?", ["%{$search}%"]);
+                    ->orWhereRaw("COALESCE(metadata->>'title', '') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("similarity(COALESCE(metadata->>'title', ''), ?) > ?", [$search, $threshold])
+                    ->orWhereHas('deletedByUser', function ($userQuery) use ($search, $threshold) {
+                        $userQuery->where('name', 'ILIKE', "%{$search}%")
+                            ->orWhereRaw("similarity(name, ?) > ?", [$search, $threshold])
+                            ->orWhere('username', 'ILIKE', "%{$search}%")
+                            ->orWhereRaw("similarity(username, ?) > ?", [$search, $threshold]);
+                    });
             });
         }
 

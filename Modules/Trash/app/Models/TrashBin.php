@@ -23,7 +23,6 @@ class TrashBin extends Model
         'trashable_type',
         'original_status',
         'trashed_status',
-        'group_uuid',
     ];
 
     protected $table = 'trash_bins';
