@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Modules\Trash\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use Modules\Auth\Models\User;
 use Modules\Common\Traits\PgSearchable;
 
 class TrashBin extends Model
@@ -62,5 +64,10 @@ class TrashBin extends Model
         }
 
         return (string) Str::of($type)->replace('_', ' ')->title();
+    }
+
+    public function deletedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }
