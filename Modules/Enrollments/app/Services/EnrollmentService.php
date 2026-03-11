@@ -9,6 +9,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Contracts\Services\EnrollmentServiceInterface;
+use Modules\Enrollments\Enums\EnrollmentStatus;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Enrollments\Services\Support\EnrollmentFinder;
 use Modules\Enrollments\Services\Support\EnrollmentLifecycleProcessor;
@@ -101,6 +102,32 @@ class EnrollmentService implements EnrollmentServiceInterface
         return $this->finder->listEnrollmentsForIndex($user, $perPage, $filters);
     }
 
+    public function getPendingEnrollmentsForStudent(User $student, int $perPage = 15): LengthAwarePaginator
+    {
+        return Enrollment::query()
+            ->where('user_id', $student->id)
+            ->where('status', EnrollmentStatus::Pending)
+            ->with([
+                'course:id,title,slug,code,description,status',
+                'course.instructor:id,name,email',
+            ])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+    }
+
+    public function getPendingEnrollmentForStudent(User $student, int $enrollmentId): ?Enrollment
+    {
+        return Enrollment::query()
+            ->where('id', $enrollmentId)
+            ->where('user_id', $student->id)
+            ->where('status', EnrollmentStatus::Pending)
+            ->with([
+                'course:id,title,slug,code,description,status',
+                'course.instructor:id,name,email',
+            ])
+            ->first();
+    }
+
     public function findEnrollmentForAction(Course $course, User $user, array $data): Enrollment
     {
         return $this->finder->findEnrollmentForAction($course, $user, $data);
@@ -114,6 +141,14 @@ class EnrollmentService implements EnrollmentServiceInterface
     public function enroll(User $user, Course $course, array $data): array
     {
         $result = $this->lifecycleProcessor->enroll($user, $course, $data);
+        cache()->tags(['enrollments'])->flush();
+
+        return $result;
+    }
+
+    public function enrollManually(User $actor, Course $course, array $data): array
+    {
+        $result = $this->lifecycleProcessor->enrollManually($actor, $course, $data);
         cache()->tags(['enrollments'])->flush();
 
         return $result;

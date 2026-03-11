@@ -114,6 +114,63 @@ class EnrollmentLifecycleProcessor
         });
     }
 
+    public function enrollManually(User $actor, Course $course, array $data): array
+    {
+        $studentId = (int) $data['student_id'];
+        $student = \Modules\Auth\Models\User::findOrFail($studentId);
+        $enrollmentDate = $data['enrollment_date'] ? Carbon::parse($data['enrollment_date']) : Carbon::now();
+        $initialStatus = EnrollmentStatus::from($data['initial_status']);
+        $notifyStudent = (bool) ($data['is_notify_student'] ?? false);
+
+        $existingEnrollment = $this->repository->findByCourseAndUser($course->id, $student->id);
+
+        if ($existingEnrollment && $existingEnrollment->status === EnrollmentStatus::Active) {
+            throw new BusinessException(__('messages.enrollments.already_enrolled'), []);
+        }
+
+        return DB::transaction(function () use ($student, $course, $existingEnrollment, $initialStatus, $enrollmentDate, $notifyStudent, $actor) {
+            if ($existingEnrollment) {
+                $existingEnrollment->status = $initialStatus;
+                $existingEnrollment->enrolled_at = $enrollmentDate;
+                $existingEnrollment->completed_at = null;
+                $existingEnrollment->save();
+                $enrollment = $existingEnrollment;
+                $isNew = false;
+            } else {
+                $enrollment = new Enrollment;
+                $enrollment->user_id = $student->id;
+                $enrollment->course_id = $course->id;
+                $enrollment->status = $initialStatus;
+                $enrollment->enrolled_at = $enrollmentDate;
+                $enrollment->save();
+                $isNew = true;
+            }
+
+            $this->invalidateEnrollmentCache($enrollment);
+
+            if ($isNew) {
+                \Modules\Enrollments\Events\EnrollmentCreated::dispatch($enrollment);
+            }
+
+            if ($notifyStudent) {
+                $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
+                $courseUrl = $this->getCourseUrl($course);
+                
+                if ($freshEnrollment->status === EnrollmentStatus::Active) {
+                    Mail::to($student->email)->send(new \Modules\Mail\Mail\Enrollments\StudentEnrollmentManualActiveMail($student, $course, $courseUrl));
+                } elseif ($freshEnrollment->status === EnrollmentStatus::Pending) {
+                    Mail::to($student->email)->send(new \Modules\Mail\Mail\Enrollments\StudentEnrollmentManualPendingMail($student, $course, $courseUrl));
+                }
+            }
+
+            return [
+                'status' => 'success',
+                'enrollment' => $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email', 'user.media']),
+                'message' => __('messages.enrollments.enrolled_successfully'),
+            ];
+        });
+    }
+
     public function cancel(Enrollment $enrollment): Enrollment
     {
         return DB::transaction(function () use ($enrollment) {

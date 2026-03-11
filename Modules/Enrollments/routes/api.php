@@ -9,6 +9,9 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
         Route::post('courses/{course:slug}/enroll', [EnrollmentsController::class, 'store'])
             ->name('courses.enrollments.store')
             ->middleware('role:Student');
+        Route::post('enrollments/create', [EnrollmentsController::class, 'createManual'])
+            ->name('enrollments.create-manual')
+            ->middleware('role:Superadmin|Admin|Instructor');
         Route::post('courses/{course:slug}/cancel', [EnrollmentsController::class, 'cancel'])->name('courses.enrollments.cancel');
         Route::post('courses/{course:slug}/withdraw', [EnrollmentsController::class, 'withdraw'])->name('courses.enrollments.withdraw');
         Route::post('enrollments/approve/bulk', [EnrollmentsController::class, 'bulkApprove'])
@@ -32,6 +35,14 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->whereNumber('enrollment')
             ->middleware('can:remove,enrollment')
             ->name('enrollments.remove');
+        Route::post('me/enrollments/invitations/{enrollment}/accept', [EnrollmentsController::class, 'acceptInvitation'])
+            ->whereNumber('enrollment')
+            ->middleware('role:Student')
+            ->name('me.enrollments.invitations.accept');
+        Route::post('me/enrollments/invitations/{enrollment}/decline', [EnrollmentsController::class, 'declineInvitation'])
+            ->whereNumber('enrollment')
+            ->middleware('role:Student')
+            ->name('me.enrollments.invitations.decline');
     });
 
     // Read-only enrollment endpoints with default API rate limiting
@@ -50,6 +61,13 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
         Route::get('enrollments/{enrollment}', [EnrollmentsController::class, 'show'])
             ->whereNumber('enrollment')
             ->name('enrollments.show');
+        Route::get('me/enrollments/invitations', [EnrollmentsController::class, 'listInvitations'])
+            ->middleware('role:Student')
+            ->name('me.enrollments.invitations.list');
+        Route::get('me/enrollments/invitations/{enrollment}', [EnrollmentsController::class, 'showInvitation'])
+            ->whereNumber('enrollment')
+            ->middleware('role:Student')
+            ->name('me.enrollments.invitations.show');
     });
 
     // Admin Reporting & Analytics with default API rate limiting

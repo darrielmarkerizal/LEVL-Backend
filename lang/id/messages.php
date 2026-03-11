@@ -432,6 +432,11 @@ return [
         'enrollment_pending' => 'Pendaftaran Anda sedang diproses dan menunggu persetujuan.',
         'enrollment_success' => 'Pendaftaran berhasil.',
         'enrollment_failed' => 'Pendaftaran gagal. Silakan coba lagi.',
+        'invitations_retrieved' => 'Undangan pending berhasil diambil.',
+        'invitation_retrieved' => 'Undangan berhasil diambil.',
+        'invitation_not_found' => 'Undangan tidak ditemukan atau sudah diproses.',
+        'invitation_accepted' => 'Undangan diterima. Anda sekarang terdaftar pada course ini.',
+        'invitation_declined' => 'Undangan ditolak dengan berhasil.',
     ],
 
     // Assignments Module

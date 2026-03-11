@@ -86,6 +86,26 @@ return [
         'footer' => 'Thank you for your patience.',
     ],
 
+    'enrollment_manual_active' => [
+        'subject' => 'You Have Been Enrolled in a Course',
+        'title' => 'Course Enrollment Confirmation',
+        'greeting' => 'Hello :name,',
+        'body' => 'Your administrator has enrolled you in the following course:',
+        'info' => '<strong>Status:</strong> You have been enrolled and can now access the course materials immediately.',
+        'button' => 'Access Course',
+        'footer' => 'If you have any questions, please contact your course administrator.',
+    ],
+
+    'enrollment_manual_pending' => [
+        'subject' => 'Enrollment Notification',
+        'title' => 'Enrollment Submitted for Review',
+        'greeting' => 'Hello :name,',
+        'body' => 'Your administrator has submitted your enrollment for the following course:',
+        'info' => '<strong>Status:</strong> Your enrollment is pending review and approval from the course administrator or instructor. You will receive a notification once your enrollment is approved.',
+        'confirmation' => 'You will be able to access the course materials once your enrollment is approved.',
+        'footer' => 'Thank you for your patience.',
+    ],
+
     'enrollment_approved' => [
         'subject' => 'Enrollment Request Approved',
         'title' => 'Enrollment Request Approved',

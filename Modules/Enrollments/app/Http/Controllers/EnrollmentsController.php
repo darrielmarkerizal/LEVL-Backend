@@ -81,6 +81,22 @@ class EnrollmentsController extends Controller
         );
     }
 
+    public function createManual(\Modules\Enrollments\Http\Requests\CreateManualEnrollmentRequest $request)
+    {
+        $actor = auth('api')->user();
+        $data = $request->validated();
+
+        $course = Course::where('slug', $data['course_slug'])->firstOrFail();
+        $this->authorize('update', $course);
+
+        $result = $this->service->enrollManually($actor, $course, $data);
+
+        return $this->created(
+            new EnrollmentResource($result['enrollment']),
+            $result['message']
+        );
+    }
+
     public function cancel(Request $request, Course $course)
     {
         $user = auth('api')->user();
@@ -193,5 +209,77 @@ class EnrollmentsController extends Controller
             'processed' => EnrollmentResource::collection($result['processed']),
             'failed' => $result['failed'],
         ], __('messages.enrollments.bulk_action_completed'));
+    }
+
+    public function listInvitations(Request $request)
+    {
+        $student = auth('api')->user();
+        $perPage = max(1, (int) $request->query('per_page', 15));
+
+        $paginator = $this->service->getPendingEnrollmentsForStudent($student, $perPage);
+
+        $paginator->getCollection()->transform(fn ($item) => new \Modules\Enrollments\Http\Resources\EnrollmentInvitationResource($item));
+
+        return $this->paginateResponse($paginator, __('messages.enrollments.invitations_retrieved'));
+    }
+
+    public function showInvitation($enrollmentId)
+    {
+        $student = auth('api')->user();
+
+        $enrollment = $this->service->getPendingEnrollmentForStudent($student, (int) $enrollmentId);
+
+        if (! $enrollment) {
+            return $this->error(__('messages.enrollments.invitation_not_found'), [], 404);
+        }
+
+        return $this->success(
+            new \Modules\Enrollments\Http\Resources\EnrollmentInvitationResource($enrollment),
+            __('messages.enrollments.invitation_retrieved')
+        );
+    }
+
+    public function acceptInvitation($enrollmentId)
+    {
+        $student = auth('api')->user();
+
+        $enrollment = $this->service->getPendingEnrollmentForStudent($student, (int) $enrollmentId);
+
+        if (! $enrollment) {
+            return $this->error(__('messages.enrollments.invitation_not_found'), [], 404);
+        }
+
+        try {
+            $approved = $this->service->approve($enrollment);
+
+            return $this->success(
+                new \Modules\Enrollments\Http\Resources\EnrollmentInvitationResource($approved),
+                __('messages.enrollments.invitation_accepted')
+            );
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), [], 400);
+        }
+    }
+
+    public function declineInvitation($enrollmentId)
+    {
+        $student = auth('api')->user();
+
+        $enrollment = $this->service->getPendingEnrollmentForStudent($student, (int) $enrollmentId);
+
+        if (! $enrollment) {
+            return $this->error(__('messages.enrollments.invitation_not_found'), [], 404);
+        }
+
+        try {
+            $declined = $this->service->decline($enrollment);
+
+            return $this->success(
+                new \Modules\Enrollments\Http\Resources\EnrollmentInvitationResource($declined),
+                __('messages.enrollments.invitation_declined')
+            );
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), [], 400);
+        }
     }
 }

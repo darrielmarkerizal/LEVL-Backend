@@ -86,6 +86,26 @@ return [
         'footer' => 'Terima kasih atas kesabaran Anda.',
     ],
 
+    'enrollment_manual_active' => [
+        'subject' => 'Anda Telah Terdaftar di Course',
+        'title' => 'Konfirmasi Enrollment Course',
+        'greeting' => 'Halo :name,',
+        'body' => 'Administrator Anda telah mendaftarkan Anda pada course berikut:',
+        'info' => '<strong>Status:</strong> Anda telah terdaftar dan dapat langsung mengakses materi course.',
+        'button' => 'Akses Course',
+        'footer' => 'Jika Anda memiliki pertanyaan, silakan hubungi administrator course Anda.',
+    ],
+
+    'enrollment_manual_pending' => [
+        'subject' => 'Notifikasi Enrollment',
+        'title' => 'Enrollment Dikirim untuk Ditinjau',
+        'greeting' => 'Halo :name,',
+        'body' => 'Administrator Anda telah mengirimkan enrollment Anda untuk course berikut:',
+        'info' => '<strong>Status:</strong> Enrollment Anda sedang menunggu tinjauan dan persetujuan dari administrator atau instructor course. Anda akan menerima notifikasi setelah enrollment Anda disetujui.',
+        'confirmation' => 'Anda dapat mengakses materi course setelah enrollment Anda disetujui.',
+        'footer' => 'Terima kasih atas kesabaran Anda.',
+    ],
+
     'enrollment_approved' => [
         'subject' => 'Permintaan Enrollment Disetujui',
         'title' => 'Permintaan Enrollment Disetujui',
