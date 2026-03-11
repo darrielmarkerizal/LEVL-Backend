@@ -45,9 +45,16 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
     public function restoreAll(User $actor, ?string $resourceType = null): array
     {
-        $this->assertSuperadmin($actor);
+        $this->assertHasTrashRole($actor);
 
-        RestoreAllTrashBinsJob::dispatch($resourceType, $actor->id);
+        [$isSuperadmin, $courseIds] = $this->resolveAccessContext($actor);
+
+        RestoreAllTrashBinsJob::dispatch(
+            $resourceType,
+            $actor->id,
+            $isSuperadmin ? null : $actor->id,
+            $isSuperadmin ? [] : $courseIds,
+        );
 
         return [
             'queued' => true,
@@ -100,9 +107,16 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
     public function forceDeleteAll(User $actor, ?string $resourceType = null): array
     {
-        $this->assertSuperadmin($actor);
+        $this->assertHasTrashRole($actor);
 
-        ForceDeleteAllTrashBinsJob::dispatch($resourceType, $actor->id);
+        [$isSuperadmin, $courseIds] = $this->resolveAccessContext($actor);
+
+        ForceDeleteAllTrashBinsJob::dispatch(
+            $resourceType,
+            $actor->id,
+            $isSuperadmin ? null : $actor->id,
+            $isSuperadmin ? [] : $courseIds,
+        );
 
         return [
             'queued' => true,
@@ -145,9 +159,9 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
         return $this->trashService->getSupportedResourceTypeOptions();
     }
 
-    private function assertSuperadmin(User $actor): void
+    private function assertHasTrashRole(User $actor): void
     {
-        if (! $actor->hasRole('Superadmin')) {
+        if (! $this->hasTrashAccessRole($actor)) {
             throw new AuthorizationException(__('messages.forbidden'));
         }
     }
@@ -182,15 +196,18 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
             return false;
         }
 
-        $courseId = $this->resolveCourseId($bin);
+        $courseId = $this->resolveCourseIdFromBin($bin);
         if ($courseId === null) {
             return false;
         }
 
-        $isManaged = $actor->managedCourses()->where('courses.id', $courseId)->exists();
-        $isInstructor = Course::query()->where('id', $courseId)->where('instructor_id', $actor->id)->exists();
-
-        return $isManaged || $isInstructor;
+        return Course::query()
+            ->where('id', $courseId)
+            ->where(function ($q) use ($actor): void {
+                $q->where('instructor_id', $actor->id)
+                    ->orWhereHas('managers', fn ($m) => $m->where('users.id', $actor->id));
+            })
+            ->exists();
     }
 
     private function resolveAccessContext(User $actor): array
@@ -207,41 +224,11 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
         return [false, $courseIds];
     }
 
-    private function resolveCourseId(TrashBin $bin): ?int
+    private function resolveCourseIdFromBin(TrashBin $bin): ?int
     {
         $metaCourseId = data_get($bin->metadata, 'course_id');
         if ($metaCourseId !== null && is_numeric($metaCourseId)) {
             return (int) $metaCourseId;
-        }
-
-        $class = $bin->trashable_type;
-        if (! class_exists($class)) {
-            return null;
-        }
-
-        $query = method_exists($class, 'withTrashed') ? $class::withTrashed() : $class::query();
-        $model = $query->find($bin->trashable_id);
-
-        if (! $model) {
-            return null;
-        }
-
-        if ($model instanceof \Modules\Schemes\Models\Course) {
-            return (int) $model->id;
-        }
-
-        if ($model instanceof \Modules\Schemes\Models\Unit) {
-            return (int) $model->course_id;
-        }
-
-        if ($model instanceof \Modules\Schemes\Models\Lesson) {
-            return $model->unit ? (int) $model->unit->course_id : null;
-        }
-
-        if (method_exists($model, 'getCourseId')) {
-            $courseId = $model->getCourseId();
-
-            return $courseId !== null ? (int) $courseId : null;
         }
 
         return null;
