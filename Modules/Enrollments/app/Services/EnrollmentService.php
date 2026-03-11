@@ -176,9 +176,19 @@ class EnrollmentService implements EnrollmentServiceInterface
 
     public function getEnrollmentsAuthorizedFor(User $user, array $enrollmentIds, string $ability): array
     {
-        $enrollments = Enrollment::whereIn('id', $enrollmentIds)->get();
+        $gate = Gate::forUser($user);
+        $enrollments = Enrollment::query()
+            ->whereIn('id', $enrollmentIds)
+            ->with([
+                'course:id,instructor_id',
+                'course.admins:id',
+            ])
+            ->get();
 
-        return $enrollments->filter(fn (Enrollment $e) => Gate::forUser($user)->allows($ability, $e))->values()->all();
+        return $enrollments
+            ->filter(fn (Enrollment $enrollment) => $gate->allows($ability, $enrollment))
+            ->values()
+            ->all();
     }
 
     private function bulkAction(array $enrollments, string $action): array
