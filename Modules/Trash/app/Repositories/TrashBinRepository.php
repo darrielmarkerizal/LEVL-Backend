@@ -56,7 +56,10 @@ class TrashBinRepository implements TrashBinRepositoryInterface
             });
         }
 
-        return $query->paginate($perPage)->appends($params);
+        return $query
+            ->with(['deletedByUser:id,name,username'])
+            ->paginate($perPage)
+            ->appends($params);
     }
 
     public function findByIdOrFail(int $id): TrashBin
