@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Common\Http\Resources\CourseMasterDataResource;
 use Modules\Common\Http\Resources\MasterDataTypeResource;
+use Modules\Common\Http\Resources\StudentMasterDataResource;
 use Modules\Common\Services\MasterDataService;
 
 class MasterDataController extends Controller
@@ -27,6 +28,17 @@ class MasterDataController extends Controller
         $paginator->getCollection()->transform(fn ($item) => new MasterDataTypeResource($item));
 
         return $this->paginateResponse($paginator, __('messages.master_data.types_retrieved'));
+    }
+
+    public function students(Request $request): JsonResponse
+    {
+        $search = $request->query('search');
+        $data = $this->service->getStudents($search);
+
+        return $this->success(
+            StudentMasterDataResource::collection($data),
+            __('messages.master_data.students_retrieved')
+        );
     }
 
     public function courses(Request $request): JsonResponse

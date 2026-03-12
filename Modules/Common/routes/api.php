@@ -46,6 +46,11 @@ Route::prefix('v1')->group(function () {
         // Courses (static - with search, no pagination)
         Route::get('courses', [MasterDataController::class, 'courses'])->name('courses');
 
+        // Students (static - with search, no pagination)
+        Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])
+            ->get('students', [MasterDataController::class, 'students'])
+            ->name('students');
+
         // Data Items (Paginated)
         Route::get('{type}', [MasterDataController::class, 'index'])->name('index');
         // Data Items (All - helpers)

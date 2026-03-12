@@ -11,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use Modules\Auth\Models\User;
 use Modules\Schemes\Models\Course;
 
-class StudentEnrollmentManualPendingMail extends Mailable implements ShouldQueue
+class StudentEnrollmentActivatedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -25,8 +25,8 @@ class StudentEnrollmentManualPendingMail extends Mailable implements ShouldQueue
 
     public function build(): self
     {
-        return $this->subject(__('mail.enrollment_manual_pending.subject'))
-            ->view('mail::emails.enrollments.student-enrollment-manual-pending')
+        return $this->subject(__('mail.enrollment_activated.subject'))
+            ->view('mail::emails.enrollments.student-enrollment-activated')
             ->with([
                 'student' => $this->student,
                 'course' => $this->course,

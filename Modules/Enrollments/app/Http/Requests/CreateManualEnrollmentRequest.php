@@ -14,7 +14,7 @@ class CreateManualEnrollmentRequest extends FormRequest
         return [
             'student_id' => ['required', 'integer', 'exists:users,id'],
             'course_slug' => ['required', 'string', 'exists:courses,slug'],
-            'enrollment_date' => ['nullable', 'date_format:Y-m-d'],
+            'enrollment_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today'],
             'initial_status' => ['required', 'string', 'in:active,pending'],
             'is_notify_student' => ['nullable', 'boolean'],
         ];

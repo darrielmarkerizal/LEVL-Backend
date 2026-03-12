@@ -225,6 +225,7 @@ return [
         'category_statuses' => 'Category status list',
         'setting_types' => 'Setting type list',
         'courses' => 'Course list',
+        'students_retrieved' => 'Students retrieved successfully.',
     ],
 
     // Courses Module
@@ -467,6 +468,8 @@ return [
         'invitation_not_found' => 'Invitation not found or already processed.',
         'invitation_accepted' => 'Invitation accepted. You are now enrolled in this course.',
         'invitation_declined' => 'Invitation declined successfully.',
+        'enrolled_successfully' => 'User successfully enrolled in the course.',
+        'scheduled_successfully' => 'Enrollment scheduled for :date. The user will be automatically enrolled on that date.',
     ],
 
     // Assignments Module

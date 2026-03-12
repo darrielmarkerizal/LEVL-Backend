@@ -18,7 +18,10 @@ use Modules\Mail\Mail\Enrollments\AdminEnrollmentNotificationMail;
 use Modules\Mail\Mail\Enrollments\StudentEnrollmentActiveMail;
 use Modules\Mail\Mail\Enrollments\StudentEnrollmentApprovedMail;
 use Modules\Mail\Mail\Enrollments\StudentEnrollmentDeclinedMail;
+use Modules\Mail\Mail\Enrollments\StudentEnrollmentManualActiveMail;
+use Modules\Mail\Mail\Enrollments\StudentEnrollmentManualPendingMail;
 use Modules\Mail\Mail\Enrollments\StudentEnrollmentPendingMail;
+use Modules\Mail\Mail\Enrollments\StudentEnrollmentScheduledMail;
 use Modules\Schemes\Enums\CourseStatus;
 use Modules\Schemes\Enums\EnrollmentType;
 use Modules\Schemes\Models\Course;
@@ -122,13 +125,21 @@ class EnrollmentLifecycleProcessor
         $initialStatus = EnrollmentStatus::from($data['initial_status']);
         $notifyStudent = (bool) ($data['is_notify_student'] ?? false);
 
+        // Check if enrollment date is in the future
+        $isFutureEnrollment = $enrollmentDate->isFuture();
+        
+        // If enrollment date is in the future, force status to pending
+        if ($isFutureEnrollment && $initialStatus === EnrollmentStatus::Active) {
+            $initialStatus = EnrollmentStatus::Pending;
+        }
+
         $existingEnrollment = $this->repository->findByCourseAndUser($course->id, $student->id);
 
         if ($existingEnrollment && $existingEnrollment->status === EnrollmentStatus::Active) {
             throw new BusinessException(__('messages.enrollments.already_enrolled'), []);
         }
 
-        return DB::transaction(function () use ($student, $course, $existingEnrollment, $initialStatus, $enrollmentDate, $notifyStudent, $actor) {
+        return DB::transaction(function () use ($student, $course, $existingEnrollment, $initialStatus, $enrollmentDate, $notifyStudent, $actor, $isFutureEnrollment) {
             if ($existingEnrollment) {
                 $existingEnrollment->status = $initialStatus;
                 $existingEnrollment->enrolled_at = $enrollmentDate;
@@ -156,17 +167,25 @@ class EnrollmentLifecycleProcessor
                 $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
                 $courseUrl = $this->getCourseUrl($course);
                 
-                if ($freshEnrollment->status === EnrollmentStatus::Active) {
-                    Mail::to($student->email)->send(new \Modules\Mail\Mail\Enrollments\StudentEnrollmentManualActiveMail($student, $course, $courseUrl));
+                if ($isFutureEnrollment) {
+                    // Send scheduled enrollment notification
+                    Mail::to($student->email)->send(new StudentEnrollmentScheduledMail($student, $course, $enrollmentDate, $courseUrl));
+                } elseif ($freshEnrollment->status === EnrollmentStatus::Active) {
+                    Mail::to($student->email)->send(new StudentEnrollmentManualActiveMail($student, $course, $courseUrl));
                 } elseif ($freshEnrollment->status === EnrollmentStatus::Pending) {
-                    Mail::to($student->email)->send(new \Modules\Mail\Mail\Enrollments\StudentEnrollmentManualPendingMail($student, $course, $courseUrl));
+                    Mail::to($student->email)->send(new StudentEnrollmentManualPendingMail($student, $course, $courseUrl));
                 }
             }
+
+            $message = $isFutureEnrollment 
+                ? __('messages.enrollments.scheduled_successfully', ['date' => $enrollmentDate->format('d M Y')])
+                : __('messages.enrollments.enrolled_successfully');
 
             return [
                 'status' => 'success',
                 'enrollment' => $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email', 'user.media']),
-                'message' => __('messages.enrollments.enrolled_successfully'),
+                'message' => $message,
+                'is_scheduled' => $isFutureEnrollment,
             ];
         });
     }
