@@ -196,6 +196,7 @@ return [
         'category_statuses' => 'Daftar status kategori',
         'setting_types' => 'Daftar tipe pengaturan',
         'courses' => 'Daftar kursus',
+        'students_retrieved' => 'Daftar student berhasil diambil.',
     ],
 
     'courses' => [
@@ -437,6 +438,8 @@ return [
         'invitation_not_found' => 'Undangan tidak ditemukan atau sudah diproses.',
         'invitation_accepted' => 'Undangan diterima. Anda sekarang terdaftar pada course ini.',
         'invitation_declined' => 'Undangan ditolak dengan berhasil.',
+        'enrolled_successfully' => 'Pengguna berhasil didaftarkan ke kursus.',
+        'scheduled_successfully' => 'Pendaftaran dijadwalkan untuk :date. Pengguna akan otomatis terdaftar pada tanggal tersebut.',
     ],
 
     // Assignments Module

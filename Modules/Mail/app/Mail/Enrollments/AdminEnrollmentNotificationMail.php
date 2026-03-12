@@ -20,7 +20,9 @@ class AdminEnrollmentNotificationMail extends Mailable implements ShouldQueue
         public readonly User $student,
         public readonly Course $course,
         public readonly string $enrollmentUrl
-    ) {}
+    ) {
+        $this->onQueue('mail');
+    }
 
     public function build(): self
     {

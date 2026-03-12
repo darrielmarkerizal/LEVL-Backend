@@ -106,6 +106,19 @@ class MasterDataService
         return $this->repository->update($item, $data);
     }
 
+    public function getStudents(?string $search = null): Collection
+    {
+        $query = \Modules\Auth\Models\User::select(['id', 'name', 'username', 'email'])
+            ->role('Student')
+            ->orderBy('name');
+
+        if (! empty($search)) {
+            $query->search($search);
+        }
+
+        return $query->get();
+    }
+
     public function getCourses(?string $search = null): Collection
     {
         $user = auth('api')->user();
