@@ -9,6 +9,8 @@ class MilestoneSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->command->info('Seeding Gamification Milestones...');
+
         $milestones = [
             [
                 'code' => 'beginner',
@@ -66,11 +68,19 @@ class MilestoneSeeder extends Seeder
             ],
         ];
 
+        $count = 0;
         foreach ($milestones as $milestone) {
-            Milestone::updateOrCreate(
-                ['code' => $milestone['code']],
-                $milestone
-            );
+            try {
+                Milestone::updateOrCreate(
+                    ['code' => $milestone['code']],
+                    $milestone
+                );
+                $count++;
+            } catch (\Exception $e) {
+                $this->command->error("Failed to seed milestone {$milestone['code']}: {$e->getMessage()}");
+            }
         }
+
+        $this->command->info("✅ Successfully seeded {$count} milestones.");
     }
 }

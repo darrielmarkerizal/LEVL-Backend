@@ -12,52 +12,58 @@ class BadgeSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->command->info('Seeding 100 Gamification Badges (Payload-Ready)...');
+        $this->command->info('Seeding Gamification Badges...');
 
         $badges = $this->generateInteractiveBadges();
+        $count = 0;
 
-        foreach ($badges as $index => $badgeData) {
+        foreach ($badges as $badgeData) {
             $rules = $badgeData['rules'] ?? [];
             unset($badgeData['rules']);
 
-            $badge = Badge::updateOrCreate(
-                ['code' => $badgeData['code']],
-                $badgeData
-            );
+            try {
+                $badge = Badge::updateOrCreate(
+                    ['code' => $badgeData['code']],
+                    $badgeData
+                );
 
-            if ($badge->wasRecentlyCreated || $badge->getMedia('icon')->isEmpty()) {
-                $badge->clearMediaCollection('icon');
+                // Only add media if badge was just created and has no media
+                if ($badge->wasRecentlyCreated || $badge->getMedia('icon')->isEmpty()) {
+                    $badge->clearMediaCollection('icon');
 
-                // DiceBear API shapes style for Gamification
-                $seed = \Illuminate\Support\Str::slug($badge->name);
-                $url = "https://api.dicebear.com/7.x/shapes/svg?seed={$seed}&backgroundColor=000000,ffffff&shape1Color=0a5b83,1c799f,69d2e7,f1f4dc,f88c49";
+                    // DiceBear API shapes style for Gamification
+                    $seed = \Illuminate\Support\Str::slug($badge->name);
+                    $url = "https://api.dicebear.com/7.x/shapes/svg?seed={$seed}&backgroundColor=000000,ffffff&shape1Color=0a5b83,1c799f,69d2e7,f1f4dc,f88c49";
 
-                try {
-                    $badge->addMediaFromUrl($url)
-                        ->withCustomProperties(['seeded' => true])
-                        ->toMediaCollection('icon');
-                } catch (\Exception $e) {
-                    $this->command->error("Failed to attach media to {$badge->code} via URL. Attempting local temp file fallback...");
-                    // Fallback to avoid complete halt if allow_url_fopen is false, but addMediaFromUrl usually uses curl.
+                    try {
+                        $badge->addMediaFromUrl($url)
+                            ->withCustomProperties(['seeded' => true])
+                            ->toMediaCollection('icon');
+                    } catch (\Exception $e) {
+                        $this->command->warn("Failed to attach media to {$badge->code}: {$e->getMessage()}");
+                    }
                 }
-            }
 
-            // Sync Rules
-            \Modules\Gamification\Models\BadgeRule::where('badge_id', $badge->id)->delete();
-            foreach ($rules as $rule) {
-                \Modules\Gamification\Models\BadgeRule::create([
-                    'badge_id' => $badge->id,
-                    'event_trigger' => $rule['event_trigger'],
-                    'conditions' => $rule['conditions'] ?? null,
-                ]);
-            }
+                // Sync Rules - delete old rules and create new ones
+                \Modules\Gamification\Models\BadgeRule::where('badge_id', $badge->id)->delete();
+                foreach ($rules as $rule) {
+                    \Modules\Gamification\Models\BadgeRule::create([
+                        'badge_id' => $badge->id,
+                        'event_trigger' => $rule['event_trigger'],
+                        'conditions' => $rule['conditions'] ?? null,
+                    ]);
+                }
 
-            if (($index + 1) % 10 === 0) {
-                $this->command->info('Seeded '.($index + 1).' / 100 badges...');
+                $count++;
+                if ($count % 10 === 0) {
+                    $this->command->info("Seeded {$count} badges...");
+                }
+            } catch (\Exception $e) {
+                $this->command->error("Failed to seed badge {$badgeData['code']}: {$e->getMessage()}");
             }
         }
 
-        $this->command->info('✅ 100 Badges seeded successfully with JSON Rules and DiceBear SVGs.');
+        $this->command->info("✅ Successfully seeded {$count} badges.");
     }
 
     private function generateInteractiveBadges(): array
