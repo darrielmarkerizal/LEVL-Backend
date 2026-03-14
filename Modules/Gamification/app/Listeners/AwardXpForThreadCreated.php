@@ -10,9 +10,12 @@ use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Gamification\Services\Support\BadgeRuleEvaluator;
+use Modules\Gamification\Traits\CachesUsers;
 
 class AwardXpForThreadCreated
 {
+    use CachesUsers; // FIX: Use cached user lookups
+
     public function __construct(
         private readonly GamificationService $gamification,
         private readonly EventCounterService $counterService,
@@ -58,7 +61,8 @@ class AwardXpForThreadCreated
         $this->counterService->increment($userId, 'thread_created', 'global', null, 'weekly');
 
         // 4. Evaluate badge rules
-        $user = \Modules\Auth\Models\User::find($userId);
+        // FIX: Use cached user lookup
+        $user = $this->getCachedUser($userId);
         if ($user) {
             $payload = [
                 'thread_id' => $thread->id,

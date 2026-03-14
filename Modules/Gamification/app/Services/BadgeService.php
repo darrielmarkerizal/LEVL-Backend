@@ -27,7 +27,8 @@ class BadgeService implements BadgeServiceInterface
             "common:badges:paginate:{$perPage}:{$page}:{$search}:{$sort}",
             300,
             function () use ($perPage, $search) {
-                $query = Badge::with('rules');
+                // FIX: Eager load rules and users count
+                $query = Badge::with('rules')->withCount('users');
 
                 if ($search && trim($search) !== '') {
                     $query->search($search);

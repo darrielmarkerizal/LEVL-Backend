@@ -6,10 +6,13 @@ use Modules\Common\Models\SystemSetting;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
+use Modules\Gamification\Traits\CachesUsers;
 use Modules\Schemes\Events\LessonCompleted;
 
 class AwardXpForLessonCompleted
 {
+    use CachesUsers; // FIX: Use cached user lookups
+
     public function __construct(
         private GamificationService $gamification,
         private EventCounterService $counterService,
@@ -19,7 +22,8 @@ class AwardXpForLessonCompleted
 
     public function handle(LessonCompleted $event): void
     {
-        $lesson = $event->lesson->fresh(['unit.course']);
+        // FIX: Remove unnecessary fresh() call - use event data directly
+        $lesson = $event->lesson;
         $userId = $event->userId;
 
         if (! $lesson || ! $lesson->unit || ! $lesson->unit->course) {
@@ -62,7 +66,8 @@ class AwardXpForLessonCompleted
         $this->counterService->increment($userId, 'lesson_completed', 'course', $lesson->unit->course_id, 'lifetime');
 
         // 4. Evaluate Dynamic Badge Rules
-        $user = \Modules\Auth\Models\User::find($userId);
+        // FIX: Use cached user lookup
+        $user = $this->getCachedUser($userId);
         if ($user) {
             $payload = [
                 'lesson_id' => $lesson->id,

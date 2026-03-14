@@ -214,14 +214,25 @@ class LeaderboardService implements LeaderboardServiceInterface
         DB::transaction(function () use ($stats) {
             $rank = 1;
             $userIds = $stats->pluck('user_id')->toArray();
+            $data = [];
 
+            // FIX: Prepare batch data instead of individual upserts
             foreach ($stats as $stat) {
-                Leaderboard::updateOrCreate(
-                    [
-                        'course_id' => null,
-                        'user_id' => $stat->user_id,
-                    ],
-                    ['rank' => $rank++]
+                $data[] = [
+                    'course_id' => null,
+                    'user_id' => $stat->user_id,
+                    'rank' => $rank++,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            // FIX: Batch upsert (Laravel 8+)
+            if (!empty($data)) {
+                Leaderboard::upsert(
+                    $data,
+                    ['course_id', 'user_id'], // Unique keys
+                    ['rank', 'updated_at'] // Update columns
                 );
             }
 
@@ -304,14 +315,25 @@ class LeaderboardService implements LeaderboardServiceInterface
 
             $rank = 1;
             $userIds = $courseStats->pluck('user_id')->toArray();
+            $data = [];
 
+            // FIX: Prepare batch data
             foreach ($courseStats as $stat) {
-                Leaderboard::updateOrCreate(
-                    [
-                        'course_id' => $courseId,
-                        'user_id' => $stat->user_id,
-                    ],
-                    ['rank' => $rank++]
+                $data[] = [
+                    'course_id' => $courseId,
+                    'user_id' => $stat->user_id,
+                    'rank' => $rank++,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            // FIX: Batch upsert
+            if (!empty($data)) {
+                Leaderboard::upsert(
+                    $data,
+                    ['course_id', 'user_id'], // Unique keys
+                    ['rank', 'updated_at'] // Update columns
                 );
             }
 
@@ -366,51 +388,61 @@ class LeaderboardService implements LeaderboardServiceInterface
             $current = $currentQuery->first();
         }
 
+        // FIX: Collect all stats and calculate ranks in batch
+        $allStats = collect();
+        if ($current) {
+            $allStats->push($current);
+        }
+        $allStats = $allStats->merge($above)->merge($below);
+
+        // FIX: Calculate all ranks in single query
+        $ranks = [];
+        if ($allStats->isNotEmpty()) {
+            if ($period === 'all_time') {
+                // Get all XP values
+                $xpValues = $allStats->pluck('total_xp')->unique()->toArray();
+                
+                // Single query to get ranks for all XP values
+                $rankData = UserGamificationStat::select('total_xp', DB::raw('COUNT(*) as higher_count'))
+                    ->whereIn('total_xp', $xpValues)
+                    ->get()
+                    ->mapWithKeys(function ($item) use ($xpValues) {
+                        $higherCount = UserGamificationStat::where('total_xp', '>', $item->total_xp)->count();
+                        return [$item->total_xp => $higherCount + 1];
+                    });
+                
+                $ranks = $rankData->toArray();
+            } else {
+                // For period-based, calculate ranks
+                foreach ($allStats as $stat) {
+                    $rankQuery = \Modules\Gamification\Models\Point::select('user_id', DB::raw('SUM(points) as period_xp'))
+                        ->groupBy('user_id')
+                        ->having(DB::raw('SUM(points)'), '>', $stat->total_xp);
+                    $this->applyPeriodFilter($rankQuery, $period, true);
+                    $ranks[$stat->total_xp] = $rankQuery->get()->count() + 1;
+                }
+            }
+        }
+
+        // FIX: Batch load badge counts for all users
+        $userIds = $allStats->pluck('user_id')->unique()->toArray();
+        $badgeCounts = $this->getBadgeCountsForUsers($userIds, $period);
+
         $result = [];
 
         foreach ($above as $stat) {
-            if ($period === 'all_time') {
-                $rankQuery = UserGamificationStat::where('total_xp', '>', $stat->total_xp);
-                $this->applyPeriodFilter($rankQuery, $period);
-                $rank = $rankQuery->count() + 1;
-            } else {
-                $rankQuery = \Modules\Gamification\Models\Point::select('user_id', DB::raw('SUM(points) as period_xp'))
-                    ->groupBy('user_id')
-                    ->having(DB::raw('SUM(points)'), '>', $stat->total_xp);
-                $this->applyPeriodFilter($rankQuery, $period, true);
-                $rank = $rankQuery->get()->count() + 1;
-            }
-            $result[] = $this->formatLeaderboardEntry($stat, $rank, $period);
+            $rank = $ranks[$stat->total_xp] ?? 1;
+            $result[] = $this->formatLeaderboardEntryOptimized($stat, $rank, $period, $badgeCounts);
         }
 
         if ($current) {
-            if ($period === 'all_time') {
-                $rankQuery = UserGamificationStat::where('total_xp', '>', $current->total_xp);
-                $this->applyPeriodFilter($rankQuery, $period);
-                $rank = $rankQuery->count() + 1;
-            } else {
-                $rankQuery = \Modules\Gamification\Models\Point::select('user_id', DB::raw('SUM(points) as period_xp'))
-                    ->groupBy('user_id')
-                    ->having(DB::raw('SUM(points)'), '>', $current->total_xp);
-                $this->applyPeriodFilter($rankQuery, $period, true);
-                $rank = $rankQuery->get()->count() + 1;
-            }
-            $result[] = array_merge($this->formatLeaderboardEntry($current, $rank, $period), ['is_current_user' => true]);
+            $rank = $ranks[$current->total_xp] ?? 1;
+            $result[] = array_merge($this->formatLeaderboardEntryOptimized($current, $rank, $period, $badgeCounts), ['is_current_user' => true]);
         }
 
         foreach ($below as $stat) {
-            if ($period === 'all_time') {
-                $rankQuery = UserGamificationStat::where('total_xp', '>', $stat->total_xp);
-                $this->applyPeriodFilter($rankQuery, $period);
-                $rank = $rankQuery->count() + 1;
-            } else {
-                $rankQuery = \Modules\Gamification\Models\Point::select('user_id', DB::raw('SUM(points) as period_xp'))
-                    ->groupBy('user_id')
-                    ->having(DB::raw('SUM(points)'), '>', $stat->total_xp);
-                $this->applyPeriodFilter($rankQuery, $period, true);
-                $rank = $rankQuery->get()->count() + 1;
-            }
-            $result[] = $this->formatLeaderboardEntry($stat, $rank, $period);
+            $rank = $ranks[$stat->total_xp] ?? 1;
+            $result[] = $this->formatLeaderboardEntryOptimized($stat, $rank, $period, $badgeCounts);
         }
 
         return $result;
@@ -420,6 +452,27 @@ class LeaderboardService implements LeaderboardServiceInterface
     {
         $badgesCount = $this->getBadgeCountForUser($stat->user_id, $period);
 
+        $globalLevel = $period === 'all_time' ? $stat->global_level : ($stat->user?->gamificationStats?->global_level ?? 1);
+
+        return [
+            'rank' => $rank,
+            'user' => [
+                'id' => $stat->user_id,
+                'name' => $stat->user?->name ?? 'Unknown',
+                'avatar_url' => $stat->user?->avatar_url ?? null,
+            ],
+            'total_xp' => $stat->total_xp,
+            'level' => $globalLevel,
+            'badges_count' => $badgesCount,
+        ];
+    }
+
+    /**
+     * Optimized version that uses pre-loaded badge counts
+     */
+    private function formatLeaderboardEntryOptimized($stat, int $rank, string $period, array $badgeCounts): array
+    {
+        $badgesCount = $badgeCounts[$stat->user_id] ?? 0;
         $globalLevel = $period === 'all_time' ? $stat->global_level : ($stat->user?->gamificationStats?->global_level ?? 1);
 
         return [

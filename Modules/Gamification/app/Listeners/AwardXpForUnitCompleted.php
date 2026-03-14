@@ -12,7 +12,8 @@ class AwardXpForUnitCompleted
 
     public function handle(UnitCompleted $event): void
     {
-        $unit = $event->unit->fresh(['course']);
+        // FIX: Remove unnecessary fresh() call - use event data directly
+        $unit = $event->unit;
         $userId = $event->userId;
 
         if (! $unit || ! $unit->course) {
