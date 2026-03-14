@@ -21,4 +21,6 @@ interface TrashBinRepositoryInterface
     public function getSourceTypes(): array;
 
     public function getSourceTypesForAccess(int $actorId, array $accessibleCourseIds): array;
+
+    public function getAllForAccess(?int $actorId, bool $isSuperadmin, array $accessibleCourseIds, ?string $resourceType = null): Collection;
 }
