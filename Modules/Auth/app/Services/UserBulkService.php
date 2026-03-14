@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Modules\Auth\Contracts\Repositories\UserBulkRepositoryInterface;
 use Modules\Auth\Contracts\Services\UserBulkServiceInterface;
 use Modules\Auth\Enums\UserStatus;
+use Modules\Auth\Events\UserStatusChanged;
 use Modules\Auth\Jobs\ExportUsersToEmailJob;
 use Modules\Auth\Models\User;
 use Modules\Schemes\Models\CourseAdmin;
@@ -82,7 +83,25 @@ class UserBulkService implements UserBulkServiceInterface
 
     public function bulkActivate(array $userIds, int $changedBy): int
     {
+        $changedByUser = User::find($changedBy);
+        
+        // Get users before update to capture old status
+        $users = User::whereIn('id', $userIds)->get();
+        
         $updated = $this->repository->bulkUpdateStatus($userIds, UserStatus::Active->value);
+
+        // Dispatch events for each user
+        foreach ($users as $user) {
+            $oldStatus = $user->status;
+            if ($oldStatus !== UserStatus::Active) {
+                event(new UserStatusChanged(
+                    $user->fresh(),
+                    $oldStatus,
+                    UserStatus::Active,
+                    $changedByUser
+                ));
+            }
+        }
 
         $this->logStatusChanges($userIds, $changedBy, UserStatus::Active->value);
 
@@ -99,7 +118,25 @@ class UserBulkService implements UserBulkServiceInterface
             throw new \InvalidArgumentException(__('messages.auth.cannot_deactivate_self'));
         }
 
+        $changedByUser = User::find($changedBy);
+        
+        // Get users before update to capture old status
+        $users = User::whereIn('id', $userIds)->get();
+
         $updated = $this->repository->bulkUpdateStatus($userIds, UserStatus::Inactive->value);
+
+        // Dispatch events for each user
+        foreach ($users as $user) {
+            $oldStatus = $user->status;
+            if ($oldStatus !== UserStatus::Inactive) {
+                event(new UserStatusChanged(
+                    $user->fresh(),
+                    $oldStatus,
+                    UserStatus::Inactive,
+                    $changedByUser
+                ));
+            }
+        }
 
         $this->logStatusChanges($userIds, $changedBy, UserStatus::Inactive->value);
 

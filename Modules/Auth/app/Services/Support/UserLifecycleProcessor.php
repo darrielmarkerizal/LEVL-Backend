@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Auth\Contracts\Repositories\AuthRepositoryInterface;
 use Modules\Auth\Enums\UserStatus;
+use Modules\Auth\Events\UserStatusChanged;
 use Modules\Auth\Models\User;
 use Modules\Auth\Services\UserCacheService;
 use Modules\Mail\Mail\Auth\UserCredentialsMail;
@@ -41,8 +42,11 @@ class UserLifecycleProcessor
             ]);
         }
 
-        return DB::transaction(function () use ($user, $status) {
-            $user->status = UserStatus::from($status);
+        return DB::transaction(function () use ($authUser, $user, $status) {
+            $oldStatus = $user->status;
+            $newStatus = UserStatus::from($status);
+            
+            $user->status = $newStatus;
             
             // Remove computed attributes that should not be persisted to database
             unset($user['learning_statistics']);
@@ -51,6 +55,9 @@ class UserLifecycleProcessor
             unset($user['total_xp']);
             
             $user->save();
+
+            // Dispatch event for status change
+            event(new UserStatusChanged($user, $oldStatus, $newStatus, $authUser));
 
             $this->cacheService->invalidateUser($user->id);
             $this->cacheService->invalidateAllUsers();
@@ -86,8 +93,14 @@ class UserLifecycleProcessor
                     ]);
                 }
 
-                $user->status = UserStatus::from($data['status']);
+                $oldStatus = $user->status;
+                $newStatus = UserStatus::from($data['status']);
+                
+                $user->status = $newStatus;
                 $updated = true;
+                
+                // Dispatch event for status change
+                event(new UserStatusChanged($user, $oldStatus, $newStatus, $authUser));
             }
 
             // Update role if provided.
