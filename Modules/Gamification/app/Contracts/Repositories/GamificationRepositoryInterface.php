@@ -34,4 +34,6 @@ interface GamificationRepositoryInterface
     public function countByUserId(int $userId): int;
 
     public function findByUserId(int $userId): Collection;
+
+    public function countUserBadgesByBadgeId(int $userId, int $badgeId): int;
 }

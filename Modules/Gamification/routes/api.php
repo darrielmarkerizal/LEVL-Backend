@@ -4,11 +4,17 @@ use Illuminate\Support\Facades\Route;
 use Modules\Gamification\Http\Controllers\BadgesController;
 use Modules\Gamification\Http\Controllers\GamificationController;
 use Modules\Gamification\Http\Controllers\LeaderboardController;
+use Modules\Gamification\Http\Controllers\MetricsController;
 
 Route::middleware(['auth:api'])->prefix('v1')->group(function () {
 
     Route::get('leaderboards', [LeaderboardController::class, 'index'])->name('leaderboards.index');
     Route::get('leaderboards/{userId}/points-history', [LeaderboardController::class, 'userPointsHistory'])->name('leaderboards.user-points-history');
+
+    // Metrics endpoint for monitoring (Prometheus/Grafana)
+    Route::get('metrics', [MetricsController::class, 'index'])
+        ->middleware(['role:Superadmin'])
+        ->name('metrics.index');
 
     Route::prefix('badges')->name('badges.')->group(function () {
         Route::get('/', [BadgesController::class, 'index'])->name('index');

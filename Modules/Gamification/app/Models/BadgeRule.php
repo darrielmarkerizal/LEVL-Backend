@@ -13,11 +13,18 @@ class BadgeRule extends Model
         'badge_id',
         'event_trigger',
         'conditions',
+        'priority',
+        'cooldown_seconds',
+        'progress_window',
+        'rule_enabled',
     ];
 
     protected $casts = [
         'badge_id' => 'integer',
         'conditions' => 'array',
+        'priority' => 'integer',
+        'cooldown_seconds' => 'integer',
+        'rule_enabled' => 'boolean',
     ];
 
     public function badge(): BelongsTo
