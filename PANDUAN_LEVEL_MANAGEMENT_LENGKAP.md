@@ -11,13 +11,16 @@ Dokumentasi ini berisi spesifikasi lengkap API Level Management untuk kebutuhan 
 3. [Get Level Progression Table](#3-get-level-progression-table)
 4. [Get User Current Level](#4-get-user-current-level)
 5. [Calculate Level from XP](#5-calculate-level-from-xp)
-6. [Sync Level Configurations (Admin)](#6-sync-level-configurations-admin)
-7. [Update Level Configuration (Admin)](#7-update-level-configuration-admin)
-8. [Get Level Statistics (Admin)](#8-get-level-statistics-admin)
-9. [Level Up Event System](#9-level-up-event-system)
-10. [XP Source Management](#10-xp-source-management)
-11. [Authorization Matrix](#11-authorization-matrix)
-12. [UI/UX Implementation Notes](#12-uiux-implementation-notes)
+6. [Get Daily XP Stats](#6-get-daily-xp-stats)
+7. [Sync Level Configurations (Admin)](#7-sync-level-configurations-admin)
+8. [Update Level Configuration (Admin)](#8-update-level-configuration-admin)
+9. [Get Level Statistics (Admin)](#9-get-level-statistics-admin)
+10. [Level Up Event System](#10-level-up-event-system)
+11. [XP Source Management](#11-xp-source-management)
+12. [XP Transaction Log](#12-xp-transaction-log)
+13. [Global Daily XP Cap](#13-global-daily-xp-cap)
+14. [Authorization Matrix](#14-authorization-matrix)
+15. [UI/UX Implementation Notes](#15-uiux-implementation-notes)
 
 ---
 
@@ -381,7 +384,67 @@ POST /api/v1/levels/calculate
 
 ---
 
-## 6. SYNC LEVEL CONFIGURATIONS (Admin)
+## 6. GET DAILY XP STATS
+
+### Endpoint
+```
+GET /api/v1/user/daily-xp-stats
+```
+
+### Authorization
+- Authenticated user (semua role)
+- User hanya bisa melihat stats sendiri
+
+### Query Parameters
+Tidak ada.
+
+### Contoh Request
+
+```
+GET /api/v1/user/daily-xp-stats
+```
+
+### Response Format
+
+```json
+{
+  "success": true,
+  "data": {
+    "total_xp_earned": 3500,
+    "global_daily_cap": 10000,
+    "remaining_xp": 6500,
+    "cap_reached": false,
+    "cap_reached_at": null,
+    "xp_by_source": {
+      "lesson_completed": 1500,
+      "assignment_submitted": 1000,
+      "quiz_passed": 800,
+      "forum_post_created": 200
+    }
+  }
+}
+```
+
+### Field Explanation
+
+| Field | Deskripsi |
+|-------|-----------|
+| `total_xp_earned` | Total XP yang sudah earned hari ini |
+| `global_daily_cap` | Batas maksimal XP per hari (default: 10,000) |
+| `remaining_xp` | Sisa XP yang bisa di-earn hari ini |
+| `cap_reached` | Boolean, true jika sudah mencapai cap |
+| `cap_reached_at` | Timestamp saat mencapai cap (null jika belum) |
+| `xp_by_source` | Breakdown XP per source hari ini |
+
+### Catatan Penting
+- Data di-reset setiap hari (00:00)
+- Berguna untuk menampilkan daily progress
+- Warning user saat mendekati cap
+- Mencegah user grinding XP berlebihan
+
+---
+
+## 7. SYNC LEVEL CONFIGURATIONS (Admin)
 
 ### Endpoint
 ```
@@ -450,7 +513,7 @@ POST /api/v1/levels/sync?start=1&end=50
 
 ---
 
-## 7. UPDATE LEVEL CONFIGURATION (Admin)
+## 8. UPDATE LEVEL CONFIGURATION (Admin)
 
 ### Endpoint
 ```
@@ -571,7 +634,7 @@ PUT /api/v1/levels/{id}
 
 ---
 
-## 8. GET LEVEL STATISTICS (Admin)
+## 9. GET LEVEL STATISTICS (Admin)
 
 ### Endpoint
 ```
@@ -646,7 +709,7 @@ GET /api/v1/levels/statistics
 
 ---
 
-## 9. LEVEL UP EVENT SYSTEM
+## 10. LEVEL UP EVENT SYSTEM
 
 ### Overview
 
@@ -745,7 +808,7 @@ Saat user level up, sistem otomatis:
 
 ---
 
-## 10. XP SOURCE MANAGEMENT
+## 11. XP SOURCE MANAGEMENT
 
 ### Overview
 
@@ -919,13 +982,363 @@ ORDER BY total_xp DESC;
 
 ---
 
-## 11. AUTHORIZATION MATRIX
+## 12. XP TRANSACTION LOG
+
+### Overview
+
+Sistem XP Transaction Log menyimpan complete audit trail dari semua XP transactions untuk keperluan audit, analytics, dan rollback.
+
+### Enhanced Points Table
+
+Tabel `points` telah di-enhance dengan field tambahan:
+
+| Field | Tipe | Deskripsi |
+|-------|------|-----------|
+| `id` | integer | Transaction ID |
+| `user_id` | integer | User yang earn XP |
+| `points` | integer | Jumlah XP |
+| `source_type` | string | Tipe source (lesson, assignment, system, dll) |
+| `source_id` | integer | ID dari source |
+| `reason` | string | Reason code (lesson_completed, dll) |
+| `xp_source_code` | string | Code dari xp_sources table |
+| `old_level` | integer | Level sebelum earn XP |
+| `new_level` | integer | Level setelah earn XP |
+| `triggered_level_up` | boolean | True jika transaction ini trigger level up |
+| `metadata` | json | Additional data |
+| `ip_address` | string | IP address user |
+| `user_agent` | string | Browser/app user agent |
+| `created_at` | datetime | Timestamp transaction |
+
+### Transaction Log Example
+
+```json
+{
+  "id": 1002,
+  "user_id": 123,
+  "points": 100,
+  "source_type": "assignment",
+  "source_id": 456,
+  "reason": "assignment_submitted",
+  "xp_source_code": "assignment_submitted",
+  "old_level": 14,
+  "new_level": 15,
+  "triggered_level_up": true,
+  "metadata": {
+    "assignment_title": "Final Project",
+    "score": 95
+  },
+  "ip_address": "192.168.1.1",
+  "user_agent": "Mozilla/5.0...",
+  "created_at": "2026-03-14T10:30:00Z"
+}
+```
+
+### Use Cases
+
+#### 1. Audit Trail
+Tracking semua XP transactions untuk compliance dan security:
+
+```sql
+-- Get user's complete XP history
+SELECT 
+    created_at,
+    points as xp,
+    reason,
+    source_type,
+    old_level,
+    new_level,
+    triggered_level_up,
+    ip_address
+FROM points
+WHERE user_id = 123
+ORDER BY created_at DESC;
+```
+
+#### 2. Analytics
+Analyze XP distribution dan user behavior:
+
+```sql
+-- XP earned by source (last 30 days)
+SELECT 
+    xp_source_code,
+    COUNT(*) as transactions,
+    SUM(points) as total_xp,
+    AVG(points) as avg_xp
+FROM points
+WHERE created_at >= NOW() - INTERVAL '30 days'
+GROUP BY xp_source_code
+ORDER BY total_xp DESC;
+
+-- Level up frequency
+SELECT 
+    DATE(created_at) as date,
+    COUNT(*) as level_ups
+FROM points
+WHERE triggered_level_up = true
+GROUP BY DATE(created_at)
+ORDER BY date DESC;
+```
+
+#### 3. Fraud Detection
+Detect suspicious patterns:
+
+```sql
+-- Users with unusual XP patterns
+SELECT 
+    user_id,
+    COUNT(*) as transactions,
+    SUM(points) as total_xp,
+    COUNT(DISTINCT ip_address) as unique_ips
+FROM points
+WHERE created_at >= CURRENT_DATE
+GROUP BY user_id
+HAVING COUNT(*) > 100  -- More than 100 transactions per day
+   OR COUNT(DISTINCT ip_address) > 5  -- Multiple IPs
+ORDER BY transactions DESC;
+```
+
+#### 4. Rollback (if needed)
+Reverse specific transaction:
+
+```sql
+-- Rollback transaction
+BEGIN;
+
+-- Get transaction details
+SELECT * FROM points WHERE id = 1002;
+
+-- Reverse XP
+UPDATE user_gamification_stats
+SET total_xp = total_xp - 100,
+    global_level = 14  -- Restore old level
+WHERE user_id = 123;
+
+-- Mark as reversed
+UPDATE points
+SET metadata = jsonb_set(
+    COALESCE(metadata, '{}'::jsonb),
+    '{reversed}',
+    'true'::jsonb
+)
+WHERE id = 1002;
+
+COMMIT;
+```
+
+### Benefits
+
+1. **Complete Audit Trail** - Semua XP transactions tercatat
+2. **IP Tracking** - Detect multi-account abuse
+3. **Level Change History** - Track progression
+4. **Analytics Ready** - Data untuk business intelligence
+5. **Rollback Capability** - Undo transactions jika needed
+
+---
+
+## 13. GLOBAL DAILY XP CAP
+
+### Overview
+
+Global Daily XP Cap membatasi total XP yang bisa di-earn user per hari untuk mencegah grinding dan menjaga fair progression.
+
+### Configuration
+
+**Default Cap**: 10,000 XP per day
+
+Set di environment variable:
+```env
+GAMIFICATION_GLOBAL_DAILY_XP_CAP=10000
+```
+
+Atau di config file:
+```php
+// config/gamification.php
+'global_daily_cap' => 10000,
+```
+
+### xp_daily_caps Table
+
+Tracking daily XP per user:
+
+| Field | Tipe | Deskripsi |
+|-------|------|-----------|
+| `user_id` | integer | User ID |
+| `date` | date | Tanggal (unique per user) |
+| `total_xp_earned` | integer | Total XP earned hari ini |
+| `global_daily_cap` | integer | Cap limit (default: 10,000) |
+| `cap_reached` | boolean | True jika sudah reach cap |
+| `cap_reached_at` | datetime | Timestamp saat reach cap |
+| `xp_by_source` | json | Breakdown XP per source |
+
+### How It Works
+
+```
+1. User earns XP
+   ↓
+2. Check today's total XP
+   ↓
+3. If (current + new) > cap:
+   - Reject XP award
+   - Log attempt
+   - Return null
+   ↓
+4. If within cap:
+   - Award XP
+   - Update daily total
+   - Track by source
+   ↓
+5. If cap reached:
+   - Set cap_reached = true
+   - Record timestamp
+```
+
+### API Endpoint
+
+Get user's daily XP stats:
+
+```
+GET /api/v1/user/daily-xp-stats
+```
+
+Response:
+```json
+{
+  "total_xp_earned": 8500,
+  "global_daily_cap": 10000,
+  "remaining_xp": 1500,
+  "cap_reached": false,
+  "xp_by_source": {
+    "lesson_completed": 3500,
+    "assignment_submitted": 3000,
+    "quiz_passed": 1600,
+    "forum_post_created": 400
+  }
+}
+```
+
+### Frontend Integration
+
+#### Daily XP Progress Bar
+
+```typescript
+interface DailyXpProgressProps {
+  earned: number;
+  cap: number;
+  bySource: Record<string, number>;
+}
+
+function DailyXpProgress({ earned, cap, bySource }: DailyXpProgressProps) {
+  const percentage = (earned / cap) * 100;
+  const remaining = cap - earned;
+  
+  return (
+    <div>
+      <h3>Daily XP Progress</h3>
+      <ProgressBar value={earned} max={cap} />
+      <p>{earned.toLocaleString()} / {cap.toLocaleString()} XP</p>
+      
+      {remaining < 1000 && (
+        <Alert variant="warning">
+          Only {remaining} XP remaining today!
+        </Alert>
+      )}
+      
+      {earned >= cap && (
+        <Alert variant="info">
+          Daily XP cap reached! Come back tomorrow.
+        </Alert>
+      )}
+      
+      <h4>XP by Source</h4>
+      <PieChart data={Object.entries(bySource)} />
+    </div>
+  );
+}
+```
+
+#### Real-time Updates
+
+```typescript
+// Fetch daily stats
+const { data: dailyStats } = useQuery({
+  queryKey: ['daily-xp-stats'],
+  queryFn: () => fetch('/api/v1/user/daily-xp-stats').then(r => r.json()),
+  refetchInterval: 60000, // Refetch every minute
+});
+
+// Listen to XP awards
+Echo.channel(`user.${userId}`)
+  .listen('.xp.awarded', () => {
+    queryClient.invalidateQueries(['daily-xp-stats']);
+  });
+```
+
+### Customization
+
+#### Per-User Custom Cap
+
+```sql
+-- Set higher cap for VIP users
+UPDATE xp_daily_caps
+SET global_daily_cap = 20000
+WHERE user_id IN (SELECT id FROM users WHERE is_vip = true)
+  AND date = CURRENT_DATE;
+```
+
+#### Temporary Cap Adjustment
+
+```sql
+-- Double XP event (increase cap for all users)
+UPDATE xp_daily_caps
+SET global_daily_cap = 20000
+WHERE date = '2026-03-15';  -- Event date
+```
+
+### Benefits
+
+1. **Fair Progression** - Prevents power users from advancing too quickly
+2. **Engagement Pacing** - Encourages daily return visits
+3. **Anti-Grinding** - Limits XP farming
+4. **Server Load** - Reduces excessive API calls
+5. **Game Balance** - Maintains competitive fairness
+
+### Monitoring
+
+```sql
+-- Users who reached cap today
+SELECT 
+    u.id,
+    u.name,
+    xdc.total_xp_earned,
+    xdc.cap_reached_at
+FROM xp_daily_caps xdc
+JOIN users u ON u.id = xdc.user_id
+WHERE xdc.date = CURRENT_DATE
+  AND xdc.cap_reached = true
+ORDER BY xdc.cap_reached_at;
+
+-- Average daily XP (last 30 days)
+SELECT 
+    date,
+    AVG(total_xp_earned) as avg_xp,
+    MAX(total_xp_earned) as max_xp,
+    COUNT(CASE WHEN cap_reached THEN 1 END) as users_reached_cap
+FROM xp_daily_caps
+WHERE date >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY date
+ORDER BY date DESC;
+```
+
+---
+
+## 14. AUTHORIZATION MATRIX
 
 | Operation | Student | Instructor | Admin | Superadmin |
 |-----------|---------|------------|-------|------------|
 | List Levels | ✅ | ✅ | ✅ | ✅ |
 | Get Progression Table | ✅ | ✅ | ✅ | ✅ |
 | Get User Level | ✅ (own) | ✅ (own) | ✅ (own) | ✅ (own) |
+| Get Daily XP Stats | ✅ (own) | ✅ (own) | ✅ (own) | ✅ (own) |
 | Calculate Level | ✅ | ✅ | ✅ | ✅ |
 | Sync Levels | ❌ | ❌ | ❌ | ✅ |
 | Update Level Config | ❌ | ❌ | ❌ | ✅ |
@@ -933,9 +1346,9 @@ ORDER BY total_xp DESC;
 
 ---
 
-## 12. UI/UX IMPLEMENTATION NOTES
+## 15. UI/UX IMPLEMENTATION NOTES
 
-### 12.1 User Level Display
+### 15.1 User Level Display
 
 #### Level Badge Component
 ```typescript
@@ -972,7 +1385,7 @@ interface LevelProgressProps {
 
 ---
 
-### 12.2 Level Progression Table
+### 15.2 Level Progression Table
 
 #### Table View
 ```typescript
@@ -998,7 +1411,7 @@ interface LevelProgressionRow {
 
 ---
 
-### 12.3 Level Calculator (Utility)
+### 15.3 Level Calculator (Utility)
 
 #### Calculator Form
 ```typescript
@@ -1017,7 +1430,7 @@ interface CalculatorForm {
 
 ---
 
-### 12.4 Admin Level Management
+### 15.4 Admin Level Management
 
 #### Sync Levels Interface
 ```typescript
@@ -1058,7 +1471,7 @@ interface UpdateLevelForm {
 
 ---
 
-### 12.5 Level Statistics Dashboard
+### 15.5 Level Statistics Dashboard
 
 #### Charts & Visualizations
 1. **User Distribution Chart** (Bar Chart)
@@ -1083,7 +1496,7 @@ interface UpdateLevelForm {
 
 ---
 
-### 12.6 Level Up Notification
+### 15.6 Level Up Notification
 
 #### Notification Component
 ```typescript
@@ -1141,7 +1554,112 @@ useEffect(() => {
 
 ---
 
-### 12.7 Responsive Design
+### 15.7 Daily XP Progress Display
+
+#### Daily XP Progress Component
+```typescript
+interface DailyXpProgressProps {
+  totalXpEarned: number;
+  globalDailyCap: number;
+  remainingXp: number;
+  capReached: boolean;
+  xpBySource: Record<string, number>;
+}
+
+function DailyXpProgress(props: DailyXpProgressProps) {
+  const percentage = (props.totalXpEarned / props.globalDailyCap) * 100;
+  
+  return (
+    <Card>
+      <h3>Daily XP Progress</h3>
+      
+      {/* Progress Bar */}
+      <ProgressBar 
+        value={props.totalXpEarned}
+        max={props.globalDailyCap}
+        color={percentage > 90 ? 'red' : percentage > 70 ? 'yellow' : 'green'}
+      />
+      
+      {/* Stats */}
+      <div className="stats">
+        <span>{props.totalXpEarned.toLocaleString()} XP earned</span>
+        <span>{props.remainingXp.toLocaleString()} XP remaining</span>
+      </div>
+      
+      {/* Warnings */}
+      {props.remainingXp < 1000 && !props.capReached && (
+        <Alert variant="warning">
+          ⚠️ You're approaching your daily XP cap! 
+          Only {props.remainingXp} XP remaining today.
+        </Alert>
+      )}
+      
+      {props.capReached && (
+        <Alert variant="info">
+          🎯 Daily XP cap reached! You've earned the maximum XP for today.
+          Come back tomorrow to continue your progress!
+        </Alert>
+      )}
+      
+      {/* XP Breakdown */}
+      <div className="xp-breakdown">
+        <h4>XP by Activity</h4>
+        {Object.entries(props.xpBySource).map(([source, xp]) => (
+          <div key={source} className="source-item">
+            <span>{formatSourceName(source)}</span>
+            <span>{xp} XP</span>
+          </div>
+        ))}
+      </div>
+      
+      {/* Pie Chart */}
+      <PieChart 
+        data={Object.entries(props.xpBySource).map(([name, value]) => ({
+          name: formatSourceName(name),
+          value
+        }))}
+      />
+    </Card>
+  );
+}
+```
+
+**Rekomendasi**:
+- Tampilkan di dashboard utama
+- Update real-time saat user earn XP
+- Warning saat mendekati cap (< 1000 XP remaining)
+- Celebration message saat reach cap
+- Breakdown XP per source dengan chart
+
+#### Real-time Updates
+
+```typescript
+// Fetch daily stats with auto-refresh
+const { data: dailyStats, refetch } = useQuery({
+  queryKey: ['daily-xp-stats'],
+  queryFn: fetchDailyXpStats,
+  refetchInterval: 60000, // Refetch every minute
+});
+
+// Listen to XP awards
+useEffect(() => {
+  const channel = Echo.channel(`user.${userId}`);
+  
+  channel.listen('.xp.awarded', (event) => {
+    // Refetch daily stats
+    refetch();
+    
+    // Show toast notification
+    toast.success(`+${event.xp} XP earned!`);
+  });
+  
+  return () => channel.stopListening('.xp.awarded');
+}, [userId, refetch]);
+```
+
+---
+
+### 15.8 Responsive Design
 
 #### Mobile View
 - Compact level badge
@@ -1157,7 +1675,7 @@ useEffect(() => {
 
 ---
 
-### 12.8 Accessibility
+### 15.9 Accessibility
 
 #### Screen Reader Support
 - ARIA labels untuk level badge
@@ -1173,7 +1691,7 @@ useEffect(() => {
 
 ---
 
-### 12.9 Performance Optimization
+### 15.10 Performance Optimization
 
 #### Caching Strategy
 ```typescript
@@ -1199,7 +1717,7 @@ const { data: levelConfigs } = useQuery({
 
 ---
 
-### 12.10 Error Handling
+### 15.11 Error Handling
 
 #### Common Errors
 
@@ -1319,6 +1837,20 @@ useEffect(() => {
 
 ## Changelog
 
+### Version 1.3 (14 Maret 2026)
+- Added XP Transaction Log system
+  - Enhanced points table with transaction metadata
+  - IP address and user agent tracking
+  - Level change tracking
+  - Complete audit trail
+- Added Global Daily XP Cap (10,000 XP/day)
+  - xp_daily_caps table
+  - Daily XP stats API endpoint
+  - XP breakdown by source
+  - Cap reached notifications
+- Added Daily XP Stats endpoint (`GET /api/v1/user/daily-xp-stats`)
+- Enhanced documentation with transaction log and daily cap sections
+
 ### Version 1.2 (14 Maret 2026)
 - Added Level Up Event System with real-time broadcasting
 - Added XP Source Management system
@@ -1344,6 +1876,6 @@ useEffect(() => {
 
 ---
 
-**Versi**: 1.2  
+**Versi**: 1.3  
 **Terakhir Update**: 14 Maret 2026  
 **Kontak**: Backend Team
