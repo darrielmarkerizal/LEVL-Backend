@@ -49,6 +49,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
         Route::get('points-history', [GamificationController::class, 'pointsHistory'])->name('gamification.points-history');
         Route::get('milestones', [GamificationController::class, 'milestones'])->name('gamification.milestones');
         Route::get('level', [LevelController::class, 'userLevel'])->name('gamification.level');
+        Route::get('daily-xp-stats', [LevelController::class, 'dailyXpStats'])->name('gamification.daily-xp-stats');
         Route::get('levels/{slug}', [GamificationController::class, 'unitLevels'])->name('gamification.unit-levels');
     });
 });

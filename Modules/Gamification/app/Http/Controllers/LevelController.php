@@ -9,11 +9,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Common\Models\LevelConfig;
 use Modules\Gamification\Services\LevelService;
+use Modules\Gamification\Services\Support\PointManager;
 
 class LevelController extends Controller
 {
     public function __construct(
-        private readonly LevelService $levelService
+        private readonly LevelService $levelService,
+        private readonly PointManager $pointManager
     ) {}
 
     /**
@@ -157,6 +159,28 @@ class LevelController extends Controller
                 ->orderBy('global_level')
                 ->get(),
         ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $stats,
+        ]);
+    }
+    
+    /**
+     * Get user's daily XP stats
+     */
+    public function dailyXpStats(Request $request): JsonResponse
+    {
+        $user = auth('api')->user();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $stats = $this->pointManager->getDailyXpStats($user->id);
 
         return response()->json([
             'success' => true,
