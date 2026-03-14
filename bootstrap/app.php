@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => EnsurePermission::class,
             'cache.response' => \App\Http\Middleware\CacheResponse::class,
             'xp.info' => \Modules\Gamification\Http\Middleware\AppendXpInfoToResponse::class,
+            'ensure.user.active' => \Modules\Auth\Http\Middleware\EnsureUserActive::class,
         ]);
 
         // Trust all proxies (for AWS/load balancers) - allows proper IP and header detection

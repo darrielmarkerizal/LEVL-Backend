@@ -13,7 +13,12 @@ class EventServiceProvider extends ServiceProvider
      *
      * @var array<string, array<int, string>>
      */
-    protected $listen = [];
+    protected $listen = [
+        \Modules\Auth\Events\UserStatusChanged::class => [
+            \Modules\Auth\Listeners\LogUserStatusChange::class,
+            \Modules\Auth\Listeners\NotifyUserStatusChange::class,
+        ],
+    ];
 
     /**
      * Indicates if events should be discovered.
