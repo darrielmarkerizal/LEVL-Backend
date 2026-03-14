@@ -26,9 +26,20 @@ class BadgeManager
                 'description' => $description,
             ]);
 
-            $existing = $this->repository->findUserBadge($userId, $badge->id);
-            if ($existing) {
-                return null;
+            // Check if badge is repeatable
+            if (!$badge->is_repeatable) {
+                $existing = $this->repository->findUserBadge($userId, $badge->id);
+                if ($existing) {
+                    return null; // Non-repeatable badge already awarded
+                }
+            }
+
+            // Check max_awards_per_user limit for repeatable badges
+            if ($badge->is_repeatable && $badge->max_awards_per_user) {
+                $awardCount = $this->repository->countUserBadgesByBadgeId($userId, $badge->id);
+                if ($awardCount >= $badge->max_awards_per_user) {
+                    return null; // Max awards limit reached
+                }
             }
 
             return $this->repository->createUserBadge([

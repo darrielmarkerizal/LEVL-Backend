@@ -39,6 +39,7 @@ class GamificationServiceProvider extends ServiceProvider
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
 
+        // Existing repositories
         $this->app->bind(
             \Modules\Gamification\Contracts\Repositories\GamificationRepositoryInterface::class,
             \Modules\Gamification\Repositories\GamificationRepository::class
@@ -60,6 +61,21 @@ class GamificationServiceProvider extends ServiceProvider
             \Modules\Gamification\Repositories\BadgeRepository::class
         );
 
+        // New repositories for production-grade system
+        $this->app->bind(
+            \Modules\Gamification\Contracts\Repositories\UserEventCounterRepositoryInterface::class,
+            \Modules\Gamification\Repositories\UserEventCounterRepository::class
+        );
+        $this->app->bind(
+            \Modules\Gamification\Contracts\Repositories\GamificationEventLogRepositoryInterface::class,
+            \Modules\Gamification\Repositories\GamificationEventLogRepository::class
+        );
+        $this->app->bind(
+            \Modules\Gamification\Contracts\Repositories\BadgeVersionRepositoryInterface::class,
+            \Modules\Gamification\Repositories\BadgeVersionRepository::class
+        );
+
+        // Services
         $this->app->singleton(
             \Modules\Gamification\Contracts\Services\GamificationServiceInterface::class,
             \Modules\Gamification\Services\GamificationService::class
@@ -83,6 +99,10 @@ class GamificationServiceProvider extends ServiceProvider
         $this->commands([
             \Modules\Gamification\Console\Commands\UpdateLeaderboard::class,
             \Modules\Gamification\Console\Commands\ResetInactiveStreaks::class,
+            \Modules\Gamification\Console\Commands\WarmBadgeRulesCache::class,
+            \Modules\Gamification\Console\Commands\CleanupOldEventLogs::class,
+            \Modules\Gamification\Console\Commands\CleanupExpiredCounters::class,
+            \Modules\Gamification\Console\Commands\CreateInitialBadgeVersions::class,
         ]);
     }
 
@@ -92,6 +112,11 @@ class GamificationServiceProvider extends ServiceProvider
             $schedule = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
             $schedule->command('streaks:reset-inactive')->dailyAt('00:00')->timezone('Asia/Jakarta');
             $schedule->command('leaderboard:update')->everyFiveMinutes();
+            
+            // Production-grade cleanup commands
+            $schedule->command('gamification:cleanup-logs --days=90')->daily()->at('02:00');
+            $schedule->command('gamification:cleanup-counters')->daily()->at('03:00');
+            $schedule->command('gamification:warm-cache')->daily()->at('04:00');
         });
     }
 

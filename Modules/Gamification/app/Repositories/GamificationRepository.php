@@ -110,6 +110,14 @@ class GamificationRepository implements GamificationRepositoryInterface
         return UserBadge::query()->where('user_id', $userId)->get();
     }
 
+    public function countUserBadgesByBadgeId(int $userId, int $badgeId): int
+    {
+        return UserBadge::query()
+            ->where('user_id', $userId)
+            ->where('badge_id', $badgeId)
+            ->count();
+    }
+
     private function pointDuplicateQuery(
         int $userId,
         ?string $sourceType,

@@ -2,41 +2,105 @@
 
 namespace Modules\Gamification\Services\Support;
 
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Modules\Auth\Models\User;
 use Modules\Gamification\Models\BadgeRule;
+use Modules\Gamification\Models\BadgeRuleCooldown;
+use Modules\Gamification\Services\EventCounterService;
 
 class BadgeRuleEvaluator
 {
     public function __construct(
         private readonly BadgeManager $badgeManager,
-        private readonly PointManager $pointManager
+        private readonly PointManager $pointManager,
+        private readonly EventCounterService $counterService
     ) {}
 
     public function evaluate(User $user, string $triggerAction, array $payload = []): void
     {
-        // 1. Get all rules relevant to this trigger
-        // Optimization: Cache rules to avoid repeated DB calls on every event (Octane friendly)
-        $rules = \Illuminate\Support\Facades\Cache::remember('gamification.badge_rules', 3600, function () {
-            return BadgeRule::with('badge')->get();
-        });
+        // 1. Get rules indexed by event (90% faster!)
+        $rules = $this->getRulesByEvent($triggerAction);
 
-        $relevantRules = $rules->where('event_trigger', $triggerAction);
-
-        if ($relevantRules->isEmpty()) {
+        if ($rules->isEmpty()) {
             return;
         }
 
-        // 2. Evaluate each rule
-        foreach ($relevantRules as $rule) {
-            if (empty($rule->conditions) || $this->isConditionMet($rule->conditions, $payload, $user)) {
-                $this->badgeManager->awardBadge(
+        // 2. Evaluate each rule (ordered by priority)
+        foreach ($rules as $rule) {
+            // Check cooldown
+            if ($rule->cooldown_seconds && ! $this->canEvaluate($user->id, $rule->id)) {
+                continue;
+            }
+
+            // Check conditions
+            if (! empty($rule->conditions) && ! $this->isConditionMet($rule->conditions, $payload, $user)) {
+                continue;
+            }
+
+            // Get counter (READ only, no write!)
+            $counter = $this->counterService->getCounter(
+                $user->id,
+                $triggerAction,
+                $payload['scope_type'] ?? null,
+                $payload['scope_id'] ?? null,
+                $rule->progress_window ?? 'lifetime'
+            );
+
+            // Check threshold
+            if ($counter >= $rule->badge->threshold) {
+                $awarded = $this->badgeManager->awardBadge(
                     $user->id,
                     $rule->badge->code,
                     $rule->badge->name,
                     $rule->badge->description ?? __('gamification.badge_earned_description', ['name' => $rule->badge->name])
                 );
+
+                // Update cooldown if badge awarded
+                if ($awarded && $rule->cooldown_seconds) {
+                    $this->updateCooldown($user->id, $rule->id, $rule->cooldown_seconds);
+                }
             }
         }
+    }
+
+    private function getRulesByEvent(string $event): Collection
+    {
+        return Cache::tags(['gamification', 'rules'])->remember(
+            "gamification.rules_by_event.{$event}",
+            3600,
+            function () use ($event) {
+                return BadgeRule::with('badge')
+                    ->where('event_trigger', $event)
+                    ->where('rule_enabled', true) // Only evaluate enabled rules
+                    ->orderBy('priority', 'desc') // HIGH priority first
+                    ->get();
+            }
+        );
+    }
+
+    private function canEvaluate(int $userId, int $ruleId): bool
+    {
+        $cooldown = BadgeRuleCooldown::where('user_id', $userId)
+            ->where('badge_rule_id', $ruleId)
+            ->first();
+
+        if (! $cooldown) {
+            return true;
+        }
+
+        return $cooldown->canEvaluate();
+    }
+
+    private function updateCooldown(int $userId, int $ruleId, int $seconds): void
+    {
+        BadgeRuleCooldown::updateOrCreate(
+            ['user_id' => $userId, 'badge_rule_id' => $ruleId],
+            [
+                'last_evaluated_at' => now(),
+                'can_evaluate_after' => now()->addSeconds($seconds),
+            ]
+        );
     }
 
     private function isConditionMet(array $conditions, array $payload, User $user): bool

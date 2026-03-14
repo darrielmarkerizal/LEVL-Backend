@@ -27,11 +27,13 @@ class Badge extends Model implements HasMedia
 
     protected $table = 'badges';
 
-    protected $fillable = ['code', 'name', 'description', 'type', 'threshold'];
+    protected $fillable = ['code', 'name', 'description', 'type', 'threshold', 'is_repeatable', 'max_awards_per_user'];
 
     protected $casts = [
         'threshold' => 'integer',
         'type' => BadgeType::class,
+        'is_repeatable' => 'boolean',
+        'max_awards_per_user' => 'integer',
     ];
 
     protected $appends = ['icon_url'];
