@@ -22,16 +22,18 @@ class UserResource extends JsonResource
             && method_exists($this->resource, 'hasRole')
             && $this->resource->hasRole('Student');
 
+        $isInstructor = $this->resource instanceof \Illuminate\Database\Eloquent\Model
+            && method_exists($this->resource, 'hasRole')
+            && $this->resource->hasRole('Instructor');
+
         $data = [
             'id' => $this['id'] ?? (is_object($this->resource) ? $this->id : null),
             'name' => $this['name'] ?? (is_object($this->resource) ? $this->name : null),
             'email' => $this['email'] ?? (is_object($this->resource) ? $this->email : null),
             'username' => $this['username'] ?? (is_object($this->resource) ? $this->username : null),
             'phone' => $this['phone'] ?? (is_object($this->resource) ? $this->phone : null),
-            'phone_number' => $this['phone_number'] ?? ($this['phone'] ?? (is_object($this->resource) ? $this->phone : null)),
             'bio' => $this['bio'] ?? (is_object($this->resource) ? $this->bio : null),
             'location' => $this['location'] ?? (is_object($this->resource) ? $this->location : null),
-            'specialization' => null,
             'avatar_url' => $this['avatar_url'] ?? (is_object($this->resource) ? $this->resource->avatar_url ?? null : null),
             'status' => isset($this['status']) && $this['status'] instanceof UserStatus
                 ? $this['status']->value
@@ -43,8 +45,9 @@ class UserResource extends JsonResource
             'roles' => $this->getRoles(),
         ];
 
-        if ($this->resource instanceof \Illuminate\Database\Eloquent\Model) {
-            if (! $isStudent) {
+        // Add specialization only for Instructor role
+        if ($isInstructor) {
+            if ($this->resource instanceof \Illuminate\Database\Eloquent\Model) {
                 if ($this->resource->relationLoaded('specialization') && $this->resource->specialization) {
                     $data['specialization'] = [
                         'id' => $this->resource->specialization->id,
@@ -54,9 +57,7 @@ class UserResource extends JsonResource
                 } else {
                     $data['specialization'] = null;
                 }
-            }
-        } elseif (is_array($this->resource) && array_key_exists('specialization', $this->resource)) {
-            if ($this->resource['specialization'] !== null) {
+            } elseif (is_array($this->resource) && array_key_exists('specialization', $this->resource)) {
                 $data['specialization'] = $this->resource['specialization'];
             }
         }
@@ -105,8 +106,6 @@ class UserResource extends JsonResource
             $data['threads'] = $this->resource->relationLoaded('threads')
                 ? ThreadResource::collection($this->resource->threads)
                 : null;
-
-            $isInstructor = method_exists($this->resource, 'hasRole') && $this->resource->hasRole('Instructor');
 
             // Add learning statistics for Student and Instructor
             if ($isStudent || $isInstructor) {
@@ -169,9 +168,7 @@ class UserResource extends JsonResource
                 'receivedOverrides',
                 'grantedOverrides',
                 'threads',
-                'specialization',
                 'phone',
-                'phone_number',
                 'bio',
                 'location',
             ] as $key) {
@@ -186,7 +183,6 @@ class UserResource extends JsonResource
             'specialization',
             'bio',
             'phone',
-            'phone_number',
             'location',
         ];
 
@@ -203,7 +199,6 @@ class UserResource extends JsonResource
             'email',
             'username',
             'phone',
-            'phone_number',
             'bio',
             'location',
             'avatar_url',

@@ -146,14 +146,19 @@ Route::prefix('v1')
             Route::post('/auth/password/forgot', [PasswordResetController::class, 'forgot'])->name(
                 'password.forgot',
             );
+            Route::post('/auth/password/reset', [PasswordResetController::class, 'reset'])->name(
+                'password.reset',
+            );
             Route::post('/auth/password/forgot/confirm', [
                 PasswordResetController::class,
                 'confirmForgot',
             ])->name('password.forgot.confirm');
         });
+        
+        // Change password (requires authentication)
         Route::middleware(['auth:api', 'throttle:api'])
-            ->post('/auth/password/reset', [PasswordResetController::class, 'changePassword'])
-            ->name('password.reset');
+            ->post('/auth/password/change', [PasswordResetController::class, 'changePassword'])
+            ->name('password.change');
 
         // Development Only: Token Generator for Testing (REMOVE BEFORE PRODUCTION!)
         Route::get('/dev/tokens', [AuthApiController::class, 'generateDevTokens'])

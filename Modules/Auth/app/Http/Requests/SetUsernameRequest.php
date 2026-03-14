@@ -36,7 +36,7 @@ class SetUsernameRequest extends FormRequest
             'username.string' => __('validation.string', ['attribute' => __('validation.attributes.username')]),
             'username.min' => __('validation.min.string', ['attribute' => __('validation.attributes.username'), 'min' => 3]),
             'username.max' => __('validation.max.string', ['attribute' => __('validation.attributes.username'), 'max' => 255]),
-            'username.regex' => __('validation.regex', ['attribute' => __('validation.attributes.username')]),
+            'username.regex' => __('validation.custom.username.regex'),
             'username.unique' => __('validation.unique', ['attribute' => __('validation.attributes.username')]),
         ];
     }

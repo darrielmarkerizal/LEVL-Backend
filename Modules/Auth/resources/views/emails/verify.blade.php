@@ -127,9 +127,11 @@
             
             <p>Halo {{ $user->name }},</p>
             
-            <p>Terima kasih telah mendaftar. Untuk menyelesaikan pendaftaran, silakan verifikasi alamat email Anda dengan mengklik tombol di bawah ini:</p>
+            <p>Terima kasih telah mendaftar. Untuk menyelesaikan pendaftaran, silakan verifikasi alamat email Anda dengan mengklik link di bawah ini:</p>
 
-            <a href="{{ $verifyUrl }}" class="btn-verify" target="_blank" rel="noopener">Verifikasi Email Saya</a>
+            <p style="margin: 24px 0;">
+                <a href="{{ $verifyUrl }}" style="color: #1a73e8; text-decoration: none; font-weight: 500;" target="_blank" rel="noopener">{{ $verifyUrl }}</a>
+            </p>
 
             <div class="info-box">
                 <strong>Penting:</strong> Link verifikasi ini berlaku selama {{ $ttlMinutes }} menit dan hanya dapat digunakan satu kali.
@@ -137,11 +139,15 @@
 
             <div class="divider"></div>
 
-            <p style="font-size: 14px; color: #737373;">Jika tombol di atas tidak berfungsi, salin dan tempel URL berikut ke browser Anda:</p>
+            <p style="font-size: 14px; color: #737373; margin-bottom: 12px;">Informasi verifikasi:</p>
             
-            <div class="url-box">
-                <a href="{{ $verifyUrl }}" target="_blank" rel="noopener">{{ $verifyUrl }}</a>
-            </div>
+            <p style="font-size: 14px; color: #404040; margin: 8px 0;">
+                <strong>Token:</strong> <span style="font-family: 'Courier New', monospace; background-color: #f8f8f8; padding: 2px 6px; border-radius: 3px;">{{ $token }}</span>
+            </p>
+
+            <p style="font-size: 14px; color: #404040; margin: 8px 0;">
+                <strong>UUID:</strong> <span style="font-family: 'Courier New', monospace; background-color: #f8f8f8; padding: 2px 6px; border-radius: 3px; font-size: 12px;">{{ $uuid }}</span>
+            </p>
         </div>
 
         <!-- Footer -->

@@ -172,10 +172,30 @@ class UserLifecycleProcessor
             $user->is_password_set = true;
             $user->save();
 
+            // Revoke all active tokens for this user
+            $this->revokeAllUserTokens($user);
+
             $this->cacheService->invalidateUser($user->id);
 
             return $user->fresh();
         });
+    }
+
+    /**
+     * Revoke all active JWT tokens and refresh tokens for a user.
+     */
+    private function revokeAllUserTokens(User $user): void
+    {
+        try {
+            // Delete all refresh tokens for this user
+            DB::table('refresh_tokens')
+                ->where('user_id', $user->id)
+                ->delete();
+                
+        } catch (\Exception $e) {
+            // Log error but don't fail the password change
+            \Illuminate\Support\Facades\Log::warning('Failed to revoke tokens for user '.$user->id.': '.$e->getMessage());
+        }
     }
 
     public function deleteUser(User $authUser, int $userId): void

@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Contracts\Services\AuthServiceInterface;
 use Modules\Auth\Contracts\Services\EmailVerificationServiceInterface;
+use Modules\Auth\Contracts\Services\ProfileStatisticsServiceInterface;
 use Modules\Auth\Events\AccountDeleted;
 use Modules\Auth\Events\PasswordChanged;
 use Modules\Auth\Events\ProfileUpdated;
@@ -22,7 +23,8 @@ class ProfileService implements ProfileServiceInterface
         private ProfilePrivacyService $privacyService,
         private UserActivityService $activityService,
         private EmailVerificationServiceInterface $emailVerification,
-        private AuthServiceInterface $authService
+        private AuthServiceInterface $authService,
+        private ProfileStatisticsServiceInterface $statisticsService
     ) {}
 
     public function updateProfile(User $user, array $data): User
@@ -83,30 +85,78 @@ class ProfileService implements ProfileServiceInterface
         $roleNames = $user->getRoleNames()->values();
         $primaryRole = Str::lower((string) ($roleNames->first() ?? 'student'));
 
+        // Base data that's always visible
         $data = [
             'id' => $user->id,
             'name' => $user->name,
             'username' => $user->username,
-            'email' => $user->email,
-            'phone' => $user->phone,
-            'phone_number' => $user->phone,
             'bio' => $user->bio,
             'location' => $user->location,
             'avatar_url' => $user->avatar_url,
             'status' => $user->status instanceof UserStatus ? $user->status->value : (string) $user->status,
             'role' => $primaryRole,
             'roles' => $roleNames->all(),
-            'email_verified_at' => $user->email_verified_at,
-            'last_profile_update' => $user->last_profile_update,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
         ];
 
-        if ($viewer->id !== $user->id) {
-            $data = $this->privacyService->filterProfileData($data, $user, $viewer);
+        // Check if viewing own profile or if viewer is admin
+        $isOwnProfile = $viewer->id === $user->id;
+        $isAdmin = $viewer->hasRole('Admin') || $viewer->hasRole('Superadmin');
+
+        if ($isOwnProfile || $isAdmin) {
+            // Show all data for own profile or admin
+            $data['email'] = $user->email;
+            $data['phone'] = $user->phone;
+            $data['email_verified_at'] = $user->email_verified_at;
+            $data['last_profile_update'] = $user->last_profile_update;
+
+            if ($primaryRole === 'student') {
+                $data['statistics'] = $this->getStudentStatistics($user);
+            }
+        } else {
+            // Filter data based on privacy settings for other viewers
+            $privacySettings = $user->privacySettings ?? $this->privacyService->getPrivacySettings($user);
+
+            // Add email if allowed
+            if ($privacySettings->show_email) {
+                $data['email'] = $user->email;
+            }
+
+            // Add phone if allowed
+            if ($privacySettings->show_phone) {
+                $data['phone'] = $user->phone;
+            }
+
+            // Add statistics if allowed and user is student
+            if ($primaryRole === 'student' && $privacySettings->show_statistics) {
+                $data['statistics'] = $this->getStudentStatistics($user);
+            }
+
+            // Note: activity_history and achievements will be handled by separate endpoints
+            // that also check privacy settings
         }
 
         return $data;
+    }
+
+    /**
+     * Get statistics for student profile
+     */
+    private function getStudentStatistics(User $user): array
+    {
+        // Get enrollment statistics
+        $enrollmentStats = $this->statisticsService->getEnrollmentStats($user);
+        
+        // Get gamification statistics
+        $gamificationStats = $user->gamificationStats;
+        
+        return [
+            'total_courses' => $enrollmentStats['total_enrolled'] ?? 0,
+            'completed_courses' => $enrollmentStats['total_completed'] ?? 0,
+            'total_xp' => $gamificationStats->total_xp ?? 0,
+            'current_level' => $gamificationStats->global_level ?? 1,
+        ];
     }
 
     public function getPublicProfile(User $user, User $viewer): array
@@ -124,14 +174,9 @@ class ProfileService implements ProfileServiceInterface
 
     public function changePassword(User $user, string $currentPassword, string $newPassword): bool
     {
-        if (! Hash::check($currentPassword, $user->password)) {
-            throw new \Exception(__('messages.auth.current_password_incorrect'));
-        }
-
-        if (strlen($newPassword) < 8) {
-            throw new \Exception(__('messages.auth.password_min_length'));
-        }
-
+        // Current password validation is handled by ChangePasswordRequest
+        // No need to check again here
+        
         $user->password = Hash::make($newPassword);
         $user->save();
 

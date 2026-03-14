@@ -33,4 +33,14 @@ class PasswordResetTokenRepository implements PasswordResetTokenRepositoryInterf
             ->limit($limit)
             ->get();
     }
+
+    public function findAll(): Collection
+    {
+        return PasswordResetToken::all();
+    }
+
+    public function delete(PasswordResetToken $token): bool
+    {
+        return $token->delete();
+    }
 }

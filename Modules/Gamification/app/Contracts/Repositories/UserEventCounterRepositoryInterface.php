@@ -30,6 +30,4 @@ interface UserEventCounterRepositoryInterface
     public function getUserCounters(int $userId, ?string $eventType = null): Collection;
 
     public function deleteExpired(): int;
-
-    public function update(UserEventCounter $counter, array $data): UserEventCounter;
 }

@@ -7,13 +7,14 @@ namespace Modules\Mail\Mail\Auth;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Modules\Auth\Models\User;
 
 class ResetPasswordMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public function __construct(
-        public readonly string $email,
+        public readonly User $user,
         public readonly string $resetUrl,
         public readonly int $ttlMinutes
     ) {}
@@ -23,7 +24,7 @@ class ResetPasswordMail extends Mailable
         return $this->subject('Reset Password Akun Anda')
             ->view('mail::emails.auth.reset')
             ->with([
-                'email' => $this->email,
+                'user' => $this->user,
                 'resetUrl' => $this->resetUrl,
                 'ttlMinutes' => $this->ttlMinutes,
             ]);

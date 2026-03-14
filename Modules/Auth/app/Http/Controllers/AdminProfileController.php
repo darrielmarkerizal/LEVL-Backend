@@ -40,7 +40,6 @@ class AdminProfileController extends Controller
             'name' => 'sometimes|string|max:100',
             'email' => "sometimes|email|unique:users,email,{$userId}",
             'phone' => 'sometimes|nullable|string|max:20',
-            'phone_number' => 'sometimes|nullable|string|max:20',
             'bio' => 'sometimes|nullable|string|max:1000',
             'location' => 'sometimes|nullable|string|max:255',
             'status' => 'sometimes|in:active,inactive,banned,pending',
