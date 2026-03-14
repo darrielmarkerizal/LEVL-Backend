@@ -9,22 +9,6 @@ use Modules\Learning\Models\Assignment;
 
 class AssignmentPolicy
 {
-    private function isCourseAdmin(User $user, int $courseId): bool
-    {
-        return cache()->tags(['course-admin'])->remember(
-            "course_admin:{$user->id}:{$courseId}",
-            3600, // 1 hour
-            function () use ($user, $courseId) {
-                $course = \Modules\Schemes\Models\Course::find($courseId);
-                if (! $course) {
-                    return false;
-                }
-
-                return $course->admins()->where('user_id', $user->id)->exists();
-            }
-        );
-    }
-
     public function viewAny(?User $user): bool
     {
         return true;
@@ -77,10 +61,12 @@ class AssignmentPolicy
             return true;
         }
 
+        // Admin can create assignments in all courses
         if ($user->hasRole('Admin')) {
-            return $this->isCourseAdmin($user, $course->id);
+            return true;
         }
 
+        // Instructor can create assignments in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -95,10 +81,12 @@ class AssignmentPolicy
             return false;
         }
 
+        // Admin can update all assignments
         if ($user->hasRole('Admin')) {
-            return $this->isCourseAdmin($user, $course->id);
+            return true;
         }
 
+        // Instructor can update assignments in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -113,10 +101,12 @@ class AssignmentPolicy
             return false;
         }
 
+        // Admin can delete all assignments
         if ($user->hasRole('Admin')) {
-            return $this->isCourseAdmin($user, $course->id);
+            return true;
         }
 
+        // Instructor can delete assignments in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -143,18 +133,15 @@ class AssignmentPolicy
             return false;
         }
 
+        // Admin can duplicate all assignments
         if ($user->hasRole('Admin')) {
-            return $this->isCourseAdmin($user, $course->id);
+            return true;
         }
 
+        // Instructor can duplicate assignments in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
-    /**
-     * Determine if user can view questions for this assignment.
-     * Only course managers (Admin/Instructor) can view questions.
-     * Students cannot view questions of assignments they haven't started.
-     */
     public function listQuestions(User $user, Assignment $assignment): bool
     {
         // Superadmins can always view
@@ -179,12 +166,12 @@ class AssignmentPolicy
             return false;
         }
 
-        // Admins can view if they manage the course
+        // Admin can view all assignment questions
         if ($user->hasRole('Admin')) {
-            return $this->isCourseAdmin($user, $course->id);
+            return true;
         }
 
-        // Instructors can view if they created the course
+        // Instructor can view questions in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 }

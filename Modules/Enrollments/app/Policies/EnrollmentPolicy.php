@@ -21,10 +21,12 @@ class EnrollmentPolicy
             return true;
         }
 
+        // Admin can manage all courses
         if ($user->hasRole('Admin')) {
-            return $course->hasAdmin($user);
+            return true;
         }
 
+        // Instructor can only manage their assigned courses
         if ($user->hasRole('Instructor')) {
             return $course->hasInstructor($user);
         }
@@ -43,8 +45,14 @@ class EnrollmentPolicy
         }
 
         if ($enrollment->course) {
-            if ($user->hasAnyRole(['Admin', 'Instructor'])) {
-                return $enrollment->course->hasInstructor($user) || $enrollment->course->hasAdmin($user);
+            // Admin can view all enrollments
+            if ($user->hasRole('Admin')) {
+                return true;
+            }
+            
+            // Instructor can only view enrollments in their courses
+            if ($user->hasRole('Instructor')) {
+                return $enrollment->course->hasInstructor($user);
             }
         }
 
@@ -107,8 +115,14 @@ class EnrollmentPolicy
             return false;
         }
 
-        if ($user->hasAnyRole(['Admin', 'Instructor'])) {
-            return $enrollment->course->hasInstructor($user) || $enrollment->course->hasAdmin($user);
+        // Admin can manage all enrollments
+        if ($user->hasRole('Admin')) {
+            return true;
+        }
+
+        // Instructor can only manage enrollments in their courses
+        if ($user->hasRole('Instructor')) {
+            return $enrollment->course->hasInstructor($user);
         }
 
         return false;

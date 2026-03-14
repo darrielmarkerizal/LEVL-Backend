@@ -128,10 +128,12 @@ class SubmissionPolicy
             return false;
         }
 
+        // Admin can grade all submissions
         if ($user->hasRole('Admin')) {
-            return $course->admins()->where('user_id', $user->id)->exists();
+            return true;
         }
 
+        // Instructor can grade submissions in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 }

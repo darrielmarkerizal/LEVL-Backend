@@ -33,14 +33,17 @@ class UnitPolicy
             return true;
         }
 
+        // Admin can view all units
         if ($user->hasRole('Admin')) {
-            return $course->admins()->where('user_id', $user->id)->exists();
+            return true;
         }
 
+        // Instructor can view units in their courses
         if ($user->hasRole('Instructor')) {
             return $course->instructor_id === $user->id;
         }
 
+        // Student can view if enrolled
         if ($user->hasRole('Student')) {
             return \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
                 ->where('course_id', $course->id)
@@ -57,10 +60,12 @@ class UnitPolicy
             return true;
         }
 
+        // Admin can create units in all courses
         if ($user->hasRole('Admin')) {
-            return $course->admins()->where('user_id', $user->id)->exists();
+            return true;
         }
 
+        // Instructor can create units in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -75,12 +80,12 @@ class UnitPolicy
             return false;
         }
 
-        // Check if user is assigned admin for this course
-        if ($user->hasRole('Admin') && $course->admins()->where('user_id', $user->id)->exists()) {
+        // Admin can update all units
+        if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Check if user is the instructor
+        // Instructor can update units in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -95,10 +100,12 @@ class UnitPolicy
             return false;
         }
 
-        if ($user->hasRole('Admin') && $course->admins()->where('user_id', $user->id)->exists()) {
+        // Admin can delete all units
+        if ($user->hasRole('Admin')) {
             return true;
         }
 
+        // Instructor can delete units in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 

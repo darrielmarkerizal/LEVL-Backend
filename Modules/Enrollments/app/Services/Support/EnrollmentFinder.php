@@ -214,7 +214,20 @@ class EnrollmentFinder
             return $this->paginateAll($perPage, $filters);
         }
 
-        if ($user->hasRole(['Admin', 'Instructor'])) {
+        // Admin can see all enrollments
+        if ($user->hasRole('Admin')) {
+            if ($courseSlug) {
+                $course = Course::where('slug', $courseSlug)->first();
+                if (! $course) {
+                    throw new BusinessException(__('messages.courses.not_found'), []);
+                }
+                return $this->paginateByCourse($course->id, $perPage, $filters);
+            }
+            return $this->paginateAll($perPage, $filters);
+        }
+
+        // Instructor can only see enrollments in their managed courses
+        if ($user->hasRole('Instructor')) {
             $result = $this->getManagedEnrollments($user, $perPage, $courseSlug, $filters);
 
             if (! $result['found']) {
@@ -235,7 +248,20 @@ class EnrollmentFinder
             return $this->paginateAllForIndex($perPage, $filters);
         }
 
-        if ($user->hasRole(['Admin', 'Instructor'])) {
+        // Admin can see all enrollments
+        if ($user->hasRole('Admin')) {
+            if ($courseSlug) {
+                $course = Course::where('slug', $courseSlug)->first();
+                if (! $course) {
+                    throw new BusinessException(__('messages.courses.not_found'), []);
+                }
+                return $this->paginateByCourseForIndex($course->id, $perPage, $filters);
+            }
+            return $this->paginateAllForIndex($perPage, $filters);
+        }
+
+        // Instructor can only see enrollments in their managed courses
+        if ($user->hasRole('Instructor')) {
             $result = $this->getManagedEnrollmentsForIndex($user, $perPage, $courseSlug, $filters);
 
             if (! $result['found']) {
