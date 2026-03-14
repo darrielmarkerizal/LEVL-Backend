@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Common\Traits\PgSearchable;
+use Modules\Gamification\Enums\BadgeRarity;
 use Modules\Gamification\Enums\BadgeType;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -27,11 +28,26 @@ class Badge extends Model implements HasMedia
 
     protected $table = 'badges';
 
-    protected $fillable = ['code', 'name', 'description', 'type', 'threshold', 'is_repeatable', 'max_awards_per_user'];
+    protected $fillable = [
+        'code',
+        'name',
+        'description',
+        'type',
+        'category',
+        'rarity',
+        'xp_reward',
+        'active',
+        'threshold',
+        'is_repeatable',
+        'max_awards_per_user',
+    ];
 
     protected $casts = [
         'threshold' => 'integer',
         'type' => BadgeType::class,
+        'rarity' => BadgeRarity::class,
+        'xp_reward' => 'integer',
+        'active' => 'boolean',
         'is_repeatable' => 'boolean',
         'max_awards_per_user' => 'integer',
     ];

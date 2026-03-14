@@ -17,7 +17,13 @@ class BadgeResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'type' => $this->type?->value,
+            'category' => $this->category,
+            'rarity' => $this->rarity?->value,
+            'xp_reward' => $this->xp_reward,
+            'active' => $this->active,
             'threshold' => $this->threshold,
+            'is_repeatable' => $this->is_repeatable,
+            'max_awards_per_user' => $this->max_awards_per_user,
             'icon_url' => $this->icon_url,
             'icon_thumb_url' => $this->icon_thumb_url,
             'rules' => $this->whenLoaded('rules', function () {
@@ -26,6 +32,9 @@ class BadgeResource extends JsonResource
                         'id' => $rule->id,
                         'event_trigger' => $rule->event_trigger,
                         'conditions' => $rule->conditions,
+                        'priority' => $rule->priority,
+                        'cooldown_seconds' => $rule->cooldown_seconds,
+                        'rule_enabled' => $rule->rule_enabled,
                     ];
                 });
             }),
