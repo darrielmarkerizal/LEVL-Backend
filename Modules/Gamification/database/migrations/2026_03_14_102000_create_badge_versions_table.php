@@ -23,22 +23,12 @@ return new class extends Migration
             $table->index(['badge_id', 'is_active'], 'badge_active_idx');
         });
 
-        // Add badge_version_id to user_badge_progress
-        Schema::table('user_badge_progress', function (Blueprint $table) {
-            $table->foreignId('badge_version_id')->nullable()
-                ->after('badge_id')
-                ->constrained('badge_versions')
-                ->nullOnDelete();
-        });
+        // Note: user_badge_progress table will be created in future upgrade
+        // This is part of Phase 1 of DUOLINGO_LEVEL_UPGRADE_PLAN.md
     }
 
     public function down(): void
     {
-        Schema::table('user_badge_progress', function (Blueprint $table) {
-            $table->dropForeign(['badge_version_id']);
-            $table->dropColumn('badge_version_id');
-        });
-
         Schema::dropIfExists('badge_versions');
     }
 };

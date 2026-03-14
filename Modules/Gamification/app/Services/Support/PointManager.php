@@ -10,6 +10,7 @@ use Modules\Gamification\Models\Point;
 use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Gamification\Models\UserScopeStat;
 use Modules\Gamification\Repositories\GamificationRepository;
+use Modules\Gamification\Services\LevelService;
 use Modules\Learning\Models\Assignment;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Lesson;
@@ -20,7 +21,8 @@ use Spatie\QueryBuilder\QueryBuilder;
 class PointManager
 {
     public function __construct(
-        private readonly GamificationRepository $repository
+        private readonly GamificationRepository $repository,
+        private readonly LevelService $levelService
     ) {}
 
     public function awardXp(
@@ -186,27 +188,7 @@ class PointManager
 
     public function calculateLevelFromXp(int $totalXp): int
     {
-        $configs = \Illuminate\Support\Facades\Cache::remember('gamification.level_configs', 3600, function () {
-            return \Modules\Common\Models\LevelConfig::all()->keyBy('level');
-        });
-
-        $level = 0;
-        $xpCost = $this->getXpRequiredForLevel($configs, $level);
-
-        while ($totalXp >= $xpCost) {
-            $totalXp -= $xpCost;
-            $level++;
-            $xpCost = $this->getXpRequiredForLevel($configs, $level);
-        }
-
-        return $level;
-    }
-
-    private function getXpRequiredForLevel(\Illuminate\Support\Collection $configs, int $level): int
-    {
-        $lookupLevel = $level + 1;
-
-        return $configs->get($lookupLevel)?->xp_required ?? PHP_INT_MAX;
+        return $this->levelService->calculateLevelFromXp($totalXp);
     }
 
     public function getOrCreateStats(int $userId): UserGamificationStat
