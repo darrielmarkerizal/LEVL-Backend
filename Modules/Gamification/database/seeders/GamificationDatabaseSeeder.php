@@ -13,6 +13,7 @@ class GamificationDatabaseSeeder extends Seeder
     {
         $this->call([
             LevelConfigSeeder::class,  // Sync level configs first
+            XpSourceSeeder::class,     // Then XP sources
             MilestoneSeeder::class,    // Then milestones
             BadgeSeeder::class,        // Then badges
             // UserGamificationSeeder::class,  // Skip for production (test data)

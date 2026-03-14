@@ -29,6 +29,10 @@ class EventServiceProvider extends ServiceProvider
         \Modules\Forums\Events\ReactionAdded::class => [
             \Modules\Gamification\Listeners\AwardXpForReactionReceived::class,
         ],
+        // Level Up Event
+        \Modules\Gamification\Events\UserLeveledUp::class => [
+            \Modules\Gamification\Listeners\HandleLevelUp::class,
+        ],
     ];
 
     protected static $shouldDiscoverEvents = false;
