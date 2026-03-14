@@ -19,6 +19,16 @@ class EventServiceProvider extends ServiceProvider
         \Modules\Schemes\Events\UnitCompleted::class => [
             \Modules\Gamification\Listeners\AwardXpForUnitCompleted::class,
         ],
+        // Forums Integration
+        \Modules\Forums\Events\ThreadCreated::class => [
+            \Modules\Gamification\Listeners\AwardXpForThreadCreated::class,
+        ],
+        \Modules\Forums\Events\ReplyCreated::class => [
+            \Modules\Gamification\Listeners\AwardXpForReplyCreated::class,
+        ],
+        \Modules\Forums\Events\ReactionAdded::class => [
+            \Modules\Gamification\Listeners\AwardXpForReactionReceived::class,
+        ],
     ];
 
     protected static $shouldDiscoverEvents = false;

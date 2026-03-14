@@ -1,0 +1,72 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Gamification\Listeners;
+
+use Modules\Common\Models\SystemSetting;
+use Modules\Forums\Events\ThreadCreated;
+use Modules\Gamification\Services\EventCounterService;
+use Modules\Gamification\Services\EventLoggerService;
+use Modules\Gamification\Services\GamificationService;
+use Modules\Gamification\Services\Support\BadgeRuleEvaluator;
+
+class AwardXpForThreadCreated
+{
+    public function __construct(
+        private readonly GamificationService $gamification,
+        private readonly EventCounterService $counterService,
+        private readonly EventLoggerService $loggerService,
+        private readonly BadgeRuleEvaluator $evaluator
+    ) {}
+
+    public function handle(ThreadCreated $event): void
+    {
+        $thread = $event->thread;
+        $userId = $thread->user_id;
+
+        $xp = (int) SystemSetting::get('gamification.points.thread_created', 5);
+
+        // 1. Award XP
+        $this->gamification->awardXp(
+            $userId,
+            $xp,
+            'engagement',
+            'thread',
+            $thread->id,
+            [
+                'description' => __('gamification::gamification.thread_created_xp'),
+                'allow_multiple' => true,
+            ]
+        );
+
+        // 2. Log event
+        $this->loggerService->log(
+            $userId,
+            'thread_created',
+            'thread',
+            $thread->id,
+            [
+                'thread_id' => $thread->id,
+                'forum_id' => $thread->forum_id,
+            ]
+        );
+
+        // 3. Increment counters
+        $this->counterService->increment($userId, 'thread_created', 'global', null, 'lifetime');
+        $this->counterService->increment($userId, 'thread_created', 'global', null, 'daily');
+        $this->counterService->increment($userId, 'thread_created', 'global', null, 'weekly');
+
+        // 4. Evaluate badge rules
+        $user = \Modules\Auth\Models\User::find($userId);
+        if ($user) {
+            $payload = [
+                'thread_id' => $thread->id,
+                'forum_id' => $thread->forum_id,
+                'scope_type' => 'global',
+                'scope_id' => null,
+            ];
+            $this->evaluator->evaluate($user, 'thread_created', $payload);
+        }
+    }
+}

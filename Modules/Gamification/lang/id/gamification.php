@@ -67,4 +67,9 @@ return [
     'max_awards_reached' => 'Batas maksimum perolehan lencana ini telah tercapai',
     'rule_disabled' => 'Aturan ini saat ini dinonaktifkan',
     'rule_enabled' => 'Aturan ini saat ini diaktifkan',
+    
+    // Forum activity messages
+    'thread_created_xp' => 'Membuat thread diskusi baru',
+    'reply_created_xp' => 'Membalas diskusi',
+    'reaction_received_xp' => 'Menerima reaksi pada postingan Anda',
 ];
