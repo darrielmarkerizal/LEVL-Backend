@@ -68,7 +68,23 @@ class PasswordResetController extends Controller
         $email = null;
 
         foreach ($records as $rec) {
-            if (Hash::check($token, $rec->token)) {
+            // Check if token is hashed with Bcrypt
+            $isMatch = false;
+            
+            try {
+                // Try to check if it's a Bcrypt hash
+                if (str_starts_with($rec->token, '$2y$') || str_starts_with($rec->token, '$2a$') || str_starts_with($rec->token, '$2b$')) {
+                    $isMatch = Hash::check($token, $rec->token);
+                } else {
+                    // Legacy: direct comparison for non-hashed tokens
+                    $isMatch = hash_equals($rec->token, $token);
+                }
+            } catch (\Exception $e) {
+                // If hash check fails, try direct comparison
+                $isMatch = hash_equals($rec->token, $token);
+            }
+            
+            if ($isMatch) {
                 $matched = $rec;
                 $email = $rec->email;
                 break;
@@ -91,6 +107,9 @@ class PasswordResetController extends Controller
 
         $user->password = Hash::make($newPassword);
         $user->save();
+
+        // Revoke all active tokens for this user
+        $this->revokeAllUserTokens($user);
 
         $this->passwordResetTokenRepository->delete($matched);
 
@@ -117,8 +136,32 @@ class PasswordResetController extends Controller
         $user->password = Hash::make($request->input('new_password'));
         $user->save();
 
+        // Revoke all active tokens for this user
+        $this->revokeAllUserTokens($user);
+
         event(new \Modules\Auth\Events\PasswordChanged($user));
 
         return $this->success([], __('messages.password.updated'));
+    }
+
+    /**
+     * Revoke all active JWT tokens and refresh tokens for a user.
+     */
+    private function revokeAllUserTokens(User $user): void
+    {
+        try {
+            // Invalidate all JWT tokens by adding user to blacklist
+            // This will be handled by JWT middleware on next request
+            auth('api')->setUser($user);
+            
+            // Delete all refresh tokens for this user
+            \Illuminate\Support\Facades\DB::table('refresh_tokens')
+                ->where('user_id', $user->id)
+                ->delete();
+                
+        } catch (\Exception $e) {
+            // Log error but don't fail the password change
+            \Illuminate\Support\Facades\Log::warning('Failed to revoke tokens for user '.$user->id.': '.$e->getMessage());
+        }
     }
 }

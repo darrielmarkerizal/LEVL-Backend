@@ -18,7 +18,6 @@ return [
     'username_already_taken' => 'This username is already taken.',
 
     // Password Reset Messages
-    'password_reset_sent' => 'Password reset link has been sent to your email.',
     'password_reset_success' => 'Your password has been reset successfully.',
     'password_reset_failed' => 'Password reset failed. Please try again.',
     'password_reset_token_invalid' => 'This password reset token is invalid.',

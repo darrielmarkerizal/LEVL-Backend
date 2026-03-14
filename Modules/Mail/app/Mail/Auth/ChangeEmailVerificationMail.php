@@ -15,7 +15,9 @@ class ChangeEmailVerificationMail extends Mailable
     public function __construct(
         public readonly string $newEmail,
         public readonly string $verifyUrl,
-        public readonly int $ttlMinutes
+        public readonly int $ttlMinutes,
+        public readonly string $token,
+        public readonly string $uuid
     ) {}
 
     public function build(): self
@@ -26,6 +28,8 @@ class ChangeEmailVerificationMail extends Mailable
                 'newEmail' => $this->newEmail,
                 'verifyUrl' => $this->verifyUrl,
                 'ttlMinutes' => $this->ttlMinutes,
+                'token' => $this->token,
+                'uuid' => $this->uuid,
             ]);
     }
 }

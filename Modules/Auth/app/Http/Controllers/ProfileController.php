@@ -25,7 +25,7 @@ class ProfileController extends Controller
         if (! $user->relationLoaded('media')) {
             $user->load('media');
         }
-        $user->loadMissing('roles');
+        $user->loadMissing(['roles', 'gamificationStats']);
         $profileData = $this->profileService->getProfileData($user);
 
         return $this->success(new \Modules\Auth\Http\Resources\ProfileResource($profileData));

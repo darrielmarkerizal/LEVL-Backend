@@ -18,7 +18,6 @@ return [
     'username_already_taken' => 'Username ini sudah digunakan.',
 
     // Password Reset Messages
-    'password_reset_sent' => 'Link reset password telah dikirim ke email Anda.',
     'password_reset_success' => 'Password Anda berhasil direset.',
     'password_reset_failed' => 'Reset password gagal. Silakan coba lagi.',
     'password_reset_token_invalid' => 'Token reset password ini tidak valid.',

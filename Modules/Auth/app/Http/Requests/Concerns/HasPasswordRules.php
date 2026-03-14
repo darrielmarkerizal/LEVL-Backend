@@ -9,46 +9,79 @@ use Illuminate\Validation\Rules\Password as PasswordRule;
 trait HasPasswordRules
 {
     /**
-     * Strong password rules for resets/changes (includes uncompromised).
+     * Global password rules - used for all password validations.
+     * Includes uncompromised check for maximum security.
+     */
+    protected function passwordRules(): array
+    {
+        return [
+            'required',
+            'string',
+            'confirmed',
+            PasswordRule::min(8)
+                ->letters()
+                ->mixedCase()
+                ->numbers()
+                ->symbols()
+                ->uncompromised(),
+        ];
+    }
+
+    /**
+     * Password rules without confirmation - for change password.
+     */
+    protected function passwordRulesWithoutConfirmation(): array
+    {
+        return [
+            'required',
+            'string',
+            PasswordRule::min(8)
+                ->letters()
+                ->mixedCase()
+                ->numbers()
+                ->symbols()
+                ->uncompromised(),
+        ];
+    }
+
+    /**
+     * Alias for backward compatibility.
      */
     protected function passwordRulesStrong(): array
     {
-        return [
-            'required',
-            'string',
-            'confirmed',
-            PasswordRule::min(8)->letters()->mixedCase()->numbers()->symbols()->uncompromised(),
-        ];
+        return $this->passwordRules();
     }
 
     /**
-     * Registration password rules (no uncompromised check, faster UX).
+     * Alias for backward compatibility.
      */
     protected function passwordRulesRegistration(): array
     {
-        return [
-            'required',
-            'string',
-            'confirmed',
-            PasswordRule::min(8)->letters()->mixedCase()->numbers()->symbols(),
-        ];
+        return $this->passwordRules();
     }
 
     /**
-     * Standard Indonesian messages for password validation.
+     * Standard password validation messages.
      */
     protected function passwordMessages(): array
     {
         return [
-            'password.required' => __('validation.required', ['attribute' => 'password']),
-            'password.string' => __('validation.string', ['attribute' => 'password']),
-            'password.confirmed' => __('validation.confirmed', ['attribute' => 'password']),
-            'password.min' => __('validation.min.string', ['attribute' => 'password']),
-            'password.letters' => __('validation.password.letters'),
-            'password.mixed' => __('validation.password.mixed'),
-            'password.numbers' => __('validation.password.numbers'),
-            'password.symbols' => __('validation.password.symbols'),
-            'password.uncompromised' => __('validation.password.uncompromised'),
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.string' => 'Kata sandi harus berupa teks.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+            'password.min' => 'Kata sandi minimal harus 8 karakter.',
+        ];
+    }
+
+    /**
+     * Password validation messages for new_password field.
+     */
+    protected function newPasswordMessages(): array
+    {
+        return [
+            'new_password.required' => 'Kata sandi baru wajib diisi.',
+            'new_password.string' => 'Kata sandi baru harus berupa teks.',
+            'new_password.min' => 'Kata sandi baru minimal harus 8 karakter.',
         ];
     }
 }

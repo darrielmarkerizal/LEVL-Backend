@@ -28,4 +28,14 @@ interface PasswordResetTokenRepositoryInterface
      * Find valid tokens created within the specified time window
      */
     public function findValidTokens(int $ttlMinutes, int $limit = 100): Collection;
+
+    /**
+     * Find all password reset tokens
+     */
+    public function findAll(): Collection;
+
+    /**
+     * Delete a password reset token
+     */
+    public function delete(PasswordResetToken $token): bool;
 }

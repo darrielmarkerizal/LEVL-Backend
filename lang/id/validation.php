@@ -87,7 +87,6 @@ $base = [
     'not_in' => ':attribute yang dipilih tidak valid.',
     'not_regex' => 'Format :attribute tidak valid.',
     'numeric' => ':attribute harus berupa angka.',
-    'password' => 'Password tidak valid.',
     'present' => ':attribute harus ada.',
     'regex' => 'Format :attribute tidak valid.',
     'required' => ':attribute harus diisi.',
@@ -114,6 +113,9 @@ $base = [
     'url' => 'Format :attribute tidak valid.',
     'uuid' => ':attribute harus merupakan UUID yang valid.',
     'custom' => [
+        'username' => [
+            'regex' => 'Username hanya boleh mengandung huruf, angka, titik (.), garis bawah (_), dan tanda hubung (-).',
+        ],
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
@@ -180,6 +182,13 @@ $overrides = [
     'required_without' => ':attribute wajib diisi ketika :values tidak ada.',
     'required_without_all' => ':attribute wajib diisi ketika :values tidak ada.',
     'same' => ':attribute dan :other harus cocok.',
+    'password' => [
+        'letters' => ':attribute harus mengandung setidaknya satu huruf.',
+        'mixed' => ':attribute harus mengandung huruf besar dan kecil.',
+        'numbers' => ':attribute harus mengandung setidaknya satu angka.',
+        'symbols' => ':attribute harus mengandung setidaknya satu simbol.',
+        'uncompromised' => ':attribute yang diberikan telah muncul dalam kebocoran data. Silakan pilih :attribute yang berbeda.',
+    ],
     'custom' => [
         'score_awarded' => [
             'required' => 'Kolom skor yang diberikan wajib diisi.',
@@ -227,10 +236,13 @@ $overrides = [
         ],
     ],
     'attributes' => [
-        'email' => 'Email',
-        'password' => 'Kata sandi',
-        'name' => 'Nama',
-        'title' => 'Judul',
+        'email' => 'email',
+        'password' => 'kata sandi',
+        'new_password' => 'kata sandi baru',
+        'current_password' => 'kata sandi saat ini',
+        'name' => 'nama',
+        'username' => 'username',
+        'title' => 'judul',
         'description' => 'Deskripsi',
         'type' => 'Tipe',
         'score_weight' => 'Bobot Skor',

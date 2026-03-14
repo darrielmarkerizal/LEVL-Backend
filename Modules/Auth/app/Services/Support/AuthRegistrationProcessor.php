@@ -95,19 +95,42 @@ class AuthRegistrationProcessor
         $tokens = [];
 
         foreach ($roles as $role) {
-            $user = User::where('email', strtolower($role).'@example.com')->first();
+            $email = strtolower($role).'@example.com';
+            $username = strtolower($role);
+            
+            // Try to find by email first
+            $user = User::where('email', $email)->first();
+            
+            // If not found by email, try by username
+            if (! $user) {
+                $user = User::where('username', $username)->first();
+            }
 
             if (! $user) {
-                $user = $this->authRepository->createUser([
-                    'name' => $role,
-                    'email' => strtolower($role).'@example.com',
-                    'username' => strtolower($role),
-                    'password' => Hash::make('password'),
-                    'email_verified_at' => now(),
-                    'status' => UserStatus::Active,
-                ]);
+                try {
+                    $user = $this->authRepository->createUser([
+                        'name' => $role,
+                        'email' => $email,
+                        'username' => $username,
+                        'password' => Hash::make('password'),
+                        'email_verified_at' => now(),
+                        'status' => UserStatus::Active,
+                    ]);
 
-                $user->assignRole($role);
+                    $user->assignRole($role);
+                } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+                    // If duplicate key error, try to find the user one more time
+                    $user = User::where('email', $email)->first();
+                    
+                    if (! $user) {
+                        $user = User::where('username', $username)->first();
+                    }
+                    
+                    if (! $user) {
+                        // If still not found, skip this role
+                        continue;
+                    }
+                }
             }
 
             $tokens[$role] = $this->formatUserToken($user, $ip, $userAgent, $role);

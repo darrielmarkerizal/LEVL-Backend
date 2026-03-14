@@ -16,7 +16,9 @@ class VerifyEmailLinkMail extends Mailable
     public function __construct(
         public readonly User $user,
         public readonly string $verifyUrl,
-        public readonly int $ttlMinutes
+        public readonly int $ttlMinutes,
+        public readonly string $token,
+        public readonly string $uuid
     ) {}
 
     public function build(): self
@@ -27,6 +29,8 @@ class VerifyEmailLinkMail extends Mailable
                 'user' => $this->user,
                 'verifyUrl' => $this->verifyUrl,
                 'ttlMinutes' => $this->ttlMinutes,
+                'token' => $this->token,
+                'uuid' => $this->uuid,
             ]);
     }
 }

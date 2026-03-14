@@ -14,6 +14,7 @@ class AccountDeletionVerificationMail extends Mailable
 
     public function __construct(
         public readonly string $email,
+        public readonly string $userName,
         public readonly string $confirmUrl,
         public readonly int $ttlMinutes
     ) {}
@@ -24,7 +25,8 @@ class AccountDeletionVerificationMail extends Mailable
             ->view('mail::emails.auth.account-deletion-verify')
             ->with([
                 'email' => $this->email,
-                'confirmUrl' => $this->confirmUrl,
+                'userName' => $this->userName,
+                'verifyUrl' => $this->confirmUrl,
                 'ttlMinutes' => $this->ttlMinutes,
             ]);
     }

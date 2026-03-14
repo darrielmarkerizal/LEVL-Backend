@@ -88,7 +88,6 @@ return [
     'not_in' => 'The selected :attribute is invalid.',
     'not_regex' => 'The :attribute format is invalid.',
     'numeric' => 'The :attribute must be a number.',
-    'password' => 'The password is incorrect.',
     'present' => 'The :attribute must be present.',
     'regex' => 'The :attribute format is invalid.',
     'required' => 'The :attribute field is required.',
@@ -117,6 +116,14 @@ return [
     'invalid_choice' => 'The selected choice is invalid.',
     'invalid_format' => 'The format is invalid.',
     'mentioned_users_not_found' => 'The following mentioned users do not exist: :usernames',
+
+    'password' => [
+        'letters' => 'The :attribute must contain at least one letter.',
+        'mixed' => 'The :attribute must contain both uppercase and lowercase letters.',
+        'numbers' => 'The :attribute must contain at least one number.',
+        'symbols' => 'The :attribute must contain at least one symbol.',
+        'uncompromised' => 'The given :attribute has appeared in a data leak. Please choose a different :attribute.',
+    ],
 
     'custom' => [
         'score_awarded' => [
@@ -163,6 +170,9 @@ return [
         'question_id' => [
             'required' => 'The question_id field is required.',
         ],
+        'username' => [
+            'regex' => 'Username may only contain letters, numbers, dots (.), underscores (_), and hyphens (-).',
+        ],
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
@@ -192,7 +202,10 @@ return [
         'score' => 'score',
         'email' => 'email',
         'password' => 'password',
+        'current_password' => 'current password',
+        'password' => 'password',
         'name' => 'name',
+        'username' => 'username',
         'avatar' => 'avatar',
         'enum' => 'enum',
         'submission_type' => 'submission type',

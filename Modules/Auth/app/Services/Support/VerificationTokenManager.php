@@ -51,7 +51,7 @@ class VerificationTokenManager
         $frontendUrl = config('app.frontend_url');
         $verifyUrl = $frontendUrl.'/auth/verify-email?token='.$token.'&uuid='.$uuid;
 
-        Mail::to($user)->send(new VerifyEmailLinkMail($user, $verifyUrl, $ttlMinutes));
+        Mail::to($user)->send(new VerifyEmailLinkMail($user, $verifyUrl, $ttlMinutes, $token, $uuid));
 
         return $uuid;
     }
@@ -85,9 +85,13 @@ class VerificationTokenManager
         ]);
 
         $frontendUrl = config('app.frontend_url');
-        $verifyUrl = $frontendUrl.'/profile/email/verify?token='.$token.'&uuid='.$uuid;
+        $queryParams = http_build_query([
+            'token' => $token,
+            'uuid' => $uuid,
+        ]);
+        $verifyUrl = $frontendUrl.'/profile/email/verify?'.$queryParams;
 
-        Mail::to($newEmail)->send(new ChangeEmailVerificationMail($user, $newEmail, $verifyUrl, $ttlMinutes));
+        Mail::to($newEmail)->send(new ChangeEmailVerificationMail($newEmail, $verifyUrl, $ttlMinutes, $token, $uuid));
 
         return $uuid;
     }

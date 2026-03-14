@@ -77,13 +77,6 @@ class UserEventCounterRepository extends BaseRepository implements UserEventCoun
             ->delete();
     }
 
-    public function update(UserEventCounter $counter, array $data): UserEventCounter
-    {
-        $counter->update($data);
-
-        return $counter->fresh();
-    }
-
     private function calculateWindowEnd(string $window, ?Carbon $windowStart): ?Carbon
     {
         if ($window === 'lifetime' || ! $windowStart) {
