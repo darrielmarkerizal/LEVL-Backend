@@ -212,12 +212,15 @@ class TrashBinService
             });
         }
 
+        // Process in batches with single transaction per batch for better performance
         $query->chunkById(100, function ($bins) use (&$count): void {
-            foreach ($bins as $bin) {
-                if ($this->forceDeleteFromTrashBin($bin)) {
-                    $count++;
+            DB::transaction(function () use ($bins, &$count): void {
+                foreach ($bins as $bin) {
+                    if ($this->forceDeleteFromTrashBin($bin)) {
+                        $count++;
+                    }
                 }
-            }
+            });
         });
 
         return $count;
@@ -231,11 +234,13 @@ class TrashBinService
             ->whereIn('id', $ids)
             ->orderBy('id')
             ->chunkById(100, function ($bins) use (&$count): void {
-                foreach ($bins as $bin) {
-                    if ($this->forceDeleteFromTrashBin($bin)) {
-                        $count++;
+                DB::transaction(function () use ($bins, &$count): void {
+                    foreach ($bins as $bin) {
+                        if ($this->forceDeleteFromTrashBin($bin)) {
+                            $count++;
+                        }
                     }
-                }
+                });
             });
 
         return $count;
@@ -260,12 +265,15 @@ class TrashBinService
             });
         }
 
+        // Process in batches with single transaction per batch for better performance
         $query->chunkById(100, function ($bins) use (&$count): void {
-            foreach ($bins as $bin) {
-                if ($this->restoreFromTrashBin($bin)) {
-                    $count++;
+            DB::transaction(function () use ($bins, &$count): void {
+                foreach ($bins as $bin) {
+                    if ($this->restoreFromTrashBin($bin)) {
+                        $count++;
+                    }
                 }
-            }
+            });
         });
 
         return $count;
@@ -279,11 +287,13 @@ class TrashBinService
             ->whereIn('id', $ids)
             ->orderBy('id')
             ->chunkById(100, function ($bins) use (&$count): void {
-                foreach ($bins as $bin) {
-                    if ($this->restoreFromTrashBin($bin)) {
-                        $count++;
+                DB::transaction(function () use ($bins, &$count): void {
+                    foreach ($bins as $bin) {
+                        if ($this->restoreFromTrashBin($bin)) {
+                            $count++;
+                        }
                     }
-                }
+                });
             });
 
         return $count;
@@ -415,31 +425,30 @@ class TrashBinService
     private function cascadeDeleteChildren(Model $model): void
     {
         if ($model instanceof \Modules\Schemes\Models\Course) {
-            $model->units()->get()->each(function ($unit): void {
-                if (! $unit->trashed()) {
-                    $unit->delete();
-                }
-            });
+            // Eager load to avoid N+1, filter non-trashed items
+            $units = $model->units()->whereNull('deleted_at')->get();
+            foreach ($units as $unit) {
+                $unit->delete();
+            }
         }
 
         if ($model instanceof \Modules\Schemes\Models\Unit) {
-            $model->lessons()->get()->each(function ($lesson): void {
-                if (! $lesson->trashed()) {
-                    $lesson->delete();
-                }
-            });
-
-            $model->quizzes()->get()->each(function ($quiz): void {
-                if (! $quiz->trashed()) {
-                    $quiz->delete();
-                }
-            });
-
-            $model->assignments()->get()->each(function ($assignment): void {
-                if (! $assignment->trashed()) {
-                    $assignment->delete();
-                }
-            });
+            // Batch load all children to avoid N+1
+            $lessons = $model->lessons()->whereNull('deleted_at')->get();
+            $quizzes = $model->quizzes()->whereNull('deleted_at')->get();
+            $assignments = $model->assignments()->whereNull('deleted_at')->get();
+            
+            foreach ($lessons as $lesson) {
+                $lesson->delete();
+            }
+            
+            foreach ($quizzes as $quiz) {
+                $quiz->delete();
+            }
+            
+            foreach ($assignments as $assignment) {
+                $assignment->delete();
+            }
         }
     }
 
@@ -465,14 +474,15 @@ class TrashBinService
 
     private function hasStatusColumn(Model $model): bool
     {
-        static $cache = [];
-
         $table = $model->getTable();
-        if (! array_key_exists($table, $cache)) {
-            $cache[$table] = Schema::hasColumn($table, 'status');
-        }
-
-        return $cache[$table];
+        $cacheKey = "schema:has_status_column:{$table}";
+        
+        // Use Laravel cache instead of static cache for Octane compatibility
+        return \Illuminate\Support\Facades\Cache::remember(
+            $cacheKey,
+            now()->addHours(24),
+            fn () => Schema::hasColumn($table, 'status')
+        );
     }
 
     private function readStatusValue(Model $model): ?string

@@ -49,16 +49,23 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
         [$isSuperadmin, $courseIds] = $this->resolveAccessContext($actor);
 
-        RestoreAllTrashBinsJob::dispatch(
-            $resourceType,
-            $actor->id,
+        // Get all bins based on access
+        $bins = $this->repository->getAllForAccess(
             $isSuperadmin ? null : $actor->id,
-            $isSuperadmin ? [] : $courseIds,
+            $isSuperadmin,
+            $courseIds,
+            $resourceType
         );
 
+        // Process directly without queue
+        foreach ($bins as $bin) {
+            $this->trashService->restoreFromTrashBin($bin);
+        }
+
         return [
-            'queued' => true,
+            'queued' => false,
             'resource_type' => $resourceType,
+            'count' => $bins->count(),
         ];
     }
 
@@ -70,10 +77,13 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
             $this->assertCanAccessBin($actor, $bin);
         }
 
-        BulkRestoreTrashBinsJob::dispatch($bins->pluck('id')->values()->all(), $actor->id);
+        // Process directly without queue
+        foreach ($bins as $bin) {
+            $this->trashService->restoreFromTrashBin($bin);
+        }
 
         return [
-            'queued' => true,
+            'queued' => false,
             'ids' => $bins->pluck('id')->values()->all(),
             'count' => $bins->count(),
         ];
@@ -111,16 +121,23 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
         [$isSuperadmin, $courseIds] = $this->resolveAccessContext($actor);
 
-        ForceDeleteAllTrashBinsJob::dispatch(
-            $resourceType,
-            $actor->id,
+        // Get all bins based on access
+        $bins = $this->repository->getAllForAccess(
             $isSuperadmin ? null : $actor->id,
-            $isSuperadmin ? [] : $courseIds,
+            $isSuperadmin,
+            $courseIds,
+            $resourceType
         );
 
+        // Process directly without queue
+        foreach ($bins as $bin) {
+            $this->trashService->forceDeleteFromTrashBin($bin);
+        }
+
         return [
-            'queued' => true,
+            'queued' => false,
             'resource_type' => $resourceType,
+            'count' => $bins->count(),
         ];
     }
 
@@ -132,10 +149,13 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
             $this->assertCanAccessBin($actor, $bin);
         }
 
-        BulkForceDeleteTrashBinsJob::dispatch($bins->pluck('id')->values()->all(), $actor->id);
+        // Process directly without queue
+        foreach ($bins as $bin) {
+            $this->trashService->forceDeleteFromTrashBin($bin);
+        }
 
         return [
-            'queued' => true,
+            'queued' => false,
             'ids' => $bins->pluck('id')->values()->all(),
             'count' => $bins->count(),
         ];

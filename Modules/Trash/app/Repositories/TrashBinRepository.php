@@ -50,19 +50,17 @@ class TrashBinRepository implements TrashBinRepositoryInterface
         }
 
         if ($search) {
-            $threshold = strlen($search) <= 3 ? 0.5 : (strlen($search) <= 5 ? 0.4 : 0.3);
-
-            $query->where(function ($subQuery) use ($search, $threshold): void {
-                $subQuery->search($search)
-                    ->orWhereRaw("COALESCE(metadata->>'title', '') ILIKE ?", ["%{$search}%"])
-                    ->orWhereRaw("similarity(COALESCE(metadata->>'title', ''), ?) > ?", [$search, $threshold])
-                    ->orWhereHas('deletedByUser', function ($userQuery) use ($search, $threshold) {
+            // Optimized search: use ILIKE for basic matching, similarity for ordering
+            $query->where(function ($subQuery) use ($search): void {
+                $subQuery->whereRaw("COALESCE(metadata->>'title', '') ILIKE ?", ["%{$search}%"])
+                    ->orWhereHas('deletedByUser', function ($userQuery) use ($search) {
                         $userQuery->where('name', 'ILIKE', "%{$search}%")
-                            ->orWhereRaw("similarity(name, ?) > ?", [$search, $threshold])
-                            ->orWhere('username', 'ILIKE', "%{$search}%")
-                            ->orWhereRaw("similarity(username, ?) > ?", [$search, $threshold]);
+                            ->orWhere('username', 'ILIKE', "%{$search}%");
                     });
             });
+            
+            // Add similarity-based ordering for better relevance
+            $query->orderByRaw("similarity(COALESCE(metadata->>'title', ''), ?) DESC", [$search]);
         }
 
         return $query
@@ -88,17 +86,22 @@ class TrashBinRepository implements TrashBinRepositoryInterface
 
     public function getSourceTypes(): array
     {
-        return TrashBin::query()
-            ->select('resource_type')
-            ->distinct()
-            ->orderBy('resource_type')
-            ->pluck('resource_type')
-            ->values()
-            ->toArray();
+        return \Illuminate\Support\Facades\Cache::remember(
+            'trash_bins:source_types',
+            now()->addHours(1),
+            fn () => TrashBin::query()
+                ->select('resource_type')
+                ->distinct()
+                ->orderBy('resource_type')
+                ->pluck('resource_type')
+                ->values()
+                ->toArray()
+        );
     }
 
     public function getSourceTypesForAccess(int $actorId, array $accessibleCourseIds): array
     {
+        // Don't cache user-specific data
         return TrashBin::query()
             ->where(function ($sub) use ($actorId, $accessibleCourseIds): void {
                 $sub->where('deleted_by', $actorId);
@@ -113,5 +116,26 @@ class TrashBinRepository implements TrashBinRepositoryInterface
             ->pluck('resource_type')
             ->values()
             ->toArray();
+    }
+
+    public function getAllForAccess(?int $actorId, bool $isSuperadmin, array $accessibleCourseIds, ?string $resourceType = null): Collection
+    {
+        $query = TrashBin::query();
+
+        if (! $isSuperadmin && $actorId !== null) {
+            $query->where(function ($sub) use ($actorId, $accessibleCourseIds): void {
+                $sub->where('deleted_by', $actorId);
+
+                if (! empty($accessibleCourseIds)) {
+                    $sub->orWhereIn(DB::raw("(metadata->>'course_id')::bigint"), $accessibleCourseIds);
+                }
+            });
+        }
+
+        if ($resourceType !== null) {
+            $query->where('resource_type', $resourceType);
+        }
+
+        return $query->orderBy('id')->get();
     }
 }
