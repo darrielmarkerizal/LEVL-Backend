@@ -7,19 +7,32 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 class EventServiceProvider extends ServiceProvider
 {
     protected $listen = [
+        // Schemes Module Integration
         \Modules\Schemes\Events\LessonCompleted::class => [
             \Modules\Gamification\Listeners\AwardXpForLessonCompleted::class,
-        ],
-        \Modules\Schemes\Events\CourseCompleted::class => [
-            \Modules\Gamification\Listeners\AwardBadgeForCourseCompleted::class,
-        ],
-        \Modules\Grading\Events\GradesReleased::class => [
-            \Modules\Gamification\Listeners\AwardXpForGradeReleased::class,
         ],
         \Modules\Schemes\Events\UnitCompleted::class => [
             \Modules\Gamification\Listeners\AwardXpForUnitCompleted::class,
         ],
-        // Forums Integration
+        \Modules\Schemes\Events\CourseCompleted::class => [
+            \Modules\Gamification\Listeners\AwardBadgeForCourseCompleted::class,
+        ],
+        
+        // Learning Module Integration
+        \Modules\Learning\Events\SubmissionCreated::class => [
+            \Modules\Gamification\Listeners\AwardXpForAssignmentSubmitted::class,
+        ],
+        \Modules\Learning\Events\QuizCompleted::class => [
+            \Modules\Gamification\Listeners\AwardXpForQuizPassed::class,
+        ],
+        
+        // Grading Module Integration
+        \Modules\Grading\Events\GradesReleased::class => [
+            \Modules\Gamification\Listeners\AwardXpForGradeReleased::class,
+            \Modules\Gamification\Listeners\AwardXpForPerfectScore::class,
+        ],
+        
+        // Forums Module Integration
         \Modules\Forums\Events\ThreadCreated::class => [
             \Modules\Gamification\Listeners\AwardXpForThreadCreated::class,
         ],
@@ -29,9 +42,13 @@ class EventServiceProvider extends ServiceProvider
         \Modules\Forums\Events\ReactionAdded::class => [
             \Modules\Gamification\Listeners\AwardXpForReactionReceived::class,
         ],
-        // Level Up Event
+        
+        // Gamification Events
         \Modules\Gamification\Events\UserLeveledUp::class => [
             \Modules\Gamification\Listeners\HandleLevelUp::class,
+        ],
+        \Modules\Gamification\Events\UserLoggedIn::class => [
+            \Modules\Gamification\Listeners\AwardXpForDailyLogin::class,
         ],
     ];
 
