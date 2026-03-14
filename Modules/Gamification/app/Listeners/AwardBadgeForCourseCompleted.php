@@ -14,8 +14,9 @@ class AwardBadgeForCourseCompleted
 
     public function handle(CourseCompleted $event): void
     {
-        $enrollment = $event->enrollment->fresh(['user']);
-        $course = $event->course->fresh();
+        // FIX: Remove unnecessary fresh() calls - use event data directly
+        $enrollment = $event->enrollment;
+        $course = $event->course;
 
         if (! $enrollment || ! $enrollment->user || ! $course) {
             return;

@@ -10,9 +10,12 @@ use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
+use Modules\Gamification\Traits\CachesUsers;
 
 class AwardXpForDailyLogin
 {
+    use CachesUsers; // FIX: Use cached user lookups
+
     public function __construct(
         private GamificationService $gamification,
         private EventCounterService $counterService,
@@ -91,7 +94,8 @@ class AwardXpForDailyLogin
         $this->counterService->increment($userId, 'daily_login', 'global', null, 'lifetime');
 
         // 5. Evaluate Dynamic Badge Rules
-        $user = \Modules\Auth\Models\User::find($userId);
+        // FIX: Use cached user lookup
+        $user = $this->getCachedUser($userId);
         if ($user) {
             $payload = [
                 'login_date' => Carbon::today()->toDateString(),

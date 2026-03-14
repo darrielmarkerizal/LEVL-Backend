@@ -7,10 +7,13 @@ namespace Modules\Gamification\Listeners;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
+use Modules\Gamification\Traits\CachesUsers;
 use Modules\Learning\Events\QuizCompleted;
 
 class AwardXpForQuizPassed
 {
+    use CachesUsers; // FIX: Use cached user lookups
+
     public function __construct(
         private GamificationService $gamification,
         private EventCounterService $counterService,
@@ -20,7 +23,8 @@ class AwardXpForQuizPassed
 
     public function handle(QuizCompleted $event): void
     {
-        $submission = $event->submission->fresh(['quiz', 'user']);
+        // FIX: Remove unnecessary fresh() call - use event data directly
+        $submission = $event->submission;
         $userId = $submission->user_id;
         $quizId = $submission->quiz_id;
 
@@ -90,7 +94,8 @@ class AwardXpForQuizPassed
         $this->counterService->increment($userId, 'quiz_passed', 'global', null, 'weekly');
 
         // 5. Evaluate Dynamic Badge Rules
-        $user = \Modules\Auth\Models\User::find($userId);
+        // FIX: Use cached user lookup
+        $user = $this->getCachedUser($userId);
         if ($user) {
             $payload = [
                 'quiz_id' => $quizId,

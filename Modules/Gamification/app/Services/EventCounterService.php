@@ -24,34 +24,37 @@ class EventCounterService
     ): UserEventCounter {
         $bounds = $this->getWindowBounds($window);
 
-        return DB::transaction(function () use ($userId, $eventType, $scopeType, $scopeId, $window, $bounds) {
-            $counter = $this->repository->findOrCreate(
-                $userId,
-                $eventType,
-                $scopeType,
-                $scopeId,
-                $window,
-                $bounds['start']
-            );
+        // FIX: Use single UPSERT query instead of transaction with multiple queries
+        DB::statement('
+            INSERT INTO user_event_counters 
+                (user_id, event_type, scope_type, scope_id, window, counter, 
+                 window_start, window_end, last_increment_at, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, 1, ?, ?, NOW(), NOW(), NOW())
+            ON DUPLICATE KEY UPDATE
+                counter = IF(window_end IS NOT NULL AND window_end < NOW(), 1, counter + 1),
+                window_start = IF(window_end IS NOT NULL AND window_end < NOW(), VALUES(window_start), window_start),
+                window_end = IF(window_end IS NOT NULL AND window_end < NOW(), VALUES(window_end), window_end),
+                last_increment_at = NOW(),
+                updated_at = NOW()
+        ', [
+            $userId,
+            $eventType,
+            $scopeType,
+            $scopeId,
+            $window,
+            $bounds['start'],
+            $bounds['end']
+        ]);
 
-            // Check if window expired
-            if ($counter->isExpired()) {
-                // Reset counter for new window (atomic)
-                DB::statement(
-                    'UPDATE user_event_counters SET counter = 0, window_start = ?, window_end = ?, updated_at = ? WHERE id = ?',
-                    [$bounds['start'], $bounds['end'], now(), $counter->id]
-                );
-                $counter->refresh();
-            }
-
-            // Atomic increment (prevents race condition)
-            DB::statement(
-                'UPDATE user_event_counters SET counter = counter + 1, last_increment_at = ?, updated_at = ? WHERE id = ?',
-                [now(), now(), $counter->id]
-            );
-
-            return $counter->fresh();
-        });
+        // Return the updated counter
+        return $this->repository->findByUserAndEvent(
+            $userId,
+            $eventType,
+            $scopeType,
+            $scopeId,
+            $window,
+            $bounds['start']
+        ) ?? new UserEventCounter();
     }
 
     public function getCounter(

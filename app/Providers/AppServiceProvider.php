@@ -40,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureRateLimiting();
+        $this->configureOctaneCompatibility();
 
         // Register observers efficiently
         \App\Models\ActivityLog::observe(\App\Observers\ActivityLogObserver::class);
@@ -69,6 +70,56 @@ class AppServiceProvider extends ServiceProvider
                 return $path;
             }, $this->app['view']->getFinder()->getPaths()));
         }
+    }
+
+    /**
+     * Configure Laravel Octane compatibility
+     * FIX: Prevent memory leaks and security issues in Octane/Swoole
+     */
+    protected function configureOctaneCompatibility(): void
+    {
+        if (! class_exists(\Laravel\Octane\Events\RequestTerminated::class)) {
+            return;
+        }
+
+        // Clear state between requests in Octane
+        \Illuminate\Support\Facades\Event::listen(
+            \Laravel\Octane\Events\RequestTerminated::class,
+            function ($event) {
+                // Clear auth guards to prevent user data bleeding
+                auth()->forgetGuards();
+
+                // Clear resolved service instances that might hold state
+                $services = [
+                    \Modules\Gamification\Services\GamificationService::class,
+                    \Modules\Gamification\Services\BadgeService::class,
+                    \Modules\Gamification\Services\LeaderboardService::class,
+                    \Modules\Gamification\Services\LevelService::class,
+                    \Modules\Gamification\Services\EventCounterService::class,
+                    \Modules\Gamification\Services\EventLoggerService::class,
+                ];
+
+                foreach ($services as $service) {
+                    if ($this->app->resolved($service)) {
+                        $this->app->forgetInstance($service);
+                    }
+                }
+
+                // Clear model booted state
+                $models = [
+                    \Modules\Gamification\Models\Badge::class,
+                    \Modules\Gamification\Models\UserGamificationStat::class,
+                    \Modules\Gamification\Models\Leaderboard::class,
+                    \Modules\Gamification\Models\Point::class,
+                ];
+
+                foreach ($models as $model) {
+                    if (method_exists($model, 'clearBootedModels')) {
+                        $model::clearBootedModels();
+                    }
+                }
+            }
+        );
     }
 
     /**
