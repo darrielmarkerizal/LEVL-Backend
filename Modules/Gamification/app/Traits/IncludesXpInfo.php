@@ -31,7 +31,6 @@ trait IncludesXpInfo
                 'code' => $xpSource->code,
                 'name' => $xpSource->name,
                 'description' => $xpSource->description,
-                'allow_multiple' => $xpSource->allow_multiple,
                 'cooldown_seconds' => $xpSource->cooldown_seconds,
                 'daily_limit' => $xpSource->daily_limit,
                 'daily_xp_cap' => $xpSource->daily_xp_cap,

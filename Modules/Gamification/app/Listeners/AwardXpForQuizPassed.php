@@ -44,7 +44,6 @@ class AwardXpForQuizPassed
             $quizId,
             [
                 'description' => sprintf('Passed quiz: %s (Score: %.2f)', $submission->quiz->title, $finalScore),
-                'allow_multiple' => false, // Once per quiz
                 'metadata' => [
                     'score' => $finalScore,
                     'passing_grade' => $submission->quiz->passing_grade,
