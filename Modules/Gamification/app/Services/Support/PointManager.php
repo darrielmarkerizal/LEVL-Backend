@@ -37,10 +37,6 @@ class PointManager
         ?int $sourceId = null,
         array $options = []
     ): ?Point {
-        if ($points <= 0) {
-            return null;
-        }
-
         $allowMultiple = (bool) ($options['allow_multiple'] ?? true);
 
         return DB::transaction(function () use ($userId, $points, $reason, $sourceType, $sourceId, $options, $allowMultiple) {
