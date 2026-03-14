@@ -67,4 +67,9 @@ return [
     'max_awards_reached' => 'Maximum awards limit reached for this badge',
     'rule_disabled' => 'This rule is currently disabled',
     'rule_enabled' => 'This rule is currently enabled',
+    
+    // Forum activity messages
+    'thread_created_xp' => 'Created a new discussion thread',
+    'reply_created_xp' => 'Replied to a discussion',
+    'reaction_received_xp' => 'Received a reaction on your post',
 ];

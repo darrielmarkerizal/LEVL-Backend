@@ -11,7 +11,8 @@ use Modules\Grading\Events\GradesReleased;
 class AwardXpForGradeReleased
 {
     public function __construct(
-        private readonly GamificationService $gamification
+        private readonly GamificationService $gamification,
+        private readonly \Modules\Gamification\Services\Support\BadgeRuleEvaluator $evaluator
     ) {}
 
     public function handle(GradesReleased $event): void
