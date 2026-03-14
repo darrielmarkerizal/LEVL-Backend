@@ -17,7 +17,6 @@ return new class extends Migration
             $table->integer('cooldown_seconds')->default(0); // Cooldown between same actions
             $table->integer('daily_limit')->nullable(); // Max times per day (null = unlimited)
             $table->integer('daily_xp_cap')->nullable(); // Max XP per day from this source
-            $table->boolean('allow_multiple')->default(true); // Can earn multiple times from same source_id
             $table->boolean('is_active')->default(true);
             $table->json('metadata')->nullable(); // Additional config
             $table->timestamps();

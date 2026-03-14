@@ -43,13 +43,19 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
     Route::prefix('user')->name('user.')->group(function () {
 
         Route::get('rank', [LeaderboardController::class, 'myRank'])->name('gamification.rank');
-        Route::get('gamification-summary', [GamificationController::class, 'summary'])->name('gamification.summary');
+        Route::get('gamification-summary', [GamificationController::class, 'summary'])
+            ->middleware('xp.info')
+            ->name('gamification.summary');
 
         Route::get('badges', [GamificationController::class, 'badges'])->name('gamification.badges');
         Route::get('points-history', [GamificationController::class, 'pointsHistory'])->name('gamification.points-history');
         Route::get('milestones', [GamificationController::class, 'milestones'])->name('gamification.milestones');
-        Route::get('level', [LevelController::class, 'userLevel'])->name('gamification.level');
-        Route::get('daily-xp-stats', [LevelController::class, 'dailyXpStats'])->name('gamification.daily-xp-stats');
+        Route::get('level', [LevelController::class, 'userLevel'])
+            ->middleware('xp.info')
+            ->name('gamification.level');
+        Route::get('daily-xp-stats', [LevelController::class, 'dailyXpStats'])
+            ->middleware('xp.info')
+            ->name('gamification.daily-xp-stats');
         Route::get('levels/{slug}', [GamificationController::class, 'unitLevels'])->name('gamification.unit-levels');
     });
 });

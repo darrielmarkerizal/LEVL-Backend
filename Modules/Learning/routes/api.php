@@ -68,8 +68,9 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
             ->name('submissions.search');
     });
 
-    // Submission routes - students and authorized users
+    // Submission routes - students and authorized users (with XP info)
     Route::post('assignments/{assignment}/submissions', [SubmissionController::class, 'store'])
+        ->middleware('xp.info')
         ->name('assignments.submissions.store');
 
     Route::put('submissions/{submission}', [SubmissionController::class, 'update'])
@@ -81,7 +82,7 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         ->name('submissions.answers.store');
 
     Route::post('submissions/{submission}/submit', [SubmissionController::class, 'submit'])
-        ->middleware('can:submit,submission')
+        ->middleware(['can:submit,submission', 'xp.info'])
         ->name('submissions.submit');
 
     // Grading route (Admin, Instructor, Superadmin only)
@@ -110,7 +111,7 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         ->name('quizzes.submissions.highest');
 
     Route::post('quizzes/{quiz}/submissions/start', [QuizSubmissionController::class, 'start'])
-        ->middleware('can:takeQuiz,quiz')
+        ->middleware(['can:takeQuiz,quiz', 'xp.info'])
         ->name('quizzes.submissions.start');
 
     Route::get('quiz-submissions/{submission}/questions', [QuizSubmissionController::class, 'listQuestions'])
@@ -126,7 +127,7 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         ->name('quiz-submissions.answers.store');
 
     Route::post('quiz-submissions/{submission}/submit', [QuizSubmissionController::class, 'submit'])
-        ->middleware('can:update,submission')
+        ->middleware(['can:update,submission', 'xp.info'])
         ->name('quiz-submissions.submit');
 
     Route::get('quiz-submissions/{submission}', [QuizSubmissionController::class, 'show'])

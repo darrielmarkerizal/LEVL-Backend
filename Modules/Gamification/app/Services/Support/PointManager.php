@@ -37,9 +37,7 @@ class PointManager
         ?int $sourceId = null,
         array $options = []
     ): ?Point {
-        $allowMultiple = (bool) ($options['allow_multiple'] ?? true);
-
-        return DB::transaction(function () use ($userId, $points, $reason, $sourceType, $sourceId, $options, $allowMultiple) {
+        return DB::transaction(function () use ($userId, $points, $reason, $sourceType, $sourceId, $options) {
             try {
                 // Get XP source configuration if exists
                 $xpSource = XpSource::byCode($reason)->active()->first();
@@ -47,7 +45,6 @@ class PointManager
                 if ($xpSource) {
                     // Override points with configured amount
                     $points = $xpSource->xp_amount;
-                    $allowMultiple = $xpSource->allow_multiple;
                     
                     // Check XP source specific limits
                     if (!$this->checkXpSourceLimits($userId, $xpSource)) {
@@ -84,15 +81,6 @@ class PointManager
                         'user_id' => $userId,
                         'points' => $points,
                         'reason' => $reason,
-                    ]);
-                    return null;
-                }
-
-                if (! $allowMultiple && $this->repository->pointExists($userId, $sourceType, $sourceId, $reason)) {
-                    Log::info('XP award blocked: Duplicate transaction', [
-                        'user_id' => $userId,
-                        'source_type' => $sourceType,
-                        'source_id' => $sourceId,
                     ]);
                     return null;
                 }

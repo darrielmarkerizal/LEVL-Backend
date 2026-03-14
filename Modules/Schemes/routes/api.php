@@ -73,6 +73,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.units.contents');
 
         Route::post('lessons/{lesson:slug}/complete', [LessonCompletionController::class, 'markComplete'])
+            ->middleware('xp.info')
             ->name('lessons.complete');
         Route::delete('lessons/{lesson:slug}/complete', [LessonCompletionController::class, 'markIncomplete'])
             ->name('lessons.incomplete');
@@ -110,6 +111,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
         Route::get('courses/{course:slug}/progress', [ProgressController::class, 'show'])
             ->name('courses.progress.show');
         Route::post('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/complete', [ProgressController::class, 'completeLesson'])
+            ->middleware('xp.info')
             ->name('courses.units.lessons.complete');
         Route::post('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/uncomplete', [ProgressController::class, 'uncompleteLesson'])
             ->name('courses.units.lessons.uncomplete');

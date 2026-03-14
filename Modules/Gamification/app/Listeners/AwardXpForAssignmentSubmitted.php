@@ -38,7 +38,6 @@ class AwardXpForAssignmentSubmitted
             $assignmentId,
             [
                 'description' => sprintf('Submitted assignment: %s', $submission->assignment->title),
-                'allow_multiple' => false, // Once per assignment
             ]
         );
 
