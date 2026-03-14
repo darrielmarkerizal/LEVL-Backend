@@ -59,48 +59,14 @@ class UserPolicy
             return false;
         }
 
-        // Admin can view other Admins (but not Superadmin)
-        if ($targetUser->hasRole('Admin') && ! $targetUser->hasRole('Superadmin')) {
-            return true;
+        // Admin CANNOT view other Admins or Superadmins
+        if ($targetUser->hasRole(['Admin', 'Superadmin'])) {
+            return false;
         }
 
-        // Admin can view Students/Instructors in managed courses OR users they created
+        // Admin can view all Students and Instructors
         if ($targetUser->hasRole(['Instructor', 'Student'])) {
-            $managedCourseIds = CourseAdmin::where('user_id', $authUser->id)
-                ->pluck('course_id')
-                ->unique();
-
-            // Check if user was created by this admin
-            $wasCreatedByAdmin = Activity::query()
-                ->where('event', 'created')
-                ->where('subject_type', User::class)
-                ->where('subject_id', $targetUser->id)
-                ->where('causer_type', User::class)
-                ->where('causer_id', $authUser->id)
-                ->exists();
-
-            if ($wasCreatedByAdmin) {
-                return true;
-            }
-
-            // For Students: check active/completed enrollment in managed courses
-            if ($targetUser->hasRole('Student')) {
-                return Enrollment::where('user_id', $targetUser->id)
-                    ->whereIn('course_id', $managedCourseIds)
-                    ->whereIn('status', [
-                        EnrollmentStatus::Active->value,
-                        EnrollmentStatus::Completed->value,
-                    ])
-                    ->exists();
-            }
-
-            // For Instructors: check if teaching in managed courses
-            if ($targetUser->hasRole('Instructor')) {
-                return Course::query()
-                    ->whereIn('id', $managedCourseIds)
-                    ->where('instructor_id', $targetUser->id)
-                    ->exists();
-            }
+            return true;
         }
 
         return false;
@@ -108,7 +74,8 @@ class UserPolicy
 
     public function create(User $authUser): bool
     {
-        return $authUser->hasRole(['Superadmin', 'Admin']);
+        // Only Superadmin can create users (including Admin)
+        return $authUser->hasRole('Superadmin');
     }
 
     public function update(User $authUser, User $targetUser): bool
@@ -142,17 +109,17 @@ class UserPolicy
             return true;
         }
 
-        // Instructor (and other non-admin roles) cannot reset passwords at all.
-        if (! $authUser->hasRole('Admin')) {
-            return false;
+        // Admin cannot reset passwords for other Admins or Superadmins
+        if ($authUser->hasRole('Admin')) {
+            if ($targetUser->hasRole(['Admin', 'Superadmin'])) {
+                return false;
+            }
+            
+            // Admin can reset password for Students and Instructors
+            return $this->view($authUser, $targetUser);
         }
 
-        // Admin must never reset Superadmin password.
-        if ($targetUser->hasRole('Superadmin')) {
-            return false;
-        }
-
-        // Admin can reset password only for users within their access scope.
-        return $this->view($authUser, $targetUser);
+        // Instructor and other roles cannot reset passwords
+        return false;
     }
 }

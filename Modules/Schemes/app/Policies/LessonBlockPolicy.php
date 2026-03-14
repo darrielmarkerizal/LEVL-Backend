@@ -47,12 +47,12 @@ class LessonBlockPolicy
             return false;
         }
 
-        // Check if user is assigned admin for this course
-        if ($user->hasRole('Admin') && $course->admins()->where('user_id', $user->id)->exists()) {
+        // Admin can update all lesson blocks
+        if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Check if user is the instructor
+        // Instructor can update lesson blocks in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -67,12 +67,12 @@ class LessonBlockPolicy
             return false;
         }
 
-        // Check if user is assigned admin for this course
-        if ($user->hasRole('Admin') && $course->admins()->where('user_id', $user->id)->exists()) {
+        // Admin can delete all lesson blocks
+        if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Check if user is the instructor
+        // Instructor can delete lesson blocks in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 }

@@ -73,74 +73,9 @@ class UserFinder
                 }
 
                 if ($authUser->hasRole('Admin') && ! $authUser->hasRole('Superadmin')) {
-                    // Admin must never receive Superadmin records in index response.
+                    // Admin can see all Students and Instructors, but NOT other Admins or Superadmins
                     $query->whereDoesntHave('roles', function (Builder $roleQuery) {
-                        $roleQuery->where('name', 'Superadmin');
-                    });
-
-                    $managedCourseIds = CourseAdmin::query()
-                        ->where('user_id', $authUser->id)
-                        ->pluck('course_id')
-                        ->unique();
-
-                    // Get IDs of users (Student/Instructor) created by this admin
-                    $createdUserIds = Activity::query()
-                        ->where('event', 'created')
-                        ->where('subject_type', User::class)
-                        ->where('causer_type', User::class)
-                        ->where('causer_id', $authUser->id)
-                        ->pluck('subject_id')
-                        ->unique();
-
-                    // Get instructor IDs teaching in managed courses
-                    $instructorIdsInManagedCourses = Course::query()
-                        ->whereIn('id', $managedCourseIds)
-                        ->whereNotNull('instructor_id')
-                        ->pluck('instructor_id')
-                        ->unique();
-
-                    $query->where(function (Builder $q) use ($managedCourseIds, $createdUserIds, $instructorIdsInManagedCourses) {
-                        // 1. Show all Admins
-                        $q->whereHas('roles', function ($roleQuery) {
-                            $roleQuery->where('name', 'Admin');
-                        })
-                            // 2. Show Students with enrollment in managed courses OR created by this admin
-                            ->orWhere(function ($studentQuery) use ($managedCourseIds, $createdUserIds) {
-                                $studentQuery->whereHas('roles', function ($roleQuery) {
-                                    $roleQuery->where('name', 'Student');
-                                })->where(function (Builder $studentCondition) use ($managedCourseIds, $createdUserIds) {
-                                    // Students with active/completed enrollment
-                                    $studentCondition->whereHas('enrollments', function ($enrollmentQuery) use ($managedCourseIds) {
-                                        $enrollmentQuery
-                                            ->whereIn('course_id', $managedCourseIds)
-                                            ->whereIn('status', [
-                                                EnrollmentStatus::Active->value,
-                                                EnrollmentStatus::Completed->value,
-                                            ]);
-                                    });
-
-                                    // OR students created by this admin
-                                    if ($createdUserIds->isNotEmpty()) {
-                                        $studentCondition->orWhereIn('id', $createdUserIds);
-                                    }
-                                });
-                            })
-                            // 3. Show Instructors teaching in managed courses OR created by this admin
-                            ->orWhere(function ($instructorQuery) use ($instructorIdsInManagedCourses, $createdUserIds) {
-                                $instructorQuery->whereHas('roles', function ($roleQuery) {
-                                    $roleQuery->where('name', 'Instructor');
-                                })->where(function (Builder $instructorCondition) use ($instructorIdsInManagedCourses, $createdUserIds) {
-                                    // Instructors teaching in managed courses
-                                    if ($instructorIdsInManagedCourses->isNotEmpty()) {
-                                        $instructorCondition->whereIn('id', $instructorIdsInManagedCourses);
-                                    }
-
-                                    // OR instructors created by this admin
-                                    if ($createdUserIds->isNotEmpty()) {
-                                        $instructorCondition->orWhereIn('id', $createdUserIds);
-                                    }
-                                });
-                            });
+                        $roleQuery->whereIn('name', ['Admin', 'Superadmin']);
                     });
                 } elseif ($authUser->hasRole('Instructor')) {
                     $instructorCourseIds = Course::query()

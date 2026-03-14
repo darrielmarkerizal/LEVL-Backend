@@ -9,22 +9,6 @@ use Modules\Learning\Models\Quiz;
 
 class QuizPolicy
 {
-    private function isCourseAdmin(User $user, int $courseId): bool
-    {
-        return cache()->tags(['course-admin'])->remember(
-            "course_admin:{$user->id}:{$courseId}",
-            3600,
-            function () use ($user, $courseId) {
-                $course = \Modules\Schemes\Models\Course::find($courseId);
-                if (! $course) {
-                    return false;
-                }
-
-                return $course->admins()->where('user_id', $user->id)->exists();
-            }
-        );
-    }
-
     private function resolveCourseFromQuiz(Quiz $quiz): ?\Modules\Schemes\Models\Course
     {
         $courseId = $quiz->getCourseId();
@@ -77,10 +61,12 @@ class QuizPolicy
             return true;
         }
 
+        // Admin can create quizzes in all courses
         if ($user->hasRole('Admin')) {
-            return $this->isCourseAdmin($user, $course->id);
+            return true;
         }
 
+        // Instructor can create quizzes in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -95,10 +81,12 @@ class QuizPolicy
             return false;
         }
 
+        // Admin can update all quizzes
         if ($user->hasRole('Admin')) {
-            return $this->isCourseAdmin($user, $course->id);
+            return true;
         }
 
+        // Instructor can update quizzes in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -118,10 +106,12 @@ class QuizPolicy
             return false;
         }
 
+        // Admin can view all quiz submissions
         if ($user->hasRole('Admin')) {
-            return $this->isCourseAdmin($user, $course->id);
+            return true;
         }
 
+        // Instructor can view submissions in their courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 

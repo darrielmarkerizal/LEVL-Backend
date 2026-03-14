@@ -42,16 +42,12 @@ class CoursePolicy
             return true;
         }
 
-        // Check if user is assigned admin for this course
+        // Admin can update all courses
         if ($user->hasRole('Admin')) {
-            if ($course->relationLoaded('admins')) {
-                return $course->admins->contains('id', $user->id);
-            }
-
-            return $course->admins()->where('user_id', $user->id)->exists();
+            return true;
         }
 
-        // Check if user is the instructor
+        // Instructor can only update their own courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -61,16 +57,12 @@ class CoursePolicy
             return true;
         }
 
-        // Check if user is assigned admin for this course
+        // Admin can delete all courses
         if ($user->hasRole('Admin')) {
-            if ($course->relationLoaded('admins')) {
-                return $course->admins->contains('id', $user->id);
-            }
-
-            return $course->admins()->where('user_id', $user->id)->exists();
+            return true;
         }
 
-        // Check if user is the instructor
+        // Instructor can only delete their own courses
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -90,18 +82,17 @@ class CoursePolicy
             return true;
         }
 
+        // Admin can view all course assignments
         if ($user->hasRole('Admin')) {
-            if ($course->relationLoaded('admins')) {
-                return $course->admins->contains('id', $user->id);
-            }
-
-            return $course->admins()->where('user_id', $user->id)->exists();
+            return true;
         }
 
+        // Instructor can view their course assignments
         if ($user->hasRole('Instructor')) {
             return $course->instructor_id === $user->id;
         }
 
+        // Student can view if enrolled
         if ($user->hasRole('Student')) {
             return \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
                 ->where('course_id', $course->id)
