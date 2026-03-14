@@ -39,9 +39,12 @@ class BadgeService implements BadgeServiceInterface
                         AllowedFilter::partial('code'),
                         AllowedFilter::partial('name'),
                         AllowedFilter::exact('type'),
+                        AllowedFilter::partial('category'),
+                        AllowedFilter::exact('rarity'),
+                        AllowedFilter::exact('active'),
                         AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
                     ])
-                    ->allowedSorts(['id', 'code', 'name', 'type', 'threshold', 'created_at', 'updated_at'])
+                    ->allowedSorts(['id', 'code', 'name', 'type', 'rarity', 'xp_reward', 'threshold', 'created_at', 'updated_at'])
                     ->allowedIncludes(['rules'])
                     ->defaultSort('-created_at')
                     ->paginate($perPage);
@@ -155,6 +158,10 @@ class BadgeService implements BadgeServiceInterface
                 'badge_id' => $badgeId,
                 'event_trigger' => $rule['event_trigger'] ?? null,
                 'conditions' => $rule['conditions'] ?? null,
+                'priority' => $rule['priority'] ?? 0,
+                'cooldown_seconds' => $rule['cooldown_seconds'] ?? null,
+                'progress_window' => $rule['progress_window'] ?? null,
+                'rule_enabled' => $rule['rule_enabled'] ?? true,
             ]);
         }
     }

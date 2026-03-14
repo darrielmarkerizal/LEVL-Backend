@@ -26,12 +26,20 @@ class BadgeUpdateRequest extends FormRequest
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'type' => ['sometimes', 'required', 'string', 'in:'.implode(',', array_column(BadgeType::cases(), 'value'))],
+            'category' => ['nullable', 'string', 'max:50'],
+            'rarity' => ['nullable', 'string', 'in:common,uncommon,rare,epic,legendary'],
+            'xp_reward' => ['nullable', 'integer', 'min:0', 'max:10000'],
+            'active' => ['nullable', 'boolean'],
             'threshold' => ['nullable', 'integer', 'min:1'],
+            'is_repeatable' => ['nullable', 'boolean'],
+            'max_awards_per_user' => ['nullable', 'integer', 'min:1'],
             'icon' => ['nullable', 'file', 'mimes:jpeg,png,svg,webp', 'max:2048'],
             'rules' => ['nullable', 'array'],
-            'rules.*.criterion' => ['required', 'string', 'max:50'],
-            'rules.*.operator' => ['required', 'string', 'in:=,>=,>'],
-            'rules.*.value' => ['required', 'integer', 'min:1'],
+            'rules.*.event_trigger' => ['required', 'string', 'max:100'],
+            'rules.*.conditions' => ['nullable', 'array'],
+            'rules.*.priority' => ['nullable', 'integer', 'min:0'],
+            'rules.*.cooldown_seconds' => ['nullable', 'integer', 'min:0'],
+            'rules.*.rule_enabled' => ['nullable', 'boolean'],
         ];
     }
 }
