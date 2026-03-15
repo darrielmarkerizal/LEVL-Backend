@@ -29,8 +29,25 @@ class LevelController extends Controller
     {
         $perPage = min((int) $request->get('per_page', 20), 100);
         
-        $levels = LevelConfig::with('milestoneBadge')
-            ->orderBy('level')
+        $levels = \Spatie\QueryBuilder\QueryBuilder::for(LevelConfig::class)
+            ->with('milestoneBadge')
+            ->allowedFilters([
+                \Spatie\QueryBuilder\AllowedFilter::exact('level'),
+                \Spatie\QueryBuilder\AllowedFilter::callback('level_min', function ($query, $value) {
+                    $query->where('level', '>=', (int) $value);
+                }),
+                \Spatie\QueryBuilder\AllowedFilter::callback('level_max', function ($query, $value) {
+                    $query->where('level', '<=', (int) $value);
+                }),
+                \Spatie\QueryBuilder\AllowedFilter::callback('xp_min', function ($query, $value) {
+                    $query->where('xp_required', '>=', (int) $value);
+                }),
+                \Spatie\QueryBuilder\AllowedFilter::callback('xp_max', function ($query, $value) {
+                    $query->where('xp_required', '<=', (int) $value);
+                }),
+            ])
+            ->allowedSorts(['level', 'xp_required', 'bonus_xp'])
+            ->defaultSort('level')
             ->paginate($perPage);
 
         // Transform using resource

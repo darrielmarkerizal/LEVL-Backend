@@ -26,6 +26,9 @@ class BadgeResource extends JsonResource
             'max_awards_per_user' => $this->max_awards_per_user,
             'icon_url' => $this->icon_url,
             'icon_thumb_url' => $this->icon_thumb_url,
+            'is_earned' => $this->when(isset($this->is_earned), $this->is_earned ?? false),
+            'earned_at' => $this->when(isset($this->earned_at), $this->earned_at?->toISOString()),
+            'progress' => $this->when(isset($this->progress), $this->progress),
             'rules' => $this->whenLoaded('rules', function () {
                 return $this->rules->map(function ($rule) {
                     return [

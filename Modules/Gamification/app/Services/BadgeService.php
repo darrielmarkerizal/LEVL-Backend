@@ -166,4 +166,84 @@ class BadgeService implements BadgeServiceInterface
             ]);
         }
     }
+
+    public function getAvailableBadgesForStudent(int $userId, int $perPage = 15, $request = null): LengthAwarePaginator
+    {
+        $perPage = max(1, min($perPage, 100));
+        
+        // Get user's earned badges
+        $earnedBadges = \Modules\Gamification\Models\UserBadge::where('user_id', $userId)
+            ->get()
+            ->keyBy('badge_id');
+        
+        $query = Badge::with(['rules', 'media'])
+            ->where('active', true);
+        
+        $search = $request?->query('search') ?? request('search');
+        if ($search && trim($search) !== '') {
+            $query->search($search);
+        }
+        
+        $badges = QueryBuilder::for($query)
+            ->allowedFilters([
+                AllowedFilter::exact('category'),
+                AllowedFilter::exact('rarity'),
+                AllowedFilter::exact('type'),
+                AllowedFilter::callback('earned', function ($query, $value) use ($earnedBadges) {
+                    $earnedBadgeIds = $earnedBadges->keys()->toArray();
+                    if ($value === 'true' || $value === true || $value === '1') {
+                        $query->whereIn('badges.id', $earnedBadgeIds ?: [0]);
+                    } elseif ($value === 'false' || $value === false || $value === '0') {
+                        $query->whereNotIn('badges.id', $earnedBadgeIds ?: [0]);
+                    }
+                }),
+                AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
+            ])
+            ->allowedSorts(['name', 'rarity', 'xp_reward', 'created_at'])
+            ->defaultSort('name')
+            ->paginate($perPage);
+        
+        // Transform to include earned status and progress
+        $badges->getCollection()->transform(function ($badge) use ($earnedBadges) {
+            $userBadge = $earnedBadges->get($badge->id);
+            
+            $badge->is_earned = $userBadge !== null;
+            $badge->earned_at = $userBadge?->earned_at;
+            
+            // Calculate progress
+            if ($userBadge) {
+                $badge->progress = [
+                    'current' => $userBadge->progress ?? $badge->threshold ?? 1,
+                    'target' => $badge->threshold ?? 1,
+                    'percentage' => $badge->threshold > 0 
+                        ? round((($userBadge->progress ?? $badge->threshold) / $badge->threshold) * 100) 
+                        : 100
+                ];
+            } else {
+                // For not earned badges, try to get current progress from badge rules
+                $currentProgress = $this->calculateBadgeProgress($badge, auth('api')->user()->id);
+                $badge->progress = [
+                    'current' => $currentProgress,
+                    'target' => $badge->threshold ?? 1,
+                    'percentage' => $badge->threshold > 0 
+                        ? round(($currentProgress / $badge->threshold) * 100) 
+                        : 0
+                ];
+            }
+            
+            return $badge;
+        });
+        
+        return $badges;
+    }
+
+    private function calculateBadgeProgress(Badge $badge, int $userId): int
+    {
+        // This is a simplified version - you may need to implement more complex logic
+        // based on your badge rules and tracking system
+        
+        // For now, return 0 for not earned badges
+        // You can enhance this by checking specific metrics based on badge type
+        return 0;
+    }
 }

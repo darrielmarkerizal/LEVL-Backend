@@ -97,4 +97,20 @@ class BadgesController extends Controller
 
         return $this->success([], __('messages.badges.deleted'));
     }
+
+    /**
+     * Get available badges for student (with earned status and progress)
+     */
+    public function available(Request $request): JsonResponse
+    {
+        $userId = auth('api')->user()->id;
+        $perPage = min((int) $request->get('per_page', 15), 100);
+        
+        $badges = $this->service->getAvailableBadgesForStudent($userId, $perPage, $request);
+        $badges->appends($request->query());
+        
+        $badges->getCollection()->transform(fn ($item) => new BadgeResource($item));
+
+        return $this->paginateResponse($badges, __('messages.badges.retrieved'));
+    }
 }
