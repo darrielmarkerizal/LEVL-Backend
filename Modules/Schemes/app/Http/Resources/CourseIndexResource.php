@@ -36,6 +36,7 @@ class CourseIndexResource extends JsonResource
             'category' => $this->whenLoaded('category'),
             'tags' => $this->whenLoaded('tags'),
             'instructor' => $this->whenLoaded('instructor', fn () => $this->mapUserSummary($this->instructor)),
+            'instructor_list' => $this->whenLoaded('admins', fn () => $this->mapUsersSummary($this->admins)),
             'instructor_count' => $this->when(array_key_exists('admins_count', $this->getAttributes()), $this->admins_count),
             'enrollments_count' => $this->when(array_key_exists('enrollments_count', $this->getAttributes()), $this->enrollments_count),
         ];
@@ -47,7 +48,6 @@ class CourseIndexResource extends JsonResource
 
         if ($isManager) {
             $data['creator'] = $this->whenLoaded('admins', fn () => $this->mapUserSummary($this->admins->first()));
-            $data['instructor_list'] = $this->whenLoaded('admins', fn () => $this->mapUsersSummary($this->admins));
             $data['enrollments'] = $this->when(request()->has('include') && str_contains(request('include'), 'enrollments'), $this->whenLoaded('enrollments'));
         }
 

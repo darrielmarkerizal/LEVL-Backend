@@ -123,4 +123,150 @@ return [
         'instructor' => 'Instruktur',
         'admin' => 'Admin',
     ],
+
+    'user_status' => [
+        'pending' => 'Menunggu',
+        'active' => 'Aktif',
+        'inactive' => 'Tidak Aktif',
+        'banned' => 'Diblokir',
+    ],
+
+    'roles' => [
+        'superadmin' => 'Super Admin',
+        'admin' => 'Admin',
+        'instructor' => 'Instruktur',
+        'student' => 'Siswa',
+    ],
+
+    'course_status' => [
+        'draft' => 'Draft',
+        'published' => 'Dipublikasikan',
+        'archived' => 'Diarsipkan',
+    ],
+
+    'course_types' => [
+        'self_paced' => 'Mandiri',
+        'instructor_led' => 'Dipandu Instruktur',
+        'blended' => 'Campuran',
+    ],
+
+    'course_type' => [
+        'okupasi' => 'Okupasi',
+        'kluster' => 'Kluster',
+    ],
+
+    'enrollment_types' => [
+        'open' => 'Terbuka',
+        'approval' => 'Perlu Persetujuan',
+        'key' => 'Kunci Pendaftaran',
+        'invitation' => 'Hanya Undangan',
+    ],
+
+    'enrollment_type' => [
+        'auto_accept' => 'Otomatis Diterima',
+        'key_based' => 'Berbasis Kunci',
+        'approval' => 'Perlu Persetujuan',
+    ],
+
+    'level_tags' => [
+        'beginner' => 'Pemula',
+        'intermediate' => 'Menengah',
+        'advanced' => 'Lanjutan',
+        'expert' => 'Ahli',
+    ],
+
+    'level_tag' => [
+        'dasar' => 'Dasar',
+        'menengah' => 'Menengah',
+        'mahir' => 'Mahir',
+    ],
+
+    'content_types' => [
+        'text' => 'Teks',
+        'video' => 'Video',
+        'audio' => 'Audio',
+        'document' => 'Dokumen',
+        'interactive' => 'Interaktif',
+        'quiz' => 'Kuis',
+        'assignment' => 'Tugas',
+    ],
+
+    'enrollment_status' => [
+        'pending' => 'Menunggu',
+        'active' => 'Aktif',
+        'completed' => 'Selesai',
+        'cancelled' => 'Dibatalkan',
+    ],
+
+    'progress_status' => [
+        'not_started' => 'Belum Dimulai',
+        'in_progress' => 'Sedang Berjalan',
+        'completed' => 'Selesai',
+    ],
+
+    'content_status' => [
+        'draft' => 'Draft',
+        'published' => 'Dipublikasikan',
+        'archived' => 'Diarsipkan',
+    ],
+
+    'priorities' => [
+        'low' => 'Rendah',
+        'medium' => 'Sedang',
+        'high' => 'Tinggi',
+        'urgent' => 'Mendesak',
+    ],
+
+    'target_types' => [
+        'all' => 'Semua Pengguna',
+        'role' => 'Berdasarkan Peran',
+        'user' => 'Pengguna Tertentu',
+        'course' => 'Peserta Kursus',
+    ],
+
+    'notification_types' => [
+        'system' => 'Sistem',
+        'course' => 'Kursus',
+        'assignment' => 'Tugas',
+        'grade' => 'Nilai',
+        'forum' => 'Forum',
+        'achievement' => 'Pencapaian',
+    ],
+
+    'notification_channels' => [
+        'database' => 'Dalam Aplikasi',
+        'mail' => 'Email',
+        'push' => 'Notifikasi Push',
+    ],
+
+    'notification_frequencies' => [
+        'instant' => 'Instan',
+        'daily' => 'Ringkasan Harian',
+        'weekly' => 'Ringkasan Mingguan',
+        'never' => 'Tidak Pernah',
+    ],
+
+    'grade_status' => [
+        'pending' => 'Menunggu',
+        'graded' => 'Dinilai',
+        'returned' => 'Dikembalikan',
+    ],
+
+    'grade_source_types' => [
+        'assignment' => 'Tugas',
+        'quiz' => 'Kuis',
+        'manual' => 'Manual',
+    ],
+
+    'category_status' => [
+        'active' => 'Aktif',
+        'inactive' => 'Tidak Aktif',
+    ],
+
+    'setting_types' => [
+        'string' => 'Teks',
+        'integer' => 'Angka',
+        'boolean' => 'Ya/Tidak',
+        'json' => 'JSON',
+    ],
 ];

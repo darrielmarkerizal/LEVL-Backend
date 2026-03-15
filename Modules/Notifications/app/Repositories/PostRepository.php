@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\Notifications\app\Repositories;
+namespace Modules\Notifications\Repositories;
 
 use App\Repositories\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
-use Modules\Notifications\app\Models\Post;
+use Modules\Notifications\Models\Post;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -27,7 +27,7 @@ class PostRepository extends BaseRepository
         return Post::class;
     }
 
-    public function paginate(
+    public function paginateWithSearch(
         int $perPage = 15,
         ?string $search = null,
         ?string $role = null

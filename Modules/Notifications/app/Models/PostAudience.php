@@ -1,11 +1,11 @@
 <?php
 
-namespace Modules\Notifications\app\Models;
+namespace Modules\Notifications\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Notifications\app\Enums\PostAudienceRole;
+use Modules\Notifications\Enums\PostAudienceRole;
 
 class PostAudience extends Model
 {

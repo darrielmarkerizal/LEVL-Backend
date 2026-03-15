@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\Notifications\Policies;
 
 use Modules\Auth\Models\User;
-use Modules\Notifications\app\Enums\PostStatus;
-use Modules\Notifications\app\Models\Post;
+use Modules\Notifications\Enums\PostStatus;
+use Modules\Notifications\Models\Post;
 
 class PostPolicy
 {

@@ -10,7 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Modules\Notifications\app\Models\Post;
+use Modules\Notifications\Models\Post;
 use Modules\Notifications\Services\PostService;
 
 class BulkDeletePostsJob implements ShouldQueue

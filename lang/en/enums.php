@@ -123,4 +123,150 @@ return [
         'instructor' => 'Instructor',
         'admin' => 'Admin',
     ],
+
+    'user_status' => [
+        'pending' => 'Pending',
+        'active' => 'Active',
+        'inactive' => 'Inactive',
+        'banned' => 'Banned',
+    ],
+
+    'roles' => [
+        'superadmin' => 'Super Admin',
+        'admin' => 'Admin',
+        'instructor' => 'Instructor',
+        'student' => 'Student',
+    ],
+
+    'course_status' => [
+        'draft' => 'Draft',
+        'published' => 'Published',
+        'archived' => 'Archived',
+    ],
+
+    'course_types' => [
+        'self_paced' => 'Self Paced',
+        'instructor_led' => 'Instructor Led',
+        'blended' => 'Blended',
+    ],
+
+    'course_type' => [
+        'okupasi' => 'Occupation',
+        'kluster' => 'Cluster',
+    ],
+
+    'enrollment_types' => [
+        'open' => 'Open',
+        'approval' => 'Approval Required',
+        'key' => 'Enrollment Key',
+        'invitation' => 'Invitation Only',
+    ],
+
+    'enrollment_type' => [
+        'auto_accept' => 'Auto Accept',
+        'key_based' => 'Key Based',
+        'approval' => 'Approval Required',
+    ],
+
+    'level_tags' => [
+        'beginner' => 'Beginner',
+        'intermediate' => 'Intermediate',
+        'advanced' => 'Advanced',
+        'expert' => 'Expert',
+    ],
+
+    'level_tag' => [
+        'dasar' => 'Basic',
+        'menengah' => 'Intermediate',
+        'mahir' => 'Advanced',
+    ],
+
+    'content_types' => [
+        'text' => 'Text',
+        'video' => 'Video',
+        'audio' => 'Audio',
+        'document' => 'Document',
+        'interactive' => 'Interactive',
+        'quiz' => 'Quiz',
+        'assignment' => 'Assignment',
+    ],
+
+    'enrollment_status' => [
+        'pending' => 'Pending',
+        'active' => 'Active',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+    ],
+
+    'progress_status' => [
+        'not_started' => 'Not Started',
+        'in_progress' => 'In Progress',
+        'completed' => 'Completed',
+    ],
+
+    'content_status' => [
+        'draft' => 'Draft',
+        'published' => 'Published',
+        'archived' => 'Archived',
+    ],
+
+    'priorities' => [
+        'low' => 'Low',
+        'medium' => 'Medium',
+        'high' => 'High',
+        'urgent' => 'Urgent',
+    ],
+
+    'target_types' => [
+        'all' => 'All Users',
+        'role' => 'By Role',
+        'user' => 'Specific Users',
+        'course' => 'Course Participants',
+    ],
+
+    'notification_types' => [
+        'system' => 'System',
+        'course' => 'Course',
+        'assignment' => 'Assignment',
+        'grade' => 'Grade',
+        'forum' => 'Forum',
+        'achievement' => 'Achievement',
+    ],
+
+    'notification_channels' => [
+        'database' => 'In-App',
+        'mail' => 'Email',
+        'push' => 'Push Notification',
+    ],
+
+    'notification_frequencies' => [
+        'instant' => 'Instant',
+        'daily' => 'Daily Digest',
+        'weekly' => 'Weekly Digest',
+        'never' => 'Never',
+    ],
+
+    'grade_status' => [
+        'pending' => 'Pending',
+        'graded' => 'Graded',
+        'returned' => 'Returned',
+    ],
+
+    'grade_source_types' => [
+        'assignment' => 'Assignment',
+        'quiz' => 'Quiz',
+        'manual' => 'Manual',
+    ],
+
+    'category_status' => [
+        'active' => 'Active',
+        'inactive' => 'Inactive',
+    ],
+
+    'setting_types' => [
+        'string' => 'Text',
+        'integer' => 'Number',
+        'boolean' => 'Yes/No',
+        'json' => 'JSON',
+    ],
 ];
