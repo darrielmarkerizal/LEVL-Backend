@@ -172,34 +172,22 @@ class DashboardService
             return $this->getPopularCourses($limit);
         }
 
-        // Get categories and tags from enrolled courses
-        $enrolledCourses = Course::whereIn('id', $enrolledCourseIds)
-            ->with('tags')
-            ->get();
+        // Get category IDs from enrolled courses
+        $enrolledCourses = Course::whereIn('id', $enrolledCourseIds)->get();
+        $categoryIds = $enrolledCourses->pluck('category.id')->filter()->unique()->toArray();
 
-        $categories = $enrolledCourses->pluck('category')->filter()->unique()->toArray();
-        $tagIds = $enrolledCourses->flatMap(fn($course) => $course->tags->pluck('id'))->unique()->toArray();
-
-        // Find courses with similar categories or tags
+        // Find courses with similar categories
         $query = Course::query()
             ->whereNotIn('id', $enrolledCourseIds)
-            ->where('status', 'published')
-            ->where('is_active', true);
+            ->where('status', 'published');
 
-        if (!empty($categories) || !empty($tagIds)) {
-            $query->where(function ($q) use ($categories, $tagIds) {
-                if (!empty($categories)) {
-                    $q->whereIn('category', $categories);
-                }
-                if (!empty($tagIds)) {
-                    $q->orWhereHas('tags', function ($tagQuery) use ($tagIds) {
-                        $tagQuery->whereIn('tags.id', $tagIds);
-                    });
-                }
+        if (!empty($categoryIds)) {
+            $query->whereHas('category', function ($q) use ($categoryIds) {
+                $q->whereIn('id', $categoryIds);
             });
         }
 
-        $courses = $query->with(['instructor:id,name', 'media'])
+        $courses = $query->with(['instructor:id,name', 'media', 'category'])
             ->withCount('enrollments')
             ->orderByDesc('enrollments_count')
             ->limit($limit)
@@ -217,8 +205,8 @@ class DashboardService
                 'id' => $course->id,
                 'title' => $course->title,
                 'slug' => $course->slug,
-                'description' => $course->description,
-                'category' => $course->category,
+                'description' => $course->short_desc,
+                'category' => $course->category?->name,
                 'thumbnail' => $course->getFirstMediaUrl('thumbnail'),
                 'instructor' => [
                     'id' => $course->instructor->id ?? null,
@@ -235,14 +223,13 @@ class DashboardService
     private function getPopularCourses(int $limit, array $excludeIds = []): Collection
     {
         $query = Course::query()
-            ->where('status', 'published')
-            ->where('is_active', true);
+            ->where('status', 'published');
 
         if (!empty($excludeIds)) {
             $query->whereNotIn('id', $excludeIds);
         }
 
-        return $query->with(['instructor:id,name', 'media'])
+        return $query->with(['instructor:id,name', 'media', 'category'])
             ->withCount('enrollments')
             ->orderByDesc('enrollments_count')
             ->limit($limit)
