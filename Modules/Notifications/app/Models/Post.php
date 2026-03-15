@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Notifications\app\Models;
+namespace Modules\Notifications\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Auth\app\Models\User;
 use Modules\Common\Traits\PgSearchable;
-use Modules\Notifications\app\Enums\PostCategory;
-use Modules\Notifications\app\Enums\PostStatus;
+use Modules\Notifications\Enums\PostCategory;
+use Modules\Notifications\Enums\PostStatus;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 

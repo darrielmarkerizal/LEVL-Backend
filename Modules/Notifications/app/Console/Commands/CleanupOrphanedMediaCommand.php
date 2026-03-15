@@ -6,7 +6,7 @@ namespace Modules\Notifications\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use Modules\Notifications\app\Models\Post;
+use Modules\Notifications\Models\Post;
 
 class CleanupOrphanedMediaCommand extends Command
 {

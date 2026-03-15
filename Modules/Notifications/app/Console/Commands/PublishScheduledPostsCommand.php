@@ -6,7 +6,7 @@ namespace Modules\Notifications\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use Modules\Notifications\app\Repositories\PostRepository;
+use Modules\Notifications\Repositories\PostRepository;
 use Modules\Notifications\Services\PostService;
 
 class PublishScheduledPostsCommand extends Command

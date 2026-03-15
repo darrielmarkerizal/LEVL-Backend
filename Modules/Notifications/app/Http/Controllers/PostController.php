@@ -35,7 +35,7 @@ class PostController extends Controller
         $search = $request->get('search');
         $role = $request->get('role');
 
-        $paginator = $this->service->repository->paginate($perPage, $search, $role);
+        $paginator = $this->service->repository->paginateWithSearch($perPage, $search, $role);
         $paginator->getCollection()->transform(fn ($item) => new PostListResource($item));
 
         return $this->paginateResponse($paginator, __('messages.posts.retrieved'));

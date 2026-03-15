@@ -14,9 +14,9 @@ use Modules\Notifications\Enums\PostStatus;
 use Modules\Notifications\Jobs\BulkDeletePostsJob;
 use Modules\Notifications\Jobs\BulkPublishPostsJob;
 use Modules\Notifications\Jobs\SendPostNotificationJob;
-use Modules\Notifications\app\Models\Post;
-use Modules\Notifications\app\Models\PostView;
-use Modules\Notifications\app\Repositories\PostRepository;
+use Modules\Notifications\Models\Post;
+use Modules\Notifications\Models\PostView;
+use Modules\Notifications\Repositories\PostRepository;
 
 class PostService
 {
