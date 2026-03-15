@@ -1219,6 +1219,8 @@ Bearer Token Required (Student only)
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
+
+
 | `course_slug` | string | ✅ Yes | Slug kursus |
 
 #### Response Success (200 OK)

@@ -794,8 +794,9 @@ GET    [Shared] Master Data - Get Instructors
 
 ### Total Endpoints by Platform
 - **Mobile Student App**: ~80 endpoints
-- **Admin Dashboard**: ~200 endpoints
-- **Instructor Dashboard**: ~90 endpoints
+- **Admin Dashboard**: ~200 endpointsperiksa #Auth apakah sudah ada logika login untuk per status misal pending, aktif, banned, inactive
+
+Dan aktivitas lainnya berdasarkan user statusnya #Modules 
 - **Shared Common APIs**: ~50 endpoints
 - **Total**: ~420 endpoints
 

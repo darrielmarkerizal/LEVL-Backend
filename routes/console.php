@@ -19,3 +19,15 @@ Schedule::command('trash:purge-expired')->daily();
 
 // Housekeeping: mark missing submissions shortly after deadlines
 Schedule::job(new \Modules\Learning\Jobs\MarkMissingSubmissionsJob)->everyMinute();
+
+// Schedule Post Publishing (Every Minute)
+Schedule::command('posts:publish-scheduled')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// Schedule Orphaned Media Cleanup (Daily at 2 AM)
+Schedule::command('posts:cleanup-orphaned-media')
+    ->dailyAt('02:00')
+    ->withoutOverlapping()
+    ->runInBackground();
