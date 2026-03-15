@@ -102,4 +102,25 @@ return [
         'milestone' => 'Milestone',
         'hidden' => 'Hidden',
     ],
+
+    'post_category' => [
+        'announcement' => 'Announcement',
+        'information' => 'Information',
+        'warning' => 'Warning',
+        'system' => 'System',
+        'award' => 'Award',
+        'gamification' => 'Gamification',
+    ],
+
+    'post_status' => [
+        'draft' => 'Draft',
+        'scheduled' => 'Scheduled',
+        'published' => 'Published',
+    ],
+
+    'post_audience_role' => [
+        'student' => 'Student',
+        'instructor' => 'Instructor',
+        'admin' => 'Admin',
+    ],
 ];
