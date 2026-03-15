@@ -41,4 +41,19 @@ enum PostCategory: string
             self::GAMIFICATION => __('enums.post_category.gamification'),
         };
     }
+
+    /**
+     * Get icon for the category.
+     */
+    public function icon(): string
+    {
+        return match ($this) {
+            self::ANNOUNCEMENT => '📢',
+            self::INFORMATION => 'ℹ️',
+            self::WARNING => '⚠️',
+            self::SYSTEM => '⚙️',
+            self::AWARD => '🏆',
+            self::GAMIFICATION => '🎮',
+        };
+    }
 }
