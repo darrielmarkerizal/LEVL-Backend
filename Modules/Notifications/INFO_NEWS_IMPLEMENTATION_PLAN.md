@@ -31,11 +31,27 @@ Membuat sistem manajemen konten Info & News yang memungkinkan admin untuk:
 - Pin/unpin posts untuk highlight
 - Soft delete dengan trash management
 - **Scheduled publishing** - Menjadwalkan post untuk dipublikasikan di waktu tertentu
+- **Media management** - Upload dan manage gambar menggunakan Spatie Media Library
+- **Audit trail** - Track last editor untuk setiap perubahan
+- **Bulk operations** - Bulk delete dan bulk publish dengan queue support
+- **Performance optimization** - Redis caching untuk read-heavy endpoints
 
 ### User Roles
 - **Admin**: Full CRUD access untuk semua posts
 - **Instructor**: Read access untuk posts yang ditargetkan ke instructor
 - **Student**: Read access untuk posts yang ditargetkan ke student
+
+### Key Features
+1. ✅ Rich text editor dengan image upload (Spatie Media Library)
+2. ✅ Scheduled publishing dengan auto-publish
+3. ✅ Trash bin management (restore/force delete)
+4. ✅ Audit trail (last editor tracking)
+5. ✅ Selective notification resend by channel (array-based)
+6. ✅ Bulk operations dengan queue support
+7. ✅ Redis caching untuk performance optimization
+8. ✅ Media management dengan Spatie Media Library
+9. ✅ Image upload endpoint untuk rich text editor
+10. ✅ Trash management endpoints (list/restore/force delete)
 
 ---
 
@@ -132,6 +148,7 @@ CREATE TABLE posts (
     status ENUM('draft', 'scheduled', 'published') DEFAULT 'draft',
     is_pinned BOOLEAN DEFAULT FALSE,
     author_id BIGINT UNSIGNED NOT NULL,
+    last_editor_id BIGINT UNSIGNED NULL,
     scheduled_at TIMESTAMP NULL,
     published_at TIMESTAMP NULL,
     deleted_at TIMESTAMP NULL,
@@ -139,12 +156,14 @@ CREATE TABLE posts (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (last_editor_id) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_status (status),
     INDEX idx_category (category),
     INDEX idx_scheduled_at (scheduled_at),
     INDEX idx_published_at (published_at),
     INDEX idx_is_pinned (is_pinned),
-    INDEX idx_deleted_at (deleted_at)
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_last_editor_id (last_editor_id)
 );
 ```
 
@@ -212,6 +231,19 @@ MODIFY COLUMN type ENUM(
 ) NOT NULL;
 ```
 
+### 6. Spatie Media Library Tables
+Spatie Media Library akan otomatis membuat tabel `media` saat menjalankan migration:
+```bash
+php artisan vendor:publish --provider="Spatie\MediaLibrary\MediaLibraryServiceProvider" --tag="migrations"
+php artisan migrate
+```
+
+Tabel `media` akan menyimpan:
+- File uploads (images untuk rich text editor)
+- Metadata (file size, mime type, dimensions)
+- Collections (untuk grouping media)
+- Conversions (untuk image optimization)
+
 ---
 
 ## 🔧 BACKEND IMPLEMENTATION
@@ -227,11 +259,13 @@ namespace Modules\Notifications\app\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 use Modules\Auth\app\Models\User;
 
-class Post extends Model
+class Post extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'uuid',
@@ -242,6 +276,7 @@ class Post extends Model
         'status',
         'is_pinned',
         'author_id',
+        'last_editor_id',
         'scheduled_at',
         'published_at',
     ];
@@ -259,6 +294,11 @@ class Post extends Model
         return $this->belongsTo(User::class, 'author_id');
     }
 
+    public function lastEditor()
+    {
+        return $this->belongsTo(User::class, 'last_editor_id');
+    }
+
     public function audiences()
     {
         return $this->hasMany(PostAudience::class);
@@ -272,6 +312,14 @@ class Post extends Model
     public function views()
     {
         return $this->hasMany(PostView::class);
+    }
+
+    // Spatie Media Library
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('images')
+            ->useDisk('public')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
     }
 
     // Scopes
@@ -550,7 +598,7 @@ class UpdatePostDTO
         public readonly ?array $audiences = null,
         public readonly ?array $notificationChannels = null,
         public readonly ?bool $isPinned = null,
-        public readonly bool $resendNotifications = false,
+        public readonly array $resendNotificationChannels = [],
     ) {}
 
     public static function fromRequest(array $data): self
@@ -563,7 +611,7 @@ class UpdatePostDTO
             audiences: $data['audiences'] ?? null,
             notificationChannels: $data['notification_channels'] ?? null,
             isPinned: $data['is_pinned'] ?? null,
-            resendNotifications: $data['resend_notifications'] ?? false,
+            resendNotificationChannels: $data['resend_notification_channels'] ?? [],
         );
     }
 }
@@ -580,9 +628,13 @@ namespace Modules\Notifications\app\Repositories;
 use Modules\Notifications\app\Models\Post;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 
 class PostRepository
 {
+    private const CACHE_TTL = 3600; // 1 hour
+    private const CACHE_PREFIX = 'posts:';
+
     public function __construct(
         private Post $model
     ) {}
@@ -594,7 +646,18 @@ class PostRepository
         ?string $search = null,
         ?string $role = null
     ): LengthAwarePaginator {
-        $query = $this->model->with(['author', 'audiences'])
+        // Cache key untuk published posts saja
+        $cacheKey = null;
+        if ($status === 'published' && !$search) {
+            $cacheKey = self::CACHE_PREFIX . "list:{$status}:{$category}:{$role}:page:" . request('page', 1);
+            
+            $cached = Cache::get($cacheKey);
+            if ($cached) {
+                return $cached;
+            }
+        }
+
+        $query = $this->model->with(['author', 'lastEditor', 'audiences'])
             ->orderByDesc('is_pinned')
             ->orderByDesc('created_at');
 
@@ -617,52 +680,120 @@ class PostRepository
             $query->forRole($role);
         }
 
-        return $query->paginate($perPage);
+        $result = $query->paginate($perPage);
+
+        // Cache hasil jika published posts
+        if ($cacheKey) {
+            Cache::put($cacheKey, $result, self::CACHE_TTL);
+        }
+
+        return $result;
     }
 
     public function findByUuid(string $uuid): ?Post
     {
-        return $this->model->with(['author', 'audiences', 'notifications'])
+        return $this->model->with(['author', 'lastEditor', 'audiences', 'notifications'])
             ->where('uuid', $uuid)
             ->first();
     }
 
     public function create(array $data): Post
     {
-        return $this->model->create($data);
+        $post = $this->model->create($data);
+        $this->clearCache();
+        return $post;
     }
 
     public function update(Post $post, array $data): bool
     {
-        return $post->update($data);
+        $result = $post->update($data);
+        $this->clearCache();
+        return $result;
     }
 
     public function delete(Post $post): bool
     {
-        return $post->delete();
+        $result = $post->delete();
+        $this->clearCache();
+        return $result;
     }
 
     public function restore(Post $post): bool
     {
-        return $post->restore();
+        $result = $post->restore();
+        $this->clearCache();
+        return $result;
     }
 
     public function forceDelete(Post $post): bool
     {
-        return $post->forceDelete();
+        $result = $post->forceDelete();
+        $this->clearCache();
+        return $result;
     }
 
     public function getPinnedPosts(?string $role = null): Collection
     {
-        $query = $this->model->published()
-            ->pinned()
-            ->with(['author', 'audiences']);
+        $cacheKey = self::CACHE_PREFIX . "pinned:{$role}";
+        
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($role) {
+            $query = $this->model->published()
+                ->pinned()
+                ->with(['author', 'audiences']);
+
+            if ($role) {
+                $query->forRole($role);
+            }
+
+            return $query->get();
+        });
+    }
+
+    public function getTrashedPosts(int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->model->onlyTrashed()
+            ->with(['author', 'lastEditor', 'audiences'])
+            ->orderByDesc('deleted_at')
+            ->paginate($perPage);
+    }
+
+    public function getPendingScheduledPosts(): Collection
+    {
+        return $this->model->pendingPublish()
+            ->with(['author', 'audiences', 'notifications'])
+            ->get();
+    }
+
+    public function getScheduledPosts(?string $role = null): LengthAwarePaginator
+    {
+        $query = $this->model->scheduled()
+            ->with(['author', 'audiences'])
+            ->orderBy('scheduled_at', 'asc');
 
         if ($role) {
             $query->forRole($role);
         }
 
-        return $query->get();
+        return $query->paginate(15);
+    }
+
+    private function clearCache(): void
+    {
+        // Clear all posts cache
+        Cache::tags(['posts'])->flush();
+        
+        // Alternative: Clear specific patterns
+        $patterns = [
+            self::CACHE_PREFIX . 'list:*',
+            self::CACHE_PREFIX . 'pinned:*',
+        ];
+        
+        foreach ($patterns as $pattern) {
+            $keys = Cache::get($pattern);
+            if ($keys) {
+                Cache::forget($keys);
+            }
+        }
     }
 }
 ```
@@ -681,8 +812,11 @@ use Modules\Notifications\app\Repositories\PostRepository;
 use Modules\Notifications\app\DTOs\CreatePostDTO;
 use Modules\Notifications\app\DTOs\UpdatePostDTO;
 use Modules\Notifications\app\Jobs\SendPostNotificationJob;
+use Modules\Notifications\app\Jobs\BulkDeletePostsJob;
+use Modules\Notifications\app\Jobs\BulkPublishPostsJob;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\UploadedFile;
 
 class PostService
 {
@@ -693,6 +827,11 @@ class PostService
     public function createPost(CreatePostDTO $dto, int $authorId): Post
     {
         return DB::transaction(function () use ($dto, $authorId) {
+            // Validate scheduled_at if status is scheduled
+            if ($dto->status === 'scheduled' && !$dto->scheduledAt) {
+                throw new \InvalidArgumentException('Scheduled date is required for scheduled posts');
+            }
+
             // Create post
             $post = $this->repository->create([
                 'uuid' => Str::uuid(),
@@ -703,6 +842,8 @@ class PostService
                 'status' => $dto->status,
                 'is_pinned' => $dto->isPinned,
                 'author_id' => $authorId,
+                'last_editor_id' => $authorId,
+                'scheduled_at' => $dto->status === 'scheduled' ? $dto->scheduledAt : null,
                 'published_at' => $dto->status === 'published' ? now() : null,
             ]);
 
@@ -720,19 +861,19 @@ class PostService
                 }
             }
 
-            // Send notifications if published
+            // Send notifications if published immediately
             if ($dto->status === 'published') {
                 $this->sendNotifications($post);
             }
 
-            return $post->load(['author', 'audiences', 'notifications']);
+            return $post->load(['author', 'lastEditor', 'audiences', 'notifications']);
         });
     }
 
-    public function updatePost(Post $post, UpdatePostDTO $dto): Post
+    public function updatePost(Post $post, UpdatePostDTO $dto, int $editorId): Post
     {
-        return DB::transaction(function () use ($post, $dto) {
-            $updateData = [];
+        return DB::transaction(function () use ($post, $dto, $editorId) {
+            $updateData = ['last_editor_id' => $editorId];
 
             if ($dto->title !== null) {
                 $updateData['title'] = $dto->title;
@@ -784,12 +925,12 @@ class PostService
                 }
             }
 
-            // Resend notifications if requested
-            if ($dto->resendNotifications && $post->status === 'published') {
-                $this->sendNotifications($post);
+            // Resend notifications for specific channels if requested
+            if (!empty($dto->resendNotificationChannels) && $post->status === 'published') {
+                $this->sendNotifications($post, $dto->resendNotificationChannels);
             }
 
-            return $post->fresh(['author', 'audiences', 'notifications']);
+            return $post->fresh(['author', 'lastEditor', 'audiences', 'notifications']);
         });
     }
 
@@ -805,6 +946,9 @@ class PostService
 
     public function forceDeletePost(Post $post): bool
     {
+        // Delete associated media
+        $post->clearMediaCollection('images');
+        
         return $this->repository->forceDelete($post);
     }
 
@@ -830,6 +974,47 @@ class PostService
         return $post->fresh();
     }
 
+    public function schedulePost(Post $post, string $scheduledAt): Post
+    {
+        $this->repository->update($post, [
+            'status' => 'scheduled',
+            'scheduled_at' => $scheduledAt,
+            'published_at' => null,
+        ]);
+
+        return $post->fresh();
+    }
+
+    public function publishScheduledPost(Post $post): Post
+    {
+        if ($post->status !== 'scheduled') {
+            throw new \Exception('Post is not scheduled');
+        }
+
+        if (!$post->scheduled_at || $post->scheduled_at->isFuture()) {
+            throw new \Exception('Post is not ready to be published');
+        }
+
+        $this->repository->update($post, [
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $this->sendNotifications($post);
+
+        return $post->fresh();
+    }
+
+    public function cancelSchedule(Post $post): Post
+    {
+        $this->repository->update($post, [
+            'status' => 'draft',
+            'scheduled_at' => null,
+        ]);
+
+        return $post->fresh();
+    }
+
     public function togglePin(Post $post): Post
     {
         $this->repository->update($post, [
@@ -848,9 +1033,29 @@ class PostService
         ]);
     }
 
-    private function sendNotifications(Post $post): void
+    public function uploadImage(Post $post, UploadedFile $file): string
     {
-        $channels = $post->notifications->pluck('channel')->toArray();
+        $media = $post->addMedia($file)
+            ->toMediaCollection('images');
+
+        return $media->getUrl();
+    }
+
+    public function bulkDelete(array $postUuids): void
+    {
+        // Dispatch job untuk bulk delete
+        BulkDeletePostsJob::dispatch($postUuids);
+    }
+
+    public function bulkPublish(array $postUuids): void
+    {
+        // Dispatch job untuk bulk publish
+        BulkPublishPostsJob::dispatch($postUuids);
+    }
+
+    private function sendNotifications(Post $post, ?array $specificChannels = null): void
+    {
+        $channels = $specificChannels ?? $post->notifications->pluck('channel')->toArray();
         $audiences = $post->audiences->pluck('role')->toArray();
 
         if (!empty($channels) && !empty($audiences)) {
@@ -964,7 +1169,7 @@ class PostController extends Controller
         }
 
         $dto = UpdatePostDTO::fromRequest($request->validated());
-        $post = $this->service->updatePost($post, $dto);
+        $post = $this->service->updatePost($post, $dto, $request->user()->id);
 
         return response()->json([
             'success' => true,
@@ -1085,6 +1290,155 @@ class PostController extends Controller
             'message' => 'Post marked as viewed',
         ]);
     }
+
+    /**
+     * Upload image for rich text editor
+     */
+    public function uploadImage(Request $request): JsonResponse
+    {
+        $request->validate([
+            'image' => ['required', 'image', 'max:5120'], // 5MB max
+            'post_uuid' => ['nullable', 'string', 'exists:posts,uuid'],
+        ]);
+
+        // If post_uuid provided, attach to existing post
+        if ($request->has('post_uuid')) {
+            $post = $this->repository->findByUuid($request->input('post_uuid'));
+            if (!$post) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Post not found',
+                ], 404);
+            }
+        } else {
+            // Create temporary post for image upload
+            // Images will be orphaned if post is not created
+            $post = $this->repository->create([
+                'uuid' => \Illuminate\Support\Str::uuid(),
+                'title' => 'Temporary',
+                'slug' => 'temporary-' . time(),
+                'content' => '',
+                'category' => 'information',
+                'status' => 'draft',
+                'author_id' => $request->user()->id,
+            ]);
+        }
+
+        $url = $this->service->uploadImage($post, $request->file('image'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Image uploaded successfully',
+            'data' => [
+                'url' => $url,
+                'post_uuid' => $post->uuid,
+            ],
+        ]);
+    }
+
+    /**
+     * Get trashed posts
+     */
+    public function trash(Request $request): JsonResponse
+    {
+        $posts = $this->repository->getTrashedPosts(
+            perPage: $request->input('per_page', 15)
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Trashed posts retrieved successfully',
+            'data' => PostListResource::collection($posts),
+            'meta' => [
+                'current_page' => $posts->currentPage(),
+                'from' => $posts->firstItem(),
+                'last_page' => $posts->lastPage(),
+                'per_page' => $posts->perPage(),
+                'to' => $posts->lastItem(),
+                'total' => $posts->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Restore trashed post
+     */
+    public function restore(string $uuid): JsonResponse
+    {
+        $post = $this->repository->findByUuid($uuid);
+
+        if (!$post) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Post not found',
+            ], 404);
+        }
+
+        $this->service->restorePost($post);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Post restored successfully',
+        ]);
+    }
+
+    /**
+     * Permanently delete post
+     */
+    public function forceDelete(string $uuid): JsonResponse
+    {
+        $post = $this->repository->findByUuid($uuid);
+
+        if (!$post) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Post not found',
+            ], 404);
+        }
+
+        $this->service->forceDeletePost($post);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Post permanently deleted',
+        ]);
+    }
+
+    /**
+     * Bulk delete posts
+     */
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $request->validate([
+            'post_uuids' => ['required', 'array', 'min:1'],
+            'post_uuids.*' => ['required', 'string', 'exists:posts,uuid'],
+        ]);
+
+        $this->service->bulkDelete($request->input('post_uuids'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bulk delete job dispatched successfully',
+        ]);
+    }
+
+    /**
+     * Bulk publish posts
+     */
+    public function bulkPublish(Request $request): JsonResponse
+    {
+        $request->validate([
+            'post_uuids' => ['required', 'array', 'min:1'],
+            'post_uuids.*' => ['required', 'string', 'exists:posts,uuid'],
+        ]);
+
+        $this->service->bulkPublish($request->input('post_uuids'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bulk publish job dispatched successfully',
+        ]);
+    }
 }
 ```
 
@@ -1166,7 +1520,8 @@ class UpdatePostRequest extends FormRequest
             'notification_channels' => ['nullable', 'array'],
             'notification_channels.*' => ['required', 'string', 'in:email,in_app,push'],
             'is_pinned' => ['nullable', 'boolean'],
-            'resend_notifications' => ['nullable', 'boolean'],
+            'resend_notification_channels' => ['nullable', 'array'],
+            'resend_notification_channels.*' => ['required', 'string', 'in:email,in_app,push'],
         ];
     }
 }
@@ -1205,9 +1560,20 @@ class PostResource extends JsonResource
                 'name' => $this->author->name,
                 'username' => $this->author->username,
             ],
+            'last_editor' => $this->lastEditor ? [
+                'id' => $this->lastEditor->id,
+                'name' => $this->lastEditor->name,
+                'username' => $this->lastEditor->username,
+            ] : null,
             'audiences' => $this->audiences->pluck('role')->toArray(),
             'notification_channels' => $this->notifications->pluck('channel')->toArray(),
             'view_count' => $this->views->count(),
+            'images' => $this->getMedia('images')->map(fn($media) => [
+                'id' => $media->id,
+                'url' => $media->getUrl(),
+                'name' => $media->name,
+                'size' => $media->size,
+            ]),
             'published_at' => $this->published_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),
@@ -1295,6 +1661,113 @@ class SendPostNotificationJob implements ShouldQueue
                 ->where('channel', $channel)
                 ->update(['sent_at' => now()]);
         }
+    }
+}
+```
+
+#### BulkDeletePostsJob (`app/Jobs/BulkDeletePostsJob.php`)
+```php
+<?php
+
+namespace Modules\Notifications\app\Jobs;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Modules\Notifications\app\Repositories\PostRepository;
+use Illuminate\Support\Facades\Log;
+
+class BulkDeletePostsJob implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public function __construct(
+        private array $postUuids
+    ) {}
+
+    public function handle(PostRepository $repository): void
+    {
+        Log::info('Starting bulk delete job', ['count' => count($this->postUuids)]);
+
+        $successCount = 0;
+        $failCount = 0;
+
+        foreach ($this->postUuids as $uuid) {
+            try {
+                $post = $repository->findByUuid($uuid);
+                if ($post) {
+                    $repository->delete($post);
+                    $successCount++;
+                }
+            } catch (\Exception $e) {
+                $failCount++;
+                Log::error('Failed to delete post in bulk operation', [
+                    'uuid' => $uuid,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        Log::info('Bulk delete job completed', [
+            'success' => $successCount,
+            'failed' => $failCount,
+        ]);
+    }
+}
+```
+
+#### BulkPublishPostsJob (`app/Jobs/BulkPublishPostsJob.php`)
+```php
+<?php
+
+namespace Modules\Notifications\app\Jobs;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Modules\Notifications\app\Services\PostService;
+use Modules\Notifications\app\Repositories\PostRepository;
+use Illuminate\Support\Facades\Log;
+
+class BulkPublishPostsJob implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public function __construct(
+        private array $postUuids
+    ) {}
+
+    public function handle(PostRepository $repository, PostService $service): void
+    {
+        Log::info('Starting bulk publish job', ['count' => count($this->postUuids)]);
+
+        $successCount = 0;
+        $failCount = 0;
+
+        foreach ($this->postUuids as $uuid) {
+            try {
+                $post = $repository->findByUuid($uuid);
+                if ($post && $post->status === 'draft') {
+                    $service->publishPost($post);
+                    $successCount++;
+                }
+            } catch (\Exception $e) {
+                $failCount++;
+                Log::error('Failed to publish post in bulk operation', [
+                    'uuid' => $uuid,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        Log::info('Bulk publish job completed', [
+            'success' => $successCount,
+            'failed' => $failCount,
+        ]);
     }
 }
 ```
@@ -1844,10 +2317,14 @@ POST   /api/v1/admin/posts/{uuid}/unpublish   - Unpublish post
 POST   /api/v1/admin/posts/{uuid}/schedule    - Schedule post for later
 POST   /api/v1/admin/posts/{uuid}/cancel-schedule - Cancel scheduled post
 POST   /api/v1/admin/posts/{uuid}/toggle-pin  - Toggle pin status
+POST   /api/v1/admin/posts/upload-image       - Upload image for rich text editor
+GET    /api/v1/admin/posts/trash              - List trashed posts
+POST   /api/v1/admin/posts/{uuid}/restore     - Restore trashed post
+DELETE /api/v1/admin/posts/{uuid}/force       - Permanently delete post
+POST   /api/v1/admin/posts/bulk-delete        - Bulk delete posts (queued)
+POST   /api/v1/admin/posts/bulk-publish       - Bulk publish drafts (queued)
 GET    /api/v1/admin/posts/drafts             - List draft posts
 GET    /api/v1/admin/posts/scheduled          - List scheduled posts
-POST   /api/v1/admin/posts/bulk-delete        - Bulk delete posts
-POST   /api/v1/admin/posts/bulk-publish       - Bulk publish drafts
 ```
 
 ### Shared Endpoints (All Users)
@@ -1868,16 +2345,33 @@ use Modules\Notifications\app\Http\Controllers\PostController;
 
 // Admin routes
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
-    Route::apiResource('posts', PostController::class);
-    Route::post('posts/{uuid}/publish', [PostController::class, 'publish']);
-    Route::post('posts/{uuid}/unpublish', [PostController::class, 'unpublish']);
-    Route::post('posts/{uuid}/schedule', [PostController::class, 'schedule']);
-    Route::post('posts/{uuid}/cancel-schedule', [PostController::class, 'cancelSchedule']);
-    Route::post('posts/{uuid}/toggle-pin', [PostController::class, 'togglePin']);
-    Route::get('posts/drafts', [PostController::class, 'drafts']);
-    Route::get('posts/scheduled', [PostController::class, 'scheduled']);
+    // Image upload
+    Route::post('posts/upload-image', [PostController::class, 'uploadImage']);
+    
+    // Trash management
+    Route::get('posts/trash', [PostController::class, 'trash']);
+    Route::post('posts/{uuid}/restore', [PostController::class, 'restore']);
+    Route::delete('posts/{uuid}/force', [PostController::class, 'forceDelete']);
+    
+    // Bulk operations
     Route::post('posts/bulk-delete', [PostController::class, 'bulkDelete']);
     Route::post('posts/bulk-publish', [PostController::class, 'bulkPublish']);
+    
+    // Scheduled posts
+    Route::get('posts/scheduled', [PostController::class, 'scheduled']);
+    Route::post('posts/{uuid}/schedule', [PostController::class, 'schedule']);
+    Route::post('posts/{uuid}/cancel-schedule', [PostController::class, 'cancelSchedule']);
+    
+    // Drafts
+    Route::get('posts/drafts', [PostController::class, 'drafts']);
+    
+    // Standard CRUD
+    Route::apiResource('posts', PostController::class);
+    
+    // Post actions
+    Route::post('posts/{uuid}/publish', [PostController::class, 'publish']);
+    Route::post('posts/{uuid}/unpublish', [PostController::class, 'unpublish']);
+    Route::post('posts/{uuid}/toggle-pin', [PostController::class, 'togglePin']);
 });
 
 // Shared routes (all authenticated users)
@@ -1973,6 +2467,115 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 ## 📝 CATATAN IMPLEMENTASI
 
+### Dependencies & Installation
+
+#### 1. Spatie Media Library
+```bash
+# Install package
+composer require spatie/laravel-medialibrary
+
+# Publish migration
+php artisan vendor:publish --provider="Spatie\MediaLibrary\MediaLibraryServiceProvider" --tag="migrations"
+
+# Run migration
+php artisan migrate
+
+# Publish config (optional)
+php artisan vendor:publish --provider="Spatie\MediaLibrary\MediaLibraryServiceProvider" --tag="config"
+```
+
+#### 2. Redis Configuration
+Pastikan Redis sudah terinstall dan dikonfigurasi di `.env`:
+```env
+CACHE_DRIVER=redis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+```
+
+#### 3. Queue Configuration
+Untuk bulk operations, pastikan queue worker berjalan:
+```bash
+# Development
+php artisan queue:work
+
+# Production (dengan supervisor)
+php artisan queue:work --queue=default --tries=3 --timeout=90
+```
+
+### Media Management Configuration
+
+#### Storage Disk Configuration (`config/filesystems.php`)
+```php
+'disks' => [
+    'public' => [
+        'driver' => 'local',
+        'root' => storage_path('app/public'),
+        'url' => env('APP_URL').'/storage',
+        'visibility' => 'public',
+    ],
+],
+```
+
+#### Media Library Configuration (`config/media-library.php`)
+```php
+return [
+    'disk_name' => 'public',
+    
+    'max_file_size' => 1024 * 1024 * 5, // 5MB
+    
+    'media_model' => Spatie\MediaLibrary\MediaCollections\Models\Media::class,
+    
+    'image_optimizers' => [
+        Spatie\ImageOptimizer\Optimizers\Jpegoptim::class => [
+            '--max=85',
+            '--strip-all',
+            '--all-progressive',
+        ],
+        Spatie\ImageOptimizer\Optimizers\Pngquant::class => [
+            '--force',
+        ],
+    ],
+    
+    'image_generators' => [
+        Spatie\MediaLibrary\Conversions\ImageGenerators\Image::class,
+    ],
+];
+```
+
+#### Allowed Image Types
+- JPEG (.jpg, .jpeg)
+- PNG (.png)
+- GIF (.gif)
+- WebP (.webp)
+
+#### Image Optimization
+Spatie Media Library akan otomatis mengoptimasi gambar yang diupload menggunakan:
+- jpegoptim untuk JPEG
+- pngquant untuk PNG
+- optipng untuk PNG
+- gifsicle untuk GIF
+
+### Redis Caching Strategy
+
+#### Cache Keys Pattern
+```
+posts:list:{status}:{category}:{role}:page:{page_number}
+posts:pinned:{role}
+```
+
+#### Cache TTL
+- List cache: 1 hour (3600 seconds)
+- Pinned posts cache: 1 hour (3600 seconds)
+
+#### Cache Invalidation
+Cache akan di-clear otomatis saat:
+- Post dibuat
+- Post diupdate
+- Post didelete
+- Post dipublish/unpublish
+- Post di-pin/unpin
+
 ### Kebutuhan Tambahan
 1. Task scheduler (Laravel Scheduler) - sudah built-in
 2. Queue system untuk async notifications (Redis/Database)
@@ -1988,26 +2591,41 @@ Route::middleware(['auth:sanctum'])->group(function () {
 4. Input sanitization
 5. Validation untuk scheduled_at (must be future date)
 6. Permission check untuk schedule/cancel operations
+7. File upload validation (type, size, mime)
+8. Image upload rate limiting
 
 ### Optimasi Performa
-1. Database indexing (termasuk scheduled_at)
+1. Database indexing (termasuk scheduled_at, last_editor_id)
 2. Query optimization dengan eager loading
-3. Caching untuk frequently accessed posts
+3. Redis caching untuk frequently accessed posts
 4. Pagination untuk large datasets
 5. Queue untuk notification sending
 6. Efficient scheduled posts query (only pending)
+7. Bulk operations dengan chunking
+8. Image optimization dengan Spatie Media Library
 
 ### Monitoring & Logging
 1. Log setiap scheduled post yang dipublish
 2. Alert jika scheduled publishing gagal
 3. Dashboard untuk monitoring scheduled posts
 4. Metrics untuk success/failure rate
+5. Log bulk operations progress
+6. Monitor cache hit/miss ratio
 
 ### Timezone Considerations
 1. Store scheduled_at in UTC
 2. Display in user's timezone
 3. Validate timezone in requests
 4. Handle daylight saving time
+
+### Integration dengan Existing Notification System
+Lihat dokumen `INTEGRATION_GUIDE.md` dan `QUICK_INTEGRATION_GUIDE.md` untuk detail integrasi dengan sistem notifikasi yang sudah ada.
+
+Key points:
+- Gunakan `NotificationSender` service sebagai bridge
+- Jangan modifikasi `NotificationService` yang sudah ada
+- Post notifications bersifat manual (admin-created)
+- Existing notifications tetap otomatis (system-generated)
 
 ---
 

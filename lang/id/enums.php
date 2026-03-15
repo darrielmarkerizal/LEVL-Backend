@@ -102,4 +102,25 @@ return [
         'milestone' => 'Pencapaian',
         'hidden' => 'Tersembunyi',
     ],
+
+    'post_category' => [
+        'announcement' => 'Pengumuman',
+        'information' => 'Informasi',
+        'warning' => 'Peringatan',
+        'system' => 'Sistem',
+        'award' => 'Penghargaan',
+        'gamification' => 'Gamifikasi',
+    ],
+
+    'post_status' => [
+        'draft' => 'Draft',
+        'scheduled' => 'Terjadwal',
+        'published' => 'Dipublikasikan',
+    ],
+
+    'post_audience_role' => [
+        'student' => 'Siswa',
+        'instructor' => 'Instruktur',
+        'admin' => 'Admin',
+    ],
 ];
