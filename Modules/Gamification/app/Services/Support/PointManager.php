@@ -555,31 +555,72 @@ class PointManager
         $dailyCap->incrementXp($points, $reason);
     }
     
-    public function getDailyXpStats(int $userId): array
+    public function getDailyXpStats(int $userId, int $days = 7): array
     {
-        $today = Carbon::today();
+        $days = max(1, min($days, 30)); // Between 1 and 30 days
+        $endDate = Carbon::today();
+        $startDate = Carbon::today()->subDays($days - 1);
         
-        $dailyCap = XpDailyCap::where('user_id', $userId)
-            ->where('date', $today)
-            ->first();
+        // Get daily XP data for the period
+        $dailyXp = Point::where('user_id', $userId)
+            ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+            ->selectRaw('DATE(created_at) as date, SUM(points) as xp_earned, source_type')
+            ->groupBy('date', 'source_type')
+            ->orderBy('date')
+            ->get();
         
-        if (!$dailyCap) {
+        // Group by date
+        $xpByDate = $dailyXp->groupBy('date')->map(function ($items) {
+            $sources = $items->groupBy('source_type')->map(fn($group) => $group->sum('xp_earned'));
             return [
-                'total_xp_earned' => 0,
-                'global_daily_cap' => config('gamification.global_daily_xp_cap', 10000),
-                'remaining_xp' => config('gamification.global_daily_xp_cap', 10000),
-                'cap_reached' => false,
-                'xp_by_source' => [],
+                'xp_earned' => $items->sum('xp_earned'),
+                'activities' => [
+                    'lessons' => $sources->get('lesson', 0),
+                    'assignments' => $sources->get('assignment', 0),
+                    'quizzes' => $sources->get('grade', 0),
+                ],
+            ];
+        });
+        
+        // Fill missing dates with zero
+        $dailyStats = [];
+        for ($i = 0; $i < $days; $i++) {
+            $date = Carbon::today()->subDays($days - 1 - $i)->format('Y-m-d');
+            $dailyStats[] = [
+                'date' => $date,
+                'xp_earned' => $xpByDate->get($date)['xp_earned'] ?? 0,
+                'activities' => $xpByDate->get($date)['activities'] ?? [
+                    'lessons' => 0,
+                    'assignments' => 0,
+                    'quizzes' => 0,
+                ],
             ];
         }
         
+        // Calculate summary
+        $totalXp = collect($dailyStats)->sum('xp_earned');
+        $averagePerDay = $days > 0 ? round($totalXp / $days, 2) : 0;
+        $mostActiveDay = collect($dailyStats)->sortByDesc('xp_earned')->first();
+        
+        // Calculate streak
+        $streakDays = 0;
+        $reversedStats = array_reverse($dailyStats);
+        foreach ($reversedStats as $stat) {
+            if ($stat['xp_earned'] > 0) {
+                $streakDays++;
+            } else {
+                break;
+            }
+        }
+        
         return [
-            'total_xp_earned' => $dailyCap->total_xp_earned,
-            'global_daily_cap' => $dailyCap->global_daily_cap,
-            'remaining_xp' => $dailyCap->getRemainingXp(),
-            'cap_reached' => $dailyCap->cap_reached,
-            'cap_reached_at' => $dailyCap->cap_reached_at,
-            'xp_by_source' => $dailyCap->xp_by_source ?? [],
+            'daily_xp' => $dailyStats,
+            'summary' => [
+                'total_xp' => $totalXp,
+                'average_per_day' => $averagePerDay,
+                'most_active_day' => $mostActiveDay['date'] ?? null,
+                'streak_days' => $streakDays,
+            ],
         ];
     }
 
