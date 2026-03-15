@@ -60,4 +60,33 @@ class BadgeManager
     {
         return $this->repository->findByUserId($userId);
     }
+
+    public function getUserBadgesPaginated(int $userId, int $perPage = 15, $request = null): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $perPage = max(1, min($perPage, 100));
+        
+        return \Spatie\QueryBuilder\QueryBuilder::for(UserBadge::class)
+            ->where('user_id', $userId)
+            ->with(['badge', 'badge.media'])
+            ->allowedFilters([
+                \Spatie\QueryBuilder\AllowedFilter::callback('category', function ($query, $value) {
+                    $query->whereHas('badge', function ($q) use ($value) {
+                        $q->where('category', $value);
+                    });
+                }),
+                \Spatie\QueryBuilder\AllowedFilter::callback('rarity', function ($query, $value) {
+                    $query->whereHas('badge', function ($q) use ($value) {
+                        $q->where('rarity', $value);
+                    });
+                }),
+                \Spatie\QueryBuilder\AllowedFilter::callback('type', function ($query, $value) {
+                    $query->whereHas('badge', function ($q) use ($value) {
+                        $q->where('type', $value);
+                    });
+                }),
+            ])
+            ->allowedSorts(['earned_at', 'progress'])
+            ->defaultSort('-earned_at')
+            ->paginate($perPage);
+    }
 }

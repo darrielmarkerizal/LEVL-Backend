@@ -14,12 +14,14 @@ class UserBadge extends Model
         'user_id',
         'badge_id',
         'earned_at',
+        'progress',
     ];
 
     protected $casts = [
         'user_id' => 'integer',
         'badge_id' => 'integer',
         'earned_at' => 'datetime',
+        'progress' => 'integer',
     ];
 
     public function user(): BelongsTo

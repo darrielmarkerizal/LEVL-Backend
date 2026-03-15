@@ -19,6 +19,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
 
     Route::prefix('badges')->name('badges.')->group(function () {
         Route::get('/', [BadgesController::class, 'index'])->name('index');
+        Route::get('/available', [BadgesController::class, 'available'])->name('available');
         Route::get('/{badge}', [BadgesController::class, 'show'])->name('show');
 
         Route::middleware(['role:Superadmin'])->group(function () {

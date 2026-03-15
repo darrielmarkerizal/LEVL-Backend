@@ -388,7 +388,7 @@ pm.test("Has level info", () => {
 
 ### 2.2. GET [Mobile] Level - Daftar Semua Level
 
-Melihat daftar semua level yang tersedia beserta requirement-nya.
+Melihat daftar semua level yang tersedia beserta requirement-nya dengan filtering dan sorting.
 
 #### Endpoint
 ```
@@ -399,6 +399,19 @@ GET /levels
 ```
 Bearer Token Required
 ```
+
+#### Query Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `filter[level]` | integer | ❌ No | - | Filter by exact level |
+| `filter[level_min]` | integer | ❌ No | - | Filter by minimum level |
+| `filter[level_max]` | integer | ❌ No | - | Filter by maximum level |
+| `filter[xp_min]` | integer | ❌ No | - | Filter by minimum XP required |
+| `filter[xp_max]` | integer | ❌ No | - | Filter by maximum XP required |
+| `sort` | string | ❌ No | level | Sorting: `level`, `xp_required`, `bonus_xp` |
+| `per_page` | integer | ❌ No | 20 | Item per halaman (max: 100) |
+| `page` | integer | ❌ No | 1 | Nomor halaman |
 
 #### Response Success (200 OK)
 ```json
@@ -412,6 +425,7 @@ Bearer Token Required
       "description": "Welcome to your learning journey!",
       "xp_required": 0,
       "xp_range": "0 - 49",
+      "bonus_xp": 0,
       "icon_url": "https://api.levl.id/storage/levels/newbie.png",
       "is_unlocked": true,
       "unlocked_at": "2026-03-01T10:00:00.000000Z"
@@ -422,6 +436,7 @@ Bearer Token Required
       "description": "You're getting started!",
       "xp_required": 50,
       "xp_range": "50 - 149",
+      "bonus_xp": 10,
       "icon_url": "https://api.levl.id/storage/levels/novice.png",
       "is_unlocked": true,
       "unlocked_at": "2026-03-02T11:30:00.000000Z"
@@ -432,12 +447,61 @@ Bearer Token Required
       "description": "You're becoming skilled!",
       "xp_required": 800,
       "xp_range": "800 - 1199",
+      "bonus_xp": 50,
       "icon_url": "https://api.levl.id/storage/levels/practitioner.png",
       "is_unlocked": false,
       "unlocked_at": null
     }
-  ]
+  ],
+  "meta": {
+    "pagination": {
+      "current_page": 1,
+      "per_page": 20,
+      "total": 100,
+      "last_page": 5,
+      "from": 1,
+      "to": 20,
+      "has_next": true,
+      "has_prev": false
+    }
+  }
 }
+```
+
+#### Postman Example
+```javascript
+// Query Params - All Levels (Default)
+per_page: 20
+sort: level
+page: 1
+
+// Query Params - Filter by Level Range
+filter[level_min]: 1
+filter[level_max]: 10
+per_page: 20
+
+// Query Params - Filter by XP Range
+filter[xp_min]: 0
+filter[xp_max]: 500
+sort: xp_required
+
+// Query Params - Filter by Exact Level
+filter[level]: 5
+
+// Query Params - Sort by Bonus XP
+sort: -bonus_xp
+per_page: 20
+
+// Tests
+pm.test("Status 200", () => pm.response.to.have.status(200));
+pm.test("Has levels", () => {
+    const data = pm.response.json().data;
+    pm.expect(data).to.be.an('array');
+});
+pm.test("Has pagination", () => {
+    const meta = pm.response.json().meta;
+    pm.expect(meta).to.have.property('pagination');
+});
 ```
 
 ---
@@ -456,7 +520,7 @@ Bearer Token Required
 
 ### 3.1. GET [Mobile] Lencana - Lencana Saya
 
-Melihat semua badge yang sudah didapatkan.
+Melihat semua badge yang sudah didapatkan dengan pagination dan filtering.
 
 #### Endpoint
 ```
@@ -473,8 +537,11 @@ Bearer Token Required (Student only)
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `filter[category]` | string | ❌ No | - | Filter by category |
-| `sort` | string | ❌ No | -earned_at | Sorting: `earned_at`, `name` |
-| `per_page` | integer | ❌ No | 15 | Item per halaman |
+| `filter[rarity]` | string | ❌ No | - | Filter by rarity |
+| `filter[type]` | string | ❌ No | - | Filter by type |
+| `sort` | string | ❌ No | -earned_at | Sorting: `earned_at`, `progress` |
+| `per_page` | integer | ❌ No | 15 | Item per halaman (max: 100) |
+| `page` | integer | ❌ No | 1 | Nomor halaman |
 
 #### Valid Values
 
@@ -484,6 +551,18 @@ Bearer Token Required (Student only)
 - `engagement` - Badge engagement
 - `achievement` - Badge pencapaian
 - `milestone` - Badge milestone
+
+**filter[rarity]**:
+- `common` - Badge umum
+- `uncommon` - Badge tidak umum
+- `rare` - Badge langka
+- `epic` - Badge epik
+- `legendary` - Badge legendaris
+
+**filter[type]**:
+- `achievement` - Badge achievement
+- `milestone` - Badge milestone
+- `completion` - Badge completion
 
 #### Response Success (200 OK)
 ```json
@@ -527,7 +606,11 @@ Bearer Token Required (Student only)
       "current_page": 1,
       "per_page": 15,
       "total": 12,
-      "last_page": 1
+      "last_page": 1,
+      "from": 1,
+      "to": 12,
+      "has_next": false,
+      "has_prev": false
     },
     "summary": {
       "total_badges": 12,
@@ -555,10 +638,19 @@ Bearer Token Required (Student only)
 // Query Params - All My Badges
 per_page: 15
 sort: -earned_at
+page: 1
 
 // Query Params - Filter by Category
 filter[category]: assessment
-sort: name
+sort: -earned_at
+
+// Query Params - Filter by Rarity
+filter[rarity]: rare
+sort: -earned_at
+
+// Query Params - Filter by Type
+filter[type]: milestone
+sort: -earned_at
 
 // Tests
 pm.test("Status 200", () => pm.response.to.have.status(200));
@@ -566,9 +658,9 @@ pm.test("Has badges", () => {
     const data = pm.response.json().data;
     pm.expect(data).to.be.an('array');
 });
-pm.test("Has summary", () => {
+pm.test("Has pagination", () => {
     const meta = pm.response.json().meta;
-    pm.expect(meta).to.have.property('summary');
+    pm.expect(meta).to.have.property('pagination');
 });
 ```
 
@@ -576,16 +668,16 @@ pm.test("Has summary", () => {
 
 ### 3.2. GET [Mobile] Lencana - Semua Lencana (Available)
 
-Melihat semua badge yang tersedia, termasuk yang belum didapatkan.
+Melihat semua badge yang tersedia, termasuk yang belum didapatkan dengan status earned dan progress.
 
 #### Endpoint
 ```
-GET /badges
+GET /badges/available
 ```
 
 #### Authorization
 ```
-Bearer Token Required
+Bearer Token Required (Student only)
 ```
 
 #### Query Parameters
@@ -594,11 +686,21 @@ Bearer Token Required
 |-----------|------|----------|---------|-------------|
 | `filter[category]` | string | ❌ No | - | Filter by category |
 | `filter[rarity]` | string | ❌ No | - | Filter by rarity |
+| `filter[type]` | string | ❌ No | - | Filter by type |
 | `filter[earned]` | boolean | ❌ No | - | Filter earned/not earned |
-| `sort` | string | ❌ No | name | Sorting: `name`, `rarity` |
-| `per_page` | integer | ❌ No | 15 | Item per halaman |
+| `search` | string | ❌ No | - | Search by name, code, description |
+| `sort` | string | ❌ No | name | Sorting: `name`, `rarity`, `xp_reward`, `created_at` |
+| `per_page` | integer | ❌ No | 15 | Item per halaman (max: 100) |
+| `page` | integer | ❌ No | 1 | Nomor halaman |
 
 #### Valid Values
+
+**filter[category]**:
+- `learning` - Badge pembelajaran
+- `assessment` - Badge penilaian
+- `engagement` - Badge engagement
+- `achievement` - Badge pencapaian
+- `milestone` - Badge milestone
 
 **filter[rarity]**:
 - `common` - Badge umum
@@ -606,6 +708,11 @@ Bearer Token Required
 - `rare` - Badge langka
 - `epic` - Badge epik
 - `legendary` - Badge legendaris
+
+**filter[type]**:
+- `achievement` - Badge achievement
+- `milestone` - Badge milestone
+- `completion` - Badge completion
 
 **filter[earned]**:
 - `true` - Hanya badge yang sudah didapat
@@ -655,10 +762,64 @@ Bearer Token Required
       "current_page": 1,
       "per_page": 15,
       "total": 50,
-      "last_page": 4
+      "last_page": 4,
+      "from": 1,
+      "to": 15,
+      "has_next": true,
+      "has_prev": false
     }
   }
 }
+```
+
+#### Postman Example
+```javascript
+// Query Params - All Available Badges
+per_page: 15
+sort: name
+page: 1
+
+// Query Params - Filter by Category
+filter[category]: learning
+sort: name
+
+// Query Params - Filter by Rarity
+filter[rarity]: epic
+sort: -xp_reward
+
+// Query Params - Filter by Type
+filter[type]: milestone
+sort: name
+
+// Query Params - Only Earned Badges
+filter[earned]: true
+sort: -earned_at
+
+// Query Params - Only Not Earned Badges
+filter[earned]: false
+sort: name
+
+// Query Params - Search Badges
+search: master
+per_page: 20
+
+// Tests
+pm.test("Status 200", () => pm.response.to.have.status(200));
+pm.test("Has badges", () => {
+    const data = pm.response.json().data;
+    pm.expect(data).to.be.an('array');
+});
+pm.test("Has pagination", () => {
+    const meta = pm.response.json().meta;
+    pm.expect(meta).to.have.property('pagination');
+});
+pm.test("Has earned status", () => {
+    const data = pm.response.json().data;
+    if (data.length > 0) {
+        pm.expect(data[0]).to.have.property('is_earned');
+        pm.expect(data[0]).to.have.property('progress');
+    }
+});
 ```
 
 ---

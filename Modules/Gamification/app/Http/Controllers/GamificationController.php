@@ -29,9 +29,14 @@ class GamificationController extends Controller
     public function badges(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
-        $badges = $this->gamificationService->getUserBadges($userId);
+        $perPage = (int) ($request->input('per_page') ?? 15);
+        
+        $badges = $this->gamificationService->getUserBadges($userId, $perPage, $request);
+        $badges->appends($request->query());
+        
+        $badges->getCollection()->transform(fn ($item) => new UserBadgeResource($item));
 
-        return $this->success(UserBadgeResource::collection($badges), __('gamification.badges_retrieved'));
+        return $this->paginateResponse($badges, __('gamification.badges_retrieved'));
     }
 
     public function pointsHistory(Request $request): JsonResponse

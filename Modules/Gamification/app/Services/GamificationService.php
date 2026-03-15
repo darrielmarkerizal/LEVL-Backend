@@ -66,7 +66,12 @@ class GamificationService implements GamificationServiceInterface
         return $this->pointManager->getOrCreateStats($userId);
     }
 
-    public function getUserBadges(int $userId): Collection
+    public function getUserBadges(int $userId, int $perPage = 15, $request = null): LengthAwarePaginator
+    {
+        return $this->badgeManager->getUserBadgesPaginated($userId, $perPage, $request);
+    }
+    
+    public function getUserBadgesCollection(int $userId): Collection
     {
         return $this->badgeManager->getUserBadges($userId);
     }
