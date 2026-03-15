@@ -787,3 +787,9 @@ return [
         'search_string'                      => 'Search query must be a string.',
     ],
 ];
+
+    // Dashboard
+    'dashboard_retrieved' => 'Dashboard data retrieved successfully.',
+    'recent_learning_retrieved' => 'Recent learning activities retrieved successfully.',
+    'recent_achievements_retrieved' => 'Recent achievements retrieved successfully.',
+    'recommended_courses_retrieved' => 'Recommended courses retrieved successfully.',

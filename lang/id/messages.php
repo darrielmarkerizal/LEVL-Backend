@@ -789,4 +789,10 @@ return [
         'per_page_max'                       => 'Jumlah item per halaman maksimal adalah 100.',
         'search_string'                      => 'Kata kunci pencarian harus berupa string.',
     ],
+
+    // Dashboard
+    'dashboard_retrieved' => 'Data dashboard berhasil diambil.',
+    'recent_learning_retrieved' => 'Aktivitas pembelajaran terkini berhasil diambil.',
+    'recent_achievements_retrieved' => 'Pencapaian terkini berhasil diambil.',
+    'recommended_courses_retrieved' => 'Kursus rekomendasi berhasil diambil.',
 ];

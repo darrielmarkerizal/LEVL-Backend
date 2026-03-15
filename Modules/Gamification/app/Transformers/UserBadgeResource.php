@@ -15,7 +15,7 @@ class UserBadgeResource extends JsonResource
             'description' => $this->description ?? $this->badge?->description,
             'icon_url' => $this->badge?->icon_url,
             'type' => $this->badge?->type?->value,
-            'awarded_at' => $this->awarded_at,
+            'awarded_at' => $this->earned_at?->toISOString(),
         ];
     }
 }
