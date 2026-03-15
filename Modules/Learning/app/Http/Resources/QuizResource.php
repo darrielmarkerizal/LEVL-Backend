@@ -50,6 +50,14 @@ class QuizResource extends JsonResource
                     'size' => $m->size,
                 ])
             ),
+            'submission_status' => $this->when(isset($this->submission_status), $this->submission_status),
+            'submission_status_label' => $this->when(isset($this->submission_status_label), $this->submission_status_label),
+            'score' => $this->when(isset($this->score), $this->score),
+            'submitted_at' => $this->when(isset($this->submitted_at), $this->submitted_at),
+            'is_completed' => $this->when(isset($this->is_completed), $this->is_completed),
+            'attempts_used' => $this->when(isset($this->attempts_used), $this->attempts_used),
+            'xp_reward' => $this->when(isset($this->xp_reward), $this->xp_reward),
+            'xp_perfect_bonus' => $this->when(isset($this->xp_perfect_bonus), $this->xp_perfect_bonus),
             'created_at' => $this->created_at?->toISOString(),
         ];
     }

@@ -18,7 +18,7 @@ use Modules\Schemes\Services\LessonBlockService;
 
 class LessonBlockController extends Controller
 {
-    use ApiResponse, AuthorizesRequests;
+    use ApiResponse, AuthorizesRequests, \Modules\Schemes\Traits\ValidatesEnrollment;
 
     public function __construct(
         private readonly LessonBlockService $service,
@@ -29,6 +29,11 @@ class LessonBlockController extends Controller
     {
         $this->service->validateHierarchy($course->id, $unit->id, $lesson->id);
         $this->authorize('view', $lesson);
+
+        // Require enrollment for students
+        if ($error = $this->requireEnrollment($course)) {
+            return $error;
+        }
 
         $user = auth('api')->user();
         if ($user && $user->hasRole('Student')) {
@@ -57,6 +62,11 @@ class LessonBlockController extends Controller
     {
         $this->service->validateHierarchy($course->id, $unit->id, $lesson->id);
         $this->authorize('view', $block);
+
+        // Require enrollment for students
+        if ($error = $this->requireEnrollment($course)) {
+            return $error;
+        }
 
         $user = auth('api')->user();
         if ($user && $user->hasRole('Student')) {

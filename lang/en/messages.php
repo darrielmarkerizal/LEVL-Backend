@@ -15,6 +15,14 @@ return [
     'rejected'         => 'Rejected successfully.',
     'sent'             => 'Sent successfully.',
     'data_retrieved'   => 'Data retrieved successfully.',
+    'levels_retrieved' => 'Levels retrieved successfully.',
+    'level_progression_retrieved' => 'Level progression table retrieved successfully.',
+    'level_info_retrieved' => 'Level information retrieved successfully.',
+    'level_calculated' => 'Level calculated successfully.',
+    'levels_synced' => 'Successfully synced :count level configurations.',
+    'level_updated' => 'Level configuration updated successfully.',
+    'level_statistics_retrieved' => 'Level statistics retrieved successfully.',
+    'daily_xp_stats_retrieved' => 'Daily XP statistics retrieved successfully.',
     'error'            => 'Something went wrong. Please try again.',
     'not_found'        => 'The requested resource could not be found.',
     'unauthorized'     => 'You are not authorized to perform this action.',
@@ -343,11 +351,12 @@ return [
 
     // Account
     'account' => [
-        'restore_success'       => 'Your account has been restored successfully.',
-        'deletion_in_progress'  => 'Your account is already scheduled for deletion.',
-        'restore_not_deleted'   => 'Only accounts with a deleted status can be restored.',
-        'restore_expired'       => 'The account restoration window (:days days) has expired. Recovery is no longer possible.',
-        'cleanup_success'       => 'Successfully permanently deleted :count account(s).',
+        'restore_success'              => 'Your account has been restored successfully.',
+        'deletion_in_progress'         => 'Your account is already scheduled for deletion.',
+        'deleted_restricted_access'    => 'Your account is in deletion grace period. You can only restore your account or logout.',
+        'restore_not_deleted'          => 'Only accounts with a deleted status can be restored.',
+        'restore_expired'              => 'The account restoration window (:days days) has expired. Recovery is no longer possible.',
+        'cleanup_success'              => 'Successfully permanently deleted :count account(s).',
     ],
 
     // User
@@ -466,7 +475,6 @@ return [
         'enrolled_success'               => 'Enrollment successful.',
         'key_based_success'              => 'Enrollment successful using the provided key.',
         'course_not_published'           => 'This course is not yet published and cannot be enrolled in.',
-        'enrollment_pending'             => 'Your enrollment request is being reviewed and awaiting approval.',
         'enrollment_success'             => 'Enrollment successful.',
         'enrollment_failed'              => 'Enrollment failed. Please try again.',
         'bulk_action_completed'          => 'Bulk action completed successfully.',
@@ -475,8 +483,9 @@ return [
         'invitation_not_found'           => 'Invitation not found or has already been processed.',
         'invitation_accepted'            => 'Invitation accepted. You are now enrolled in this course.',
         'invitation_declined'            => 'Invitation declined successfully.',
-        'enrolled_successfully'          => 'User has been successfully enrolled in this course.',
-        'scheduled_successfully'         => 'Enrollment scheduled for :date. The user will be automatically enrolled on that date.',
+        'enrolled_successfully'          => 'Congratulations! You are now enrolled in this course. Start learning now!',
+        'enrollment_pending'             => 'Your enrollment request has been submitted and is awaiting approval.',
+        'scheduled_successfully'         => 'Enrollment scheduled for :date. You will be automatically enrolled on that date.',
     ],
 
     // Assignments
@@ -530,7 +539,7 @@ return [
     // Submissions
     'submissions' => [
         'submitted'                  => 'Submission submitted successfully.',
-        'created'                    => 'Submission created successfully.',
+        'created'                    => 'Congratulations! Your assignment has been submitted successfully. Wait for the instructor to grade it.',
         'updated'                    => 'Submission updated successfully.',
         'question_not_in_set'        => 'This question does not belong to the current submission set.',
         'question_not_in_assignment' => 'This question does not belong to this assignment.',
@@ -538,6 +547,7 @@ return [
         'started'                    => 'Submission started. Good luck!',
         'not_found'                  => 'The requested submission could not be found.',
         'assignment_no_lesson'       => 'This assignment is not linked to a valid lesson.',
+        'assignment_no_unit'         => 'This assignment is not linked to a valid unit.',
         'not_enrolled'               => 'You must be enrolled in this course to submit.',
         'assignment_locked'          => 'This assignment is locked. Complete :count prerequisite(s) first.',
         'assignment_unavailable'     => 'This assignment is not yet available or has not been published.',
@@ -551,14 +561,18 @@ return [
         'finished'                   => 'You have completed this assignment.',
         'invalid_state_transition'   => 'Cannot change submission status from ":from" to ":to".',
         'grading_incomplete'         => 'Grading cannot be finalized until all required questions have been graded.',
+        'pending_grading_exists'     => 'You have a pending submission awaiting grading. Please wait for the instructor to grade your previous submission before resubmitting.',
     ],
 
     // Quizzes
     'quizzes' => [
         'submitted'           => 'Quiz submitted successfully.',
         'not_found'           => 'The requested quiz could not be found.',
+        'not_enrolled'        => 'You must be enrolled in this course to access the quiz.',
         'locked'              => 'This quiz is locked. Please complete the prerequisites to unlock it.',
-        'locked_cannot_start' => 'This quiz is locked. Complete :count prerequisite(s) first.',
+        'locked_cannot_start' => '{1} This quiz is locked. Complete :count prerequisite first.|[2,*] This quiz is locked. Complete :count prerequisites first.',
+        'locked_cannot_answer' => 'This quiz is locked. You cannot answer questions.',
+        'locked_cannot_submit' => 'This quiz is locked. You cannot submit answers.',
         'created'             => 'Quiz created successfully.',
         'updated'             => 'Quiz updated successfully.',
         'deleted'             => 'Quiz deleted successfully.',
@@ -574,11 +588,17 @@ return [
     // Quiz Submissions
     'quiz_submissions' => [
         'draft_exists'     => 'You have an unfinished quiz attempt. Please complete or abandon it before starting a new one.',
-        'pending_grading'  => 'Your previous quiz submission is still being graded.',
+        'pending_grading'  => 'Your previous quiz submission is awaiting grading.',
+        'in_progress'      => 'You still have a quiz in progress. Please complete it before starting a new one.',
+        'not_draft'        => 'This quiz submission is not in draft status.',
         'not_found'        => 'The requested quiz submission could not be found.',
         'list_retrieved'   => 'Quiz submissions retrieved successfully.',
         'started'          => 'Quiz started. Good luck!',
         'submitted'        => 'Quiz submitted successfully.',
+        'answer_saved'     => 'Answer saved successfully.',
+        'invalid_question_order' => 'Invalid question order.',
+        'invalid_page'     => 'Invalid page number.',
+        'unanswered_questions' => '{1} You must answer :count question before submitting.|[2,*] You must answer all :count questions before submitting.',
     ],
 
     // Learning

@@ -12,10 +12,11 @@ class GamificationDatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            LevelConfigSeeder::class,  // Sync level configs first
-            XpSourceSeeder::class,     // Then XP sources
-            MilestoneSeeder::class,    // Then milestones
-            BadgeSeeder::class,        // Then badges
+            LevelConfigSeeder::class,        // Sync level configs first
+            XpSourceSeeder::class,           // Then XP sources
+            MilestoneSeeder::class,          // Then milestones
+            BadgeSeeder::class,              // Then badges
+            LinkMilestoneBadgesSeeder::class, // Link milestone badges to levels
             // UserGamificationSeeder::class,  // Skip for production (test data)
             // LeaderboardSeeder::class,       // Skip for production (test data)
         ]);

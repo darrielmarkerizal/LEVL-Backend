@@ -498,4 +498,19 @@ class UserFinder
         // Reset dirty attributes to prevent these non-database fields from being saved
         $target->syncChanges();
     }
+
+    /**
+     * Search users globally for search module
+     */
+    public function searchGlobal(string $query, int $limit = 5): Collection
+    {
+        if (empty(trim($query))) {
+            return collect([]);
+        }
+
+        return User::search($query)
+            ->take($limit)
+            ->get()
+            ->load(['roles:id,name,guard_name']);
+    }
 }

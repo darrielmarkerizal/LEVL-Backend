@@ -24,6 +24,7 @@ class QuizController extends Controller
 {
     use ApiResponse;
     use AuthorizesRequests;
+    use \Modules\Schemes\Traits\ValidatesEnrollment;
 
     public function __construct(
         private readonly QuizServiceInterface $quizService,
@@ -33,7 +34,25 @@ class QuizController extends Controller
     public function index(Request $request, \Modules\Schemes\Models\Course $course): JsonResponse
     {
         $user = auth('api')->user();
-        $paginator = $this->quizService->listForIndexWithEnrichment($course, $request->all(), $user);
+        
+        // For students, check enrollment first
+        if ($user && $user->hasRole('Student')) {
+            // Use trait method for enrollment validation
+            if ($error = $this->requireEnrollment($course)) {
+                return $error;
+            }
+            
+            // Force published status filter for students
+            $filters = array_merge($request->all(), [
+                'filter' => array_merge($request->input('filter', []), [
+                    'status' => 'published'
+                ])
+            ]);
+            
+            $paginator = $this->quizService->listForIndexWithEnrichment($course, $filters, $user);
+        } else {
+            $paginator = $this->quizService->listForIndexWithEnrichment($course, $request->all(), $user);
+        }
 
         return $this->paginateResponse($paginator, 'messages.quizzes.list_retrieved');
     }
@@ -50,11 +69,32 @@ class QuizController extends Controller
 
     public function show(Quiz $quiz): JsonResponse
     {
-        $this->authorize('view', $quiz);
         $user = auth('api')->user();
-        $enrichedQuiz = $this->quizService->getWithRelationsAndEnrichment($quiz, $user);
+        $enrichmentService = app(\Modules\Learning\Services\Support\QuizEnrichmentService::class);
 
-        return $this->success(QuizResource::make($enrichedQuiz));
+        if ($user && $user->hasRole('Student')) {
+            // Get course from quiz scope
+            $course = $quiz->getCourse();
+            
+            if (!$course) {
+                return $this->error(__('messages.quizzes.scope_not_found'), [], 404);
+            }
+            
+            // Use trait method for enrollment validation
+            if ($error = $this->requireEnrollment($course)) {
+                return $error;
+            }
+            
+            $enriched = $enrichmentService->enrichSingleForStudent($quiz, $user->id);
+            
+            if ($enriched['is_locked']) {
+                return $this->error(__('messages.quizzes.locked'), [], 403);
+            }
+
+            return $this->success($enriched);
+        }
+
+        return $this->success(QuizResource::make($this->quizService->getWithRelations($quiz)));
     }
 
     public function update(UpdateQuizRequest $request, Quiz $quiz): JsonResponse

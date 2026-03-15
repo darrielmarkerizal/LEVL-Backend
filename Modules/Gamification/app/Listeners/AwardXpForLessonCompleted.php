@@ -30,13 +30,18 @@ class AwardXpForLessonCompleted
             return;
         }
 
-        $xp = (int) SystemSetting::get('gamification.points.lesson_complete', 10);
+        // Get XP from xp_sources table
+        $xpSource = \Modules\Gamification\Models\XpSource::where('code', 'lesson_completed')
+            ->where('is_active', true)
+            ->first();
+        
+        $xp = $xpSource ? $xpSource->xp_amount : 50;
 
         // 1. Award XP (sync)
         $this->gamification->awardXp(
             $userId,
             $xp,
-            'completion',
+            'lesson_completed',
             'lesson',
             $lesson->id,
             [

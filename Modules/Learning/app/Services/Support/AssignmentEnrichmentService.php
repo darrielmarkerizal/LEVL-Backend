@@ -21,8 +21,17 @@ class AssignmentEnrichmentService
 
         $assignmentIds = $paginator->pluck('id')->toArray();
         $submissions = $this->getLatestSubmissions($assignmentIds, $userId);
+        
+        // Get XP rewards
+        $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
+            'assignment_submitted',
+            'perfect_score'
+        ])->get()->keyBy('code');
+        
+        $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 0;
+        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
-        $paginator->getCollection()->transform(function ($item) use ($submissions, $userId) {
+        $paginator->getCollection()->transform(function ($item) use ($submissions, $userId, $baseXp, $perfectScoreXp) {
             $submission = $submissions[$item->id] ?? null;
             $submissionData = $this->calculateSubmissionData($item, $submission, $userId);
             $prerequisiteCheck = $this->prerequisiteService->checkAssignmentAccess($item, $userId);
@@ -34,14 +43,16 @@ class AssignmentEnrichmentService
                 'max_score' => $item->max_score,
                 'passing_grade' => $item->passing_grade,
                 'status' => $item->status->value,
-                'is_locked' => ! $prerequisiteCheck['accessible'],
                 'unit_slug' => $item->unit->slug ?? null,
+                'is_locked' => ! $prerequisiteCheck['accessible'],
                 'submission_status' => $submissionData['submission_status'],
                 'submission_status_label' => $submissionData['submission_status_label'],
                 'score' => $submissionData['score'],
                 'submitted_at' => $submissionData['submitted_at'],
                 'is_completed' => $submissionData['is_completed'],
                 'attempts_used' => $submissionData['attempts_used'],
+                'xp_reward' => $baseXp,
+                'xp_perfect_bonus' => $perfectScoreXp,
                 'created_at' => $item->created_at?->toIso8601String(),
                 'updated_at' => $item->updated_at?->toIso8601String(),
                 'creator' => $item->creator ? [
@@ -143,6 +154,15 @@ class AssignmentEnrichmentService
 
         $submissionData = $this->calculateSubmissionData($assignment, $submission, $userId);
         $prerequisiteCheck = $this->prerequisiteService->checkAssignmentAccess($assignment, $userId);
+        
+        // Get XP rewards
+        $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
+            'assignment_submitted',
+            'perfect_score'
+        ])->get()->keyBy('code');
+        
+        $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 0;
+        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
         return [
             'id' => $assignment->id,
@@ -152,14 +172,16 @@ class AssignmentEnrichmentService
             'max_score' => $assignment->max_score,
             'passing_grade' => $assignment->passing_grade,
             'status' => $assignment->status->value,
-            'is_locked' => ! $prerequisiteCheck['accessible'],
             'unit_slug' => $assignment->unit->slug ?? null,
+            'is_locked' => ! $prerequisiteCheck['accessible'],
             'submission_status' => $submissionData['submission_status'],
             'submission_status_label' => $submissionData['submission_status_label'],
             'score' => $submissionData['score'],
             'submitted_at' => $submissionData['submitted_at'],
             'is_completed' => $submissionData['is_completed'],
             'attempts_used' => $submissionData['attempts_used'],
+            'xp_reward' => $baseXp,
+            'xp_perfect_bonus' => $perfectScoreXp,
             'attachments' => $assignment->getMedia('attachments')->map(fn ($media) => [
                 'id' => $media->id,
                 'name' => $media->file_name,
@@ -167,12 +189,12 @@ class AssignmentEnrichmentService
                 'size' => $media->size,
                 'mime_type' => $media->mime_type,
             ])->toArray(),
-            'created_at' => $assignment->created_at?->toIso8601String(),
-            'updated_at' => $assignment->updated_at?->toIso8601String(),
             'creator' => $assignment->creator ? [
                 'id' => $assignment->creator->id,
                 'name' => $assignment->creator->name,
             ] : null,
+            'created_at' => $assignment->created_at?->toIso8601String(),
+            'updated_at' => $assignment->updated_at?->toIso8601String(),
         ];
     }
 }

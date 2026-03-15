@@ -36,7 +36,13 @@ class SubmissionResource extends JsonResource
                     'title' => $this->assignment->title,
                 ];
             }),
-            'files' => $this->whenLoaded('files'),
+            'files' => $this->getMedia('submission_files')->map(fn ($media) => [
+                'id' => $media->id,
+                'name' => $media->file_name,
+                'url' => $media->getUrl(),
+                'size' => $media->size,
+                'mime_type' => $media->mime_type,
+            ]),
             'answers' => AnswerResource::collection($this->whenLoaded('answers')),
         ];
     }
@@ -68,7 +74,13 @@ class SubmissionResource extends JsonResource
                 ];
             }),
             'enrollment' => $this->whenLoaded('enrollment'),
-            'files' => $this->whenLoaded('files'),
+            'files' => $this->getMedia('submission_files')->map(fn ($media) => [
+                'id' => $media->id,
+                'name' => $media->file_name,
+                'url' => $media->getUrl(),
+                'size' => $media->size,
+                'mime_type' => $media->mime_type,
+            ]),
             'answers' => AnswerResource::collection($this->whenLoaded('answers')),
             'grade' => $this->whenLoaded('grade'),
         ];

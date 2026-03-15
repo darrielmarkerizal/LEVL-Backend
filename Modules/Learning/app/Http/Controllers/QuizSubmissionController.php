@@ -20,7 +20,8 @@ class QuizSubmissionController extends Controller
     use AuthorizesRequests;
 
     public function __construct(
-        private readonly QuizSubmissionServiceInterface $submissionService
+        private readonly QuizSubmissionServiceInterface $submissionService,
+        private readonly \Modules\Learning\Services\Support\QuizSubmissionIncludeAuthorizer $includeAuthorizer
     ) {}
 
     public function index(Quiz $quiz): JsonResponse
@@ -28,7 +29,19 @@ class QuizSubmissionController extends Controller
         $user = auth('api')->user();
 
         if ($user->hasRole('Student')) {
-            $submissions = $this->submissionService->getMySubmissions($quiz->id, $user->id);
+            $includes = request()->query('include', '');
+            $includesArray = $includes ? explode(',', $includes) : [];
+            
+            // Use Spatie Query Builder for proper include validation
+            $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, new QuizSubmission(['quiz_id' => $quiz->id, 'user_id' => $user->id]));
+            
+            $query = QuizSubmission::where('quiz_id', $quiz->id)
+                ->where('user_id', $user->id)
+                ->orderByDesc('created_at');
+            
+            $submissions = \Spatie\QueryBuilder\QueryBuilder::for($query)
+                ->allowedIncludes($allowedIncludes)
+                ->get();
 
             return $this->success(QuizSubmissionResource::collection($submissions));
         }
@@ -64,6 +77,7 @@ class QuizSubmissionController extends Controller
         $user = auth('api')->user();
         $includes = request()->query('include', '');
         $includesArray = $includes ? explode(',', $includes) : [];
+        
         $submissionWithIncludes = $this->submissionService->getSubmissionWithIncludes($submission, $includesArray, $user->id);
 
         return $this->success(QuizSubmissionResource::make($submissionWithIncludes));
@@ -78,10 +92,21 @@ class QuizSubmissionController extends Controller
         if ($user && $user->hasRole('Student')) {
             $result = $this->submissionService->getQuestionsForStudent($submission, $page);
 
-            return $this->success([
+            $response = [
                 'data' => new \Modules\Learning\Http\Resources\QuizQuestionResource($result['question']),
                 'meta' => $result['meta'],
-            ]);
+            ];
+
+            // Include answer if exists
+            if (isset($result['answer']) && $result['answer']) {
+                $response['answer'] = [
+                    'id' => $result['answer']->id,
+                    'content' => $result['answer']->content,
+                    'selected_options' => $result['answer']->selected_options,
+                ];
+            }
+
+            return $this->success($response);
         }
 
         $questions = $this->submissionService->listQuestions($submission, $submission->user_id);

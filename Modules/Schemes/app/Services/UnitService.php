@@ -243,6 +243,14 @@ class UnitService
 
     public function getContents(Unit $unit, ?\Modules\Auth\Models\User $user = null): array
     {
+        // Get XP sources for rewards
+        $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
+            'lesson_completed',
+            'quiz_passed',
+            'assignment_submitted',
+            'perfect_score'
+        ])->get()->keyBy('code');
+
         $lessonIds = $unit->lessons()->where('status', 'published')->pluck('id');
 
         $completedLessonIds = [];
@@ -329,7 +337,8 @@ class UnitService
 
             if ($type === 'lesson') {
                 $isCompleted = in_array($item->id, $completedLessonIds);
-                $isLocked = $user ? ! $previousContentCompleted : false;
+                // First item is never locked, subsequent items locked if previous not completed
+                $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
                 $contents->push([
                     'id' => $item->id,
@@ -342,13 +351,19 @@ class UnitService
                     'created_at' => $item->created_at,
                     'is_completed' => $isCompleted,
                     'is_locked' => $isLocked,
+                    'xp_reward' => $xpSources['lesson_completed']->xp_amount ?? 0,
                 ]);
 
                 $previousContentCompleted = $isCompleted;
             } elseif ($type === 'quiz') {
                 $submission = $submissionsByQuiz[$item->id] ?? null;
                 $isPassed = $submission ? ($submission->score >= $item->passing_grade) : false;
-                $isLocked = $user ? ! $previousContentCompleted : false;
+                // First item is never locked, subsequent items locked if previous not completed
+                $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
+
+                // Quiz gives XP for passing + bonus for perfect score
+                $baseXp = $xpSources['quiz_passed']->xp_amount ?? 0;
+                $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
                 $contents->push([
                     'id' => $item->id,
@@ -364,13 +379,20 @@ class UnitService
                     'score' => $submission?->score,
                     'is_passed' => $isPassed,
                     'is_locked' => $isLocked,
+                    'xp_reward' => $baseXp,
+                    'xp_perfect_bonus' => $perfectScoreXp,
                 ]);
 
                 $previousContentCompleted = $isPassed;
             } elseif ($type === 'assignment') {
                 $submission = $submissionsByAssignment[$item->id] ?? null;
                 $isPassed = $submission && $submission->status->value === 'graded' && $submission->score >= ($item->max_score * 0.6);
-                $isLocked = $user ? ! $previousContentCompleted : false;
+                // First item is never locked, subsequent items locked if previous not completed
+                $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
+
+                // Assignment gives XP for submission + bonus for perfect score
+                $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 0;
+                $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
                 $contents->push([
                     'id' => $item->id,
@@ -385,6 +407,8 @@ class UnitService
                     'submission_status' => $submission ? $submission->status->value : null,
                     'score' => $submission?->score,
                     'is_locked' => $isLocked,
+                    'xp_reward' => $baseXp,
+                    'xp_perfect_bonus' => $perfectScoreXp,
                 ]);
 
                 $previousContentCompleted = $isPassed;

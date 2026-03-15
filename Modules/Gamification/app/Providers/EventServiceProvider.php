@@ -19,7 +19,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         
         // Learning Module Integration
-        \Modules\Learning\Events\SubmissionCreated::class => [
+        \Modules\Learning\Events\SubmissionStateChanged::class => [
             \Modules\Gamification\Listeners\AwardXpForAssignmentSubmitted::class,
         ],
         \Modules\Learning\Events\QuizCompleted::class => [

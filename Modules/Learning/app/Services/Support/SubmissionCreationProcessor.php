@@ -16,7 +16,6 @@ use Modules\Learning\Events\SubmissionCreated;
 use Modules\Learning\Exceptions\SubmissionException;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
-use Modules\Schemes\Models\Lesson;
 
 class SubmissionCreationProcessor
 {
@@ -37,12 +36,13 @@ class SubmissionCreationProcessor
         }
 
         return DB::transaction(function () use ($assignment, $userId, $data) {
-            $lesson = $assignment->lesson;
-            if (! $lesson) {
-                throw SubmissionException::notAllowed(__('messages.submissions.assignment_no_lesson'));
+            $assignment->loadMissing('unit.course');
+            
+            if (! $assignment->unit || ! $assignment->unit->course) {
+                throw SubmissionException::notAllowed(__('messages.submissions.assignment_no_unit'));
             }
 
-            $enrollment = $this->getEnrollmentForLesson($lesson, $userId);
+            $enrollment = $this->enrollmentRepository->findActiveByUserAndCourse($userId, $assignment->unit->course->id);
             if (! $enrollment) {
                 throw SubmissionException::notAllowed(__('messages.submissions.not_enrolled'));
             }
@@ -51,9 +51,20 @@ class SubmissionCreationProcessor
                 throw SubmissionException::notAllowed(__('messages.submissions.assignment_unavailable'));
             }
 
+            // Check if there's already a pending submission (status = submitted, not graded yet)
+            $pendingSubmission = Submission::where('assignment_id', $assignment->id)
+                ->where('user_id', $userId)
+                ->where('status', SubmissionStatus::Submitted->value)
+                ->exists();
+
+            if ($pendingSubmission) {
+                throw SubmissionException::notAllowed(__('messages.submissions.pending_grading_exists'));
+            }
+
             $attemptNumber = $this->repository->countAttempts($userId, $assignment->id) + 1;
 
-            $questionSet = $this->generateQuestionSet($assignment->id);
+            // Only generate question set for quizzes, not for regular assignments
+            $questionSet = $assignment->isQuiz() ? $this->generateQuestionSet($assignment->id) : null;
 
             $submission = $this->repository->create([
                 'assignment_id' => $assignment->id,
@@ -61,16 +72,25 @@ class SubmissionCreationProcessor
                 'enrollment_id' => $enrollment->id,
                 'answer_text' => $data['answer_text'] ?? null,
                 'status' => SubmissionStatus::Submitted->value,
+                'state' => SubmissionState::Submitted->value,
                 'submitted_at' => Carbon::now(),
                 'attempt_number' => $attemptNumber,
                 'question_set' => $questionSet,
             ]);
 
-            $this->enrollmentRepository->incrementLessonProgress($enrollment->id, $lesson->id);
+            // Handle file uploads using Spatie Media Library
+            if (isset($data['files']) && is_array($data['files'])) {
+                foreach ($data['files'] as $file) {
+                    if ($file instanceof \Illuminate\Http\UploadedFile) {
+                        $submission->addMedia($file)
+                            ->toMediaCollection('submission_files');
+                    }
+                }
+            }
 
             SubmissionCreated::dispatch($submission);
 
-            return $submission->fresh(['assignment', 'user', 'enrollment', 'files', 'grade']);
+            return $submission->fresh(['assignment', 'user', 'enrollment', 'files', 'grade', 'media']);
         });
     }
 
@@ -100,7 +120,8 @@ class SubmissionCreationProcessor
             throw SubmissionException::notAllowed(__('messages.submissions.pending_grading'));
         }
 
-        $questionSet = $this->generateQuestionSet($assignmentId);
+        // Only generate question set for quizzes, not for regular assignments
+        $questionSet = $assignment->isQuiz() ? $this->generateQuestionSet($assignmentId) : null;
         $attemptNumber = $this->repository->countAttempts($studentId, $assignmentId) + 1;
 
         return DB::transaction(function () use ($assignmentId, $studentId, $questionSet, $attemptNumber) {
@@ -115,17 +136,6 @@ class SubmissionCreationProcessor
 
             return $submission->fresh(['assignment', 'user']);
         });
-    }
-
-    private function getEnrollmentForLesson(Lesson $lesson, int $userId): ?Enrollment
-    {
-        $lesson->loadMissing('unit.course');
-
-        if (! $lesson->unit || ! $lesson->unit->course) {
-            return null;
-        }
-
-        return $this->enrollmentRepository->findActiveByUserAndCourse($userId, $lesson->unit->course->id);
     }
 
     private function generateQuestionSet(int $assignmentId): ?array

@@ -46,8 +46,8 @@ class EnrollmentLifecycleProcessor
                 throw new BusinessException(__('messages.enrollments.key_required'), ['enrollment_key' => __('messages.enrollments.key_required')]);
             }
 
-            if (! $this->keyHasher->check($enrollmentKey, $course->enrollment_key_hash)) {
-                throw new BusinessException(__('messages.enrollments.invalid_key'), ['enrollment_key' => __('messages.enrollments.invalid_key')]);
+            if (! $this->keyHasher->verify($enrollmentKey, $course->enrollment_key_hash)) {
+                throw new BusinessException(__('messages.enrollments.key_invalid'), ['enrollment_key' => __('messages.enrollments.key_invalid')]);
             }
         }
 
@@ -308,11 +308,12 @@ class EnrollmentLifecycleProcessor
 
     private function sendEnrollmentEmails(Enrollment $enrollment, Course $course, User $student, string $status): void
     {
+        $courseUrl = $this->getCourseUrl($course);
+        
         if ($status === EnrollmentStatus::Active->value) {
-            $courseUrl = $this->getCourseUrl($course);
             Mail::to($student->email)->send(new StudentEnrollmentActiveMail($student, $course, $courseUrl));
         } elseif ($status === EnrollmentStatus::Pending->value) {
-            Mail::to($student->email)->send(new StudentEnrollmentPendingMail($student, $course));
+            Mail::to($student->email)->send(new StudentEnrollmentPendingMail($student, $course, $courseUrl));
         }
 
         $this->notifyCourseManagers($enrollment, $course, $student);
@@ -326,7 +327,7 @@ class EnrollmentLifecycleProcessor
         foreach ($managers as $manager) {
             if ($manager && $manager->email) {
                 Mail::to($manager->email)->send(
-                    new AdminEnrollmentNotificationMail($manager, $student, $course, $enrollment, $enrollmentsUrl)
+                    new AdminEnrollmentNotificationMail($manager, $student, $course, $enrollmentsUrl)
                 );
             }
         }

@@ -6,9 +6,12 @@ namespace Modules\Learning\Policies;
 
 use Modules\Auth\Models\User;
 use Modules\Learning\Models\Quiz;
+use Modules\Schemes\Traits\ValidatesEnrollment;
 
 class QuizPolicy
 {
+    use ValidatesEnrollment;
+
     private function resolveCourseFromQuiz(Quiz $quiz): ?\Modules\Schemes\Models\Course
     {
         $courseId = $quiz->getCourseId();
@@ -34,22 +37,17 @@ class QuizPolicy
             return true;
         }
 
-        $courseId = $quiz->getCourseId();
-        if (! $courseId) {
+        $course = $this->resolveCourseFromQuiz($quiz);
+        if (! $course) {
             return false;
         }
 
         if ($user->hasRole('Instructor')) {
-            $course = \Modules\Schemes\Models\Course::find($courseId);
-
-            return $course?->instructor_id === $user->id;
+            return $course->instructor_id === $user->id;
         }
 
         if ($user->hasRole('Student')) {
-            return \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
-                ->where('course_id', $courseId)
-                ->whereIn('status', ['active', 'completed'])
-                ->exists();
+            return $this->isEnrolled($course);
         }
 
         return false;
@@ -121,8 +119,8 @@ class QuizPolicy
             return false;
         }
 
-        $courseId = $quiz->getCourseId();
-        if (! $courseId) {
+        $course = $this->resolveCourseFromQuiz($quiz);
+        if (! $course) {
             return false;
         }
 
@@ -130,9 +128,12 @@ class QuizPolicy
             return true;
         }
 
-        return \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
-            ->where('course_id', $courseId)
-            ->whereIn('status', ['active'])
-            ->exists();
+        // Students must be enrolled with active status to take quiz
+        if ($user->hasRole('Student')) {
+            $enrollment = $this->getActiveEnrollment($course);
+            return $enrollment && $enrollment->status->value === 'active';
+        }
+
+        return false;
     }
 }

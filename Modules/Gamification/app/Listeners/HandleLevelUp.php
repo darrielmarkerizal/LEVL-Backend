@@ -22,30 +22,12 @@ class HandleLevelUp
     public function handle(UserLeveledUp $event): void
     {
         try {
-            // Award milestone rewards if any
+            // Award milestone badge if this is a milestone level
+            $this->awardMilestoneBadge($event);
+
+            // Award additional rewards if any
             if (!empty($event->rewards)) {
                 $this->awardRewards($event);
-            }
-
-            // Award milestone badge if exists
-            if (isset($event->rewards['badge'])) {
-                $this->badgeManager->awardBadge(
-                    $event->userId,
-                    $event->rewards['badge'],
-                    "Reached level {$event->newLevel}"
-                );
-            }
-
-            // Award bonus XP if exists
-            if (isset($event->rewards['bonus_xp']) && $event->rewards['bonus_xp'] > 0) {
-                $this->pointManager->awardXp(
-                    $event->userId,
-                    $event->rewards['bonus_xp'],
-                    'level_up_bonus',
-                    'level',
-                    $event->newLevel,
-                    ['description' => "Bonus XP for reaching level {$event->newLevel}"]
-                );
             }
 
             Log::info('User leveled up', [
@@ -59,6 +41,36 @@ class HandleLevelUp
                 'user_id' => $event->userId,
                 'error' => $e->getMessage(),
             ]);
+        }
+    }
+
+    /**
+     * Award milestone badge if this level has one
+     */
+    private function awardMilestoneBadge(UserLeveledUp $event): void
+    {
+        // Get level config to check for milestone badge
+        $levelConfig = \Modules\Common\Models\LevelConfig::where('level', $event->newLevel)
+            ->with('milestoneBadge')
+            ->first();
+
+        if ($levelConfig && $levelConfig->milestone_badge_id) {
+            $badge = $levelConfig->milestoneBadge;
+            
+            if ($badge) {
+                $this->badgeManager->awardBadge(
+                    $event->userId,
+                    $badge->code,
+                    "Mencapai level {$event->newLevel}"
+                );
+
+                Log::info('Milestone badge awarded', [
+                    'user_id' => $event->userId,
+                    'level' => $event->newLevel,
+                    'badge_code' => $badge->code,
+                    'badge_name' => $badge->name,
+                ]);
+            }
         }
     }
 

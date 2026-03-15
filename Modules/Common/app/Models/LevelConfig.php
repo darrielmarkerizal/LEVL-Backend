@@ -23,11 +23,23 @@ class LevelConfig extends Model
         'name',
         'xp_required',
         'rewards',
+        'milestone_badge_id',
+        'bonus_xp',
     ];
 
     protected $casts = [
         'level' => 'integer',
         'xp_required' => 'integer',
         'rewards' => 'array',
+        'milestone_badge_id' => 'integer',
+        'bonus_xp' => 'integer',
     ];
+
+    /**
+     * Get the milestone badge for this level
+     */
+    public function milestoneBadge(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\Modules\Gamification\Models\Badge::class, 'milestone_badge_id');
+    }
 }

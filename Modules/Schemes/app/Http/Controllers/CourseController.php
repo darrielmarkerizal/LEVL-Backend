@@ -51,7 +51,16 @@ class CourseController extends Controller
 
     public function show(Course $course)
     {
-        $this->authorize('view', $course);
+        // Check authorization: published courses are public, draft courses require authentication
+        $user = auth('api')->user();
+        
+        if ($course->status !== \Modules\Schemes\Enums\CourseStatus::Published) {
+            // Draft courses require authentication and authorization
+            if (!$user) {
+                return $this->forbidden(__('messages.courses.not_found'));
+            }
+            $this->authorize('view', $course);
+        }
 
         $courseWithIncludes = $this->service->findBySlugWithIncludes($course->slug);
 

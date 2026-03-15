@@ -19,7 +19,7 @@ use Modules\Schemes\Services\ProgressionService;
 
 class LessonController extends Controller
 {
-    use ApiResponse, AuthorizesRequests;
+    use ApiResponse, AuthorizesRequests, \Modules\Schemes\Traits\ValidatesEnrollment;
 
     public function __construct(
         private readonly LessonService $service,
@@ -31,6 +31,11 @@ class LessonController extends Controller
     {
         $this->service->validateHierarchy($course->id, $unit->id, null);
         $this->authorize('view', $unit);
+
+        // Require enrollment for students
+        if ($error = $this->requireEnrollment($course)) {
+            return $error;
+        }
 
         $paginator = $this->service->paginate(
             $unit->id,
@@ -56,6 +61,11 @@ class LessonController extends Controller
     {
         $this->service->validateHierarchy($course->id, $unit->id, $lesson->id);
         $this->authorize('view', $lesson);
+
+        // Require enrollment for students
+        if ($error = $this->requireEnrollment($course)) {
+            return $error;
+        }
 
         $result = $this->service->getLessonForUser($lesson, $course, auth('api')->user());
 

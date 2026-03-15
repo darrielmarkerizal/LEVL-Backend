@@ -2,11 +2,17 @@
 
 namespace Modules\Search\Services;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Modules\Auth\Models\User;
 use Modules\Schemes\Models\Course;
+use Modules\Schemes\Models\Unit;
+use Modules\Schemes\Models\Lesson;
 use Modules\Search\Contracts\Repositories\SearchHistoryRepositoryInterface;
 use Modules\Search\Contracts\Services\SearchServiceInterface;
 use Modules\Search\DTOs\SearchResultDTO;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class SearchService implements SearchServiceInterface
 {
@@ -17,55 +23,24 @@ class SearchService implements SearchServiceInterface
         private readonly \Modules\Forums\Contracts\Services\ForumServiceInterface $forumService
     ) {}
 
-    /**
-     * Perform full-text search with filters.
-     *
-     * @param  string  $query  Search query
-     * @param  array  $filters  Filter criteria
-     * @param  array  $sort  Sorting options
-     */
-    public function search(string $query, array $filters = [], array $sort = []): SearchResultDTO
+    public function search(string $query, array $filters = [], array $sort = [], ?User $user = null, string $type = 'courses'): SearchResultDTO
     {
         $startTime = microtime(true);
 
-        // Start with base query
-        $searchQuery = Course::search($query);
-
-        // Apply filters using Scout's where method (field, value)
-        foreach ($filters as $field => $value) {
-            // Skip pagination parameters
-            if (collect(['per_page', 'page'])->contains($field)) {
-                continue;
-            }
-
-            if ($field === 'duration_estimate' && is_array($value)) {
-                // Duration filter is not supported in the current schema
-                // Skip for now as duration_estimate column doesn't exist
-                continue;
-            } elseif (is_array($value)) {
-                // For array filters, apply each value with OR logic
-                foreach ($value as $val) {
-                    $searchQuery->where($field, $val);
-                }
-            } else {
-                // Handle single value filters
-                $searchQuery->where($field, $value);
-            }
-        }
-
-        // Apply sorting
-        $sortField = $sort['field'] ?? 'relevance';
-        $sortDirection = $sort['direction'] ?? 'desc';
-
-        if ($sortField !== 'relevance') {
-            $searchQuery->orderBy($sortField, $sortDirection);
-        }
-
-        // Get paginated results
         $perPage = $filters['per_page'] ?? 15;
-        $page = $filters['page'] ?? 1;
+        $perPage = max(1, min($perPage, 100));
 
-        $results = $searchQuery->paginate($perPage, 'page', $page);
+        $cleanFilters = collect($filters)->except(['per_page', 'page'])->toArray();
+
+        $request = new Request(['filter' => $cleanFilters]);
+
+        $results = match($type) {
+            'courses' => $this->searchCourses($query, $request, $perPage, $user),
+            'units'   => $this->searchUnits($query, $request, $perPage, $user),
+            'lessons' => $this->searchLessons($query, $request, $perPage, $user),
+            'users'   => $this->searchUsers($query, $request, $perPage, $user),
+            default   => $this->searchCourses($query, $request, $perPage, $user),
+        };
 
         $executionTime = microtime(true) - $startTime;
 
@@ -79,89 +54,201 @@ class SearchService implements SearchServiceInterface
         );
     }
 
-    /**
-     * Get autocomplete suggestions.
-     *
-     * @param  string  $query  Partial query
-     * @param  int  $limit  Number of suggestions
-     */
+    protected function searchCourses(string $query, Request $request, int $perPage, ?User $user)
+    {
+        $builder = QueryBuilder::for(Course::class, $request)
+            ->with(['instructor:id,name', 'media'])
+            ->withCount('enrollments');
+
+        // Use PgSearchable trait's search method
+        if (!empty(trim($query))) {
+            $builder->search($query);
+        }
+
+        $builder->where('status', 'published');
+
+        return $builder
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::exact('level_tag'),
+                AllowedFilter::exact('type'),
+                AllowedFilter::exact('category_id'),
+                AllowedFilter::exact('instructor_id'),
+            ])
+            ->allowedSorts(['title', 'created_at', 'updated_at'])
+            ->defaultSort('-created_at')
+            ->paginate($perPage);
+    }
+
+    protected function searchUnits(string $query, Request $request, int $perPage, ?User $user)
+    {
+        $builder = QueryBuilder::for(Unit::class, $request)
+            ->with(['course:id,title,slug']);
+
+        // Use PgSearchable trait's search method
+        if (!empty(trim($query))) {
+            $builder->search($query);
+        }
+
+        return $builder
+            ->allowedFilters([
+                AllowedFilter::exact('course_id'),
+            ])
+            ->allowedSorts(['title', 'order', 'created_at'])
+            ->defaultSort('order')
+            ->paginate($perPage);
+    }
+
+    protected function searchLessons(string $query, Request $request, int $perPage, ?User $user)
+    {
+        if (!$user) {
+            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
+        }
+
+        $builder = QueryBuilder::for(Lesson::class, $request)
+            ->with(['unit:id,title,course_id', 'unit.course:id,title']);
+
+        // Use PgSearchable trait's search method
+        if (!empty(trim($query))) {
+            $builder->search($query);
+        }
+
+        if ($user->hasAnyRole(['Admin', 'SuperAdmin'])) {
+            // full access
+        } elseif ($user->hasRole('Instructor')) {
+            $builder->whereHas('unit.course', function (Builder $q) use ($user) {
+                $q->where('instructor_id', $user->id);
+            });
+        } elseif ($user->hasRole('Student')) {
+            $builder->whereHas('unit.course.enrollments', function (Builder $q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->whereIn('status', ['active', 'completed']);
+            });
+        } else {
+            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
+        }
+
+        return $builder
+            ->allowedFilters([
+                AllowedFilter::exact('unit_id'),
+            ])
+            ->allowedSorts(['title', 'order', 'created_at'])
+            ->defaultSort('order')
+            ->paginate($perPage);
+    }
+
+    protected function searchUsers(string $query, Request $request, int $perPage, ?User $user)
+    {
+        if (!$user) {
+            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
+        }
+
+        $builder = QueryBuilder::for(User::class, $request)
+            ->with(['roles:id,name,guard_name']);
+
+        // Use PgSearchable trait's search method
+        if (!empty(trim($query))) {
+            $builder->search($query);
+        }
+
+        if ($user->hasAnyRole(['Admin', 'SuperAdmin'])) {
+            // full access
+        } elseif ($user->hasRole('Instructor') || $user->hasRole('Student')) {
+            $builder->whereHas('roles', function (Builder $q) {
+                $q->where('name', 'Student');
+            });
+        } else {
+            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
+        }
+
+        return $builder
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+                AllowedFilter::callback('role', function (Builder $query, $value) {
+                    $query->whereHas('roles', fn ($q) => $q->where('name', $value));
+                }),
+            ])
+            ->allowedSorts(['name', 'email', 'created_at'])
+            ->defaultSort('name')
+            ->paginate($perPage);
+    }
+
     public function getSuggestions(string $query, int $limit = 10): array
     {
         if (empty(trim($query))) {
             return [];
         }
 
-        // Search for courses matching the partial query
-        $courses = Course::search($query)
-            ->take($limit)
+        // Use PgSearchable trait's search method
+        $courses = Course::query()
+            ->where('status', 'published')
+            ->search($query)
+            ->limit($limit)
             ->get();
 
-        // Extract unique suggestions from titles
-        $suggestions = $courses->pluck('title')->unique()->take($limit)->values()->toArray();
-
-        return $suggestions;
+        return $courses->pluck('title')->unique()->take($limit)->values()->toArray();
     }
 
-    /**
-     * Save search query to history.
-     */
     public function saveSearchHistory(User $user, string $query, array $filters = [], int $resultsCount = 0): void
     {
-        // Don't save empty queries
         $query = trim($query);
         if (empty($query)) {
             return;
         }
 
-        // Check if the last search by this user is the same query
         $lastSearch = $this->historyRepository->getLastSearchByUser($user->id);
 
         if ($lastSearch) {
-            // Avoid duplicate consecutive searches
             if ($lastSearch->query === $query) {
-                // Update timestamp and result count
                 $this->historyRepository->update($lastSearch, [
                     'results_count' => $resultsCount,
-                    'created_at' => now(),
+                    'created_at'    => now(),
                 ]);
-
                 return;
             }
 
-            // Check if it's sequential typing within 60 seconds
             $isTypingForward = str_starts_with(strtolower($query), strtolower($lastSearch->query));
-            $isBackspacing = str_starts_with(strtolower($lastSearch->query), strtolower($query));
+            $isBackspacing   = str_starts_with(strtolower($lastSearch->query), strtolower($query));
 
             if (($isTypingForward || $isBackspacing) && $lastSearch->created_at->diffInSeconds(now()) < 60) {
-                // Update the existing typing session
                 $this->historyRepository->update($lastSearch, [
-                    'query' => $query,
-                    'filters' => $filters,
+                    'query'         => $query,
+                    'filters'       => $filters,
                     'results_count' => $resultsCount,
-                    'created_at' => now(),
+                    'created_at'    => now(),
                 ]);
-
                 return;
             }
         }
 
         $this->historyRepository->create([
-            'user_id' => $user->id,
-            'query' => $query,
-            'filters' => $filters,
+            'user_id'       => $user->id,
+            'query'         => $query,
+            'filters'       => $filters,
             'results_count' => $resultsCount,
         ]);
     }
 
-    /**
-     * Perform global search across all integrated modules.
-     */
-    public function globalSearch(string $query, int $limitPerCategory = 5): array
+    public function globalSearch(string $query, int $limitPerCategory = 5, ?User $user = null): array
     {
-        return [
-            'users' => collect($this->userManagementService->searchGlobal($query, $limitPerCategory)),
+        $results = [
             'courses' => collect($this->courseService->searchGlobal($query, $limitPerCategory)),
-            'forums' => collect($this->forumService->searchGlobal($query, $limitPerCategory)),
         ];
+
+        if ($user) {
+            $results['users']  = collect($this->userManagementService->searchGlobal($query, $limitPerCategory));
+            $results['forums'] = collect($this->forumService->searchGlobal($query, $limitPerCategory));
+
+            if ($user->hasRole('Student') || $user->hasRole('Instructor')) {
+                $results['users'] = $results['users']->filter(
+                    fn ($searchUser) => $searchUser->hasRole('Student')
+                );
+            }
+        } else {
+            $results['users']  = collect([]);
+            $results['forums'] = collect([]);
+        }
+
+        return $results;
     }
 }

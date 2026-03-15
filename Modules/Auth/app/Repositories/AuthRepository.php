@@ -30,6 +30,7 @@ class AuthRepository extends BaseRepository implements AuthRepositoryInterface
     public function findByLogin(string $login): ?User
     {
         return $this->query()
+            ->withTrashed()
             ->where(fn ($q) => $q->where('email', $login)->orWhere('username', $login))
             ->with('roles:id,name')
             ->first();

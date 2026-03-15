@@ -125,6 +125,16 @@ class AuthSessionProcessor
         ]);
 
         if (
+            $user->trashed()
+        ) {
+            $response['status'] = 'deleted';
+            $response['message'] = __('messages.account.deleted_restricted_access');
+            $response['account_info'] = [
+                'deleted_at' => $user->deleted_at,
+                'restore_deadline' => $user->deleted_at->copy()->addDays(30),
+                'days_remaining' => max(0, 30 - $user->deleted_at->diffInDays(now())),
+            ];
+        } elseif (
             $user->status === UserStatus::Pending &&
             $user->email_verified_at === null &&
             ! $isPrivileged

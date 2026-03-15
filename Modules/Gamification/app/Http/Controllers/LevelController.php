@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace Modules\Gamification\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Common\Http\Resources\LevelConfigResource;
 use Modules\Common\Models\LevelConfig;
 use Modules\Gamification\Services\LevelService;
 use Modules\Gamification\Services\Support\PointManager;
 
 class LevelController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly LevelService $levelService,
         private readonly PointManager $pointManager
@@ -25,13 +29,17 @@ class LevelController extends Controller
     {
         $perPage = min((int) $request->get('per_page', 20), 100);
         
-        $levels = LevelConfig::orderBy('level')
+        $levels = LevelConfig::with('milestoneBadge')
+            ->orderBy('level')
             ->paginate($perPage);
 
-        return response()->json([
-            'success' => true,
-            'data' => $levels,
-        ]);
+        // Transform using resource
+        $levels->getCollection()->transform(fn($level) => new LevelConfigResource($level));
+
+        return $this->paginateResponse(
+            $levels,
+            'messages.levels_retrieved'
+        );
     }
 
     /**
@@ -44,10 +52,10 @@ class LevelController extends Controller
 
         $table = $this->levelService->getLevelProgressionTable($startLevel, $endLevel);
 
-        return response()->json([
-            'success' => true,
-            'data' => $table,
-        ]);
+        return $this->success(
+            $table,
+            'messages.level_progression_retrieved'
+        );
     }
 
     /**
@@ -58,10 +66,7 @@ class LevelController extends Controller
         $user = auth('api')->user();
         
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized',
-            ], 401);
+            return $this->unauthorized('messages.unauthorized');
         }
 
         $stats = $user->gamificationStats;
@@ -69,10 +74,10 @@ class LevelController extends Controller
 
         $levelInfo = $this->levelService->getLevelProgress($totalXp);
 
-        return response()->json([
-            'success' => true,
-            'data' => $levelInfo,
-        ]);
+        return $this->success(
+            $levelInfo,
+            'messages.level_info_retrieved'
+        );
     }
 
     /**
@@ -80,17 +85,17 @@ class LevelController extends Controller
      */
     public function calculate(Request $request): JsonResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'xp' => 'required|integer|min:0',
         ]);
 
-        $xp = (int) $request->input('xp');
+        $xp = (int) $validated['xp'];
         $levelInfo = $this->levelService->getLevelProgress($xp);
 
-        return response()->json([
-            'success' => true,
-            'data' => $levelInfo,
-        ]);
+        return $this->success(
+            $levelInfo,
+            'messages.level_calculated'
+        );
     }
 
     /**
@@ -105,15 +110,15 @@ class LevelController extends Controller
 
         $synced = $this->levelService->syncLevelConfigs($startLevel, $endLevel);
 
-        return response()->json([
-            'success' => true,
-            'message' => "Successfully synced {$synced} level configurations",
-            'data' => [
+        return $this->success(
+            [
                 'synced_count' => $synced,
                 'start_level' => $startLevel,
                 'end_level' => $endLevel,
             ],
-        ]);
+            'messages.levels_synced',
+            ['count' => $synced]
+        );
     }
 
     /**
@@ -123,23 +128,25 @@ class LevelController extends Controller
     {
         $this->authorize('manage-gamification');
 
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'xp_required' => 'sometimes|integer|min:0',
             'rewards' => 'sometimes|array',
+            'milestone_badge_id' => 'sometimes|nullable|exists:badges,id',
+            'bonus_xp' => 'sometimes|integer|min:0',
         ]);
 
         $levelConfig = LevelConfig::findOrFail($id);
-        $levelConfig->update($request->only(['name', 'xp_required', 'rewards']));
+        $levelConfig->update($validated);
+        $levelConfig->load('milestoneBadge');
 
         // Clear cache
         cache()->forget('gamification.level_configs');
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Level configuration updated successfully',
-            'data' => $levelConfig,
-        ]);
+        return $this->success(
+            new LevelConfigResource($levelConfig),
+            'messages.level_updated'
+        );
     }
 
     /**
@@ -160,10 +167,10 @@ class LevelController extends Controller
                 ->get(),
         ];
 
-        return response()->json([
-            'success' => true,
-            'data' => $stats,
-        ]);
+        return $this->success(
+            $stats,
+            'messages.level_statistics_retrieved'
+        );
     }
     
     /**
@@ -174,17 +181,14 @@ class LevelController extends Controller
         $user = auth('api')->user();
         
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized',
-            ], 401);
+            return $this->unauthorized('messages.unauthorized');
         }
 
         $stats = $this->pointManager->getDailyXpStats($user->id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $stats,
-        ]);
+        return $this->success(
+            $stats,
+            'messages.daily_xp_stats_retrieved'
+        );
     }
 }

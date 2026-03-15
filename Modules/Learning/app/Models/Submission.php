@@ -11,14 +11,39 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\Common\Traits\PgSearchable;
 use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Enums\SubmissionStatus;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Submission extends Model
+class Submission extends Model implements HasMedia
 {
-    use PgSearchable;
+    use PgSearchable, InteractsWithMedia;
 
     protected array $searchable_columns = [
         'answer_text',
     ];
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('submission_files')
+            ->useDisk('do')
+            ->acceptsMimeTypes([
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'application/zip',
+                'application/x-zip-compressed',
+                'image/jpeg',
+                'image/jpg',
+                'image/png',
+                'image/webp',
+                'image/gif',
+                'text/plain',
+            ]);
+    }
 
     protected $fillable = [
         'assignment_id',
@@ -30,6 +55,7 @@ class Submission extends Model
         'score',
         'question_set',
         'submitted_at',
+        'attempt_number',
     ];
 
     protected $casts = [

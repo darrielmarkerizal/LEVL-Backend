@@ -18,13 +18,16 @@ use Modules\Schemes\Services\UnitService;
 
 class UnitController extends Controller
 {
-    use ApiResponse, AuthorizesRequests;
+    use ApiResponse, AuthorizesRequests, \Modules\Schemes\Traits\ValidatesEnrollment;
 
     public function __construct(private readonly UnitService $service) {}
 
     public function index(Request $request, Course $course)
     {
-        $this->authorize('viewUnits', $course);
+        // Allow public access for published courses
+        if ($course->status !== \Modules\Schemes\Enums\CourseStatus::Published) {
+            $this->authorize('viewUnits', $course);
+        }
 
         $paginator = $this->service->paginate(
             $course->id,
@@ -32,7 +35,11 @@ class UnitController extends Controller
             (int) $request->query('per_page', 15)
         );
 
-        $paginator->getCollection()->transform(fn ($unit) => new UnitResource($unit));
+        // Get enrollment using trait method
+        $enrollment = $this->getActiveEnrollment($course);
+
+        // Transform units with enrollment context
+        $paginator->getCollection()->transform(fn ($unit) => new UnitResource($unit, $enrollment));
 
         return $this->paginateResponse($paginator, 'messages.units.list_retrieved');
     }
@@ -114,6 +121,12 @@ class UnitController extends Controller
     public function contents(Course $course, Unit $unit)
     {
         $this->service->validateHierarchy($course->id, $unit->id);
+        
+        // Require enrollment for students
+        if ($error = $this->requireEnrollment($course)) {
+            return $error;
+        }
+        
         $user = auth('api')->user();
         $contents = $this->service->getContents($unit, $user);
 

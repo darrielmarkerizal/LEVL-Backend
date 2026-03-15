@@ -31,12 +31,11 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         $accessCheck = $this->prerequisiteService->checkQuizAccess($quiz, $userId);
 
         if (! $accessCheck['accessible']) {
-            throw new \Illuminate\Validation\ValidationException(
-                \Illuminate\Support\Facades\Validator::make([], [])->errors()->add(
-                    'quiz',
-                    __('messages.quizzes.locked_cannot_start')
-                )
-            );
+            $missingCount = count($accessCheck['missing']);
+            $message = trans_choice('messages.quizzes.locked_cannot_start', $missingCount, ['count' => $missingCount]);
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'quiz' => [$message]
+            ]);
         }
 
         $pendingSubmission = QuizSubmission::where('quiz_id', $quiz->id)
@@ -45,21 +44,15 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             ->first();
 
         if ($pendingSubmission) {
-            if ($pendingSubmission->status === QuizSubmissionStatus::Draft->value) {
-                throw new \Illuminate\Validation\ValidationException(
-                    \Illuminate\Support\Facades\Validator::make([], [])->errors()->add(
-                        'quiz',
-                        __('messages.quiz_submissions.draft_exists')
-                    )
-                );
+            if ($pendingSubmission->status === QuizSubmissionStatus::Draft) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'quiz' => [__('messages.quiz_submissions.in_progress')]
+                ]);
             }
 
-            throw new \Illuminate\Validation\ValidationException(
-                \Illuminate\Support\Facades\Validator::make([], [])->errors()->add(
-                    'quiz',
-                    __('messages.quiz_submissions.pending_grading')
-                )
-            );
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'quiz' => [__('messages.quiz_submissions.pending_grading')]
+            ]);
         }
 
         return DB::transaction(function () use ($quiz, $userId, $enrollmentId) {
@@ -89,6 +82,21 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
     public function saveAnswer(QuizSubmission $submission, int $questionId, array $data): QuizAnswer
     {
+        // Validate submission is in draft status
+        if ($submission->status !== QuizSubmissionStatus::Draft) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'submission' => [__('messages.quiz_submissions.not_draft')]
+            ]);
+        }
+
+        // Validate quiz is not locked
+        $accessCheck = $this->prerequisiteService->checkQuizAccess($submission->quiz, $submission->user_id);
+        if (! $accessCheck['accessible']) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'quiz' => [__('messages.quizzes.locked_cannot_answer')]
+            ]);
+        }
+
         return DB::transaction(function () use ($submission, $questionId, $data) {
             $existing = QuizAnswer::where('quiz_submission_id', $submission->id)
                 ->where('quiz_question_id', $questionId)
@@ -115,10 +123,42 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
     public function submit(QuizSubmission $submission, int $actorId): QuizSubmission
     {
+        // Validate submission is in draft status
+        if ($submission->status !== QuizSubmissionStatus::Draft) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'submission' => [__('messages.quiz_submissions.not_draft')]
+            ]);
+        }
+
+        // Validate quiz is not locked
+        $accessCheck = $this->prerequisiteService->checkQuizAccess($submission->quiz, $submission->user_id);
+        if (! $accessCheck['accessible']) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'quiz' => [__('messages.quizzes.locked_cannot_submit')]
+            ]);
+        }
+
+        // Validate all questions are answered
+        $questions = $this->listQuestions($submission, $submission->user_id);
+        $answeredCount = QuizAnswer::where('quiz_submission_id', $submission->id)->count();
+        
+        if ($answeredCount < $questions->count()) {
+            $unansweredCount = $questions->count() - $answeredCount;
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'answers' => [trans_choice('messages.quiz_submissions.unanswered_questions', $unansweredCount, ['count' => $unansweredCount])]
+            ]);
+        }
+
         return DB::transaction(function () use ($submission) {
+            $timeSpent = 0;
+            if ($submission->started_at) {
+                $timeSpent = max(0, (int) now()->diffInSeconds($submission->started_at, false));
+            }
+
             $this->repository->updateSubmission($submission, [
                 'status' => QuizSubmissionStatus::Submitted->value,
                 'submitted_at' => now(),
+                'time_spent_seconds' => $timeSpent,
             ]);
 
             $gradedSubmission = $this->autoGrade($submission);
@@ -135,6 +175,28 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
     public function getMySubmissions(int $quizId, int $userId): Collection
     {
         return $this->repository->findForStudent($quizId, $userId);
+    }
+
+    public function getMySubmissionsWithIncludes(int $quizId, int $userId, array $includes): Collection
+    {
+        if (empty($includes)) {
+            return $this->getMySubmissions($quizId, $userId);
+        }
+
+        $user = \Modules\Auth\Models\User::find($userId);
+        $submissions = $this->repository->findForStudent($quizId, $userId);
+
+        // Load includes for each submission using authorizer
+        $submissions->each(function ($submission) use ($user, $includes) {
+            $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $submission);
+            $includesToLoad = array_intersect($includes, $allowedIncludes);
+            
+            if (!empty($includesToLoad)) {
+                $submission->load($includesToLoad);
+            }
+        });
+
+        return $submissions;
     }
 
     public function getHighestSubmission(int $quizId, int $userId): ?QuizSubmission
@@ -313,13 +375,18 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
     public function getSubmissionWithIncludes(QuizSubmission $submission, array $includes, int $userId): QuizSubmission
     {
-        $allowedIncludes = $this->includeAuthorizer->authorize($includes, $userId);
-
-        if (! empty($allowedIncludes)) {
-            $submission->load($allowedIncludes);
+        if (empty($includes)) {
+            return $submission;
         }
 
-        return $submission;
+        $user = \Modules\Auth\Models\User::find($userId);
+        $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $submission);
+
+        // Use Spatie Query Builder to handle nested includes properly
+        return \Spatie\QueryBuilder\QueryBuilder::for(QuizSubmission::class)
+            ->where('id', $submission->id)
+            ->allowedIncludes($allowedIncludes)
+            ->firstOrFail();
     }
 
     public function getQuestionsForStudent(QuizSubmission $submission, int $page): array
@@ -332,9 +399,15 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         }
 
         $question = $questions->get($page - 1);
+        
+        // Load existing answer for this question
+        $answer = \Modules\Learning\Models\QuizAnswer::where('quiz_submission_id', $submission->id)
+            ->where('quiz_question_id', $question->id)
+            ->first();
 
         return [
             'question' => $question,
+            'answer' => $answer,
             'meta' => [
                 'pagination' => [
                     'current_page' => $page,

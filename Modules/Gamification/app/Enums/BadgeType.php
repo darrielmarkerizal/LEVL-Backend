@@ -9,6 +9,7 @@ enum BadgeType: string
     case Speed = 'speed';
     case Habit = 'habit';
     case Social = 'social';
+    case Milestone = 'milestone';
     case Hidden = 'hidden';
 
     public static function values(): array
@@ -29,6 +30,7 @@ enum BadgeType: string
             self::Speed => __('enums.badge_type.speed'),
             self::Habit => __('enums.badge_type.habit'),
             self::Social => __('enums.badge_type.social'),
+            self::Milestone => __('enums.badge_type.milestone'),
             self::Hidden => __('enums.badge_type.hidden'),
         };
     }

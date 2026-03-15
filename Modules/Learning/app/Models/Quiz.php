@@ -124,6 +124,13 @@ class Quiz extends Model implements HasMedia
         return $this->unit?->course_id;
     }
 
+    public function getCourse(): ?\Modules\Schemes\Models\Course
+    {
+        $this->loadMissing('unit.course');
+
+        return $this->unit?->course;
+    }
+
     public function scopePublished($query, bool $isPublished = true)
     {
         if ($isPublished) {

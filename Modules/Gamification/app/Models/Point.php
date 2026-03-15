@@ -19,12 +19,23 @@ class Point extends Model
         'points',
         'reason',
         'description',
+        'xp_source_code',
+        'old_level',
+        'new_level',
+        'triggered_level_up',
+        'metadata',
+        'ip_address',
+        'user_agent',
     ];
 
     protected $casts = [
         'user_id' => 'integer',
         'source_id' => 'integer',
         'points' => 'integer',
+        'old_level' => 'integer',
+        'new_level' => 'integer',
+        'triggered_level_up' => 'boolean',
+        'metadata' => 'array',
         'source_type' => PointSourceType::class,
         'reason' => PointReason::class,
     ];

@@ -139,22 +139,29 @@ class LevelService
     }
 
     /**
-     * Get level name based on level number
+     * Get level name based on level number with tier system
+     * Format: "Tier Name X" where X is 1-10 within each tier
      */
     private function getLevelName(int $level): string
     {
-        return match (true) {
-            $level >= 90 => 'Legendary Master',
-            $level >= 80 => 'Grand Master',
-            $level >= 70 => 'Master',
-            $level >= 60 => 'Expert',
-            $level >= 50 => 'Advanced',
-            $level >= 40 => 'Proficient',
-            $level >= 30 => 'Intermediate',
-            $level >= 20 => 'Competent',
-            $level >= 10 => 'Novice',
-            default => 'Beginner',
-        };
+        $tiers = [
+            1 => 'Beginner',      // Level 1-10
+            11 => 'Novice',       // Level 11-20
+            21 => 'Competent',    // Level 21-30
+            31 => 'Intermediate', // Level 31-40
+            41 => 'Proficient',   // Level 41-50
+            51 => 'Advanced',     // Level 51-60
+            61 => 'Expert',       // Level 61-70
+            71 => 'Master',       // Level 71-80
+            81 => 'Grand Master', // Level 81-90
+            91 => 'Legendary',    // Level 91-100
+        ];
+        
+        $tierStart = (int) (floor(($level - 1) / 10) * 10) + 1;
+        $tierName = $tiers[$tierStart] ?? 'Unknown';
+        $tierNumber = (($level - 1) % 10) + 1;
+        
+        return "{$tierName} {$tierNumber}";
     }
 
     /**
