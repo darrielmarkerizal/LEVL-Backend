@@ -121,6 +121,7 @@ Bearer Token Required (Student only)
 | `filter[source_type]` | string | ❌ No | - | Filter by source type: `lesson`, `assignment`, `course`, `unit` |
 | `filter[reason]` | string | ❌ No | - | Filter by reason: `lesson_completed`, `assignment_submitted`, etc |
 | `filter[period]` | string | ❌ No | - | Filter by period: `today`, `this_week`, `this_month`, `this_year` |
+| `filter[month]` | string | ❌ No | - | Filter by specific month (YYYY-MM): `2026-01`, `2026-02`, etc |
 | `filter[date_from]` | date | ❌ No | - | Filter dari tanggal (Y-m-d) |
 | `filter[date_to]` | date | ❌ No | - | Filter sampai tanggal (Y-m-d) |
 | `filter[points_min]` | integer | ❌ No | - | Filter minimal poin |
@@ -159,9 +160,20 @@ Bearer Token Required (Student only)
 
 **filter[period]**:
 - `today` - Hari ini
-- `this_week` - Minggu ini
-- `this_month` - Bulan ini
-- `this_year` - Tahun ini
+- `this_week` - Minggu ini (Senin - Minggu)
+- `this_month` - Bulan ini (tanggal 1 sampai hari ini di bulan berjalan)
+- `this_year` - Tahun ini (1 Januari sampai hari ini di tahun berjalan)
+
+**filter[month]** (Format: YYYY-MM):
+- `2026-01` - Januari 2026 (1-31 Januari)
+- `2026-02` - Februari 2026 (1-28/29 Februari)
+- `2026-03` - Maret 2026 (1-31 Maret)
+- dst.
+
+**Catatan Penting**:
+- `this_month` = dari tanggal 1 bulan ini sampai hari ini (bukan 30 hari terakhir)
+- `filter[month]` = untuk melihat data bulan spesifik secara penuh
+- Jika `filter[month]` digunakan, `filter[period]` akan diabaikan
 
 **sort** (Available Fields):
 - `created_at` / `-created_at` - Urutkan berdasarkan tanggal (default: `-created_at`)
@@ -255,8 +267,16 @@ per_page: 20
 filter[reason]: lesson_completed
 sort: -points
 
-// Query Params - Filter by Period
+// Query Params - Filter by Period (This Month)
 filter[period]: this_month
+per_page: 20
+
+// Query Params - Filter by Specific Month
+filter[month]: 2026-01
+per_page: 20
+
+// Query Params - Filter by Specific Month (February 2026)
+filter[month]: 2026-02
 per_page: 20
 
 // Query Params - Filter by Date Range
@@ -839,6 +859,7 @@ Bearer Token Required
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `filter[period]` | string | ❌ No | all_time | Period: `today`, `this_week`, `this_month`, `this_year`, `all_time` |
+| `filter[month]` | string | ❌ No | - | Filter by specific month (YYYY-MM): `2026-01`, `2026-02`, etc |
 | `search` | string | ❌ No | - | Search by user name |
 | `per_page` | integer | ❌ No | 15 | Item per halaman (max: 100) |
 | `page` | integer | ❌ No | 1 | Nomor halaman |
@@ -847,10 +868,20 @@ Bearer Token Required
 
 **filter[period]**:
 - `today` - Leaderboard hari ini
-- `this_week` - Leaderboard minggu ini
-- `this_month` - Leaderboard bulan ini
-- `this_year` - Leaderboard tahun ini
+- `this_week` - Leaderboard minggu ini (Senin - Minggu)
+- `this_month` - Leaderboard bulan ini (tanggal 1 sampai hari ini)
+- `this_year` - Leaderboard tahun ini (1 Januari sampai hari ini)
 - `all_time` - Leaderboard sepanjang waktu (default)
+
+**filter[month]** (Format: YYYY-MM):
+- `2026-01` - Leaderboard Januari 2026
+- `2026-02` - Leaderboard Februari 2026
+- `2026-03` - Leaderboard Maret 2026
+- dst.
+
+**Catatan**:
+- Jika `filter[month]` digunakan, `filter[period]` akan diabaikan
+- `this_month` menghitung dari tanggal 1 bulan berjalan sampai hari ini
 
 #### Response Success (200 OK)
 ```json
@@ -936,6 +967,14 @@ per_page: 20
 filter[period]: this_month
 per_page: 20
 
+// Query Params - Specific Month Leaderboard (January 2026)
+filter[month]: 2026-01
+per_page: 20
+
+// Query Params - Specific Month Leaderboard (February 2026)
+filter[month]: 2026-02
+per_page: 20
+
 // Query Params - Search User
 search: Ahmad
 filter[period]: all_time
@@ -976,6 +1015,26 @@ Bearer Token Required (Student only)
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `filter[period]` | string | ❌ No | all_time | Period: `today`, `this_week`, `this_month`, `this_year`, `all_time` |
+| `filter[month]` | string | ❌ No | - | Filter by specific month (YYYY-MM): `2026-01`, `2026-02`, etc |
+
+#### Valid Values
+
+**filter[period]**:
+- `today` - Ranking hari ini
+- `this_week` - Ranking minggu ini (Senin - Minggu)
+- `this_month` - Ranking bulan ini (tanggal 1 sampai hari ini)
+- `this_year` - Ranking tahun ini (1 Januari sampai hari ini)
+- `all_time` - Ranking sepanjang waktu (default)
+
+**filter[month]** (Format: YYYY-MM):
+- `2026-01` - Ranking Januari 2026
+- `2026-02` - Ranking Februari 2026
+- `2026-03` - Ranking Maret 2026
+- dst.
+
+**Catatan**:
+- Jika `filter[month]` digunakan, `filter[period]` akan diabaikan
+- `this_month` menghitung dari tanggal 1 bulan berjalan sampai hari ini
 
 #### Response Success (200 OK)
 ```json
@@ -997,6 +1056,33 @@ Bearer Token Required (Student only)
     "percentile": 90
   }
 }
+```
+
+#### Postman Example
+```javascript
+// Headers
+Authorization: Bearer {{auth_token}}
+
+// URL - All Time Rank (Default)
+{{base_url}}/user/rank?filter[period]=all_time
+
+// URL - This Month Rank
+{{base_url}}/user/rank?filter[period]=this_month
+
+// URL - Specific Month Rank (January 2026)
+{{base_url}}/user/rank?filter[month]=2026-01
+
+// URL - Specific Month Rank (February 2026)
+{{base_url}}/user/rank?filter[month]=2026-02
+
+// Tests
+pm.test("Status 200", () => pm.response.to.have.status(200));
+pm.test("Has rank data", () => {
+    const data = pm.response.json().data;
+    pm.expect(data).to.have.property('rank');
+    pm.expect(data).to.have.property('total_xp');
+    pm.expect(data).to.have.property('level');
+});
 ```
 
 ---
