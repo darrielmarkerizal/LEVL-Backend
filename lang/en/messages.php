@@ -786,10 +786,25 @@ return [
         'per_page_max'                       => 'Items per page must not exceed 100.',
         'search_string'                      => 'Search query must be a string.',
     ],
-];
 
     // Dashboard
     'dashboard_retrieved' => 'Dashboard data retrieved successfully.',
     'recent_learning_retrieved' => 'Recent learning activities retrieved successfully.',
     'recent_achievements_retrieved' => 'Recent achievements retrieved successfully.',
     'recommended_courses_retrieved' => 'Recommended courses retrieved successfully.',
+
+    // Dashboard Activity Types
+    'activity' => [
+        'default' => 'Learning activity',
+        'lesson_completion' => 'Completed lesson: :title',
+        'unit_completion' => 'Completed unit: :title',
+        'quiz_completion' => 'Completed quiz: :title',
+        'quiz_perfect_score' => 'Completed quiz: :title with perfect score',
+        'assignment_submission' => 'Submitted assignment: :title',
+        'badge_earned' => 'Earned badge: :name',
+        'forum_thread' => 'Created forum thread',
+        'forum_reply' => 'Replied to forum thread',
+        'forum_reaction' => 'Received reaction in forum',
+        'streak_bonus' => 'Streak bonus for :days consecutive days',
+    ],
+];

@@ -795,4 +795,19 @@ return [
     'recent_learning_retrieved' => 'Aktivitas pembelajaran terkini berhasil diambil.',
     'recent_achievements_retrieved' => 'Pencapaian terkini berhasil diambil.',
     'recommended_courses_retrieved' => 'Kursus rekomendasi berhasil diambil.',
+
+    // Dashboard Activity Types
+    'activity' => [
+        'default' => 'Aktivitas pembelajaran',
+        'lesson_completion' => 'Menyelesaikan lesson: :title',
+        'unit_completion' => 'Menyelesaikan unit: :title',
+        'quiz_completion' => 'Menyelesaikan quiz: :title',
+        'quiz_perfect_score' => 'Menyelesaikan quiz: :title dengan nilai sempurna',
+        'assignment_submission' => 'Mengumpulkan tugas: :title',
+        'badge_earned' => 'Mendapatkan badge: :name',
+        'forum_thread' => 'Membuat thread forum',
+        'forum_reply' => 'Membalas thread forum',
+        'forum_reaction' => 'Mendapat reaksi di forum',
+        'streak_bonus' => 'Bonus streak :days hari berturut-turut',
+    ],
 ];

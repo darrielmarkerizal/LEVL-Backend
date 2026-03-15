@@ -40,6 +40,12 @@ class DashboardService
                 'total' => $stats?->total_xp ?? 0,
                 'this_month' => $this->getXpThisMonth($userId),
             ],
+            'courses' => [
+                'enrolled' => $this->getEnrolledCoursesCount($userId),
+            ],
+            'learning_hours' => $this->getLearningHours($userId),
+            'days_active' => $this->getDaysActive($userId),
+            'recent_activity' => $this->getRecentActivity($userId, 3),
         ];
     }
 
@@ -286,5 +292,317 @@ class DashboardService
         }
 
         return round(($xpInCurrentLevel / $xpNeededForNextLevel) * 100, 2);
+    }
+
+    /**
+     * Get enrolled courses count
+     */
+    private function getEnrolledCoursesCount(int $userId): int
+    {
+        return Enrollment::where('user_id', $userId)
+            ->where('status', 'active')
+            ->count();
+    }
+
+    /**
+     * Get total learning hours
+     * Calculated from lesson completions and assignment/quiz submissions
+     */
+    private function getLearningHours(int $userId): float
+    {
+        // Count lesson completions (assume 15 minutes per lesson)
+        $lessonCount = \Modules\Schemes\Models\LessonCompletion::where('user_id', $userId)->count();
+        $lessonHours = ($lessonCount * 15) / 60;
+
+        // Count quiz submissions (assume 20 minutes per quiz)
+        $quizCount = \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)->count();
+        $quizHours = ($quizCount * 20) / 60;
+
+        // Count assignment submissions (assume 30 minutes per assignment)
+        $assignmentCount = \Modules\Learning\Models\Submission::where('user_id', $userId)->count();
+        $assignmentHours = ($assignmentCount * 30) / 60;
+
+        $totalHours = $lessonHours + $quizHours + $assignmentHours;
+
+        return round($totalHours, 1);
+    }
+
+    /**
+     * Get days active (days with any XP earning activity)
+     */
+    private function getDaysActive(int $userId): int
+    {
+        return \Modules\Gamification\Models\Point::where('user_id', $userId)
+            ->selectRaw('DATE(created_at) as activity_date')
+            ->groupBy('activity_date')
+            ->get()
+            ->count();
+    }
+
+    /**
+     * Get recent activity (XP earning activities)
+     */
+    private function getRecentActivity(int $userId, int $limit = 3): array
+    {
+        $points = \Modules\Gamification\Models\Point::where('user_id', $userId)
+            ->where('points', '>', 0)
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+
+        return $points->map(function ($point) {
+            $activity = $this->formatActivity($point);
+            
+            return [
+                'type' => $activity['type'],
+                'description' => $activity['description'],
+                'xp_earned' => $point->points,
+                'timestamp' => $point->created_at->toISOString(),
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Format activity based on source type and metadata
+     */
+    private function formatActivity(\Modules\Gamification\Models\Point $point): array
+    {
+        $metadata = is_string($point->metadata) ? json_decode($point->metadata, true) : $point->metadata;
+        
+        // Convert enum to string if needed
+        $sourceType = $point->source_type instanceof \BackedEnum 
+            ? $point->source_type->value 
+            : $point->source_type;
+            
+        $reason = $point->reason instanceof \BackedEnum 
+            ? $point->reason->value 
+            : $point->reason;
+        
+        // Determine activity type and description based on source_type and reason
+        $type = 'activity';
+        $description = __('messages.activity.default');
+
+        switch ($sourceType) {
+            case 'lesson':
+                $type = 'lesson_completion';
+                $lessonTitle = $this->getLessonTitle($metadata);
+                $description = __('messages.activity.lesson_completion', ['title' => $lessonTitle]);
+                break;
+
+            case 'unit':
+                $type = 'unit_completion';
+                $unitTitle = $this->getUnitTitle($metadata);
+                $description = __('messages.activity.unit_completion', ['title' => $unitTitle]);
+                break;
+
+            case 'quiz':
+            case 'quiz_submission':
+                $type = 'quiz_completion';
+                $quizTitle = $this->getQuizTitle($metadata);
+                
+                if (isset($metadata['score']) && $metadata['score'] == 100) {
+                    $description = __('messages.activity.quiz_perfect_score', ['title' => $quizTitle]);
+                } else {
+                    $description = __('messages.activity.quiz_completion', ['title' => $quizTitle]);
+                }
+                break;
+
+            case 'assignment':
+            case 'assignment_submission':
+                $type = 'assignment_submission';
+                $assignmentTitle = $this->getAssignmentTitle($metadata);
+                $description = __('messages.activity.assignment_submission', ['title' => $assignmentTitle]);
+                break;
+
+            case 'badge':
+                $type = 'badge_earned';
+                $badgeName = $this->getBadgeName($metadata);
+                $description = __('messages.activity.badge_earned', ['name' => $badgeName]);
+                break;
+
+            case 'forum':
+                if ($reason === 'thread_created') {
+                    $type = 'forum_thread';
+                    $description = __('messages.activity.forum_thread');
+                } elseif ($reason === 'reply_created') {
+                    $type = 'forum_reply';
+                    $description = __('messages.activity.forum_reply');
+                } elseif ($reason === 'reaction_received') {
+                    $type = 'forum_reaction';
+                    $description = __('messages.activity.forum_reaction');
+                }
+                break;
+
+            case 'streak':
+                $type = 'streak_bonus';
+                $days = $metadata['days'] ?? $metadata['streak_days'] ?? 0;
+                $description = __('messages.activity.streak_bonus', ['days' => $days]);
+                break;
+
+            default:
+                // Use reason as fallback
+                if ($reason) {
+                    $description = ucfirst(str_replace('_', ' ', $reason));
+                }
+                break;
+        }
+
+        return [
+            'type' => $type,
+            'description' => $description,
+        ];
+    }
+
+    /**
+     * Get lesson title from metadata or database
+     */
+    private function getLessonTitle(array $metadata): string
+    {
+        // Try to get from metadata first
+        if (!empty($metadata['lesson_title'])) {
+            return $metadata['lesson_title'];
+        }
+        
+        if (!empty($metadata['title'])) {
+            return $metadata['title'];
+        }
+
+        // Try to get from database using lesson_id
+        if (!empty($metadata['lesson_id'])) {
+            $lesson = \Modules\Schemes\Models\Lesson::find($metadata['lesson_id']);
+            if ($lesson) {
+                return $lesson->title;
+            }
+        }
+
+        // Use source_name from seeded data as fallback
+        if (!empty($metadata['source_name'])) {
+            return $metadata['source_name'];
+        }
+
+        return 'Lesson';
+    }
+
+    /**
+     * Get unit title from metadata or database
+     */
+    private function getUnitTitle(array $metadata): string
+    {
+        if (!empty($metadata['unit_title'])) {
+            return $metadata['unit_title'];
+        }
+        
+        if (!empty($metadata['title'])) {
+            return $metadata['title'];
+        }
+
+        if (!empty($metadata['unit_id'])) {
+            $unit = \Modules\Schemes\Models\Unit::find($metadata['unit_id']);
+            if ($unit) {
+                return $unit->title;
+            }
+        }
+
+        // Use source_name from seeded data as fallback
+        if (!empty($metadata['source_name'])) {
+            return $metadata['source_name'];
+        }
+
+        return 'Unit';
+    }
+
+    /**
+     * Get quiz title from metadata or database
+     */
+    private function getQuizTitle(array $metadata): string
+    {
+        if (!empty($metadata['quiz_title'])) {
+            return $metadata['quiz_title'];
+        }
+        
+        if (!empty($metadata['title'])) {
+            return $metadata['title'];
+        }
+
+        if (!empty($metadata['quiz_id'])) {
+            $quiz = \Modules\Learning\Models\Quiz::find($metadata['quiz_id']);
+            if ($quiz) {
+                return $quiz->title;
+            }
+        }
+
+        // Try to get from sourceable (for real data, not seeded)
+        if (!empty($metadata['submission_id'])) {
+            $submission = \Modules\Learning\Models\QuizSubmission::find($metadata['submission_id']);
+            if ($submission && $submission->quiz) {
+                return $submission->quiz->title;
+            }
+        }
+
+        // Use source_name from seeded data as fallback
+        if (!empty($metadata['source_name'])) {
+            return $metadata['source_name'];
+        }
+
+        return 'Quiz';
+    }
+
+    /**
+     * Get assignment title from metadata or database
+     */
+    private function getAssignmentTitle(array $metadata): string
+    {
+        if (!empty($metadata['assignment_title'])) {
+            return $metadata['assignment_title'];
+        }
+        
+        if (!empty($metadata['title'])) {
+            return $metadata['title'];
+        }
+
+        if (!empty($metadata['assignment_id'])) {
+            $assignment = \Modules\Learning\Models\Assignment::find($metadata['assignment_id']);
+            if ($assignment) {
+                return $assignment->title;
+            }
+        }
+
+        // Try to get from sourceable (for real data, not seeded)
+        if (!empty($metadata['submission_id'])) {
+            $submission = \Modules\Learning\Models\Submission::find($metadata['submission_id']);
+            if ($submission && $submission->assignment) {
+                return $submission->assignment->title;
+            }
+        }
+
+        // Use source_name from seeded data as fallback
+        if (!empty($metadata['source_name'])) {
+            return $metadata['source_name'];
+        }
+
+        return 'Tugas';
+    }
+
+    /**
+     * Get badge name from metadata or database
+     */
+    private function getBadgeName(array $metadata): string
+    {
+        if (!empty($metadata['badge_name'])) {
+            return $metadata['badge_name'];
+        }
+        
+        if (!empty($metadata['name'])) {
+            return $metadata['name'];
+        }
+
+        if (!empty($metadata['badge_id'])) {
+            $badge = \Modules\Gamification\Models\Badge::find($metadata['badge_id']);
+            if ($badge) {
+                return $badge->name;
+            }
+        }
+
+        return 'Badge';
     }
 }
