@@ -73,6 +73,7 @@ return [
 
     // Badges
     'badges' => [
+        'retrieved' => 'Badges retrieved successfully.',
         'created'   => 'Badge created successfully.',
         'updated'   => 'Badge updated successfully.',
         'deleted'   => 'Badge deleted successfully.',

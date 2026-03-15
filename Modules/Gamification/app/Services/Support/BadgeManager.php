@@ -69,19 +69,14 @@ class BadgeManager
             ->where('user_id', $userId)
             ->with(['badge', 'badge.media'])
             ->allowedFilters([
-                \Spatie\QueryBuilder\AllowedFilter::callback('category', function ($query, $value) {
+                \Spatie\QueryBuilder\AllowedFilter::callback('type', function ($query, $value) {
                     $query->whereHas('badge', function ($q) use ($value) {
-                        $q->where('category', $value);
+                        $q->where('type', $value);
                     });
                 }),
                 \Spatie\QueryBuilder\AllowedFilter::callback('rarity', function ($query, $value) {
                     $query->whereHas('badge', function ($q) use ($value) {
                         $q->where('rarity', $value);
-                    });
-                }),
-                \Spatie\QueryBuilder\AllowedFilter::callback('type', function ($query, $value) {
-                    $query->whereHas('badge', function ($q) use ($value) {
-                        $q->where('type', $value);
                     });
                 }),
             ])

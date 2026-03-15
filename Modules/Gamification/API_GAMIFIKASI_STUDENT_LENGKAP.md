@@ -536,21 +536,22 @@ Bearer Token Required (Student only)
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `filter[category]` | string | ❌ No | - | Filter by category |
-| `filter[rarity]` | string | ❌ No | - | Filter by rarity |
 | `filter[type]` | string | ❌ No | - | Filter by type |
+| `filter[rarity]` | string | ❌ No | - | Filter by rarity |
 | `sort` | string | ❌ No | -earned_at | Sorting: `earned_at`, `progress` |
 | `per_page` | integer | ❌ No | 15 | Item per halaman (max: 100) |
 | `page` | integer | ❌ No | 1 | Nomor halaman |
 
 #### Valid Values
 
-**filter[category]**:
-- `learning` - Badge pembelajaran
-- `assessment` - Badge penilaian
-- `engagement` - Badge engagement
-- `achievement` - Badge pencapaian
-- `milestone` - Badge milestone
+**filter[type]**:
+- `completion` - Badge penyelesaian
+- `quality` - Badge kualitas
+- `speed` - Badge kecepatan
+- `habit` - Badge kebiasaan
+- `social` - Badge sosial
+- `milestone` - Badge pencapaian milestone
+- `hidden` - Badge tersembunyi
 
 **filter[rarity]**:
 - `common` - Badge umum
@@ -558,11 +559,6 @@ Bearer Token Required (Student only)
 - `rare` - Badge langka
 - `epic` - Badge epik
 - `legendary` - Badge legendaris
-
-**filter[type]**:
-- `achievement` - Badge achievement
-- `milestone` - Badge milestone
-- `completion` - Badge completion
 
 #### Response Success (200 OK)
 ```json
@@ -640,16 +636,17 @@ per_page: 15
 sort: -earned_at
 page: 1
 
-// Query Params - Filter by Category
-filter[category]: assessment
+// Query Params - Filter by Type
+filter[type]: milestone
 sort: -earned_at
 
 // Query Params - Filter by Rarity
 filter[rarity]: rare
 sort: -earned_at
 
-// Query Params - Filter by Type
-filter[type]: milestone
+// Query Params - Combine Filters
+filter[type]: social
+filter[rarity]: uncommon
 sort: -earned_at
 
 // Tests
@@ -684,9 +681,8 @@ Bearer Token Required (Student only)
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `filter[category]` | string | ❌ No | - | Filter by category |
-| `filter[rarity]` | string | ❌ No | - | Filter by rarity |
 | `filter[type]` | string | ❌ No | - | Filter by type |
+| `filter[rarity]` | string | ❌ No | - | Filter by rarity |
 | `filter[earned]` | boolean | ❌ No | - | Filter earned/not earned |
 | `search` | string | ❌ No | - | Search by name, code, description |
 | `sort` | string | ❌ No | name | Sorting: `name`, `rarity`, `xp_reward`, `created_at` |
@@ -695,12 +691,14 @@ Bearer Token Required (Student only)
 
 #### Valid Values
 
-**filter[category]**:
-- `learning` - Badge pembelajaran
-- `assessment` - Badge penilaian
-- `engagement` - Badge engagement
-- `achievement` - Badge pencapaian
-- `milestone` - Badge milestone
+**filter[type]**:
+- `completion` - Badge penyelesaian
+- `quality` - Badge kualitas
+- `speed` - Badge kecepatan
+- `habit` - Badge kebiasaan
+- `social` - Badge sosial
+- `milestone` - Badge pencapaian milestone
+- `hidden` - Badge tersembunyi
 
 **filter[rarity]**:
 - `common` - Badge umum
@@ -708,11 +706,6 @@ Bearer Token Required (Student only)
 - `rare` - Badge langka
 - `epic` - Badge epik
 - `legendary` - Badge legendaris
-
-**filter[type]**:
-- `achievement` - Badge achievement
-- `milestone` - Badge milestone
-- `completion` - Badge completion
 
 **filter[earned]**:
 - `true` - Hanya badge yang sudah didapat
@@ -779,16 +772,17 @@ per_page: 15
 sort: name
 page: 1
 
-// Query Params - Filter by Category
-filter[category]: learning
+// Query Params - Filter by Type
+filter[type]: milestone
 sort: name
 
 // Query Params - Filter by Rarity
 filter[rarity]: epic
 sort: -xp_reward
 
-// Query Params - Filter by Type
-filter[type]: milestone
+// Query Params - Combine Type and Rarity
+filter[type]: social
+filter[rarity]: rare
 sort: name
 
 // Query Params - Only Earned Badges

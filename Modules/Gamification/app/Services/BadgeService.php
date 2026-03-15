@@ -186,9 +186,8 @@ class BadgeService implements BadgeServiceInterface
         
         $badges = QueryBuilder::for($query)
             ->allowedFilters([
-                AllowedFilter::exact('category'),
-                AllowedFilter::exact('rarity'),
                 AllowedFilter::exact('type'),
+                AllowedFilter::exact('rarity'),
                 AllowedFilter::callback('earned', function ($query, $value) use ($earnedBadges) {
                     $earnedBadgeIds = $earnedBadges->keys()->toArray();
                     if ($value === 'true' || $value === true || $value === '1') {
