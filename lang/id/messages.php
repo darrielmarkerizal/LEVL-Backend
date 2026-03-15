@@ -73,6 +73,7 @@ return [
 
     // Badges
     'badges' => [
+        'retrieved' => 'Daftar lencana berhasil diambil.',
         'created'   => 'Lencana berhasil dibuat.',
         'updated'   => 'Lencana berhasil diperbarui.',
         'deleted'   => 'Lencana berhasil dihapus.',

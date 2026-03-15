@@ -405,6 +405,7 @@ class LeaderboardService implements LeaderboardServiceInterface
                 // Single query to get ranks for all XP values
                 $rankData = UserGamificationStat::select('total_xp', DB::raw('COUNT(*) as higher_count'))
                     ->whereIn('total_xp', $xpValues)
+                    ->groupBy('total_xp')
                     ->get()
                     ->mapWithKeys(function ($item) use ($xpValues) {
                         $higherCount = UserGamificationStat::where('total_xp', '>', $item->total_xp)->count();
