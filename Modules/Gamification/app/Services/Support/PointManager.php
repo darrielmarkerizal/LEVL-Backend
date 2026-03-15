@@ -281,6 +281,7 @@ class PointManager
             . request('filter.source_type', 'all') . ':'
             . request('filter.reason', 'all') . ':'
             . request('filter.period', 'all_time') . ':'
+            . request('filter.month', 'all') . ':'
             . request('sort', '-created_at');
 
         return cache()->tags(['gamification', 'points'])->remember(
@@ -292,7 +293,24 @@ class PointManager
                     ->allowedFilters([
                         AllowedFilter::exact('source_type'),
                         AllowedFilter::exact('reason'),
+                        AllowedFilter::callback('month', function ($query, $value) {
+                            // Format: YYYY-MM (e.g., 2026-01, 2026-02)
+                            if (preg_match('/^\d{4}-\d{2}$/', $value)) {
+                                try {
+                                    $date = Carbon::createFromFormat('Y-m', $value);
+                                    $query->whereYear('points.created_at', $date->year)
+                                        ->whereMonth('points.created_at', $date->month);
+                                } catch (\Exception $e) {
+                                    // Invalid date format, ignore filter
+                                }
+                            }
+                        }),
                         AllowedFilter::callback('period', function ($query, $value) {
+                            // Skip period filter if month filter is present
+                            if (request()->has('filter.month')) {
+                                return;
+                            }
+                            
                             $dateColumn = 'points.created_at';
                             match ($value) {
                                 'today' => $query->whereDate($dateColumn, Carbon::today()),
