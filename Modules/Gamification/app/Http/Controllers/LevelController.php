@@ -201,7 +201,8 @@ class LevelController extends Controller
             return $this->unauthorized('messages.unauthorized');
         }
 
-        $stats = $this->pointManager->getDailyXpStats($user->id);
+        $days = min((int) $request->get('days', 7), 30); // Max 30 days
+        $stats = $this->pointManager->getDailyXpStats($user->id, $days);
 
         return $this->success(
             $stats,
