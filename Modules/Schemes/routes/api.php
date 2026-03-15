@@ -10,10 +10,8 @@ use Modules\Schemes\Http\Controllers\UnitController;
 
 Route::prefix('v1')->scopeBindings()->group(function () {
 
-    // Public course routes
     Route::get('courses', [CourseController::class, 'index'])->name('courses.index');
     Route::get('courses/{course:slug}', [CourseController::class, 'show'])
-        ->middleware('can:view,course')
         ->name('courses.show');
 
     // Student enrolled courses
@@ -63,9 +61,11 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('lessons.show');
     });
 
+    // Public unit routes (optional auth for progress info)
+    Route::get('courses/{course:slug}/units', [UnitController::class, 'index'])->name('courses.units.index');
+
     // Authenticated unit routes
     Route::middleware(['auth:api'])->group(function () {
-        Route::get('courses/{course:slug}/units', [UnitController::class, 'index'])->name('courses.units.index');
         Route::get('courses/{course:slug}/units/{unit:slug}', [UnitController::class, 'show'])
             ->middleware('can:view,unit')
             ->name('courses.units.show');

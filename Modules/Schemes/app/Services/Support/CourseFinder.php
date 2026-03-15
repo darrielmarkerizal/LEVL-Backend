@@ -132,24 +132,42 @@ class CourseFinder
     {
         $request = request();
         $includeParam = $request->get('include', '');
+        $user = auth('api')->user();
 
+        // Build base query
+        $baseQuery = Course::where('slug', $slug);
+
+        // If no includes requested, just load enrollments and return
+        if (empty($includeParam)) {
+            if ($user) {
+                $baseQuery->with(['enrollments' => function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                }]);
+            }
+            return $baseQuery->first();
+        }
+
+        // Check if course exists first
         $course = Course::where('slug', $slug)->first();
-
-        if (! $course) {
+        if (!$course) {
             return null;
         }
 
-        if (empty($includeParam)) {
-            return $course;
+        // Build QueryBuilder with includes
+        $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $course);
+        
+        $queryBuilder = QueryBuilder::for(Course::class, $request)
+            ->where('slug', $slug)
+            ->allowedIncludes($allowedIncludes);
+
+        // Always load enrollments for authenticated users
+        if ($user) {
+            $queryBuilder->with(['enrollments' => function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            }]);
         }
 
-        $user = auth('api')->user();
-        $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $course);
-
-        return QueryBuilder::for(Course::class, $request)
-            ->where('slug', $slug)
-            ->allowedIncludes($allowedIncludes)
-            ->first();
+        return $queryBuilder->first();
     }
 
     private function buildQuery(array $filters = []): QueryBuilder
@@ -254,8 +272,9 @@ class CourseFinder
     {
         $perPage = max(1, $perPage);
         $status = data_get($filters, 'filter.status');
+        $searchQuery = data_get($filters, 'search');
 
-        $cleanFilters = Arr::except($filters, ['filter.status']);
+        $cleanFilters = Arr::except($filters, ['filter.status', 'search']);
         $request = new Request($cleanFilters);
 
         $builder = QueryBuilder::for(Course::class, $request)
@@ -284,6 +303,11 @@ class CourseFinder
             ->allowedIncludes($this->includeAuthorizer->getAllowedIncludesForIndex(auth('api')->user()))
             ->allowedSorts(['title', 'created_at', 'updated_at'])
             ->defaultSort('-updated_at');
+
+        // Apply search if provided
+        if ($searchQuery && trim((string) $searchQuery) !== '') {
+            $builder->search($searchQuery);
+        }
 
         return $builder->paginate($perPage);
     }

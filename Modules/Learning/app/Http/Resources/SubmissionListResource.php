@@ -19,6 +19,13 @@ class SubmissionListResource extends JsonResource
             'submitted_at' => $this->submitted_at,
             'graded_at' => $this->graded_at,
             'is_highest' => $this->when(isset($this->is_highest), $this->is_highest),
+            'files' => $this->getMedia('submission_files')->map(fn ($media) => [
+                'id' => $media->id,
+                'name' => $media->file_name,
+                'url' => $media->getUrl(),
+                'size' => $media->size,
+                'mime_type' => $media->mime_type,
+            ]),
         ];
     }
 }

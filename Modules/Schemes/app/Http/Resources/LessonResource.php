@@ -28,6 +28,12 @@ class LessonResource extends JsonResource
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
 
+        // Add XP reward information
+        $xpSource = \Modules\Gamification\Models\XpSource::where('code', 'lesson_completed')
+            ->where('is_active', true)
+            ->first();
+        $data['xp_reward'] = $xpSource ? $xpSource->xp_amount : 50;
+
         if ($isManager || $isEnrolledStudent) {
             $data['blocks'] = LessonBlockResource::collection($this->whenLoaded('blocks'));
         }

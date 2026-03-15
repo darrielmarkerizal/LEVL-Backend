@@ -12,7 +12,7 @@ use Modules\Schemes\Services\LessonCompletionService;
 
 class LessonCompletionController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, \Modules\Schemes\Traits\ValidatesEnrollment;
 
     public function __construct(
         private readonly LessonCompletionService $service
@@ -22,6 +22,13 @@ class LessonCompletionController extends Controller
     {
         try {
             $user = auth('api')->user();
+            $course = $lesson->unit->course;
+
+            // Require enrollment for students
+            if ($error = $this->requireEnrollment($course)) {
+                return $error;
+            }
+
             $completion = $this->service->markAsCompleted($lesson, $user->id);
 
             return $this->success($completion, __('messages.lessons.marked_complete'));
@@ -34,6 +41,13 @@ class LessonCompletionController extends Controller
     {
         try {
             $user = auth('api')->user();
+            $course = $lesson->unit->course;
+
+            // Require enrollment for students
+            if ($error = $this->requireEnrollment($course)) {
+                return $error;
+            }
+
             $this->service->unmarkAsCompleted($lesson, $user->id);
 
             return $this->success(null, __('messages.lessons.marked_incomplete'));

@@ -1,283 +1,105 @@
 <?php
 
 return [
-    // Auth
-    'user_status' => [
+    'quiz_question_type' => [
+        'multiple_choice' => 'Pilihan Ganda',
+        'checkbox' => 'Kotak Centang',
+        'true_false' => 'Benar/Salah',
+        'essay' => 'Esai',
+    ],
+
+    'quiz_submission_status' => [
+        'draft' => 'Draft',
+        'submitted' => 'Dikumpulkan',
+        'graded' => 'Dinilai',
+    ],
+
+    'quiz_grading_status' => [
         'pending' => 'Menunggu',
-        'active' => 'Aktif',
-        'inactive' => 'Tidak Aktif',
-        'banned' => 'Diblokir',
+        'waiting_for_grading' => 'Menunggu Penilaian',
+        'partially_graded' => 'Dinilai Sebagian',
+        'graded' => 'Dinilai',
     ],
 
-    'roles' => [
-        'superadmin' => 'Super Admin',
-        'admin' => 'Admin',
-        'instructor' => 'Instruktur',
-        'student' => 'Siswa',
-    ],
-
-    // Schemes
-    'course_status' => [
-        'draft' => 'Draf',
+    'quiz_status' => [
+        'draft' => 'Draft',
         'published' => 'Dipublikasikan',
         'archived' => 'Diarsipkan',
     ],
 
-    'course_type' => [
-        'okupasi' => 'Okupasi',
-        'kluster' => 'Kluster',
+    'assignment_status' => [
+        'draft' => 'Draft',
+        'published' => 'Dipublikasikan',
+        'archived' => 'Diarsipkan',
     ],
 
-    'enrollment_type' => [
-        'auto_accept' => 'Otomatis Diterima',
-        'key_based' => 'Berbasis Kunci',
-        'approval' => 'Perlu Persetujuan',
-    ],
-
-    'level_tag' => [
-        'dasar' => 'Dasar',
-        'menengah' => 'Menengah',
-        'mahir' => 'Mahir',
-    ],
-
-    'content_type' => [
-        'markdown' => 'Markdown',
-        'video' => 'Video',
-        'link' => 'Tautan',
-    ],
-
-    // Enrollments
-    'enrollment_status' => [
-        'pending' => 'Menunggu',
-        'active' => 'Aktif',
-        'completed' => 'Selesai',
-        'cancelled' => 'Dibatalkan',
-    ],
-
-    'progress_status' => [
-        'not_started' => 'Belum Dimulai',
-        'in_progress' => 'Sedang Berlangsung',
-        'completed' => 'Selesai',
-    ],
-
-    // Learning
     'assignment_type' => [
         'assignment' => 'Tugas',
         'quiz' => 'Kuis',
     ],
 
-    'assignment_status' => [
-        'draft' => 'Draf',
-        'published' => 'Dipublikasikan',
-        'archived' => 'Diarsipkan',
+    'submission_type' => [
+        'file' => 'File',
+        'text' => 'Teks',
+        'both' => 'File dan Teks',
     ],
 
     'submission_status' => [
-        'draft' => 'Draf',
+        'draft' => 'Draft',
         'submitted' => 'Dikumpulkan',
         'graded' => 'Dinilai',
         'late' => 'Terlambat',
-        'missing' => 'Tidak Mengumpulkan',
+        'missing' => 'Tidak Dikumpulkan',
     ],
 
-    'submission_type' => [
-        'text' => 'Teks',
-        'file' => 'File',
-        'mixed' => 'Campuran',
-    ],
-
-    'submission_state' => [
-        'in_progress' => 'Sedang Dikerjakan',
-        'submitted' => 'Dikumpulkan',
-        'auto_graded' => 'Dinilai Otomatis',
-        'pending_manual_grading' => 'Menunggu Penilaian Manual',
-        'graded' => 'Dinilai',
-        'released' => 'Dirilis',
-    ],
-
-    'override_type' => [
-        'prerequisite' => 'Prasyarat',
-        'deadline' => 'Tenggat Waktu',
-        'attempts' => 'Percobaan',
-    ],
-
-    'override_type_desc' => [
-        'prerequisite' => 'Memungkinkan siswa melewati persyaratan prasyarat',
-        'deadline' => 'Memperpanjang tenggat waktu tugas untuk siswa',
-        'attempts' => 'Memberikan percobaan tambahan melebihi batas maksimum',
+    'review_mode' => [
+        'immediate' => 'Segera',
+        'after_due_date' => 'Setelah Batas Waktu',
+        'after_graded' => 'Setelah Dinilai',
+        'never' => 'Tidak Pernah',
     ],
 
     'randomization_type' => [
         'static' => 'Statis',
-        'random_order' => 'Urutan Acak',
-        'bank' => 'Bank Soal',
+        'random' => 'Acak',
+        'random_from_bank' => 'Acak dari Bank Soal',
     ],
 
-    'review_mode' => [
-        'immediate' => 'Langsung',
-        'deferred' => 'Ditunda',
-        'hidden' => 'Disembunyikan',
-    ],
-
-    // Content
-    'content_status' => [
-        'draft' => 'Draf',
-        'submitted' => 'Diajukan',
-        'in_review' => 'Sedang Ditinjau',
-        'approved' => 'Disetujui',
-        'rejected' => 'Ditolak',
-        'scheduled' => 'Dijadwalkan',
-        'published' => 'Dipublikasikan',
-        'archived' => 'Diarsipkan',
-    ],
-
-    'priority' => [
-        'low' => 'Rendah',
-        'medium' => 'Sedang',
-        'high' => 'Tinggi',
-    ],
-
-    'target_type' => [
-        'all' => 'Semua',
-        'role' => 'Berdasarkan Peran',
-        'user' => 'Pengguna Tertentu',
-    ],
-
-    // Gamification
-    'challenge_type' => [
-        'daily' => 'Harian',
-        'weekly' => 'Mingguan',
-        'special' => 'Spesial',
-    ],
-
-    'challenge_assignment_status' => [
-        'pending' => 'Menunggu',
-        'in_progress' => 'Sedang Berlangsung',
-        'completed' => 'Selesai',
-        'claimed' => 'Diklaim',
-        'expired' => 'Kedaluwarsa',
-    ],
-
-    'badge_type' => [
-        'achievement' => 'Pencapaian',
-        'milestone' => 'Milestone',
+    'point_reason' => [
+        'lesson_completed' => 'Menyelesaikan Pelajaran',
+        'assignment_submitted' => 'Mengumpulkan Tugas',
+        'quiz_completed' => 'Menyelesaikan Kuis',
+        'quiz_passed' => 'Lulus Kuis',
+        'perfect_score' => 'Nilai Sempurna',
+        'first_attempt' => 'Percobaan Pertama',
+        'first_submission' => 'Pengumpulan Pertama',
+        'daily_streak' => 'Streak Harian',
+        'forum_post' => 'Posting Forum',
+        'forum_reply' => 'Balasan Forum',
+        'reaction_received' => 'Menerima Reaksi',
+        'engagement' => 'Engagement',
+        'bonus' => 'Bonus',
+        'penalty' => 'Penalti',
         'completion' => 'Penyelesaian',
+        'score' => 'Skor',
     ],
 
     'point_source_type' => [
-        'lesson' => 'Lesson',
+        'lesson' => 'Pelajaran',
         'assignment' => 'Tugas',
         'attempt' => 'Percobaan',
         'challenge' => 'Tantangan',
         'system' => 'Sistem',
-        'grade' => 'Pencapaian Nilai',
+        'grade' => 'Nilai',
     ],
 
-    'challenge_criteria_type' => [
-        'lessons_completed' => 'Selesaikan Lesson',
-        'assignments_submitted' => 'Kumpulkan Tugas',
-        'exercises_completed' => 'Selesaikan Latihan',
-        'xp_earned' => 'Kumpulkan XP',
-        'streak_days' => 'Pertahankan Streak',
-        'courses_completed' => 'Selesaikan Course',
-    ],
-
-    'setting_type' => [
-        'string' => 'Teks',
-        'number' => 'Angka',
-        'boolean' => 'Boolean',
-        'json' => 'JSON',
-    ],
-
-    'point_reason' => [
+    'badge_type' => [
         'completion' => 'Penyelesaian',
-        'score' => 'Skor',
-        'bonus' => 'Bonus',
-        'penalty' => 'Penalti',
-    ],
-
-    // Notifications
-    'notification_type' => [
-        'system' => 'Sistem',
-        'assignment' => 'Tugas',
-        'assessment' => 'Penilaian',
-        'grading' => 'Nilai',
-        'gamification' => 'Gamifikasi',
-        'news' => 'Berita',
-        'custom' => 'Kustom',
-        'course_completed' => 'Kursus Selesai',
-        'enrollment' => 'Pendaftaran',
-        'forum_reply_to_thread' => 'Balasan Forum Thread',
-        'forum_reply_to_reply' => 'Balasan Forum Reply',
-    ],
-
-    'notification_channel' => [
-        'in_app' => 'Dalam Aplikasi',
-        'email' => 'Email',
-        'push' => 'Push Notification',
-    ],
-
-    'notification_frequency' => [
-        'immediate' => 'Langsung',
-        'daily' => 'Harian',
-        'weekly' => 'Mingguan',
-    ],
-
-    // Grading
-    'grade_status' => [
-        'pending' => 'Menunggu',
-        'graded' => 'Dinilai',
-        'reviewed' => 'Ditinjau',
-    ],
-
-    'source_type' => [
-        'assignment' => 'Tugas',
-        'attempt' => 'Percobaan',
-    ],
-
-    // Common
-    'category_status' => [
-        'active' => 'Aktif',
-        'inactive' => 'Tidak Aktif',
-    ],
-
-    'category_status' => [
-        'active' => 'Aktif',
-        'inactive' => 'Tidak Aktif',
-    ],
-
-    // Questions
-    'question_type' => [
-        'multiple_choice' => 'Pilihan Ganda',
-        'checkbox' => 'Kotak Centang',
-        'essay' => 'Esai',
-        'file_upload' => 'Unggah File',
-        'true_false' => 'Benar/Salah',
-    ],
-
-    'question_difficulty' => [
-        'easy' => 'Mudah',
-        'medium' => 'Sedang',
-        'hard' => 'Sulit',
-    ],
-
-    'question_status' => [
-        'active' => 'Aktif',
-        'inactive' => 'Tidak Aktif',
-        'archived' => 'Diarsipkan',
-    ],
-
-    'quiz_submission_status' => [
-        'draft' => 'Draf',
-        'submitted' => 'Dikumpulkan',
-        'graded' => 'Dinilai',
-        'missing' => 'Tidak Mengumpulkan',
-    ],
-
-    'quiz_grading_status' => [
-        'pending' => 'Menunggu',
-        'partially_graded' => 'Dinilai Sebagian',
-        'waiting_for_grading' => 'Menunggu Penilaian',
-        'graded' => 'Dinilai',
+        'quality' => 'Kualitas',
+        'speed' => 'Kecepatan',
+        'habit' => 'Kebiasaan',
+        'social' => 'Sosial',
+        'milestone' => 'Pencapaian',
+        'hidden' => 'Tersembunyi',
     ],
 ];

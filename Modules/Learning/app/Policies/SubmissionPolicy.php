@@ -26,8 +26,8 @@ class SubmissionPolicy
             return true;
         }
 
-        $submission->loadMissing('assignment.lesson.unit.course');
-        $course = $submission->assignment?->lesson?->unit?->course;
+        $submission->loadMissing('assignment.unit.course');
+        $course = $submission->assignment?->unit?->course;
 
         if (! $course) {
             return false;
@@ -121,8 +121,8 @@ class SubmissionPolicy
             return true;
         }
 
-        $submission->loadMissing('assignment.lesson.unit.course');
-        $course = $submission->assignment?->lesson?->unit?->course;
+        $submission->loadMissing('assignment.unit.course');
+        $course = $submission->assignment?->unit?->course;
 
         if (! $course) {
             return false;

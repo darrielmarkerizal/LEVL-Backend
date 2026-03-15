@@ -24,16 +24,29 @@ class EventCounterService
     ): UserEventCounter {
         $bounds = $this->getWindowBounds($window);
 
-        // FIX: Use single UPSERT query instead of transaction with multiple queries
+        // PostgreSQL UPSERT syntax
         DB::statement('
             INSERT INTO user_event_counters 
-                (user_id, event_type, scope_type, scope_id, window, counter, 
+                (user_id, event_type, scope_type, scope_id, "window", counter, 
                  window_start, window_end, last_increment_at, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, 1, ?, ?, NOW(), NOW(), NOW())
-            ON DUPLICATE KEY UPDATE
-                counter = IF(window_end IS NOT NULL AND window_end < NOW(), 1, counter + 1),
-                window_start = IF(window_end IS NOT NULL AND window_end < NOW(), VALUES(window_start), window_start),
-                window_end = IF(window_end IS NOT NULL AND window_end < NOW(), VALUES(window_end), window_end),
+            ON CONFLICT (user_id, event_type, COALESCE(scope_type, \'\'), COALESCE(scope_id, 0), "window")
+            DO UPDATE SET
+                counter = CASE 
+                    WHEN user_event_counters.window_end IS NOT NULL AND user_event_counters.window_end < NOW() 
+                    THEN 1 
+                    ELSE user_event_counters.counter + 1 
+                END,
+                window_start = CASE 
+                    WHEN user_event_counters.window_end IS NOT NULL AND user_event_counters.window_end < NOW() 
+                    THEN EXCLUDED.window_start 
+                    ELSE user_event_counters.window_start 
+                END,
+                window_end = CASE 
+                    WHEN user_event_counters.window_end IS NOT NULL AND user_event_counters.window_end < NOW() 
+                    THEN EXCLUDED.window_end 
+                    ELSE user_event_counters.window_end 
+                END,
                 last_increment_at = NOW(),
                 updated_at = NOW()
         ', [

@@ -39,7 +39,7 @@ Route::prefix('v1')
             ->middleware([\Modules\Auth\Http\Middleware\AllowExpiredToken::class, 'throttle:auth'])
             ->name('refresh');
 
-        Route::middleware(['auth:api', 'throttle:api'])->group(function () {
+        Route::middleware(['auth:api', 'throttle:api', \Modules\Auth\Http\Middleware\RestrictDeletedUserAccess::class])->group(function () {
             Route::post('/auth/logout', [AuthApiController::class, 'logout'])->name('logout');
             Route::post('/auth/set-username', [AuthApiController::class, 'setUsername'])->name(
                 'set.username',

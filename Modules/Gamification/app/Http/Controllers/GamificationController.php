@@ -40,7 +40,7 @@ class GamificationController extends Controller
         $perPage = (int) ($request->input('per_page') ?? 15);
         $perPage = $perPage > 0 ? $perPage : 15;
 
-        $points = $this->gamificationService->getPointsHistory($userId, $perPage);
+        $points = $this->gamificationService->getPointsHistory($userId, $perPage, $request);
         $points->appends($request->query());
 
         $points->getCollection()->transform(fn ($item) => new PointResource($item));

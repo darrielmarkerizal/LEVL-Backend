@@ -6,9 +6,12 @@ namespace Modules\Learning\Policies;
 
 use Modules\Auth\Models\User;
 use Modules\Learning\Models\QuizSubmission;
+use Modules\Schemes\Traits\ValidatesEnrollment;
 
 class QuizSubmissionPolicy
 {
+    use ValidatesEnrollment;
+
     public function view(?User $user, QuizSubmission $submission): bool
     {
         if (! $user) {
@@ -19,15 +22,52 @@ class QuizSubmissionPolicy
             return true;
         }
 
-        return $submission->user_id === $user->id;
-    }
-
-    public function update(User $user, QuizSubmission $submission): bool
-    {
+        // Check if user owns the submission
         if ($submission->user_id !== $user->id) {
             return false;
         }
 
-        return $submission->status?->value === 'draft';
+        // Check enrollment status for students
+        if ($user->hasRole('Student')) {
+            $submission->loadMissing('quiz.unit.course');
+            $course = $submission->quiz?->unit?->course;
+            
+            if (! $course) {
+                return false;
+            }
+
+            return $this->isEnrolled($course);
+        }
+
+        return true;
+    }
+
+    public function update(User $user, QuizSubmission $submission): bool
+    {
+        if ($user->hasRole('Superadmin')) {
+            return true;
+        }
+
+        if ($submission->user_id !== $user->id) {
+            return false;
+        }
+
+        if ($submission->status?->value !== 'draft') {
+            return false;
+        }
+
+        // Check enrollment status for students
+        if ($user->hasRole('Student')) {
+            $submission->loadMissing('quiz.unit.course');
+            $course = $submission->quiz?->unit?->course;
+            
+            if (! $course) {
+                return false;
+            }
+
+            return $this->isEnrolled($course);
+        }
+
+        return true;
     }
 }

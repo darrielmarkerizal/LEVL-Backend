@@ -34,11 +34,39 @@ class LessonCompletionService
             );
         }
 
-        return LessonCompletion::create([
+        $completion = LessonCompletion::create([
             'lesson_id' => $lesson->id,
             'user_id' => $userId,
             'completed_at' => now(),
         ]);
+
+        // Also update lesson_progress for progression tracking
+        $enrollment = \Modules\Enrollments\Models\Enrollment::where('user_id', $userId)
+            ->where('course_id', $lesson->unit->course_id)
+            ->whereIn('status', [\Modules\Enrollments\Enums\EnrollmentStatus::Active, \Modules\Enrollments\Enums\EnrollmentStatus::Completed])
+            ->first();
+
+        if ($enrollment) {
+            // Update or create lesson progress
+            \Modules\Enrollments\Models\LessonProgress::updateOrCreate(
+                [
+                    'enrollment_id' => $enrollment->id,
+                    'lesson_id' => $lesson->id,
+                ],
+                [
+                    'status' => \Modules\Enrollments\Enums\ProgressStatus::Completed,
+                    'progress_percent' => 100,
+                    'completed_at' => now(),
+                ]
+            );
+
+            // Dispatch event for XP and progress tracking
+            \Illuminate\Support\Facades\DB::afterCommit(function () use ($lesson, $userId, $enrollment) {
+                \Modules\Schemes\Events\LessonCompleted::dispatch($lesson, $userId, $enrollment->id);
+            });
+        }
+
+        return $completion;
     }
 
     public function unmarkAsCompleted(Lesson $lesson, int $userId): bool

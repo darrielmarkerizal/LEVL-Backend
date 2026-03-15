@@ -16,6 +16,23 @@ class RouteServiceProvider extends ServiceProvider
         parent::boot();
 
         Route::bind('submission', function (string $value, \Illuminate\Routing\Route $route) {
+            // Check if this is a quiz-submission route
+            $routeName = $route->getName();
+            if ($routeName && str_starts_with($routeName, 'api.quiz-submissions')) {
+                // Handle numeric IDs for quiz submissions
+                if (is_numeric($value)) {
+                    return \Modules\Learning\Models\QuizSubmission::findOrFail($value);
+                }
+
+                // If value contains placeholder syntax, it means route parameter wasn't resolved
+                if (str_contains($value, ':')) {
+                    abort(404, 'Invalid quiz submission identifier');
+                }
+
+                return \Modules\Learning\Models\QuizSubmission::findOrFail($value);
+            }
+
+            // Handle special 'me' keyword for assignment submissions
             if ($value === 'me') {
                 $assignment = $route->parameter('assignment');
                 if (! $assignment) {
@@ -38,6 +55,16 @@ class RouteServiceProvider extends ServiceProvider
                 }
 
                 return $submission;
+            }
+
+            // Handle numeric IDs - find the submission
+            if (is_numeric($value)) {
+                return \Modules\Learning\Models\Submission::findOrFail($value);
+            }
+
+            // If value contains placeholder syntax, it means route parameter wasn't resolved
+            if (str_contains($value, ':')) {
+                abort(404, 'Invalid submission identifier');
             }
 
             return \Modules\Learning\Models\Submission::findOrFail($value);

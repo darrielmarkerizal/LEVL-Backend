@@ -154,6 +154,13 @@ class Assignment extends Model implements HasMedia
         return $this->unit?->course_id;
     }
 
+    public function getCourse(): ?\Modules\Schemes\Models\Course
+    {
+        $this->loadMissing('unit.course');
+
+        return $this->unit?->course;
+    }
+
     /**
      * Check if this is an assignment (file upload type)
      */

@@ -56,10 +56,30 @@ class LessonFinder
     public function getLessonForUser(Lesson $lesson, Course $course, ?User $user): Lesson
     {
         if ($user?->hasRole('Student')) {
-            $progression = app(ProgressionService::class);
-            $enrollment = $progression->getEnrollmentForCourse($course->id, $user->id);
-            if (! $enrollment || ! $progression->canAccessLesson($lesson, $enrollment)) {
-                throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), 403);
+            $enrollment = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
+                ->where('course_id', $course->id)
+                ->whereIn('status', [\Modules\Enrollments\Enums\EnrollmentStatus::Active, \Modules\Enrollments\Enums\EnrollmentStatus::Completed])
+                ->first();
+
+            if (!$enrollment) {
+                throw new \App\Exceptions\BusinessException(__('messages.enrollments.not_enrolled'), [], 403);
+            }
+
+            // Check if previous lessons are completed
+            $previousLessons = \Modules\Schemes\Models\Lesson::where('unit_id', $lesson->unit_id)
+                ->where('order', '<', $lesson->order)
+                ->where('status', 'published')
+                ->pluck('id');
+
+            if ($previousLessons->isNotEmpty()) {
+                $completedCount = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
+                    ->whereIn('lesson_id', $previousLessons)
+                    ->where('status', \Modules\Enrollments\Enums\ProgressStatus::Completed)
+                    ->count();
+
+                if ($completedCount < $previousLessons->count()) {
+                    throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), [], 403);
+                }
             }
         }
 

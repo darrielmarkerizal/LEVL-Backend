@@ -24,31 +24,28 @@ class QuizSubmissionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'attempt_number' => $this->attempt_number,
             'status' => $this->status?->value,
             'status_label' => $this->status?->label(),
             'grading_status' => $this->grading_status?->value,
             'grading_status_label' => $this->grading_status?->label(),
             'score' => $this->score,
             'final_score' => $this->final_score,
-            'attempt_number' => $this->attempt_number,
             'is_passed' => $this->when(
                 $this->grading_status?->isFinal(),
                 fn () => $this->isPassed()
             ),
-            'submitted_at' => $this->submitted_at?->toISOString(),
             'started_at' => $this->started_at?->toISOString(),
+            'submitted_at' => $this->submitted_at?->toISOString(),
             'time_spent_seconds' => $this->time_spent_seconds,
             'duration' => $this->duration,
+            'quiz' => $this->when(
+                $this->relationLoaded('quiz'),
+                fn () => new \Modules\Learning\Http\Resources\QuizResource($this->quiz)
+            ),
             'answers' => $this->when(
                 $this->relationLoaded('answers'),
-                fn () => $this->answers->map(fn ($a) => [
-                    'id' => $a->id,
-                    'quiz_question_id' => $a->quiz_question_id,
-                    'content' => $a->content,
-                    'selected_options' => $a->selected_options,
-                    'score' => $a->score,
-                    'feedback' => $a->feedback,
-                ])
+                fn () => \Modules\Learning\Http\Resources\QuizAnswerResource::collection($this->answers)
             ),
         ];
     }
@@ -77,21 +74,17 @@ class QuizSubmissionResource extends JsonResource
                 $this->grading_status?->isFinal(),
                 fn () => $this->isPassed()
             ),
+            'quiz' => $this->when(
+                $this->relationLoaded('quiz'),
+                fn () => new \Modules\Learning\Http\Resources\QuizResource($this->quiz)
+            ),
             'user' => $this->when(
                 $this->relationLoaded('user'),
                 fn () => ['id' => $this->user?->id, 'name' => $this->user?->name, 'email' => $this->user?->email]
             ),
             'answers' => $this->when(
                 $this->relationLoaded('answers'),
-                fn () => $this->answers->map(fn ($a) => [
-                    'id' => $a->id,
-                    'quiz_question_id' => $a->quiz_question_id,
-                    'content' => $a->content,
-                    'selected_options' => $a->selected_options,
-                    'score' => $a->score,
-                    'is_auto_graded' => $a->is_auto_graded,
-                    'feedback' => $a->feedback,
-                ])
+                fn () => \Modules\Learning\Http\Resources\QuizAnswerResource::collection($this->answers)
             ),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),

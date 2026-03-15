@@ -15,6 +15,14 @@ return [
     'rejected'         => 'Berhasil ditolak.',
     'sent'             => 'Berhasil dikirim.',
     'data_retrieved'   => 'Data berhasil diambil.',
+    'levels_retrieved' => 'Daftar level berhasil diambil.',
+    'level_progression_retrieved' => 'Tabel progres level berhasil diambil.',
+    'level_info_retrieved' => 'Informasi level berhasil diambil.',
+    'level_calculated' => 'Kalkulasi level berhasil.',
+    'levels_synced' => 'Berhasil sinkronisasi :count konfigurasi level.',
+    'level_updated' => 'Konfigurasi level berhasil diperbarui.',
+    'level_statistics_retrieved' => 'Statistik level berhasil diambil.',
+    'daily_xp_stats_retrieved' => 'Statistik XP harian berhasil diambil.',
     'error'            => 'Terjadi kesalahan. Silakan coba lagi.',
     'not_found'        => 'Resource yang Anda cari tidak ditemukan.',
     'unauthorized'     => 'Anda tidak memiliki izin untuk melakukan tindakan ini.',
@@ -346,11 +354,12 @@ return [
 
     // Account
     'account' => [
-        'restore_success'       => 'Akun Anda berhasil dipulihkan.',
-        'deletion_in_progress'  => 'Akun Anda sudah dijadwalkan untuk dihapus.',
-        'restore_not_deleted'   => 'Hanya akun dengan status terhapus yang dapat dipulihkan.',
-        'restore_expired'       => 'Masa pemulihan akun (:days hari) telah berakhir. Pemulihan tidak lagi dapat dilakukan.',
-        'cleanup_success'       => 'Berhasil menghapus :count akun secara permanen.',
+        'restore_success'              => 'Akun Anda berhasil dipulihkan.',
+        'deletion_in_progress'         => 'Akun Anda sudah dijadwalkan untuk dihapus.',
+        'deleted_restricted_access'    => 'Akun Anda dalam masa tenggang penghapusan. Anda hanya dapat melakukan restore akun atau logout.',
+        'restore_not_deleted'          => 'Hanya akun dengan status terhapus yang dapat dipulihkan.',
+        'restore_expired'              => 'Masa pemulihan akun (:days hari) telah berakhir. Pemulihan tidak lagi dapat dilakukan.',
+        'cleanup_success'              => 'Berhasil menghapus :count akun secara permanen.',
     ],
 
     // User
@@ -469,7 +478,6 @@ return [
         'enrolled_success'              => 'Pendaftaran berhasil.',
         'key_based_success'             => 'Pendaftaran berhasil menggunakan kunci yang diberikan.',
         'course_not_published'          => 'Kursus ini belum dipublikasikan dan tidak dapat didaftari.',
-        'enrollment_pending'            => 'Permintaan pendaftaran Anda sedang ditinjau dan menunggu persetujuan.',
         'enrollment_success'            => 'Pendaftaran berhasil.',
         'enrollment_failed'             => 'Pendaftaran gagal. Silakan coba lagi.',
         'bulk_action_completed'         => 'Tindakan massal berhasil diselesaikan.',
@@ -478,8 +486,9 @@ return [
         'invitation_not_found'          => 'Undangan tidak ditemukan atau sudah diproses sebelumnya.',
         'invitation_accepted'           => 'Undangan diterima. Anda kini terdaftar di kursus ini.',
         'invitation_declined'           => 'Undangan berhasil ditolak.',
-        'enrolled_successfully'         => 'Pengguna berhasil didaftarkan ke kursus.',
-        'scheduled_successfully'        => 'Pendaftaran dijadwalkan pada :date. Pengguna akan otomatis terdaftar pada tanggal tersebut.',
+        'enrolled_successfully'         => 'Selamat! Anda berhasil terdaftar di kursus ini. Mulai belajar sekarang!',
+        'enrollment_pending'            => 'Permintaan pendaftaran Anda telah dikirim dan sedang menunggu persetujuan.',
+        'scheduled_successfully'        => 'Pendaftaran dijadwalkan pada :date. Anda akan otomatis terdaftar pada tanggal tersebut.',
     ],
 
     // Assignments
@@ -533,7 +542,7 @@ return [
     // Submissions
     'submissions' => [
         'submitted'                  => 'Pengumpulan berhasil dikirim.',
-        'created'                    => 'Pengumpulan berhasil dibuat.',
+        'created'                    => 'Selamat! Tugas Anda berhasil dikumpulkan. Tunggu hasil penilaian dari instruktur.',
         'updated'                    => 'Pengumpulan berhasil diperbarui.',
         'question_not_in_set'        => 'Pertanyaan ini tidak termasuk dalam set pengumpulan saat ini.',
         'question_not_in_assignment' => 'Pertanyaan ini tidak termasuk dalam tugas ini.',
@@ -541,6 +550,7 @@ return [
         'started'                    => 'Pengumpulan dimulai. Semangat!',
         'not_found'                  => 'Pengumpulan yang diminta tidak ditemukan.',
         'assignment_no_lesson'       => 'Tugas ini tidak terhubung dengan pelajaran yang valid.',
+        'assignment_no_unit'         => 'Tugas ini tidak terhubung dengan unit yang valid.',
         'not_enrolled'               => 'Anda harus terdaftar di kursus ini untuk dapat mengumpulkan.',
         'assignment_locked'          => 'Tugas ini terkunci. Selesaikan :count prasyarat terlebih dahulu.',
         'assignment_unavailable'     => 'Tugas ini belum tersedia atau belum dipublikasikan.',
@@ -554,14 +564,18 @@ return [
         'finished'                   => 'Anda telah selesai mengerjakan tugas ini.',
         'invalid_state_transition'   => 'Status pengumpulan tidak dapat diubah dari ":from" menjadi ":to".',
         'grading_incomplete'         => 'Penilaian belum dapat diselesaikan karena masih ada pertanyaan yang belum dinilai.',
+        'pending_grading_exists'     => 'Anda masih memiliki pengumpulan yang sedang menunggu penilaian. Harap tunggu hingga instruktur menilai pengumpulan sebelumnya sebelum mengumpulkan kembali.',
     ],
 
     // Quizzes
     'quizzes' => [
         'submitted'           => 'Kuis berhasil dikumpulkan.',
         'not_found'           => 'Kuis yang diminta tidak ditemukan.',
+        'not_enrolled'        => 'Anda harus terdaftar di kursus ini untuk mengakses kuis.',
         'locked'              => 'Kuis ini terkunci. Selesaikan prasyarat untuk membukanya.',
-        'locked_cannot_start' => 'Kuis ini terkunci. Selesaikan :count prasyarat terlebih dahulu.',
+        'locked_cannot_start' => '{1} Kuis ini terkunci. Selesaikan :count prasyarat terlebih dahulu.|[2,*] Kuis ini terkunci. Selesaikan :count prasyarat terlebih dahulu.',
+        'locked_cannot_answer' => 'Kuis ini terkunci. Anda tidak dapat menjawab pertanyaan.',
+        'locked_cannot_submit' => 'Kuis ini terkunci. Anda tidak dapat mengumpulkan jawaban.',
         'created'             => 'Kuis berhasil dibuat.',
         'updated'             => 'Kuis berhasil diperbarui.',
         'deleted'             => 'Kuis berhasil dihapus.',
@@ -577,11 +591,17 @@ return [
     // Quiz Submissions
     'quiz_submissions' => [
         'draft_exists'    => 'Anda memiliki percobaan kuis yang belum selesai. Harap selesaikan atau batalkan terlebih dahulu sebelum memulai yang baru.',
-        'pending_grading' => 'Pengumpulan kuis sebelumnya masih dalam proses penilaian.',
+        'pending_grading' => 'Pengumpulan kuis sebelumnya masih menunggu penilaian.',
+        'in_progress'     => 'Anda masih memiliki kuis yang sedang dikerjakan. Selesaikan terlebih dahulu sebelum memulai yang baru.',
+        'not_draft'       => 'Pengumpulan kuis ini tidak dalam status draft.',
         'not_found'       => 'Pengumpulan kuis yang diminta tidak ditemukan.',
         'list_retrieved'  => 'Daftar pengumpulan kuis berhasil diambil.',
         'started'         => 'Kuis dimulai. Semangat!',
         'submitted'       => 'Kuis berhasil dikumpulkan.',
+        'answer_saved'    => 'Jawaban berhasil disimpan.',
+        'invalid_question_order' => 'Urutan pertanyaan tidak valid.',
+        'invalid_page'    => 'Halaman tidak valid.',
+        'unanswered_questions' => '{1} Anda harus menjawab :count pertanyaan sebelum mengumpulkan.|[2,*] Anda harus menjawab semua :count pertanyaan sebelum mengumpulkan.',
     ],
 
     // Learning

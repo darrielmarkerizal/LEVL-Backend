@@ -20,7 +20,7 @@ class SubmissionDetailResource extends JsonResource
 
     public function toArray(Request $request): array
     {
-        $this->loadMissing(['assignment', 'answers', 'files']);
+        $this->loadMissing(['assignment', 'answers']);
 
         return [
             'id' => $this->id,
@@ -33,16 +33,13 @@ class SubmissionDetailResource extends JsonResource
             'score' => $this->score,
             'submitted_at' => $this->submitted_at,
             'graded_at' => $this->status?->value === 'graded' ? $this->graded_at : null,
-            'duration' => $this->duration,
-            'duration_formatted' => $this->formatted_duration,
-            'files' => $this->files->map(function ($file) {
-                return [
-                    'id' => $file->id,
-                    'file_name' => $file->file_name,
-                    'file_size' => $file->file_size,
-                    'file_url' => $file->file_url,
-                ];
-            }),
+            'files' => $this->getMedia('submission_files')->map(fn ($media) => [
+                'id' => $media->id,
+                'name' => $media->file_name,
+                'url' => $media->getUrl(),
+                'size' => $media->size,
+                'mime_type' => $media->mime_type,
+            ]),
             'answers' => $this->answers->map(function ($answer) {
                 return (new AnswerDetailResource($answer))->withVisibility($this->visibility);
             }),

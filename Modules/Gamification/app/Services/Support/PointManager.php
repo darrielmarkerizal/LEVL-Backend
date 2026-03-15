@@ -39,6 +39,25 @@ class PointManager
     ): ?Point {
         return DB::transaction(function () use ($userId, $points, $reason, $sourceType, $sourceId, $options) {
             try {
+                // Check if XP already awarded for this specific source (prevent re-awarding after deletion)
+                if ($sourceType && $sourceId) {
+                    $existingPoint = Point::where('user_id', $userId)
+                        ->where('reason', $reason)
+                        ->where('source_type', $sourceType)
+                        ->where('source_id', $sourceId)
+                        ->first();
+                    
+                    if ($existingPoint) {
+                        Log::info('XP award blocked: Already awarded for this source', [
+                            'user_id' => $userId,
+                            'reason' => $reason,
+                            'source_type' => $sourceType,
+                            'source_id' => $sourceId,
+                        ]);
+                        return null;
+                    }
+                }
+                
                 // Get XP source configuration if exists
                 $xpSource = XpSource::byCode($reason)->active()->first();
                 
@@ -252,12 +271,20 @@ class PointManager
         return $this->repository->getOrCreateStats($userId);
     }
 
-    public function getPointsHistory(int $userId, int $perPage): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function getPointsHistory(int $userId, int $perPage, $request = null): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, 100));
 
+        // Build cache key with all query parameters
+        $cacheKey = "gamification:points:history:{$userId}:{$perPage}:"
+            . request('page', 1) . ':'
+            . request('filter.source_type', 'all') . ':'
+            . request('filter.reason', 'all') . ':'
+            . request('filter.period', 'all_time') . ':'
+            . request('sort', '-created_at');
+
         return cache()->tags(['gamification', 'points'])->remember(
-            "gamification:points:history:{$userId}:{$perPage}:".request('page', 1).':'.request('filter.period', 'all_time'),
+            $cacheKey,
             300,
             function () use ($userId, $perPage) {
                 return QueryBuilder::for(Point::class)
@@ -276,9 +303,21 @@ class PointManager
                                 default => null,
                             };
                         }),
+                        AllowedFilter::callback('date_from', function ($query, $value) {
+                            $query->whereDate('points.created_at', '>=', $value);
+                        }),
+                        AllowedFilter::callback('date_to', function ($query, $value) {
+                            $query->whereDate('points.created_at', '<=', $value);
+                        }),
+                        AllowedFilter::callback('points_min', function ($query, $value) {
+                            $query->where('points.points', '>=', (int) $value);
+                        }),
+                        AllowedFilter::callback('points_max', function ($query, $value) {
+                            $query->where('points.points', '<=', (int) $value);
+                        }),
                     ])
                     ->defaultSort('-created_at')
-                    ->allowedSorts(['created_at', 'points', 'source_type'])
+                    ->allowedSorts(['created_at', 'points', 'source_type', 'reason'])
                     ->paginate($perPage);
             }
         );
@@ -414,14 +453,43 @@ class PointManager
         // Get rewards for the new level
         $levelConfig = $this->levelService->getLevelConfig($newLevel);
         $rewards = $levelConfig?->rewards ?? [];
+        $bonusXp = $levelConfig?->bonus_xp ?? 0;
+        
+        // Award bonus XP for leveling up
+        if ($bonusXp > 0) {
+            $this->repository->createPoint([
+                'user_id' => $userId,
+                'points' => $bonusXp,
+                'reason' => 'bonus',
+                'source_type' => 'system',
+                'source_id' => null,
+                'description' => sprintf('Bonus XP untuk mencapai level %d', $newLevel),
+                'xp_source_code' => null,
+                'old_level' => $newLevel,
+                'new_level' => $newLevel,
+                'triggered_level_up' => false,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'metadata' => [
+                    'level_up' => true,
+                    'old_level' => $oldLevel,
+                    'new_level' => $newLevel,
+                ],
+            ]);
+            
+            // Update user stats with bonus XP (without triggering another level up check)
+            $stats = $this->repository->getOrCreateStats($userId);
+            $stats->total_xp += $bonusXp;
+            $this->repository->saveStats($stats);
+        }
         
         // Dispatch level up event
         event(new UserLeveledUp(
             userId: $userId,
             oldLevel: $oldLevel,
             newLevel: $newLevel,
-            totalXp: $totalXp,
-            rewards: $rewards
+            totalXp: $totalXp + $bonusXp,
+            rewards: array_merge($rewards, ['bonus_xp' => $bonusXp])
         ));
     }
     

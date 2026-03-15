@@ -20,6 +20,8 @@ interface QuizSubmissionServiceInterface
 
     public function getMySubmissions(int $quizId, int $userId): Collection;
 
+    public function getMySubmissionsWithIncludes(int $quizId, int $userId, array $includes): Collection;
+
     public function getHighestSubmission(int $quizId, int $userId): ?QuizSubmission;
 
     public function listForQuiz(int $quizId, array $filters = []): LengthAwarePaginator;

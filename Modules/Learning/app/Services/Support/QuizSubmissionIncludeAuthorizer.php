@@ -11,13 +11,17 @@ class QuizSubmissionIncludeAuthorizer
 {
     private const OWNER_INCLUDES = [
         'answers',
+        'answers.question',
         'quiz',
+        'quiz.questions',
         'user',
     ];
 
     private const MANAGER_INCLUDES = [
         'answers',
+        'answers.question',
         'quiz',
+        'quiz.questions',
         'user',
     ];
 

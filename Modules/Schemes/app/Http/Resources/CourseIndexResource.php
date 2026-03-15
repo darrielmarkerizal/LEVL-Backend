@@ -40,6 +40,11 @@ class CourseIndexResource extends JsonResource
             'enrollments_count' => $this->when(array_key_exists('enrollments_count', $this->getAttributes()), $this->enrollments_count),
         ];
 
+        // Add progress information for students
+        if ($isStudent && $enrollment) {
+            $data['progress'] = $this->getProgressInfo($enrollment);
+        }
+
         if ($isManager) {
             $data['creator'] = $this->whenLoaded('admins', fn () => $this->mapUserSummary($this->admins->first()));
             $data['instructor_list'] = $this->whenLoaded('admins', fn () => $this->mapUsersSummary($this->admins));
@@ -100,5 +105,104 @@ class CourseIndexResource extends JsonResource
         }
 
         return false;
+    }
+
+    private function getProgressInfo($enrollment): array
+    {
+        // Get course progress
+        $courseProgress = \Modules\Enrollments\Models\CourseProgress::where('enrollment_id', $enrollment->id)->first();
+        
+        $courseId = $this->id;
+        
+        // Count total content items (lessons + quizzes + assignments)
+        $totalLessons = \Modules\Schemes\Models\Lesson::whereHas('unit', function ($query) use ($courseId) {
+            $query->where('course_id', $courseId);
+        })->where('status', 'published')->count();
+        
+        $totalQuizzes = \Modules\Learning\Models\Quiz::whereHas('unit', function ($query) use ($courseId) {
+            $query->where('course_id', $courseId);
+        })->where('status', \Modules\Learning\Enums\QuizStatus::Published)->count();
+        
+        $totalAssignments = \Modules\Learning\Models\Assignment::whereHas('unit', function ($query) use ($courseId) {
+            $query->where('course_id', $courseId);
+        })->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)->count();
+        
+        $totalContent = $totalLessons + $totalQuizzes + $totalAssignments;
+        
+        if (!$courseProgress || $totalContent === 0) {
+            return [
+                'percentage' => 0,
+                'completed_items' => 0,
+                'total_items' => $totalContent,
+                'last_accessed_lesson' => null,
+                'last_accessed_unit' => null,
+            ];
+        }
+
+        // Count completed lessons
+        $completedLessons = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
+            ->where('status', \Modules\Enrollments\Enums\ProgressStatus::Completed)
+            ->count();
+
+        // Count completed quizzes (passed with score >= passing_grade)
+        $completedQuizzes = \Modules\Learning\Models\QuizSubmission::where('user_id', $enrollment->user_id)
+            ->whereHas('quiz', function($q) use ($courseId) {
+                $q->whereHas('unit', function($unitQuery) use ($courseId) {
+                    $unitQuery->where('course_id', $courseId);
+                })
+                ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
+                ->whereRaw('quiz_submissions.score >= quizzes.passing_grade');
+            })
+            ->distinct('quiz_id')
+            ->count('quiz_id');
+
+        // Count completed assignments (graded with score >= 60% of max_score)
+        $completedAssignments = \Modules\Learning\Models\Submission::where('user_id', $enrollment->user_id)
+            ->where('status', \Modules\Learning\Enums\SubmissionStatus::Graded)
+            ->whereHas('assignment', function($q) use ($courseId) {
+                $q->whereHas('unit', function($unitQuery) use ($courseId) {
+                    $unitQuery->where('course_id', $courseId);
+                })
+                ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
+                ->whereRaw('submissions.score >= (assignments.max_score * 0.6)');
+            })
+            ->distinct('assignment_id')
+            ->count('assignment_id');
+
+        $completedItems = $completedLessons + $completedQuizzes + $completedAssignments;
+        $percentage = $totalContent > 0 ? round(($completedItems / $totalContent) * 100, 2) : 0;
+
+        // Get last accessed lesson from lesson_progress
+        $lastLessonProgress = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
+            ->orderBy('updated_at', 'desc')
+            ->first();
+
+        $lastLesson = null;
+        $lastUnit = null;
+        
+        if ($lastLessonProgress && $lastLessonProgress->lesson_id) {
+            $lastLesson = \Modules\Schemes\Models\Lesson::with('unit')
+                ->find($lastLessonProgress->lesson_id);
+            
+            if ($lastLesson) {
+                $lastUnit = $lastLesson->unit;
+            }
+        }
+
+        return [
+            'percentage' => $percentage,
+            'completed_items' => $completedItems,
+            'total_items' => $totalContent,
+            'last_accessed_lesson' => $lastLesson ? [
+                'id' => $lastLesson->id,
+                'title' => $lastLesson->title,
+                'slug' => $lastLesson->slug,
+            ] : null,
+            'last_accessed_unit' => $lastUnit ? [
+                'id' => $lastUnit->id,
+                'title' => $lastUnit->title,
+                'slug' => $lastUnit->slug,
+            ] : null,
+        ];
     }
 }
