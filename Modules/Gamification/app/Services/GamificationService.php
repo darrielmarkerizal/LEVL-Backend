@@ -93,22 +93,123 @@ class GamificationService implements GamificationServiceInterface
         return $this->pointManager->getAchievements($stats->total_xp, $stats->global_level);
     }
 
-    public function getSummary(int $userId): array
+    public function getSummary(int $userId, string $period = 'all_time', ?string $month = null): array
     {
         $stats = $this->pointManager->getOrCreateStats($userId);
-        $rankData = $this->leaderboardService->getUserRank($userId);
-        $badgesCount = $this->badgeManager->countUserBadges($userId);
+        $rankData = $this->leaderboardService->getUserRank($userId, $period, $month);
+        
+        // Get XP for the specified period/month
+        $periodXp = $this->getPeriodXp($userId, $period, $month);
+        
+        // Get badges count for the specified period/month
+        $badgesCount = $this->getBadgesCountForPeriod($userId, $period, $month);
 
         return [
-            'total_xp' => $stats->total_xp,
-            'level' => $stats->global_level,
-            'xp_to_next_level' => $stats->xp_to_next_level,
-            'progress_to_next_level' => $stats->progress_to_next_level,
-            'badges_count' => $badgesCount,
-            'current_streak' => $stats->current_streak,
-            'longest_streak' => $stats->longest_streak,
-            'rank' => $rankData['rank'],
+            'xp' => [
+                'total' => $stats->total_xp,
+                'today' => $this->getPeriodXp($userId, 'today'),
+                'this_week' => $this->getPeriodXp($userId, 'this_week'),
+                'this_month' => $this->getPeriodXp($userId, 'this_month'),
+                'period' => $periodXp, // XP for requested period/month
+            ],
+            'level' => [
+                'current' => $stats->global_level,
+                'name' => $this->getLevelName($stats->global_level),
+                'progress_percentage' => $stats->progress_to_next_level,
+                'xp_to_next_level' => $stats->xp_to_next_level,
+            ],
+            'badges' => [
+                'total_earned' => $this->badgeManager->countUserBadges($userId),
+                'period_earned' => $badgesCount, // Badges earned in requested period/month
+            ],
+            'leaderboard' => [
+                'global_rank' => $rankData['rank'],
+                'total_students' => $this->getTotalStudents(),
+            ],
+            'activity' => [
+                'current_streak' => $stats->current_streak,
+                'longest_streak' => $stats->longest_streak,
+            ],
         ];
+    }
+    
+    private function getPeriodXp(int $userId, string $period, ?string $month = null): int
+    {
+        $query = \Modules\Gamification\Models\Point::where('user_id', $userId);
+        
+        // If month filter is present, use it
+        if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
+            try {
+                $date = \Carbon\Carbon::createFromFormat('Y-m', $month);
+                $query->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month);
+            } catch (\Exception $e) {
+                // Invalid date, fallback to period
+                $this->applyPeriodFilterToQuery($query, $period);
+            }
+        } else {
+            $this->applyPeriodFilterToQuery($query, $period);
+        }
+        
+        return (int) $query->sum('points');
+    }
+    
+    private function applyPeriodFilterToQuery($query, string $period): void
+    {
+        $dateColumn = 'created_at';
+        
+        match ($period) {
+            'today' => $query->whereDate($dateColumn, \Carbon\Carbon::today()),
+            'this_week' => $query->whereBetween($dateColumn, [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]),
+            'this_month' => $query->whereMonth($dateColumn, \Carbon\Carbon::now()->month)
+                ->whereYear($dateColumn, \Carbon\Carbon::now()->year),
+            'this_year' => $query->whereYear($dateColumn, \Carbon\Carbon::now()->year),
+            default => null,
+        };
+    }
+    
+    private function getBadgesCountForPeriod(int $userId, string $period, ?string $month = null): int
+    {
+        $query = \Modules\Gamification\Models\UserBadge::where('user_id', $userId);
+        
+        // If month filter is present, use it
+        if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
+            try {
+                $date = \Carbon\Carbon::createFromFormat('Y-m', $month);
+                $query->whereYear('earned_at', $date->year)
+                    ->whereMonth('earned_at', $date->month);
+            } catch (\Exception $e) {
+                // Invalid date, fallback to period
+                $this->applyPeriodFilterToBadges($query, $period);
+            }
+        } else {
+            $this->applyPeriodFilterToBadges($query, $period);
+        }
+        
+        return $query->count();
+    }
+    
+    private function applyPeriodFilterToBadges($query, string $period): void
+    {
+        match ($period) {
+            'today' => $query->whereDate('earned_at', \Carbon\Carbon::today()),
+            'this_week' => $query->whereBetween('earned_at', [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]),
+            'this_month' => $query->whereMonth('earned_at', \Carbon\Carbon::now()->month)
+                ->whereYear('earned_at', \Carbon\Carbon::now()->year),
+            'this_year' => $query->whereYear('earned_at', \Carbon\Carbon::now()->year),
+            default => null,
+        };
+    }
+    
+    private function getLevelName(int $level): string
+    {
+        $levelConfig = \Modules\Common\Models\LevelConfig::where('level', $level)->first();
+        return $levelConfig?->name ?? 'Level ' . $level;
+    }
+    
+    private function getTotalStudents(): int
+    {
+        return \Modules\Auth\Models\User::role('Student')->count();
     }
 
     public function getUnitLevels(int $userId, int $courseId): Collection

@@ -21,7 +21,10 @@ class GamificationController extends Controller
     public function summary(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
-        $summary = $this->gamificationService->getSummary($userId);
+        $period = $request->input('filter.period', 'all_time');
+        $month = $request->input('filter.month');
+        
+        $summary = $this->gamificationService->getSummary($userId, $period, $month);
 
         return $this->success($summary, __('gamification.summary_retrieved'));
     }

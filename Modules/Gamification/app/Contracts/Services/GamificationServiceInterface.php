@@ -40,7 +40,7 @@ interface GamificationServiceInterface
 
     public function getAchievements(int $userId): array;
 
-    public function getSummary(int $userId): array;
+    public function getSummary(int $userId, string $period = 'all_time', ?string $month = null): array;
 
     public function getUnitLevels(int $userId, int $courseId): \Illuminate\Support\Collection;
 }

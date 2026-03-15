@@ -1091,7 +1091,7 @@ pm.test("Has rank data", () => {
 
 ### 5.1. GET [Mobile] Statistik - Dashboard Gamifikasi
 
-Melihat ringkasan statistik gamifikasi lengkap.
+Melihat ringkasan statistik gamifikasi lengkap dengan filter period dan month.
 
 #### Endpoint
 ```
@@ -1103,6 +1103,32 @@ GET /user/gamification-summary
 Bearer Token Required (Student only)
 ```
 
+#### Query Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `filter[period]` | string | ❌ No | all_time | Period: `today`, `this_week`, `this_month`, `this_year`, `all_time` |
+| `filter[month]` | string | ❌ No | - | Filter by specific month (YYYY-MM): `2026-01`, `2026-02`, etc |
+
+#### Valid Values
+
+**filter[period]**:
+- `today` - Statistik hari ini
+- `this_week` - Statistik minggu ini (Senin - Minggu)
+- `this_month` - Statistik bulan ini (tanggal 1 sampai hari ini)
+- `this_year` - Statistik tahun ini (1 Januari sampai hari ini)
+- `all_time` - Statistik sepanjang waktu (default)
+
+**filter[month]** (Format: YYYY-MM):
+- `2026-01` - Statistik Januari 2026
+- `2026-02` - Statistik Februari 2026
+- `2026-03` - Statistik Maret 2026
+- dst.
+
+**Catatan**:
+- Jika `filter[month]` digunakan, `filter[period]` akan diabaikan
+- `this_month` menghitung dari tanggal 1 bulan berjalan sampai hari ini
+
 #### Response Success (200 OK)
 ```json
 {
@@ -1113,7 +1139,8 @@ Bearer Token Required (Student only)
       "total": 860,
       "today": 45,
       "this_week": 180,
-      "this_month": 520
+      "this_month": 520,
+      "period": 520
     },
     "level": {
       "current": 5,
@@ -1123,27 +1150,15 @@ Bearer Token Required (Student only)
     },
     "badges": {
       "total_earned": 12,
-      "total_available": 50,
-      "recent": [
-        {
-          "id": 5,
-          "name": "Quiz Champion",
-          "icon_url": "https://api.levl.id/storage/badges/quiz-champion.png",
-          "earned_at": "2026-03-10T14:30:00.000000Z"
-        }
-      ]
+      "period_earned": 3
     },
     "leaderboard": {
       "global_rank": 15,
-      "total_students": 150,
-      "percentile": 90
+      "total_students": 150
     },
     "activity": {
-      "lessons_completed": 45,
-      "assignments_submitted": 12,
-      "quizzes_completed": 8,
-      "forum_posts": 5,
-      "streak_days": 7
+      "current_streak": 7,
+      "longest_streak": 14
     }
   },
   "xp_info": {
@@ -1167,8 +1182,17 @@ Bearer Token Required (Student only)
 // Headers
 Authorization: Bearer {{auth_token}}
 
-// URL
+// URL - All Time Summary (Default)
 {{base_url}}/user/gamification-summary
+
+// URL - This Month Summary
+{{base_url}}/user/gamification-summary?filter[period]=this_month
+
+// URL - Specific Month Summary (January 2026)
+{{base_url}}/user/gamification-summary?filter[month]=2026-01
+
+// URL - Specific Month Summary (February 2026)
+{{base_url}}/user/gamification-summary?filter[month]=2026-02
 
 // Tests
 pm.test("Status 200", () => pm.response.to.have.status(200));
@@ -1183,6 +1207,11 @@ pm.test("Has XP info", () => {
     const xpInfo = pm.response.json().xp_info;
     pm.expect(xpInfo).to.have.property('total_xp');
     pm.expect(xpInfo).to.have.property('level_info');
+});
+pm.test("Has period data", () => {
+    const data = pm.response.json().data;
+    pm.expect(data.xp).to.have.property('period');
+    pm.expect(data.badges).to.have.property('period_earned');
 });
 ```
 
