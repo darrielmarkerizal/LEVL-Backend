@@ -30,6 +30,7 @@ class LeaderboardController extends Controller
      * @unauthenticated
      *
      * @queryParam filter.period string The time period to filter by. Example: today, this_week, this_month, this_year, all_time
+     * @queryParam filter.month string Filter by specific month (YYYY-MM). Example: 2026-01, 2026-02
      * @queryParam per_page int Number of items per page. Example: 15
      * @queryParam page int The page number. Example: 1
      */
@@ -39,6 +40,7 @@ class LeaderboardController extends Controller
         $page = (int) ($request->input('page', 1));
         $courseId = null;
         $period = $request->input('filter.period', 'all_time');
+        $month = $request->input('filter.month');
         $search = $request->query('search');
 
         $result = $this->leaderboardService->getLeaderboardWithRanks(
@@ -47,7 +49,8 @@ class LeaderboardController extends Controller
             $courseId,
             $request->user()?->id,
             $period,
-            $search
+            $search,
+            $month
         );
 
         $result['leaderboard']->appends($request->query());
@@ -64,7 +67,8 @@ class LeaderboardController extends Controller
     public function myRank(Request $request): JsonResponse
     {
         $period = $request->input('filter.period', 'all_time');
-        $rankData = $this->leaderboardService->getUserRank($request->user()->id, $period);
+        $month = $request->input('filter.month');
+        $rankData = $this->leaderboardService->getUserRank($request->user()->id, $period, $month);
 
         return $this->success($rankData, __('gamification.rank_retrieved'));
     }
