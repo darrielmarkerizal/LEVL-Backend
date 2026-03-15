@@ -7,22 +7,64 @@ namespace Modules\Dashboard\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Modules\Dashboard\Contracts\Services\DashboardServiceInterface;
+use Illuminate\Http\Request;
+use Modules\Dashboard\Services\DashboardService;
 
 class DashboardController extends Controller
 {
     use ApiResponse;
 
     public function __construct(
-        private readonly DashboardServiceInterface $service
+        private readonly DashboardService $dashboardService
     ) {}
 
-    public function index(): JsonResponse
+    /**
+     * Get student dashboard overview
+     */
+    public function index(Request $request): JsonResponse
     {
-        $actor = auth('api')->user();
+        $userId = $request->user()->id;
+        $data = $this->dashboardService->getOverview($userId);
 
-        $data = $this->service->getDashboardData($actor);
+        return $this->success($data, __('messages.dashboard_retrieved'));
+    }
 
-        return $this->success($data, 'messages.dashboard.retrieved');
+    /**
+     * Get recent learning activities
+     */
+    public function recentLearning(Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $limit = min((int) $request->get('limit', 1), 10);
+        
+        $data = $this->dashboardService->getRecentLearning($userId, $limit);
+
+        return $this->success($data, __('messages.recent_learning_retrieved'));
+    }
+
+    /**
+     * Get recent achievements (badges)
+     */
+    public function recentAchievements(Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $limit = min((int) $request->get('limit', 4), 20);
+        
+        $data = $this->dashboardService->getRecentAchievements($userId, $limit);
+
+        return $this->success($data, __('messages.recent_achievements_retrieved'));
+    }
+
+    /**
+     * Get recommended courses
+     */
+    public function recommendedCourses(Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $limit = min((int) $request->get('limit', 2), 10);
+        
+        $data = $this->dashboardService->getRecommendedCourses($userId, $limit);
+
+        return $this->success($data, __('messages.recommended_courses_retrieved'));
     }
 }
