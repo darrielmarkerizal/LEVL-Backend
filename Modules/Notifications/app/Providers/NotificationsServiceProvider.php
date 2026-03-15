@@ -53,7 +53,10 @@ class NotificationsServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Notifications\Console\Commands\PublishScheduledPostsCommand::class,
+            \Modules\Notifications\Console\Commands\CleanupOrphanedMediaCommand::class,
+        ]);
     }
 
     /**

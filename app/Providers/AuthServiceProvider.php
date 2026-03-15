@@ -15,6 +15,7 @@ class AuthServiceProvider extends ServiceProvider
         \Modules\Schemes\Models\Tag::class => \App\Policies\TagPolicy::class,
         \Modules\Grading\Models\Grade::class => \App\Policies\GradePolicy::class,
         \Modules\Auth\Models\User::class => \Modules\Auth\Policies\UserPolicy::class,
+        \Modules\Notifications\app\Models\Post::class => \Modules\Notifications\Policies\PostPolicy::class,
     ];
 
     public function boot(): void

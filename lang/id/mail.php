@@ -176,6 +176,20 @@ return [
         'footer' => 'Email ini dikirim secara otomatis. Mohon tidak membalas email ini.',
     ],
 
+    // Notifications Emails
+    'post_published' => [
+        'subject' => 'Pengumuman Baru Dipublikasikan',
+        'title' => 'Pengumuman Baru Dipublikasikan',
+        'greeting' => 'Halo :name,',
+        'body' => 'Pengumuman baru telah dipublikasikan yang mungkin menarik bagi Anda:',
+        'post_title_label' => 'Judul',
+        'category_label' => 'Kategori',
+        'excerpt_label' => 'Pratinjau',
+        'button' => 'Baca Pengumuman Lengkap',
+        'info' => 'Pengumuman ini dipublikasikan khusus untuk peran Anda. Klik tombol di atas untuk membaca konten lengkap.',
+        'footer' => 'Email ini dikirim secara otomatis. Mohon tidak membalas email ini.',
+    ],
+
     // Common
     'common' => [
         'fallback_url_text' => 'Jika tombol di atas tidak berfungsi, salin dan tempel URL berikut ke browser Anda:',

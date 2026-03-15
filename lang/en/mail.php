@@ -176,6 +176,20 @@ return [
         'footer' => 'This email was sent automatically. Please do not reply to this email.',
     ],
 
+    // Notifications Emails
+    'post_published' => [
+        'subject' => 'New Announcement Published',
+        'title' => 'New Announcement Published',
+        'greeting' => 'Hello :name,',
+        'body' => 'A new announcement has been published that may be of interest to you:',
+        'post_title_label' => 'Title',
+        'category_label' => 'Category',
+        'excerpt_label' => 'Preview',
+        'button' => 'Read Full Announcement',
+        'info' => 'This announcement was published specifically for your role. Click the button above to read the full content.',
+        'footer' => 'This email was sent automatically. Please do not reply to this email.',
+    ],
+
     // Common
     'common' => [
         'fallback_url_text' => 'If the button above does not work, copy and paste the following URL into your browser:',
