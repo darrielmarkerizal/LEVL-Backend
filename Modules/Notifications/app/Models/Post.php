@@ -2,6 +2,7 @@
 
 namespace Modules\Notifications\Models;
 
+use App\Models\Concerns\TracksTrashBin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,7 +17,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Post extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, PgSearchable;
+    use HasFactory, SoftDeletes, InteractsWithMedia, PgSearchable, TracksTrashBin;
 
     protected array $searchable_columns = ['title', 'content'];
 

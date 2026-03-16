@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Forums\Models;
 
+use App\Models\Concerns\TracksTrashBin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,7 +17,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Thread extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, PgSearchable, SoftDeletes;
+    use HasFactory, InteractsWithMedia, PgSearchable, SoftDeletes, TracksTrashBin;
 
     protected array $searchable_columns = [
         'title',

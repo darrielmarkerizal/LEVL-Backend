@@ -2,6 +2,7 @@
 
 namespace Modules\Content\Models;
 
+use App\Models\Concerns\TracksTrashBin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,7 +20,7 @@ use Spatie\Sluggable\SlugOptions;
 
 class Announcement extends Model
 {
-    use HasContentRevisions, HasFactory, HasSlug, SoftDeletes;
+    use HasContentRevisions, HasFactory, HasSlug, SoftDeletes, TracksTrashBin;
 
     protected static function newFactory()
     {

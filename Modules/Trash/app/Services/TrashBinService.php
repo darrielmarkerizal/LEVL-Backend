@@ -106,7 +106,7 @@ class TrashBinService
                 'root_resource_id' => $root['id'],
                 'original_status' => $this->context->originalStatusByModel[$key] ?? null,
                 'trashed_status' => $this->context->trashedStatusByModel[$key] ?? null,
-                'deleted_by' => $this->resolveActorId(),
+                'deleted_by' => $this->resolveActorIdFromModel($model),
                 'deleted_at' => now(),
                 'expires_at' => now()->addDays(self::RETENTION_DAYS),
                 'metadata' => [
@@ -507,9 +507,21 @@ class TrashBinService
 
     private function resolveActorId(): ?int
     {
+        // Try to get from auth context first
         $id = auth()->id();
 
         return $id ? (int) $id : null;
+    }
+
+    private function resolveActorIdFromModel(Model $model): ?int
+    {
+        // First try to get from model's deleted_by attribute
+        if (isset($model->deleted_by) && $model->deleted_by !== null) {
+            return (int) $model->deleted_by;
+        }
+
+        // Fallback to auth context
+        return $this->resolveActorId();
     }
 
     private function extractDisplayTitle(Model $model): ?string

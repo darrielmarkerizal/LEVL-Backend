@@ -26,9 +26,9 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
     public function paginate(User $actor, array $params): LengthAwarePaginator
     {
-        [$isSuperadmin, $courseIds] = $this->resolveAccessContext($actor);
+        [$isFullAccess, $courseIds] = $this->resolveAccessContext($actor);
 
-        return $this->repository->paginateForAccess($actor->id, $isSuperadmin, $courseIds, $params);
+        return $this->repository->paginateForAccess($actor->id, $isFullAccess, $courseIds, $params);
     }
 
     public function restore(User $actor, int $trashBinId): array
@@ -47,12 +47,12 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
     {
         $this->assertHasTrashRole($actor);
 
-        [$isSuperadmin, $courseIds] = $this->resolveAccessContext($actor);
+        [$isFullAccess, $courseIds] = $this->resolveAccessContext($actor);
 
         // Get all bins based on access
         $bins = $this->repository->getAllForAccess(
-            $isSuperadmin ? null : $actor->id,
-            $isSuperadmin,
+            $isFullAccess ? null : $actor->id,
+            $isFullAccess,
             $courseIds,
             $resourceType
         );
@@ -119,12 +119,12 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
     {
         $this->assertHasTrashRole($actor);
 
-        [$isSuperadmin, $courseIds] = $this->resolveAccessContext($actor);
+        [$isFullAccess, $courseIds] = $this->resolveAccessContext($actor);
 
         // Get all bins based on access
         $bins = $this->repository->getAllForAccess(
-            $isSuperadmin ? null : $actor->id,
-            $isSuperadmin,
+            $isFullAccess ? null : $actor->id,
+            $isFullAccess,
             $courseIds,
             $resourceType
         );
@@ -163,9 +163,9 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
     public function getSourceTypes(User $actor): array
     {
-        [$isSuperadmin, $courseIds] = $this->resolveAccessContext($actor);
+        [$isFullAccess, $courseIds] = $this->resolveAccessContext($actor);
 
-        if ($isSuperadmin) {
+        if ($isFullAccess) {
             return $this->trashService->toSourceTypeOptions($this->repository->getSourceTypes());
         }
 
@@ -192,9 +192,14 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
             throw new AuthorizationException(__('messages.forbidden'));
         }
 
+        // Superadmin and Admin have full access
+        if ($actor->hasRole('Superadmin') || $actor->hasRole('Admin')) {
+            return;
+        }
+
+        // Instructor can access if they deleted it or manage the course
         if (
-            $actor->hasRole('Superadmin')
-            || (int) $bin->deleted_by === (int) $actor->id
+            (int) $bin->deleted_by === (int) $actor->id
             || $this->canManageBinCourse($actor, $bin)
         ) {
             return;
@@ -212,7 +217,8 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
     private function canManageBinCourse(User $actor, TrashBin $bin): bool
     {
-        if (! ($actor->hasRole('Admin') || $actor->hasRole('Instructor'))) {
+        // Only Instructor needs course-based filtering
+        if (! $actor->hasRole('Instructor')) {
             return false;
         }
 
@@ -232,11 +238,12 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
     private function resolveAccessContext(User $actor): array
     {
-        $isSuperadmin = $actor->hasRole('Superadmin');
-        if ($isSuperadmin) {
+        // Superadmin and Admin have full access to all trash items
+        if ($actor->hasRole('Superadmin') || $actor->hasRole('Admin')) {
             return [true, []];
         }
 
+        // Instructor only sees trash from courses they manage
         $managedCourseIds = $actor->managedCourses()->pluck('courses.id')->toArray();
         $instructorCourseIds = Course::query()->where('instructor_id', $actor->id)->pluck('id')->toArray();
         $courseIds = array_values(array_unique(array_map('intval', array_merge($managedCourseIds, $instructorCourseIds))));

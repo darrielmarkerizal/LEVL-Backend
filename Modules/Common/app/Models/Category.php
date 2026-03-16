@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Common\Models;
 
+use App\Models\Concerns\TracksTrashBin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,7 +15,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Category extends Model
 {
-    use HasFactory, LogsActivity, PgSearchable, SoftDeletes;
+    use HasFactory, LogsActivity, PgSearchable, SoftDeletes, TracksTrashBin;
 
     protected array $searchable_columns = [
         'name',
