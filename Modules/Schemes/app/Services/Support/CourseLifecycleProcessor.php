@@ -48,7 +48,13 @@ class CourseLifecycleProcessor
                     $tags = [(string) $tags];
                 }
 
-                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json']);
+                // Extract course_admins before removing from attributes
+                $courseAdmins = $attributes['course_admins'] ?? null;
+                if (! is_array($courseAdmins) && $courseAdmins !== null) {
+                    $courseAdmins = [(int) $courseAdmins];
+                }
+
+                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json', 'course_admins']);
 
                 $course = $this->repository->create($attributes);
 
@@ -56,8 +62,16 @@ class CourseLifecycleProcessor
                     $this->tagService->syncCourseTags($course, $tags);
                 }
 
+                // Sync course admins
+                $adminIds = [];
                 if ($actor && $actor->hasRole(['Superadmin', 'Admin'])) {
-                    $course->admins()->syncWithoutDetaching([$actor->id]);
+                    $adminIds[] = $actor->id;
+                }
+                if (is_array($courseAdmins) && !empty($courseAdmins)) {
+                    $adminIds = array_merge($adminIds, $courseAdmins);
+                }
+                if (!empty($adminIds)) {
+                    $course->admins()->sync(array_unique($adminIds));
                 }
 
                 $this->handleMedia($course, $files);
@@ -96,12 +110,23 @@ class CourseLifecycleProcessor
                     $tags = [(string) $tags];
                 }
 
-                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json']);
+                // Extract course_admins before removing from attributes
+                $courseAdmins = $attributes['course_admins'] ?? null;
+                if (! is_array($courseAdmins) && $courseAdmins !== null) {
+                    $courseAdmins = [(int) $courseAdmins];
+                }
+
+                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json', 'course_admins']);
 
                 $this->repository->update($course, $attributes);
 
                 if ($hasTagsInput && is_array($tags)) {
                     $this->tagService->syncCourseTags($course, $tags);
+                }
+
+                // Sync course admins if provided
+                if (is_array($courseAdmins)) {
+                    $course->admins()->sync($courseAdmins);
                 }
 
                 $this->handleMedia($course, $files);
