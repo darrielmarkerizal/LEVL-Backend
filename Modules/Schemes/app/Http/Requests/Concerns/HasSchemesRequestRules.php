@@ -63,8 +63,8 @@ trait HasSchemesRequestRules
             'banner' => ['sometimes', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
             'status' => ['sometimes', Rule::enum(CourseStatus::class)],
             'instructor_id' => ['sometimes', 'integer', 'exists:users,id'],
-            'course_admins' => ['sometimes', 'array'],
-            'course_admins.*' => ['integer', 'exists:users,id'],
+            'instructor_ids' => ['sometimes', 'array'],
+            'instructor_ids.*' => ['integer', 'exists:users,id'],
         ];
     }
 
@@ -89,14 +89,14 @@ trait HasSchemesRequestRules
             'thumbnail.image' => __('validation.image', ['attribute' => __('validation.attributes.thumbnail')]),
             'banner.image' => __('validation.image', ['attribute' => __('validation.attributes.banner')]),
             'instructor_id.exists' => __('validation.exists', ['attribute' => __('validation.attributes.instructor')]),
-            'course_admins.*.exists' => __('validation.exists', ['attribute' => __('validation.attributes.course_admin')]),
-            'course_admins.*.integer' => __('validation.integer', ['attribute' => __('validation.attributes.course_admin')]),
+            'instructor_ids.*.exists' => __('validation.exists', ['attribute' => __('validation.attributes.instructor')]),
+            'instructor_ids.*.integer' => __('validation.integer', ['attribute' => __('validation.attributes.instructor')]),
+            'instructor_ids.array' => __('validation.array', ['attribute' => __('validation.attributes.instructors')]),
             'outcomes.*.string' => __('validation.string', ['attribute' => __('validation.attributes.outcome')]),
             'prereq.string' => __('validation.string', ['attribute' => __('validation.attributes.prerequisite')]),
             'tags.*.string' => __('validation.string', ['attribute' => __('validation.attributes.tag')]),
             'tags.array' => __('validation.array', ['attribute' => __('validation.attributes.tags')]),
             'outcomes.array' => __('validation.array', ['attribute' => __('validation.attributes.outcomes')]),
-            'course_admins.array' => __('validation.array', ['attribute' => __('validation.attributes.course_admins')]),
         ];
     }
 

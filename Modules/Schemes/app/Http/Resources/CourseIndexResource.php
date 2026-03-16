@@ -36,8 +36,8 @@ class CourseIndexResource extends JsonResource
             'category' => $this->whenLoaded('category'),
             'tags' => $this->whenLoaded('tags'),
             'instructor' => $this->whenLoaded('instructor', fn () => $this->mapUserSummary($this->instructor)),
-            'instructor_list' => $this->whenLoaded('admins', fn () => $this->mapUsersSummary($this->admins)),
-            'instructor_count' => $this->when(array_key_exists('admins_count', $this->getAttributes()), $this->admins_count),
+            'instructor_list' => $this->whenLoaded('instructors', fn () => $this->mapUsersSummary($this->instructors)),
+            'instructor_count' => $this->when(array_key_exists('instructors_count', $this->getAttributes()), $this->instructors_count),
             'enrollments_count' => $this->when(array_key_exists('enrollments_count', $this->getAttributes()), $this->enrollments_count),
         ];
 

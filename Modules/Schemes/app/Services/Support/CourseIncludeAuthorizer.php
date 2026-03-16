@@ -25,7 +25,7 @@ class CourseIncludeAuthorizer
     private const MANAGER_INCLUDES = [
         'enrollments',
         'enrollments.user',
-        'admins',
+        'instructors',
         'instructor',
     ];
 
@@ -56,11 +56,11 @@ class CourseIncludeAuthorizer
         }
 
         if ($user->hasRole('Admin')) {
-            return $course->admins()->where('user_id', $user->id)->exists();
+            return true; // Admins have global access to all courses
         }
 
         if ($user->hasRole('Instructor')) {
-            return $course->instructor_id === $user->id;
+            return $course->instructors()->where('user_id', $user->id)->exists();
         }
 
         return false;
@@ -81,8 +81,8 @@ class CourseIncludeAuthorizer
         if ($user) {
             if ($this->isManager($user, $course)) {
                 $allowed = array_merge($allowed, self::ENROLLED_STUDENT_INCLUDES, self::MANAGER_INCLUDES);
-                $allowed[] = \Spatie\QueryBuilder\AllowedInclude::relationship('instructorList', 'admins');
-                $allowed[] = \Spatie\QueryBuilder\AllowedInclude::count('instructorCount', 'admins');
+                $allowed[] = \Spatie\QueryBuilder\AllowedInclude::relationship('instructorList', 'instructors');
+                $allowed[] = \Spatie\QueryBuilder\AllowedInclude::count('instructorCount', 'instructors');
                 $allowed[] = \Spatie\QueryBuilder\AllowedInclude::count('enrollmentsCount', 'enrollments');
             } elseif ($this->isEnrolledStudent($user, $course)) {
                 $allowed = array_merge($allowed, self::ENROLLED_STUDENT_INCLUDES);
@@ -98,9 +98,9 @@ class CourseIncludeAuthorizer
 
         if ($user && $user->hasAnyRole(['Superadmin', 'Admin', 'Instructor'])) {
             $allowed[] = 'instructor';
-            $allowed[] = 'admins';
-            $allowed[] = \Spatie\QueryBuilder\AllowedInclude::relationship('instructorList', 'admins');
-            $allowed[] = \Spatie\QueryBuilder\AllowedInclude::count('instructorCount', 'admins');
+            $allowed[] = 'instructors';
+            $allowed[] = \Spatie\QueryBuilder\AllowedInclude::relationship('instructorList', 'instructors');
+            $allowed[] = \Spatie\QueryBuilder\AllowedInclude::count('instructorCount', 'instructors');
             $allowed[] = \Spatie\QueryBuilder\AllowedInclude::relationship('enrollments', 'enrollments');
             $allowed[] = \Spatie\QueryBuilder\AllowedInclude::count('enrollmentsCount', 'enrollments');
         }

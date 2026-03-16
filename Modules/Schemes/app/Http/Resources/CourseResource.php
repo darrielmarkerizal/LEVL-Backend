@@ -47,8 +47,8 @@ class CourseResource extends JsonResource
         if ($isManager) {
             $data['instructor'] = $this->whenLoaded('instructor', fn () => $this->mapUserSummary($this->instructor));
             $data['creator'] = $this->whenLoaded('admins', fn () => $this->mapUserSummary($this->creator));
-            $data['instructor_list'] = $this->whenLoaded('admins', fn () => $this->mapUsersSummary($this->admins));
-            $data['instructor_count'] = $this->when(array_key_exists('admins_count', $this->getAttributes()), $this->admins_count);
+            $data['instructor_list'] = $this->whenLoaded('instructors', fn () => $this->mapUsersSummary($this->instructors));
+            $data['instructor_count'] = $this->when(array_key_exists('instructors_count', $this->getAttributes()), $this->instructors_count);
             $data['enrollments_count'] = $this->when(array_key_exists('enrollments_count', $this->getAttributes()), $this->enrollments_count);
             $data['enrollments'] = $this->when(request()->has('include') && str_contains(request('include'), 'enrollments'), $this->whenLoaded('enrollments'));
         }

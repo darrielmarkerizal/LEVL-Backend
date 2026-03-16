@@ -28,6 +28,9 @@ class CourseLifecycleProcessor
     public function create(CreateCourseDTO|array $data, ?User $actor = null, array $files = []): Course
     {
         try {
+            // Disable automatic activity logging to prevent duplicate logs
+            activity()->disableLogging();
+            
             return DB::transaction(function () use ($data, $actor, $files) {
                 $attributes = $data instanceof CreateCourseDTO ? $data->toArrayWithoutNull() : $data;
 
@@ -48,13 +51,13 @@ class CourseLifecycleProcessor
                     $tags = [(string) $tags];
                 }
 
-                // Extract course_admins before removing from attributes
-                $courseAdmins = $attributes['course_admins'] ?? null;
-                if (! is_array($courseAdmins) && $courseAdmins !== null) {
-                    $courseAdmins = [(int) $courseAdmins];
+                // Extract instructor_ids before removing from attributes
+                $instructorIds = $attributes['instructor_ids'] ?? null;
+                if (! is_array($instructorIds) && $instructorIds !== null) {
+                    $instructorIds = [(int) $instructorIds];
                 }
 
-                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json', 'course_admins']);
+                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json', 'instructor_ids']);
 
                 $course = $this->repository->create($attributes);
 
@@ -62,35 +65,31 @@ class CourseLifecycleProcessor
                     $this->tagService->syncCourseTags($course, $tags);
                 }
 
-                // Sync course admins
-                $adminIds = [];
-                if ($actor && $actor->hasRole(['Superadmin', 'Admin'])) {
-                    $adminIds[] = $actor->id;
-                }
-                if (is_array($courseAdmins) && !empty($courseAdmins)) {
-                    $adminIds = array_merge($adminIds, $courseAdmins);
-                }
-                if (!empty($adminIds)) {
-                    $course->admins()->sync(array_unique($adminIds));
+                // Sync instructors
+                if (is_array($instructorIds) && !empty($instructorIds)) {
+                    $course->instructors()->sync($instructorIds);
                 }
 
                 $this->handleMedia($course, $files);
                 $this->cacheService->invalidateListings();
 
-                $course = $course->fresh(['tags']);
+                $course = $course->fresh(['tags', 'instructors']);
 
+                // Re-enable logging and create single activity log
+                activity()->enableLogging();
+                
                 if ($actor) {
-                    dispatch(new \App\Jobs\LogActivityJob([
-                        'log_name' => 'schemes',
-                        'causer_id' => $actor->id,
-                        'description' => "Created course: {$course->title} ({$course->code})",
-                        'properties' => ['course_id' => $course->id, 'action' => 'create'],
-                    ]));
+                    activity('schemes')
+                        ->causedBy($actor)
+                        ->performedOn($course)
+                        ->withProperties(['course_id' => $course->id, 'action' => 'create'])
+                        ->log("Created course: {$course->title} ({$course->code})");
                 }
 
                 return $course;
             });
         } catch (QueryException $e) {
+            activity()->enableLogging(); // Ensure re-enabled on error
             throw new DuplicateResourceException($this->parseCourseDuplicates($e));
         }
     }
@@ -98,6 +97,9 @@ class CourseLifecycleProcessor
     public function update(Course $course, UpdateCourseDTO|array $data, array $files = []): Course
     {
         try {
+            // Disable automatic activity logging to prevent duplicate logs
+            activity()->disableLogging();
+            
             return DB::transaction(function () use ($course, $data, $files) {
                 $attributes = $data instanceof UpdateCourseDTO ? $data->toArrayWithoutNull() : $data;
 
@@ -110,13 +112,13 @@ class CourseLifecycleProcessor
                     $tags = [(string) $tags];
                 }
 
-                // Extract course_admins before removing from attributes
-                $courseAdmins = $attributes['course_admins'] ?? null;
-                if (! is_array($courseAdmins) && $courseAdmins !== null) {
-                    $courseAdmins = [(int) $courseAdmins];
+                // Extract instructor_ids before removing from attributes
+                $instructorIds = $attributes['instructor_ids'] ?? null;
+                if (! is_array($instructorIds) && $instructorIds !== null) {
+                    $instructorIds = [(int) $instructorIds];
                 }
 
-                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json', 'course_admins']);
+                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json', 'instructor_ids']);
 
                 $this->repository->update($course, $attributes);
 
@@ -124,29 +126,32 @@ class CourseLifecycleProcessor
                     $this->tagService->syncCourseTags($course, $tags);
                 }
 
-                // Sync course admins if provided
-                if (is_array($courseAdmins)) {
-                    $course->admins()->sync($courseAdmins);
+                // Sync instructors if provided
+                if (is_array($instructorIds)) {
+                    $course->instructors()->sync($instructorIds);
                 }
 
                 $this->handleMedia($course, $files);
                 $this->cacheService->invalidateCourse($course->id, $course->slug);
 
-                $updatedCourse = $course->fresh(['tags']);
+                $updatedCourse = $course->fresh(['tags', 'instructors']);
 
+                // Re-enable logging and create single activity log
+                activity()->enableLogging();
+                
                 $actor = auth()->user();
                 if ($actor) {
-                    dispatch(new \App\Jobs\LogActivityJob([
-                        'log_name' => 'schemes',
-                        'causer_id' => $actor->id,
-                        'description' => "Updated course: {$updatedCourse->title}",
-                        'properties' => ['course_id' => $course->id, 'action' => 'update', 'changes' => $attributes],
-                    ]));
+                    activity('schemes')
+                        ->causedBy($actor)
+                        ->performedOn($updatedCourse)
+                        ->withProperties(['course_id' => $course->id, 'action' => 'update', 'changes' => $attributes])
+                        ->log("Updated course: {$updatedCourse->title}");
                 }
 
                 return $updatedCourse;
             });
         } catch (QueryException $e) {
+            activity()->enableLogging(); // Ensure re-enabled on error
             throw new DuplicateResourceException($this->parseCourseDuplicates($e));
         }
     }

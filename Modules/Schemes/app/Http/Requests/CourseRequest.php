@@ -32,7 +32,7 @@ class CourseRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $fields = ['tags', 'outcomes', 'course_admins'];
+        $fields = ['tags', 'outcomes', 'instructor_ids'];
         $payload = [];
         foreach ($fields as $field) {
             $val = $this->input($field);

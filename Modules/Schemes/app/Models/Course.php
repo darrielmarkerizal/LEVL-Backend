@@ -247,11 +247,11 @@ class Course extends Model implements HasMedia
 
     public function getCreatorAttribute()
     {
-        if ($this->relationLoaded('admins')) {
-            return $this->admins->sortBy('pivot.created_at')->first();
+        if ($this->relationLoaded('instructors')) {
+            return $this->instructors->sortBy('pivot.created_at')->first();
         }
 
-        return $this->admins()->orderBy('course_admins.created_at', 'asc')->first();
+        return $this->instructors()->orderBy('course_admins.created_at', 'asc')->first();
     }
 
     public function deletedBy(): BelongsTo
@@ -259,7 +259,7 @@ class Course extends Model implements HasMedia
         return $this->belongsTo(\Modules\Auth\Models\User::class, 'deleted_by');
     }
 
-    public function admins(): BelongsToMany
+    public function instructors(): BelongsToMany
     {
         return $this->belongsToMany(
             \Modules\Auth\Models\User::class,
@@ -269,20 +269,15 @@ class Course extends Model implements HasMedia
         )->withTimestamps();
     }
 
-    public function courseAdmins(): HasMany
+    public function hasInstructorAssignment($user): bool
     {
-        return $this->hasMany(\Modules\Schemes\Models\CourseAdmin::class);
-    }
-
-    public function hasAdmin($user): bool
-    {
-        if ($this->relationLoaded('admins')) {
+        if ($this->relationLoaded('instructors')) {
             $userId = is_object($user) ? $user->id : $user;
 
-            return $this->admins->contains('id', $userId);
+            return $this->instructors->contains('id', $userId);
         }
 
-        return $this->admins()
+        return $this->instructors()
             ->where('user_id', is_object($user) ? $user->id : $user)
             ->exists();
     }
