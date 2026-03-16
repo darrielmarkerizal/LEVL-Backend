@@ -24,17 +24,23 @@ return [
     | processed by separate workers for better resource management.
     |
     | Queue Priority (high to low):
-    | 1. grading - Grade recalculation and bulk operations (user-facing)
-    | 2. notifications - Notification delivery
-    | 3. file-processing - File validation and storage
-    | 4. default - General background tasks
+    | 1. emails-critical - Critical auth emails (password reset, verification)
+    | 2. emails-transactional - Transactional emails (enrollment, notifications)
+    | 3. grading - Grade recalculation and bulk operations (user-facing)
+    | 4. notifications - In-app notification delivery
+    | 5. file-processing - File validation and storage
+    | 6. trash - Trash bin operations (delete, restore)
+    | 7. default - General background tasks
     |
     */
 
     'queues' => [
+        'emails-critical' => env('QUEUE_EMAILS_CRITICAL', 'emails-critical'),
+        'emails-transactional' => env('QUEUE_EMAILS_TRANSACTIONAL', 'emails-transactional'),
         'grading' => env('QUEUE_GRADING', 'grading'),
         'notifications' => env('QUEUE_NOTIFICATIONS', 'notifications'),
         'file-processing' => env('QUEUE_FILE_PROCESSING', 'file-processing'),
+        'trash' => env('QUEUE_TRASH', 'trash'),
         'default' => env('QUEUE_DEFAULT', 'default'),
     ],
 
@@ -89,9 +95,9 @@ return [
 
         'redis' => [
             'driver' => 'redis',
-            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'queue'),
             'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
+            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 180),
             'block_for' => null,
             'after_commit' => false,
         ],

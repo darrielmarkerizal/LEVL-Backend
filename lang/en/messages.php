@@ -248,6 +248,8 @@ return [
         'delete_queued'                => 'Course deletion has been queued and is being processed in the background.',
         'published'                    => 'Course published successfully.',
         'unpublished'                  => 'Course unpublished successfully.',
+        'archived'                     => 'Course archived successfully.',
+        'unarchived'                   => 'Course unarchived successfully.',
         'enrollment_settings_updated'  => 'Enrollment settings updated successfully.',
         'list_retrieved'               => 'Course list retrieved successfully.',
         'not_found'                    => 'The requested course could not be found.',

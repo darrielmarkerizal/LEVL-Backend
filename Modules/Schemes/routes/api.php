@@ -37,6 +37,12 @@ Route::prefix('v1')->scopeBindings()->group(function () {
         Route::put('courses/{course:slug}/unpublish', [CourseController::class, 'unpublish'])
             ->middleware('can:update,course')
             ->name('courses.unpublish');
+        Route::put('courses/{course:slug}/archive', [CourseController::class, 'archive'])
+            ->middleware('can:update,course')
+            ->name('courses.archive');
+        Route::put('courses/{course:slug}/unarchive', [CourseController::class, 'unarchive'])
+            ->middleware('can:update,course')
+            ->name('courses.unarchive');
 
         // Enrollment key management
         Route::post('courses/{course:slug}/enrollment-key/generate', [CourseController::class, 'generateEnrollmentKey'])

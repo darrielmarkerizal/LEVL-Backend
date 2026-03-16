@@ -56,7 +56,9 @@ class AccountDeletionService
         $frontendUrl = config('app.frontend_url');
         $verifyUrl = $frontendUrl.'/profile/account/delete/confirm?token='.$token.'&uuid='.$uuid;
 
-        Mail::to($user->email)->send(new \Modules\Mail\Mail\Auth\AccountDeletionVerificationMail($user->email, $user->name, $verifyUrl, $ttlMinutes));
+        Mail::to($user->email)
+            ->onQueue('emails-critical')
+            ->queue(new \Modules\Mail\Mail\Auth\AccountDeletionVerificationMail($user->email, $user->name, $verifyUrl, $ttlMinutes));
 
         return $uuid;
     }

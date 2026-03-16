@@ -124,6 +124,26 @@ class CourseController extends Controller
         return $this->success(new CourseResource($updated), __('messages.courses.unpublished'));
     }
 
+    public function archive(Course $course)
+    {
+        $courseWithInstructors = $this->service->findWithInstructors($course->id);
+        $this->authorize('update', $courseWithInstructors);
+
+        $updated = $this->service->archive($course->id);
+
+        return $this->success(new CourseResource($updated), __('messages.courses.archived'));
+    }
+
+    public function unarchive(Course $course)
+    {
+        $courseWithInstructors = $this->service->findWithInstructors($course->id);
+        $this->authorize('update', $courseWithInstructors);
+
+        $updated = $this->service->unarchive($course->id);
+
+        return $this->success(new CourseResource($updated), __('messages.courses.unarchived'));
+    }
+
     public function generateEnrollmentKey(Course $course)
     {
         $courseWithInstructors = $this->service->findWithInstructors($course->id);

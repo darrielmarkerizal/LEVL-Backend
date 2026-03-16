@@ -104,6 +104,20 @@ class CourseService implements CourseServiceInterface
         return $this->publicationProcessor->unpublish($course);
     }
 
+    public function archive(int $id): Course
+    {
+        $course = $this->findOrFail($id);
+
+        return $this->publicationProcessor->archive($course);
+    }
+
+    public function unarchive(int $id): Course
+    {
+        $course = $this->findOrFail($id);
+
+        return $this->publicationProcessor->unarchive($course);
+    }
+
     public function updateEnrollmentSettings(int $id, array $data): array
     {
         $course = $this->findOrFail($id);

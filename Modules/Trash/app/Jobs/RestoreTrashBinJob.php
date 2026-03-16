@@ -19,13 +19,13 @@ class RestoreTrashBinJob implements ShouldQueue
 
     public int $tries = 3;
 
-    public int $timeout = 900;
+    public int $timeout = 180;
 
     public function __construct(
         public int $trashBinId,
         public ?int $actorId = null,
     ) {
-        $this->onQueue('schemes');
+        $this->onQueue('trash');
     }
 
     public function handle(TrashBinService $trashBinService): void

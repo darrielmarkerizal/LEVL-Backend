@@ -4,12 +4,20 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Listeners;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Mail;
 use Modules\Mail\Mail\Schemes\CourseCompletedMail;
 use Modules\Schemes\Events\CourseCompleted;
 
-class SendCourseCompletedEmail
+class SendCourseCompletedEmail implements ShouldQueue
 {
+    use Queueable;
+
+    public string $queue = 'emails-transactional';
+    public int $tries = 3;
+    public int $timeout = 60;
+
     public function handle(CourseCompleted $event): void
     {
         $enrollment = $event->enrollment->fresh(['user', 'course']);
@@ -23,9 +31,9 @@ class SendCourseCompletedEmail
 
         $courseUrl = $this->getCourseUrl($course);
 
-        Mail::to($user->email)->send(
-            new CourseCompletedMail($user, $course, $enrollment, $courseUrl)
-        );
+        Mail::to($user->email)
+            ->onQueue('emails-transactional')
+            ->queue(new CourseCompletedMail($user, $course, $enrollment, $courseUrl));
     }
 
     private function getCourseUrl($course): string

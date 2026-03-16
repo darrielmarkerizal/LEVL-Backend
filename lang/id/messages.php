@@ -251,6 +251,8 @@ return [
         'delete_queued'                            => 'Permintaan penghapusan kursus diterima dan sedang diproses di latar belakang.',
         'published'                                => 'Kursus berhasil dipublikasikan.',
         'unpublished'                              => 'Publikasi kursus berhasil dibatalkan.',
+        'archived'                                 => 'Kursus berhasil diarsipkan.',
+        'unarchived'                               => 'Kursus berhasil dibatalkan dari arsip.',
         'enrollment_settings_updated'              => 'Pengaturan pendaftaran berhasil diperbarui.',
         'list_retrieved'                           => 'Daftar kursus berhasil diambil.',
         'not_found'                                => 'Kursus yang diminta tidak ditemukan.',

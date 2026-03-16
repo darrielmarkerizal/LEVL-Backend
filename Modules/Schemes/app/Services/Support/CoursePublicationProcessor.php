@@ -101,4 +101,47 @@ class CoursePublicationProcessor
 
         return $course->fresh();
     }
+
+    public function archive(Course $course): Course
+    {
+        $this->repository->update($course, [
+            'status' => 'archived',
+        ]);
+
+        $this->cacheService->invalidateCourse($course->id, $course->slug);
+
+        $actor = auth()->user();
+        if ($actor) {
+            dispatch(new \App\Jobs\LogActivityJob([
+                'log_name' => 'schemes',
+                'causer_id' => $actor->id,
+                'description' => "Archived course: {$course->title}",
+                'properties' => ['course_id' => $course->id, 'action' => 'archive'],
+            ]));
+        }
+
+        return $course->fresh();
+    }
+
+    public function unarchive(Course $course): Course
+    {
+        // When unarchiving, return to draft status
+        $this->repository->update($course, [
+            'status' => 'draft',
+        ]);
+
+        $this->cacheService->invalidateCourse($course->id, $course->slug);
+
+        $actor = auth()->user();
+        if ($actor) {
+            dispatch(new \App\Jobs\LogActivityJob([
+                'log_name' => 'schemes',
+                'causer_id' => $actor->id,
+                'description' => "Unarchived course: {$course->title}",
+                'properties' => ['course_id' => $course->id, 'action' => 'unarchive'],
+            ]));
+        }
+
+        return $course->fresh();
+    }
 }

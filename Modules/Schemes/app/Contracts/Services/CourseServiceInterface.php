@@ -27,6 +27,10 @@ interface CourseServiceInterface
 
     public function unpublish(int $id): ?Course;
 
+    public function archive(int $id): ?Course;
+
+    public function unarchive(int $id): ?Course;
+
     public function updateEnrollmentSettings(int $id, array $data): array;
 
     public function verifyEnrollmentKey(Course $course, string $plainKey): bool;

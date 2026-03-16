@@ -52,7 +52,9 @@ class PasswordResetController extends Controller
         $frontendUrl = config('app.frontend_url');
         $resetUrl = $frontendUrl.'/atur-ulang-kata-sandi?token='.$plainToken;
 
-        Mail::to($user)->send(new ResetPasswordMail($user, $resetUrl, $ttlMinutes));
+        Mail::to($user)
+            ->onQueue('emails-critical')
+            ->queue(new ResetPasswordMail($user, $resetUrl, $ttlMinutes));
 
         return $this->success([], __('messages.password.reset_sent'));
     }

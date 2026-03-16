@@ -17,13 +17,13 @@ class BulkRestoreTrashBinsJob implements ShouldQueue
 
     public int $tries = 3;
 
-    public int $timeout = 1800;
+    public int $timeout = 600;
 
     public function __construct(
         public array $ids,
         public ?int $actorId = null,
     ) {
-        $this->onQueue('schemes');
+        $this->onQueue('trash');
     }
 
     public function handle(TrashBinService $trashBinService): void

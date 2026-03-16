@@ -17,7 +17,7 @@ class ForceDeleteAllTrashBinsJob implements ShouldQueue
 
     public int $tries = 3;
 
-    public int $timeout = 1800;
+    public int $timeout = 600;
 
     public function __construct(
         public ?string $resourceType = null,
@@ -25,7 +25,7 @@ class ForceDeleteAllTrashBinsJob implements ShouldQueue
         public ?int $scopedActorId = null,
         public array $accessibleCourseIds = [],
     ) {
-        $this->onQueue('schemes');
+        $this->onQueue('trash');
     }
 
     public function handle(TrashBinService $trashBinService): void
