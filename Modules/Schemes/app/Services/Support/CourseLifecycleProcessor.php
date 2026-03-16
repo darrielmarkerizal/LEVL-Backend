@@ -57,7 +57,13 @@ class CourseLifecycleProcessor
                     $instructorIds = [(int) $instructorIds];
                 }
 
-                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json', 'instructor_ids']);
+                // Extract outcomes before removing from attributes
+                $outcomes = $attributes['outcomes'] ?? null;
+                if (! is_array($outcomes) && $outcomes !== null) {
+                    $outcomes = [$outcomes];
+                }
+
+                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json', 'instructor_ids', 'outcomes']);
 
                 $course = $this->repository->create($attributes);
 
@@ -70,10 +76,15 @@ class CourseLifecycleProcessor
                     $course->instructors()->sync($instructorIds);
                 }
 
+                // Sync outcomes
+                if (is_array($outcomes)) {
+                    $this->syncOutcomes($course, $outcomes);
+                }
+
                 $this->handleMedia($course, $files);
                 $this->cacheService->invalidateListings();
 
-                $course = $course->fresh(['tags', 'instructors']);
+                $course = $course->fresh(['tags', 'instructors', 'outcomes']);
 
                 // Re-enable logging and create single activity log
                 activity()->enableLogging();
@@ -118,7 +129,13 @@ class CourseLifecycleProcessor
                     $instructorIds = [(int) $instructorIds];
                 }
 
-                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json', 'instructor_ids']);
+                // Extract outcomes before removing from attributes
+                $outcomes = $attributes['outcomes'] ?? null;
+                if (! is_array($outcomes) && $outcomes !== null) {
+                    $outcomes = [$outcomes];
+                }
+
+                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json', 'instructor_ids', 'outcomes']);
 
                 $this->repository->update($course, $attributes);
 
@@ -131,10 +148,15 @@ class CourseLifecycleProcessor
                     $course->instructors()->sync($instructorIds);
                 }
 
+                // Sync outcomes if provided
+                if (is_array($outcomes)) {
+                    $this->syncOutcomes($course, $outcomes);
+                }
+
                 $this->handleMedia($course, $files);
                 $this->cacheService->invalidateCourse($course->id, $course->slug);
 
-                $updatedCourse = $course->fresh(['tags', 'instructors']);
+                $updatedCourse = $course->fresh(['tags', 'instructors', 'outcomes']);
 
                 // Re-enable logging and create single activity log
                 activity()->enableLogging();
@@ -255,6 +277,7 @@ class CourseLifecycleProcessor
         $message = $e->getMessage();
         $errors = [];
 
+        // Check for specific unique constraint violations
         if (preg_match('/courses?_code_unique/i', $message)) {
             $errors['code'] = [__('messages.courses.code_exists')];
         }
@@ -263,10 +286,44 @@ class CourseLifecycleProcessor
             $errors['slug'] = [__('messages.courses.slug_exists')];
         }
 
-        if (empty($errors)) {
-            if (preg_match('/Key \(([^)]+)\)=\([^)]+\) already exists/i', $message, $matches)) {
-                $column = $matches[1];
-                $errors[$column] = [__('messages.courses.duplicate_data_field', ['field' => $column])];
+        if (preg_match('/courses?_title_unique/i', $message)) {
+            $errors['title'] = [__('messages.courses.title_exists')];
+        }
+
+        // Try to extract column name from PostgreSQL error message
+        if (empty($errors) && preg_match('/Key \(([^)]+)\)=\(([^)]+)\) already exists/i', $message, $matches)) {
+            $column = trim($matches[1]);
+            $value = trim($matches[2]);
+            
+            // Map database column names to user-friendly field names
+            $fieldMap = [
+                'code' => 'Kode Skema',
+                'slug' => 'URL Slug',
+                'title' => 'Judul Skema',
+            ];
+            
+            $fieldName = $fieldMap[$column] ?? ucfirst(str_replace('_', ' ', $column));
+            $errors[$column] = [__('messages.courses.duplicate_field_value', [
+                'field' => $fieldName,
+                'value' => $value
+            ])];
+        }
+
+        // If still no specific error found, check for duplicate key constraint
+        if (empty($errors) && preg_match('/duplicate key value violates unique constraint/i', $message)) {
+            // Try to extract constraint name
+            if (preg_match('/constraint "([^"]+)"/i', $message, $matches)) {
+                $constraint = $matches[1];
+                
+                if (strpos($constraint, 'code') !== false) {
+                    $errors['code'] = [__('messages.courses.code_exists')];
+                } elseif (strpos($constraint, 'slug') !== false) {
+                    $errors['slug'] = [__('messages.courses.slug_exists')];
+                } elseif (strpos($constraint, 'title') !== false) {
+                    $errors['title'] = [__('messages.courses.title_exists')];
+                } else {
+                    $errors['general'] = [__('messages.courses.duplicate_constraint', ['constraint' => $constraint])];
+                }
             }
         }
 
@@ -276,5 +333,22 @@ class CourseLifecycleProcessor
     private function generateCourseCode(): string
     {
         return CodeGenerator::generate('CRS-', 6, Course::class);
+    }
+
+    private function syncOutcomes(Course $course, array $outcomes): void
+    {
+        // Delete existing outcomes
+        $course->outcomes()->delete();
+
+        // Create new outcomes
+        $order = 1;
+        foreach ($outcomes as $outcomeText) {
+            if (is_string($outcomeText) && trim($outcomeText) !== '') {
+                $course->outcomes()->create([
+                    'outcome_text' => trim($outcomeText),
+                    'order' => $order++,
+                ]);
+            }
+        }
     }
 }

@@ -29,11 +29,16 @@ class CourseResource extends JsonResource
             'slug' => $this->slug,
             'title' => $this->title,
             'short_desc' => $this->short_desc,
-            'type' => $this->type,
-            'level_tag' => $this->level_tag,
-            'enrollment_type' => $this->enrollment_type,
-            'status' => $this->status,
+            'type' => $this->type?->value,
+            'type_label' => $this->type ? __('enums.course_type.' . $this->type->value) : null,
+            'level_tag' => $this->level_tag?->value,
+            'level_tag_label' => $this->level_tag ? __('enums.level_tag.' . $this->level_tag->value) : null,
+            'enrollment_type' => $this->enrollment_type?->value,
+            'enrollment_type_label' => $this->enrollment_type ? __('enums.enrollment_type.' . $this->enrollment_type->value) : null,
+            'status' => $this->status?->value,
+            'status_label' => $this->status ? __('enums.course_status.' . $this->status->value) : null,
             'enrollment_status' => $isStudent ? $enrollment?->status?->value : null,
+            'enrollment_status_label' => $isStudent && $enrollment?->status ? __('enums.enrollment_status.' . $enrollment->status->value) : null,
             'published_at' => $this->published_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),
@@ -43,6 +48,15 @@ class CourseResource extends JsonResource
 
         $data['category'] = $this->whenLoaded('category');
         $data['tags'] = $this->whenLoaded('tags');
+        $data['learning_outcomes'] = $this->whenLoaded('outcomes', function () {
+            return $this->outcomes->map(function ($outcome) {
+                return [
+                    'id' => $outcome->id,
+                    'description' => $outcome->outcome_text,
+                    'order' => $outcome->order,
+                ];
+            });
+        });
 
         if ($isManager) {
             $data['instructor'] = $this->whenLoaded('instructor', fn () => $this->mapUserSummary($this->instructor));
@@ -181,13 +195,24 @@ class CourseResource extends JsonResource
             return null;
         }
 
-        return [
+        $data = [
             'id' => $user->id,
             'name' => $user->name,
             'username' => $user->username,
             'avatar_url' => $user->avatar_url,
             'status' => $user->status,
         ];
+
+        // Include specialization if loaded
+        if ($user->relationLoaded('specialization')) {
+            $data['specialization'] = $user->specialization ? [
+                'id' => $user->specialization->id,
+                'name' => $user->specialization->name,
+                'value' => $user->specialization->value,
+            ] : null;
+        }
+
+        return $data;
     }
 
     private function mapUsersSummary(iterable $users): array
