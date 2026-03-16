@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\User;
 use Modules\Auth\Models\UserActivity;
+use Multiavatar\Multiavatar;
 
 class UserSeederEnhanced extends Seeder
 {
@@ -36,6 +37,7 @@ class UserSeederEnhanced extends Seeder
         $this->command->info("\n✅ User seeding completed!");
         $this->command->info("   📊 Total users created: {$totalUsers}");
         $this->printUserSummary();
+        $this->verifyAvatars();
     }
 
     private function createDemoUsers(): void
@@ -44,35 +46,35 @@ class UserSeederEnhanced extends Seeder
 
         $demos = [
             [
-                'name' => 'Super Admin Demo',
+                'name'     => 'Super Admin Demo',
                 'username' => 'superadmin_demo',
-                'email' => 'superadmin.demo@test.com',
-                'role' => 'Superadmin',
-                'status' => UserStatus::Active,
+                'email'    => 'superadmin.demo@test.com',
+                'role'     => 'Superadmin',
+                'status'   => UserStatus::Active,
                 'verified' => true,
             ],
             [
-                'name' => 'Admin Demo',
+                'name'     => 'Admin Demo',
                 'username' => 'admin_demo',
-                'email' => 'admin.demo@test.com',
-                'role' => 'Admin',
-                'status' => UserStatus::Active,
+                'email'    => 'admin.demo@test.com',
+                'role'     => 'Admin',
+                'status'   => UserStatus::Active,
                 'verified' => true,
             ],
             [
-                'name' => 'Instructor Demo',
+                'name'     => 'Instructor Demo',
                 'username' => 'instructor_demo',
-                'email' => 'instructor.demo@test.com',
-                'role' => 'Instructor',
-                'status' => UserStatus::Active,
+                'email'    => 'instructor.demo@test.com',
+                'role'     => 'Instructor',
+                'status'   => UserStatus::Active,
                 'verified' => true,
             ],
             [
-                'name' => 'Student Demo',
+                'name'     => 'Student Demo',
                 'username' => 'student_demo',
-                'email' => 'student.demo@test.com',
-                'role' => 'Student',
-                'status' => UserStatus::Active,
+                'email'    => 'student.demo@test.com',
+                'role'     => 'Student',
+                'status'   => UserStatus::Active,
                 'verified' => true,
             ],
         ];
@@ -95,76 +97,76 @@ class UserSeederEnhanced extends Seeder
 
         $specialCases = [
             [
-                'name' => 'Email Unverified Student',
-                'username' => 'unverified_student',
-                'email' => 'unverified.student@test.com',
-                'role' => 'Student',
-                'status' => UserStatus::Pending,
-                'verified' => false,
+                'name'        => 'Email Unverified Student',
+                'username'    => 'unverified_student',
+                'email'       => 'unverified.student@test.com',
+                'role'        => 'Student',
+                'status'      => UserStatus::Pending,
+                'verified'    => false,
                 'description' => 'User with unverified email',
             ],
             [
-                'name' => 'Password Not Set Student',
-                'username' => 'no_password_student',
-                'email' => 'no.password.student@test.com',
-                'role' => 'Student',
-                'status' => UserStatus::Active,
-                'verified' => true,
+                'name'            => 'Password Not Set Student',
+                'username'        => 'no_password_student',
+                'email'           => 'no.password.student@test.com',
+                'role'            => 'Student',
+                'status'          => UserStatus::Active,
+                'verified'        => true,
                 'is_password_set' => false,
-                'description' => 'User registered via social login, no password set',
+                'description'     => 'User registered via social login, no password set',
             ],
             [
-                'name' => 'Inactive Student',
-                'username' => 'inactive_student',
-                'email' => 'inactive.student@test.com',
-                'role' => 'Student',
-                'status' => UserStatus::Inactive,
-                'verified' => true,
+                'name'        => 'Inactive Student',
+                'username'    => 'inactive_student',
+                'email'       => 'inactive.student@test.com',
+                'role'        => 'Student',
+                'status'      => UserStatus::Inactive,
+                'verified'    => true,
                 'description' => 'Inactive user account',
             ],
             [
-                'name' => 'Banned Student',
-                'username' => 'banned_student',
-                'email' => 'banned.student@test.com',
-                'role' => 'Student',
-                'status' => UserStatus::Banned,
-                'verified' => true,
+                'name'        => 'Banned Student',
+                'username'    => 'banned_student',
+                'email'       => 'banned.student@test.com',
+                'role'        => 'Student',
+                'status'      => UserStatus::Banned,
+                'verified'    => true,
                 'description' => 'Banned user account',
             ],
             [
-                'name' => 'Pending Email Change Student',
-                'username' => 'email_change_pending',
-                'email' => 'email.change.student@test.com',
-                'role' => 'Student',
-                'status' => UserStatus::Active,
-                'verified' => true,
+                'name'        => 'Pending Email Change Student',
+                'username'    => 'email_change_pending',
+                'email'       => 'email.change.student@test.com',
+                'role'        => 'Student',
+                'status'      => UserStatus::Active,
+                'verified'    => true,
                 'description' => 'User with pending email change request',
             ],
             [
-                'name' => 'Deletion Pending Student',
-                'username' => 'deletion_pending',
-                'email' => 'deletion.pending@test.com',
-                'role' => 'Student',
-                'status' => UserStatus::Active,
-                'verified' => true,
+                'name'        => 'Deletion Pending Student',
+                'username'    => 'deletion_pending',
+                'email'       => 'deletion.pending@test.com',
+                'role'        => 'Student',
+                'status'      => UserStatus::Active,
+                'verified'    => true,
                 'description' => 'User with pending account deletion request',
             ],
             [
-                'name' => 'Password Reset Pending Student',
-                'username' => 'password_reset_pending',
-                'email' => 'password.reset.student@test.com',
-                'role' => 'Student',
-                'status' => UserStatus::Active,
-                'verified' => true,
+                'name'        => 'Password Reset Pending Student',
+                'username'    => 'password_reset_pending',
+                'email'       => 'password.reset.student@test.com',
+                'role'        => 'Student',
+                'status'      => UserStatus::Active,
+                'verified'    => true,
                 'description' => 'User with pending password reset',
             ],
             [
-                'name' => 'Recently Deleted Student',
-                'username' => 'soft_deleted_student',
-                'email' => 'soft.deleted.student@test.com',
-                'role' => 'Student',
-                'status' => UserStatus::Active,
-                'verified' => true,
+                'name'        => 'Recently Deleted Student',
+                'username'    => 'soft_deleted_student',
+                'email'       => 'soft.deleted.student@test.com',
+                'role'        => 'Student',
+                'status'      => UserStatus::Active,
+                'verified'    => true,
                 'soft_delete' => true,
                 'description' => 'Soft deleted user (can be restored)',
             ],
@@ -180,7 +182,7 @@ class UserSeederEnhanced extends Seeder
                 }
 
                 $this->specialUsers[] = [
-                    'user' => $user,
+                    'user'        => $user,
                     'description' => $special['description'],
                 ];
                 $created++;
@@ -194,10 +196,10 @@ class UserSeederEnhanced extends Seeder
     {
         $this->command->info("\n  👤 Creating {$count} {$role} users...");
 
-        $activeCount = (int) ($count * 0.7);
-        $pendingCount = (int) ($count * 0.15);
+        $activeCount   = (int) ($count * 0.7);
+        $pendingCount  = (int) ($count * 0.15);
         $inactiveCount = (int) ($count * 0.1);
-        $bannedCount = $count - $activeCount - $pendingCount - $inactiveCount;
+        $bannedCount   = $count - $activeCount - $pendingCount - $inactiveCount;
 
         $this->command->info("    • Active: {$activeCount}");
         $this->createUsersWithStatusChunked($role, $activeCount, UserStatus::Active, true);
@@ -224,13 +226,13 @@ class UserSeederEnhanced extends Seeder
             return;
         }
 
-        $chunks = (int) ceil($count / self::CHUNK_SIZE);
+        $chunks  = (int) ceil($count / self::CHUNK_SIZE);
         $created = 0;
 
         for ($chunk = 0; $chunk < $chunks; $chunk++) {
-            $chunkSize = min(self::CHUNK_SIZE, $count - $created);
-            $users = collect();
-            $attempts = 0;
+            $chunkSize   = min(self::CHUNK_SIZE, $count - $created);
+            $users       = collect();
+            $attempts    = 0;
             $maxAttempts = $chunkSize * 3;
 
             while ($users->count() < $chunkSize && $attempts < $maxAttempts) {
@@ -238,9 +240,9 @@ class UserSeederEnhanced extends Seeder
 
                 $attributes = UserFactory::new()
                     ->state([
-                        'status' => $status->value,
-                        'email_verified_at' => $verified ? now()->subDays(rand(1, 365)) : null,
-                        'is_password_set' => $role !== 'Student' ? fake()->boolean(80) : true,
+                        'status'             => $status->value,
+                        'email_verified_at'  => $verified ? now()->subDays(rand(1, 365)) : null,
+                        'is_password_set'    => $role !== 'Student' ? fake()->boolean(80) : true,
                     ])
                     ->raw();
 
@@ -279,29 +281,29 @@ class UserSeederEnhanced extends Seeder
     private function createUserWithProfile(array $data): User
     {
         $user = User::create([
-            'name' => $data['name'],
-            'username' => $data['username'],
-            'email' => $data['email'],
-            'password' => Hash::make('password'),
-            'status' => $data['status']->value ?? $data['status'],
-            'email_verified_at' => ($data['verified'] ?? true) ? now() : null,
-            'is_password_set' => $data['is_password_set'] ?? true,
-            'phone' => fake()->e164PhoneNumber(),
-            'bio' => fake()->paragraph(),
+            'name'               => $data['name'],
+            'username'           => $data['username'],
+            'email'              => $data['email'],
+            'password'           => Hash::make('password'),
+            'status'             => $data['status']->value ?? $data['status'],
+            'email_verified_at'  => ($data['verified'] ?? true) ? now() : null,
+            'is_password_set'    => $data['is_password_set'] ?? true,
+            'phone'              => fake()->e164PhoneNumber(),
+            'bio'                => fake()->paragraph(),
         ]);
 
         $user->assignRole($data['role']);
 
         DB::table('profile_privacy_settings')->insert([
-            'user_id' => $user->id,
-            'profile_visibility' => 'public',
-            'show_email' => true,
-            'show_phone' => true,
+            'user_id'               => $user->id,
+            'profile_visibility'    => 'public',
+            'show_email'            => true,
+            'show_phone'            => true,
             'show_activity_history' => true,
-            'show_achievements' => true,
-            'show_statistics' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'show_achievements'     => true,
+            'show_statistics'       => true,
+            'created_at'            => now(),
+            'updated_at'            => now(),
         ]);
 
         $this->attachAvatar($user);
@@ -310,22 +312,34 @@ class UserSeederEnhanced extends Seeder
     }
 
     /**
-     * Attach avatar: try DiceBear first, fallback to ui-avatars.com (from name) if URL fails.
+     * Generate avatar lokal menggunakan multiavatar/multiavatar-php.
+     * Tidak butuh koneksi internet — SVG di-generate 100% di sisi server.
+     * Seed menggunakan username agar avatar konsisten tiap re-seed.
      */
     private function attachAvatar(User $user): void
     {
-        $urls = [
-            "https://api.dicebear.com/9.x/avataaars/png?seed={$user->username}",
-            'https://ui-avatars.com/api/?name='.rawurlencode($user->name).'&size=256&background=random',
-        ];
-        foreach ($urls as $url) {
-            try {
-                $user->addMediaFromUrl($url)->toMediaCollection('avatar');
+        try {
+            $multiavatar = new \Multiavatar();
 
-                return;
-            } catch (\Throwable $e) {
-                $this->command->warn("Avatar URL failed for {$user->username}, trying next: ".$e->getMessage());
+            // ✅ dipanggil sebagai fungsi (__invoke), bukan ->generate()
+            $svgContent = $multiavatar($user->username, null, null);
+
+            if (empty($svgContent)) {
+                throw new \RuntimeException('Multiavatar menghasilkan SVG kosong.');
             }
+
+            $tmpPath = sys_get_temp_dir()."/avatar_{$user->id}_".uniqid().'.svg';
+            file_put_contents($tmpPath, $svgContent);
+
+            $user->addMedia($tmpPath)
+                ->usingFileName("avatar_{$user->username}.svg")
+                ->withCustomProperties(['generated_by' => 'multiavatar'])
+                ->toMediaCollection('avatar');
+
+        } catch (\Throwable $e) {
+            $this->command->warn(
+                "    ⚠️  Avatar gagal untuk [{$user->username}]: ".$e->getMessage()
+            );
         }
     }
 
@@ -339,19 +353,19 @@ class UserSeederEnhanced extends Seeder
             $privacyVisibility = match (true) {
                 $role === 'Student' && fake()->boolean(60) => 'private',
                 $role === 'Student' && fake()->boolean(50) => 'friends_only',
-                default => 'public',
+                default                                    => 'public',
             };
 
             return [
-                'user_id' => $user->id,
-                'profile_visibility' => $privacyVisibility,
-                'show_email' => fake()->boolean(),
-                'show_phone' => fake()->boolean(),
+                'user_id'               => $user->id,
+                'profile_visibility'    => $privacyVisibility,
+                'show_email'            => fake()->boolean(),
+                'show_phone'            => fake()->boolean(),
                 'show_activity_history' => true,
-                'show_achievements' => true,
-                'show_statistics' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'show_achievements'     => true,
+                'show_statistics'       => true,
+                'created_at'            => now(),
+                'updated_at'            => now(),
             ];
         })->toArray();
 
@@ -377,25 +391,25 @@ class UserSeederEnhanced extends Seeder
             $activities = [];
             foreach ($users as $user) {
                 $activityCount = match ($status) {
-                    UserStatus::Active => rand(10, 30),
-                    UserStatus::Pending => 0,
+                    UserStatus::Active   => rand(10, 30),
+                    UserStatus::Pending  => 0,
                     UserStatus::Inactive => rand(2, 5),
-                    UserStatus::Banned => 1,
-                    default => 0,
+                    UserStatus::Banned   => 1,
+                    default              => 0,
                 };
 
                 for ($i = 0; $i < $activityCount; $i++) {
                     $activities[] = [
-                        'user_id' => $user->id,
+                        'user_id'       => $user->id,
                         'activity_type' => fake()->randomElement($activityTypes),
                         'activity_data' => json_encode([
-                            'title' => fake()->sentence(),
+                            'title'       => fake()->sentence(),
                             'description' => fake()->sentence(),
-                            'points' => fake()->numberBetween(10, 100),
+                            'points'      => fake()->numberBetween(10, 100),
                         ]),
-                        'related_type' => fake()->randomElement([null, 'Course', 'Lesson', 'Assignment']),
-                        'related_id' => fake()->boolean(60) ? fake()->numberBetween(1, 100) : null,
-                        'created_at' => now()->subDays(rand(1, 90)),
+                        'related_type'  => fake()->randomElement([null, 'Course', 'Lesson', 'Assignment']),
+                        'related_id'    => fake()->boolean(60) ? fake()->numberBetween(1, 100) : null,
+                        'created_at'    => now()->subDays(rand(1, 90)),
                     ];
                 }
             }
@@ -407,6 +421,25 @@ class UserSeederEnhanced extends Seeder
             }
         } catch (\Exception $e) {
             $this->command->warn('    ⚠️  Could not create activities: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Verifikasi jumlah user yang berhasil mendapat avatar.
+     */
+    private function verifyAvatars(): void
+    {
+        $totalUsers   = User::withTrashed()->count();
+        $withAvatar   = User::withTrashed()->has('media')->count();
+        $withoutAvatar = $totalUsers - $withAvatar;
+
+        $this->command->info("\n🖼️  Avatar Verification:");
+        $this->command->info("   ✓ Punya avatar : {$withAvatar} / {$totalUsers}");
+
+        if ($withoutAvatar > 0) {
+            $this->command->warn("   ✗ Tanpa avatar  : {$withoutAvatar} user (cek warning ⚠️  di atas)");
+        } else {
+            $this->command->info('   ✓ Semua user sudah punya avatar!');
         }
     }
 

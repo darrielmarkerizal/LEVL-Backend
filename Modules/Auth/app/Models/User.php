@@ -45,7 +45,12 @@ class User extends Authenticatable implements HasMedia, JWTSubject
         $this->addMediaCollection('avatar')
             ->singleFile()
             ->useDisk('do')
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+            ->acceptsMimeTypes([
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'image/svg+xml',
+        ]);
     }
 
     public function registerMediaConversions(?Media $media = null): void
