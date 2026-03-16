@@ -20,7 +20,7 @@ class PostRepository extends BaseRepository
     protected array $allowedFilters = ['status', 'category', 'is_pinned'];
     protected array $allowedSorts = ['id', 'created_at', 'updated_at', 'published_at', 'scheduled_at', 'title'];
     protected string $defaultSort = '-created_at';
-    protected array $with = ['author', 'audiences', 'views'];
+    protected array $with = ['author', 'audiences'];
 
     protected function model(): string
     {
@@ -69,7 +69,8 @@ class PostRepository extends BaseRepository
                 $query = $this->model()::query()
                     ->published()
                     ->pinned()
-                    ->with(['author', 'audiences', 'views']);
+                    ->with(['author', 'audiences'])
+                    ->withCount('views');
 
                 if ($role !== null) {
                     $query->forRole($role);
@@ -103,7 +104,8 @@ class PostRepository extends BaseRepository
     {
         $query = $this->model()::query()
             ->scheduled()
-            ->with(['author', 'audiences']);
+            ->with(['author', 'audiences'])
+            ->withCount('views');
 
         if ($role !== null) {
             $query->forRole($role);
@@ -166,7 +168,8 @@ class PostRepository extends BaseRepository
         ?string $role = null
     ): QueryBuilder {
         $query = $this->model()::query()
-            ->with(['author', 'audiences', 'views']);
+            ->with(['author', 'audiences'])
+            ->withCount('views');
 
         if ($search !== null) {
             $query->search($search);
