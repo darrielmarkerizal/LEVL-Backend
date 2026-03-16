@@ -103,6 +103,14 @@ return [
         'hidden' => 'Tersembunyi',
     ],
 
+    'badge_rarity' => [
+        'common' => 'Umum',
+        'uncommon' => 'Tidak Umum',
+        'rare' => 'Langka',
+        'epic' => 'Epik',
+        'legendary' => 'Legendaris',
+    ],
+
     'post_category' => [
         'announcement' => 'Pengumuman',
         'information' => 'Informasi',

@@ -103,6 +103,14 @@ return [
         'hidden' => 'Hidden',
     ],
 
+    'badge_rarity' => [
+        'common' => 'Common',
+        'uncommon' => 'Uncommon',
+        'rare' => 'Rare',
+        'epic' => 'Epic',
+        'legendary' => 'Legendary',
+    ],
+
     'post_category' => [
         'announcement' => 'Announcement',
         'information' => 'Information',

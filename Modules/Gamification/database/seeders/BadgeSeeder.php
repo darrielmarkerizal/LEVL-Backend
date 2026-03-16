@@ -37,6 +37,8 @@ class BadgeSeeder extends Seeder
 
                     try {
                         $badge->addMediaFromUrl($url)
+                            ->usingFileName($badge->code . '.svg')
+                            ->usingName($badge->name)
                             ->withCustomProperties(['seeded' => true])
                             ->toMediaCollection('icon');
                     } catch (\Exception $e) {
