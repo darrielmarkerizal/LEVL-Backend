@@ -65,6 +65,11 @@ class CourseResource extends JsonResource
             $data['instructor_count'] = $this->when(array_key_exists('instructors_count', $this->getAttributes()), $this->instructors_count);
             $data['enrollments_count'] = $this->when(array_key_exists('enrollments_count', $this->getAttributes()), $this->enrollments_count);
             $data['enrollments'] = $this->when(request()->has('include') && str_contains(request('include'), 'enrollments'), $this->whenLoaded('enrollments'));
+            
+            // Add decrypted enrollment key for authorized users (Superadmin, Admin, Instructor)
+            if ($this->enrollment_type?->value === 'key_based' && !empty($this->enrollment_key_encrypted)) {
+                $data['enrollment_key'] = $this->getDecryptedEnrollmentKey();
+            }
         }
 
         if ($isManager || ($isStudent && $enrollment && $enrollment->status->value === 'active')) {

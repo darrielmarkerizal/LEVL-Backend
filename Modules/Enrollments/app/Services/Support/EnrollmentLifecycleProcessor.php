@@ -46,7 +46,20 @@ class EnrollmentLifecycleProcessor
                 throw new BusinessException(__('messages.enrollments.key_required'), ['enrollment_key' => __('messages.enrollments.key_required')]);
             }
 
-            if (! $this->keyHasher->verify($enrollmentKey, $course->enrollment_key_hash)) {
+            // Try encrypted key first (new method), fallback to hash (old method)
+            $isValid = false;
+            
+            if (!empty($course->enrollment_key_encrypted)) {
+                $encrypter = app(\App\Contracts\EnrollmentKeyEncrypterInterface::class);
+                $isValid = $encrypter->verify($enrollmentKey, $course->enrollment_key_encrypted);
+            }
+            
+            // Fallback to hash verification for backward compatibility
+            if (!$isValid && !empty($course->enrollment_key_hash)) {
+                $isValid = $this->keyHasher->verify($enrollmentKey, $course->enrollment_key_hash);
+            }
+            
+            if (!$isValid) {
                 throw new BusinessException(__('messages.enrollments.key_invalid'), ['enrollment_key' => __('messages.enrollments.key_invalid')]);
             }
         }

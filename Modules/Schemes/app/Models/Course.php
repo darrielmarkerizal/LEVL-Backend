@@ -103,6 +103,7 @@ class Course extends Model implements HasMedia
         'enrollment_type',
         'enrollment_key',
         'enrollment_key_hash',
+        'enrollment_key_encrypted',
         'status',
         'published_at',
         'instructor_id',
@@ -123,7 +124,7 @@ class Course extends Model implements HasMedia
 
     protected $appends = ['tag_list'];
 
-    protected $hidden = ['enrollment_key_hash', 'deleted_at'];
+    protected $hidden = ['enrollment_key_hash', 'enrollment_key_encrypted', 'deleted_at'];
 
     public function getThumbnailUrlAttribute(): ?string
     {
@@ -314,9 +315,38 @@ class Course extends Model implements HasMedia
     {
         if ($value === null) {
             $this->attributes['enrollment_key_hash'] = null;
+            $this->attributes['enrollment_key_encrypted'] = null;
         } else {
+            // Keep hash for backward compatibility and verification
             $hasher = app(\App\Contracts\EnrollmentKeyHasherInterface::class);
             $this->attributes['enrollment_key_hash'] = $hasher->hash($value);
+            
+            // Add encryption for decryption capability
+            $encrypter = app(\App\Contracts\EnrollmentKeyEncrypterInterface::class);
+            $this->attributes['enrollment_key_encrypted'] = $encrypter->encrypt($value);
+        }
+    }
+
+    /**
+     * Get the decrypted enrollment key (only for authorized users)
+     * 
+     * @return string|null
+     */
+    public function getDecryptedEnrollmentKey(): ?string
+    {
+        if (empty($this->enrollment_key_encrypted)) {
+            return null;
+        }
+
+        try {
+            $encrypter = app(\App\Contracts\EnrollmentKeyEncrypterInterface::class);
+            return $encrypter->decrypt($this->enrollment_key_encrypted);
+        } catch (\Exception $e) {
+            \Log::error('Failed to decrypt enrollment key', [
+                'course_id' => $this->id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
         }
     }
 
