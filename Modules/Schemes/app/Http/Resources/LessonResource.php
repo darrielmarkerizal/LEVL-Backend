@@ -59,11 +59,11 @@ class LessonResource extends JsonResource
         }
 
         if ($user->hasRole('Admin')) {
-            return $course->admins()->where('user_id', $user->id)->exists();
+            return true; // Admins have global access to all courses
         }
 
         if ($user->hasRole('Instructor')) {
-            return $course->instructor_id === $user->id;
+            return $course->instructors()->where('user_id', $user->id)->exists();
         }
 
         return false;

@@ -47,7 +47,7 @@ class CourseIndexResource extends JsonResource
         }
 
         if ($isManager) {
-            $data['creator'] = $this->whenLoaded('admins', fn () => $this->mapUserSummary($this->admins->first()));
+            $data['creator'] = $this->whenLoaded('instructors', fn () => $this->mapUserSummary($this->instructors->first()));
             $data['enrollments'] = $this->when(request()->has('include') && str_contains(request('include'), 'enrollments'), $this->whenLoaded('enrollments'));
         }
 
@@ -97,11 +97,11 @@ class CourseIndexResource extends JsonResource
         }
 
         if ($user->hasRole('Admin')) {
-            return $this->admins()->where('user_id', $user->id)->exists();
+            return true; // Admins have global access to all courses
         }
 
         if ($user->hasRole('Instructor')) {
-            return $this->instructor_id === $user->id;
+            return $this->instructors()->where('user_id', $user->id)->exists();
         }
 
         return false;

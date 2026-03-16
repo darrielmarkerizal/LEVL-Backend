@@ -46,7 +46,7 @@ class CourseResource extends JsonResource
 
         if ($isManager) {
             $data['instructor'] = $this->whenLoaded('instructor', fn () => $this->mapUserSummary($this->instructor));
-            $data['creator'] = $this->whenLoaded('admins', fn () => $this->mapUserSummary($this->creator));
+            $data['creator'] = $this->whenLoaded('instructors', fn () => $this->mapUserSummary($this->creator));
             $data['instructor_list'] = $this->whenLoaded('instructors', fn () => $this->mapUsersSummary($this->instructors));
             $data['instructor_count'] = $this->when(array_key_exists('instructors_count', $this->getAttributes()), $this->instructors_count);
             $data['enrollments_count'] = $this->when(array_key_exists('enrollments_count', $this->getAttributes()), $this->enrollments_count);
@@ -211,11 +211,11 @@ class CourseResource extends JsonResource
         }
 
         if ($user->hasRole('Admin')) {
-            return $this->admins()->where('user_id', $user->id)->exists();
+            return true; // Admins have global access to all courses
         }
 
         if ($user->hasRole('Instructor')) {
-            return $this->instructor_id === $user->id;
+            return $this->instructors()->where('user_id', $user->id)->exists();
         }
 
         return false;
