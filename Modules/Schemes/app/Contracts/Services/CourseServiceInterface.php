@@ -40,4 +40,6 @@ interface CourseServiceInterface
     public function listEnrolledCourses(int $userId, array $filters = [], int $perPage = 15): LengthAwarePaginator;
 
     public function findWithAdmins(int $id): ?Course;
+
+    public function generateUniqueSlug(string $title): string;
 }

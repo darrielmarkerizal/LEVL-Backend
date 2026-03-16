@@ -20,6 +20,8 @@ Route::prefix('v1')->scopeBindings()->group(function () {
     });
 
     Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
+        Route::post('courses/generate-slug', [CourseController::class, 'generateSlug'])
+            ->name('courses.generate-slug');
         Route::post('courses', [CourseController::class, 'store'])
             ->middleware('can:create,Modules\\Schemes\\Models\\Course')
             ->name('courses.store');

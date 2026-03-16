@@ -274,6 +274,7 @@ return [
         'must_have_one_published_lesson'           => 'Kursus harus memiliki minimal satu pelajaran yang dipublikasikan.',
         'cannot_publish_without_enrollment_key'    => 'Kursus berbasis kunci harus memiliki kunci pendaftaran sebelum dipublikasikan.',
         'must_have_enrollment_key'                 => 'Kunci pendaftaran wajib diisi untuk kursus dengan tipe berbasis kunci.',
+        'slug_generated'                           => 'Slug berhasil dibuat.',
     ],
 
     // Auth Module

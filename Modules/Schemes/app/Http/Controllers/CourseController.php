@@ -165,4 +165,18 @@ class CourseController extends Controller
 
         return $this->paginateResponse($paginator, 'messages.courses.list_retrieved');
     }
+
+    public function generateSlug(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+        ]);
+
+        $slug = $this->service->generateUniqueSlug($request->input('title'));
+
+        return $this->success(
+            $slug,
+            __('messages.courses.slug_generated')
+        );
+    }
 }

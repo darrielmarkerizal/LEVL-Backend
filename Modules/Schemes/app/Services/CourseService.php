@@ -180,4 +180,18 @@ class CourseService implements CourseServiceInterface
 
         return $course;
     }
+
+    public function generateUniqueSlug(string $title): string
+    {
+        $baseSlug = \Illuminate\Support\Str::slug($title);
+        $slug = $baseSlug;
+        $counter = 1;
+
+        while (Course::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
 }

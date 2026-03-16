@@ -271,6 +271,7 @@ return [
         'must_have_one_published_lesson'           => 'A course must have at least one published lesson before it can be published.',
         'cannot_publish_without_enrollment_key'    => 'Key-based courses must have an enrollment key before publishing.',
         'must_have_enrollment_key'                 => 'An enrollment key is required for key-based enrollment courses.',
+        'slug_generated'                           => 'Slug generated successfully.',
     ],
 
     // Auth Module
