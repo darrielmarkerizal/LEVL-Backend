@@ -11,6 +11,16 @@ use Modules\Learning\Events\SubmissionStateChanged;
 
 class CheckHighScoreOnSubmissionStateChanged implements ShouldQueue
 {
+    use \Illuminate\Queue\InteractsWithQueue;
+
+    public string $queue = 'grading';
+
+    public int $tries = 3;
+
+    public int $maxExceptions = 2;
+
+    public array $backoff = [5, 30, 120];
+
     public function __construct(
         private readonly SubmissionServiceInterface $submissionService
     ) {}

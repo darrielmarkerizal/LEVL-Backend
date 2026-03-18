@@ -12,6 +12,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Modules\Trash\Models\TrashBin;
 use Modules\Trash\Services\TrashBinService;
+use Throwable;
 
 class ForceDeleteTrashBinJob implements ShouldQueue
 {
@@ -19,7 +20,11 @@ class ForceDeleteTrashBinJob implements ShouldQueue
 
     public int $tries = 3;
 
-    public int $timeout = 180;
+    public int $maxExceptions = 2;
+
+    public int $timeout = 300;
+
+    public array $backoff = [10, 60, 300];
 
     public function __construct(
         public int $trashBinId,
@@ -42,5 +47,14 @@ class ForceDeleteTrashBinJob implements ShouldQueue
         }
 
         $trashBinService->forceDeleteFromTrashBin($bin);
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('ForceDeleteTrashBinJob failed', [
+            'trash_bin_id' => $this->trashBinId,
+            'actor_id' => $this->actorId,
+            'error' => $exception->getMessage(),
+        ]);
     }
 }

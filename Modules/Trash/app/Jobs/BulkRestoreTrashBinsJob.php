@@ -9,7 +9,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Modules\Trash\Services\TrashBinService;
+use Throwable;
 
 class BulkRestoreTrashBinsJob implements ShouldQueue
 {
@@ -17,7 +19,11 @@ class BulkRestoreTrashBinsJob implements ShouldQueue
 
     public int $tries = 3;
 
+    public int $maxExceptions = 2;
+
     public int $timeout = 600;
+
+    public array $backoff = [10, 60, 300];
 
     public function __construct(
         public array $ids,
@@ -33,5 +39,14 @@ class BulkRestoreTrashBinsJob implements ShouldQueue
         }
 
         $trashBinService->restoreMany($this->ids);
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('BulkRestoreTrashBinsJob failed', [
+            'ids_count' => count($this->ids),
+            'actor_id' => $this->actorId,
+            'error' => $exception->getMessage(),
+        ]);
     }
 }

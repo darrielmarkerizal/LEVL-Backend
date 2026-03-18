@@ -27,10 +27,15 @@ return [
     | 1. emails-critical - Critical auth emails (password reset, verification)
     | 2. emails-transactional - Transactional emails (enrollment, notifications)
     | 3. grading - Grade recalculation and bulk operations (user-facing)
-    | 4. notifications - In-app notification delivery
+    | 4. notifications - In-app notification delivery, gamification XP
     | 5. file-processing - File validation and storage
     | 6. trash - Trash bin operations (delete, restore)
-    | 7. default - General background tasks
+    | 7. logging - Activity logging and audit trail
+    | 8. audit - Grading and submission audit logs
+    | 9. default - General background tasks
+    |
+    | Worker command (processes all queues in priority order):
+    | php artisan queue:work --queue=emails-critical,emails-transactional,grading,notifications,file-processing,trash,logging,audit,default
     |
     */
 
@@ -41,6 +46,8 @@ return [
         'notifications' => env('QUEUE_NOTIFICATIONS', 'notifications'),
         'file-processing' => env('QUEUE_FILE_PROCESSING', 'file-processing'),
         'trash' => env('QUEUE_TRASH', 'trash'),
+        'logging' => env('QUEUE_LOGGING', 'logging'),
+        'audit' => env('QUEUE_AUDIT', 'audit'),
         'default' => env('QUEUE_DEFAULT', 'default'),
     ],
 
@@ -70,7 +77,7 @@ return [
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
             'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
-            'after_commit' => false,
+            'after_commit' => true,
         ],
 
         'beanstalkd' => [

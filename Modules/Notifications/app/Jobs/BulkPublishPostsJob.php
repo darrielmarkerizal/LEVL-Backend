@@ -20,9 +20,11 @@ class BulkPublishPostsJob implements ShouldQueue
 
     public int $tries = 3;
 
+    public int $maxExceptions = 2;
+
     public int $timeout = 300;
 
-    public int $backoff = 30;
+    public array $backoff = [5, 30, 120];
 
     private const BATCH_SIZE = 10;
 

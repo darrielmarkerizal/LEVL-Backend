@@ -19,9 +19,11 @@ class SendPostNotificationJob implements ShouldQueue
 
     public int $tries = 3;
 
+    public int $maxExceptions = 2;
+
     public int $timeout = 120;
 
-    public int $backoff = 10;
+    public array $backoff = [5, 30, 120];
 
     public function __construct(
         private Post $post,

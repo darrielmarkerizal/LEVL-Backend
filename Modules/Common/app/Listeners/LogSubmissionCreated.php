@@ -10,10 +10,15 @@ use Modules\Learning\Events\SubmissionCreated;
 
 class LogSubmissionCreated implements ShouldQueue
 {
-    /**
-     * The name of the queue the job should be sent to.
-     */
+    use \Illuminate\Queue\InteractsWithQueue;
+
     public string $queue = 'audit';
+
+    public int $tries = 3;
+
+    public int $maxExceptions = 2;
+
+    public array $backoff = [5, 30, 120];
 
     public function __construct(
         private readonly AuditServiceInterface $auditService

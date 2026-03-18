@@ -9,7 +9,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Modules\Enrollments\Models\Enrollment;
+use Throwable;
 
 class HandleEnrollmentCreatedJob implements ShouldQueue
 {
@@ -17,6 +19,12 @@ class HandleEnrollmentCreatedJob implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
+
+    public int $tries = 3;
+
+    public int $maxExceptions = 2;
+
+    public array $backoff = [5, 30, 120];
 
     public function __construct(
         private readonly int $enrollmentId,
@@ -32,7 +40,13 @@ class HandleEnrollmentCreatedJob implements ShouldQueue
         if (! $enrollment || ! $enrollment->course || ! $enrollment->user) {
             return;
         }
-        // Email sending and heavy relation loading are disabled.
-        // $this->notifyCourseManagers($enrollment);
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('HandleEnrollmentCreatedJob failed', [
+            'enrollment_id' => $this->enrollmentId,
+            'error' => $exception->getMessage(),
+        ]);
     }
 }

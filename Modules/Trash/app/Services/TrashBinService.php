@@ -6,15 +6,31 @@ namespace Modules\Trash\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Modules\Learning\Models\Assignment;
+use Modules\Learning\Models\Quiz;
+use Modules\Schemes\Models\Lesson;
+use Modules\Schemes\Models\Unit;
 use Modules\Trash\Models\TrashBin;
 use Spatie\MediaLibrary\HasMedia;
 
 class TrashBinService
 {
     private const RETENTION_DAYS = 30;
+
+    private const HIERARCHY_ORDER = [
+        'course' => 1,
+        'unit' => 2,
+        'lesson' => 3,
+        'quiz' => 3,
+        'assignment' => 3,
+        'user' => 1,
+        'badge' => 1,
+        'news' => 1,
+    ];
 
     /** @var array<string, string> */
     private const RESOURCE_TYPES = [
@@ -152,7 +168,22 @@ class TrashBinService
 
     public function restoreFromTrashBin(TrashBin $bin): bool
     {
-        return DB::transaction(fn () => $this->restoreSingle($bin));
+        return DB::transaction(function () use ($bin): bool {
+            if ($this->isRootBin($bin)) {
+                $bins = TrashBin::query()
+                    ->where('group_uuid', $bin->group_uuid)
+                    ->get()
+                    ->sortBy(fn (TrashBin $b): int => self::HIERARCHY_ORDER[$b->resource_type] ?? 99);
+
+                foreach ($bins as $item) {
+                    $this->restoreSingle($item);
+                }
+
+                return true;
+            }
+
+            return $this->restoreSingle($bin);
+        });
     }
 
     public function forceDeleteFromTrashBin(TrashBin $bin): bool
@@ -161,8 +192,8 @@ class TrashBinService
             if ($this->isRootBin($bin)) {
                 $bins = TrashBin::query()
                     ->where('group_uuid', $bin->group_uuid)
-                    ->orderBy('id')
-                    ->get();
+                    ->get()
+                    ->sortByDesc(fn (TrashBin $b): int => self::HIERARCHY_ORDER[$b->resource_type] ?? 99);
 
                 foreach ($bins as $item) {
                     $this->forceDeleteSingle($item);
@@ -207,12 +238,11 @@ class TrashBinService
                 $sub->where('deleted_by', $actorId);
 
                 if (! empty($accessibleCourseIds)) {
-                    $sub->orWhereIn(\Illuminate\Support\Facades\DB::raw("(metadata->>'course_id')::bigint"), $accessibleCourseIds);
+                    $sub->orWhereIn(DB::raw("(metadata->>'course_id')::bigint"), $accessibleCourseIds);
                 }
             });
         }
 
-        // Process in batches with single transaction per batch for better performance
         $query->chunkById(100, function ($bins) use (&$count): void {
             DB::transaction(function () use ($bins, &$count): void {
                 foreach ($bins as $bin) {
@@ -260,12 +290,11 @@ class TrashBinService
                 $sub->where('deleted_by', $actorId);
 
                 if (! empty($accessibleCourseIds)) {
-                    $sub->orWhereIn(\Illuminate\Support\Facades\DB::raw("(metadata->>'course_id')::bigint"), $accessibleCourseIds);
+                    $sub->orWhereIn(DB::raw("(metadata->>'course_id')::bigint"), $accessibleCourseIds);
                 }
             });
         }
 
-        // Process in batches with single transaction per batch for better performance
         $query->chunkById(100, function ($bins) use (&$count): void {
             DB::transaction(function () use ($bins, &$count): void {
                 foreach ($bins as $bin) {
@@ -417,39 +446,243 @@ class TrashBinService
             return;
         }
 
-        $model->media()->get()->each(function ($media): void {
-            $media->delete();
+        $model->media()->chunkById(100, function (Collection $mediaChunk): void {
+            foreach ($mediaChunk as $media) {
+                $media->delete();
+            }
         });
     }
 
     private function cascadeDeleteChildren(Model $model): void
     {
         if ($model instanceof \Modules\Schemes\Models\Course) {
-            // Eager load to avoid N+1, filter non-trashed items
-            $units = $model->units()->whereNull('deleted_at')->get();
-            foreach ($units as $unit) {
-                $unit->delete();
-            }
+            $this->cascadeCourseChildren($model);
+
+            return;
         }
 
         if ($model instanceof \Modules\Schemes\Models\Unit) {
-            // Batch load all children to avoid N+1
-            $lessons = $model->lessons()->whereNull('deleted_at')->get();
-            $quizzes = $model->quizzes()->whereNull('deleted_at')->get();
-            $assignments = $model->assignments()->whereNull('deleted_at')->get();
+            $this->cascadeUnitChildren($model);
+        }
+    }
 
-            foreach ($lessons as $lesson) {
-                $lesson->delete();
+    private function cascadeCourseChildren(\Modules\Schemes\Models\Course $course): void
+    {
+        $course->load([
+            'units' => fn ($q) => $q->whereNull('deleted_at'),
+            'units.lessons' => fn ($q) => $q->whereNull('deleted_at'),
+            'units.quizzes' => fn ($q) => $q->whereNull('deleted_at'),
+            'units.assignments' => fn ($q) => $q->whereNull('deleted_at'),
+        ]);
+
+        if ($course->units->isEmpty()) {
+            return;
+        }
+
+        $groupUuid = (string) $this->context->activeGroupUuid;
+        $rootInfo = [
+            'type' => \Modules\Schemes\Models\Course::class,
+            'id' => (int) $course->getKey(),
+        ];
+        $actorId = $this->resolveActorIdFromModel($course);
+        $courseId = (int) $course->id;
+        $now = now();
+        $nowString = $now->toDateTimeString();
+        $expiresAt = $now->copy()->addDays(self::RETENTION_DAYS)->toDateTimeString();
+
+        $trashRecords = [];
+        $unitIds = [];
+        $lessonIds = [];
+        $quizIds = [];
+        $assignmentIds = [];
+
+        foreach ($course->units as $unit) {
+            $unitKey = $this->modelKey($unit);
+            $this->context->processedDeleteModels[$unitKey] = true;
+            $this->context->activeDeleteOps++;
+            $unitIds[] = $unit->id;
+
+            $trashRecords[] = $this->buildBulkTrashRecord(
+                $unit, 'unit', $groupUuid, $rootInfo, $actorId, $courseId, $nowString, $expiresAt
+            );
+
+            foreach ($unit->lessons as $lesson) {
+                $lessonKey = $this->modelKey($lesson);
+                $this->context->processedDeleteModels[$lessonKey] = true;
+                $this->context->activeDeleteOps++;
+                $lessonIds[] = $lesson->id;
+
+                $trashRecords[] = $this->buildBulkTrashRecord(
+                    $lesson, 'lesson', $groupUuid, $rootInfo, $actorId, $courseId, $nowString, $expiresAt
+                );
             }
 
-            foreach ($quizzes as $quiz) {
-                $quiz->delete();
+            foreach ($unit->quizzes as $quiz) {
+                $quizKey = $this->modelKey($quiz);
+                $this->context->processedDeleteModels[$quizKey] = true;
+                $this->context->activeDeleteOps++;
+                $quizIds[] = $quiz->id;
+
+                $trashRecords[] = $this->buildBulkTrashRecord(
+                    $quiz, 'quiz', $groupUuid, $rootInfo, $actorId, $courseId, $nowString, $expiresAt
+                );
             }
 
-            foreach ($assignments as $assignment) {
-                $assignment->delete();
+            foreach ($unit->assignments as $assignment) {
+                $assignmentKey = $this->modelKey($assignment);
+                $this->context->processedDeleteModels[$assignmentKey] = true;
+                $this->context->activeDeleteOps++;
+                $assignmentIds[] = $assignment->id;
+
+                $trashRecords[] = $this->buildBulkTrashRecord(
+                    $assignment, 'assignment', $groupUuid, $rootInfo, $actorId, $courseId, $nowString, $expiresAt
+                );
             }
         }
+
+        if (! empty($lessonIds)) {
+            Lesson::whereIn('id', $lessonIds)->update(['status' => 'draft', 'deleted_at' => $now]);
+        }
+        if (! empty($quizIds)) {
+            Quiz::whereIn('id', $quizIds)->update(['status' => 'archived', 'deleted_at' => $now]);
+        }
+        if (! empty($assignmentIds)) {
+            Assignment::whereIn('id', $assignmentIds)->update(['status' => 'archived', 'deleted_at' => $now]);
+        }
+        if (! empty($unitIds)) {
+            Unit::whereIn('id', $unitIds)->update(['status' => 'draft', 'deleted_at' => $now]);
+        }
+
+        foreach (array_chunk($trashRecords, 500) as $chunk) {
+            TrashBin::query()->upsert(
+                $chunk,
+                ['trashable_type', 'trashable_id'],
+                ['resource_type', 'group_uuid', 'root_resource_type', 'root_resource_id', 'original_status', 'trashed_status', 'deleted_by', 'deleted_at', 'expires_at', 'metadata', 'restored_at', 'force_deleted_at']
+            );
+        }
+    }
+
+    private function cascadeUnitChildren(\Modules\Schemes\Models\Unit $unit): void
+    {
+        $unit->load([
+            'lessons' => fn ($q) => $q->whereNull('deleted_at'),
+            'quizzes' => fn ($q) => $q->whereNull('deleted_at'),
+            'assignments' => fn ($q) => $q->whereNull('deleted_at'),
+        ]);
+
+        $hasChildren = $unit->lessons->isNotEmpty()
+            || $unit->quizzes->isNotEmpty()
+            || $unit->assignments->isNotEmpty();
+
+        if (! $hasChildren) {
+            return;
+        }
+
+        $groupUuid = (string) $this->context->activeGroupUuid;
+        $rootKey = $this->modelKey($unit);
+        $rootInfo = $this->context->rootByModel[$rootKey] ?? [
+            'type' => \Modules\Schemes\Models\Unit::class,
+            'id' => (int) $unit->getKey(),
+        ];
+        $actorId = $this->resolveActorIdFromModel($unit);
+        $courseId = (int) $unit->course_id;
+        $now = now();
+        $nowString = $now->toDateTimeString();
+        $expiresAt = $now->copy()->addDays(self::RETENTION_DAYS)->toDateTimeString();
+
+        $trashRecords = [];
+        $lessonIds = [];
+        $quizIds = [];
+        $assignmentIds = [];
+
+        foreach ($unit->lessons as $lesson) {
+            $lessonKey = $this->modelKey($lesson);
+            $this->context->processedDeleteModels[$lessonKey] = true;
+            $this->context->activeDeleteOps++;
+            $lessonIds[] = $lesson->id;
+
+            $trashRecords[] = $this->buildBulkTrashRecord(
+                $lesson, 'lesson', $groupUuid, $rootInfo, $actorId, $courseId, $nowString, $expiresAt
+            );
+        }
+
+        foreach ($unit->quizzes as $quiz) {
+            $quizKey = $this->modelKey($quiz);
+            $this->context->processedDeleteModels[$quizKey] = true;
+            $this->context->activeDeleteOps++;
+            $quizIds[] = $quiz->id;
+
+            $trashRecords[] = $this->buildBulkTrashRecord(
+                $quiz, 'quiz', $groupUuid, $rootInfo, $actorId, $courseId, $nowString, $expiresAt
+            );
+        }
+
+        foreach ($unit->assignments as $assignment) {
+            $assignmentKey = $this->modelKey($assignment);
+            $this->context->processedDeleteModels[$assignmentKey] = true;
+            $this->context->activeDeleteOps++;
+            $assignmentIds[] = $assignment->id;
+
+            $trashRecords[] = $this->buildBulkTrashRecord(
+                $assignment, 'assignment', $groupUuid, $rootInfo, $actorId, $courseId, $nowString, $expiresAt
+            );
+        }
+
+        if (! empty($lessonIds)) {
+            Lesson::whereIn('id', $lessonIds)->update(['status' => 'draft', 'deleted_at' => $now]);
+        }
+        if (! empty($quizIds)) {
+            Quiz::whereIn('id', $quizIds)->update(['status' => 'archived', 'deleted_at' => $now]);
+        }
+        if (! empty($assignmentIds)) {
+            Assignment::whereIn('id', $assignmentIds)->update(['status' => 'archived', 'deleted_at' => $now]);
+        }
+
+        foreach (array_chunk($trashRecords, 500) as $chunk) {
+            TrashBin::query()->upsert(
+                $chunk,
+                ['trashable_type', 'trashable_id'],
+                ['resource_type', 'group_uuid', 'root_resource_type', 'root_resource_id', 'original_status', 'trashed_status', 'deleted_by', 'deleted_at', 'expires_at', 'metadata', 'restored_at', 'force_deleted_at']
+            );
+        }
+    }
+
+    /**
+     * @param  array{type: string, id: int}  $rootInfo
+     */
+    private function buildBulkTrashRecord(
+        Model $model,
+        string $resourceType,
+        string $groupUuid,
+        array $rootInfo,
+        ?int $actorId,
+        ?int $courseId,
+        string $nowString,
+        string $expiresAt
+    ): array {
+        $originalStatus = $this->readStatusValue($model);
+
+        return [
+            'trashable_type' => get_class($model),
+            'trashable_id' => (int) $model->getKey(),
+            'resource_type' => $resourceType,
+            'group_uuid' => $groupUuid,
+            'root_resource_type' => $rootInfo['type'],
+            'root_resource_id' => $rootInfo['id'],
+            'original_status' => $originalStatus,
+            'trashed_status' => self::TRASHED_STATUS_MAP[get_class($model)] ?? null,
+            'deleted_by' => $actorId,
+            'deleted_at' => $nowString,
+            'expires_at' => $expiresAt,
+            'metadata' => json_encode([
+                'title' => $this->extractDisplayTitle($model),
+                'course_id' => $courseId,
+            ]),
+            'restored_at' => null,
+            'force_deleted_at' => null,
+            'created_at' => $nowString,
+            'updated_at' => $nowString,
+        ];
     }
 
     private function applyTrashedStatus(Model $model): void
@@ -477,7 +710,6 @@ class TrashBinService
         $table = $model->getTable();
         $cacheKey = "schema:has_status_column:{$table}";
 
-        // Use Laravel cache instead of static cache for Octane compatibility
         return \Illuminate\Support\Facades\Cache::remember(
             $cacheKey,
             now()->addHours(24),
@@ -507,7 +739,6 @@ class TrashBinService
 
     private function resolveActorId(): ?int
     {
-        // Try to get from auth context first
         $id = auth()->id();
 
         return $id ? (int) $id : null;
@@ -515,12 +746,10 @@ class TrashBinService
 
     private function resolveActorIdFromModel(Model $model): ?int
     {
-        // First try to get from model's deleted_by attribute
         if (isset($model->deleted_by) && $model->deleted_by !== null) {
             return (int) $model->deleted_by;
         }
 
-        // Fallback to auth context
         return $this->resolveActorId();
     }
 
@@ -547,7 +776,13 @@ class TrashBinService
         }
 
         if ($model instanceof \Modules\Schemes\Models\Lesson) {
-            return $model->unit ? (int) $model->unit->course_id : null;
+            return $model->relationLoaded('unit') && $model->unit
+                ? (int) $model->unit->course_id
+                : (int) DB::table('units')->where('id', $model->unit_id)->value('course_id');
+        }
+
+        if ($model instanceof Quiz || $model instanceof Assignment) {
+            return (int) DB::table('units')->where('id', $model->unit_id)->value('course_id');
         }
 
         if (method_exists($model, 'getCourseId')) {

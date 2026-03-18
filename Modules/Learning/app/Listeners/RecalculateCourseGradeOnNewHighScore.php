@@ -10,6 +10,16 @@ use Modules\Learning\Events\NewHighScoreAchieved;
 
 class RecalculateCourseGradeOnNewHighScore implements ShouldQueue
 {
+    use \Illuminate\Queue\InteractsWithQueue;
+
+    public string $queue = 'grading';
+
+    public int $tries = 3;
+
+    public int $maxExceptions = 2;
+
+    public array $backoff = [5, 30, 120];
+
     public function __construct(
         private readonly \Modules\Grading\Services\GradingEntryService $gradingEntryService
     ) {}

@@ -18,6 +18,12 @@ class AwardXpForGradeReleased implements ShouldQueue
 
     public string $queue = 'notifications';
 
+    public int $tries = 3;
+
+    public int $maxExceptions = 2;
+
+    public array $backoff = [5, 30, 120];
+
     public function __construct(
         private readonly GamificationService $gamification,
         private readonly \Modules\Gamification\Services\Support\BadgeRuleEvaluator $evaluator

@@ -10,6 +10,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class InitializeEnrollmentProgressJob implements ShouldQueue
 {
@@ -17,6 +19,12 @@ class InitializeEnrollmentProgressJob implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
+
+    public int $tries = 3;
+
+    public int $maxExceptions = 2;
+
+    public array $backoff = [5, 30, 120];
 
     public function __construct(
         private readonly int $enrollmentId,
@@ -103,6 +111,15 @@ class InitializeEnrollmentProgressJob implements ShouldQueue
             'progress_percent' => 0,
             'created_at' => $now,
             'updated_at' => $now,
+        ]);
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('InitializeEnrollmentProgressJob failed', [
+            'enrollment_id' => $this->enrollmentId,
+            'course_id' => $this->courseId,
+            'error' => $exception->getMessage(),
         ]);
     }
 }

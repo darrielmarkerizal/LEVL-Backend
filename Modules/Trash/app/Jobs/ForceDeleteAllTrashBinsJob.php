@@ -9,7 +9,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Modules\Trash\Services\TrashBinService;
+use Throwable;
 
 class ForceDeleteAllTrashBinsJob implements ShouldQueue
 {
@@ -17,7 +19,11 @@ class ForceDeleteAllTrashBinsJob implements ShouldQueue
 
     public int $tries = 3;
 
-    public int $timeout = 600;
+    public int $maxExceptions = 2;
+
+    public int $timeout = 900;
+
+    public array $backoff = [10, 60, 300];
 
     public function __construct(
         public ?string $resourceType = null,
@@ -31,5 +37,14 @@ class ForceDeleteAllTrashBinsJob implements ShouldQueue
     public function handle(TrashBinService $trashBinService): void
     {
         $trashBinService->forceDeleteAll($this->resourceType, $this->scopedActorId, $this->accessibleCourseIds);
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('ForceDeleteAllTrashBinsJob failed', [
+            'resource_type' => $this->resourceType,
+            'actor_id' => $this->actorId,
+            'error' => $exception->getMessage(),
+        ]);
     }
 }

@@ -4,15 +4,26 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Gamification\Traits\CachesUsers;
 use Modules\Learning\Events\QuizCompleted;
 
-class AwardXpForQuizPassed
+class AwardXpForQuizPassed implements ShouldQueue
 {
-    use CachesUsers; // FIX: Use cached user lookups
+    use CachesUsers;
+    use InteractsWithQueue;
+
+    public string $queue = 'notifications';
+
+    public int $tries = 3;
+
+    public int $maxExceptions = 2;
+
+    public array $backoff = [5, 30, 120];
 
     public function __construct(
         private GamificationService $gamification,
@@ -23,7 +34,6 @@ class AwardXpForQuizPassed
 
     public function handle(QuizCompleted $event): void
     {
-        // FIX: Remove unnecessary fresh() call - use event data directly
         $submission = $event->submission;
         $userId = $submission->user_id;
         $quizId = $submission->quiz_id;
@@ -32,17 +42,15 @@ class AwardXpForQuizPassed
             return;
         }
 
-        // Only award XP if quiz is passed
         if (! $submission->isPassed()) {
             return;
         }
 
         $finalScore = $submission->final_score ?? $submission->score;
 
-        // 1. Award XP for passing quiz (80 XP from xp_sources)
         $this->gamification->awardXp(
             $userId,
-            0, // Will use xp_sources config (quiz_passed = 80 XP)
+            0,
             'quiz_passed',
             'quiz',
             $quizId,
@@ -56,11 +64,10 @@ class AwardXpForQuizPassed
             ]
         );
 
-        // 2. Check if perfect score (100%)
         if ($finalScore >= 100) {
             $this->gamification->awardXp(
                 $userId,
-                0, // Will use xp_sources config (perfect_score = 50 XP)
+                0,
                 'perfect_score',
                 'quiz',
                 $quizId,
@@ -73,7 +80,6 @@ class AwardXpForQuizPassed
             );
         }
 
-        // 3. Log event
         $this->loggerService->log(
             $userId,
             'quiz_passed',
@@ -88,13 +94,10 @@ class AwardXpForQuizPassed
             ]
         );
 
-        // 4. Increment counters
         $this->counterService->increment($userId, 'quiz_passed', 'global', null, 'lifetime');
         $this->counterService->increment($userId, 'quiz_passed', 'global', null, 'daily');
         $this->counterService->increment($userId, 'quiz_passed', 'global', null, 'weekly');
 
-        // 5. Evaluate Dynamic Badge Rules
-        // FIX: Use cached user lookup
         $user = $this->getCachedUser($userId);
         if ($user) {
             $payload = [

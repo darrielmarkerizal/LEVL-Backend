@@ -1,16 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Gamification\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Gamification\Traits\CachesUsers;
 use Modules\Schemes\Events\LessonCompleted;
 
-class AwardXpForLessonCompleted
+class AwardXpForLessonCompleted implements ShouldQueue
 {
-    use CachesUsers; // FIX: Use cached user lookups
+    use CachesUsers;
+    use InteractsWithQueue;
+
+    public string $queue = 'notifications';
+
+    public int $tries = 3;
+
+    public int $maxExceptions = 2;
+
+    public array $backoff = [5, 30, 120];
 
     public function __construct(
         private GamificationService $gamification,
@@ -21,7 +34,6 @@ class AwardXpForLessonCompleted
 
     public function handle(LessonCompleted $event): void
     {
-        // FIX: Remove unnecessary fresh() call - use event data directly
         $lesson = $event->lesson;
         $userId = $event->userId;
 
@@ -29,14 +41,12 @@ class AwardXpForLessonCompleted
             return;
         }
 
-        // Get XP from xp_sources table
         $xpSource = \Modules\Gamification\Models\XpSource::where('code', 'lesson_completed')
             ->where('is_active', true)
             ->first();
 
         $xp = $xpSource ? $xpSource->xp_amount : 50;
 
-        // 1. Award XP (sync)
         $this->gamification->awardXp(
             $userId,
             $xp,
@@ -49,7 +59,6 @@ class AwardXpForLessonCompleted
             ]
         );
 
-        // 2. Log event (sync, fast)
         $this->loggerService->log(
             $userId,
             'lesson_completed',
@@ -63,14 +72,11 @@ class AwardXpForLessonCompleted
             ]
         );
 
-        // 3. Increment counters (sync, fast - no locking!)
         $this->counterService->increment($userId, 'lesson_completed', 'global', null, 'lifetime');
         $this->counterService->increment($userId, 'lesson_completed', 'global', null, 'daily');
         $this->counterService->increment($userId, 'lesson_completed', 'global', null, 'weekly');
         $this->counterService->increment($userId, 'lesson_completed', 'course', $lesson->unit->course_id, 'lifetime');
 
-        // 4. Evaluate Dynamic Badge Rules
-        // FIX: Use cached user lookup
         $user = $this->getCachedUser($userId);
         if ($user) {
             $payload = [

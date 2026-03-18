@@ -16,13 +16,21 @@ class AssignmentPublishedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
+    public int $tries = 3;
+
+    public int $maxExceptions = 2;
+
+    public array $backoff = [5, 30, 120];
+
     public function __construct(
         public readonly User $user,
         public readonly Course $course,
         public readonly Assignment $assignment,
         public readonly string $courseUrl,
         public readonly string $assignmentUrl
-    ) {}
+    ) {
+        $this->onQueue('emails-transactional');
+    }
 
     public function build(): self
     {

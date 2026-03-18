@@ -14,6 +14,14 @@ class InitializeProgressForEnrollment implements ShouldQueue
 {
     use InteractsWithQueue;
 
+    public string $queue = 'default';
+
+    public int $tries = 3;
+
+    public int $maxExceptions = 2;
+
+    public array $backoff = [5, 30, 120];
+
     public function handle(EnrollmentCreated $event): void
     {
         $enrollmentId = $event->enrollment->id;

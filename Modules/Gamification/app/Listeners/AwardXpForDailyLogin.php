@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Modules\Gamification\Listeners;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Cache;
 use Modules\Gamification\Events\UserLoggedIn;
 use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Gamification\Services\EventCounterService;
@@ -12,9 +15,18 @@ use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Gamification\Traits\CachesUsers;
 
-class AwardXpForDailyLogin
+class AwardXpForDailyLogin implements ShouldQueue
 {
-    use CachesUsers; // FIX: Use cached user lookups
+    use CachesUsers;
+    use InteractsWithQueue;
+
+    public string $queue = 'notifications';
+
+    public int $tries = 3;
+
+    public int $maxExceptions = 2;
+
+    public array $backoff = [5, 30, 120];
 
     public function __construct(
         private GamificationService $gamification,
@@ -27,18 +39,15 @@ class AwardXpForDailyLogin
     {
         $userId = $event->userId;
 
-        // Check if already logged in today
         $cacheKey = "gamification.daily_login.{$userId}.".Carbon::today()->format('Y-m-d');
 
-        if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
-            // Already awarded XP for today
+        if (Cache::has($cacheKey)) {
             return;
         }
 
-        // 1. Award XP for daily login (10 XP from xp_sources)
         $this->gamification->awardXp(
             $userId,
-            0, // Will use xp_sources config (daily_login = 10 XP)
+            0,
             'daily_login',
             'system',
             null,
@@ -47,16 +56,14 @@ class AwardXpForDailyLogin
             ]
         );
 
-        // 2. Update streak
         $stats = UserGamificationStat::where('user_id', $userId)->first();
         if ($stats) {
             $currentStreak = $stats->current_streak;
 
-            // Check for streak milestones
             if ($currentStreak == 7) {
                 $this->gamification->awardXp(
                     $userId,
-                    0, // Will use xp_sources config (streak_7_days = 200 XP)
+                    0,
                     'streak_7_days',
                     'system',
                     null,
@@ -67,7 +74,7 @@ class AwardXpForDailyLogin
             } elseif ($currentStreak == 30) {
                 $this->gamification->awardXp(
                     $userId,
-                    0, // Will use xp_sources config (streak_30_days = 1000 XP)
+                    0,
                     'streak_30_days',
                     'system',
                     null,
@@ -78,7 +85,6 @@ class AwardXpForDailyLogin
             }
         }
 
-        // 3. Log event
         $this->loggerService->log(
             $userId,
             'daily_login',
@@ -90,11 +96,8 @@ class AwardXpForDailyLogin
             ]
         );
 
-        // 4. Increment counters
         $this->counterService->increment($userId, 'daily_login', 'global', null, 'lifetime');
 
-        // 5. Evaluate Dynamic Badge Rules
-        // FIX: Use cached user lookup
         $user = $this->getCachedUser($userId);
         if ($user) {
             $payload = [
@@ -104,7 +107,6 @@ class AwardXpForDailyLogin
             $this->evaluator->evaluate($user, 'daily_login', $payload);
         }
 
-        // Cache for 24 hours
-        \Illuminate\Support\Facades\Cache::put($cacheKey, true, Carbon::tomorrow()->addHour());
+        Cache::put($cacheKey, true, Carbon::tomorrow()->addHour());
     }
 }

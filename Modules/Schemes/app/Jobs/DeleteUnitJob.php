@@ -12,6 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Modules\Schemes\Services\UnitService;
+use Throwable;
 
 class DeleteUnitJob implements ShouldQueue
 {
@@ -19,7 +20,11 @@ class DeleteUnitJob implements ShouldQueue
 
     public int $tries = 3;
 
+    public int $maxExceptions = 2;
+
     public int $timeout = 900;
+
+    public array $backoff = [5, 30, 120];
 
     public function __construct(
         public int $unitId,
@@ -38,5 +43,14 @@ class DeleteUnitJob implements ShouldQueue
                 'actor_id' => $this->actorId,
             ]);
         }
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('DeleteUnitJob failed', [
+            'unit_id' => $this->unitId,
+            'actor_id' => $this->actorId,
+            'error' => $exception->getMessage(),
+        ]);
     }
 }

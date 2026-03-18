@@ -14,6 +14,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Modules\Schemes\Contracts\Services\CourseServiceInterface;
 use Modules\Schemes\Models\Course;
+use Throwable;
 
 class DeleteCourseJob implements ShouldQueue
 {
@@ -21,7 +22,11 @@ class DeleteCourseJob implements ShouldQueue
 
     public int $tries = 3;
 
+    public int $maxExceptions = 2;
+
     public int $timeout = 900;
+
+    public array $backoff = [5, 30, 120];
 
     public function __construct(
         public int $courseId,
@@ -74,5 +79,14 @@ class DeleteCourseJob implements ShouldQueue
                 ],
             ]));
         }
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('DeleteCourseJob failed', [
+            'course_id' => $this->courseId,
+            'actor_id' => $this->actorId,
+            'error' => $exception->getMessage(),
+        ]);
     }
 }
