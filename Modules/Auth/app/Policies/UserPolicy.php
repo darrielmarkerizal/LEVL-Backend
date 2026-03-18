@@ -8,7 +8,6 @@ use Modules\Auth\Models\User;
 use Modules\Enrollments\Enums\EnrollmentStatus;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
-use Modules\Schemes\Models\CourseAdmin;
 use Spatie\Activitylog\Models\Activity;
 
 class UserPolicy
@@ -114,7 +113,7 @@ class UserPolicy
             if ($targetUser->hasRole(['Admin', 'Superadmin'])) {
                 return false;
             }
-            
+
             // Admin can reset password for Students and Instructors
             return $this->view($authUser, $targetUser);
         }

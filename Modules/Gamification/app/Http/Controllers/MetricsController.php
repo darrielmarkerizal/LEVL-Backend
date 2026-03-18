@@ -23,23 +23,23 @@ class MetricsController extends Controller
                 'badge_evaluations_total' => $this->getBadgeEvaluationsTotal(),
                 'badge_awarded_total' => $this->getBadgeAwardedTotal(),
                 'badge_awarded_last_hour' => $this->getBadgeAwardedLastHour(),
-                
+
                 // Counter metrics
                 'counter_increment_total' => $this->getCounterIncrementTotal(),
                 'active_counters' => $this->getActiveCounters(),
-                
+
                 // Event log metrics
                 'event_logs_total' => $this->getEventLogsTotal(),
                 'event_logs_last_hour' => $this->getEventLogsLastHour(),
-                
+
                 // Performance metrics
                 'rule_eval_duration_ms' => $this->getRuleEvalDuration(),
                 'cache_hit_rate' => $this->getCacheHitRate(),
-                
+
                 // System health
                 'cooldowns_active' => $this->getActiveCooldowns(),
                 'badge_versions_active' => $this->getActiveBadgeVersions(),
-                
+
                 // Timestamp
                 'collected_at' => now()->toIso8601String(),
             ];

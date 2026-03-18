@@ -221,8 +221,10 @@ class EnrollmentFinder
                 if (! $course) {
                     throw new BusinessException(__('messages.courses.not_found'), []);
                 }
+
                 return $this->paginateByCourse($course->id, $perPage, $filters);
             }
+
             return $this->paginateAll($perPage, $filters);
         }
 
@@ -255,8 +257,10 @@ class EnrollmentFinder
                 if (! $course) {
                     throw new BusinessException(__('messages.courses.not_found'), []);
                 }
+
                 return $this->paginateByCourseForIndex($course->id, $perPage, $filters);
             }
+
             return $this->paginateAllForIndex($perPage, $filters);
         }
 

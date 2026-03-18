@@ -9,11 +9,11 @@ use App\Support\ApiResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Modules\Schemes\Jobs\DeleteCourseJob;
 use Modules\Schemes\Contracts\Services\CourseServiceInterface;
 use Modules\Schemes\Http\Requests\CourseRequest;
 use Modules\Schemes\Http\Requests\PublishCourseRequest;
 use Modules\Schemes\Http\Resources\CourseResource;
+use Modules\Schemes\Jobs\DeleteCourseJob;
 use Modules\Schemes\Models\Course;
 
 class CourseController extends Controller
@@ -53,7 +53,7 @@ class CourseController extends Controller
     {
         // Get authenticated user from API guard
         $user = auth('api')->user();
-        
+
         // Authorization check using Gate with explicit user
         if ($user) {
             \Gate::forUser($user)->authorize('view', $course);

@@ -35,7 +35,7 @@ class EventLoggerService
         array $payload = []
     ): ?GamificationEventLog {
         // Selective logging: only log important events
-        if (!$this->shouldLog($eventType)) {
+        if (! $this->shouldLog($eventType)) {
             return null;
         }
 

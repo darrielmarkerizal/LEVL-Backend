@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace Modules\Notifications\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Events\SubmissionStateChanged;
 use Modules\Notifications\Contracts\Services\GradingNotificationServiceInterface;
 
-class NotifyOnSubmissionStateChanged
+class NotifyOnSubmissionStateChanged implements ShouldQueue
 {
+    use InteractsWithQueue;
+
+    public string $queue = 'notifications';
+
     public function __construct(
         private readonly GradingNotificationServiceInterface $notificationService
     ) {}

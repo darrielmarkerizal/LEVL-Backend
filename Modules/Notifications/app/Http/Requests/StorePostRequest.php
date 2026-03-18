@@ -6,9 +6,9 @@ namespace Modules\Notifications\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Modules\Common\Http\Requests\Concerns\HasApiValidation;
+use Modules\Notifications\Enums\PostAudienceRole;
 use Modules\Notifications\Enums\PostCategory;
 use Modules\Notifications\Enums\PostStatus;
-use Modules\Notifications\Enums\PostAudienceRole;
 
 class StorePostRequest extends FormRequest
 {

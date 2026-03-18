@@ -16,7 +16,7 @@ trait IncludesXpInfo
     {
         $xpSource = XpSource::byCode($xpSourceCode)->active()->first();
 
-        if (!$xpSource) {
+        if (! $xpSource) {
             return [
                 'xp_available' => false,
                 'xp_amount' => 0,

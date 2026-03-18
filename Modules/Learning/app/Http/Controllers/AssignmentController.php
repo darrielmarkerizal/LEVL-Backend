@@ -31,21 +31,21 @@ class AssignmentController extends Controller
     public function index(Request $request, \Modules\Schemes\Models\Course $course): JsonResponse
     {
         $user = auth('api')->user();
-        
+
         // For students, check enrollment first
         if ($user && $user->hasRole('Student')) {
             // Use trait method for enrollment validation
             if ($error = $this->requireEnrollment($course)) {
                 return $error;
             }
-            
+
             // Force published status filter for students
             $filters = array_merge($request->all(), [
                 'filter' => array_merge($request->input('filter', []), [
-                    'status' => 'published'
-                ])
+                    'status' => 'published',
+                ]),
             ]);
-            
+
             $paginator = $this->assignmentService->listForIndex($course, $filters);
             $paginator = $this->enrichmentService->enrichForStudent($paginator, $user->id);
         } else {

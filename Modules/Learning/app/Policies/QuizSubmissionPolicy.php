@@ -31,7 +31,7 @@ class QuizSubmissionPolicy
         if ($user->hasRole('Student')) {
             $submission->loadMissing('quiz.unit.course');
             $course = $submission->quiz?->unit?->course;
-            
+
             if (! $course) {
                 return false;
             }
@@ -60,7 +60,7 @@ class QuizSubmissionPolicy
         if ($user->hasRole('Student')) {
             $submission->loadMissing('quiz.unit.course');
             $course = $submission->quiz?->unit?->course;
-            
+
             if (! $course) {
                 return false;
             }

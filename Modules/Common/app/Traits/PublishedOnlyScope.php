@@ -18,7 +18,7 @@ trait PublishedOnlyScope
             $user = auth('api')->user();
 
             if (! $user || $user->hasRole('Student')) {
-                $builder->whereIn($builder->getModel()->getTable() . '.status', ['published', 'active']);
+                $builder->whereIn($builder->getModel()->getTable().'.status', ['published', 'active']);
             }
         });
     }

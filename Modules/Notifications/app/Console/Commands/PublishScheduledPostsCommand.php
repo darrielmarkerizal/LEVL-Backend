@@ -33,6 +33,7 @@ class PublishScheduledPostsCommand extends Command
         if ($pendingPosts->isEmpty()) {
             $this->info('No scheduled posts to publish.');
             Log::info('PublishScheduledPostsCommand: No scheduled posts found');
+
             return self::SUCCESS;
         }
 

@@ -3,8 +3,8 @@
 namespace Modules\Gamification\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Gamification\Models\Badge;
 use Modules\Common\Models\LevelConfig;
+use Modules\Gamification\Models\Badge;
 
 class LevelMilestoneBadgeSeeder extends Seeder
 {
@@ -128,6 +128,6 @@ class LevelMilestoneBadgeSeeder extends Seeder
         $this->command->info("\n✓ Milestone badges seeding completed!");
         $this->command->info("  Created: {$created} badges");
         $this->command->info("  Updated: {$updated} badges");
-        $this->command->info("  Total: " . ($created + $updated) . " milestone badges");
+        $this->command->info('  Total: '.($created + $updated).' milestone badges');
     }
 }

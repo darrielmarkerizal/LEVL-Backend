@@ -6,8 +6,8 @@ namespace Modules\Schemes\Jobs;
 
 use App\Jobs\LogActivityJob;
 use Illuminate\Bus\Queueable;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
@@ -27,7 +27,7 @@ class DeleteCourseJob implements ShouldQueue
         public int $courseId,
         public ?int $actorId = null
     ) {
-        $this->onQueue('schemes');
+        $this->onQueue('default');
     }
 
     public function handle(CourseServiceInterface $courseService): void

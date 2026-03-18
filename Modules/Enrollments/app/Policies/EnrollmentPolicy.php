@@ -49,7 +49,7 @@ class EnrollmentPolicy
             if ($user->hasRole('Admin')) {
                 return true;
             }
-            
+
             // Instructor can only view enrollments in their courses
             if ($user->hasRole('Instructor')) {
                 return $enrollment->course->hasInstructor($user);

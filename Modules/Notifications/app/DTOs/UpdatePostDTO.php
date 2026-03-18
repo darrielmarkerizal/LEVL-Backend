@@ -17,23 +17,23 @@ final class UpdatePostDTO extends Data
 {
     public function __construct(
         #[Max(255)]
-        public string|Optional $title = new Optional(),
+        public string|Optional $title = new Optional,
 
-        public string|Optional $content = new Optional(),
+        public string|Optional $content = new Optional,
 
-        public string|Optional $category = new Optional(),
+        public string|Optional $category = new Optional,
 
-        public string|Optional $status = new Optional(),
-
-        #[ArrayType]
-        public array|Optional $audiences = new Optional(),
+        public string|Optional $status = new Optional,
 
         #[ArrayType]
-        public array|Optional $notificationChannels = new Optional(),
+        public array|Optional $audiences = new Optional,
+
+        #[ArrayType]
+        public array|Optional $notificationChannels = new Optional,
 
         #[Boolean]
         #[MapInputName('is_pinned')]
-        public bool|Optional $isPinned = new Optional(),
+        public bool|Optional $isPinned = new Optional,
 
         #[ArrayType]
         #[MapInputName('resend_notification_channels')]

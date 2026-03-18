@@ -30,15 +30,15 @@ class CourseResource extends JsonResource
             'title' => $this->title,
             'short_desc' => $this->short_desc,
             'type' => $this->type?->value,
-            'type_label' => $this->type ? __('enums.course_type.' . $this->type->value) : null,
+            'type_label' => $this->type ? __('enums.course_type.'.$this->type->value) : null,
             'level_tag' => $this->level_tag?->value,
-            'level_tag_label' => $this->level_tag ? __('enums.level_tag.' . $this->level_tag->value) : null,
+            'level_tag_label' => $this->level_tag ? __('enums.level_tag.'.$this->level_tag->value) : null,
             'enrollment_type' => $this->enrollment_type?->value,
-            'enrollment_type_label' => $this->enrollment_type ? __('enums.enrollment_type.' . $this->enrollment_type->value) : null,
+            'enrollment_type_label' => $this->enrollment_type ? __('enums.enrollment_type.'.$this->enrollment_type->value) : null,
             'status' => $this->status?->value,
-            'status_label' => $this->status ? __('enums.course_status.' . $this->status->value) : null,
+            'status_label' => $this->status ? __('enums.course_status.'.$this->status->value) : null,
             'enrollment_status' => $isStudent ? $enrollment?->status?->value : null,
-            'enrollment_status_label' => $isStudent && $enrollment?->status ? __('enums.enrollment_status.' . $enrollment->status->value) : null,
+            'enrollment_status_label' => $isStudent && $enrollment?->status ? __('enums.enrollment_status.'.$enrollment->status->value) : null,
             'published_at' => $this->published_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),
@@ -65,9 +65,9 @@ class CourseResource extends JsonResource
             $data['instructor_count'] = $this->when(array_key_exists('instructors_count', $this->getAttributes()), $this->instructors_count);
             $data['enrollments_count'] = $this->when(array_key_exists('enrollments_count', $this->getAttributes()), $this->enrollments_count);
             $data['enrollments'] = $this->when(request()->has('include') && str_contains(request('include'), 'enrollments'), $this->whenLoaded('enrollments'));
-            
+
             // Add decrypted enrollment key for authorized users (Superadmin, Admin, Instructor)
-            if ($this->enrollment_type?->value === 'key_based' && !empty($this->enrollment_key_encrypted)) {
+            if ($this->enrollment_type?->value === 'key_based' && ! empty($this->enrollment_key_encrypted)) {
                 $data['enrollment_key'] = $this->getDecryptedEnrollmentKey();
             }
         }
@@ -81,7 +81,7 @@ class CourseResource extends JsonResource
             } else {
                 $data['units'] = $this->whenLoaded('units');
             }
-            
+
             $data['lessons'] = $this->whenLoaded('lessons');
             $data['quizzes'] = $this->whenLoaded('quizzes');
             $data['assignments'] = $this->whenLoaded('assignments');
@@ -99,25 +99,25 @@ class CourseResource extends JsonResource
     {
         // Get course progress
         $courseProgress = \Modules\Enrollments\Models\CourseProgress::where('enrollment_id', $enrollment->id)->first();
-        
+
         $courseId = $this->id;
-        
+
         // Count total content items (lessons + quizzes + assignments)
         $totalLessons = \Modules\Schemes\Models\Lesson::whereHas('unit', function ($query) use ($courseId) {
             $query->where('course_id', $courseId);
         })->where('status', 'published')->count();
-        
+
         $totalQuizzes = \Modules\Learning\Models\Quiz::whereHas('unit', function ($query) use ($courseId) {
             $query->where('course_id', $courseId);
         })->where('status', \Modules\Learning\Enums\QuizStatus::Published)->count();
-        
+
         $totalAssignments = \Modules\Learning\Models\Assignment::whereHas('unit', function ($query) use ($courseId) {
             $query->where('course_id', $courseId);
         })->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)->count();
-        
+
         $totalContent = $totalLessons + $totalQuizzes + $totalAssignments;
-        
-        if (!$courseProgress || $totalContent === 0) {
+
+        if (! $courseProgress || $totalContent === 0) {
             return [
                 'percentage' => 0,
                 'completed_items' => 0,
@@ -134,12 +134,12 @@ class CourseResource extends JsonResource
 
         // Count completed quizzes (passed with score >= passing_grade)
         $completedQuizzes = \Modules\Learning\Models\QuizSubmission::where('user_id', $enrollment->user_id)
-            ->whereHas('quiz', function($q) use ($courseId) {
-                $q->whereHas('unit', function($unitQuery) use ($courseId) {
+            ->whereHas('quiz', function ($q) use ($courseId) {
+                $q->whereHas('unit', function ($unitQuery) use ($courseId) {
                     $unitQuery->where('course_id', $courseId);
                 })
-                ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
-                ->whereRaw('quiz_submissions.score >= quizzes.passing_grade');
+                    ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
+                    ->whereRaw('quiz_submissions.score >= quizzes.passing_grade');
             })
             ->distinct('quiz_id')
             ->count('quiz_id');
@@ -147,12 +147,12 @@ class CourseResource extends JsonResource
         // Count completed assignments (graded with score >= 60% of max_score)
         $completedAssignments = \Modules\Learning\Models\Submission::where('user_id', $enrollment->user_id)
             ->where('status', \Modules\Learning\Enums\SubmissionStatus::Graded)
-            ->whereHas('assignment', function($q) use ($courseId) {
-                $q->whereHas('unit', function($unitQuery) use ($courseId) {
+            ->whereHas('assignment', function ($q) use ($courseId) {
+                $q->whereHas('unit', function ($unitQuery) use ($courseId) {
                     $unitQuery->where('course_id', $courseId);
                 })
-                ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
-                ->whereRaw('submissions.score >= (assignments.max_score * 0.6)');
+                    ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
+                    ->whereRaw('submissions.score >= (assignments.max_score * 0.6)');
             })
             ->distinct('assignment_id')
             ->count('assignment_id');
@@ -167,11 +167,11 @@ class CourseResource extends JsonResource
 
         $lastLesson = null;
         $lastUnit = null;
-        
+
         if ($lastLessonProgress && $lastLessonProgress->lesson_id) {
             $lastLesson = \Modules\Schemes\Models\Lesson::with('unit')
                 ->find($lastLessonProgress->lesson_id);
-            
+
             if ($lastLesson) {
                 $lastUnit = $lastLesson->unit;
             }

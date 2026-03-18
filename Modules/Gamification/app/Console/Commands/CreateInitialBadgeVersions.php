@@ -19,7 +19,7 @@ class CreateInitialBadgeVersions extends Command
 
         $count = $versionService->createInitialVersionsForExistingBadges();
 
-        $this->info("✅ " . __('gamification::gamification.initial_versions_created', ['count' => $count]));
+        $this->info('✅ '.__('gamification::gamification.initial_versions_created', ['count' => $count]));
 
         return 0;
     }

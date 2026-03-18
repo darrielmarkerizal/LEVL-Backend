@@ -6,6 +6,7 @@ namespace Modules\Auth\Providers;
 
 use App\Support\Traits\RegistersModuleConfig;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Auth\Contracts\Repositories\AuthRepositoryInterface;
 use Modules\Auth\Contracts\Services\AuthServiceInterface;
@@ -33,6 +34,8 @@ class AuthServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
 
         User::observe(UserObserver::class);
+
+        $this->registerPolicies();
 
         $this->app['auth']->provider('trashable-eloquent', function ($app, array $config) {
             return new \Modules\Auth\Support\TrashableEloquentUserProvider($app['hash'], $config['model']);
@@ -127,6 +130,11 @@ class AuthServiceProvider extends ServiceProvider
             \Modules\Auth\Services\BenchmarkService::class,
             \Modules\Auth\Services\BenchmarkService::class,
         );
+    }
+
+    protected function registerPolicies(): void
+    {
+        Gate::policy(User::class, \Modules\Auth\Policies\UserPolicy::class);
     }
 
     protected function registerCommands(): void {}

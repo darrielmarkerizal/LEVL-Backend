@@ -28,6 +28,7 @@ class CleanupOrphanedMediaCommand extends Command
         if ($temporaryPosts->isEmpty()) {
             $this->info('No orphaned media to cleanup.');
             Log::info('CleanupOrphanedMediaCommand: No orphaned media found');
+
             return self::SUCCESS;
         }
 

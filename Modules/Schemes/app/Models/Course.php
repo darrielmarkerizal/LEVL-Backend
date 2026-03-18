@@ -26,7 +26,7 @@ use Spatie\Sluggable\SlugOptions;
 
 class Course extends Model implements HasMedia
 {
-    use HasFactory, HasSlug, InteractsWithMedia, LogsActivity, PgSearchable, SoftDeletes, TracksTrashBin, \Modules\Common\Traits\PublishedOnlyScope;
+    use HasFactory, HasSlug, InteractsWithMedia, LogsActivity, \Modules\Common\Traits\PublishedOnlyScope, PgSearchable, SoftDeletes, TracksTrashBin;
 
     protected array $searchable_columns = [
         'title',
@@ -320,7 +320,7 @@ class Course extends Model implements HasMedia
             // Keep hash for backward compatibility and verification
             $hasher = app(\App\Contracts\EnrollmentKeyHasherInterface::class);
             $this->attributes['enrollment_key_hash'] = $hasher->hash($value);
-            
+
             // Add encryption for decryption capability
             $encrypter = app(\App\Contracts\EnrollmentKeyEncrypterInterface::class);
             $this->attributes['enrollment_key_encrypted'] = $encrypter->encrypt($value);
@@ -329,8 +329,6 @@ class Course extends Model implements HasMedia
 
     /**
      * Get the decrypted enrollment key (only for authorized users)
-     * 
-     * @return string|null
      */
     public function getDecryptedEnrollmentKey(): ?string
     {
@@ -340,12 +338,14 @@ class Course extends Model implements HasMedia
 
         try {
             $encrypter = app(\App\Contracts\EnrollmentKeyEncrypterInterface::class);
+
             return $encrypter->decrypt($this->enrollment_key_encrypted);
         } catch (\Exception $e) {
             \Log::error('Failed to decrypt enrollment key', [
                 'course_id' => $this->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }

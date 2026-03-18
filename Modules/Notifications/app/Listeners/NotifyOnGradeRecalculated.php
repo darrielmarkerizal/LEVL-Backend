@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Notifications\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Modules\Grading\Events\GradeRecalculated;
 use Modules\Notifications\Contracts\Services\GradingNotificationServiceInterface;
 
-class NotifyOnGradeRecalculated
+class NotifyOnGradeRecalculated implements ShouldQueue
 {
+    use InteractsWithQueue;
+
+    public string $queue = 'notifications';
+
     public function __construct(
         private readonly GradingNotificationServiceInterface $notificationService
     ) {}

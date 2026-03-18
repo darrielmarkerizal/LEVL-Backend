@@ -7,8 +7,8 @@ require __DIR__.'/vendor/autoload.php';
 $app = require_once __DIR__.'/bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
-use Modules\Gamification\Models\Badge;
 use Modules\Common\Models\LevelConfig;
+use Modules\Gamification\Models\Badge;
 
 echo "🔗 Linking Milestone Badges to Level Configs...\n\n";
 
@@ -33,29 +33,31 @@ foreach ($milestones as $level => $badgeCode) {
     try {
         // Find the badge
         $badge = Badge::where('code', $badgeCode)->first();
-        
-        if (!$badge) {
+
+        if (! $badge) {
             echo "❌ Badge not found: {$badgeCode}\n";
             $errors++;
+
             continue;
         }
-        
+
         // Find the level config
         $levelConfig = LevelConfig::where('level', $level)->first();
-        
-        if (!$levelConfig) {
+
+        if (! $levelConfig) {
             echo "❌ Level config not found: Level {$level}\n";
             $errors++;
+
             continue;
         }
-        
+
         // Link the badge to the level
         $levelConfig->milestone_badge_id = $badge->id;
         $levelConfig->save();
-        
+
         echo "✅ Level {$level} → {$badge->name} (ID: {$badge->id})\n";
         $linked++;
-        
+
     } catch (\Exception $e) {
         echo "❌ Error linking level {$level}: {$e->getMessage()}\n";
         $errors++;

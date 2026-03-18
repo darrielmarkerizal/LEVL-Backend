@@ -33,7 +33,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
         Route::get('/', [LevelController::class, 'index'])->name('index');
         Route::get('/progression', [LevelController::class, 'progression'])->name('progression');
         Route::post('/calculate', [LevelController::class, 'calculate'])->name('calculate');
-        
+
         Route::middleware(['role:Superadmin'])->group(function () {
             Route::post('/sync', [LevelController::class, 'sync'])->name('sync');
             Route::put('/{id}', [LevelController::class, 'update'])->name('update');

@@ -21,13 +21,13 @@ class AssignmentEnrichmentService
 
         $assignmentIds = $paginator->pluck('id')->toArray();
         $submissions = $this->getLatestSubmissions($assignmentIds, $userId);
-        
+
         // Get XP rewards
         $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
             'assignment_submitted',
-            'perfect_score'
+            'perfect_score',
         ])->get()->keyBy('code');
-        
+
         $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 0;
         $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
@@ -154,13 +154,13 @@ class AssignmentEnrichmentService
 
         $submissionData = $this->calculateSubmissionData($assignment, $submission, $userId);
         $prerequisiteCheck = $this->prerequisiteService->checkAssignmentAccess($assignment, $userId);
-        
+
         // Get XP rewards
         $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
             'assignment_submitted',
-            'perfect_score'
+            'perfect_score',
         ])->get()->keyBy('code');
-        
+
         $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 0;
         $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 

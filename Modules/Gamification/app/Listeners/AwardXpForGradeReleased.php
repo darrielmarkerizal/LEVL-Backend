@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Modules\Common\Models\SystemSetting;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Gamification\Traits\CachesUsers;
 use Modules\Grading\Events\GradesReleased;
 
-class AwardXpForGradeReleased
+class AwardXpForGradeReleased implements ShouldQueue
 {
-    use CachesUsers; // FIX: Use cached user lookups
+    use CachesUsers;
+    use InteractsWithQueue;
+
+    public string $queue = 'notifications';
 
     public function __construct(
         private readonly GamificationService $gamification,
@@ -39,7 +44,7 @@ class AwardXpForGradeReleased
             $this->gamification->awardXp(
                 $submission->user_id,
                 $xpAmount,
-                'achievement',
+                'assignment_completed',
                 'assignment',
                 $assignment->id,
                 [

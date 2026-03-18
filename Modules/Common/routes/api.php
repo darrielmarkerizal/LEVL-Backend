@@ -2,11 +2,11 @@
 
 use App\Http\Controllers\Api\ActivityLogController;
 use Illuminate\Support\Facades\Route;
-use Modules\Common\Http\Controllers\MediaController;
 use Modules\Common\Http\Controllers\AuditLogController;
 use Modules\Common\Http\Controllers\CategoriesController;
 use Modules\Common\Http\Controllers\LevelConfigsController;
 use Modules\Common\Http\Controllers\MasterDataController;
+use Modules\Common\Http\Controllers\MediaController;
 use Modules\Schemes\Http\Controllers\TagController;
 
 Route::prefix('v1')->group(function () {

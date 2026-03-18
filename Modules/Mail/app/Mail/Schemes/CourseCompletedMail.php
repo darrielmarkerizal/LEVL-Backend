@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Modules\Mail\Mail\Schemes;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
 
-class CourseCompletedMail extends Mailable
+class CourseCompletedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -20,7 +21,9 @@ class CourseCompletedMail extends Mailable
         public readonly Course $course,
         public readonly Enrollment $enrollment,
         public readonly string $courseUrl
-    ) {}
+    ) {
+        $this->onQueue('emails-transactional');
+    }
 
     public function build(): self
     {

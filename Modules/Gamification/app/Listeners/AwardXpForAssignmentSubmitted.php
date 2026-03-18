@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
-use Modules\Learning\Events\SubmissionStateChanged;
 use Modules\Learning\Enums\SubmissionState;
+use Modules\Learning\Events\SubmissionStateChanged;
 use Modules\Learning\Models\Submission;
 
-class AwardXpForAssignmentSubmitted
+class AwardXpForAssignmentSubmitted implements ShouldQueue
 {
+    use InteractsWithQueue;
+
+    public string $queue = 'notifications';
+
     public function __construct(
         private GamificationService $gamification,
         private EventCounterService $counterService,
@@ -31,14 +37,14 @@ class AwardXpForAssignmentSubmitted
         $userId = $submission->user_id;
         $assignmentId = $submission->assignment_id;
 
-        if (!$submission || !$submission->assignment) {
+        if (! $submission || ! $submission->assignment) {
             return;
         }
 
         // Check if submission passed (score >= passing_grade)
         $passingGrade = $submission->assignment->passing_grade;
         $score = $submission->score ?? 0;
-        
+
         if ($score < $passingGrade) {
             // Don't award XP if didn't pass
             return;
@@ -54,6 +60,7 @@ class AwardXpForAssignmentSubmitted
         if ($existingXp) {
             // User already got XP for this assignment, don't award again
             \Log::info("User {$userId} already received XP for assignment {$assignmentId}, skipping XP award");
+
             return;
         }
 
@@ -111,7 +118,9 @@ class AwardXpForAssignmentSubmitted
                 'assignment_id' => $assignmentId,
                 'submission_id' => $submission->id,
                 'is_first' => $isFirst,
+                'is_first_submission' => $isFirst,
                 'score' => $score,
+                'time' => now()->format('H:i:s'),
             ];
             $this->evaluator->evaluate($user, 'assignment_submitted', $payload);
         }

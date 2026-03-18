@@ -46,18 +46,18 @@ class XpDailyCap extends Model
     public function incrementXp(int $xp, string $source): void
     {
         $this->total_xp_earned += $xp;
-        
+
         // Track XP by source
         $xpBySource = $this->xp_by_source ?? [];
         $xpBySource[$source] = ($xpBySource[$source] ?? 0) + $xp;
         $this->xp_by_source = $xpBySource;
-        
+
         // Check if cap reached
-        if ($this->hasReachedCap() && !$this->cap_reached) {
+        if ($this->hasReachedCap() && ! $this->cap_reached) {
             $this->cap_reached = true;
             $this->cap_reached_at = now();
         }
-        
+
         $this->save();
     }
 }

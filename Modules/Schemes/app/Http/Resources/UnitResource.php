@@ -63,10 +63,10 @@ class UnitResource extends JsonResource
         $totalAssignments = \Modules\Learning\Models\Assignment::where('unit_id', $this->id)
             ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
             ->count();
-        
+
         $totalContent = $totalLessons + $totalQuizzes + $totalAssignments;
 
-        if (!$unitProgress || $totalContent === 0) {
+        if (! $unitProgress || $totalContent === 0) {
             return [
                 'percentage' => 0,
                 'completed_items' => 0,
@@ -88,7 +88,7 @@ class UnitResource extends JsonResource
             ->pluck('id');
         $completedQuizzes = \Modules\Learning\Models\QuizSubmission::where('user_id', $enrollment->user_id)
             ->whereIn('quiz_id', $quizIds)
-            ->whereHas('quiz', function($q) {
+            ->whereHas('quiz', function ($q) {
                 $q->whereRaw('quiz_submissions.score >= quizzes.passing_grade');
             })
             ->distinct('quiz_id')
@@ -100,7 +100,7 @@ class UnitResource extends JsonResource
         $completedAssignments = \Modules\Learning\Models\Submission::where('user_id', $enrollment->user_id)
             ->whereIn('assignment_id', $assignmentIds)
             ->where('status', \Modules\Learning\Enums\SubmissionStatus::Graded)
-            ->whereHas('assignment', function($q) {
+            ->whereHas('assignment', function ($q) {
                 $q->whereRaw('submissions.score >= (assignments.max_score * 0.6)');
             })
             ->distinct('assignment_id')
@@ -127,8 +127,8 @@ class UnitResource extends JsonResource
 
         // Get the course to access all units
         $course = $this->relationLoaded('course') ? $this->course : $this->course()->first();
-        
-        if (!$course) {
+
+        if (! $course) {
             return false;
         }
 
@@ -137,7 +137,7 @@ class UnitResource extends JsonResource
             ->where('order', $this->order - 1)
             ->first();
 
-        if (!$previousUnit) {
+        if (! $previousUnit) {
             return false;
         }
 
@@ -147,7 +147,7 @@ class UnitResource extends JsonResource
             ->first();
 
         // Unit is locked if previous unit is not completed
-        if (!$previousUnitProgress) {
+        if (! $previousUnitProgress) {
             return true;
         }
 

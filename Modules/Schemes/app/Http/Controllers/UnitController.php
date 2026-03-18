@@ -8,10 +8,9 @@ use App\Support\ApiResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Modules\Schemes\Jobs\DeleteUnitJob;
-use Modules\Schemes\Http\Requests\CreateUnitContentElementRequest;
 use Modules\Schemes\Http\Requests\UnitRequest;
 use Modules\Schemes\Http\Resources\UnitResource;
+use Modules\Schemes\Jobs\DeleteUnitJob;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Services\UnitService;
@@ -121,12 +120,12 @@ class UnitController extends Controller
     public function contents(Course $course, Unit $unit)
     {
         $this->service->validateHierarchy($course->id, $unit->id);
-        
+
         // Require enrollment for students
         if ($error = $this->requireEnrollment($course)) {
             return $error;
         }
-        
+
         $user = auth('api')->user();
         $contents = $this->service->getContents($unit, $user);
 

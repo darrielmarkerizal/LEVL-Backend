@@ -76,13 +76,13 @@ class LevelService
         $currentLevel = $this->calculateLevelFromXp($totalXp);
         $currentLevelTotalXp = $this->calculateTotalXpForLevel($currentLevel);
         $nextLevelTotalXp = $this->calculateTotalXpForLevel($currentLevel + 1);
-        
+
         $currentLevelXp = $totalXp - $currentLevelTotalXp;
         $xpToNextLevel = $nextLevelTotalXp - $totalXp;
         $xpRequiredForNextLevel = $nextLevelTotalXp - $currentLevelTotalXp;
-        
-        $progress = $xpRequiredForNextLevel > 0 
-            ? ($currentLevelXp / $xpRequiredForNextLevel) * 100 
+
+        $progress = $xpRequiredForNextLevel > 0
+            ? ($currentLevelXp / $xpRequiredForNextLevel) * 100
             : 0;
 
         return [
@@ -104,7 +104,7 @@ class LevelService
 
         for ($level = $startLevel; $level <= $endLevel; $level++) {
             $xpRequired = $this->calculateXpForLevel($level);
-            
+
             $configs->push([
                 'level' => $level,
                 'name' => $this->getLevelName($level),
@@ -156,11 +156,11 @@ class LevelService
             81 => 'Grand Master', // Level 81-90
             91 => 'Legendary',    // Level 91-100
         ];
-        
+
         $tierStart = (int) (floor(($level - 1) / 10) * 10) + 1;
         $tierName = $tiers[$tierStart] ?? 'Unknown';
         $tierNumber = (($level - 1) % 10) + 1;
-        
+
         return "{$tierName} {$tierNumber}";
     }
 

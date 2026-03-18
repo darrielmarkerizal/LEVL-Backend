@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Gamification\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
 use Modules\Common\Models\LevelConfig;
 use Modules\Gamification\Models\Badge;
@@ -18,7 +17,7 @@ class GamificationDataSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * This seeder can be used for:
      * 1. Fresh migration (php artisan migrate:fresh --seed)
      * 2. Populate existing students with random gamification data
@@ -32,6 +31,7 @@ class GamificationDataSeeder extends Seeder
 
         if ($users->isEmpty()) {
             $this->command->warn('⚠️  No users found. Please seed users first.');
+
             return;
         }
 
@@ -41,7 +41,7 @@ class GamificationDataSeeder extends Seeder
         $students = $users->filter(function ($user) {
             return $user->hasRole('Student');
         });
-        
+
         $nonStudents = $users->reject(function ($user) {
             return $user->hasRole('Student');
         });
@@ -120,14 +120,14 @@ class GamificationDataSeeder extends Seeder
 
         // Generate random XP (0 to 50000)
         $totalXp = rand(0, 50000);
-        
+
         // Calculate level based on XP
         $level = $this->calculateLevel($totalXp, $levelConfigs);
-        
+
         // Generate random streak data
         $currentStreak = rand(0, 30);
         $longestStreak = max($currentStreak, rand($currentStreak, 60));
-        
+
         // Create or update gamification stats
         $stat = UserGamificationStat::updateOrCreate(
             ['user_id' => $student->id],
@@ -142,12 +142,12 @@ class GamificationDataSeeder extends Seeder
         );
 
         // Generate XP transaction history
-        if (!$xpSources->isEmpty() && $totalXp > 0) {
+        if (! $xpSources->isEmpty() && $totalXp > 0) {
             $this->generateXpHistory($student, $totalXp, $xpSources, $level);
         }
 
         // Award random badges
-        if (!$badges->isEmpty()) {
+        if (! $badges->isEmpty()) {
             $this->awardRandomBadges($student, $badges, $level);
         }
     }
@@ -194,40 +194,40 @@ class GamificationDataSeeder extends Seeder
         $currentLevel = 1;
 
         // Generate 5-20 random transactions
-        $transactionCount = rand(5, min(20, (int)($totalXp / 10)));
-        
+        $transactionCount = rand(5, min(20, (int) ($totalXp / 10)));
+
         // Use timestamp-based source_id to ensure uniqueness
         $baseTimestamp = now()->timestamp;
-        
+
         // Valid source types for seeding
         $sourceTypes = ['lesson', 'assignment', 'system'];
-        
+
         // Generate timestamps spread over last 3 months (90 days)
         $timestamps = $this->generateSpreadTimestamps($transactionCount, 90);
-        
+
         for ($i = 0; $i < $transactionCount && $remainingXp > 0; $i++) {
             $xpSource = $xpSources->random();
-            
+
             // Random XP amount (between source amount and 3x source amount)
             $xpAmount = rand(
-                max(1, (int)($xpSource->xp_amount * 0.5)),
-                min($remainingXp, (int)($xpSource->xp_amount * 3))
+                max(1, (int) ($xpSource->xp_amount * 0.5)),
+                min($remainingXp, (int) ($xpSource->xp_amount * 3))
             );
-            
+
             $oldLevel = $currentLevel;
             $newLevel = $this->calculateLevelFromXp($totalXp - $remainingXp + $xpAmount);
             $triggeredLevelUp = $newLevel > $oldLevel;
-            
+
             if ($triggeredLevelUp) {
                 $currentLevel = $newLevel;
             }
 
             // Use unique source_id: base timestamp + student id + iteration
             $uniqueSourceId = $baseTimestamp + ($student->id * 1000) + $i;
-            
+
             // Map XP source code to appropriate reason
             $reason = $this->mapXpSourceToReason($xpSource->code);
-            
+
             // Determine source type based on XP source
             $sourceType = $this->determineSourceType($xpSource->code);
 
@@ -267,24 +267,24 @@ class GamificationDataSeeder extends Seeder
     {
         $timestamps = [];
         $now = now();
-        
+
         // Generate random timestamps and sort them chronologically
         for ($i = 0; $i < $count; $i++) {
             $daysAgo = rand(0, $days);
             $hoursAgo = rand(0, 23);
             $minutesAgo = rand(0, 59);
-            
+
             $timestamps[] = $now->copy()
                 ->subDays($daysAgo)
                 ->subHours($hoursAgo)
                 ->subMinutes($minutesAgo);
         }
-        
+
         // Sort chronologically (oldest first)
-        usort($timestamps, function($a, $b) {
+        usort($timestamps, function ($a, $b) {
             return $a->timestamp <=> $b->timestamp;
         });
-        
+
         return $timestamps;
     }
 
@@ -361,14 +361,14 @@ class GamificationDataSeeder extends Seeder
     private function awardRandomBadges(User $student, $badges, int $level): void
     {
         // Award 0-10 random badges based on level
-        $maxBadges = min(10, (int)($level / 2) + rand(0, 5));
-        
+        $maxBadges = min(10, (int) ($level / 2) + rand(0, 5));
+
         if ($maxBadges === 0) {
             return;
         }
 
         $badgesToAward = $badges->random(min($maxBadges, $badges->count()));
-        
+
         // Generate timestamps spread over last 3 months
         $timestamps = $this->generateSpreadTimestamps($badgesToAward->count(), 90);
         $userBadges = [];
@@ -383,7 +383,7 @@ class GamificationDataSeeder extends Seeder
             }
 
             $earnedAt = $timestamps[$index];
-            
+
             $userBadges[] = [
                 'user_id' => $student->id,
                 'badge_id' => $badge->id,
@@ -391,12 +391,12 @@ class GamificationDataSeeder extends Seeder
                 'created_at' => $earnedAt,
                 'updated_at' => $earnedAt,
             ];
-            
+
             $index++;
         }
 
         // Insert all badges at once
-        if (!empty($userBadges)) {
+        if (! empty($userBadges)) {
             UserBadge::insert($userBadges);
         }
     }

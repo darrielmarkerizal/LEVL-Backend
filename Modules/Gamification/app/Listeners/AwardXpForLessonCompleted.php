@@ -2,7 +2,6 @@
 
 namespace Modules\Gamification\Listeners;
 
-use Modules\Common\Models\SystemSetting;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
@@ -34,7 +33,7 @@ class AwardXpForLessonCompleted
         $xpSource = \Modules\Gamification\Models\XpSource::where('code', 'lesson_completed')
             ->where('is_active', true)
             ->first();
-        
+
         $xp = $xpSource ? $xpSource->xp_amount : 50;
 
         // 1. Award XP (sync)

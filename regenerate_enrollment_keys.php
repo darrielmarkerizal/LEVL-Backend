@@ -2,12 +2,12 @@
 
 /**
  * Script to regenerate enrollment keys for existing courses
- * 
+ *
  * This script will:
  * 1. Find all courses with key_based enrollment that have hash but no encrypted key
  * 2. Generate new enrollment keys
  * 3. Encrypt them so they can be viewed by authorized users
- * 
+ *
  * IMPORTANT: This will generate NEW keys. The old keys cannot be recovered from hashes.
  * Make sure to communicate the new keys to course instructors.
  */
@@ -17,8 +17,8 @@ require __DIR__.'/vendor/autoload.php';
 $app = require_once __DIR__.'/bootstrap/app.php';
 $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
-use Modules\Schemes\Models\Course;
 use Illuminate\Support\Str;
+use Modules\Schemes\Models\Course;
 
 echo "=================================================\n";
 echo "Enrollment Key Regeneration Script\n";
@@ -40,14 +40,14 @@ $regenerated = [];
 $skipped = [];
 
 foreach ($courses as $course) {
-    $hasEncrypted = !empty($course->enrollment_key_encrypted);
-    
+    $hasEncrypted = ! empty($course->enrollment_key_encrypted);
+
     echo "Course ID: {$course->id}\n";
     echo "  Title: {$course->title}\n";
     echo "  Code: {$course->code}\n";
-    echo "  Has Hash: " . (!empty($course->enrollment_key_hash) ? 'Yes' : 'No') . "\n";
-    echo "  Has Encrypted: " . ($hasEncrypted ? 'Yes' : 'No') . "\n";
-    
+    echo '  Has Hash: '.(! empty($course->enrollment_key_hash) ? 'Yes' : 'No')."\n";
+    echo '  Has Encrypted: '.($hasEncrypted ? 'Yes' : 'No')."\n";
+
     if ($hasEncrypted) {
         // Already has encrypted key, try to decrypt and show it
         try {
@@ -66,15 +66,15 @@ foreach ($courses as $course) {
     } else {
         // Generate new key
         echo "  Status: Generating new key...\n";
-        
+
         // Ask for confirmation
         echo "  ⚠ WARNING: This will generate a NEW key. Old key cannot be recovered.\n";
-        echo "  Continue? (y/n): ";
-        
-        $handle = fopen("php://stdin", "r");
+        echo '  Continue? (y/n): ';
+
+        $handle = fopen('php://stdin', 'r');
         $line = fgets($handle);
         fclose($handle);
-        
+
         if (trim(strtolower($line)) !== 'y') {
             echo "  Status: ✗ Skipped by user\n";
             $skipped[] = [
@@ -85,14 +85,14 @@ foreach ($courses as $course) {
         } else {
             // Generate new key
             $newKey = strtoupper(Str::random(12));
-            
+
             // Update course (this will automatically encrypt)
             $course->enrollment_key = $newKey;
             $course->save();
-            
+
             echo "  New Key: {$newKey}\n";
             echo "  Status: ✓ Successfully regenerated and encrypted\n";
-            
+
             $regenerated[] = [
                 'id' => $course->id,
                 'title' => $course->title,
@@ -101,7 +101,7 @@ foreach ($courses as $course) {
             ];
         }
     }
-    
+
     echo "\n";
 }
 
@@ -110,12 +110,12 @@ echo "=================================================\n";
 echo "Summary\n";
 echo "=================================================\n\n";
 
-if (!empty($regenerated)) {
+if (! empty($regenerated)) {
     echo "Regenerated Keys ({count($regenerated)}):\n";
-    echo str_repeat("-", 80) . "\n";
-    printf("%-5s | %-10s | %-30s | %-15s\n", "ID", "Code", "Title", "New Key");
-    echo str_repeat("-", 80) . "\n";
-    
+    echo str_repeat('-', 80)."\n";
+    printf("%-5s | %-10s | %-30s | %-15s\n", 'ID', 'Code', 'Title', 'New Key');
+    echo str_repeat('-', 80)."\n";
+
     foreach ($regenerated as $item) {
         printf(
             "%-5s | %-10s | %-30s | %-15s\n",
@@ -125,15 +125,15 @@ if (!empty($regenerated)) {
             $item['new_key']
         );
     }
-    echo str_repeat("-", 80) . "\n\n";
-    
+    echo str_repeat('-', 80)."\n\n";
+
     echo "⚠ IMPORTANT: Please communicate these new keys to the course instructors!\n\n";
 }
 
-if (!empty($skipped)) {
-    echo "Skipped Courses (" . count($skipped) . "):\n";
-    echo str_repeat("-", 80) . "\n";
-    
+if (! empty($skipped)) {
+    echo 'Skipped Courses ('.count($skipped)."):\n";
+    echo str_repeat('-', 80)."\n";
+
     foreach ($skipped as $item) {
         echo "ID: {$item['id']} - {$item['title']}\n";
         if (isset($item['key'])) {

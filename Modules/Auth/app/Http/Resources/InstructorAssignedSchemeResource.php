@@ -13,8 +13,8 @@ class InstructorAssignedSchemeResource extends JsonResource
     {
         $studentsCount = $this->enrollments?->count() ?? 0;
 
-    $statusValue = $this->status?->value ?? (string) $this->status;
-    $statusLabel = $this->status ? $this->status->label() : ucfirst($statusValue);
+        $statusValue = $this->status?->value ?? (string) $this->status;
+        $statusLabel = $this->status ? $this->status->label() : ucfirst($statusValue);
 
         return [
             'scheme_id' => $this->id,

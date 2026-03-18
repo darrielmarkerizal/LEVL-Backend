@@ -72,7 +72,7 @@ class PasswordResetController extends Controller
         foreach ($records as $rec) {
             // Check if token is hashed with Bcrypt
             $isMatch = false;
-            
+
             try {
                 // Try to check if it's a Bcrypt hash
                 if (str_starts_with($rec->token, '$2y$') || str_starts_with($rec->token, '$2a$') || str_starts_with($rec->token, '$2b$')) {
@@ -85,7 +85,7 @@ class PasswordResetController extends Controller
                 // If hash check fails, try direct comparison
                 $isMatch = hash_equals($rec->token, $token);
             }
-            
+
             if ($isMatch) {
                 $matched = $rec;
                 $email = $rec->email;
@@ -155,12 +155,12 @@ class PasswordResetController extends Controller
             // Invalidate all JWT tokens by adding user to blacklist
             // This will be handled by JWT middleware on next request
             auth('api')->setUser($user);
-            
+
             // Delete all refresh tokens for this user
             \Illuminate\Support\Facades\DB::table('refresh_tokens')
                 ->where('user_id', $user->id)
                 ->delete();
-                
+
         } catch (\Exception $e) {
             // Log error but don't fail the password change
             \Illuminate\Support\Facades\Log::warning('Failed to revoke tokens for user '.$user->id.': '.$e->getMessage());

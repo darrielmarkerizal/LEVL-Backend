@@ -18,8 +18,8 @@ class StoreSubmissionRequest extends FormRequest
     public function rules(): array
     {
         $assignment = $this->route('assignment');
-        
-        if (!$assignment instanceof Assignment) {
+
+        if (! $assignment instanceof Assignment) {
             return [];
         }
 
@@ -60,8 +60,8 @@ class StoreSubmissionRequest extends FormRequest
     public function messages(): array
     {
         $assignment = $this->route('assignment');
-        
-        if (!$assignment instanceof Assignment) {
+
+        if (! $assignment instanceof Assignment) {
             return [];
         }
 

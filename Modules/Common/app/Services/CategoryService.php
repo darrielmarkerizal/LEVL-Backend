@@ -53,7 +53,7 @@ class CategoryService implements CategoryServiceInterface
     public function all(): \Illuminate\Database\Eloquent\Collection
     {
         return cache()->tags(['common', 'categories'])->remember(
-            "common:categories:all:".request('search', ''),
+            'common:categories:all:'.request('search', ''),
             300,
             function () {
                 $eloquentQuery = Category::query();

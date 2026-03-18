@@ -51,7 +51,7 @@ return new class extends Migration
         // Partial indexes (PostgreSQL only) — smaller and faster than full indexes
         DB::statement("CREATE INDEX idx_posts_published ON posts (published_at) WHERE status = 'published'");
         DB::statement("CREATE INDEX idx_posts_scheduled ON posts (scheduled_at) WHERE status = 'scheduled'");
-        DB::statement("CREATE INDEX idx_posts_pinned ON posts (created_at) WHERE is_pinned = true");
+        DB::statement('CREATE INDEX idx_posts_pinned ON posts (created_at) WHERE is_pinned = true');
     }
 
     /**

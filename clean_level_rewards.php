@@ -17,7 +17,7 @@ $cleaned = 0;
 foreach ($levels as $level) {
     // Clear the rewards column since we now use dedicated columns
     // (bonus_xp column and milestone_badge_id relation)
-    if (!empty($level->rewards)) {
+    if (! empty($level->rewards)) {
         $level->rewards = [];
         $level->save();
         $cleaned++;
@@ -28,4 +28,3 @@ echo "✅ Cleaned {$cleaned} level configurations\n";
 echo "   Rewards are now managed via:\n";
 echo "   - bonus_xp column (for XP rewards)\n";
 echo "   - milestone_badge_id relation (for badge rewards)\n";
-

@@ -11,6 +11,8 @@ enum PointReason: string
     case PerfectScore = 'perfect_score';
     case FirstAttempt = 'first_attempt';
     case FirstSubmission = 'first_submission';
+    case UnitCompleted = 'unit_completed';
+    case AssignmentCompleted = 'assignment_completed';
     case DailyStreak = 'daily_streak';
     case ForumPost = 'forum_post';
     case ForumReply = 'forum_reply';
@@ -18,7 +20,7 @@ enum PointReason: string
     case Engagement = 'engagement';
     case Bonus = 'bonus';
     case Penalty = 'penalty';
-    
+
     // Legacy support
     case Completion = 'completion';
     case Score = 'score';
@@ -43,6 +45,8 @@ enum PointReason: string
             self::PerfectScore => __('enums.point_reason.perfect_score'),
             self::FirstAttempt => __('enums.point_reason.first_attempt'),
             self::FirstSubmission => __('enums.point_reason.first_submission'),
+            self::UnitCompleted => __('enums.point_reason.unit_completed'),
+            self::AssignmentCompleted => __('enums.point_reason.assignment_completed'),
             self::DailyStreak => __('enums.point_reason.daily_streak'),
             self::ForumPost => __('enums.point_reason.forum_post'),
             self::ForumReply => __('enums.point_reason.forum_reply'),

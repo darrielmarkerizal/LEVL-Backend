@@ -4,6 +4,7 @@ namespace Modules\Notifications\Providers;
 
 use App\Support\Traits\RegistersModuleConfig;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Nwidart\Modules\Traits\PathNamespace;
 
@@ -25,7 +26,13 @@ class NotificationsServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
+        $this->registerPolicies();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+    }
+
+    protected function registerPolicies(): void
+    {
+        Gate::policy(\Modules\Notifications\Models\Post::class, \Modules\Notifications\Policies\PostPolicy::class);
     }
 
     /**

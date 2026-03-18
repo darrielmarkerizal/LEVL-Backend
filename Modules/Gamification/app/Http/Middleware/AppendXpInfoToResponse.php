@@ -20,7 +20,7 @@ class AppendXpInfoToResponse
         $response = $next($request);
 
         // Only process JSON responses for authenticated users
-        if (!$response instanceof JsonResponse || !auth()->check()) {
+        if (! $response instanceof JsonResponse || ! auth()->check()) {
             return $response;
         }
 
@@ -35,7 +35,7 @@ class AppendXpInfoToResponse
         // Get user's gamification stats
         $stats = UserGamificationStat::where('user_id', $userId)->first();
 
-        if (!$stats) {
+        if (! $stats) {
             return $response;
         }
 

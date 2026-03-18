@@ -80,16 +80,16 @@ class Handler extends ExceptionHandler
         // Laravel's ValidationException - use localized validation messages
         if ($e instanceof \Illuminate\Validation\ValidationException) {
             $errors = $e->errors();
-            
+
             // Use first error message as main message if available
             $message = 'messages.validation_failed';
-            if (!empty($errors)) {
+            if (! empty($errors)) {
                 $firstError = reset($errors);
-                if (is_array($firstError) && !empty($firstError)) {
+                if (is_array($firstError) && ! empty($firstError)) {
                     $message = $firstError[0];
                 }
             }
-            
+
             return $this->validationError($errors, $message);
         }
 

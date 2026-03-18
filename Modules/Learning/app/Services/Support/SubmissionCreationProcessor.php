@@ -7,7 +7,6 @@ namespace Modules\Learning\Services\Support;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Enrollments\Contracts\Repositories\EnrollmentRepositoryInterface;
-use Modules\Enrollments\Models\Enrollment;
 use Modules\Learning\Contracts\Repositories\SubmissionRepositoryInterface;
 use Modules\Learning\Contracts\Services\QuestionServiceInterface;
 use Modules\Learning\Enums\SubmissionState;
@@ -37,7 +36,7 @@ class SubmissionCreationProcessor
 
         return DB::transaction(function () use ($assignment, $userId, $data) {
             $assignment->loadMissing('unit.course');
-            
+
             if (! $assignment->unit || ! $assignment->unit->course) {
                 throw SubmissionException::notAllowed(__('messages.submissions.assignment_no_unit'));
             }

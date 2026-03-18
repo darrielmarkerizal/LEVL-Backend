@@ -248,7 +248,7 @@ class UnitService
             'lesson_completed',
             'quiz_passed',
             'assignment_submitted',
-            'perfect_score'
+            'perfect_score',
         ])->get()->keyBy('code');
 
         $lessonIds = $unit->lessons()->where('status', 'published')->pluck('id');

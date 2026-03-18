@@ -21,7 +21,9 @@ class InitializeEnrollmentProgressJob implements ShouldQueue
     public function __construct(
         private readonly int $enrollmentId,
         private readonly int $courseId,
-    ) {}
+    ) {
+        $this->onQueue('default');
+    }
 
     public function handle(): void
     {

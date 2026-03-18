@@ -2,10 +2,10 @@
 
 /**
  * Script untuk mencari student yang paling banyak memiliki badge
- * 
+ *
  * Usage:
  * php artisan tinker < find_top_badge_students.php
- * 
+ *
  * Or run directly in tinker:
  * php artisan tinker
  * > include 'find_top_badge_students.php';
@@ -18,7 +18,7 @@ echo "\n=== TOP STUDENTS BY BADGE COUNT ===\n\n";
 
 // Method 1: Using withCount (Recommended - Most Efficient)
 echo "Method 1: Using withCount (Recommended)\n";
-echo str_repeat("-", 50) . "\n";
+echo str_repeat('-', 50)."\n";
 
 $topStudents = User::role('Student')
     ->withCount('badges')
@@ -36,11 +36,11 @@ foreach ($topStudents as $index => $student) {
     );
 }
 
-echo "\n" . str_repeat("=", 50) . "\n\n";
+echo "\n".str_repeat('=', 50)."\n\n";
 
 // Method 2: Using Query Builder with JOIN
 echo "Method 2: Using Query Builder with JOIN\n";
-echo str_repeat("-", 50) . "\n";
+echo str_repeat('-', 50)."\n";
 
 $topStudentsQuery = DB::table('users')
     ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
@@ -70,11 +70,11 @@ foreach ($topStudentsQuery as $index => $student) {
     );
 }
 
-echo "\n" . str_repeat("=", 50) . "\n\n";
+echo "\n".str_repeat('=', 50)."\n\n";
 
 // Method 3: Get detailed badge information for top student
 echo "Method 3: Detailed Badge Information for Top Student\n";
-echo str_repeat("-", 50) . "\n";
+echo str_repeat('-', 50)."\n";
 
 $topStudent = User::role('Student')
     ->withCount('badges')
@@ -88,15 +88,15 @@ if ($topStudent) {
         $topStudent->email
     );
     echo sprintf("Total Badges: %d\n\n", $topStudent->badges_count);
-    
+
     // Get all badges with details
     $badges = UserBadge::where('user_id', $topStudent->id)
-        ->with(['badge' => function($query) {
+        ->with(['badge' => function ($query) {
             $query->select('id', 'name', 'code', 'category', 'rarity', 'type');
         }])
         ->orderBy('earned_at', 'desc')
         ->get();
-    
+
     echo "Badge List:\n";
     foreach ($badges as $index => $userBadge) {
         echo sprintf(
@@ -112,11 +112,11 @@ if ($topStudent) {
     }
 }
 
-echo "\n" . str_repeat("=", 50) . "\n\n";
+echo "\n".str_repeat('=', 50)."\n\n";
 
 // Method 4: Badge Statistics by Category
 echo "Method 4: Badge Statistics by Category for Top Student\n";
-echo str_repeat("-", 50) . "\n";
+echo str_repeat('-', 50)."\n";
 
 if ($topStudent) {
     $badgesByCategory = UserBadge::where('user_id', $topStudent->id)
@@ -125,7 +125,7 @@ if ($topStudent) {
         ->groupBy('badges.category')
         ->orderByDesc('count')
         ->get();
-    
+
     echo sprintf("Badge breakdown for %s:\n", $topStudent->name);
     foreach ($badgesByCategory as $stat) {
         echo sprintf(
@@ -134,9 +134,9 @@ if ($topStudent) {
             $stat->count
         );
     }
-    
+
     echo "\n";
-    
+
     // Badge by rarity
     $badgesByRarity = UserBadge::where('user_id', $topStudent->id)
         ->join('badges', 'user_badges.badge_id', '=', 'badges.id')
@@ -144,7 +144,7 @@ if ($topStudent) {
         ->groupBy('badges.rarity')
         ->orderByDesc('count')
         ->get();
-    
+
     echo "Badge breakdown by rarity:\n";
     foreach ($badgesByRarity as $stat) {
         echo sprintf(
@@ -155,15 +155,15 @@ if ($topStudent) {
     }
 }
 
-echo "\n" . str_repeat("=", 50) . "\n\n";
+echo "\n".str_repeat('=', 50)."\n\n";
 
 // Method 5: Compare Top 5 Students
 echo "Method 5: Comparison of Top 5 Students\n";
-echo str_repeat("-", 50) . "\n";
+echo str_repeat('-', 50)."\n";
 
 $top5Students = User::role('Student')
     ->withCount('badges')
-    ->with(['gamificationStats' => function($query) {
+    ->with(['gamificationStats' => function ($query) {
         $query->select('user_id', 'total_xp', 'global_level');
     }])
     ->orderByDesc('badges_count')
@@ -172,18 +172,18 @@ $top5Students = User::role('Student')
 
 echo sprintf(
     "%-4s %-25s %-10s %-10s %-10s\n",
-    "Rank",
-    "Name",
-    "Badges",
-    "Level",
-    "Total XP"
+    'Rank',
+    'Name',
+    'Badges',
+    'Level',
+    'Total XP'
 );
-echo str_repeat("-", 70) . "\n";
+echo str_repeat('-', 70)."\n";
 
 foreach ($top5Students as $index => $student) {
     echo sprintf(
         "%-4s %-25s %-10d %-10s %-10s\n",
-        "#" . ($index + 1),
+        '#'.($index + 1),
         substr($student->name, 0, 24),
         $student->badges_count,
         $student->gamificationStats?->global_level ?? 'N/A',
@@ -191,28 +191,28 @@ foreach ($top5Students as $index => $student) {
     );
 }
 
-echo "\n" . str_repeat("=", 50) . "\n\n";
+echo "\n".str_repeat('=', 50)."\n\n";
 
 // Summary Statistics
 echo "Summary Statistics\n";
-echo str_repeat("-", 50) . "\n";
+echo str_repeat('-', 50)."\n";
 
 $totalStudents = User::role('Student')->count();
 $studentsWithBadges = User::role('Student')
     ->has('badges')
     ->count();
 $totalBadgesAwarded = UserBadge::count();
-$averageBadgesPerStudent = $studentsWithBadges > 0 
-    ? round($totalBadgesAwarded / $studentsWithBadges, 2) 
+$averageBadgesPerStudent = $studentsWithBadges > 0
+    ? round($totalBadgesAwarded / $studentsWithBadges, 2)
     : 0;
 
 echo sprintf("Total Students: %d\n", $totalStudents);
-echo sprintf("Students with Badges: %d (%.1f%%)\n", 
-    $studentsWithBadges, 
+echo sprintf("Students with Badges: %d (%.1f%%)\n",
+    $studentsWithBadges,
     $totalStudents > 0 ? ($studentsWithBadges / $totalStudents * 100) : 0
 );
 echo sprintf("Total Badges Awarded: %d\n", $totalBadgesAwarded);
 echo sprintf("Average Badges per Student (with badges): %.2f\n", $averageBadgesPerStudent);
 
-echo "\n" . str_repeat("=", 50) . "\n";
+echo "\n".str_repeat('=', 50)."\n";
 echo "Script completed successfully!\n\n";

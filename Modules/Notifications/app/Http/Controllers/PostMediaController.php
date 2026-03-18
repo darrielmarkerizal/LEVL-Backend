@@ -28,7 +28,7 @@ class PostMediaController extends Controller
      */
     public function uploadImage(UploadImageRequest $request): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
@@ -39,7 +39,7 @@ class PostMediaController extends Controller
         if ($postUuid) {
             $post = $this->service->repository->findByUuid($postUuid);
 
-            if (!$post) {
+            if (! $post) {
                 return $this->error(__('messages.posts.not_found'), [], 404);
             }
         } else {

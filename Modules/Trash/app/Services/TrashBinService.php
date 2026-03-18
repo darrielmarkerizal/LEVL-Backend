@@ -324,7 +324,7 @@ class TrashBinService
     }
 
     /**
-     * @param array<int, string> $types
+     * @param  array<int, string>  $types
      * @return array<int, array{value: string, label: string}>
      */
     public function toSourceTypeOptions(array $types): array
@@ -437,15 +437,15 @@ class TrashBinService
             $lessons = $model->lessons()->whereNull('deleted_at')->get();
             $quizzes = $model->quizzes()->whereNull('deleted_at')->get();
             $assignments = $model->assignments()->whereNull('deleted_at')->get();
-            
+
             foreach ($lessons as $lesson) {
                 $lesson->delete();
             }
-            
+
             foreach ($quizzes as $quiz) {
                 $quiz->delete();
             }
-            
+
             foreach ($assignments as $assignment) {
                 $assignment->delete();
             }
@@ -476,7 +476,7 @@ class TrashBinService
     {
         $table = $model->getTable();
         $cacheKey = "schema:has_status_column:{$table}";
-        
+
         // Use Laravel cache instead of static cache for Octane compatibility
         return \Illuminate\Support\Facades\Cache::remember(
             $cacheKey,

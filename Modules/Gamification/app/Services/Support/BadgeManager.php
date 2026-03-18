@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Gamification\Services\Support;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Gamification\Events\BadgeEarned;
 use Modules\Gamification\Models\UserBadge;
 use Modules\Gamification\Repositories\GamificationRepository;
 
@@ -24,10 +25,13 @@ class BadgeManager
             $badge = $this->repository->firstOrCreateBadge($code, [
                 'name' => $name,
                 'description' => $description,
+                'type' => 'completion',
+                'rarity' => 'common',
+                'active' => true,
             ]);
 
             // Check if badge is repeatable
-            if (!$badge->is_repeatable) {
+            if (! $badge->is_repeatable) {
                 $existing = $this->repository->findUserBadge($userId, $badge->id);
                 if ($existing) {
                     return null; // Non-repeatable badge already awarded
@@ -42,12 +46,15 @@ class BadgeManager
                 }
             }
 
-            return $this->repository->createUserBadge([
+            $userBadge = $this->repository->createUserBadge([
                 'user_id' => $userId,
                 'badge_id' => $badge->id,
-                'awarded_at' => now(),
-                'description' => $description,
+                'earned_at' => now(),
             ]);
+
+            BadgeEarned::dispatch($userId, $userBadge, $badge);
+
+            return $userBadge;
         });
     }
 
@@ -64,7 +71,7 @@ class BadgeManager
     public function getUserBadgesPaginated(int $userId, int $perPage = 15, $request = null): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, 100));
-        
+
         return \Spatie\QueryBuilder\QueryBuilder::for(UserBadge::class)
             ->where('user_id', $userId)
             ->with(['badge', 'badge.media'])

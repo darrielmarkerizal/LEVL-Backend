@@ -51,7 +51,7 @@ class LevelConfigResource extends JsonResource
         }
 
         // Add any additional rewards from the rewards column
-        if (!empty($this->rewards) && is_array($this->rewards)) {
+        if (! empty($this->rewards) && is_array($this->rewards)) {
             $rewards = array_merge($rewards, $this->rewards);
         }
 

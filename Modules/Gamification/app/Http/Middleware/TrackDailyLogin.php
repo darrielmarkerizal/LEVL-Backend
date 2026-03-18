@@ -18,7 +18,7 @@ class TrackDailyLogin
         // Only track for authenticated users
         if (auth()->check()) {
             $userId = auth()->id();
-            
+
             // Dispatch UserLoggedIn event
             // The listener will handle checking if already logged in today
             event(new UserLoggedIn($userId));

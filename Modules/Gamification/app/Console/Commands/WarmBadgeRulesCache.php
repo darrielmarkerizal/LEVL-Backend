@@ -34,11 +34,11 @@ class WarmBadgeRulesCache extends Command
                     ->get()
             );
 
-            $this->info("✓ " . __('gamification::gamification.cached_event', ['event' => $event]));
+            $this->info('✓ '.__('gamification::gamification.cached_event', ['event' => $event]));
             $count++;
         }
 
-        $this->info("✅ " . __('gamification::gamification.cache_warmed', ['count' => $count]));
+        $this->info('✅ '.__('gamification::gamification.cache_warmed', ['count' => $count]));
 
         return 0;
     }

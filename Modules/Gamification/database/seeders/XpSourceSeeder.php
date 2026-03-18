@@ -76,6 +76,16 @@ class XpSourceSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'code' => 'assignment_completed',
+                'name' => 'Assignment Completed',
+                'description' => 'Pass an assignment with grade >= passing grade',
+                'xp_amount' => 100,
+                'cooldown_seconds' => 0,
+                'daily_limit' => null,
+                'daily_xp_cap' => null,
+                'is_active' => true,
+            ],
+            [
                 'code' => 'course_completed',
                 'name' => 'Course Completed',
                 'description' => 'Complete a course',
@@ -85,7 +95,7 @@ class XpSourceSeeder extends Seeder
                 'daily_xp_cap' => null,
                 'is_active' => true,
             ],
-            
+
             // Engagement Activities
             [
                 'code' => 'daily_login',
@@ -117,7 +127,7 @@ class XpSourceSeeder extends Seeder
                 'daily_xp_cap' => null,
                 'is_active' => true,
             ],
-            
+
             // Social Activities
             [
                 'code' => 'forum_post_created',
@@ -149,7 +159,7 @@ class XpSourceSeeder extends Seeder
                 'daily_xp_cap' => 100,
                 'is_active' => true,
             ],
-            
+
             // Quality Activities
             [
                 'code' => 'perfect_score',
@@ -171,7 +181,7 @@ class XpSourceSeeder extends Seeder
                 'daily_xp_cap' => null,
                 'is_active' => true,
             ],
-            
+
             // System Rewards
             [
                 'code' => 'level_up_bonus',

@@ -3,17 +3,17 @@
 namespace Modules\Search\Services;
 
 use Illuminate\Support\Collection;
-use Modules\Auth\Models\User;
-use Modules\Schemes\Models\Course;
-use Modules\Schemes\Models\Unit;
-use Modules\Schemes\Models\Lesson;
 use Modules\Assignments\Models\Assignment;
-use Modules\Quizzes\Models\Quiz;
+use Modules\Auth\Models\User;
 use Modules\Forums\Models\Thread;
+use Modules\Quizzes\Models\Quiz;
+use Modules\Schemes\Models\Course;
+use Modules\Schemes\Models\Lesson;
+use Modules\Schemes\Models\Unit;
 
 /**
  * Authorized Search Service
- * 
+ *
  * Implements role-based access control for search functionality
  */
 class AuthorizedSearchService
@@ -24,11 +24,11 @@ class AuthorizedSearchService
     public function search(string $query, string $type, ?User $user = null): array
     {
         // If no user (public search), only allow courses and units
-        if (!$user) {
+        if (! $user) {
             return $this->publicSearch($query, $type);
         }
 
-        return match($type) {
+        return match ($type) {
             'courses' => ['courses' => $this->searchCourses($query, $user)],
             'units' => ['units' => $this->searchUnits($query, $user)],
             'lessons' => ['lessons' => $this->searchLessons($query, $user)],
@@ -48,11 +48,11 @@ class AuthorizedSearchService
      */
     protected function publicSearch(string $query, string $type): array
     {
-        if (!in_array($type, ['courses', 'units', 'all'])) {
+        if (! in_array($type, ['courses', 'units', 'all'])) {
             throw new \UnauthorizedException('Authentication required for this search type');
         }
 
-        return match($type) {
+        return match ($type) {
             'courses' => ['courses' => $this->searchCoursesPublic($query)],
             'units' => ['units' => $this->searchUnitsPublic($query)],
             'all' => [
@@ -164,6 +164,7 @@ class AuthorizedSearchService
             if ($managedCourseIds->isEmpty()) {
                 return collect([]);
             }
+
             return $baseQuery->whereIn('course_id', $managedCourseIds->toArray())->get();
         }
 
@@ -173,6 +174,7 @@ class AuthorizedSearchService
             if ($enrolledCourseIds->isEmpty()) {
                 return collect([]);
             }
+
             return $baseQuery->whereIn('course_id', $enrolledCourseIds->toArray())->get();
         }
 
@@ -197,6 +199,7 @@ class AuthorizedSearchService
             if ($managedCourseIds->isEmpty()) {
                 return collect([]);
             }
+
             return $baseQuery->whereIn('course_id', $managedCourseIds->toArray())->get();
         }
 
@@ -206,6 +209,7 @@ class AuthorizedSearchService
             if ($enrolledCourseIds->isEmpty()) {
                 return collect([]);
             }
+
             return $baseQuery->whereIn('course_id', $enrolledCourseIds->toArray())->get();
         }
 
@@ -226,14 +230,14 @@ class AuthorizedSearchService
 
         // Instructor - can search all students
         if ($user->hasRole('Instructor')) {
-            return $baseQuery->whereHas('roles', function($q) {
+            return $baseQuery->whereHas('roles', function ($q) {
                 $q->where('name', 'Student');
             })->get();
         }
 
         // Student - can only search other students
         if ($user->hasRole('Student')) {
-            return $baseQuery->whereHas('roles', function($q) {
+            return $baseQuery->whereHas('roles', function ($q) {
                 $q->where('name', 'Student');
             })->get();
         }
@@ -259,6 +263,7 @@ class AuthorizedSearchService
             if ($managedCourseIds->isEmpty()) {
                 return collect([]);
             }
+
             return $baseQuery->whereIn('course_id', $managedCourseIds->toArray())->get();
         }
 
@@ -268,6 +273,7 @@ class AuthorizedSearchService
             if ($enrolledCourseIds->isEmpty()) {
                 return collect([]);
             }
+
             return $baseQuery->whereIn('course_id', $enrolledCourseIds->toArray())->get();
         }
 

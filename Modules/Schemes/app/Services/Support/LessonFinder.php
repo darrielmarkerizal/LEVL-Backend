@@ -9,7 +9,6 @@ use Modules\Auth\Models\User;
 use Modules\Schemes\Contracts\Repositories\LessonRepositoryInterface;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Lesson;
-use Modules\Schemes\Services\ProgressionService;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -61,7 +60,7 @@ class LessonFinder
                 ->whereIn('status', [\Modules\Enrollments\Enums\EnrollmentStatus::Active, \Modules\Enrollments\Enums\EnrollmentStatus::Completed])
                 ->first();
 
-            if (!$enrollment) {
+            if (! $enrollment) {
                 throw new \App\Exceptions\BusinessException(__('messages.enrollments.not_enrolled'), [], 403);
             }
 

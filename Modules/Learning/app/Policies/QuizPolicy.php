@@ -131,6 +131,7 @@ class QuizPolicy
         // Students must be enrolled with active status to take quiz
         if ($user->hasRole('Student')) {
             $enrollment = $this->getActiveEnrollment($course);
+
             return $enrollment && $enrollment->status->value === 'active';
         }
 

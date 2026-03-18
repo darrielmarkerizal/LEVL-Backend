@@ -31,7 +31,7 @@ interface GamificationServiceInterface
     public function getOrCreateStats(int $userId): \Modules\Gamification\Models\UserGamificationStat;
 
     public function getUserBadges(int $userId, int $perPage = 15, $request = null): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
-    
+
     public function getUserBadgesCollection(int $userId): \Illuminate\Support\Collection;
 
     public function countUserBadges(int $userId): int;

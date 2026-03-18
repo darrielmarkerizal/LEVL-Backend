@@ -70,7 +70,7 @@ class GamificationService implements GamificationServiceInterface
     {
         return $this->badgeManager->getUserBadgesPaginated($userId, $perPage, $request);
     }
-    
+
     public function getUserBadgesCollection(int $userId): Collection
     {
         return $this->badgeManager->getUserBadges($userId);
@@ -97,10 +97,10 @@ class GamificationService implements GamificationServiceInterface
     {
         $stats = $this->pointManager->getOrCreateStats($userId);
         $rankData = $this->leaderboardService->getUserRank($userId, $period, $month);
-        
+
         // Get XP for the specified period/month
         $periodXp = $this->getPeriodXp($userId, $period, $month);
-        
+
         // Get badges count for the specified period/month
         $badgesCount = $this->getBadgesCountForPeriod($userId, $period, $month);
 
@@ -132,11 +132,11 @@ class GamificationService implements GamificationServiceInterface
             ],
         ];
     }
-    
+
     private function getPeriodXp(int $userId, string $period, ?string $month = null): int
     {
         $query = \Modules\Gamification\Models\Point::where('user_id', $userId);
-        
+
         // If month filter is present, use it
         if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
             try {
@@ -150,14 +150,14 @@ class GamificationService implements GamificationServiceInterface
         } else {
             $this->applyPeriodFilterToQuery($query, $period);
         }
-        
+
         return (int) $query->sum('points');
     }
-    
+
     private function applyPeriodFilterToQuery($query, string $period): void
     {
         $dateColumn = 'created_at';
-        
+
         match ($period) {
             'today' => $query->whereDate($dateColumn, \Carbon\Carbon::today()),
             'this_week' => $query->whereBetween($dateColumn, [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]),
@@ -167,11 +167,11 @@ class GamificationService implements GamificationServiceInterface
             default => null,
         };
     }
-    
+
     private function getBadgesCountForPeriod(int $userId, string $period, ?string $month = null): int
     {
         $query = \Modules\Gamification\Models\UserBadge::where('user_id', $userId);
-        
+
         // If month filter is present, use it
         if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
             try {
@@ -185,10 +185,10 @@ class GamificationService implements GamificationServiceInterface
         } else {
             $this->applyPeriodFilterToBadges($query, $period);
         }
-        
+
         return $query->count();
     }
-    
+
     private function applyPeriodFilterToBadges($query, string $period): void
     {
         match ($period) {
@@ -200,13 +200,14 @@ class GamificationService implements GamificationServiceInterface
             default => null,
         };
     }
-    
+
     private function getLevelName(int $level): string
     {
         $levelConfig = \Modules\Common\Models\LevelConfig::where('level', $level)->first();
-        return $levelConfig?->name ?? 'Level ' . $level;
+
+        return $levelConfig?->name ?? 'Level '.$level;
     }
-    
+
     private function getTotalStudents(): int
     {
         return \Modules\Auth\Models\User::role('Student')->count();

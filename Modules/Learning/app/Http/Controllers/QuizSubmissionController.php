@@ -31,14 +31,14 @@ class QuizSubmissionController extends Controller
         if ($user->hasRole('Student')) {
             $includes = request()->query('include', '');
             $includesArray = $includes ? explode(',', $includes) : [];
-            
+
             // Use Spatie Query Builder for proper include validation
             $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, new QuizSubmission(['quiz_id' => $quiz->id, 'user_id' => $user->id]));
-            
+
             $query = QuizSubmission::where('quiz_id', $quiz->id)
                 ->where('user_id', $user->id)
                 ->orderByDesc('created_at');
-            
+
             $submissions = \Spatie\QueryBuilder\QueryBuilder::for($query)
                 ->allowedIncludes($allowedIncludes)
                 ->get();
@@ -77,7 +77,7 @@ class QuizSubmissionController extends Controller
         $user = auth('api')->user();
         $includes = request()->query('include', '');
         $includesArray = $includes ? explode(',', $includes) : [];
-        
+
         $submissionWithIncludes = $this->submissionService->getSubmissionWithIncludes($submission, $includesArray, $user->id);
 
         return $this->success(QuizSubmissionResource::make($submissionWithIncludes));

@@ -92,8 +92,8 @@ class PostPolicy
 
         // Check if user's role is in the post's target audiences
         $userRole = $this->getUserRole($user);
-        
-        if (!$userRole) {
+
+        if (! $userRole) {
             return false;
         }
 

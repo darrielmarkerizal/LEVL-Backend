@@ -202,7 +202,7 @@ class CourseService implements CourseServiceInterface
         $counter = 1;
 
         while (Course::where('slug', $slug)->exists()) {
-            $slug = $baseSlug . '-' . $counter;
+            $slug = $baseSlug.'-'.$counter;
             $counter++;
         }
 

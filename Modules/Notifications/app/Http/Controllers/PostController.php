@@ -46,7 +46,7 @@ class PostController extends Controller
      */
     public function store(StorePostRequest $request): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
@@ -56,24 +56,30 @@ class PostController extends Controller
         return $this->created(new PostResource($post), __('messages.posts.created'));
     }
 
-    /**
-     * Get single post (check authorization)
-     */
+    public function pinned(Request $request): JsonResponse
+    {
+        $role = $request->get('role');
+        $posts = $this->service->repository->getPinnedPosts($role);
+
+        return $this->success(PostListResource::collection($posts), __('messages.posts.retrieved'));
+    }
+
     public function show(string $uuid): JsonResponse
     {
         $post = $this->service->repository->findByUuid($uuid);
 
-        if (!$post) {
+        if (! $post) {
             return $this->error(__('messages.posts.not_found'), [], 404);
         }
 
         // Check if user can view this post
         $user = auth('api')->user();
+        $user->loadMissing('roles');
         $userRole = $user->roles->first()?->name;
-        
-        if (!$user->hasRole('Admin')) {
-            $postAudiences = $post->audiences->pluck('role')->map(fn($r) => $r->value)->toArray();
-            if (!in_array($userRole, $postAudiences)) {
+
+        if (! $user->hasRole('Admin')) {
+            $postAudiences = $post->audiences->pluck('role')->map(fn ($r) => $r->value)->toArray();
+            if (! in_array($userRole, $postAudiences)) {
                 return $this->forbidden(__('messages.posts.unauthorized'));
             }
         }
@@ -86,13 +92,13 @@ class PostController extends Controller
      */
     public function update(UpdatePostRequest $request, string $uuid): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
         $post = $this->service->repository->findByUuid($uuid);
 
-        if (!$post) {
+        if (! $post) {
             return $this->error(__('messages.posts.not_found'), [], 404);
         }
 
@@ -107,13 +113,13 @@ class PostController extends Controller
      */
     public function destroy(string $uuid): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
         $post = $this->service->repository->findByUuid($uuid);
 
-        if (!$post) {
+        if (! $post) {
             return $this->error(__('messages.posts.not_found'), [], 404);
         }
 
@@ -127,13 +133,13 @@ class PostController extends Controller
      */
     public function publish(string $uuid): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
         $post = $this->service->repository->findByUuid($uuid);
 
-        if (!$post) {
+        if (! $post) {
             return $this->error(__('messages.posts.not_found'), [], 404);
         }
 
@@ -147,13 +153,13 @@ class PostController extends Controller
      */
     public function unpublish(string $uuid): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
         $post = $this->service->repository->findByUuid($uuid);
 
-        if (!$post) {
+        if (! $post) {
             return $this->error(__('messages.posts.not_found'), [], 404);
         }
 
@@ -167,7 +173,7 @@ class PostController extends Controller
      */
     public function schedule(Request $request, string $uuid): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
@@ -177,7 +183,7 @@ class PostController extends Controller
 
         $post = $this->service->repository->findByUuid($uuid);
 
-        if (!$post) {
+        if (! $post) {
             return $this->error(__('messages.posts.not_found'), [], 404);
         }
 
@@ -191,13 +197,13 @@ class PostController extends Controller
      */
     public function cancelSchedule(string $uuid): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
         $post = $this->service->repository->findByUuid($uuid);
 
-        if (!$post) {
+        if (! $post) {
             return $this->error(__('messages.posts.not_found'), [], 404);
         }
 
@@ -211,13 +217,13 @@ class PostController extends Controller
      */
     public function togglePin(string $uuid): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
         $post = $this->service->repository->findByUuid($uuid);
 
-        if (!$post) {
+        if (! $post) {
             return $this->error(__('messages.posts.not_found'), [], 404);
         }
 
@@ -231,7 +237,7 @@ class PostController extends Controller
      */
     public function bulkDelete(Request $request): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
@@ -259,7 +265,7 @@ class PostController extends Controller
      */
     public function bulkPublish(Request $request): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
@@ -287,7 +293,7 @@ class PostController extends Controller
      */
     public function trash(Request $request): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
@@ -303,13 +309,13 @@ class PostController extends Controller
      */
     public function restore(string $uuid): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
         $post = $this->service->repository->model()::withTrashed()->where('uuid', $uuid)->first();
 
-        if (!$post) {
+        if (! $post) {
             return $this->error(__('messages.posts.not_found'), [], 404);
         }
 
@@ -323,13 +329,13 @@ class PostController extends Controller
      */
     public function forceDelete(string $uuid): JsonResponse
     {
-        if (!auth('api')->user()->hasRole('Admin')) {
+        if (! auth('api')->user()->hasRole('Admin')) {
             return $this->forbidden(__('messages.posts.unauthorized'));
         }
 
         $post = $this->service->repository->model()::withTrashed()->where('uuid', $uuid)->first();
 
-        if (!$post) {
+        if (! $post) {
             return $this->error(__('messages.posts.not_found'), [], 404);
         }
 
@@ -345,7 +351,7 @@ class PostController extends Controller
     {
         $post = $this->service->repository->findByUuid($uuid);
 
-        if (!$post) {
+        if (! $post) {
             return $this->error(__('messages.posts.not_found'), [], 404);
         }
 

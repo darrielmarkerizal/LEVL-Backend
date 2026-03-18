@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Modules\Mail\Mail\Auth;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class AccountDeletionVerificationMail extends Mailable
+class AccountDeletionVerificationMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -17,7 +18,9 @@ class AccountDeletionVerificationMail extends Mailable
         public readonly string $userName,
         public readonly string $confirmUrl,
         public readonly int $ttlMinutes
-    ) {}
+    ) {
+        $this->onQueue('emails-critical');
+    }
 
     public function build(): self
     {

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Modules\Mail\Mail\Auth;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Modules\Auth\Models\User;
 
-class UserCredentialsMail extends Mailable
+class UserCredentialsMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -17,7 +18,9 @@ class UserCredentialsMail extends Mailable
         public readonly User $user,
         public readonly string $password,
         public readonly string $loginUrl
-    ) {}
+    ) {
+        $this->onQueue('emails-critical');
+    }
 
     public function build(): self
     {

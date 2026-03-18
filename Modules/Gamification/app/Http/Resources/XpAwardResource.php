@@ -26,8 +26,8 @@ class XpAwardResource extends JsonResource
             'old_level' => $this->old_level,
             'new_level' => $this->new_level,
             'leveled_up' => $this->triggered_level_up,
-            'total_xp' => $this->when($this->user, fn() => $this->user->gamificationStats->total_xp ?? 0),
-            'current_level' => $this->when($this->user, fn() => $this->user->gamificationStats->global_level ?? 1),
+            'total_xp' => $this->when($this->user, fn () => $this->user->gamificationStats->total_xp ?? 0),
+            'current_level' => $this->when($this->user, fn () => $this->user->gamificationStats->global_level ?? 1),
             'awarded_at' => $this->created_at?->toIso8601String(),
         ];
     }

@@ -21,13 +21,13 @@ class QuizEnrichmentService
 
         $quizIds = $paginator->pluck('id')->toArray();
         $submissions = $this->getLatestSubmissions($quizIds, $userId);
-        
+
         // Get XP rewards
         $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
             'quiz_passed',
-            'perfect_score'
+            'perfect_score',
         ])->get()->keyBy('code');
-        
+
         $baseXp = $xpSources['quiz_passed']->xp_amount ?? 0;
         $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
@@ -131,13 +131,13 @@ class QuizEnrichmentService
 
         $submissionData = $this->calculateSubmissionData($quiz, $submission, $userId);
         $prerequisiteCheck = $this->prerequisiteService->checkQuizAccess($quiz, $userId);
-        
+
         // Get XP rewards
         $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
             'quiz_passed',
-            'perfect_score'
+            'perfect_score',
         ])->get()->keyBy('code');
-        
+
         $baseXp = $xpSources['quiz_passed']->xp_amount ?? 0;
         $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
@@ -168,13 +168,13 @@ class QuizEnrichmentService
 
         $submissionData = $this->calculateSubmissionData($quiz, $submission, $userId);
         $prerequisiteCheck = $this->prerequisiteService->checkQuizAccess($quiz, $userId);
-        
+
         // Get XP rewards
         $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
             'quiz_passed',
-            'perfect_score'
+            'perfect_score',
         ])->get()->keyBy('code');
-        
+
         $baseXp = $xpSources['quiz_passed']->xp_amount ?? 0;
         $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 

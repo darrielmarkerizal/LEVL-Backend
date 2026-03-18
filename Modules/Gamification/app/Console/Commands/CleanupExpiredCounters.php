@@ -19,7 +19,7 @@ class CleanupExpiredCounters extends Command
 
         $deleted = $counterService->cleanupExpiredCounters();
 
-        $this->info("✅ " . __('gamification::gamification.counters_cleaned', ['count' => $deleted]));
+        $this->info('✅ '.__('gamification::gamification.counters_cleaned', ['count' => $deleted]));
 
         return 0;
     }

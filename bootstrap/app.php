@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => EnsurePermission::class,
             'cache.response' => \App\Http\Middleware\CacheResponse::class,
             'xp.info' => \Modules\Gamification\Http\Middleware\AppendXpInfoToResponse::class,
+            'track.daily.login' => \Modules\Gamification\Http\Middleware\TrackDailyLogin::class,
             'ensure.user.active' => \Modules\Auth\Http\Middleware\EnsureUserActive::class,
         ]);
 
@@ -46,9 +47,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Set locale before processing API requests
         $middleware->api(prepend: [\App\Http\Middleware\SetLocale::class]);
 
-        // ⚠️ RATE LIMITING DISABLED - FOR STRESS TEST ONLY ⚠️
-        // Re-enable before production deployment!
-        // $middleware->api(prepend: [\Illuminate\Routing\Middleware\ThrottleRequests::class.':api']);
+        // Ensure user is active on all authenticated API requests
+        $middleware->appendToGroup('api', \Modules\Auth\Http\Middleware\EnsureUserActive::class);
+
+        $middleware->api(prepend: [\Illuminate\Routing\Middleware\ThrottleRequests::class.':api']);
 
         // Enable CORS for API routes
         $middleware->api(prepend: [\Illuminate\Http\Middleware\HandleCors::class]);

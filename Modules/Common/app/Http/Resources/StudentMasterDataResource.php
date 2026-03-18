@@ -12,10 +12,10 @@ class StudentMasterDataResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'       => $this->resource->id,
-            'name'     => $this->resource->name,
+            'id' => $this->resource->id,
+            'name' => $this->resource->name,
             'username' => $this->resource->username,
-            'email'    => $this->resource->email,
+            'email' => $this->resource->email,
         ];
     }
 }

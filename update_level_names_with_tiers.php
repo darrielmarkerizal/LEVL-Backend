@@ -3,7 +3,7 @@
 /**
  * Script to update all level names with tier system
  * Format: "Tier Name X" where X is 1-10 within each tier
- * 
+ *
  * Example:
  * - Level 1-10: Beginner 1, Beginner 2, ..., Beginner 10
  * - Level 11-20: Novice 1, Novice 2, ..., Novice 10
@@ -35,8 +35,9 @@ $tiers = [
 function getTierName(int $level): string
 {
     global $tiers;
-    
+
     $tierStart = (int) (floor(($level - 1) / 10) * 10) + 1;
+
     return $tiers[$tierStart] ?? 'Unknown';
 }
 
@@ -52,14 +53,14 @@ foreach ($levels as $levelConfig) {
     $level = $levelConfig->level;
     $tierName = getTierName($level);
     $tierNumber = getTierNumber($level);
-    
+
     $newName = "{$tierName} {$tierNumber}";
-    
+
     if ($levelConfig->name !== $newName) {
         $oldName = $levelConfig->name;
         $levelConfig->name = $newName;
         $levelConfig->save();
-        
+
         $updated++;
         echo sprintf(
             "Level %3d: %-20s → %s\n",

@@ -144,18 +144,19 @@ class CourseFinder
                     $q->where('user_id', $user->id);
                 }]);
             }
+
             return $baseQuery->first();
         }
 
         // Check if course exists first
         $course = Course::where('slug', $slug)->first();
-        if (!$course) {
+        if (! $course) {
             return null;
         }
 
         // Build QueryBuilder with includes
         $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $course);
-        
+
         $queryBuilder = QueryBuilder::for(Course::class, $request)
             ->where('slug', $slug)
             ->allowedIncludes($allowedIncludes);

@@ -30,7 +30,7 @@ class CourseLifecycleProcessor
         try {
             // Disable automatic activity logging to prevent duplicate logs
             activity()->disableLogging();
-            
+
             return DB::transaction(function () use ($data, $actor, $files) {
                 $attributes = $data instanceof CreateCourseDTO ? $data->toArrayWithoutNull() : $data;
 
@@ -72,7 +72,7 @@ class CourseLifecycleProcessor
                 }
 
                 // Sync instructors
-                if (is_array($instructorIds) && !empty($instructorIds)) {
+                if (is_array($instructorIds) && ! empty($instructorIds)) {
                     $course->instructors()->sync($instructorIds);
                 }
 
@@ -88,7 +88,7 @@ class CourseLifecycleProcessor
 
                 // Re-enable logging and create single activity log
                 activity()->enableLogging();
-                
+
                 if ($actor) {
                     activity('schemes')
                         ->causedBy($actor)
@@ -110,7 +110,7 @@ class CourseLifecycleProcessor
         try {
             // Disable automatic activity logging to prevent duplicate logs
             activity()->disableLogging();
-            
+
             return DB::transaction(function () use ($course, $data, $files) {
                 $attributes = $data instanceof UpdateCourseDTO ? $data->toArrayWithoutNull() : $data;
 
@@ -160,7 +160,7 @@ class CourseLifecycleProcessor
 
                 // Re-enable logging and create single activity log
                 activity()->enableLogging();
-                
+
                 $actor = auth()->user();
                 if ($actor) {
                     activity('schemes')
@@ -294,18 +294,18 @@ class CourseLifecycleProcessor
         if (empty($errors) && preg_match('/Key \(([^)]+)\)=\(([^)]+)\) already exists/i', $message, $matches)) {
             $column = trim($matches[1]);
             $value = trim($matches[2]);
-            
+
             // Map database column names to user-friendly field names
             $fieldMap = [
                 'code' => 'Kode Skema',
                 'slug' => 'URL Slug',
                 'title' => 'Judul Skema',
             ];
-            
+
             $fieldName = $fieldMap[$column] ?? ucfirst(str_replace('_', ' ', $column));
             $errors[$column] = [__('messages.courses.duplicate_field_value', [
                 'field' => $fieldName,
-                'value' => $value
+                'value' => $value,
             ])];
         }
 
@@ -314,7 +314,7 @@ class CourseLifecycleProcessor
             // Try to extract constraint name
             if (preg_match('/constraint "([^"]+)"/i', $message, $matches)) {
                 $constraint = $matches[1];
-                
+
                 if (strpos($constraint, 'code') !== false) {
                     $errors['code'] = [__('messages.courses.code_exists')];
                 } elseif (strpos($constraint, 'slug') !== false) {

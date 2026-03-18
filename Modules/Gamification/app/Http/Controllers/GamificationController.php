@@ -23,7 +23,7 @@ class GamificationController extends Controller
         $userId = $request->user()->id;
         $period = $request->input('filter.period', 'all_time');
         $month = $request->input('filter.month');
-        
+
         $summary = $this->gamificationService->getSummary($userId, $period, $month);
 
         return $this->success($summary, __('gamification.summary_retrieved'));
@@ -33,10 +33,10 @@ class GamificationController extends Controller
     {
         $userId = $request->user()->id;
         $perPage = (int) ($request->input('per_page') ?? 15);
-        
+
         $badges = $this->gamificationService->getUserBadges($userId, $perPage, $request);
         $badges->appends($request->query());
-        
+
         $badges->getCollection()->transform(fn ($item) => new UserBadgeResource($item));
 
         return $this->paginateResponse($badges, __('gamification.badges_retrieved'));

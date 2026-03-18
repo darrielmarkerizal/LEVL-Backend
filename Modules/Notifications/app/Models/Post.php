@@ -17,7 +17,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Post extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, PgSearchable, TracksTrashBin;
+    use HasFactory, InteractsWithMedia, PgSearchable, SoftDeletes, TracksTrashBin;
 
     protected array $searchable_columns = ['title', 'content'];
 

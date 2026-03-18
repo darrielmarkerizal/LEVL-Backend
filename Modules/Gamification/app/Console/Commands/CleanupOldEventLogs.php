@@ -21,7 +21,7 @@ class CleanupOldEventLogs extends Command
 
         $deleted = $loggerService->cleanupOldLogs($days);
 
-        $this->info("✅ " . __('gamification::gamification.logs_cleaned', ['count' => $deleted]));
+        $this->info('✅ '.__('gamification::gamification.logs_cleaned', ['count' => $deleted]));
 
         return 0;
     }

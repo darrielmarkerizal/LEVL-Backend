@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Services;
 
+use Modules\Enrollments\Enums\EnrollmentStatus;
+use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Exceptions\LessonCompletionException;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\LessonCompletion;
@@ -11,7 +13,8 @@ use Modules\Schemes\Models\LessonCompletion;
 class LessonCompletionService
 {
     public function __construct(
-        private readonly PrerequisiteService $prerequisiteService
+        private readonly PrerequisiteService $prerequisiteService,
+        private readonly ProgressionService $progressionService
     ) {}
 
     public function markAsCompleted(Lesson $lesson, int $userId): LessonCompletion
@@ -40,30 +43,13 @@ class LessonCompletionService
             'completed_at' => now(),
         ]);
 
-        // Also update lesson_progress for progression tracking
-        $enrollment = \Modules\Enrollments\Models\Enrollment::where('user_id', $userId)
+        $enrollment = Enrollment::where('user_id', $userId)
             ->where('course_id', $lesson->unit->course_id)
-            ->whereIn('status', [\Modules\Enrollments\Enums\EnrollmentStatus::Active, \Modules\Enrollments\Enums\EnrollmentStatus::Completed])
+            ->whereIn('status', [EnrollmentStatus::Active, EnrollmentStatus::Completed])
             ->first();
 
         if ($enrollment) {
-            // Update or create lesson progress
-            \Modules\Enrollments\Models\LessonProgress::updateOrCreate(
-                [
-                    'enrollment_id' => $enrollment->id,
-                    'lesson_id' => $lesson->id,
-                ],
-                [
-                    'status' => \Modules\Enrollments\Enums\ProgressStatus::Completed,
-                    'progress_percent' => 100,
-                    'completed_at' => now(),
-                ]
-            );
-
-            // Dispatch event for XP and progress tracking
-            \Illuminate\Support\Facades\DB::afterCommit(function () use ($lesson, $userId, $enrollment) {
-                \Modules\Schemes\Events\LessonCompleted::dispatch($lesson, $userId, $enrollment->id);
-            });
+            $this->progressionService->markLessonCompleted($lesson, $enrollment);
         }
 
         return $completion;
@@ -87,6 +73,15 @@ class LessonCompletionService
             throw LessonCompletionException::notCompleted(
                 __('messages.lessons.not_completed')
             );
+        }
+
+        $enrollment = Enrollment::where('user_id', $userId)
+            ->where('course_id', $lesson->unit->course_id)
+            ->whereIn('status', [EnrollmentStatus::Active, EnrollmentStatus::Completed])
+            ->first();
+
+        if ($enrollment) {
+            $this->progressionService->markLessonUncompleted($lesson, $enrollment);
         }
 
         return true;

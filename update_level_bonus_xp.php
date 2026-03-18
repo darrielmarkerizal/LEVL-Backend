@@ -3,7 +3,7 @@
 /**
  * Script to update all level configs with dynamic bonus XP
  * Formula: bonus_xp = round(10 × level^1.3)
- * 
+ *
  * This follows the same progressive pattern as xp_required but with smaller values
  */
 
@@ -21,16 +21,16 @@ $updated = 0;
 
 foreach ($levels as $levelConfig) {
     $level = $levelConfig->level;
-    
+
     // Calculate bonus XP using formula: 10 × level^1.3
     $bonusXp = (int) round(10 * pow($level, 1.3));
-    
+
     // Update the level config
     $levelConfig->bonus_xp = $bonusXp;
     $levelConfig->save();
-    
+
     $updated++;
-    
+
     echo sprintf(
         "Level %3d: bonus_xp = %4d XP (xp_required = %5d)\n",
         $level,

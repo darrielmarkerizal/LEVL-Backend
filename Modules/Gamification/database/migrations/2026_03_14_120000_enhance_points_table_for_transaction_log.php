@@ -13,15 +13,15 @@ return new class extends Migration
             // Drop enum constraints to allow any source_type and reason
             // We'll use string instead for flexibility
         });
-        
+
         // Change enum to string for source_type
-        DB::statement("ALTER TABLE points ALTER COLUMN source_type TYPE VARCHAR(50)");
-        DB::statement("ALTER TABLE points ALTER COLUMN source_type DROP DEFAULT");
+        DB::statement('ALTER TABLE points ALTER COLUMN source_type TYPE VARCHAR(50)');
+        DB::statement('ALTER TABLE points ALTER COLUMN source_type DROP DEFAULT');
         DB::statement("ALTER TABLE points ALTER COLUMN source_type SET DEFAULT 'system'");
-        
+
         // Change enum to string for reason
-        DB::statement("ALTER TABLE points ALTER COLUMN reason TYPE VARCHAR(100)");
-        DB::statement("ALTER TABLE points ALTER COLUMN reason DROP DEFAULT");
+        DB::statement('ALTER TABLE points ALTER COLUMN reason TYPE VARCHAR(100)');
+        DB::statement('ALTER TABLE points ALTER COLUMN reason DROP DEFAULT');
         DB::statement("ALTER TABLE points ALTER COLUMN reason SET DEFAULT 'completion'");
 
         Schema::table('points', function (Blueprint $table) {
@@ -33,7 +33,7 @@ return new class extends Migration
             $table->json('metadata')->nullable()->after('triggered_level_up');
             $table->ipAddress('ip_address')->nullable()->after('metadata');
             $table->string('user_agent')->nullable()->after('ip_address');
-            
+
             // Add indexes for analytics
             $table->index('xp_source_code');
             $table->index('triggered_level_up');
@@ -47,7 +47,7 @@ return new class extends Migration
             $table->dropIndex(['xp_source_code']);
             $table->dropIndex(['triggered_level_up']);
             $table->dropIndex(['created_at']);
-            
+
             $table->dropColumn([
                 'xp_source_code',
                 'old_level',
@@ -58,9 +58,9 @@ return new class extends Migration
                 'user_agent',
             ]);
         });
-        
+
         // Restore enum types (simplified - may need adjustment based on data)
-        DB::statement("ALTER TABLE points ALTER COLUMN source_type TYPE VARCHAR(50)");
-        DB::statement("ALTER TABLE points ALTER COLUMN reason TYPE VARCHAR(100)");
+        DB::statement('ALTER TABLE points ALTER COLUMN source_type TYPE VARCHAR(50)');
+        DB::statement('ALTER TABLE points ALTER COLUMN reason TYPE VARCHAR(100)');
     }
 };

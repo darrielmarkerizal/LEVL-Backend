@@ -12,7 +12,7 @@ use Modules\Auth\Models\User;
 
 /**
  * Event fired when a user's status is changed.
- * 
+ *
  * This event is dispatched whenever a user's status is updated,
  * allowing listeners to perform actions like logging, notifications, etc.
  */

@@ -18,7 +18,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Quiz extends Model implements HasMedia
 {
-    use InteractsWithMedia, PgSearchable, SoftDeletes, TracksTrashBin, \Modules\Common\Traits\PublishedOnlyScope;
+    use InteractsWithMedia, \Modules\Common\Traits\PublishedOnlyScope, PgSearchable, SoftDeletes, TracksTrashBin;
 
     protected array $searchable_columns = [
         'title',

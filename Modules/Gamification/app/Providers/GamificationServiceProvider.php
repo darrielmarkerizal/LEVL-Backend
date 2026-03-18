@@ -114,7 +114,7 @@ class GamificationServiceProvider extends ServiceProvider
             $schedule = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
             $schedule->command('streaks:reset-inactive')->dailyAt('00:00')->timezone('Asia/Jakarta');
             $schedule->command('leaderboard:update')->everyFiveMinutes();
-            
+
             // Production-grade cleanup commands
             $schedule->command('gamification:cleanup-logs --days=90')->daily()->at('02:00');
             $schedule->command('gamification:cleanup-counters')->daily()->at('03:00');

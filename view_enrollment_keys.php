@@ -2,12 +2,12 @@
 
 /**
  * Script to view enrollment keys for existing courses
- * 
+ *
  * This script will display:
  * 1. All courses with key_based enrollment
  * 2. Their current encryption status
  * 3. Decrypted keys (if available)
- * 
+ *
  * Note: Keys that are only hashed (not encrypted) cannot be viewed.
  */
 
@@ -38,16 +38,16 @@ $viewable = [];
 $notViewable = [];
 
 foreach ($courses as $course) {
-    $hasHash = !empty($course->enrollment_key_hash);
-    $hasEncrypted = !empty($course->enrollment_key_encrypted);
-    
-    echo str_repeat("=", 80) . "\n";
+    $hasHash = ! empty($course->enrollment_key_hash);
+    $hasEncrypted = ! empty($course->enrollment_key_encrypted);
+
+    echo str_repeat('=', 80)."\n";
     echo "Course ID: {$course->id}\n";
     echo "Title: {$course->title}\n";
     echo "Code: {$course->code}\n";
     echo "Slug: {$course->slug}\n";
     echo "Status: {$course->status->value}\n";
-    
+
     // Show instructors
     if ($course->instructors->isNotEmpty()) {
         echo "Instructors:\n";
@@ -57,17 +57,17 @@ foreach ($courses as $course) {
     } else {
         echo "Instructors: None assigned\n";
     }
-    
+
     echo "\nEnrollment Key Status:\n";
-    echo "  Has Hash: " . ($hasHash ? '✓ Yes' : '✗ No') . "\n";
-    echo "  Has Encrypted: " . ($hasEncrypted ? '✓ Yes' : '✗ No') . "\n";
-    
+    echo '  Has Hash: '.($hasHash ? '✓ Yes' : '✗ No')."\n";
+    echo '  Has Encrypted: '.($hasEncrypted ? '✓ Yes' : '✗ No')."\n";
+
     if ($hasEncrypted) {
         try {
             $decrypted = $course->getDecryptedEnrollmentKey();
             echo "  Enrollment Key: {$decrypted}\n";
             echo "  Viewable: ✓ Yes\n";
-            
+
             $viewable[] = [
                 'id' => $course->id,
                 'title' => $course->title,
@@ -79,18 +79,18 @@ foreach ($courses as $course) {
             echo "  Enrollment Key: ⚠ Failed to decrypt\n";
             echo "  Error: {$e->getMessage()}\n";
             echo "  Viewable: ✗ No\n";
-            
+
             $notViewable[] = [
                 'id' => $course->id,
                 'title' => $course->title,
-                'reason' => 'Decryption failed: ' . $e->getMessage(),
+                'reason' => 'Decryption failed: '.$e->getMessage(),
             ];
         }
-    } else if ($hasHash) {
+    } elseif ($hasHash) {
         echo "  Enrollment Key: ⚠ Only hashed (cannot be viewed)\n";
         echo "  Viewable: ✗ No\n";
         echo "  Note: Run regenerate_enrollment_keys.php to create viewable keys\n";
-        
+
         $notViewable[] = [
             'id' => $course->id,
             'title' => $course->title,
@@ -99,32 +99,32 @@ foreach ($courses as $course) {
     } else {
         echo "  Enrollment Key: ✗ Not set\n";
         echo "  Viewable: ✗ No\n";
-        
+
         $notViewable[] = [
             'id' => $course->id,
             'title' => $course->title,
             'reason' => 'No key set',
         ];
     }
-    
+
     echo "\n";
 }
 
 // Summary
-echo str_repeat("=", 80) . "\n";
+echo str_repeat('=', 80)."\n";
 echo "SUMMARY\n";
-echo str_repeat("=", 80) . "\n\n";
+echo str_repeat('=', 80)."\n\n";
 
 echo "Total Courses: {$courses->count()}\n";
-echo "Viewable Keys: " . count($viewable) . "\n";
-echo "Not Viewable: " . count($notViewable) . "\n\n";
+echo 'Viewable Keys: '.count($viewable)."\n";
+echo 'Not Viewable: '.count($notViewable)."\n\n";
 
-if (!empty($viewable)) {
+if (! empty($viewable)) {
     echo "VIEWABLE ENROLLMENT KEYS:\n";
-    echo str_repeat("-", 80) . "\n";
-    printf("%-5s | %-10s | %-25s | %-15s\n", "ID", "Code", "Title", "Key");
-    echo str_repeat("-", 80) . "\n";
-    
+    echo str_repeat('-', 80)."\n";
+    printf("%-5s | %-10s | %-25s | %-15s\n", 'ID', 'Code', 'Title', 'Key');
+    echo str_repeat('-', 80)."\n";
+
     foreach ($viewable as $item) {
         printf(
             "%-5s | %-10s | %-25s | %-15s\n",
@@ -134,13 +134,13 @@ if (!empty($viewable)) {
             $item['key']
         );
     }
-    echo str_repeat("-", 80) . "\n\n";
+    echo str_repeat('-', 80)."\n\n";
 }
 
-if (!empty($notViewable)) {
+if (! empty($notViewable)) {
     echo "NOT VIEWABLE (Action Required):\n";
-    echo str_repeat("-", 80) . "\n";
-    
+    echo str_repeat('-', 80)."\n";
+
     foreach ($notViewable as $item) {
         echo "ID: {$item['id']} - {$item['title']}\n";
         echo "  Reason: {$item['reason']}\n";

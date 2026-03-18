@@ -132,13 +132,13 @@ class SearchController extends Controller
     public function globalSearch(Request $request): JsonResponse
     {
         $query = $request->input('q', '') ?? '';
-        
+
         // Extract type from either direct parameter or filter array
         $type = $request->input('type') ?? $request->input('filter.type', 'all');
 
         // Validate type
         $validTypes = ['courses', 'units', 'lessons', 'users', 'forums', 'all'];
-        if (!in_array($type, $validTypes)) {
+        if (! in_array($type, $validTypes)) {
             return $this->error(
                 message: __('messages.search.invalid_type'),
                 code: 422
@@ -148,8 +148,8 @@ class SearchController extends Controller
         // Check authentication for restricted types
         $user = auth('api')->user();
         $restrictedTypes = ['lessons', 'users', 'forums'];
-        
-        if (!$user && ($type === 'all' || in_array($type, $restrictedTypes))) {
+
+        if (! $user && ($type === 'all' || in_array($type, $restrictedTypes))) {
             // For unauthenticated users, only allow courses and units
             if ($type === 'all') {
                 $type = 'courses'; // Default to courses for public
@@ -164,7 +164,7 @@ class SearchController extends Controller
         $results = $this->searchService->globalSearch($query, 5, $user);
 
         // Save search history for authenticated users
-        if ($user && !empty(trim($query))) {
+        if ($user && ! empty(trim($query))) {
             $totalResults = collect($results)->flatten()->count();
             $this->searchService->saveSearchHistory($user, $query, ['type' => $type], $totalResults);
         }
@@ -212,24 +212,24 @@ class SearchController extends Controller
         ]);
 
         $query = $request->input('q');
-        
+
         // Extract type from either direct parameter or filter array
         // Default to 'all' if not specified for better search experience
         $type = $request->input('type') ?? $request->input('filter.type');
-        
+
         // If type is still null or 'all', use globalSearch instead
-        if (!$type || $type === 'all') {
+        if (! $type || $type === 'all') {
             return $this->globalSearch($request);
         }
-        
+
         // Get filters from filter[] parameters, excluding 'type' which is handled separately
         $filters = collect($request->input('filter', []))
             ->except(['type'])
             ->toArray();
-        
+
         // Add per_page separately (not a Spatie filter)
         $filters['per_page'] = $request->input('per_page', 15);
-        
+
         $sort = [
             'field' => $request->input('sort', 'created_at'),
             'direction' => 'desc',
@@ -238,7 +238,7 @@ class SearchController extends Controller
         $user = auth('api')->user();
 
         // Check authentication for restricted types
-        if (!$user && in_array($type, ['lessons', 'users'])) {
+        if (! $user && in_array($type, ['lessons', 'users'])) {
             return $this->error(
                 message: __('messages.auth.unauthenticated'),
                 code: 401
@@ -248,7 +248,7 @@ class SearchController extends Controller
         $result = $this->searchService->search($query, $filters, $sort, $user, $type);
 
         // Save search history
-        if ($user && !empty(trim($query))) {
+        if ($user && ! empty(trim($query))) {
             $this->searchService->saveSearchHistory($user, $query, $filters, $result->total);
         }
 

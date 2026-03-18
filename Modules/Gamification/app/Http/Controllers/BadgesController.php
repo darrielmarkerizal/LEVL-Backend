@@ -105,10 +105,10 @@ class BadgesController extends Controller
     {
         $userId = auth('api')->user()->id;
         $perPage = min((int) $request->get('per_page', 15), 100);
-        
+
         $badges = $this->service->getAvailableBadgesForStudent($userId, $perPage, $request);
         $badges->appends($request->query());
-        
+
         $badges->getCollection()->transform(fn ($item) => new BadgeResource($item));
 
         return $this->paginateResponse($badges, __('messages.badges.retrieved'));

@@ -13,9 +13,6 @@ class LogUserStatusChange
 {
     /**
      * Handle the event.
-     *
-     * @param  \Modules\Auth\Events\UserStatusChanged  $event
-     * @return void
      */
     public function handle(UserStatusChanged $event): void
     {

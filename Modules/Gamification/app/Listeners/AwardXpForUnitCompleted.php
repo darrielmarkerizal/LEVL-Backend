@@ -1,18 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Gamification\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Modules\Common\Models\SystemSetting;
+use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\GamificationService;
+use Modules\Gamification\Services\Support\BadgeRuleEvaluator;
+use Modules\Gamification\Traits\CachesUsers;
 use Modules\Schemes\Events\UnitCompleted;
 
-class AwardXpForUnitCompleted
+class AwardXpForUnitCompleted implements ShouldQueue
 {
-    public function __construct(private GamificationService $gamification) {}
+    use CachesUsers;
+    use InteractsWithQueue;
+
+    public string $queue = 'notifications';
+
+    public function __construct(
+        private GamificationService $gamification,
+        private EventCounterService $counterService,
+        private BadgeRuleEvaluator $evaluator
+    ) {}
 
     public function handle(UnitCompleted $event): void
     {
-        // FIX: Remove unnecessary fresh() call - use event data directly
         $unit = $event->unit;
         $userId = $event->userId;
 
@@ -25,7 +40,7 @@ class AwardXpForUnitCompleted
         $this->gamification->awardXp(
             $userId,
             $xp,
-            'completion',
+            'unit_completed',
             'unit',
             $unit->id,
             [
@@ -33,5 +48,20 @@ class AwardXpForUnitCompleted
                 'allow_multiple' => false,
             ]
         );
+
+        $this->counterService->increment($userId, 'unit_completed', 'global', null, 'lifetime');
+        $this->counterService->increment($userId, 'unit_completed', 'global', null, 'daily');
+        $this->counterService->increment($userId, 'unit_completed', 'global', null, 'weekly');
+        $this->counterService->increment($userId, 'unit_completed', 'course', $unit->course_id, 'lifetime');
+
+        $user = $this->getCachedUser($userId);
+        if ($user) {
+            $payload = [
+                'unit_id' => $unit->id,
+                'course_id' => $unit->course_id,
+                'is_weekend' => now()->isWeekend(),
+            ];
+            $this->evaluator->evaluate($user, 'unit_completed', $payload);
+        }
     }
 }

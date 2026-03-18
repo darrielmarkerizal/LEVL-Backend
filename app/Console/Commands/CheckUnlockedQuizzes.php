@@ -4,14 +4,15 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Modules\Auth\Models\User;
+use Modules\Enrollments\Models\Enrollment;
 use Modules\Learning\Models\Quiz;
 use Modules\Learning\Models\QuizSubmission;
-use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Services\PrerequisiteService;
 
 class CheckUnlockedQuizzes extends Command
 {
     protected $signature = 'quiz:check-unlocked';
+
     protected $description = 'Find students with unlocked quizzes that haven\'t been attempted';
 
     public function handle()
@@ -20,11 +21,11 @@ class CheckUnlockedQuizzes extends Command
         $this->newLine();
 
         // Get all active students
-        $students = User::whereHas('roles', function($q) {
+        $students = User::whereHas('roles', function ($q) {
             $q->where('name', 'Student');
         })
-        ->where('status', 'active')
-        ->get();
+            ->where('status', 'active')
+            ->get();
 
         $this->info("Checking {$students->count()} students...");
         $this->newLine();
@@ -41,28 +42,28 @@ class CheckUnlockedQuizzes extends Command
                 ->where('status', 'active')
                 ->with('course')
                 ->get();
-            
+
             foreach ($enrollments as $enrollment) {
                 $course = $enrollment->course;
-                
+
                 // Get all published quizzes in this course
-                $quizzes = Quiz::whereHas('unit', function($q) use ($course) {
+                $quizzes = Quiz::whereHas('unit', function ($q) use ($course) {
                     $q->where('course_id', $course->id);
                 })
-                ->where('status', 'published')
-                ->with(['unit'])
-                ->get();
-                
+                    ->where('status', 'published')
+                    ->with(['unit'])
+                    ->get();
+
                 foreach ($quizzes as $quiz) {
                     // Check if student has attempted this quiz
                     $hasAttempt = QuizSubmission::where('quiz_id', $quiz->id)
                         ->where('user_id', $student->id)
                         ->exists();
-                    
-                    if (!$hasAttempt) {
+
+                    if (! $hasAttempt) {
                         // Check if quiz is unlocked
                         $accessCheck = $prerequisiteService->checkQuizAccess($quiz, $student->id);
-                        
+
                         if ($accessCheck['accessible']) {
                             $results[] = [
                                 'student_id' => $student->id,
@@ -78,7 +79,7 @@ class CheckUnlockedQuizzes extends Command
                     }
                 }
             }
-            
+
             $progressBar->advance();
         }
 
@@ -86,13 +87,13 @@ class CheckUnlockedQuizzes extends Command
         $this->newLine(2);
 
         $this->info('=== SUMMARY ===');
-        $this->info("Total unlocked quizzes not attempted: " . count($results));
+        $this->info('Total unlocked quizzes not attempted: '.count($results));
         $this->newLine();
 
         if (count($results) > 0) {
             $this->table(
                 ['Student', 'Email', 'Course', 'Quiz', 'Unit'],
-                collect($results)->map(function($r) {
+                collect($results)->map(function ($r) {
                     return [
                         substr($r['student_name'], 0, 20),
                         substr($r['student_email'], 0, 25),
@@ -102,7 +103,7 @@ class CheckUnlockedQuizzes extends Command
                     ];
                 })
             );
-            
+
             // Show first result details for testing
             $first = $results[0];
             $this->newLine();

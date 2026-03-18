@@ -26,7 +26,7 @@ class FindTopBadgeStudents extends Command
         // Get top students
         $topStudents = User::role('Student')
             ->withCount('badges')
-            ->with(['gamificationStats' => function($query) {
+            ->with(['gamificationStats' => function ($query) {
                 $query->select('user_id', 'total_xp', 'global_level');
             }])
             ->orderByDesc('badges_count')
@@ -35,6 +35,7 @@ class FindTopBadgeStudents extends Command
 
         if ($topStudents->isEmpty()) {
             $this->warn('No students found with badges.');
+
             return 0;
         }
 
@@ -44,7 +45,7 @@ class FindTopBadgeStudents extends Command
 
         foreach ($topStudents as $index => $student) {
             $rows[] = [
-                '#' . ($index + 1),
+                '#'.($index + 1),
                 $student->name,
                 $student->email,
                 $student->badges_count,
@@ -76,7 +77,7 @@ class FindTopBadgeStudents extends Command
 
         // Get badges with details
         $badges = UserBadge::where('user_id', $student->id)
-            ->with(['badge' => function($query) {
+            ->with(['badge' => function ($query) {
                 $query->select('id', 'name', 'code', 'category', 'rarity', 'type');
             }])
             ->orderBy('earned_at', 'desc')
@@ -114,7 +115,7 @@ class FindTopBadgeStudents extends Command
             ->get();
 
         foreach ($byCategory as $stat) {
-            $this->line("  - " . ucfirst($stat->category ?? 'Unknown') . ": {$stat->count} badges");
+            $this->line('  - '.ucfirst($stat->category ?? 'Unknown').": {$stat->count} badges");
         }
 
         $this->newLine();
@@ -128,7 +129,7 @@ class FindTopBadgeStudents extends Command
             ->get();
 
         foreach ($byRarity as $stat) {
-            $this->line("  - " . ucfirst($stat->rarity ?? 'Unknown') . ": {$stat->count} badges");
+            $this->line('  - '.ucfirst($stat->rarity ?? 'Unknown').": {$stat->count} badges");
         }
     }
 
@@ -140,11 +141,11 @@ class FindTopBadgeStudents extends Command
         $totalStudents = User::role('Student')->count();
         $studentsWithBadges = User::role('Student')->has('badges')->count();
         $totalBadgesAwarded = UserBadge::count();
-        $averageBadges = $studentsWithBadges > 0 
-            ? round($totalBadgesAwarded / $studentsWithBadges, 2) 
+        $averageBadges = $studentsWithBadges > 0
+            ? round($totalBadgesAwarded / $studentsWithBadges, 2)
             : 0;
-        $percentage = $totalStudents > 0 
-            ? round(($studentsWithBadges / $totalStudents) * 100, 1) 
+        $percentage = $totalStudents > 0
+            ? round(($studentsWithBadges / $totalStudents) * 100, 1)
             : 0;
 
         $this->line("Total Students: {$totalStudents}");

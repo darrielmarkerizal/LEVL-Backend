@@ -21,7 +21,9 @@ class HandleEnrollmentCreatedJob implements ShouldQueue
     public function __construct(
         private readonly int $enrollmentId,
         private readonly string $status,
-    ) {}
+    ) {
+        $this->onQueue('default');
+    }
 
     public function handle(): void
     {

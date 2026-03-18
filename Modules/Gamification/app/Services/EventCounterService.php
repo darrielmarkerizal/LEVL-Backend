@@ -56,7 +56,7 @@ class EventCounterService
             $scopeId,
             $window,
             $bounds['start'],
-            $bounds['end']
+            $bounds['end'],
         ]);
 
         // Return the updated counter
@@ -67,7 +67,7 @@ class EventCounterService
             $scopeId,
             $window,
             $bounds['start']
-        ) ?? new UserEventCounter();
+        ) ?? new UserEventCounter;
     }
 
     public function getCounter(

@@ -105,6 +105,13 @@ class BadgeRuleEvaluator
 
     private function isConditionMet(array $conditions, array $payload, User $user): bool
     {
+        // Level Matching
+        if (isset($conditions['level'])) {
+            if (! isset($payload['level']) || $payload['level'] < $conditions['level']) {
+                return false;
+            }
+        }
+
         // Target Matching (Course Slug)
         if (isset($conditions['course_slug'])) {
             if (! isset($payload['course_slug']) || $payload['course_slug'] !== $conditions['course_slug']) {

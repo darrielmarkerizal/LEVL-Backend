@@ -28,12 +28,12 @@ class AwardXpForQuizPassed
         $userId = $submission->user_id;
         $quizId = $submission->quiz_id;
 
-        if (!$submission || !$submission->quiz) {
+        if (! $submission || ! $submission->quiz) {
             return;
         }
 
         // Only award XP if quiz is passed
-        if (!$submission->isPassed()) {
+        if (! $submission->isPassed()) {
             return;
         }
 

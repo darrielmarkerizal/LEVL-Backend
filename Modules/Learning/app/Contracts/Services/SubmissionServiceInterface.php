@@ -49,4 +49,6 @@ interface SubmissionServiceInterface
     public function getSubmissionDetail(Submission $submission, ?int $userId): array;
 
     public function getQuestionsForStudent(Submission $submission, int $page): array;
+
+    public function validateStudentAssignmentAccess(Assignment $assignment, int $userId): array;
 }

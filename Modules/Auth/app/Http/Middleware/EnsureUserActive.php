@@ -11,10 +11,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Middleware to ensure only active users can access protected routes.
- * 
+ *
  * This middleware checks if the authenticated user has an Active status.
  * Users with Pending, Inactive, or Banned status will be blocked with appropriate error messages.
- * 
+ *
  * Usage:
  * Route::middleware(['auth:api', 'ensure.user.active'])->group(function() {
  *     // Protected routes
@@ -24,10 +24,6 @@ class EnsureUserActive
 {
     /**
      * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -35,7 +31,7 @@ class EnsureUserActive
         $user = auth('api')->user();
 
         // If no user is authenticated, let the auth middleware handle it
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 

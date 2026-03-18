@@ -18,16 +18,17 @@ class BulkDeletePostsJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 300;
+
     public int $backoff = 30;
 
     private const BATCH_SIZE = 10;
-    private const BATCH_DELAY_MS = 100;
 
     public function __construct(
         private array $postUuids
     ) {
-        $this->onQueue('bulk-operations');
+        $this->onQueue('notifications');
     }
 
     public function handle(PostService $service): void
@@ -49,9 +50,10 @@ class BulkDeletePostsJob implements ShouldQueue
                 try {
                     $post = Post::where('uuid', $uuid)->first();
 
-                    if (!$post) {
+                    if (! $post) {
                         Log::warning('BulkDeletePostsJob: Post not found', ['uuid' => $uuid]);
                         $failureCount++;
+
                         continue;
                     }
 
@@ -72,10 +74,6 @@ class BulkDeletePostsJob implements ShouldQueue
                 }
             }
 
-            // Add delay between batches (except for the last batch)
-            if ($batchIndex < count($batches) - 1) {
-                usleep(self::BATCH_DELAY_MS * 1000);
-            }
         }
 
         $endTime = now();
@@ -105,4 +103,3 @@ class BulkDeletePostsJob implements ShouldQueue
         ];
     }
 }
-

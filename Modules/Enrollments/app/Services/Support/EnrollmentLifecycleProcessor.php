@@ -48,18 +48,18 @@ class EnrollmentLifecycleProcessor
 
             // Try encrypted key first (new method), fallback to hash (old method)
             $isValid = false;
-            
-            if (!empty($course->enrollment_key_encrypted)) {
+
+            if (! empty($course->enrollment_key_encrypted)) {
                 $encrypter = app(\App\Contracts\EnrollmentKeyEncrypterInterface::class);
                 $isValid = $encrypter->verify($enrollmentKey, $course->enrollment_key_encrypted);
             }
-            
+
             // Fallback to hash verification for backward compatibility
-            if (!$isValid && !empty($course->enrollment_key_hash)) {
+            if (! $isValid && ! empty($course->enrollment_key_hash)) {
                 $isValid = $this->keyHasher->verify($enrollmentKey, $course->enrollment_key_hash);
             }
-            
-            if (!$isValid) {
+
+            if (! $isValid) {
                 throw new BusinessException(__('messages.enrollments.key_invalid'), ['enrollment_key' => __('messages.enrollments.key_invalid')]);
             }
         }
@@ -140,7 +140,7 @@ class EnrollmentLifecycleProcessor
 
         // Check if enrollment date is in the future
         $isFutureEnrollment = $enrollmentDate->isFuture();
-        
+
         // If enrollment date is in the future, force status to pending
         if ($isFutureEnrollment && $initialStatus === EnrollmentStatus::Active) {
             $initialStatus = EnrollmentStatus::Pending;
@@ -152,7 +152,7 @@ class EnrollmentLifecycleProcessor
             throw new BusinessException(__('messages.enrollments.already_enrolled'), []);
         }
 
-        return DB::transaction(function () use ($student, $course, $existingEnrollment, $initialStatus, $enrollmentDate, $notifyStudent, $actor, $isFutureEnrollment) {
+        return DB::transaction(function () use ($student, $course, $existingEnrollment, $initialStatus, $enrollmentDate, $notifyStudent, $isFutureEnrollment) {
             if ($existingEnrollment) {
                 $existingEnrollment->status = $initialStatus;
                 $existingEnrollment->enrolled_at = $enrollmentDate;
@@ -179,7 +179,7 @@ class EnrollmentLifecycleProcessor
             if ($notifyStudent) {
                 $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
                 $courseUrl = $this->getCourseUrl($course);
-                
+
                 if ($isFutureEnrollment) {
                     // Send scheduled enrollment notification
                     Mail::to($student->email)
@@ -196,7 +196,7 @@ class EnrollmentLifecycleProcessor
                 }
             }
 
-            $message = $isFutureEnrollment 
+            $message = $isFutureEnrollment
                 ? __('messages.enrollments.scheduled_successfully', ['date' => $enrollmentDate->format('d M Y')])
                 : __('messages.enrollments.enrolled_successfully');
 
@@ -332,7 +332,7 @@ class EnrollmentLifecycleProcessor
     private function sendEnrollmentEmails(Enrollment $enrollment, Course $course, User $student, string $status): void
     {
         $courseUrl = $this->getCourseUrl($course);
-        
+
         if ($status === EnrollmentStatus::Active->value) {
             Mail::to($student->email)
                 ->onQueue('emails-transactional')

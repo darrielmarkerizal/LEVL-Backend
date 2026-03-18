@@ -22,7 +22,7 @@ class StudentEnrollmentScheduledMail extends Mailable implements ShouldQueue
         public readonly Carbon $enrollmentDate,
         public readonly string $courseUrl
     ) {
-        $this->onQueue('mail');
+        $this->onQueue('emails-transactional');
     }
 
     public function build(): self

@@ -154,7 +154,7 @@ Route::prefix('v1')
                 'confirmForgot',
             ])->name('password.forgot.confirm');
         });
-        
+
         // Change password (requires authentication)
         Route::middleware(['auth:api', 'throttle:api'])
             ->post('/auth/password/change', [PasswordResetController::class, 'changePassword'])

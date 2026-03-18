@@ -28,7 +28,7 @@ class LevelController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = min((int) $request->get('per_page', 20), 100);
-        
+
         $levels = \Spatie\QueryBuilder\QueryBuilder::for(LevelConfig::class)
             ->with('milestoneBadge')
             ->allowedFilters([
@@ -51,7 +51,7 @@ class LevelController extends Controller
             ->paginate($perPage);
 
         // Transform using resource
-        $levels->getCollection()->transform(fn($level) => new LevelConfigResource($level));
+        $levels->getCollection()->transform(fn ($level) => new LevelConfigResource($level));
 
         return $this->paginateResponse(
             $levels,
@@ -81,8 +81,8 @@ class LevelController extends Controller
     public function userLevel(Request $request): JsonResponse
     {
         $user = auth('api')->user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return $this->unauthorized('messages.unauthorized');
         }
 
@@ -189,15 +189,15 @@ class LevelController extends Controller
             'messages.level_statistics_retrieved'
         );
     }
-    
+
     /**
      * Get user's daily XP stats
      */
     public function dailyXpStats(Request $request): JsonResponse
     {
         $user = auth('api')->user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return $this->unauthorized('messages.unauthorized');
         }
 

@@ -36,7 +36,7 @@ class DashboardController extends Controller
     {
         $userId = $request->user()->id;
         $limit = min((int) $request->get('limit', 1), 10);
-        
+
         $data = $this->dashboardService->getRecentLearning($userId, $limit);
 
         return $this->success($data, __('messages.recent_learning_retrieved'));
@@ -49,7 +49,7 @@ class DashboardController extends Controller
     {
         $userId = $request->user()->id;
         $limit = min((int) $request->get('limit', 4), 20);
-        
+
         $data = $this->dashboardService->getRecentAchievements($userId, $limit);
 
         return $this->success($data, __('messages.recent_achievements_retrieved'));
@@ -62,7 +62,7 @@ class DashboardController extends Controller
     {
         $userId = $request->user()->id;
         $limit = min((int) $request->get('limit', 2), 10);
-        
+
         $data = $this->dashboardService->getRecommendedCourses($userId, $limit);
 
         return $this->success($data, __('messages.recommended_courses_retrieved'));

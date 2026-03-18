@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Enrollments\Console;
 
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Modules\Enrollments\Enums\EnrollmentStatus;
 use Modules\Enrollments\Models\Enrollment;
-use Carbon\Carbon;
 
 class ActivateScheduledEnrollmentsCommand extends Command
 {
@@ -30,6 +30,7 @@ class ActivateScheduledEnrollmentsCommand extends Command
 
         if ($enrollments->isEmpty()) {
             $this->info('No scheduled enrollments to activate.');
+
             return self::SUCCESS;
         }
 
@@ -46,7 +47,7 @@ class ActivateScheduledEnrollmentsCommand extends Command
                     \Modules\Enrollments\Events\EnrollmentActivated::dispatch($enrollment);
 
                     // Send notification email
-                    $courseUrl = config('app.frontend_url') . '/courses/' . $enrollment->course->slug;
+                    $courseUrl = config('app.frontend_url').'/courses/'.$enrollment->course->slug;
                     \Illuminate\Support\Facades\Mail::to($enrollment->user->email)
                         ->onQueue('emails-transactional')
                         ->queue(new \Modules\Mail\Mail\Enrollments\StudentEnrollmentActivatedMail(

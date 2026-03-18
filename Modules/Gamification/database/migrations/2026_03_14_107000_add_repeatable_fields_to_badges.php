@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::table('badges', function (Blueprint $table) {
             $table->boolean('is_repeatable')->default(false)->after('threshold');
             $table->integer('max_awards_per_user')->nullable()->after('is_repeatable');
-            
+
             $table->index('is_repeatable', 'is_repeatable_idx');
         });
     }

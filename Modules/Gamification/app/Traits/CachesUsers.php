@@ -22,7 +22,7 @@ trait CachesUsers
         return Cache::remember(
             "user.{$userId}.basic",
             now()->addMinutes(5),
-            fn() => User::select('id', 'name', 'email')->find($userId)
+            fn () => User::select('id', 'name', 'email')->find($userId)
         );
     }
 

@@ -25,7 +25,7 @@ class DeleteUnitJob implements ShouldQueue
         public int $unitId,
         public ?int $actorId = null,
     ) {
-        $this->onQueue('schemes');
+        $this->onQueue('default');
     }
 
     public function handle(UnitService $unitService): void

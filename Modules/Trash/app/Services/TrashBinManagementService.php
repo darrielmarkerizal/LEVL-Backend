@@ -8,13 +8,9 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Modules\Auth\Models\User;
 use Modules\Schemes\Models\Course;
-use Modules\Trash\Jobs\BulkForceDeleteTrashBinsJob;
-use Modules\Trash\Jobs\BulkRestoreTrashBinsJob;
-use Modules\Trash\Jobs\ForceDeleteAllTrashBinsJob;
-use Modules\Trash\Jobs\ForceDeleteTrashBinJob;
-use Modules\Trash\Jobs\RestoreAllTrashBinsJob;
 use Modules\Trash\Contracts\Repositories\TrashBinRepositoryInterface;
 use Modules\Trash\Contracts\Services\TrashBinManagementServiceInterface;
+use Modules\Trash\Jobs\ForceDeleteTrashBinJob;
 use Modules\Trash\Models\TrashBin;
 
 class TrashBinManagementService implements TrashBinManagementServiceInterface

@@ -16,7 +16,7 @@ use Spatie\Sluggable\SlugOptions;
 
 class Unit extends Model
 {
-    use HasFactory, HasSlug, LogsActivity, PgSearchable, SoftDeletes, TracksTrashBin, \Modules\Common\Traits\PublishedOnlyScope;
+    use HasFactory, HasSlug, LogsActivity, \Modules\Common\Traits\PublishedOnlyScope, PgSearchable, SoftDeletes, TracksTrashBin;
 
     protected array $searchable_columns = [
         'title',

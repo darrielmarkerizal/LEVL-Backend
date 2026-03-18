@@ -21,7 +21,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Assignment extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, PgSearchable, SoftDeletes, TracksTrashBin, \Modules\Common\Traits\PublishedOnlyScope;
+    use HasFactory, InteractsWithMedia, \Modules\Common\Traits\PublishedOnlyScope, PgSearchable, SoftDeletes, TracksTrashBin;
 
     protected array $searchable_columns = [
         'title',

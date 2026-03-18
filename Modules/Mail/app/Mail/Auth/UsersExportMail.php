@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Modules\Mail\Mail\Auth;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class UsersExportMail extends Mailable
+class UsersExportMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -16,7 +17,9 @@ class UsersExportMail extends Mailable
         public readonly string $email,
         public readonly string $downloadUrl,
         public readonly string $fileName
-    ) {}
+    ) {
+        $this->onQueue('emails-transactional');
+    }
 
     public function build(): self
     {

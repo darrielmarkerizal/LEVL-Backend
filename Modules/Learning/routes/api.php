@@ -24,12 +24,15 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         ->name('assignments.show');
 
     Route::get('assignments/{assignment}/prerequisites/check', [AssignmentController::class, 'checkPrerequisites'])
+        ->middleware('can:view,assignment')
         ->name('assignments.prerequisites.check');
 
     Route::get('assignments/{assignment}/submissions', [SubmissionController::class, 'index'])
+        ->middleware('can:view,assignment')
         ->name('assignments.submissions.index');
 
     Route::get('assignments/{assignment}/submissions/highest', [SubmissionController::class, 'highestSubmission'])
+        ->middleware('can:view,assignment')
         ->name('assignments.submissions.highest');
 
     Route::get('assignments/{assignment}/submissions/{submission}', [SubmissionController::class, 'showForAssignment'])
@@ -105,9 +108,11 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         ->name('quizzes.questions.index');
 
     Route::get('quizzes/{quiz}/submissions', [QuizSubmissionController::class, 'index'])
+        ->middleware('can:view,quiz')
         ->name('quizzes.submissions.index');
 
     Route::get('quizzes/{quiz}/submissions/highest', [QuizSubmissionController::class, 'highestSubmission'])
+        ->middleware('can:view,quiz')
         ->name('quizzes.submissions.highest');
 
     Route::post('quizzes/{quiz}/submissions/start', [QuizSubmissionController::class, 'start'])

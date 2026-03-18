@@ -8,10 +8,10 @@ use App\Contracts\Services\ProfileServiceInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Contracts\Services\AuthServiceInterface;
 use Modules\Auth\Contracts\Services\EmailVerificationServiceInterface;
 use Modules\Auth\Contracts\Services\ProfileStatisticsServiceInterface;
+use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Events\AccountDeleted;
 use Modules\Auth\Events\PasswordChanged;
 use Modules\Auth\Events\ProfileUpdated;
@@ -147,10 +147,10 @@ class ProfileService implements ProfileServiceInterface
     {
         // Get enrollment statistics
         $enrollmentStats = $this->statisticsService->getEnrollmentStats($user);
-        
+
         // Get gamification statistics
         $gamificationStats = $user->gamificationStats;
-        
+
         return [
             'total_courses' => $enrollmentStats['total_enrolled'] ?? 0,
             'completed_courses' => $enrollmentStats['total_completed'] ?? 0,
@@ -176,7 +176,7 @@ class ProfileService implements ProfileServiceInterface
     {
         // Current password validation is handled by ChangePasswordRequest
         // No need to check again here
-        
+
         $user->password = Hash::make($newPassword);
         $user->save();
 

@@ -46,27 +46,27 @@ class SchemesServiceProvider extends ServiceProvider
             \Modules\Schemes\Services\SchemesCacheService::class
         );
 
-        $this->app->singleton(
+        $this->app->scoped(
             \Modules\Schemes\Contracts\Repositories\CourseRepositoryInterface::class,
             \Modules\Schemes\Repositories\CourseRepository::class
         );
 
-        $this->app->singleton(
+        $this->app->scoped(
             \Modules\Schemes\Contracts\Repositories\LessonRepositoryInterface::class,
             \Modules\Schemes\Repositories\LessonRepository::class
         );
 
-        $this->app->singleton(
+        $this->app->scoped(
             \Modules\Schemes\Contracts\Repositories\UnitRepositoryInterface::class,
             \Modules\Schemes\Repositories\UnitRepository::class
         );
 
-        $this->app->singleton(
+        $this->app->scoped(
             \Modules\Schemes\Contracts\Repositories\LessonBlockRepositoryInterface::class,
             \Modules\Schemes\Repositories\LessonBlockRepository::class
         );
 
-        $this->app->singleton(
+        $this->app->scoped(
             \Modules\Schemes\Contracts\Repositories\TagRepositoryInterface::class,
             \Modules\Schemes\Repositories\TagRepository::class
         );

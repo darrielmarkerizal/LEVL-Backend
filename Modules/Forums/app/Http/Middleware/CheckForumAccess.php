@@ -39,7 +39,7 @@ class CheckForumAccess
             return $next($request);
         }
 
-        if ($user->hasRole('instructor')) {
+        if ($user->hasRole('Instructor')) {
             $isInstructor = Course::where('id', (int) $courseId)
                 ->where('instructor_id', $user->id)
                 ->exists();

@@ -7,8 +7,8 @@ namespace Modules\Common\Services;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
-use Modules\Common\Services\Contracts\MediaServiceInterface;
 use Modules\Common\Models\TemporaryMedia;
+use Modules\Common\Services\Contracts\MediaServiceInterface;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class MediaService implements MediaServiceInterface

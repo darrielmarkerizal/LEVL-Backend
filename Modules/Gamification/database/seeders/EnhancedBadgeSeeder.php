@@ -34,7 +34,7 @@ class EnhancedBadgeSeeder extends Seeder
                 'is_repeatable' => true,
                 'max_awards_per_user' => 10,
             ],
-            
+
             // Assessment Badges (Uncommon-Rare)
             [
                 'code' => 'perfect_score',
@@ -59,7 +59,7 @@ class EnhancedBadgeSeeder extends Seeder
                 'threshold' => 10,
                 'is_repeatable' => false,
             ],
-            
+
             // Course Completion (Rare-Epic)
             [
                 'code' => 'course_complete',
@@ -84,7 +84,7 @@ class EnhancedBadgeSeeder extends Seeder
                 'threshold' => 5,
                 'is_repeatable' => false,
             ],
-            
+
             // Speed Badges (Rare)
             [
                 'code' => 'speed_runner',
@@ -110,7 +110,7 @@ class EnhancedBadgeSeeder extends Seeder
                 'is_repeatable' => true,
                 'max_awards_per_user' => 50,
             ],
-            
+
             // Social Badges (Uncommon-Rare)
             [
                 'code' => 'helpful_member',
@@ -134,7 +134,7 @@ class EnhancedBadgeSeeder extends Seeder
                 'threshold' => 5,
                 'is_repeatable' => false,
             ],
-            
+
             // Habit Badges (Uncommon-Epic)
             [
                 'code' => 'early_bird',
@@ -181,7 +181,7 @@ class EnhancedBadgeSeeder extends Seeder
                 'is_repeatable' => true,
                 'max_awards_per_user' => 5,
             ],
-            
+
             // Legendary Badges
             [
                 'code' => 'legendary_learner',

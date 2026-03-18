@@ -59,7 +59,7 @@ class PostService
             }
 
             // Send notifications if published immediately
-            if ($dto->status === PostStatus::PUBLISHED->value && !empty($dto->notificationChannels)) {
+            if ($dto->status === PostStatus::PUBLISHED->value && ! empty($dto->notificationChannels)) {
                 $this->sendNotifications($post);
             }
 
@@ -76,24 +76,24 @@ class PostService
             $updateData = ['last_editor_id' => $editorId];
 
             // Build update data from DTO
-            if (!($dto->title instanceof \Spatie\LaravelData\Optional)) {
+            if (! ($dto->title instanceof \Spatie\LaravelData\Optional)) {
                 $updateData['title'] = $dto->title;
                 $updateData['slug'] = Str::slug($dto->title);
             }
 
-            if (!($dto->content instanceof \Spatie\LaravelData\Optional)) {
+            if (! ($dto->content instanceof \Spatie\LaravelData\Optional)) {
                 $updateData['content'] = $dto->content;
             }
 
-            if (!($dto->category instanceof \Spatie\LaravelData\Optional)) {
+            if (! ($dto->category instanceof \Spatie\LaravelData\Optional)) {
                 $updateData['category'] = $dto->category;
             }
 
-            if (!($dto->status instanceof \Spatie\LaravelData\Optional)) {
+            if (! ($dto->status instanceof \Spatie\LaravelData\Optional)) {
                 $updateData['status'] = $dto->status;
             }
 
-            if (!($dto->isPinned instanceof \Spatie\LaravelData\Optional)) {
+            if (! ($dto->isPinned instanceof \Spatie\LaravelData\Optional)) {
                 $updateData['is_pinned'] = $dto->isPinned;
             }
 
@@ -101,7 +101,7 @@ class PostService
             $this->repository->update($post, $updateData);
 
             // Update audiences if provided
-            if (!($dto->audiences instanceof \Spatie\LaravelData\Optional)) {
+            if (! ($dto->audiences instanceof \Spatie\LaravelData\Optional)) {
                 $post->audiences()->delete();
                 foreach ($dto->audiences as $role) {
                     $post->audiences()->create(['role' => $role]);
@@ -109,7 +109,7 @@ class PostService
             }
 
             // Update notification channels if provided
-            if (!($dto->notificationChannels instanceof \Spatie\LaravelData\Optional)) {
+            if (! ($dto->notificationChannels instanceof \Spatie\LaravelData\Optional)) {
                 $post->notifications()->delete();
                 foreach ($dto->notificationChannels as $channel) {
                     $post->notifications()->create(['channel' => $channel]);
@@ -117,7 +117,7 @@ class PostService
             }
 
             // Resend notifications if requested
-            if (!empty($dto->resendNotificationChannels) && $post->status === PostStatus::PUBLISHED) {
+            if (! empty($dto->resendNotificationChannels) && $post->status === PostStatus::PUBLISHED) {
                 $this->sendNotifications($post, $dto->resendNotificationChannels);
             }
 
@@ -242,7 +242,7 @@ class PostService
     public function togglePin(Post $post): Post
     {
         $this->repository->update($post, [
-            'is_pinned' => !$post->is_pinned,
+            'is_pinned' => ! $post->is_pinned,
         ]);
 
         return $post->fresh();
@@ -337,4 +337,3 @@ class PostService
         ]);
     }
 }
-

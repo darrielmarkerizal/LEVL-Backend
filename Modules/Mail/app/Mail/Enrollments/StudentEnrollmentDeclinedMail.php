@@ -20,7 +20,7 @@ class StudentEnrollmentDeclinedMail extends Mailable implements ShouldQueue
         public readonly Course $course,
         public readonly ?string $reason = null
     ) {
-        $this->onQueue('mail');
+        $this->onQueue('emails-transactional');
     }
 
     public function build(): self

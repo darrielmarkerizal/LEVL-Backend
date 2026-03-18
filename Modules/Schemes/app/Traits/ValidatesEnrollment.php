@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Traits;
 
-use Modules\Enrollments\Models\Enrollment;
 use Modules\Enrollments\Enums\EnrollmentStatus;
+use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
 
 trait ValidatesEnrollment
@@ -16,8 +16,8 @@ trait ValidatesEnrollment
     protected function getActiveEnrollment(Course $course): ?Enrollment
     {
         $user = auth('api')->user();
-        
-        if (!$user || !$user->hasRole('Student')) {
+
+        if (! $user || ! $user->hasRole('Student')) {
             return null;
         }
 
@@ -41,14 +41,14 @@ trait ValidatesEnrollment
     protected function requireEnrollment(Course $course): ?object
     {
         $user = auth('api')->user();
-        
+
         // Non-students can access (admin, instructor, etc)
-        if (!$user || !$user->hasRole('Student')) {
+        if (! $user || ! $user->hasRole('Student')) {
             return null;
         }
 
         // Check enrollment
-        if (!$this->isEnrolled($course)) {
+        if (! $this->isEnrolled($course)) {
             return $this->forbidden(__('messages.enrollments.not_enrolled'));
         }
 

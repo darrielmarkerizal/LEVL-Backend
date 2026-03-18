@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Modules\Auth\Models\User;
 use Modules\Schemes\Models\Course;
-use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Models\Lesson;
+use Modules\Schemes\Models\Unit;
 use Modules\Search\Contracts\Repositories\SearchHistoryRepositoryInterface;
 use Modules\Search\Contracts\Services\SearchServiceInterface;
 use Modules\Search\DTOs\SearchResultDTO;
@@ -34,12 +34,12 @@ class SearchService implements SearchServiceInterface
 
         $request = new Request(['filter' => $cleanFilters]);
 
-        $results = match($type) {
+        $results = match ($type) {
             'courses' => $this->searchCourses($query, $request, $perPage, $user),
-            'units'   => $this->searchUnits($query, $request, $perPage, $user),
+            'units' => $this->searchUnits($query, $request, $perPage, $user),
             'lessons' => $this->searchLessons($query, $request, $perPage, $user),
-            'users'   => $this->searchUsers($query, $request, $perPage, $user),
-            default   => $this->searchCourses($query, $request, $perPage, $user),
+            'users' => $this->searchUsers($query, $request, $perPage, $user),
+            default => $this->searchCourses($query, $request, $perPage, $user),
         };
 
         $executionTime = microtime(true) - $startTime;
@@ -61,7 +61,7 @@ class SearchService implements SearchServiceInterface
             ->withCount('enrollments');
 
         // Use PgSearchable trait's search method
-        if (!empty(trim($query))) {
+        if (! empty(trim($query))) {
             $builder->search($query);
         }
 
@@ -86,7 +86,7 @@ class SearchService implements SearchServiceInterface
             ->with(['course:id,title,slug']);
 
         // Use PgSearchable trait's search method
-        if (!empty(trim($query))) {
+        if (! empty(trim($query))) {
             $builder->search($query);
         }
 
@@ -101,7 +101,7 @@ class SearchService implements SearchServiceInterface
 
     protected function searchLessons(string $query, Request $request, int $perPage, ?User $user)
     {
-        if (!$user) {
+        if (! $user) {
             return new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
         }
 
@@ -109,7 +109,7 @@ class SearchService implements SearchServiceInterface
             ->with(['unit:id,title,course_id', 'unit.course:id,title']);
 
         // Use PgSearchable trait's search method
-        if (!empty(trim($query))) {
+        if (! empty(trim($query))) {
             $builder->search($query);
         }
 
@@ -139,7 +139,7 @@ class SearchService implements SearchServiceInterface
 
     protected function searchUsers(string $query, Request $request, int $perPage, ?User $user)
     {
-        if (!$user) {
+        if (! $user) {
             return new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
         }
 
@@ -147,7 +147,7 @@ class SearchService implements SearchServiceInterface
             ->with(['roles:id,name,guard_name']);
 
         // Use PgSearchable trait's search method
-        if (!empty(trim($query))) {
+        if (! empty(trim($query))) {
             $builder->search($query);
         }
 
@@ -202,29 +202,31 @@ class SearchService implements SearchServiceInterface
             if ($lastSearch->query === $query) {
                 $this->historyRepository->update($lastSearch, [
                     'results_count' => $resultsCount,
-                    'created_at'    => now(),
+                    'created_at' => now(),
                 ]);
+
                 return;
             }
 
             $isTypingForward = str_starts_with(strtolower($query), strtolower($lastSearch->query));
-            $isBackspacing   = str_starts_with(strtolower($lastSearch->query), strtolower($query));
+            $isBackspacing = str_starts_with(strtolower($lastSearch->query), strtolower($query));
 
             if (($isTypingForward || $isBackspacing) && $lastSearch->created_at->diffInSeconds(now()) < 60) {
                 $this->historyRepository->update($lastSearch, [
-                    'query'         => $query,
-                    'filters'       => $filters,
+                    'query' => $query,
+                    'filters' => $filters,
                     'results_count' => $resultsCount,
-                    'created_at'    => now(),
+                    'created_at' => now(),
                 ]);
+
                 return;
             }
         }
 
         $this->historyRepository->create([
-            'user_id'       => $user->id,
-            'query'         => $query,
-            'filters'       => $filters,
+            'user_id' => $user->id,
+            'query' => $query,
+            'filters' => $filters,
             'results_count' => $resultsCount,
         ]);
     }
@@ -236,7 +238,7 @@ class SearchService implements SearchServiceInterface
         ];
 
         if ($user) {
-            $results['users']  = collect($this->userManagementService->searchGlobal($query, $limitPerCategory));
+            $results['users'] = collect($this->userManagementService->searchGlobal($query, $limitPerCategory));
             $results['forums'] = collect($this->forumService->searchGlobal($query, $limitPerCategory));
 
             if ($user->hasRole('Student') || $user->hasRole('Instructor')) {
@@ -245,7 +247,7 @@ class SearchService implements SearchServiceInterface
                 );
             }
         } else {
-            $results['users']  = collect([]);
+            $results['users'] = collect([]);
             $results['forums'] = collect([]);
         }
 

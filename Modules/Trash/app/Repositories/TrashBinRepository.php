@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\Trash\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Modules\Trash\Contracts\Repositories\TrashBinRepositoryInterface;
 use Modules\Trash\Models\TrashBin;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -58,7 +58,7 @@ class TrashBinRepository implements TrashBinRepositoryInterface
                             ->orWhere('username', 'ILIKE', "%{$search}%");
                     });
             });
-            
+
             // Add similarity-based ordering for better relevance
             $query->orderByRaw("similarity(COALESCE(metadata->>'title', ''), ?) DESC", [$search]);
         }

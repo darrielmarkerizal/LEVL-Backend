@@ -95,7 +95,7 @@ class CourseIncludeAuthorizer
                     'assignments',
                     'units.lessons',
                 ]);
-                
+
                 // Add manager includes with proper nested relationship registration
                 $allowed[] = 'enrollments';
                 $allowed[] = 'enrollments.user';

@@ -28,7 +28,7 @@ class ProgressController extends Controller
         }
 
         $targetId = (int) ($request->query('user_id') ?? auth('api')->id());
-        
+
         if ($targetId !== auth('api')->id()) {
             $this->authorize('viewAny', [\Modules\Enrollments\Models\Enrollment::class, $course]);
         }

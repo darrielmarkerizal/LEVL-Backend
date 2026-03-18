@@ -15,11 +15,15 @@ use Spatie\QueryBuilder\QueryBuilder;
 class PostRepository extends BaseRepository
 {
     private const CACHE_TTL = 3600;
+
     private const CACHE_PREFIX = 'posts:';
 
     protected array $allowedFilters = ['status', 'category', 'is_pinned'];
+
     protected array $allowedSorts = ['id', 'created_at', 'updated_at', 'published_at', 'scheduled_at', 'title'];
+
     protected string $defaultSort = '-created_at';
+
     protected array $with = ['author', 'audiences'];
 
     protected function model(): string

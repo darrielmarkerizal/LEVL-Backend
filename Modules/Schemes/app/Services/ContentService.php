@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Services;
 
-use Illuminate\Support\Facades\DB;
 use Modules\Learning\Contracts\Services\AssignmentServiceInterface;
 use Modules\Learning\Contracts\Services\QuizServiceInterface;
 use Modules\Schemes\Contracts\Services\LessonServiceInterface;

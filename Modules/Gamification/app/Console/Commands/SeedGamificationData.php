@@ -34,8 +34,9 @@ class SeedGamificationData extends Command
         $this->newLine();
 
         if ($this->option('fresh')) {
-            if (!$this->confirm('⚠️  This will DELETE all existing gamification data. Continue?', false)) {
+            if (! $this->confirm('⚠️  This will DELETE all existing gamification data. Continue?', false)) {
                 $this->warn('Operation cancelled.');
+
                 return self::FAILURE;
             }
 
@@ -48,13 +49,13 @@ class SeedGamificationData extends Command
         $this->info('Starting gamification data seeding...');
         $this->newLine();
 
-        $seeder = new GamificationDataSeeder();
+        $seeder = new GamificationDataSeeder;
         $seeder->setCommand($this);
         $seeder->run();
 
         $this->newLine();
         $this->info('🎉 Gamification data seeding completed successfully!');
-        
+
         return self::SUCCESS;
     }
 
@@ -66,7 +67,7 @@ class SeedGamificationData extends Command
         \DB::table('user_gamification_stats')->delete();
         \DB::table('user_badges')->delete();
         \DB::table('points')->delete();
-        
+
         $this->info('  - Cleared user_gamification_stats');
         $this->info('  - Cleared user_badges');
         $this->info('  - Cleared points');

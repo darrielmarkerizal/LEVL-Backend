@@ -39,18 +39,20 @@ class LinkMilestoneBadgesSeeder extends Seeder
                 // Find the badge
                 $badge = Badge::where('code', $badgeCode)->first();
 
-                if (!$badge) {
+                if (! $badge) {
                     $this->command->warn("Badge not found: {$badgeCode}");
                     $errors++;
+
                     continue;
                 }
 
                 // Find the level config
                 $levelConfig = LevelConfig::where('level', $level)->first();
 
-                if (!$levelConfig) {
+                if (! $levelConfig) {
                     $this->command->warn("Level config not found: Level {$level}");
                     $errors++;
+
                     continue;
                 }
 
@@ -72,4 +74,3 @@ class LinkMilestoneBadgesSeeder extends Seeder
         }
     }
 }
-

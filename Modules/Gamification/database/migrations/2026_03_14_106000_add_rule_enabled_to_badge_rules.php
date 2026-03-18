@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('badge_rules', function (Blueprint $table) {
             $table->boolean('rule_enabled')->default(true)->after('priority');
-            
+
             $table->index('rule_enabled', 'rule_enabled_idx');
         });
     }

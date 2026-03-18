@@ -26,10 +26,10 @@ class AwardXpForDailyLogin
     public function handle(UserLoggedIn $event): void
     {
         $userId = $event->userId;
-        
+
         // Check if already logged in today
-        $cacheKey = "gamification.daily_login.{$userId}." . Carbon::today()->format('Y-m-d');
-        
+        $cacheKey = "gamification.daily_login.{$userId}.".Carbon::today()->format('Y-m-d');
+
         if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
             // Already awarded XP for today
             return;
@@ -51,7 +51,7 @@ class AwardXpForDailyLogin
         $stats = UserGamificationStat::where('user_id', $userId)->first();
         if ($stats) {
             $currentStreak = $stats->current_streak;
-            
+
             // Check for streak milestones
             if ($currentStreak == 7) {
                 $this->gamification->awardXp(

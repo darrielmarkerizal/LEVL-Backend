@@ -16,7 +16,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Submission extends Model implements HasMedia
 {
-    use PgSearchable, InteractsWithMedia;
+    use InteractsWithMedia, PgSearchable;
 
     protected array $searchable_columns = [
         'answer_text',

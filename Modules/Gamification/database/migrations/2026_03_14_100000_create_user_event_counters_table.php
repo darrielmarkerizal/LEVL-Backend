@@ -20,13 +20,13 @@ return new class extends Migration
             $table->date('window_end')->nullable();
             $table->timestamp('last_increment_at')->nullable();
             $table->timestamps();
-            
+
             // Composite unique untuk prevent duplicate
             $table->unique(
-                ['user_id', 'event_type', 'scope_type', 'scope_id', 'window', 'window_start'], 
+                ['user_id', 'event_type', 'scope_type', 'scope_id', 'window', 'window_start'],
                 'user_event_counter_unique'
             );
-            
+
             // Indexes untuk fast lookup
             $table->index(['user_id', 'event_type', 'window'], 'user_event_type_window_idx');
             $table->index('window_end', 'window_end_idx'); // untuk cleanup expired windows

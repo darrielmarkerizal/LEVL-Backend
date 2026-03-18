@@ -15,15 +15,14 @@ use Modules\Auth\Contracts\UserAccessPolicyInterface;
 use Modules\Auth\Models\JwtRefreshToken;
 use Modules\Auth\Models\User;
 use Modules\Auth\Services\UserCacheService;
-use Modules\Schemes\Models\CourseAdmin;
-use Modules\Schemes\Models\Course;
 use Modules\Enrollments\Enums\EnrollmentStatus;
+use Modules\Enrollments\Models\Enrollment;
 use Modules\Gamification\Models\Leaderboard;
 use Modules\Learning\Enums\QuizGradingStatus;
 use Modules\Learning\Enums\SubmissionStatus;
 use Modules\Learning\Models\QuizSubmission;
 use Modules\Learning\Models\Submission;
-use Modules\Enrollments\Models\Enrollment;
+use Modules\Schemes\Models\Course;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\Exceptions\InvalidIncludeQuery;
@@ -435,7 +434,7 @@ class UserFinder
         $target->setAttribute('last_login_at', $lastLoginAt);
         $target->setAttribute('rank', $rank);
         $target->setAttribute('total_xp', $target->gamificationStats?->total_xp ?? 0);
-        
+
         // Reset dirty attributes to prevent these non-database fields from being saved
         $target->syncChanges();
     }
@@ -494,7 +493,7 @@ class UserFinder
             'quizzes_graded' => 0,
         ]);
         $target->setAttribute('last_login_at', $lastLoginAt);
-        
+
         // Reset dirty attributes to prevent these non-database fields from being saved
         $target->syncChanges();
     }

@@ -74,40 +74,40 @@ class DashboardService
         $lessonCompletions = \Modules\Schemes\Models\LessonCompletion::where('user_id', $userId)
             ->get()
             ->groupBy('lesson_id')
-            ->map(fn($group) => $group->first());
+            ->map(fn ($group) => $group->first());
 
         // Sort enrollments by most recent lesson completion or enrolled_at
-        $enrollments = $enrollments->sortByDesc(function ($enrollment) use ($lessonCompletions, $userId) {
+        $enrollments = $enrollments->sortByDesc(function ($enrollment) use ($lessonCompletions) {
             $courseId = $enrollment->course_id;
-            $lessonIds = $enrollment->course->units->flatMap(fn($unit) => $unit->lessons->pluck('id'));
-            
+            $lessonIds = $enrollment->course->units->flatMap(fn ($unit) => $unit->lessons->pluck('id'));
+
             // Find most recent lesson completion for this course
             $mostRecentCompletion = $lessonCompletions
-                ->filter(fn($completion) => $lessonIds->contains($completion->lesson_id))
+                ->filter(fn ($completion) => $lessonIds->contains($completion->lesson_id))
                 ->sortByDesc('updated_at')
                 ->first();
-            
+
             // Return most recent completion time or enrolled_at
             return $mostRecentCompletion ? $mostRecentCompletion->updated_at : $enrollment->enrolled_at;
         })->take($limit);
 
         return $enrollments->map(function ($enrollment) use ($userId) {
             $course = $enrollment->course;
-            
+
             // Get total lessons
-            $totalLessons = $course->units->sum(fn($unit) => $unit->lessons->count());
-            
+            $totalLessons = $course->units->sum(fn ($unit) => $unit->lessons->count());
+
             // Get completed lessons
             $completedLessons = \Modules\Schemes\Models\LessonCompletion::where('user_id', $userId)
-                ->whereIn('lesson_id', $course->units->flatMap(fn($unit) => $unit->lessons->pluck('id')))
+                ->whereIn('lesson_id', $course->units->flatMap(fn ($unit) => $unit->lessons->pluck('id')))
                 ->count();
-            
+
             // Get last accessed lesson
             $lastLesson = \Modules\Schemes\Models\LessonCompletion::where('user_id', $userId)
-                ->whereIn('lesson_id', $course->units->flatMap(fn($unit) => $unit->lessons->pluck('id')))
+                ->whereIn('lesson_id', $course->units->flatMap(fn ($unit) => $unit->lessons->pluck('id')))
                 ->latest('updated_at')
                 ->first();
-            
+
             $lastLessonData = null;
             if ($lastLesson) {
                 $lesson = Lesson::find($lastLesson->lesson_id);
@@ -117,7 +117,7 @@ class DashboardService
                     'unit_title' => $lesson->unit->title ?? null,
                 ];
             }
-            
+
             $percentage = $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100, 2) : 0;
 
             return [
@@ -187,7 +187,7 @@ class DashboardService
             ->whereNotIn('id', $enrolledCourseIds)
             ->where('status', 'published');
 
-        if (!empty($categoryIds)) {
+        if (! empty($categoryIds)) {
             $query->whereHas('category', function ($q) use ($categoryIds) {
                 $q->whereIn('id', $categoryIds);
             });
@@ -231,7 +231,7 @@ class DashboardService
         $query = Course::query()
             ->where('status', 'published');
 
-        if (!empty($excludeIds)) {
+        if (! empty($excludeIds)) {
             $query->whereNotIn('id', $excludeIds);
         }
 
@@ -261,6 +261,7 @@ class DashboardService
     private function getNextLevelXp(int $currentLevel): int
     {
         $nextLevel = \Modules\Common\Models\LevelConfig::where('level', $currentLevel + 1)->first();
+
         return $nextLevel?->xp_required ?? 0;
     }
 
@@ -269,14 +270,14 @@ class DashboardService
      */
     private function calculateLevelProgress(?UserGamificationStat $stats): float
     {
-        if (!$stats) {
+        if (! $stats) {
             return 0;
         }
 
         $currentLevelConfig = \Modules\Common\Models\LevelConfig::where('level', $stats->global_level)->first();
         $nextLevelConfig = \Modules\Common\Models\LevelConfig::where('level', $stats->global_level + 1)->first();
 
-        if (!$currentLevelConfig || !$nextLevelConfig) {
+        if (! $currentLevelConfig || ! $nextLevelConfig) {
             return 0;
         }
 
@@ -352,7 +353,7 @@ class DashboardService
 
         return $points->map(function ($point) {
             $activity = $this->formatActivity($point);
-            
+
             return [
                 'type' => $activity['type'],
                 'description' => $activity['description'],
@@ -368,16 +369,16 @@ class DashboardService
     private function formatActivity(\Modules\Gamification\Models\Point $point): array
     {
         $metadata = is_string($point->metadata) ? json_decode($point->metadata, true) : $point->metadata;
-        
+
         // Convert enum to string if needed
-        $sourceType = $point->source_type instanceof \BackedEnum 
-            ? $point->source_type->value 
+        $sourceType = $point->source_type instanceof \BackedEnum
+            ? $point->source_type->value
             : $point->source_type;
-            
-        $reason = $point->reason instanceof \BackedEnum 
-            ? $point->reason->value 
+
+        $reason = $point->reason instanceof \BackedEnum
+            ? $point->reason->value
             : $point->reason;
-        
+
         // Determine activity type and description based on source_type and reason
         $type = 'activity';
         $description = __('messages.activity.default');
@@ -399,7 +400,7 @@ class DashboardService
             case 'quiz_submission':
                 $type = 'quiz_completion';
                 $quizTitle = $this->getQuizTitle($metadata);
-                
+
                 if (isset($metadata['score']) && $metadata['score'] == 100) {
                     $description = __('messages.activity.quiz_perfect_score', ['title' => $quizTitle]);
                 } else {
@@ -459,16 +460,16 @@ class DashboardService
     private function getLessonTitle(array $metadata): string
     {
         // Try to get from metadata first
-        if (!empty($metadata['lesson_title'])) {
+        if (! empty($metadata['lesson_title'])) {
             return $metadata['lesson_title'];
         }
-        
-        if (!empty($metadata['title'])) {
+
+        if (! empty($metadata['title'])) {
             return $metadata['title'];
         }
 
         // Try to get from database using lesson_id
-        if (!empty($metadata['lesson_id'])) {
+        if (! empty($metadata['lesson_id'])) {
             $lesson = \Modules\Schemes\Models\Lesson::find($metadata['lesson_id']);
             if ($lesson) {
                 return $lesson->title;
@@ -476,7 +477,7 @@ class DashboardService
         }
 
         // Use source_name from seeded data as fallback
-        if (!empty($metadata['source_name'])) {
+        if (! empty($metadata['source_name'])) {
             return $metadata['source_name'];
         }
 
@@ -488,15 +489,15 @@ class DashboardService
      */
     private function getUnitTitle(array $metadata): string
     {
-        if (!empty($metadata['unit_title'])) {
+        if (! empty($metadata['unit_title'])) {
             return $metadata['unit_title'];
         }
-        
-        if (!empty($metadata['title'])) {
+
+        if (! empty($metadata['title'])) {
             return $metadata['title'];
         }
 
-        if (!empty($metadata['unit_id'])) {
+        if (! empty($metadata['unit_id'])) {
             $unit = \Modules\Schemes\Models\Unit::find($metadata['unit_id']);
             if ($unit) {
                 return $unit->title;
@@ -504,7 +505,7 @@ class DashboardService
         }
 
         // Use source_name from seeded data as fallback
-        if (!empty($metadata['source_name'])) {
+        if (! empty($metadata['source_name'])) {
             return $metadata['source_name'];
         }
 
@@ -516,15 +517,15 @@ class DashboardService
      */
     private function getQuizTitle(array $metadata): string
     {
-        if (!empty($metadata['quiz_title'])) {
+        if (! empty($metadata['quiz_title'])) {
             return $metadata['quiz_title'];
         }
-        
-        if (!empty($metadata['title'])) {
+
+        if (! empty($metadata['title'])) {
             return $metadata['title'];
         }
 
-        if (!empty($metadata['quiz_id'])) {
+        if (! empty($metadata['quiz_id'])) {
             $quiz = \Modules\Learning\Models\Quiz::find($metadata['quiz_id']);
             if ($quiz) {
                 return $quiz->title;
@@ -532,7 +533,7 @@ class DashboardService
         }
 
         // Try to get from sourceable (for real data, not seeded)
-        if (!empty($metadata['submission_id'])) {
+        if (! empty($metadata['submission_id'])) {
             $submission = \Modules\Learning\Models\QuizSubmission::find($metadata['submission_id']);
             if ($submission && $submission->quiz) {
                 return $submission->quiz->title;
@@ -540,7 +541,7 @@ class DashboardService
         }
 
         // Use source_name from seeded data as fallback
-        if (!empty($metadata['source_name'])) {
+        if (! empty($metadata['source_name'])) {
             return $metadata['source_name'];
         }
 
@@ -552,15 +553,15 @@ class DashboardService
      */
     private function getAssignmentTitle(array $metadata): string
     {
-        if (!empty($metadata['assignment_title'])) {
+        if (! empty($metadata['assignment_title'])) {
             return $metadata['assignment_title'];
         }
-        
-        if (!empty($metadata['title'])) {
+
+        if (! empty($metadata['title'])) {
             return $metadata['title'];
         }
 
-        if (!empty($metadata['assignment_id'])) {
+        if (! empty($metadata['assignment_id'])) {
             $assignment = \Modules\Learning\Models\Assignment::find($metadata['assignment_id']);
             if ($assignment) {
                 return $assignment->title;
@@ -568,7 +569,7 @@ class DashboardService
         }
 
         // Try to get from sourceable (for real data, not seeded)
-        if (!empty($metadata['submission_id'])) {
+        if (! empty($metadata['submission_id'])) {
             $submission = \Modules\Learning\Models\Submission::find($metadata['submission_id']);
             if ($submission && $submission->assignment) {
                 return $submission->assignment->title;
@@ -576,7 +577,7 @@ class DashboardService
         }
 
         // Use source_name from seeded data as fallback
-        if (!empty($metadata['source_name'])) {
+        if (! empty($metadata['source_name'])) {
             return $metadata['source_name'];
         }
 
@@ -588,15 +589,15 @@ class DashboardService
      */
     private function getBadgeName(array $metadata): string
     {
-        if (!empty($metadata['badge_name'])) {
+        if (! empty($metadata['badge_name'])) {
             return $metadata['badge_name'];
         }
-        
-        if (!empty($metadata['name'])) {
+
+        if (! empty($metadata['name'])) {
             return $metadata['name'];
         }
 
-        if (!empty($metadata['badge_id'])) {
+        if (! empty($metadata['badge_id'])) {
             $badge = \Modules\Gamification\Models\Badge::find($metadata['badge_id']);
             if ($badge) {
                 return $badge->name;

@@ -17,7 +17,7 @@ class LevelConfigSeeder extends Seeder
         for ($i = 1; $i <= 100; $i++) {
             // XP Required Formula: 100 × level^1.6
             $xpRequired = (int) round(100 * pow($i, 1.6));
-            
+
             // Bonus XP Formula: 10 × level^1.3 (smaller exponent for balanced rewards)
             $bonusXp = (int) round(10 * pow($i, 1.3));
 
@@ -61,6 +61,7 @@ class LevelConfigSeeder extends Seeder
         foreach ($tiers as $tier) {
             if ($level >= $tier['min'] && $level <= $tier['max']) {
                 $tierLevel = $level - $tier['min'] + 1;
+
                 return "{$tier['name']} {$tierLevel}";
             }
         }

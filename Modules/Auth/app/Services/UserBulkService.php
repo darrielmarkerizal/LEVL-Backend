@@ -84,10 +84,10 @@ class UserBulkService implements UserBulkServiceInterface
     public function bulkActivate(array $userIds, int $changedBy): int
     {
         $changedByUser = User::find($changedBy);
-        
+
         // Get users before update to capture old status
         $users = User::whereIn('id', $userIds)->get();
-        
+
         $updated = $this->repository->bulkUpdateStatus($userIds, UserStatus::Active->value);
 
         // Dispatch events for each user
@@ -119,7 +119,7 @@ class UserBulkService implements UserBulkServiceInterface
         }
 
         $changedByUser = User::find($changedBy);
-        
+
         // Get users before update to capture old status
         $users = User::whereIn('id', $userIds)->get();
 

@@ -7,6 +7,7 @@ namespace Modules\Learning\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Modules\Auth\Models\User;
+use Modules\Enrollments\Models\Enrollment;
 use Modules\Learning\Contracts\Repositories\QuestionRepositoryInterface;
 use Modules\Learning\Contracts\Services\SubmissionServiceInterface;
 use Modules\Learning\Models\Answer;
@@ -14,13 +15,15 @@ use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
 use Modules\Learning\Services\Support\SubmissionFinder;
 use Modules\Learning\Services\Support\SubmissionLifecycleProcessor;
+use Modules\Schemes\Services\PrerequisiteService;
 
 class SubmissionService implements SubmissionServiceInterface
 {
     public function __construct(
         private readonly SubmissionFinder $finder,
         private readonly SubmissionLifecycleProcessor $lifecycleProcessor,
-        private readonly QuestionRepositoryInterface $questionRepository
+        private readonly QuestionRepositoryInterface $questionRepository,
+        private readonly PrerequisiteService $prerequisiteService
     ) {}
 
     public function create(Assignment $assignment, int $userId, array $data): Submission
@@ -140,5 +143,31 @@ class SubmissionService implements SubmissionServiceInterface
                 ],
             ],
         ];
+    }
+
+    public function validateStudentAssignmentAccess(Assignment $assignment, int $userId): array
+    {
+        $assignment->load('unit.course');
+
+        $enrollment = Enrollment::where('user_id', $userId)
+            ->where('course_id', $assignment->unit->course_id)
+            ->whereIn('status', ['active', 'completed'])
+            ->first();
+
+        if (! $enrollment) {
+            return ['accessible' => false, 'reason' => 'not_enrolled'];
+        }
+
+        $prerequisiteCheck = $this->prerequisiteService->checkAssignmentAccess($assignment, $userId);
+
+        if (! $prerequisiteCheck['accessible']) {
+            return [
+                'accessible' => false,
+                'reason' => 'prerequisites_not_met',
+                'missing_count' => count($prerequisiteCheck['missing']),
+            ];
+        }
+
+        return ['accessible' => true];
     }
 }

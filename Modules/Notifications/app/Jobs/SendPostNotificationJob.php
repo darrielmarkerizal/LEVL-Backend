@@ -18,7 +18,9 @@ class SendPostNotificationJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 120;
+
     public int $backoff = 10;
 
     public function __construct(
@@ -39,28 +41,33 @@ class SendPostNotificationJob implements ShouldQueue
         ]);
 
         try {
-            // Query target users based on audiences
-            $users = User::whereIn('role', $this->audiences)
-                ->where('status', 'active')
-                ->get();
+            $totalUsers = 0;
+            $hasUsers = false;
 
-            if ($users->isEmpty()) {
+            User::whereIn('role', $this->audiences)
+                ->where('status', 'active')
+                ->chunkById(100, function ($chunk) use (&$totalUsers, &$hasUsers) {
+                    $hasUsers = true;
+                    $totalUsers += $chunk->count();
+                    foreach ($this->channels as $channel) {
+                        match ($channel) {
+                            'email' => $this->sendEmailNotifications($chunk),
+                            'in_app' => $this->sendInAppNotifications($chunk),
+                            'push' => $this->sendPushNotifications($chunk),
+                            default => Log::warning('Unknown notification channel', ['channel' => $channel]),
+                        };
+                    }
+                });
+
+            if (! $hasUsers) {
                 Log::warning('SendPostNotificationJob: No active users found for audiences', [
                     'audiences' => $this->audiences,
                 ]);
+
                 return;
             }
 
-            // Send notifications through each channel
             foreach ($this->channels as $channel) {
-                match ($channel) {
-                    'email' => $this->sendEmailNotifications($users),
-                    'in_app' => $this->sendInAppNotifications($users),
-                    'push' => $this->sendPushNotifications($users),
-                    default => Log::warning('Unknown notification channel', ['channel' => $channel]),
-                };
-
-                // Update sent_at timestamp for this channel
                 $this->post->notifications()
                     ->where('channel', $channel)
                     ->update(['sent_at' => now()]);
@@ -68,7 +75,7 @@ class SendPostNotificationJob implements ShouldQueue
 
             Log::info('SendPostNotificationJob: Completed notification dispatch', [
                 'post_uuid' => $this->post->uuid,
-                'users_notified' => $users->count(),
+                'users_notified' => $totalUsers,
                 'channels' => $this->channels,
             ]);
         } catch (\Throwable $e) {
@@ -139,4 +146,3 @@ class SendPostNotificationJob implements ShouldQueue
         ];
     }
 }
-

@@ -130,25 +130,16 @@ class SubmissionController extends Controller
 
         $user = auth('api')->user();
         if ($user && $user->hasRole('Student')) {
-            $assignment->load('unit.course');
-            $enrollment = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
-                ->where('course_id', $assignment->unit->course_id)
-                ->whereIn('status', ['active', 'completed'])
-                ->first();
+            $accessCheck = $this->service->validateStudentAssignmentAccess($assignment, $user->id);
 
-            if (! $enrollment) {
-                return $this->error(__('messages.submissions.not_enrolled'), [], 403);
-            }
-
-            $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
-            $prerequisiteCheck = $prerequisiteService->checkAssignmentAccess($assignment, $user->id);
-
-            if (! $prerequisiteCheck['accessible']) {
-                $missingCount = count($prerequisiteCheck['missing']);
+            if (! $accessCheck['accessible']) {
+                if ($accessCheck['reason'] === 'not_enrolled') {
+                    return $this->error(__('messages.submissions.not_enrolled'), [], 403);
+                }
 
                 return $this->error(
-                    __('messages.submissions.assignment_locked', ['count' => $missingCount]),
-                    ['missing_prerequisites_count' => $missingCount],
+                    __('messages.submissions.assignment_locked', ['count' => $accessCheck['missing_count']]),
+                    ['missing_prerequisites_count' => $accessCheck['missing_count']],
                     403
                 );
             }
@@ -164,25 +155,16 @@ class SubmissionController extends Controller
         $user = auth('api')->user();
 
         if ($user && $user->hasRole('Student')) {
-            $assignment->load('unit.course');
-            $enrollment = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
-                ->where('course_id', $assignment->unit->course_id)
-                ->whereIn('status', ['active', 'completed'])
-                ->first();
+            $accessCheck = $this->service->validateStudentAssignmentAccess($assignment, $user->id);
 
-            if (! $enrollment) {
-                return $this->error(__('messages.submissions.not_enrolled'), [], 403);
-            }
-
-            $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
-            $prerequisiteCheck = $prerequisiteService->checkAssignmentAccess($assignment, $user->id);
-
-            if (! $prerequisiteCheck['accessible']) {
-                $missingCount = count($prerequisiteCheck['missing']);
+            if (! $accessCheck['accessible']) {
+                if ($accessCheck['reason'] === 'not_enrolled') {
+                    return $this->error(__('messages.submissions.not_enrolled'), [], 403);
+                }
 
                 return $this->error(
-                    __('messages.submissions.assignment_locked', ['count' => $missingCount]),
-                    ['missing_prerequisites_count' => $missingCount],
+                    __('messages.submissions.assignment_locked', ['count' => $accessCheck['missing_count']]),
+                    ['missing_prerequisites_count' => $accessCheck['missing_count']],
                     403
                 );
             }

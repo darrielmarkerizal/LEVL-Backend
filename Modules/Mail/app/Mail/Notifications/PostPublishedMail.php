@@ -20,7 +20,7 @@ class PostPublishedMail extends Mailable implements ShouldQueue
         public readonly Post $post,
         public readonly string $postUrl
     ) {
-        $this->onQueue('mail');
+        $this->onQueue('emails-transactional');
     }
 
     public function build(): self

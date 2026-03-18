@@ -46,7 +46,7 @@ class PointManager
                         ->where('source_type', $sourceType)
                         ->where('source_id', $sourceId)
                         ->first();
-                    
+
                     if ($existingPoint) {
                         Log::info('XP award blocked: Already awarded for this source', [
                             'user_id' => $userId,
@@ -54,23 +54,25 @@ class PointManager
                             'source_type' => $sourceType,
                             'source_id' => $sourceId,
                         ]);
+
                         return null;
                     }
                 }
-                
+
                 // Get XP source configuration if exists
                 $xpSource = XpSource::byCode($reason)->active()->first();
-                
+
                 if ($xpSource) {
                     // Override points with configured amount
                     $points = $xpSource->xp_amount;
-                    
+
                     // Check XP source specific limits
-                    if (!$this->checkXpSourceLimits($userId, $xpSource)) {
+                    if (! $this->checkXpSourceLimits($userId, $xpSource)) {
                         Log::info('XP award blocked: XP source limit reached', [
                             'user_id' => $userId,
                             'xp_source' => $xpSource->code,
                         ]);
+
                         return null;
                     }
                 }
@@ -83,6 +85,7 @@ class PointManager
                         'user_id' => $userId,
                         'reason' => $reason,
                     ]);
+
                     return null;
                 }
 
@@ -91,9 +94,10 @@ class PointManager
                         'user_id' => $userId,
                         'reason' => $reason,
                     ]);
+
                     return null;
                 }
-                
+
                 // Check Global Daily XP Cap
                 if (! $this->checkGlobalDailyCap($userId, $points, $reason)) {
                     Log::warning('XP award blocked: Global daily cap reached', [
@@ -101,6 +105,7 @@ class PointManager
                         'points' => $points,
                         'reason' => $reason,
                     ]);
+
                     return null;
                 }
 
@@ -125,20 +130,20 @@ class PointManager
 
                 $updatedStats = $this->updateUserGamificationStats($userId, $points);
                 $newLevel = $updatedStats->global_level;
-                
+
                 // Update point with new level
                 $point->new_level = $newLevel;
                 $point->triggered_level_up = $newLevel > $oldLevel;
                 $point->save();
-                
+
                 // Update global daily cap tracking
                 $this->updateGlobalDailyCap($userId, $points, $reason);
-                
+
                 // Check if user leveled up
                 if ($newLevel > $oldLevel) {
                     $this->handleLevelUp($userId, $oldLevel, $newLevel, $updatedStats->total_xp);
                 }
-                
+
                 $this->updateScopeStats($userId, $points, $sourceType, $sourceId);
                 $this->checkAndIncrementStreak($userId);
 
@@ -151,6 +156,7 @@ class PointManager
                     'user_id' => $userId,
                     'reason' => $reason,
                 ]);
+
                 return null;
             }
         });
@@ -277,12 +283,12 @@ class PointManager
 
         // Build cache key with all query parameters
         $cacheKey = "gamification:points:history:{$userId}:{$perPage}:"
-            . request('page', 1) . ':'
-            . request('filter.source_type', 'all') . ':'
-            . request('filter.reason', 'all') . ':'
-            . request('filter.period', 'all_time') . ':'
-            . request('filter.month', 'all') . ':'
-            . request('sort', '-created_at');
+            .request('page', 1).':'
+            .request('filter.source_type', 'all').':'
+            .request('filter.reason', 'all').':'
+            .request('filter.period', 'all_time').':'
+            .request('filter.month', 'all').':'
+            .request('sort', '-created_at');
 
         return cache()->tags(['gamification', 'points'])->remember(
             $cacheKey,
@@ -310,7 +316,7 @@ class PointManager
                             if (request()->has('filter.month')) {
                                 return;
                             }
-                            
+
                             $dateColumn = 'points.created_at';
                             match ($value) {
                                 'today' => $query->whereDate($dateColumn, Carbon::today()),
@@ -373,7 +379,7 @@ class PointManager
     private function checkCooldown(int $userId, string $sourceType, string $reason, ?XpSource $xpSource = null): bool
     {
         $cooldownSeconds = $xpSource?->cooldown_seconds ?? 0;
-        
+
         // Use XP source cooldown if configured
         if ($cooldownSeconds > 0) {
             $lastPoint = Point::where('user_id', $userId)
@@ -384,10 +390,10 @@ class PointManager
             if ($lastPoint && $lastPoint->created_at->diffInSeconds(Carbon::now()) < $cooldownSeconds) {
                 return false;
             }
-            
+
             return true;
         }
-        
+
         // Fallback to legacy cooldown logic
         // 10 Seconds Cooldown for 'lesson' completion to prevent rapid-fire API calls
         if ($sourceType === 'lesson' && $reason === 'completion') {
@@ -408,10 +414,10 @@ class PointManager
     private function checkDailyCap(int $userId, int $points, string $sourceType, ?XpSource $xpSource = null): bool
     {
         $dailyXpCap = $xpSource?->daily_xp_cap;
-        
+
         // Use XP source daily cap if configured
         if ($dailyXpCap !== null && $dailyXpCap > 0) {
-            $cacheKey = "gamification.daily_cap.{$userId}." . Carbon::today()->format('Y-m-d') . ".{$xpSource->code}";
+            $cacheKey = "gamification.daily_cap.{$userId}.".Carbon::today()->format('Y-m-d').".{$xpSource->code}";
             $currentDailyXp = \Illuminate\Support\Facades\Cache::get($cacheKey, 0);
 
             if ($currentDailyXp + $points > $dailyXpCap) {
@@ -422,10 +428,10 @@ class PointManager
             if ($currentDailyXp === 0) {
                 \Illuminate\Support\Facades\Cache::put($cacheKey, $points, Carbon::tomorrow()->addHour());
             }
-            
+
             return true;
         }
-        
+
         // Fallback to legacy daily cap logic
         // Daily Cap for 'lesson' farming: Max 5000 XP per day
         if ($sourceType === 'lesson') {
@@ -445,12 +451,12 @@ class PointManager
 
         return true;
     }
-    
+
     private function checkXpSourceLimits(int $userId, XpSource $xpSource): bool
     {
         // Check daily limit (max times per day)
         if ($xpSource->daily_limit !== null && $xpSource->daily_limit > 0) {
-            $cacheKey = "gamification.daily_limit.{$userId}." . Carbon::today()->format('Y-m-d') . ".{$xpSource->code}";
+            $cacheKey = "gamification.daily_limit.{$userId}.".Carbon::today()->format('Y-m-d').".{$xpSource->code}";
             $currentCount = \Illuminate\Support\Facades\Cache::get($cacheKey, 0);
 
             if ($currentCount >= $xpSource->daily_limit) {
@@ -465,14 +471,14 @@ class PointManager
 
         return true;
     }
-    
+
     private function handleLevelUp(int $userId, int $oldLevel, int $newLevel, int $totalXp): void
     {
         // Get rewards for the new level
         $levelConfig = $this->levelService->getLevelConfig($newLevel);
         $rewards = $levelConfig?->rewards ?? [];
         $bonusXp = $levelConfig?->bonus_xp ?? 0;
-        
+
         // Award bonus XP for leveling up
         if ($bonusXp > 0) {
             $this->repository->createPoint([
@@ -494,13 +500,13 @@ class PointManager
                     'new_level' => $newLevel,
                 ],
             ]);
-            
+
             // Update user stats with bonus XP (without triggering another level up check)
             $stats = $this->repository->getOrCreateStats($userId);
             $stats->total_xp += $bonusXp;
             $this->repository->saveStats($stats);
         }
-        
+
         // Dispatch level up event
         event(new UserLeveledUp(
             userId: $userId,
@@ -510,11 +516,11 @@ class PointManager
             rewards: array_merge($rewards, ['bonus_xp' => $bonusXp])
         ));
     }
-    
+
     private function checkGlobalDailyCap(int $userId, int $points, string $reason): bool
     {
         $today = Carbon::today();
-        
+
         // Get or create daily cap record
         $dailyCap = XpDailyCap::firstOrCreate(
             [
@@ -527,19 +533,19 @@ class PointManager
                 'xp_by_source' => [],
             ]
         );
-        
+
         // Check if adding this XP would exceed the cap
         if ($dailyCap->total_xp_earned + $points > $dailyCap->global_daily_cap) {
             return false;
         }
-        
+
         return true;
     }
-    
+
     private function updateGlobalDailyCap(int $userId, int $points, string $reason): void
     {
         $today = Carbon::today();
-        
+
         $dailyCap = XpDailyCap::firstOrCreate(
             [
                 'user_id' => $userId,
@@ -551,16 +557,16 @@ class PointManager
                 'xp_by_source' => [],
             ]
         );
-        
+
         $dailyCap->incrementXp($points, $reason);
     }
-    
+
     public function getDailyXpStats(int $userId, int $days = 7): array
     {
         $days = max(1, min($days, 30)); // Between 1 and 30 days
         $endDate = Carbon::today();
         $startDate = Carbon::today()->subDays($days - 1);
-        
+
         // Get daily XP data for the period
         $dailyXp = Point::where('user_id', $userId)
             ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
@@ -568,10 +574,11 @@ class PointManager
             ->groupBy('date', 'source_type')
             ->orderBy('date')
             ->get();
-        
+
         // Group by date
         $xpByDate = $dailyXp->groupBy('date')->map(function ($items) {
-            $sources = $items->groupBy('source_type')->map(fn($group) => $group->sum('xp_earned'));
+            $sources = $items->groupBy('source_type')->map(fn ($group) => $group->sum('xp_earned'));
+
             return [
                 'xp_earned' => $items->sum('xp_earned'),
                 'activities' => [
@@ -581,7 +588,7 @@ class PointManager
                 ],
             ];
         });
-        
+
         // Fill missing dates with zero
         $dailyStats = [];
         for ($i = 0; $i < $days; $i++) {
@@ -596,12 +603,12 @@ class PointManager
                 ],
             ];
         }
-        
+
         // Calculate summary
         $totalXp = collect($dailyStats)->sum('xp_earned');
         $averagePerDay = $days > 0 ? round($totalXp / $days, 2) : 0;
         $mostActiveDay = collect($dailyStats)->sortByDesc('xp_earned')->first();
-        
+
         // Calculate streak
         $streakDays = 0;
         $reversedStats = array_reverse($dailyStats);
@@ -612,7 +619,7 @@ class PointManager
                 break;
             }
         }
-        
+
         return [
             'daily_xp' => $dailyStats,
             'summary' => [

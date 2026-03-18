@@ -7,9 +7,6 @@ namespace Modules\Learning\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Learning\Enums\AssignmentStatus;
-use Modules\Learning\Enums\AssignmentType;
-use Modules\Learning\Enums\RandomizationType;
-use Modules\Learning\Enums\ReviewMode;
 use Modules\Learning\Enums\SubmissionType;
 
 class StoreAssignmentRequest extends FormRequest

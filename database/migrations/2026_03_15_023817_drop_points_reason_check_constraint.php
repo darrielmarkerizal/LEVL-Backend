@@ -9,7 +9,7 @@ return new class extends Migration
     {
         // Drop the CHECK constraint on reason column
         DB::statement('ALTER TABLE points DROP CONSTRAINT IF EXISTS points_reason_check');
-        
+
         // Drop the CHECK constraint on source_type column if it exists
         DB::statement('ALTER TABLE points DROP CONSTRAINT IF EXISTS points_source_type_check');
     }

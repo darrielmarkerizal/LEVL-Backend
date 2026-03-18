@@ -12,8 +12,8 @@ use Modules\Auth\Contracts\Services\UserManagementServiceInterface;
 use Modules\Auth\Http\Requests\AdminResetPasswordRequest;
 use Modules\Auth\Http\Requests\CreateUserRequest;
 use Modules\Auth\Http\Requests\UpdateUserRequest;
-use Modules\Auth\Http\Resources\UserEnrolledCourseResource;
 use Modules\Auth\Http\Resources\InstructorAssignedSchemeResource;
+use Modules\Auth\Http\Resources\UserEnrolledCourseResource;
 use Modules\Auth\Http\Resources\UserLatestActivityResource;
 use Modules\Auth\Http\Resources\UserResource;
 
@@ -107,7 +107,7 @@ class UserManagementController extends Controller
     {
         $validated = $request->validated();
         $data = [];
-        
+
         if (isset($validated['username'])) {
             $data['username'] = $validated['username'];
         }

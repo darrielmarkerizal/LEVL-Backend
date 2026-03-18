@@ -10,8 +10,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Modules\Notifications\Models\Post;
 use Modules\Notifications\Enums\PostStatus;
+use Modules\Notifications\Models\Post;
 use Modules\Notifications\Services\PostService;
 
 class BulkPublishPostsJob implements ShouldQueue
@@ -19,16 +19,17 @@ class BulkPublishPostsJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 300;
+
     public int $backoff = 30;
 
     private const BATCH_SIZE = 10;
-    private const BATCH_DELAY_MS = 100;
 
     public function __construct(
         private array $postUuids
     ) {
-        $this->onQueue('bulk-operations');
+        $this->onQueue('notifications');
     }
 
     public function handle(PostService $service): void
@@ -50,9 +51,10 @@ class BulkPublishPostsJob implements ShouldQueue
                 try {
                     $post = Post::where('uuid', $uuid)->first();
 
-                    if (!$post) {
+                    if (! $post) {
                         Log::warning('BulkPublishPostsJob: Post not found', ['uuid' => $uuid]);
                         $failureCount++;
+
                         continue;
                     }
 
@@ -63,6 +65,7 @@ class BulkPublishPostsJob implements ShouldQueue
                             'title' => $post->title,
                         ]);
                         $successCount++;
+
                         continue;
                     }
 
@@ -83,10 +86,6 @@ class BulkPublishPostsJob implements ShouldQueue
                 }
             }
 
-            // Add delay between batches (except for the last batch)
-            if ($batchIndex < count($batches) - 1) {
-                usleep(self::BATCH_DELAY_MS * 1000);
-            }
         }
 
         $endTime = now();
@@ -116,4 +115,3 @@ class BulkPublishPostsJob implements ShouldQueue
         ];
     }
 }
-

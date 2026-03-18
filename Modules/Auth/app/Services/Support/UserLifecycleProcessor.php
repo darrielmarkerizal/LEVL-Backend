@@ -45,15 +45,15 @@ class UserLifecycleProcessor
         return DB::transaction(function () use ($authUser, $user, $status) {
             $oldStatus = $user->status;
             $newStatus = UserStatus::from($status);
-            
+
             $user->status = $newStatus;
-            
+
             // Remove computed attributes that should not be persisted to database
             unset($user['learning_statistics']);
             unset($user['last_login_at']);
             unset($user['rank']);
             unset($user['total_xp']);
-            
+
             $user->save();
 
             // Dispatch event for status change
@@ -95,10 +95,10 @@ class UserLifecycleProcessor
 
                 $oldStatus = $user->status;
                 $newStatus = UserStatus::from($data['status']);
-                
+
                 $user->status = $newStatus;
                 $updated = true;
-                
+
                 // Dispatch event for status change
                 event(new UserStatusChanged($user, $oldStatus, $newStatus, $authUser));
             }
@@ -148,7 +148,7 @@ class UserLifecycleProcessor
                 unset($user['last_login_at']);
                 unset($user['rank']);
                 unset($user['total_xp']);
-                
+
                 $user->save();
                 $this->cacheService->invalidateUser($user->id);
                 $this->cacheService->invalidateAllUsers();
@@ -191,7 +191,7 @@ class UserLifecycleProcessor
             DB::table('refresh_tokens')
                 ->where('user_id', $user->id)
                 ->delete();
-                
+
         } catch (\Exception $e) {
             // Log error but don't fail the password change
             \Illuminate\Support\Facades\Log::warning('Failed to revoke tokens for user '.$user->id.': '.$e->getMessage());

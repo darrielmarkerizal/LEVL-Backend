@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Modules\Mail\Mail\Auth;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Modules\Auth\Models\User;
 
-class VerifyEmailLinkMail extends Mailable
+class VerifyEmailLinkMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -19,7 +20,9 @@ class VerifyEmailLinkMail extends Mailable
         public readonly int $ttlMinutes,
         public readonly string $token,
         public readonly string $uuid
-    ) {}
+    ) {
+        $this->onQueue('emails-critical');
+    }
 
     public function build(): self
     {

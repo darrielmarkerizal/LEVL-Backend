@@ -1,13 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Notifications\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Modules\Notifications\Services\NotificationService;
 use Modules\Schemes\Events\CourseCompleted;
 
-class NotifyUserOnCourseCompleted
+class NotifyUserOnCourseCompleted implements ShouldQueue
 {
-    public function __construct(private NotificationService $notificationService) {}
+    use InteractsWithQueue;
+
+    public string $queue = 'notifications';
+
+    public function __construct(private readonly NotificationService $notificationService) {}
 
     public function handle(CourseCompleted $event): void
     {

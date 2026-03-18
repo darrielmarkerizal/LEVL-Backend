@@ -34,7 +34,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             $missingCount = count($accessCheck['missing']);
             $message = trans_choice('messages.quizzes.locked_cannot_start', $missingCount, ['count' => $missingCount]);
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'quiz' => [$message]
+                'quiz' => [$message],
             ]);
         }
 
@@ -46,12 +46,12 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         if ($pendingSubmission) {
             if ($pendingSubmission->status === QuizSubmissionStatus::Draft) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    'quiz' => [__('messages.quiz_submissions.in_progress')]
+                    'quiz' => [__('messages.quiz_submissions.in_progress')],
                 ]);
             }
 
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'quiz' => [__('messages.quiz_submissions.pending_grading')]
+                'quiz' => [__('messages.quiz_submissions.pending_grading')],
             ]);
         }
 
@@ -85,7 +85,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         // Validate submission is in draft status
         if ($submission->status !== QuizSubmissionStatus::Draft) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'submission' => [__('messages.quiz_submissions.not_draft')]
+                'submission' => [__('messages.quiz_submissions.not_draft')],
             ]);
         }
 
@@ -93,7 +93,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         $accessCheck = $this->prerequisiteService->checkQuizAccess($submission->quiz, $submission->user_id);
         if (! $accessCheck['accessible']) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'quiz' => [__('messages.quizzes.locked_cannot_answer')]
+                'quiz' => [__('messages.quizzes.locked_cannot_answer')],
             ]);
         }
 
@@ -126,7 +126,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         // Validate submission is in draft status
         if ($submission->status !== QuizSubmissionStatus::Draft) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'submission' => [__('messages.quiz_submissions.not_draft')]
+                'submission' => [__('messages.quiz_submissions.not_draft')],
             ]);
         }
 
@@ -134,18 +134,18 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         $accessCheck = $this->prerequisiteService->checkQuizAccess($submission->quiz, $submission->user_id);
         if (! $accessCheck['accessible']) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'quiz' => [__('messages.quizzes.locked_cannot_submit')]
+                'quiz' => [__('messages.quizzes.locked_cannot_submit')],
             ]);
         }
 
         // Validate all questions are answered
         $questions = $this->listQuestions($submission, $submission->user_id);
         $answeredCount = QuizAnswer::where('quiz_submission_id', $submission->id)->count();
-        
+
         if ($answeredCount < $questions->count()) {
             $unansweredCount = $questions->count() - $answeredCount;
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'answers' => [trans_choice('messages.quiz_submissions.unanswered_questions', $unansweredCount, ['count' => $unansweredCount])]
+                'answers' => [trans_choice('messages.quiz_submissions.unanswered_questions', $unansweredCount, ['count' => $unansweredCount])],
             ]);
         }
 
@@ -162,12 +162,12 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             ]);
 
             $gradedSubmission = $this->autoGrade($submission);
-            
+
             // Dispatch QuizCompleted event if quiz is fully graded
             if ($gradedSubmission->grading_status === QuizGradingStatus::Graded) {
                 event(new \Modules\Learning\Events\QuizCompleted($gradedSubmission));
             }
-            
+
             return $gradedSubmission;
         });
     }
@@ -190,8 +190,8 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         $submissions->each(function ($submission) use ($user, $includes) {
             $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $submission);
             $includesToLoad = array_intersect($includes, $allowedIncludes);
-            
-            if (!empty($includesToLoad)) {
+
+            if (! empty($includesToLoad)) {
                 $submission->load($includesToLoad);
             }
         });
@@ -399,7 +399,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         }
 
         $question = $questions->get($page - 1);
-        
+
         // Load existing answer for this question
         $answer = \Modules\Learning\Models\QuizAnswer::where('quiz_submission_id', $submission->id)
             ->where('quiz_question_id', $question->id)

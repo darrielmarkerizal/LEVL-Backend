@@ -22,7 +22,7 @@ class SyncLevelConfigs extends Command
         $endLevel = min(100, (int) $this->option('end'));
 
         $this->info("Syncing level configurations from level {$startLevel} to {$endLevel}");
-        $this->info("Formula: XP(level) = 100 × level^1.6");
+        $this->info('Formula: XP(level) = 100 × level^1.6');
         $this->newLine();
 
         // Show preview
@@ -39,12 +39,13 @@ class SyncLevelConfigs extends Command
         );
 
         if ($endLevel > $startLevel + 9) {
-            $this->info("... and " . ($endLevel - $startLevel - 9) . " more levels");
+            $this->info('... and '.($endLevel - $startLevel - 9).' more levels');
             $this->newLine();
         }
 
-        if (!$this->option('force') && !$this->confirm('Do you want to proceed with syncing?')) {
+        if (! $this->option('force') && ! $this->confirm('Do you want to proceed with syncing?')) {
             $this->warn('Sync cancelled');
+
             return self::FAILURE;
         }
 
@@ -62,7 +63,7 @@ class SyncLevelConfigs extends Command
         $this->newLine(2);
 
         $this->info("✓ Successfully synced {$synced} level configurations");
-        
+
         // Show some examples
         $this->newLine();
         $this->info('Examples:');
@@ -71,7 +72,7 @@ class SyncLevelConfigs extends Command
             if ($level >= $startLevel && $level <= $endLevel) {
                 $xp = $levelService->calculateXpForLevel($level);
                 $total = $levelService->calculateTotalXpForLevel($level);
-                $this->line("  Level {$level}: " . number_format($xp) . " XP (Total: " . number_format($total) . " XP)");
+                $this->line("  Level {$level}: ".number_format($xp).' XP (Total: '.number_format($total).' XP)');
             }
         }
 

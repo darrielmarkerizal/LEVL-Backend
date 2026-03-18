@@ -33,7 +33,6 @@ class Badge extends Model implements HasMedia
         'name',
         'description',
         'type',
-        'category',
         'rarity',
         'xp_reward',
         'active',
@@ -52,7 +51,7 @@ class Badge extends Model implements HasMedia
         'max_awards_per_user' => 'integer',
     ];
 
-    protected $appends = ['icon_url'];
+    protected $appends = ['icon_url', 'icon_thumb_url'];
 
     public function registerMediaCollections(): void
     {
@@ -103,11 +102,6 @@ class Badge extends Model implements HasMedia
     public function rules(): HasMany
     {
         return $this->hasMany(BadgeRule::class);
-    }
-
-    public function scopeAchievement($query)
-    {
-        return $query->where('type', 'achievement');
     }
 
     public function scopeMilestone($query)
