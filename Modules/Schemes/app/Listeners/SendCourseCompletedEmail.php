@@ -34,8 +34,7 @@ class SendCourseCompletedEmail implements ShouldQueue
         $courseUrl = $this->getCourseUrl($course);
 
         Mail::to($user->email)
-            ->onQueue('emails-transactional')
-            ->queue(new CourseCompletedMail($user, $course, $enrollment, $courseUrl));
+            ->queue((new CourseCompletedMail($user, $course, $enrollment, $courseUrl))->onQueue('emails-transactional'));
     }
 
     private function getCourseUrl($course): string

@@ -49,12 +49,11 @@ class ActivateScheduledEnrollmentsCommand extends Command
                     // Send notification email
                     $courseUrl = config('app.frontend_url').'/courses/'.$enrollment->course->slug;
                     \Illuminate\Support\Facades\Mail::to($enrollment->user->email)
-                        ->onQueue('emails-transactional')
-                        ->queue(new \Modules\Mail\Mail\Enrollments\StudentEnrollmentActivatedMail(
+                        ->queue((new \Modules\Mail\Mail\Enrollments\StudentEnrollmentActivatedMail(
                             $enrollment->user,
                             $enrollment->course,
                             $courseUrl
-                        ));
+                        ))->onQueue('emails-transactional'));
                 });
 
                 $activated++;

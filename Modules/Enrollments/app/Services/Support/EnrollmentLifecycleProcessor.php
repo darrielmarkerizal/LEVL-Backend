@@ -183,16 +183,13 @@ class EnrollmentLifecycleProcessor
                 if ($isFutureEnrollment) {
                     // Send scheduled enrollment notification
                     Mail::to($student->email)
-                        ->onQueue('emails-transactional')
-                        ->queue(new StudentEnrollmentScheduledMail($student, $course, $enrollmentDate, $courseUrl));
+                        ->queue((new StudentEnrollmentScheduledMail($student, $course, $enrollmentDate, $courseUrl))->onQueue('emails-transactional'));
                 } elseif ($freshEnrollment->status === EnrollmentStatus::Active) {
                     Mail::to($student->email)
-                        ->onQueue('emails-transactional')
-                        ->queue(new StudentEnrollmentManualActiveMail($student, $course, $courseUrl));
+                        ->queue((new StudentEnrollmentManualActiveMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
                 } elseif ($freshEnrollment->status === EnrollmentStatus::Pending) {
                     Mail::to($student->email)
-                        ->onQueue('emails-transactional')
-                        ->queue(new StudentEnrollmentManualPendingMail($student, $course, $courseUrl));
+                        ->queue((new StudentEnrollmentManualPendingMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
                 }
             }
 
@@ -261,8 +258,7 @@ class EnrollmentLifecycleProcessor
             if ($student && $course) {
                 $courseUrl = $this->getCourseUrl($course);
                 Mail::to($student->email)
-                    ->onQueue('emails-transactional')
-                    ->queue(new StudentEnrollmentApprovedMail($student, $course, $courseUrl));
+                    ->queue((new StudentEnrollmentApprovedMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
             }
 
             return $freshEnrollment;
@@ -287,8 +283,7 @@ class EnrollmentLifecycleProcessor
 
             if ($student && $course) {
                 Mail::to($student->email)
-                    ->onQueue('emails-transactional')
-                    ->queue(new StudentEnrollmentDeclinedMail($student, $course));
+                    ->queue((new StudentEnrollmentDeclinedMail($student, $course))->onQueue('emails-transactional'));
             }
 
             return $freshEnrollment;
@@ -335,12 +330,10 @@ class EnrollmentLifecycleProcessor
 
         if ($status === EnrollmentStatus::Active->value) {
             Mail::to($student->email)
-                ->onQueue('emails-transactional')
-                ->queue(new StudentEnrollmentActiveMail($student, $course, $courseUrl));
+                ->queue((new StudentEnrollmentActiveMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
         } elseif ($status === EnrollmentStatus::Pending->value) {
             Mail::to($student->email)
-                ->onQueue('emails-transactional')
-                ->queue(new StudentEnrollmentPendingMail($student, $course, $courseUrl));
+                ->queue((new StudentEnrollmentPendingMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
         }
 
         $this->notifyCourseManagers($enrollment, $course, $student);
@@ -354,8 +347,7 @@ class EnrollmentLifecycleProcessor
         foreach ($managers as $manager) {
             if ($manager && $manager->email) {
                 Mail::to($manager->email)
-                    ->onQueue('emails-transactional')
-                    ->queue(new AdminEnrollmentNotificationMail($manager, $student, $course, $enrollmentsUrl));
+                    ->queue((new AdminEnrollmentNotificationMail($manager, $student, $course, $enrollmentsUrl))->onQueue('emails-transactional'));
             }
         }
     }

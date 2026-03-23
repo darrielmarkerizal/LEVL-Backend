@@ -28,8 +28,7 @@ class ExportUsersToEmailJob implements ShouldQueue
         Excel::store(new UsersExport($this->userIds), $path, 'local');
 
         Mail::to($this->recipientEmail)
-            ->onQueue('emails-transactional')
-            ->queue(new \Modules\Mail\Mail\Auth\UsersExportMail($this->recipientEmail, route('profile.exports.download', $fileName), $fileName));
+            ->queue((new \Modules\Mail\Mail\Auth\UsersExportMail($this->recipientEmail, route('profile.exports.download', $fileName), $fileName))->onQueue('emails-transactional'));
 
         dispatch(function () use ($path) {
             if (Storage::exists($path)) {

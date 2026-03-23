@@ -290,8 +290,7 @@ class UserLifecycleProcessor
         $loginUrl = rtrim(config('app.frontend_url', 'http://localhost:3000'), '/').'/login';
 
         Mail::to($user->email)
-            ->onQueue('emails-critical')
-            ->queue(new UserCredentialsMail($user, $passwordPlain, $loginUrl));
+            ->queue((new UserCredentialsMail($user, $passwordPlain, $loginUrl))->onQueue('emails-critical'));
     }
 
     protected function generateUniqueUsername(string $name, string $email): string
