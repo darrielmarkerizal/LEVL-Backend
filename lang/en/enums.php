@@ -199,6 +199,17 @@ return [
         'assignment' => 'Assignment',
     ],
 
+    'block_type' => [
+        'text' => 'Text',
+        'image' => 'Image',
+        'video' => 'Video Upload',
+        'file' => 'File',
+        'link' => 'External Link',
+        'youtube' => 'YouTube',
+        'drive' => 'Google Drive',
+        'embed' => 'Embed',
+    ],
+
     'enrollment_status' => [
         'pending' => 'Pending',
         'active' => 'Active',

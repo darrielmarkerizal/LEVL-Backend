@@ -65,15 +65,23 @@ class LessonBlockService
                 $nextOrder = $nextOrder ? $nextOrder + 1 : 1;
             }
 
-            $block = $this->repository->create([
+            $blockData = [
                 'lesson_id' => $lessonId,
                 'slug' => (string) Str::uuid(),
                 'block_type' => $data['type'],
                 'content' => $data['content'] ?? null,
                 'order' => $nextOrder,
-            ]);
+            ];
 
-            if ($mediaFile && collect(['image', 'video', 'file'])->contains($data['type'])) {
+            // Add external URL if provided
+            if (isset($data['external_url'])) {
+                $blockData['external_url'] = $data['external_url'];
+            }
+
+            $block = $this->repository->create($blockData);
+
+            // Only handle media file if not external link
+            if ($mediaFile && !in_array($data['type'], ['link', 'youtube', 'drive', 'embed'])) {
                 $media = $block
                     ->addMedia($mediaFile)
                     ->toMediaCollection('media');
@@ -102,6 +110,11 @@ class LessonBlockService
                 'block_type' => $data['type'] ?? $block->block_type,
                 'content' => data_get($data, 'content', $block->content),
             ];
+
+            // Update external URL if provided
+            if (isset($data['external_url'])) {
+                $update['external_url'] = $data['external_url'];
+            }
 
             if (isset($data['order']) && $data['order'] != $block->order) {
                 $newOrder = $data['order'];

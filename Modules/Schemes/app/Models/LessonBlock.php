@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Schemes\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Schemes\Enums\BlockType;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -13,13 +14,14 @@ class LessonBlock extends Model implements HasMedia
 {
     use InteractsWithMedia;
 
-    protected $fillable = ['lesson_id', 'slug', 'block_type', 'content', 'order'];
+    protected $fillable = ['lesson_id', 'slug', 'block_type', 'content', 'order', 'external_url'];
 
     protected $casts = [
         'order' => 'integer',
+        'block_type' => BlockType::class,
     ];
 
-    protected $appends = ['media_url', 'media_thumb_url'];
+    protected $appends = ['media_url', 'media_thumb_url', 'embed_url'];
 
     /**
      * Register media collections for this model.
@@ -112,5 +114,68 @@ class LessonBlock extends Model implements HasMedia
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    /**
+     * Check if this block uses external URL
+     */
+    public function isExternalLink(): bool
+    {
+        return $this->block_type->isExternalLink();
+    }
+
+    /**
+     * Get embed URL for external links (converts YouTube watch URLs to embed)
+     */
+    public function getEmbedUrlAttribute(): ?string
+    {
+        if (!$this->external_url) {
+            return null;
+        }
+
+        if ($this->block_type === BlockType::YouTube) {
+            return $this->convertYouTubeToEmbed($this->external_url);
+        }
+
+        if ($this->block_type === BlockType::Drive) {
+            return $this->convertDriveToPreview($this->external_url);
+        }
+
+        return $this->external_url;
+    }
+
+    /**
+     * Convert YouTube watch URL to embed URL
+     */
+    private function convertYouTubeToEmbed(string $url): string
+    {
+        // Handle youtube.com/watch?v=xxx
+        if (preg_match('/[?&]v=([^&]+)/', $url, $matches)) {
+            return "https://www.youtube.com/embed/{$matches[1]}";
+        }
+
+        // Handle youtu.be/xxx
+        if (preg_match('/youtu\.be\/([^?]+)/', $url, $matches)) {
+            return "https://www.youtube.com/embed/{$matches[1]}";
+        }
+
+        return $url;
+    }
+
+    /**
+     * Convert Google Drive URL to preview URL
+     */
+    private function convertDriveToPreview(string $url): string
+    {
+        // Extract file ID from various Drive URL formats
+        if (preg_match('/\/d\/([^\/]+)/', $url, $matches)) {
+            return "https://drive.google.com/file/d/{$matches[1]}/preview";
+        }
+
+        if (preg_match('/id=([^&]+)/', $url, $matches)) {
+            return "https://drive.google.com/file/d/{$matches[1]}/preview";
+        }
+
+        return $url;
     }
 }

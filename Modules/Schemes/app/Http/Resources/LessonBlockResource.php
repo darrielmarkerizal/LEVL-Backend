@@ -18,9 +18,15 @@ class LessonBlockResource extends JsonResource
             'id' => $this->id,
             'lesson_id' => $this->lesson_id,
             'slug' => $this->slug,
-            'block_type' => $this->block_type,
+            'block_type' => $this->block_type->value, // Serialize enum to string value
             'content' => $this->content,
             'order' => $this->order,
+            
+            // External URL fields
+            'external_url' => $this->external_url,
+            'embed_url' => $this->embed_url,
+            
+            // Media fields (for uploaded files)
             'media' => (function () {
                 $media = $this->getFirstMedia('media');
 

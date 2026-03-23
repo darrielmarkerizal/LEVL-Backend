@@ -199,6 +199,17 @@ return [
         'assignment' => 'Tugas',
     ],
 
+    'block_type' => [
+        'text' => 'Teks',
+        'image' => 'Gambar',
+        'video' => 'Video Upload',
+        'file' => 'File',
+        'link' => 'Link Eksternal',
+        'youtube' => 'YouTube',
+        'drive' => 'Google Drive',
+        'embed' => 'Embed',
+    ],
+
     'enrollment_status' => [
         'pending' => 'Menunggu',
         'active' => 'Aktif',

@@ -116,6 +116,13 @@ $base = [
         'username' => [
             'regex' => 'Username hanya boleh mengandung huruf, angka, titik (.), garis bawah (_), dan tanda hubung (-).',
         ],
+        'external_url' => [
+            'required_for_type' => 'URL eksternal wajib diisi untuk tipe link/youtube/drive/embed.',
+        ],
+        'media' => [
+            'required_for_type' => 'File media wajib diisi untuk tipe ini.',
+            'mismatch_type' => 'Tipe file tidak sesuai dengan tipe block.',
+        ],
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
@@ -126,6 +133,9 @@ $base = [
         'title' => 'judul',
         'description' => 'deskripsi',
         'type' => 'tipe',
+        'external_url' => 'URL eksternal',
+        'media' => 'file media',
+        'content' => 'konten',
         'time_limit_minutes' => 'batas waktu (menit)',
         'max_score' => 'skor maksimal',
         'available_from' => 'tersedia dari',
