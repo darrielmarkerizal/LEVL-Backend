@@ -44,4 +44,8 @@ interface CourseServiceInterface
     public function listEnrolledCourses(int $userId, array $filters = [], int $perPage = 15): LengthAwarePaginator;
 
     public function generateUniqueSlug(string $title): string;
+
+    public function canAccessCourse(?int $userId, Course $course): bool;
+
+    public function canAccessProtectedIncludes(?int $userId, Course $course, array $requestedIncludes): bool;
 }

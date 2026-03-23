@@ -253,12 +253,15 @@ return [
         'enrollment_settings_updated' => 'Enrollment settings updated successfully.',
         'list_retrieved' => 'Course list retrieved successfully.',
         'not_found' => 'The requested course could not be found.',
+        'enrollment_required' => 'You must be enrolled in this course to access this content.',
+        'authentication_required' => 'You must be logged in to access this content.',
         'no_unpublish_access' => 'You do not have permission to unpublish this course.',
         'no_update_key_access' => 'You do not have permission to update the enrollment key for this course.',
         'no_remove_key_access' => 'You do not have permission to remove the enrollment key for this course.',
         'no_generate_key_access' => 'You do not have permission to generate an enrollment key for this course.',
         'key_generated' => 'Enrollment key generated successfully.',
         'key_removed' => 'Enrollment key removed. Enrollment type has been changed to auto-accept.',
+        'slug_generated' => 'Slug generated successfully.',
         'code_exists' => 'This course code is already in use. Please choose a different one.',
         'slug_exists' => 'This URL slug is already taken. Please choose a different one.',
         'title_exists' => 'This course title is already in use. Please choose a different one.',
@@ -276,7 +279,6 @@ return [
         'must_have_one_published_lesson' => 'A course must have at least one published lesson before it can be published.',
         'cannot_publish_without_enrollment_key' => 'Key-based courses must have an enrollment key before publishing.',
         'must_have_enrollment_key' => 'An enrollment key is required for key-based enrollment courses.',
-        'slug_generated' => 'Slug generated successfully.',
     ],
 
     // Auth Module

@@ -208,4 +208,70 @@ class CourseService implements CourseServiceInterface
 
         return $slug;
     }
+
+    public function canAccessCourse(?int $userId, Course $course): bool
+    {
+        if ($course->status === \Modules\Schemes\Enums\CourseStatus::Published) {
+            return true;
+        }
+
+        if (!$userId) {
+            return false;
+        }
+
+        $user = \Modules\Auth\Models\User::find($userId);
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->hasRole('Student')) {
+            return false;
+        }
+
+        if ($user->hasRole('Superadmin') || $user->hasRole('Admin')) {
+            return true;
+        }
+
+        if ($user->hasRole('Instructor')) {
+            return $course->instructors()->where('user_id', $user->id)->exists();
+        }
+
+        return false;
+    }
+
+    public function canAccessProtectedIncludes(?int $userId, Course $course, array $requestedIncludes): bool
+    {
+        $protectedIncludes = ['lessons', 'progress', 'enrollment'];
+        $hasProtectedIncludes = !empty(array_intersect($requestedIncludes, $protectedIncludes));
+
+        if (!$hasProtectedIncludes) {
+            return true;
+        }
+
+        if (!$userId) {
+            return false;
+        }
+
+        $user = \Modules\Auth\Models\User::find($userId);
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->hasRole('Superadmin') || $user->hasRole('Admin')) {
+            return true;
+        }
+
+        if ($user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        if ($user->hasRole('Student')) {
+            return \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
+                ->where('course_id', $course->id)
+                ->whereIn('status', ['active', 'completed'])
+                ->exists();
+        }
+
+        return false;
+    }
 }

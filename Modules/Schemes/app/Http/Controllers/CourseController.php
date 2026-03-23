@@ -49,24 +49,28 @@ class CourseController extends Controller
         }
     }
 
-    public function show(Course $course)
+    public function show(Request $request, Course $course)
     {
-        // Get authenticated user from API guard
         $user = auth('api')->user();
+        $userId = $user?->id;
 
-        // Authorization check using Gate with explicit user
-        if ($user) {
-            \Gate::forUser($user)->authorize('view', $course);
-        } else {
-            // For guest users, check if course is published
-            if ($course->status !== \Modules\Schemes\Enums\CourseStatus::Published) {
-                return $this->forbidden(__('messages.courses.not_found'));
+        if (!$this->service->canAccessCourse($userId, $course)) {
+            return $this->forbidden(__('messages.courses.not_found'));
+        }
+
+        $includes = $request->query('include', '');
+        $requestedIncludes = array_filter(explode(',', $includes));
+
+        if (!$this->service->canAccessProtectedIncludes($userId, $course, $requestedIncludes)) {
+            if ($user) {
+                return $this->forbidden(__('messages.courses.enrollment_required'));
             }
+            return $this->unauthorized(__('messages.courses.authentication_required'));
         }
 
         $courseWithIncludes = $this->service->findBySlugWithIncludes($course->slug);
 
-        if (! $courseWithIncludes) {
+        if (!$courseWithIncludes) {
             return $this->notFound(__('messages.courses.not_found'));
         }
 
