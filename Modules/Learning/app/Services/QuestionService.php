@@ -10,7 +10,6 @@ use Modules\Grading\Jobs\RecalculateGradesJob;
 use Modules\Learning\Contracts\Repositories\QuestionRepositoryInterface;
 use Modules\Learning\Contracts\Services\QuestionServiceInterface;
 use Modules\Learning\Enums\QuestionType;
-use Modules\Learning\Enums\RandomizationType;
 use Modules\Learning\Events\AnswerKeyChanged;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Question;
@@ -148,15 +147,7 @@ class QuestionService implements QuestionServiceInterface
 
     public function generateQuestionSet(int $assignmentId, ?int $seed = null): Collection
     {
-        $assignment = Assignment::findOrFail($assignmentId);
-        $seed = $seed ?? random_int(1, PHP_INT_MAX);
-
-        return match ($assignment->randomization_type) {
-            RandomizationType::Static => $this->questionRepository->findByAssignment($assignmentId),
-            RandomizationType::RandomOrder => $this->getRandomOrderQuestions($assignmentId, $seed),
-            RandomizationType::Bank => $this->getBankQuestions($assignment, $seed),
-            default => $this->questionRepository->findByAssignment($assignmentId),
-        };
+        return $this->questionRepository->findByAssignment($assignmentId);
     }
 
     public function getQuestionsByAssignment(int $assignmentId, ?\Modules\Auth\Models\User $user = null, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
@@ -207,24 +198,6 @@ class QuestionService implements QuestionServiceInterface
                 throw new \InvalidArgumentException(__('messages.questions.options_required'));
             }
         }
-    }
-
-    private function getRandomOrderQuestions(int $assignmentId, int $seed): Collection
-    {
-        $questions = $this->questionRepository->findByAssignment($assignmentId);
-
-        return $questions->shuffle($seed);
-    }
-
-    private function getBankQuestions(Assignment $assignment, int $seed): Collection
-    {
-        $count = $assignment->question_bank_count ?? 10;
-
-        return $this->questionRepository->findRandomFromBank(
-            $assignment->id,
-            $count,
-            $seed
-        );
     }
 
     private function processOptionImages(Question $question, array $options): void

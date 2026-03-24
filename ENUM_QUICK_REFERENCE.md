@@ -68,6 +68,28 @@
 
 ---
 
+### 7. `assignment_status`
+```sql
+'draft' | 'published' | 'archived'
+```
+- **Table**: `assignments`
+- **Column**: `status`
+- **Default**: `'draft'::assignment_status`
+- **PHP Enum**: `Modules\Learning\Enums\AssignmentStatus`
+
+---
+
+### 8. `review_mode`
+```sql
+'immediate' | 'manual' | 'deferred' | 'hidden'
+```
+- **Table**: `assignments`
+- **Column**: `review_mode`
+- **Default**: `'immediate'::review_mode`
+- **PHP Enum**: `Modules\Learning\Enums\ReviewMode`
+
+---
+
 ## Quick Commands
 
 ### List All ENUM Types

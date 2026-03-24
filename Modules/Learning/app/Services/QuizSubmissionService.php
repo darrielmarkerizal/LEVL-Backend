@@ -58,15 +58,6 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         return DB::transaction(function () use ($quiz, $userId, $enrollmentId) {
             $attemptNumber = $this->repository->getAttemptCount($quiz->id, $userId) + 1;
 
-            $questionSet = null;
-            if ($quiz->randomization_type !== 'static') {
-                $questionSet = $quiz->questions()
-                    ->inRandomOrder()
-                    ->limit($quiz->question_bank_count ?? PHP_INT_MAX)
-                    ->pluck('id')
-                    ->toArray();
-            }
-
             return $this->repository->create([
                 'quiz_id' => $quiz->id,
                 'user_id' => $userId,
@@ -75,7 +66,6 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
                 'grading_status' => QuizGradingStatus::Pending->value,
                 'attempt_number' => $attemptNumber,
                 'started_at' => now(),
-                'question_set' => $questionSet,
             ]);
         });
     }

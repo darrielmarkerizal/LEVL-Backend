@@ -35,6 +35,22 @@ class EnsureUserActive
             return $next($request);
         }
 
+        // Allow pending users to access email verification endpoints
+        if ($user->status === UserStatus::Pending) {
+            $allowedPendingRoutes = [
+                'api/v1/auth/email/verify/send',
+                'api/v1/auth/email/verify',
+                'api/v1/auth/logout',
+                'api/v1/profile', // Allow GET profile to check status
+            ];
+
+            foreach ($allowedPendingRoutes as $route) {
+                if ($request->is($route)) {
+                    return $next($request);
+                }
+            }
+        }
+
         // Check if user status is Active
         if ($user->status !== UserStatus::Active) {
             $message = match ($user->status) {

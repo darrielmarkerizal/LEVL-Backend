@@ -125,11 +125,8 @@ class AssignmentService implements AssignmentServiceInterface
 
             if ($isAssignment) {
                 $assignmentData['review_mode'] = ReviewMode::Manual->value;
-                unset($assignmentData['randomization_type']);
-                unset($assignmentData['question_bank_count']);
             } else {
                 $assignmentData['review_mode'] = $data['review_mode'] ?? ReviewMode::Immediate->value;
-                $assignmentData['randomization_type'] = $data['randomization_type'] ?? RandomizationType::Static->value;
             }
 
             $assignment = $this->repository->create($assignmentData);

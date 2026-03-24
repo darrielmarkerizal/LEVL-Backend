@@ -4,7 +4,6 @@ namespace Modules\Learning\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\Models\User;
-use Modules\Learning\Enums\RandomizationType;
 use Modules\Learning\Enums\ReviewMode;
 use Modules\Learning\Models\Assignment;
 use Modules\Schemes\Models\Course;

@@ -65,20 +65,48 @@ Successfully converted all VARCHAR fields with CHECK constraints to proper Postg
 
 ---
 
+### 4. Assignments Table - Multiple Fields + Removal
+**Migration**: `2026_03_24_114528_convert_assignments_to_enum_and_remove_randomization.php`  
+**Priority**: 🔴 HIGH
+
+#### a. `status` Field
+- **Enum Type**: `assignment_status`
+- **Values**: `draft`, `published`, `archived`
+- **Default**: `draft`
+- **PHP Enum**: `Modules\Learning\Enums\AssignmentStatus`
+
+#### b. `review_mode` Field
+- **Enum Type**: `review_mode`
+- **Values**: `immediate`, `manual`, `deferred`, `hidden`
+- **Default**: `immediate`
+- **PHP Enum**: `Modules\Learning\Enums\ReviewMode`
+
+#### c. `randomization_type` Field - REMOVED ❌
+- **Action**: Dropped from database
+- **Related**: `question_bank_count` also removed
+
+**Documentation**: `ASSIGNMENTS_ENUM_MIGRATION_SUMMARY.md`
+
+---
+
 ## Summary Statistics
 
-### Total Migrations: 3
-### Total ENUM Types Created: 7
-### Total Fields Converted: 7
+### Total Migrations: 4
+### Total ENUM Types Created: 9
+### Total Fields Converted: 9
+### Total Fields Removed: 2 (randomization_type, question_bank_count)
 
-| Table | Field | Enum Type | Values Count |
-|-------|-------|-----------|--------------|
-| users | status | user_status | 4 |
-| courses | type | course_type | 2 |
-| courses | level_tag | level_tag | 3 |
-| courses | enrollment_type | enrollment_type | 3 |
-| courses | status | course_status | 3 |
-| enrollments | status | enrollment_status | 4 |
+| Table | Field | Enum Type | Values Count | Status |
+|-------|-------|-----------|--------------|--------|
+| users | status | user_status | 4 | ✅ |
+| courses | type | course_type | 2 | ✅ |
+| courses | level_tag | level_tag | 3 | ✅ |
+| courses | enrollment_type | enrollment_type | 3 | ✅ |
+| courses | status | course_status | 3 | ✅ |
+| enrollments | status | enrollment_status | 4 | ✅ |
+| assignments | status | assignment_status | 3 | ✅ |
+| assignments | review_mode | review_mode | 4 | ✅ |
+| assignments | randomization_type | - | - | ❌ REMOVED |
 
 ---
 

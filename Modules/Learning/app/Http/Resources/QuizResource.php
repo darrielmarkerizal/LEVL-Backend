@@ -72,8 +72,6 @@ class QuizResource extends JsonResource
             'auto_grading' => $this->auto_grading,
             'max_score' => $this->max_score,
             'time_limit_minutes' => $this->time_limit_minutes,
-            'randomization_type' => $this->randomization_type,
-            'question_bank_count' => $this->question_bank_count,
             'review_mode' => $this->review_mode,
             'status' => $this->status?->value,
             'status_label' => $this->status?->label(),

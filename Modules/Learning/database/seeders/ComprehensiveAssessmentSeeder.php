@@ -211,7 +211,6 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'auto_grading' => true,
             'max_score' => 100,
             'time_limit_minutes' => rand(30, 90),
-            'randomization_type' => 'static',
             'review_mode' => 'immediate',
             'status' => 'published',
             'created_at' => $this->createdAt,

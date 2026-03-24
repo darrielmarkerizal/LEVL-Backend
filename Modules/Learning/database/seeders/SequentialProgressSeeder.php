@@ -306,21 +306,6 @@ class SequentialProgressSeeder extends Seeder
             return false;
         }
 
-        $questionSet = null;
-        $questionsToAnswer = $questions;
-
-        if ($quiz->randomization_type === 'random_order' || $quiz->randomization_type === 'bank') {
-            $questionIds = $questions->pluck('id')->toArray();
-            shuffle($questionIds);
-
-            if ($quiz->randomization_type === 'bank' && $quiz->question_bank_count) {
-                $questionIds = array_slice($questionIds, 0, $quiz->question_bank_count);
-                $questionsToAnswer = $questions->whereIn('id', $questionIds);
-            }
-
-            $questionSet = json_encode($questionIds);
-        }
-
         $daysAgo = rand(1, 14);
         $submittedAt = now()->subDays($daysAgo)->toDateTimeString();
         $startedAt = now()->subDays($daysAgo)->subMinutes(rand(30, 120))->toDateTimeString();
@@ -336,7 +321,6 @@ class SequentialProgressSeeder extends Seeder
             'submitted_at' => $submittedAt,
             'started_at' => $startedAt,
             'attempt_number' => 1,
-            'question_set' => $questionSet,
         ]);
 
         $passingGrade = (float) ($quiz->passing_grade ?? 75);
@@ -359,7 +343,7 @@ class SequentialProgressSeeder extends Seeder
 
         $totalScore = 0;
 
-        foreach ($questionsToAnswer as $question) {
+        foreach ($questions as $question) {
             $randomChance = rand(1, 100);
             $isCorrect = $randomChance <= $correctnessRate;
             $weight = (float) $question->weight;

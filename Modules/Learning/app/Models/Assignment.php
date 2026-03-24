@@ -13,7 +13,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Common\Traits\PgSearchable;
 use Modules\Learning\Enums\AssignmentStatus;
 use Modules\Learning\Enums\AssignmentType;
-use Modules\Learning\Enums\RandomizationType;
 use Modules\Learning\Enums\ReviewMode;
 use Modules\Learning\Enums\SubmissionType;
 use Spatie\MediaLibrary\HasMedia;
@@ -58,8 +57,6 @@ class Assignment extends Model implements HasMedia
         'max_score',
         'passing_grade',
         'review_mode',
-        'randomization_type',
-        'question_bank_count',
         'status',
         'time_limit_minutes',
         'allow_multiple',
@@ -70,9 +67,7 @@ class Assignment extends Model implements HasMedia
         'submission_type' => SubmissionType::class,
         'status' => AssignmentStatus::class,
         'review_mode' => ReviewMode::class,
-        'randomization_type' => RandomizationType::class,
         'passing_grade' => 'decimal:2',
-        'question_bank_count' => 'integer',
         'order' => 'integer',
         'allow_multiple' => 'boolean',
     ];

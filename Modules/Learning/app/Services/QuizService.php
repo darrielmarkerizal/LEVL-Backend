@@ -66,7 +66,6 @@ class QuizService implements QuizServiceInterface
                 'max_score' => $data['max_score'] ?? 100,
                 'auto_grading' => isset($data['auto_grading']) ? (bool) $data['auto_grading'] : true,
                 'review_mode' => $data['review_mode'] ?? 'immediate',
-                'randomization_type' => $data['randomization_type'] ?? 'static',
             ]));
 
             if (isset($data['attachments']) && is_array($data['attachments'])) {
