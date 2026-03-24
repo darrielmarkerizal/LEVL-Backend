@@ -164,10 +164,12 @@ Route::prefix('v1')
         Route::get('/dev/tokens', [AuthApiController::class, 'generateDevTokens'])
             ->name('dev.tokens');
 
-        // Benchmark Routes (No middleware for fair testing)
-        Route::prefix('benchmark')->group(function () {
-            Route::get('/users', [BenchmarkController::class, 'index']);
-            Route::post('/users', [BenchmarkController::class, 'store']);
-            Route::delete('/users', [BenchmarkController::class, 'destroy']);
-        });
+        // Benchmark Routes (No middleware - No throttling, No auth for performance testing)
+        Route::prefix('benchmark')
+            ->withoutMiddleware(['throttle:api', 'throttle:auth'])
+            ->group(function () {
+                Route::get('/users', [BenchmarkController::class, 'index'])->name('benchmark.users.index');
+                Route::post('/users', [BenchmarkController::class, 'store'])->name('benchmark.users.store');
+                Route::delete('/users', [BenchmarkController::class, 'destroy'])->name('benchmark.users.destroy');
+            });
     });
