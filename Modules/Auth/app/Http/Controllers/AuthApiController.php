@@ -117,7 +117,14 @@ class AuthApiController extends Controller
             return $this->error(__('messages.auth.verification_'.$result['status']), [], 422);
         }
 
-        return $this->success([], __('messages.auth.email_verified'));
+        // Generate tokens for the verified user (like login response)
+        $user = $result['user'];
+        $tokens = $this->authenticationService->generateTokens($user, $request->ip(), $request->userAgent());
+
+        return $this->success(
+            new LoginResource($tokens),
+            __('messages.auth.email_verified')
+        );
     }
 
     public function sendEmailVerification(Request $request): JsonResponse

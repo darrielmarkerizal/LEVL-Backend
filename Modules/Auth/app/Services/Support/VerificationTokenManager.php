@@ -48,8 +48,12 @@ class VerificationTokenManager
             'expires_at' => now()->addMinutes($ttlMinutes),
         ]);
 
-        $frontendUrl = config('app.frontend_url');
-        $verifyUrl = $frontendUrl.'/auth/verify-email?token='.$token.'&uuid='.$uuid;
+        $verifyUrl = 'levl://verify?'.http_build_query([
+            'userId' => $user->id,
+            'email' => $user->email,
+            'uuid' => $uuid,
+            'token' => $token,
+        ]);
 
         Mail::to($user)
             ->queue((new VerifyEmailLinkMail($user, $verifyUrl, $ttlMinutes, $token, $uuid))->onQueue('emails-critical'));
