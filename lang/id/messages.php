@@ -31,6 +31,11 @@ return [
     'validation_error' => 'Beberapa isian tidak valid. Periksa kembali dan coba lagi.',
     'validation_failed' => 'Data yang dikirim tidak valid. Silakan periksa kembali isian Anda.',
     'server_error' => 'Terjadi kesalahan pada server. Silakan coba beberapa saat lagi.',
+    
+    // Validation messages (nested structure)
+    'validation' => [
+        'failed' => 'Data yang dikirim tidak valid. Silakan periksa kembali isian Anda.',
+    ],
     'bad_request' => 'Permintaan tidak dapat dipahami. Silakan periksa kembali input Anda.',
     'conflict' => 'Permintaan Anda bertentangan dengan kondisi resource saat ini.',
     'gone' => 'Resource yang Anda minta telah dihapus secara permanen.',
@@ -499,6 +504,9 @@ return [
         'enrolled_successfully' => 'Selamat! Anda berhasil terdaftar di kursus ini. Mulai belajar sekarang!',
         'enrollment_pending' => 'Permintaan pendaftaran Anda telah dikirim dan sedang menunggu persetujuan.',
         'scheduled_successfully' => 'Pendaftaran dijadwalkan pada :date. Anda akan otomatis terdaftar pada tanggal tersebut.',
+        'user_status_pending' => 'Pendaftaran Anda sedang menunggu verifikasi. Silakan selesaikan proses verifikasi untuk mengaktifkan akun Anda.',
+        'user_status_inactive' => 'Akun Anda saat ini dinonaktifkan. Anda dapat mengaktifkannya kembali sendiri atau hubungi admin untuk bantuan.',
+        'user_status_banned' => 'Akun Anda telah diblokir. Silakan hubungi admin jika Anda memerlukan bantuan.',
     ],
 
     // Assignments

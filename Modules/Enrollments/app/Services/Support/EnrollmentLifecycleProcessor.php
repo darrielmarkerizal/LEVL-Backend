@@ -10,6 +10,7 @@ use App\Support\Helpers\UrlHelper;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Contracts\Repositories\EnrollmentRepositoryInterface;
 use Modules\Enrollments\Enums\EnrollmentStatus;
@@ -35,90 +36,36 @@ class EnrollmentLifecycleProcessor
 
     public function enroll(User $user, Course $course, array $data): array
     {
+        $this->validateUserAndCourse($user, $course);
+
         $enrollmentKey = $data['enrollment_key'] ?? null;
 
-        if ($course->status !== CourseStatus::Published) {
-            throw new BusinessException(__('messages.enrollments.course_not_published'), ['course' => __('messages.enrollments.course_not_published')]);
-        }
-
         if ($course->enrollment_type === EnrollmentType::KeyBased) {
-            if (empty($enrollmentKey)) {
-                throw new BusinessException(__('messages.enrollments.key_required'), ['enrollment_key' => __('messages.enrollments.key_required')]);
-            }
-
-            // Try encrypted key first (new method), fallback to hash (old method)
-            $isValid = false;
-
-            if (! empty($course->enrollment_key_encrypted)) {
-                $encrypter = app(\App\Contracts\EnrollmentKeyEncrypterInterface::class);
-                $isValid = $encrypter->verify($enrollmentKey, $course->enrollment_key_encrypted);
-            }
-
-            // Fallback to hash verification for backward compatibility
-            if (! $isValid && ! empty($course->enrollment_key_hash)) {
-                $isValid = $this->keyHasher->verify($enrollmentKey, $course->enrollment_key_hash);
-            }
-
-            if (! $isValid) {
-                throw new BusinessException(__('messages.enrollments.key_invalid'), ['enrollment_key' => __('messages.enrollments.key_invalid')]);
-            }
+            $this->validateEnrollmentKey($enrollmentKey, $course);
         }
 
         $existingEnrollment = $this->repository->findByCourseAndUser($course->id, $user->id);
 
         if ($existingEnrollment) {
             if ($existingEnrollment->status === EnrollmentStatus::Active) {
-                throw new BusinessException(__('messages.enrollments.already_enrolled'), []);
+                throw new BusinessException(__('messages.enrollments.already_enrolled'));
             }
             if ($existingEnrollment->status === EnrollmentStatus::Pending) {
-                throw new BusinessException(__('messages.enrollments.enrollment_pending'), []);
+                throw new BusinessException(__('messages.enrollments.enrollment_pending'));
             }
         }
 
         return DB::transaction(function () use ($user, $course, $existingEnrollment) {
-            $initialStatus = match ($course->enrollment_type) {
-                EnrollmentType::AutoAccept, EnrollmentType::KeyBased => EnrollmentStatus::Active,
-                EnrollmentType::Approval => EnrollmentStatus::Pending,
-                default => EnrollmentStatus::Pending,
-            };
-
+            $initialStatus = $this->determineInitialStatus($course->enrollment_type);
             $enrolledAt = Carbon::now();
 
-            if ($existingEnrollment) {
-                $existingEnrollment->status = $initialStatus;
-                $existingEnrollment->enrolled_at = $enrolledAt;
-                $existingEnrollment->completed_at = null;
-                $existingEnrollment->save();
-                $enrollment = $existingEnrollment;
-            } else {
-                $enrollment = new Enrollment;
-                $enrollment->user_id = $user->id;
-                $enrollment->course_id = $course->id;
-                $enrollment->status = $initialStatus;
-                $enrollment->enrolled_at = $enrolledAt;
-                $enrollment->save();
+            $enrollment = $this->saveEnrollment($existingEnrollment, $user->id, $course->id, $initialStatus, $enrolledAt);
 
-                // Note: Original code didn't use events here, or I missed it?
-                // Ah, `EnrollmentCreated` was imported but used in `create` which I didn't see fully in view_file.
-                // But `enroll` was shown. It didn't seem to dispatch event?
-                // `enroll` method was cut off in `view_file` at line 800.
-                // I should assume an event might be dispatched.
-                // However, preserving behavior based on visible code:
-                // The visible code was `... $enrollment->save();`.
-                // I will add cache invalidation as in other methods.
-                // And I should dispatch `EnrollmentCreated` if it's a new enrollment.
-                // Assuming it's `Modules\Enrollments\Events\EnrollmentCreated`.
-            }
-
-            // Invalidate cache
-            $this->invalidateEnrollmentCache($enrollment);
-
-            // Dispatch event for new enrollments (best practice, even if I didn't see it explicitly)
             if (! $existingEnrollment) {
                 \Modules\Enrollments\Events\EnrollmentCreated::dispatch($enrollment);
             }
 
-            $this->sendEnrollmentEmails($enrollment, $course, $user, $initialStatus instanceof EnrollmentStatus ? $initialStatus->value : $initialStatus);
+            $this->sendEnrollmentEmails($enrollment, $course, $user, $initialStatus);
 
             return [
                 'status' => 'success',
@@ -133,67 +80,35 @@ class EnrollmentLifecycleProcessor
     public function enrollManually(User $actor, Course $course, array $data): array
     {
         $studentId = (int) $data['student_id'];
-        $student = \Modules\Auth\Models\User::findOrFail($studentId);
-        $enrollmentDate = $data['enrollment_date'] ? Carbon::parse($data['enrollment_date']) : Carbon::now();
+        $student = User::findOrFail($studentId);
+        $enrollmentDate = isset($data['enrollment_date']) ? Carbon::parse($data['enrollment_date']) : Carbon::now();
         $initialStatus = EnrollmentStatus::from($data['initial_status']);
         $notifyStudent = (bool) ($data['is_notify_student'] ?? false);
 
-        // Check if enrollment date is in the future
-        $isFutureEnrollment = $enrollmentDate->isFuture();
-
-        // If enrollment date is in the future, force status to pending
-        if ($isFutureEnrollment && $initialStatus === EnrollmentStatus::Active) {
+        // Force future enrollment to pending
+        if ($enrollmentDate->isFuture() && $initialStatus === EnrollmentStatus::Active) {
             $initialStatus = EnrollmentStatus::Pending;
         }
 
         $existingEnrollment = $this->repository->findByCourseAndUser($course->id, $student->id);
 
         if ($existingEnrollment && $existingEnrollment->status === EnrollmentStatus::Active) {
-            throw new BusinessException(__('messages.enrollments.already_enrolled'), []);
+            throw new BusinessException(__('messages.enrollments.already_enrolled'));
         }
 
-        return DB::transaction(function () use ($student, $course, $existingEnrollment, $initialStatus, $enrollmentDate, $notifyStudent, $isFutureEnrollment) {
-            if ($existingEnrollment) {
-                $existingEnrollment->status = $initialStatus;
-                $existingEnrollment->enrolled_at = $enrollmentDate;
-                $existingEnrollment->completed_at = null;
-                $existingEnrollment->save();
-                $enrollment = $existingEnrollment;
-                $isNew = false;
-            } else {
-                $enrollment = new Enrollment;
-                $enrollment->user_id = $student->id;
-                $enrollment->course_id = $course->id;
-                $enrollment->status = $initialStatus;
-                $enrollment->enrolled_at = $enrollmentDate;
-                $enrollment->save();
-                $isNew = true;
-            }
-
-            $this->invalidateEnrollmentCache($enrollment);
+        return DB::transaction(function () use ($student, $course, $existingEnrollment, $initialStatus, $enrollmentDate, $notifyStudent) {
+            $enrollment = $this->saveEnrollment($existingEnrollment, $student->id, $course->id, $initialStatus, $enrollmentDate);
+            $isNew = ! $existingEnrollment;
 
             if ($isNew) {
                 \Modules\Enrollments\Events\EnrollmentCreated::dispatch($enrollment);
             }
 
             if ($notifyStudent) {
-                $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
-                $courseUrl = $this->getCourseUrl($course);
-
-                if ($isFutureEnrollment) {
-                    // Send scheduled enrollment notification
-                    Mail::to($student->email)
-                        ->queue((new StudentEnrollmentScheduledMail($student, $course, $enrollmentDate, $courseUrl))->onQueue('emails-transactional'));
-                } elseif ($freshEnrollment->status === EnrollmentStatus::Active) {
-                    Mail::to($student->email)
-                        ->queue((new StudentEnrollmentManualActiveMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
-                } elseif ($freshEnrollment->status === EnrollmentStatus::Pending) {
-                    Mail::to($student->email)
-                        ->queue((new StudentEnrollmentManualPendingMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
-                }
+                $this->sendManualEnrollmentEmail($enrollment, $course, $student, $enrollmentDate);
             }
 
-            $message = $isFutureEnrollment
+            $message = $enrollmentDate->isFuture()
                 ? __('messages.enrollments.scheduled_successfully', ['date' => $enrollmentDate->format('d M Y')])
                 : __('messages.enrollments.enrolled_successfully');
 
@@ -201,142 +116,164 @@ class EnrollmentLifecycleProcessor
                 'status' => 'success',
                 'enrollment' => $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email', 'user.media']),
                 'message' => $message,
-                'is_scheduled' => $isFutureEnrollment,
+                'is_scheduled' => $enrollmentDate->isFuture(),
             ];
         });
     }
 
     public function cancel(Enrollment $enrollment): Enrollment
     {
-        return DB::transaction(function () use ($enrollment) {
-            if ($enrollment->status !== EnrollmentStatus::Pending) {
-                throw new BusinessException(__('messages.enrollments.cannot_cancel_pending'), ['enrollment' => __('messages.enrollments.cannot_cancel_pending')]);
-            }
-
-            $enrollment->status = EnrollmentStatus::Cancelled;
-            $enrollment->completed_at = null;
-            $enrollment->save();
-            $this->invalidateEnrollmentCache($enrollment);
-
-            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email', 'user.media']);
-        });
+        return $this->updateEnrollmentStatus($enrollment, EnrollmentStatus::Cancelled, EnrollmentStatus::Pending, __('messages.enrollments.cannot_cancel_pending'));
     }
 
     public function withdraw(Enrollment $enrollment): Enrollment
     {
-        return DB::transaction(function () use ($enrollment) {
-            if ($enrollment->status !== EnrollmentStatus::Active) {
-                throw new BusinessException(__('messages.enrollments.cannot_withdraw_active'), ['enrollment' => __('messages.enrollments.cannot_withdraw_active')]);
-            }
-
-            $enrollment->status = EnrollmentStatus::Cancelled;
-            $enrollment->completed_at = null;
-            $enrollment->save();
-            $this->invalidateEnrollmentCache($enrollment);
-
-            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email', 'user.media']);
-        });
+        return $this->updateEnrollmentStatus($enrollment, EnrollmentStatus::Cancelled, EnrollmentStatus::Active, __('messages.enrollments.cannot_withdraw_active'));
     }
 
     public function approve(Enrollment $enrollment): Enrollment
     {
-        return DB::transaction(function () use ($enrollment) {
-            if ($enrollment->status !== EnrollmentStatus::Pending) {
-                throw new BusinessException(__('messages.enrollments.cannot_approve_pending'), ['enrollment' => __('messages.enrollments.cannot_approve_pending')]);
-            }
+        $enrollment = $this->updateEnrollmentStatus($enrollment, EnrollmentStatus::Active, EnrollmentStatus::Pending, __('messages.enrollments.cannot_approve_pending'));
+        $course = $enrollment->course;
+        $student = $enrollment->user;
 
-            $enrollment->status = EnrollmentStatus::Active;
-            $enrollment->enrolled_at = Carbon::now();
-            $enrollment->completed_at = null;
-            $enrollment->save();
-            $this->invalidateEnrollmentCache($enrollment);
+        if ($student && $course) {
+            $courseUrl = $this->getCourseUrl($course);
+            Mail::to($student->email)
+                ->queue((new StudentEnrollmentApprovedMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
+        }
 
-            $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email', 'user.media']);
-            $course = $freshEnrollment->course;
-            $student = $freshEnrollment->user;
-
-            if ($student && $course) {
-                $courseUrl = $this->getCourseUrl($course);
-                Mail::to($student->email)
-                    ->queue((new StudentEnrollmentApprovedMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
-            }
-
-            return $freshEnrollment;
-        });
+        return $enrollment;
     }
 
     public function decline(Enrollment $enrollment): Enrollment
     {
-        return DB::transaction(function () use ($enrollment) {
-            if ($enrollment->status !== EnrollmentStatus::Pending) {
-                throw new BusinessException(__('messages.enrollments.cannot_decline_pending'), ['enrollment' => __('messages.enrollments.cannot_decline_pending')]);
-            }
+        $enrollment = $this->updateEnrollmentStatus($enrollment, EnrollmentStatus::Cancelled, EnrollmentStatus::Pending, __('messages.enrollments.cannot_decline_pending'));
+        $course = $enrollment->course;
+        $student = $enrollment->user;
 
-            $enrollment->status = EnrollmentStatus::Cancelled;
-            $enrollment->completed_at = null;
-            $enrollment->save();
-            $this->invalidateEnrollmentCache($enrollment);
+        if ($student && $course) {
+            Mail::to($student->email)
+                ->queue((new StudentEnrollmentDeclinedMail($student, $course))->onQueue('emails-transactional'));
+        }
 
-            $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email', 'user.media']);
-            $course = $freshEnrollment->course;
-            $student = $freshEnrollment->user;
-
-            if ($student && $course) {
-                Mail::to($student->email)
-                    ->queue((new StudentEnrollmentDeclinedMail($student, $course))->onQueue('emails-transactional'));
-            }
-
-            return $freshEnrollment;
-        });
+        return $enrollment;
     }
 
     public function remove(Enrollment $enrollment): Enrollment
     {
-        return DB::transaction(function () use ($enrollment) {
-            if (! collect([EnrollmentStatus::Active, EnrollmentStatus::Pending])->contains($enrollment->status)) {
-                throw new BusinessException(__('messages.enrollments.cannot_remove_active_pending'), ['enrollment' => __('messages.enrollments.cannot_remove_active_pending')]);
-            }
+        $allowed = [EnrollmentStatus::Active, EnrollmentStatus::Pending];
+        if (! in_array($enrollment->status, $allowed)) {
+            throw new BusinessException(__('messages.enrollments.cannot_remove_active_pending'));
+        }
 
-            $enrollment->status = EnrollmentStatus::Cancelled;
-            $enrollment->completed_at = null;
-            $enrollment->save();
-            $this->invalidateEnrollmentCache($enrollment);
+        $enrollment->status = EnrollmentStatus::Cancelled;
+        $enrollment->completed_at = null;
+        $enrollment->save();
 
-            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email', 'user.media']);
-        });
+        return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email', 'user.media']);
     }
 
-    private function invalidateEnrollmentCache(Enrollment $enrollment): void
+    /* ===========================
+       ======== PRIVATE METHODS ===
+       =========================== */
+
+    private function validateUserAndCourse(User $user, Course $course): void
     {
-        // Simple cache invalidation if needed.
-        // Original code had this method but implementation wasn't fully visible or just trivial?
-        // Checking view_file output... `invalidateEnrollmentCache` was called in `cancel`, `withdraw` etc.
-        // But the method DEFINITION was not visible in index 1-800?
-        // Wait, line 471 called it. Method likely near end of file.
-        // Since I can't see it, I will assume it clears relevant caches.
-        // For now, I'll implement a basic one or leave placeholder if I don't use cache service.
-        // `EnrollmentService` didn't inject CacheService.
-        // Ah, maybe it was a private method calling `SchemesCacheService`?
-        // If it's not critical, I can skip deep logic, but strictness suggests checking.
-        // I'll stick to basic tag flushing/forgetting if I knew the keys.
-        // Since I don't see `Cache` facade usage in imports...
-        // Maybe it's empty? Or uses `cache()` helper?
-        // I will just add the method signature.
+        if ($course->status !== CourseStatus::Published) {
+            throw new BusinessException(__('messages.enrollments.course_not_published'));
+        }
+
+        $invalidStatuses = [UserStatus::Pending, UserStatus::Inactive, UserStatus::Banned];
+        if (in_array($user->status, $invalidStatuses)) {
+            throw new BusinessException(__('messages.enrollments.user_status_'.$user->status->value));
+        }
     }
 
-    private function sendEnrollmentEmails(Enrollment $enrollment, Course $course, User $student, string $status): void
+    private function validateEnrollmentKey(?string $key, Course $course): void
+    {
+        if (empty($key)) {
+            throw new BusinessException(__('messages.enrollments.key_required'));
+        }
+
+        $isValid = false;
+        if (! empty($course->enrollment_key_encrypted)) {
+            $encrypter = app(\App\Contracts\EnrollmentKeyEncrypterInterface::class);
+            $isValid = $encrypter->verify($key, $course->enrollment_key_encrypted);
+        }
+
+        if (! $isValid && ! empty($course->enrollment_key_hash)) {
+            $isValid = $this->keyHasher->verify($key, $course->enrollment_key_hash);
+        }
+
+        if (! $isValid) {
+            throw new BusinessException(__('messages.enrollments.key_invalid'));
+        }
+    }
+
+    private function determineInitialStatus(string $enrollmentType): EnrollmentStatus
+    {
+        return match ($enrollmentType) {
+            EnrollmentType::AutoAccept, EnrollmentType::KeyBased => EnrollmentStatus::Active,
+            EnrollmentType::Approval => EnrollmentStatus::Pending,
+            default => EnrollmentStatus::Pending,
+        };
+    }
+
+    private function saveEnrollment(?Enrollment $existing, int $userId, int $courseId, EnrollmentStatus $status, Carbon $enrolledAt): Enrollment
+    {
+        if ($existing) {
+            $existing->status = $status;
+            $existing->enrolled_at = $enrolledAt;
+            $existing->completed_at = null;
+            $existing->save();
+
+            return $existing;
+        }
+
+        $enrollment = new Enrollment;
+        $enrollment->user_id = $userId;
+        $enrollment->course_id = $courseId;
+        $enrollment->status = $status;
+        $enrollment->enrolled_at = $enrolledAt;
+        $enrollment->save();
+
+        return $enrollment;
+    }
+
+    private function sendEnrollmentEmails(Enrollment $enrollment, Course $course, User $student, EnrollmentStatus $status): void
     {
         $courseUrl = $this->getCourseUrl($course);
 
-        if ($status === EnrollmentStatus::Active->value) {
+        $mailClass = match ($status) {
+            EnrollmentStatus::Active => StudentEnrollmentActiveMail::class,
+            EnrollmentStatus::Pending => StudentEnrollmentPendingMail::class,
+            default => null,
+        };
+
+        if ($mailClass) {
             Mail::to($student->email)
-                ->queue((new StudentEnrollmentActiveMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
-        } elseif ($status === EnrollmentStatus::Pending->value) {
-            Mail::to($student->email)
-                ->queue((new StudentEnrollmentPendingMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
+                ->queue((new $mailClass($student, $course, $courseUrl))->onQueue('emails-transactional'));
         }
 
         $this->notifyCourseManagers($enrollment, $course, $student);
+    }
+
+    private function sendManualEnrollmentEmail(Enrollment $enrollment, Course $course, User $student, Carbon $enrollmentDate): void
+    {
+        $freshEnrollment = $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email']);
+        $courseUrl = $this->getCourseUrl($course);
+
+        if ($enrollmentDate->isFuture()) {
+            Mail::to($student->email)
+                ->queue((new StudentEnrollmentScheduledMail($student, $course, $enrollmentDate, $courseUrl))->onQueue('emails-transactional'));
+        } elseif ($freshEnrollment->status === EnrollmentStatus::Active) {
+            Mail::to($student->email)
+                ->queue((new StudentEnrollmentManualActiveMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
+        } else {
+            Mail::to($student->email)
+                ->queue((new StudentEnrollmentManualPendingMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
+        }
     }
 
     private function notifyCourseManagers(Enrollment $enrollment, Course $course, User $student): void
@@ -354,25 +291,10 @@ class EnrollmentLifecycleProcessor
 
     private function getCourseManagers(Course $course): array
     {
-        $managers = [];
-        $managerIds = [];
-
-        $course = $course->fresh(['instructor', 'admins']);
-
-        if ($course->instructor_id && $course->instructor) {
-            $instructor = $course->instructor;
-            $managers[] = $instructor;
-            $managerIds[] = $instructor->id;
-        }
-
-        foreach ($course->admins as $admin) {
-            if ($admin && ! collect($managerIds)->contains($admin->id)) {
-                $managers[] = $admin;
-                $managerIds[] = $admin->id;
-            }
-        }
-
-        return $managers;
+        return collect([$course->fresh(['instructor', 'admins'])->instructor, ...$course->admins])
+            ->filter()
+            ->unique('id')
+            ->all();
     }
 
     private function getCourseUrl(Course $course): string
@@ -383,5 +305,25 @@ class EnrollmentLifecycleProcessor
     private function getEnrollmentsUrl(Course $course): string
     {
         return UrlHelper::getEnrollmentsUrl($course);
+    }
+
+    private function updateEnrollmentStatus(Enrollment $enrollment, EnrollmentStatus $newStatus, EnrollmentStatus $requiredStatus, string $errorMessage): Enrollment
+    {
+        return DB::transaction(function () use ($enrollment, $newStatus, $requiredStatus, $errorMessage) {
+            if ($enrollment->status !== $requiredStatus) {
+                throw new BusinessException($errorMessage);
+            }
+
+            $enrollment->status = $newStatus;
+            $enrollment->completed_at = null;
+
+            if ($newStatus === EnrollmentStatus::Active) {
+                $enrollment->enrolled_at = Carbon::now();
+            }
+
+            $enrollment->save();
+
+            return $enrollment->fresh(['course:id,title,slug,code', 'user:id,name,email', 'user.media']);
+        });
     }
 }

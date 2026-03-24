@@ -31,6 +31,11 @@ return [
     'validation_error' => 'Some fields contain invalid values. Please review and try again.',
     'validation_failed' => 'The provided data is invalid. Please check your input.',
     'server_error' => 'An unexpected server error occurred. Please try again later.',
+    
+    // Validation messages (nested structure)
+    'validation' => [
+        'failed' => 'The provided data is invalid. Please check your input.',
+    ],
     'bad_request' => 'The request could not be understood. Please check your input.',
     'conflict' => 'Your request conflicts with the current state of the resource.',
     'gone' => 'The resource you requested has been permanently removed.',
@@ -495,6 +500,9 @@ return [
         'enrolled_successfully' => 'Congratulations! You are now enrolled in this course. Start learning now!',
         'enrollment_pending' => 'Your enrollment request has been submitted and is awaiting approval.',
         'scheduled_successfully' => 'Enrollment scheduled for :date. You will be automatically enrolled on that date.',
+        'user_status_pending' => 'Your registration is currently awaiting verification. Please complete the verification process to activate your account.',
+        'user_status_inactive' => 'Your account is currently deactivated. You can reactivate it yourself or contact an admin for assistance.',
+        'user_status_banned' => 'Your account has been blocked. Please contact an admin if you need assistance.',
     ],
 
     // Assignments
