@@ -303,7 +303,7 @@ return [
         'email_taken' => 'This email address is already associated with another account.',
         'verification_not_found' => 'Verification link not found. It may have already been used.',
         'verification_failed' => 'Verification failed. Please try again or request a new link.',
-        'email_verified' => 'Your email has been verified successfully. You can now sign in.',
+        'email_verified' => 'Welcome! Your email has been verified successfully. You can now enjoy all our features.',
         'link_expired' => 'This verification link has expired. Please request a new one.',
         'link_invalid' => 'This verification link is invalid or has already been used.',
         'link_not_found' => 'Verification link not found.',

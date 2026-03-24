@@ -31,7 +31,7 @@ return [
 
     // Email Verification Messages
     'email_verification_sent' => 'Email verifikasi telah dikirim.',
-    'email_verified' => 'Email Anda berhasil diverifikasi.',
+    'email_verified' => 'Selamat datang! Email Anda berhasil diverifikasi. Anda sudah bisa langsung menikmati semua fitur kami.',
     'email_verification_failed' => 'Verifikasi email gagal.',
     'email_already_verified' => 'Email Anda sudah diverifikasi.',
     'email_not_verified' => 'Silakan verifikasi alamat email Anda.',

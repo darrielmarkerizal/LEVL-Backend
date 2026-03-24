@@ -862,7 +862,7 @@ if (pm.response.code === 200) {
 
 ### 8. POST [Shared] Autentikasi - Verifikasi Email
 
-Verifikasi email menggunakan token dari email.
+Verifikasi email menggunakan token dari email. Endpoint ini mengembalikan response seperti login (dengan access token, refresh token, dan user profile) setelah verifikasi berhasil.
 
 #### Endpoint
 ```
@@ -882,9 +882,8 @@ Public (No authentication required)
 #### Request Body (JSON)
 ```json
 {
-  "uuid": "string",
-  "token": "string",
-  "code": "string"
+  "token": "string (16 characters)",
+  "uuid": "string (UUID format)"
 }
 ```
 
@@ -892,41 +891,78 @@ Public (No authentication required)
 
 | Field | Type | Required | Rules | Description |
 |-------|------|----------|-------|-------------|
-| `uuid` | string | ⚠️ Conditional | required_without:token | UUID dari email verifikasi |
-| `token` | string | ⚠️ Conditional | required_without:uuid | Token alternatif |
-| `code` | string | ✅ Yes | string | Verification code (6 digit) |
+| `token` | string | ✅ Yes | required, string, size:16 | Token verifikasi 16 karakter |
+| `uuid` | string | ✅ Yes | required, string, uuid | UUID dari email verifikasi |
 
 #### Valid Values
 
+**token**:
+- String 16 karakter
+- Dikirim via email dalam deep link
+- Contoh: `"a1b2c3d4e5f6g7h8"`
+
 **uuid**:
-- Format UUID valid
-- Required jika token tidak ada
+- Format UUID valid (v4)
+- Dikirim via email dalam deep link
 - Contoh: `"550e8400-e29b-41d4-a716-446655440000"`
 
-**token**:
-- String token
-- Required jika uuid tidak ada
-- Contoh: `"abc123def456"`
+#### Mobile Deep Link Format
+Email verifikasi mengirim deep link dengan format:
+```
+levl://verify?userId=123&email=user@example.com&uuid=xxx-xxx-xxx&token=xxxxxxxxxxxxxxxx
+```
 
-**code**:
-- 6 digit verification code dari email
-- Contoh: `"123456"`
+Mobile app harus extract `uuid` dan `token` dari deep link, kemudian hit API ini.
 
 #### Response Success (200 OK)
 ```json
 {
   "success": true,
-  "message": "Email verified successfully",
-  "data": []
+  "message": "Selamat datang! Email Anda berhasil diverifikasi. Anda sudah bisa langsung menikmati semua fitur kami.",
+  "data": {
+    "user": {
+      "id": 123,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "username": "johndoe",
+      "email_verified_at": "2026-03-24T10:00:00.000000Z",
+      "status": "active",
+      "avatar_url": "https://...",
+      "roles": ["Student"]
+    },
+    "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+    "refresh_token": "xxxxxxxxxxxxxxxxxxxxxxxx",
+    "expires_in": 3600
+  }
 }
 ```
 
 #### Response Error (422 Validation Error)
+
+**Token Invalid:**
 ```json
 {
   "success": false,
-  "message": "Invalid or expired verification code",
-  "errors": {}
+  "message": "Token verifikasi tidak valid",
+  "errors": []
+}
+```
+
+**Token Expired:**
+```json
+{
+  "success": false,
+  "message": "Token verifikasi sudah kadaluarsa",
+  "errors": []
+}
+```
+
+**Token Not Found:**
+```json
+{
+  "success": false,
+  "message": "Token verifikasi tidak ditemukan",
+  "errors": []
 }
 ```
 
@@ -934,8 +970,8 @@ Public (No authentication required)
 ```javascript
 // Request Body
 {
-  "uuid": "{{verification_uuid}}",
-  "code": "123456"
+  "token": "{{verification_token}}",
+  "uuid": "{{verification_uuid}}"
 }
 
 // Tests
@@ -943,11 +979,27 @@ pm.test("Status code is 200", function () {
     pm.response.to.have.status(200);
 });
 
-pm.test("Email verified", function () {
+pm.test("Email verified and tokens received", function () {
     var jsonData = pm.response.json();
     pm.expect(jsonData.success).to.be.true;
+    pm.expect(jsonData.data).to.have.property('access_token');
+    pm.expect(jsonData.data).to.have.property('refresh_token');
+    pm.expect(jsonData.data).to.have.property('user');
+    
+    // Save tokens for subsequent requests
+    pm.environment.set("auth_token", jsonData.data.access_token);
+    pm.environment.set("refresh_token", jsonData.data.refresh_token);
 });
 ```
+
+#### Notes
+- ⚠️ Token hanya bisa digunakan sekali
+- ⚠️ Token memiliki TTL (default 60 menit)
+- ✅ Response format sama dengan login endpoint
+- ✅ Mobile app harus save access_token dan refresh_token setelah verifikasi
+- ✅ Setelah verifikasi, user status berubah menjadi "active"
+
+
 
 ---
 

@@ -31,7 +31,7 @@ return [
 
     // Email Verification Messages
     'email_verification_sent' => 'Verification email has been sent.',
-    'email_verified' => 'Your email has been verified successfully.',
+    'email_verified' => 'Welcome! Your email has been verified successfully. You can now enjoy all our features.',
     'email_verification_failed' => 'Email verification failed.',
     'email_already_verified' => 'Your email is already verified.',
     'email_not_verified' => 'Please verify your email address.',

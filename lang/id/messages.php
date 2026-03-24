@@ -307,7 +307,7 @@ return [
         'email_taken' => 'Alamat email ini sudah terdaftar pada akun lain.',
         'verification_not_found' => 'Link verifikasi tidak ditemukan. Kemungkinan sudah digunakan sebelumnya.',
         'verification_failed' => 'Verifikasi gagal. Silakan coba lagi atau minta link baru.',
-        'email_verified' => 'Email Anda berhasil diverifikasi. Anda kini dapat masuk.',
+        'email_verified' => 'Selamat datang! Email Anda berhasil diverifikasi. Anda sudah bisa langsung menikmati semua fitur kami.',
         'link_expired' => 'Link verifikasi ini telah kedaluwarsa. Silakan minta link baru.',
         'link_invalid' => 'Link verifikasi ini tidak valid atau sudah digunakan.',
         'link_not_found' => 'Link verifikasi tidak ditemukan.',
