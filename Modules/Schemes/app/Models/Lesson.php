@@ -60,6 +60,7 @@ class Lesson extends Model
         'duration_minutes' => 'integer',
         'published_at' => 'datetime',
         'content_type' => ContentType::class,
+        'status' => \Modules\Schemes\Enums\PublishStatus::class,
     ];
 
     public function unit()

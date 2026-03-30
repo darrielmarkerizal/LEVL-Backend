@@ -31,6 +31,7 @@ class ProfilePrivacySetting extends Model
         'show_activity_history' => 'boolean',
         'show_achievements' => 'boolean',
         'show_statistics' => 'boolean',
+        'profile_visibility' => \Modules\Auth\Enums\ProfileVisibility::class,
     ];
 
     public function user(): BelongsTo

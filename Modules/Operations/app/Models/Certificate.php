@@ -18,6 +18,7 @@ class Certificate extends Model implements HasMedia
     protected $casts = [
         'issued_at' => 'datetime',
         'expired_at' => 'datetime',
+        'status' => \Modules\Operations\Enums\CertificateStatus::class,
     ];
 
     protected $appends = ['file_url'];

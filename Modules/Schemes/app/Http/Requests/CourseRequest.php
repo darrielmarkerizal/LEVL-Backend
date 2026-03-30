@@ -77,7 +77,6 @@ class CourseRequest extends FormRequest
     {
         $data = parent::validated($key, $default);
         if (\Illuminate\Support\Arr::has($data, 'tags')) {
-            $data['tags_json'] = $data['tags'];
             $data['tags_list'] = $data['tags'];
             unset($data['tags']);
         }

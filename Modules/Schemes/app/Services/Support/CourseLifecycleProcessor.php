@@ -43,10 +43,9 @@ class CourseLifecycleProcessor
                 }
 
                 $hasTagsInput = array_key_exists('tags', $attributes)
-                    || array_key_exists('tags_list', $attributes)
-                    || array_key_exists('tags_json', $attributes);
+                    || array_key_exists('tags_list', $attributes);
 
-                $tags = $attributes['tags'] ?? $attributes['tags_list'] ?? $attributes['tags_json'] ?? null;
+                $tags = $attributes['tags'] ?? $attributes['tags_list'] ?? null;
                 if (! is_array($tags) && $tags !== null) {
                     $tags = [(string) $tags];
                 }
@@ -63,7 +62,7 @@ class CourseLifecycleProcessor
                     $outcomes = [$outcomes];
                 }
 
-                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json', 'instructor_ids', 'outcomes']);
+                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'instructor_ids', 'outcomes']);
 
                 $course = $this->repository->create($attributes);
 
@@ -115,10 +114,9 @@ class CourseLifecycleProcessor
                 $attributes = $data instanceof UpdateCourseDTO ? $data->toArrayWithoutNull() : $data;
 
                 $hasTagsInput = array_key_exists('tags', $attributes)
-                    || array_key_exists('tags_list', $attributes)
-                    || array_key_exists('tags_json', $attributes);
+                    || array_key_exists('tags_list', $attributes);
 
-                $tags = $attributes['tags'] ?? $attributes['tags_list'] ?? $attributes['tags_json'] ?? null;
+                $tags = $attributes['tags'] ?? $attributes['tags_list'] ?? null;
                 if (! is_array($tags) && $tags !== null) {
                     $tags = [(string) $tags];
                 }
@@ -135,7 +133,7 @@ class CourseLifecycleProcessor
                     $outcomes = [$outcomes];
                 }
 
-                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'tags_json', 'instructor_ids', 'outcomes']);
+                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'instructor_ids', 'outcomes']);
 
                 $this->repository->update($course, $attributes);
 

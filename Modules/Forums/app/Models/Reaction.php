@@ -30,6 +30,7 @@ class Reaction extends Model
 
     protected $casts = [
         'created_at' => 'datetime',
+        'type' => \Modules\Forums\Enums\ReactionType::class,
     ];
 
     public function user(): BelongsTo
