@@ -136,10 +136,6 @@ class TagService
 
         $course->tags()->sync($tagIds);
 
-        $names = Tag::query()->whereIn('id', $tagIds)->pluck('name')->unique()->values()->toArray();
-        $course->tags_json = $names;
-        $course->save();
-
         cache()->tags(['schemes', 'tags'])->flush();
         cache()->tags(['schemes', 'courses'])->flush();
     }

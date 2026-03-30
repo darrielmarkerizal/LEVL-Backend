@@ -157,9 +157,11 @@ class SequentialProgressSeeder extends Seeder
             return false;
         }
 
-        \DB::table('lesson_completions')->insertOrIgnore([
+        // Lesson completions are now tracked via lesson_progress table
+        \DB::table('lesson_progress')->insertOrIgnore([
             'lesson_id' => $lesson->id,
             'user_id' => $studentId,
+            'status' => 'completed',
             'completed_at' => $this->createdAt,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
@@ -487,8 +489,8 @@ class SequentialProgressSeeder extends Seeder
         \DB::table('quiz_submissions')->delete();
         echo "  ✓ Cleaned quiz submissions\n";
 
-        \DB::table('lesson_completions')->delete();
-        echo "  ✓ Cleaned lesson completions\n";
+        \DB::table('lesson_progress')->delete();
+        echo "  ✓ Cleaned lesson progress\n";
 
         echo "✅ Existing progress data cleaned!\n\n";
     }

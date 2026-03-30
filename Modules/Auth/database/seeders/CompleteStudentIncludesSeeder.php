@@ -132,7 +132,6 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'short_desc' => 'Deterministic course for complete student includes seeder.',
                 'type' => 'okupasi',
                 'level_tag' => 'dasar',
-                'tags_json' => json_encode([]),
                 'enrollment_type' => 'auto_accept',
                 'status' => 'published',
                 'published_at' => now(),

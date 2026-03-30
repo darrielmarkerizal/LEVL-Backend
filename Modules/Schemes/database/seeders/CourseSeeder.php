@@ -63,7 +63,6 @@ class CourseSeeder extends Seeder
      */
     private function assignInstructorsToCourses($courses, $instructors): void
     {
-        $courseAdmins = [];
         $courseUpdates = [];
 
         foreach ($courses as $course) {
@@ -74,19 +73,13 @@ class CourseSeeder extends Seeder
                 'instructor_id' => $mainInstructor->id,
             ];
 
+            // Additional instructors are now managed via course_instructors pivot table
             $additionalAdminsCount = rand(0, 2);
             if ($additionalAdminsCount > 0) {
                 $availableInstructors = $instructors->where('id', '!=', $mainInstructor->id);
                 if ($availableInstructors->count() >= $additionalAdminsCount) {
                     $additionalAdmins = $availableInstructors->random($additionalAdminsCount);
-                    foreach ($additionalAdmins as $admin) {
-                        $courseAdmins[] = [
-                            'course_id' => $course->id,
-                            'user_id' => $admin->id,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ];
-                    }
+                    $course->instructors()->syncWithoutDetaching($additionalAdmins->pluck('id')->toArray());
                 }
             }
         }
@@ -95,10 +88,6 @@ class CourseSeeder extends Seeder
             \Illuminate\Support\Facades\DB::table('courses')
                 ->where('id', $update['id'])
                 ->update(['instructor_id' => $update['instructor_id']]);
-        }
-
-        if (! empty($courseAdmins)) {
-            \Illuminate\Support\Facades\DB::table('course_admins')->insertOrIgnore($courseAdmins);
         }
     }
 

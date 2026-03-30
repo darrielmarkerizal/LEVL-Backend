@@ -98,7 +98,6 @@ class Course extends Model implements HasMedia
         'type',
         'level_tag',
         'category_id',
-        'tags_json',
         'duration_estimate',
         'enrollment_type',
         'enrollment_key',
@@ -114,7 +113,6 @@ class Course extends Model implements HasMedia
     ];
 
     protected $casts = [
-        'tags_json' => 'array',
         'published_at' => 'datetime',
         'status' => CourseStatus::class,
         'type' => CourseType::class,
@@ -299,11 +297,7 @@ class Course extends Model implements HasMedia
             return $this->tags->pluck('name')->unique()->values()->toArray();
         }
 
-        if (is_array($this->tags_json)) {
-            return $this->tags_json;
-        }
-
-        return [];
+        return $this->tags()->pluck('name')->unique()->values()->toArray();
     }
 
     public function getEnrollmentKeyAttribute(): ?string

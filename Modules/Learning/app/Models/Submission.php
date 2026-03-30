@@ -110,11 +110,6 @@ class Submission extends Model implements HasMedia
         return $this->belongsTo(\Modules\Enrollments\Models\Enrollment::class);
     }
 
-    public function files(): HasMany
-    {
-        return $this->hasMany(SubmissionFile::class);
-    }
-
     public function answers(): HasMany
     {
         return $this->hasMany(Answer::class);

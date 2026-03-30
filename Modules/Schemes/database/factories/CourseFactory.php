@@ -72,7 +72,6 @@ class CourseFactory extends Factory
                 CourseStatus::Published->value,
                 CourseStatus::Draft->value,
             ]),
-            'tags_json' => json_encode([]),
             'published_at' => fake()->boolean(80) ? now()->subDays(rand(1, 180)) : null,
         ];
     }

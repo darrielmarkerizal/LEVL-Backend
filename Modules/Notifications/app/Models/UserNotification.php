@@ -12,6 +12,7 @@ class UserNotification extends Model
 
     protected $casts = [
         'read_at' => 'datetime',
+        'status' => \Modules\Notifications\Enums\ReadStatus::class,
     ];
 
     public function notification()

@@ -17,6 +17,10 @@ class GradeReview extends Model
         'status',
     ];
 
+    protected $casts = [
+        'status' => \Modules\Grading\Enums\ReviewStatus::class,
+    ];
+
     public function grade(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Grade::class);

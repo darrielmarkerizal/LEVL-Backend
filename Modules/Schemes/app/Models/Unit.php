@@ -54,6 +54,7 @@ class Unit extends Model
 
     protected $casts = [
         'order' => 'integer',
+        'status' => \Modules\Schemes\Enums\PublishStatus::class,
     ];
 
     public function course()
