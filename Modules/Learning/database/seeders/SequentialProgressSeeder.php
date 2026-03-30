@@ -157,11 +157,25 @@ class SequentialProgressSeeder extends Seeder
             return false;
         }
 
+        // Get enrollment_id for this student and lesson's course
+        $enrollment = \DB::table('enrollments')
+            ->join('units', 'enrollments.course_id', '=', 'units.course_id')
+            ->join('lessons', 'units.id', '=', 'lessons.unit_id')
+            ->where('enrollments.user_id', $studentId)
+            ->where('lessons.id', $lesson->id)
+            ->select('enrollments.id as enrollment_id')
+            ->first();
+
+        if (!$enrollment) {
+            return false;
+        }
+
         // Lesson completions are now tracked via lesson_progress table
         \DB::table('lesson_progress')->insertOrIgnore([
+            'enrollment_id' => $enrollment->enrollment_id,
             'lesson_id' => $lesson->id,
-            'user_id' => $studentId,
             'status' => 'completed',
+            'progress_percent' => 100,
             'completed_at' => $this->createdAt,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
