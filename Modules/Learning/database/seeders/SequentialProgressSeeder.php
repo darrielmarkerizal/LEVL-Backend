@@ -469,7 +469,7 @@ class SequentialProgressSeeder extends Seeder
     {
         echo "🧹 Cleaning existing progress data...\n";
 
-        \DB::table('grades')->whereIn('source_type', ['assignment', 'quiz'])->delete();
+        \DB::table('grades')->whereIn('source_type', ['assignment', 'attempt'])->delete();
         echo "  ✓ Cleaned grades\n";
 
         \DB::table('quiz_answers')->delete();
