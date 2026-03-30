@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Drop grading_rubrics - completely isolated, no FK, not used anywhere
-        Schema::dropIfExists('grading_rubrics');
-        
-        // Drop grading_rubric_criteria - child of grading_rubrics
+        // Drop grading_rubric_criteria first (child table)
         Schema::dropIfExists('grading_rubric_criteria');
+        
+        // Then drop grading_rubrics (parent table)
+        Schema::dropIfExists('grading_rubrics');
     }
 
     /**

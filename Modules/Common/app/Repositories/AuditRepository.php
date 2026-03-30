@@ -27,18 +27,18 @@ class AuditRepository implements AuditRepositoryInterface
                 $request = new Request(['filter' => $filters]);
 
                 return QueryBuilder::for(AuditLog::class, $request)
-                    ->with(['actor', 'subject'])
+                    ->with(['causer', 'subject']) // Changed 'actor' to 'causer'
                     ->allowedFilters([
-                        AllowedFilter::exact('action'),
-                        AllowedFilter::exact('actor_id'),
-                        AllowedFilter::exact('actor_type'),
+                        AllowedFilter::callback('action', fn ($q, $v) => $q->where('description', $v)),
+                        AllowedFilter::callback('actor_id', fn ($q, $v) => $q->where('causer_id', $v)),
+                        AllowedFilter::callback('actor_type', fn ($q, $v) => $q->where('causer_type', $v)),
                         AllowedFilter::exact('subject_id'),
                         AllowedFilter::exact('subject_type'),
                         AllowedFilter::callback('start_date', fn ($q, $v) => $q->where('created_at', '>=', $v)),
                         AllowedFilter::callback('end_date', fn ($q, $v) => $q->where('created_at', '<=', $v)),
-                        AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
+                        AllowedFilter::callback('search', fn ($q, $v) => $q->where('description', 'ILIKE', "%{$v}%")),
                     ])
-                    ->allowedSorts(['created_at', 'action', 'actor_id'])
+                    ->allowedSorts(['created_at', 'description', 'causer_id'])
                     ->defaultSort('-created_at')
                     ->get();
             }
@@ -55,7 +55,7 @@ class AuditRepository implements AuditRepositoryInterface
     public function findBySubject(string $subjectType, int $subjectId): Collection
     {
         return AuditLog::query()
-            ->with(['actor', 'subject'])
+            ->with(['causer', 'subject']) // Changed 'actor' to 'causer'
             ->where('subject_type', $subjectType)
             ->where('subject_id', $subjectId)
             ->orderBy('created_at', 'desc')
@@ -72,9 +72,9 @@ class AuditRepository implements AuditRepositoryInterface
     public function findByActor(string $actorType, int $actorId): Collection
     {
         return AuditLog::query()
-            ->with(['actor', 'subject'])
-            ->where('actor_type', $actorType)
-            ->where('actor_id', $actorId)
+            ->with(['causer', 'subject']) // Changed 'actor' to 'causer'
+            ->where('causer_type', $actorType) // Changed 'actor_type' to 'causer_type'
+            ->where('causer_id', $actorId) // Changed 'actor_id' to 'causer_id'
             ->orderBy('created_at', 'desc')
             ->get();
     }
@@ -88,8 +88,8 @@ class AuditRepository implements AuditRepositoryInterface
     public function findByAction(string $action): Collection
     {
         return AuditLog::query()
-            ->with(['actor', 'subject'])
-            ->where('action', $action)
+            ->with(['causer', 'subject']) // Changed 'actor' to 'causer'
+            ->where('description', $action) // Changed 'action' to 'description'
             ->orderBy('created_at', 'desc')
             ->get();
     }

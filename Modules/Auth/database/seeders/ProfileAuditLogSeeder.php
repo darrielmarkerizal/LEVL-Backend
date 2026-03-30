@@ -3,6 +3,7 @@
 namespace Modules\Auth\Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
 
 class ProfileAuditLogSeeder extends Seeder
@@ -10,11 +11,12 @@ class ProfileAuditLogSeeder extends Seeder
     /**
      * Run the database seeds.
      *
-     * Creates audit logs for profile changes
+     * Creates audit logs for profile changes in activity_log table
+     * (profile_audit_logs was consolidated into activity_log)
      */
     public function run(): void
     {
-        echo "Creating profile audit logs...\n";
+        echo "Creating profile audit logs in activity_log...\n";
 
         // ✅ Load active users once (no query per user)
         $activeUsers = User::where('status', 'active')
@@ -27,7 +29,7 @@ class ProfileAuditLogSeeder extends Seeder
             return;
         }
 
-        $auditLogs = [];
+        $activityLogs = [];
         $count = 0;
 
         foreach ($activeUsers as $user) {
@@ -61,26 +63,35 @@ class ProfileAuditLogSeeder extends Seeder
                     default => ['field' => [fake()->word(), fake()->word()]],
                 };
 
-                // ✅ Build audit log data for batch insert
-                $auditLogs[] = [
-                    'user_id' => $user->id,
-                    'action' => $action,
-                    'changes' => json_encode($changes),
-                    'ip_address' => fake()->ipv4(),
-                    'user_agent' => fake()->userAgent(),
-                    'created_at' => now()->subDays(rand(1, 365)),
+                $createdAt = now()->subDays(rand(1, 365));
+
+                // ✅ Build activity log data for batch insert (matching activity_log schema)
+                $activityLogs[] = [
+                    'log_name' => 'profile',
+                    'description' => $action,
+                    'subject_type' => 'Modules\\Auth\\Models\\User',
+                    'subject_id' => $user->id,
+                    'causer_type' => 'Modules\\Auth\\Models\\User',
+                    'causer_id' => $user->id,
+                    'properties' => json_encode([
+                        'changes' => $changes,
+                        'ip_address' => fake()->ipv4(),
+                        'user_agent' => substr(fake()->userAgent(), 0, 500),
+                    ]),
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt,
                 ];
                 $count++;
             }
         }
 
-        // ✅ Batch insert all audit logs at once
-        if (! empty($auditLogs)) {
-            foreach (array_chunk($auditLogs, 1000) as $chunk) {
-                \Illuminate\Support\Facades\DB::table('profile_audit_logs')->insertOrIgnore($chunk);
+        // ✅ Batch insert all activity logs at once
+        if (! empty($activityLogs)) {
+            foreach (array_chunk($activityLogs, 1000) as $chunk) {
+                DB::table('activity_log')->insertOrIgnore($chunk);
             }
         }
 
-        echo "✅ Created $count profile audit logs\n";
+        echo "✅ Created $count profile audit logs in activity_log\n";
     }
 }

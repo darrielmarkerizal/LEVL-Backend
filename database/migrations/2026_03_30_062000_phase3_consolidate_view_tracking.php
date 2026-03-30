@@ -46,19 +46,18 @@ return new class extends Migration
             $table->id();
             $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->timestamps();
+            $table->timestamp('viewed_at')->useCurrent();
             
             $table->unique(['post_id', 'user_id']);
         });
 
         // Migrate back from content_reads
         DB::statement("
-            INSERT INTO post_views (post_id, user_id, created_at, updated_at)
+            INSERT INTO post_views (post_id, user_id, viewed_at)
             SELECT 
                 readable_id as post_id,
                 user_id,
-                created_at,
-                updated_at
+                read_at as viewed_at
             FROM content_reads
             WHERE readable_type = 'Modules\\\\Notifications\\\\Models\\\\Post'
             ON CONFLICT (post_id, user_id) DO NOTHING

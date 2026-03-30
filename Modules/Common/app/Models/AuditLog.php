@@ -4,115 +4,41 @@ declare(strict_types=1);
 
 namespace Modules\Common\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Auth;
-use Modules\Common\Traits\PgSearchable;
+use Spatie\Activitylog\Models\Activity;
 
 /**
- * AuditLog Model - Immutable (append-only) audit log for compliance.
+ * AuditLog Model - Backward Compatibility Wrapper for Spatie Activity Log
  *
- * This model is designed to be immutable - once created, records cannot be
- * updated or deleted. This ensures audit trail integrity for compliance
- * and dispute resolution.
+ * This model now extends Spatie Activity Log for unified logging.
+ * The audit_logs table has been migrated to activity_log in Phase 3 optimization.
+ *
+ * All existing AuditLog::logAction() calls will now use Spatie Activity Log.
  *
  * @property int $id
- * @property string|null $event Legacy event field
- * @property string|null $action Action performed (e.g., 'submission_created', 'grade_override')
- * @property string|null $target_type Legacy target type (polymorphic)
- * @property int|null $target_id Legacy target ID (polymorphic)
- * @property string|null $actor_type Actor type (e.g., 'Modules\Auth\Models\User')
- * @property int|null $actor_id Actor ID
- * @property string|null $subject_type Subject type (polymorphic - the entity being acted upon)
- * @property int|null $subject_id Subject ID (polymorphic)
- * @property int|null $user_id User who performed the action
- * @property array|null $properties Legacy properties field
- * @property array|null $context Additional context data (JSON)
- * @property \Carbon\Carbon|null $logged_at Legacy timestamp
- * @property \Carbon\Carbon $created_at Creation timestamp
+ * @property string|null $log_name
+ * @property string $description (maps to action)
+ * @property int|null $subject_id
+ * @property string|null $subject_type
+ * @property int|null $causer_id (maps to actor_id)
+ * @property string|null $causer_type (maps to actor_type)
+ * @property array|null $properties (maps to context)
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
  */
-class AuditLog extends Model
+class AuditLog extends Activity
 {
-    use HasFactory, PgSearchable;
-
-    protected array $searchable_columns = [
-        'action',
-        'event',
-        'actor_type',
-        'subject_type',
-    ];
-
     /**
      * The table associated with the model.
      */
-    protected $table = 'audit_logs';
-
-    /**
-     * Disable updated_at timestamp since this is an append-only model.
-     */
-    public const UPDATED_AT = null;
-
-    /**
-     * The attributes that are mass assignable.
-     */
-    protected $fillable = [
-        'event',
-        'action',
-        'target_type',
-        'target_id',
-        'actor_type',
-        'actor_id',
-        'subject_type',
-        'subject_id',
-        'user_id',
-        'properties',
-        'context',
-    ];
-
-    /**
-     * The attributes that should be cast.
-     */
-    protected $casts = [
-        'action' => 'string',
-        'actor_id' => 'integer',
-        'actor_type' => 'string',
-        'subject_id' => 'integer',
-        'subject_type' => 'string',
-        'context' => 'array',
-        'properties' => 'array',
-        'logged_at' => 'datetime',
-        'created_at' => 'datetime',
-    ];
-
-    /**
-     * Boot the model and register event listeners to enforce immutability.
-     *
-     * This ensures the audit log is append-only by preventing updates and deletes.
-     * Requirement 20.6: THE Audit_Log SHALL be immutable (append-only)
-     */
-    protected static function boot(): void
-    {
-        parent::boot();
-
-        // Prevent updates - audit logs are immutable
-        static::updating(function () {
-            return false;
-        });
-
-        // Prevent deletes - audit logs are immutable
-        static::deleting(function () {
-            return false;
-        });
-    }
+    protected $table = 'activity_log';
 
     /**
      * Scope for filtering by multiple actions.
      */
     public function scopeActionIn($query, array $actions)
     {
-        return $query->whereIn('action', $actions);
+        return $query->whereIn('description', $actions);
     }
 
     /**
@@ -127,70 +53,67 @@ class AuditLog extends Model
     }
 
     /**
-     * Scope for searching in context JSON.
+     * Scope for searching in properties JSON.
      */
     public function scopeContextContains($query, $search)
     {
-        // Simple text search in JSON, strictly depends on DB capability.
-        // For Postgres: cast to text or use ->> operator if keys known.
-        // Assuming Postgres here for generic search:
-        return $query->whereRaw('context::text ILIKE ?', ["%{$search}%"]);
+        return $query->whereRaw('properties::text ILIKE ?', ["%{$search}%"]);
     }
 
     /**
-     * Scope for assignment_id in context.
+     * Scope for assignment_id in properties.
      */
     public function scopeAssignmentId($query, $id)
     {
-        return $query->whereRaw("context->>'assignment_id' = ?", [(string) $id]);
+        return $query->whereRaw("properties->>'assignment_id' = ?", [(string) $id]);
     }
 
     /**
-     * Scope for student_id in context.
+     * Scope for student_id in properties.
      */
     public function scopeStudentId($query, $id)
     {
-        return $query->whereRaw("context->>'student_id' = ?", [(string) $id]);
+        return $query->whereRaw("properties->>'student_id' = ?", [(string) $id]);
     }
 
     /**
-     * Get the target model (legacy polymorphic relationship).
+     * Get the actor model (backward compatibility alias).
      */
-    public function target(): MorphTo
+    public function actor()
     {
-        return $this->morphTo('target');
+        return $this->causer();
     }
 
     /**
-     * Get the actor model (polymorphic relationship).
+     * Get actor_id (backward compatibility).
      */
-    public function actor(): MorphTo
+    public function getActorIdAttribute()
     {
-        return $this->morphTo('actor');
+        return $this->causer_id;
     }
 
     /**
-     * Get the subject model (polymorphic relationship).
+     * Get actor_type (backward compatibility).
      */
-    public function subject(): MorphTo
+    public function getActorTypeAttribute()
     {
-        return $this->morphTo('subject');
+        return $this->causer_type;
     }
 
     /**
-     * Get the user who performed the action.
+     * Get context (backward compatibility alias for properties).
      */
-    public function user(): BelongsTo
+    public function getContextAttribute()
     {
-        return $this->belongsTo(\Modules\Auth\Models\User::class);
+        return $this->properties;
     }
 
     /**
-     * Scope a query to only include logs for a specific event.
+     * Get action (backward compatibility alias for description).
      */
-    public function scopeForEvent($query, string $event)
+    public function getActionAttribute()
     {
-        return $query->where('event', $event);
+        return $this->description;
     }
 
     /**
@@ -198,16 +121,7 @@ class AuditLog extends Model
      */
     public function scopeForAction($query, string $action)
     {
-        return $query->where('action', $action);
-    }
-
-    /**
-     * Scope a query to only include logs for a specific target (legacy).
-     */
-    public function scopeForTarget($query, $model)
-    {
-        return $query->where('target_type', get_class($model))
-            ->where('target_id', $model->getKey());
+        return $query->where('description', $action);
     }
 
     /**
@@ -224,8 +138,8 @@ class AuditLog extends Model
      */
     public function scopeForActor($query, $model)
     {
-        return $query->where('actor_type', get_class($model))
-            ->where('actor_id', $model->getKey());
+        return $query->where('causer_type', get_class($model))
+            ->where('causer_id', $model->getKey());
     }
 
     /**
@@ -235,7 +149,7 @@ class AuditLog extends Model
     {
         $userId = is_object($user) ? $user->id : $user;
 
-        return $query->where('user_id', $userId);
+        return $query->where('causer_id', $userId);
     }
 
     /**
@@ -247,36 +161,7 @@ class AuditLog extends Model
     }
 
     /**
-     * Scope a query to only include logs within a date range (legacy).
-     */
-    public function scopeDateRangeLegacy($query, $startDate, $endDate)
-    {
-        return $query->whereBetween('logged_at', [$startDate, $endDate]);
-    }
-
-    /**
-     * Log an event (legacy method for backward compatibility).
-     */
-    public static function log(
-        string $event,
-        $target = null,
-        $actor = null,
-        array $properties = []
-    ): self {
-        return static::create([
-            'event' => $event,
-            'target_type' => $target ? get_class($target) : null,
-            'target_id' => $target ? $target->getKey() : null,
-            'actor_type' => $actor ? get_class($actor) : null,
-            'actor_id' => $actor ? $actor->getKey() : null,
-            'user_id' => Auth::check() ? Auth::id() : null,
-            'properties' => $properties,
-            'logged_at' => now(),
-        ]);
-    }
-
-    /**
-     * Log an action with the new schema.
+     * Log an action with backward compatibility.
      *
      * @param  string  $action  The action being logged (e.g., 'submission_created', 'grade_override')
      * @param  Model|null  $subject  The entity being acted upon
@@ -288,15 +173,35 @@ class AuditLog extends Model
         $subject = null,
         $actor = null,
         array $context = []
-    ): self {
-        return static::create([
-            'action' => $action,
-            'subject_type' => $subject ? get_class($subject) : null,
-            'subject_id' => $subject ? $subject->getKey() : null,
-            'actor_type' => $actor ? get_class($actor) : null,
-            'actor_id' => $actor ? $actor->getKey() : null,
-            'user_id' => Auth::check() ? Auth::id() : null,
-            'context' => $context,
-        ]);
+    ): Activity {
+        $activity = activity()
+            ->withProperties($context)
+            ->log($action);
+
+        if ($subject) {
+            $activity->subject()->associate($subject);
+        }
+
+        if ($actor) {
+            $activity->causer()->associate($actor);
+        } elseif (Auth::check()) {
+            $activity->causer()->associate(Auth::user());
+        }
+
+        $activity->save();
+
+        return $activity;
+    }
+
+    /**
+     * Legacy log method for backward compatibility.
+     */
+    public static function log(
+        string $event,
+        $target = null,
+        $actor = null,
+        array $properties = []
+    ): Activity {
+        return static::logAction($event, $target, $actor, $properties);
     }
 }

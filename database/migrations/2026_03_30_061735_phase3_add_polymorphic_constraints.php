@@ -19,14 +19,14 @@ return new class extends Migration
 
         // Add CHECK constraint for trash_bins.trashable_type
         $trashableTypes = [
-            'Modules\\\\Schemes\\\\Models\\\\Course',
-            'Modules\\\\Schemes\\\\Models\\\\Unit',
-            'Modules\\\\Schemes\\\\Models\\\\Lesson',
-            'Modules\\\\Learning\\\\Models\\\\Assignment',
-            'Modules\\\\Learning\\\\Models\\\\Quiz',
-            'Modules\\\\Notifications\\\\Models\\\\Post',
-            'Modules\\\\Notifications\\\\Models\\\\Announcement',
-            'Modules\\\\Notifications\\\\Models\\\\News',
+            'Modules\\Schemes\\Models\\Course',
+            'Modules\\Schemes\\Models\\Unit',
+            'Modules\\Schemes\\Models\\Lesson',
+            'Modules\\Learning\\Models\\Assignment',
+            'Modules\\Learning\\Models\\Quiz',
+            'Modules\\Notifications\\Models\\Post',
+            'Modules\\Notifications\\Models\\Announcement',
+            'Modules\\Notifications\\Models\\News',
         ];
         
         $typesList = implode("', '", $trashableTypes);
@@ -37,10 +37,18 @@ return new class extends Migration
         ");
 
         // Add CHECK constraint for taggables.taggable_type
+        $allowedTypes = [
+            'Modules\\Schemes\\Models\\Course',
+            'Modules\\Schemes\\Models\\Unit',
+            'Modules\\Schemes\\Models\\Lesson',
+        ];
+        
+        $taggableTypesList = implode("', '", $allowedTypes);
+        
         DB::statement("
             ALTER TABLE taggables 
             ADD CONSTRAINT taggables_taggable_type_valid 
-            CHECK (taggable_type IN ('Modules\\\\Schemes\\\\Models\\\\Course'))
+            CHECK (taggable_type IN ('{$taggableTypesList}'))
         ");
 
         // Add CHECK constraint for content_reads.readable_type
@@ -48,9 +56,9 @@ return new class extends Migration
             ALTER TABLE content_reads 
             ADD CONSTRAINT content_reads_readable_type_valid 
             CHECK (readable_type IN (
-                'Modules\\\\Notifications\\\\Models\\\\Post',
-                'Modules\\\\Notifications\\\\Models\\\\Announcement',
-                'Modules\\\\Notifications\\\\Models\\\\News'
+                'Modules\\Notifications\\Models\\Post',
+                'Modules\\Notifications\\Models\\Announcement',
+                'Modules\\Notifications\\Models\\News'
             ))
         ");
     }

@@ -4,7 +4,7 @@ namespace Modules\Common\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
-use Modules\Common\Models\AuditLog;
+use Spatie\Activitylog\Models\Activity;
 
 class AuditLogSeeder extends Seeder
 {
@@ -25,18 +25,18 @@ class AuditLogSeeder extends Seeder
         for ($i = 0; $i < 50; $i++) {
             $action = $actions[array_rand($actions)];
 
-            AuditLog::logAction(
-                $action,
-                $admin, // Subject (mocking user as subject for simplicity)
-                $admin, // Actor
-                [
+            // Use Spatie Activity Log instead of deprecated AuditLog
+            activity()
+                ->causedBy($admin)
+                ->performedOn($admin) // Subject
+                ->withProperties([
                     'assignment_id' => rand(1, 10),
                     'student_id' => rand(1, 5),
                     'old_status' => 'pending',
                     'new_status' => 'submitted',
                     'reason' => 'Seeded data',
-                ]
-            );
+                ])
+                ->log($action);
         }
     }
 }

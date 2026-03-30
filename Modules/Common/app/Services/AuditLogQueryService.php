@@ -30,7 +30,8 @@ class AuditLogQueryService
         $search = $validated['search'] ?? null;
 
         if ($search) {
-            $query->search($search);
+            $query->where('description', 'ILIKE', "%{$search}%")
+                ->orWhereRaw('properties::text ILIKE ?', ["%{$search}%"]);
         }
 
         return cache()->tags(['common', 'audit_logs'])->remember(
@@ -38,21 +39,21 @@ class AuditLogQueryService
             300,
             function () use ($query, $perPage) {
                 return QueryBuilder::for($query)
-                    ->with('actor')
+                    ->with('causer') // Changed from 'actor' to 'causer' (Spatie's relationship name)
                     ->allowedFilters([
-                        AllowedFilter::exact('action'),
+                        AllowedFilter::callback('action', fn ($q, $v) => $q->where('description', $v)),
                         AllowedFilter::scope('actions', 'action_in'),
-                        AllowedFilter::exact('actor_id'),
-                        AllowedFilter::exact('actor_type'),
+                        AllowedFilter::callback('actor_id', fn ($q, $v) => $q->where('causer_id', $v)),
+                        AllowedFilter::callback('actor_type', fn ($q, $v) => $q->where('causer_type', $v)),
                         AllowedFilter::exact('subject_id'),
                         AllowedFilter::exact('subject_type'),
                         AllowedFilter::scope('created_between'),
                         AllowedFilter::scope('context_contains'),
                         AllowedFilter::scope('assignment_id'),
                         AllowedFilter::scope('student_id'),
-                        AllowedFilter::callback('search', fn ($q, $v) => $q->search($v)),
+                        AllowedFilter::callback('search', fn ($q, $v) => $q->where('description', 'ILIKE', "%{$v}%")),
                     ])
-                    ->allowedSorts(['created_at', 'id', 'action', 'actor_id'])
+                    ->allowedSorts(['created_at', 'id', 'description', 'causer_id'])
                     ->defaultSort('-created_at')
                     ->paginate($perPage)
                     ->appends(request()->query());
@@ -62,7 +63,7 @@ class AuditLogQueryService
 
     public function findById(int $id): ?AuditLog
     {
-        return AuditLog::with('actor')->find($id);
+        return AuditLog::with('causer')->find($id); // Changed from 'actor' to 'causer'
     }
 
     public function getAvailableActions(): array
