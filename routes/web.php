@@ -6,6 +6,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/docs/functional-requirements', function () {
+    return view('docs.functional-requirements');
+});
+
 Route::prefix('form')->group(function () {
     Route::get('/', function () {
         return view('docs.index');

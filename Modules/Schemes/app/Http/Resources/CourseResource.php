@@ -67,8 +67,14 @@ class CourseResource extends JsonResource
             $data['enrollments'] = $this->when(request()->has('include') && str_contains(request('include'), 'enrollments'), $this->whenLoaded('enrollments'));
 
             // Add decrypted enrollment key for authorized users (Superadmin, Admin, Instructor)
-            if ($this->enrollment_type?->value === 'key_based' && ! empty($this->enrollment_key_encrypted)) {
-                $data['enrollment_key'] = $this->getDecryptedEnrollmentKey();
+            if ($this->enrollment_type?->value === 'key_based') {
+                $decryptedKey = $this->getDecryptedEnrollmentKey();
+                $data['enrollment_key'] = $decryptedKey;
+                
+                // If encrypted key is not available but hash exists, indicate key needs regeneration
+                if ($decryptedKey === null && !empty($this->enrollment_key_hash)) {
+                    $data['enrollment_key_status'] = 'needs_regeneration';
+                }
             }
         }
 

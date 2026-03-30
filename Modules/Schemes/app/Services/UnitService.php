@@ -422,20 +422,16 @@ class UnitService
     {
         $perPage = max(1, min($perPage, 100));
 
+        // Build base query with access control
         $query = Unit::query();
-
-        if (isset($filters['search']) && ! empty($filters['search'])) {
-            $query->search($filters['search']);
-        }
-
-        if (isset($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-
-        if ($user && ! $user->hasRole('Superadmin')) {
+        
+        // Apply role-based filtering
+        if ($user && ! $user->hasRole('Superadmin') && ! $user->hasRole('Admin')) {
             $query->whereHas('course', function ($q) use ($user) {
-                if ($user->hasRole(['Admin', 'Instructor'])) {
-                    $q->where('instructor_id', $user->id);
+                if ($user->hasRole('Instructor')) {
+                    $q->whereHas('instructors', function ($instructorQuery) use ($user) {
+                        $instructorQuery->where('user_id', $user->id);
+                    });
                 } elseif ($user->hasRole('Student')) {
                     $q->whereHas('enrollments', function ($enrollmentQuery) use ($user) {
                         $enrollmentQuery
@@ -448,27 +444,84 @@ class UnitService
             });
         }
 
-        if (isset($filters['course_slug'])) {
-            $query->whereHas('course', function ($q) use ($filters) {
-                $q->where('slug', $filters['course_slug']);
-            });
+        // Check if 'elements' is requested in include
+        $includeParam = request()->query('include', '');
+        $requestedIncludes = array_filter(explode(',', $includeParam));
+        $hasElementsInclude = in_array('elements', $requestedIncludes);
+        
+        // If elements is requested, replace it with lessons, quizzes, assignments
+        if ($hasElementsInclude) {
+            $requestedIncludes = array_diff($requestedIncludes, ['elements']);
+            $requestedIncludes = array_merge($requestedIncludes, ['lessons', 'quizzes', 'assignments']);
+            $requestedIncludes = array_unique($requestedIncludes);
+            
+            // Override the include parameter for Spatie
+            request()->merge(['include' => implode(',', $requestedIncludes)]);
         }
 
-        $allowedSorts = ['order', 'title', 'created_at'];
-        $sortField = in_array($filters['sort'] ?? '', $allowedSorts) ? $filters['sort'] : 'created_at';
-        $sortOrder = ($filters['order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
-
-        $query->orderBy($sortField, $sortOrder);
-
-        if (isset($filters['include'])) {
-            $allowedIncludes = ['course', 'lessons'];
-            $includes = array_intersect(explode(',', $filters['include']), $allowedIncludes);
-            if (! empty($includes)) {
-                $query->with($includes);
+        // Manually handle includes with ordering based on user role
+        if (in_array('lessons', $requestedIncludes)) {
+            if ($user && $user->hasRole('Student')) {
+                $query->with(['lessons' => fn ($q) => $q->where('status', 'published')->orderBy('order', 'asc')]);
+            } else {
+                $query->with(['lessons' => fn ($q) => $q->orderBy('order', 'asc')]);
+            }
+        }
+        
+        if (in_array('quizzes', $requestedIncludes)) {
+            if ($user && $user->hasRole('Student')) {
+                $query->with(['quizzes' => function ($q) use ($user) {
+                    $q->where('status', 'published')
+                        ->whereHas('unit.course', function ($courseQuery) use ($user) {
+                            $courseQuery->where('status', 'published')
+                                ->whereHas('enrollments', function ($enrollmentQuery) use ($user) {
+                                    $enrollmentQuery->where('user_id', $user->id)
+                                        ->whereIn('status', ['active', 'completed']);
+                                });
+                        })
+                        ->orderBy('order', 'asc');
+                }]);
+            } else {
+                $query->with(['quizzes' => fn ($q) => $q->orderBy('order', 'asc')]);
+            }
+        }
+        
+        if (in_array('assignments', $requestedIncludes)) {
+            if ($user && $user->hasRole('Student')) {
+                $query->with(['assignments' => function ($q) use ($user) {
+                    $q->where('status', 'published')
+                        ->whereHas('unit.course', function ($courseQuery) use ($user) {
+                            $courseQuery->where('status', 'published')
+                                ->whereHas('enrollments', function ($enrollmentQuery) use ($user) {
+                                    $enrollmentQuery->where('user_id', $user->id)
+                                        ->whereIn('status', ['active', 'completed']);
+                                });
+                        })
+                        ->orderBy('order', 'asc');
+                }]);
+            } else {
+                $query->with(['assignments' => fn ($q) => $q->orderBy('order', 'asc')]);
             }
         }
 
-        return $query->paginate($perPage);
+        // Build QueryBuilder with Spatie (without includes, we handle them manually above)
+        $queryBuilder = \Spatie\QueryBuilder\QueryBuilder::for($query)
+            ->allowedFilters([
+                \Spatie\QueryBuilder\AllowedFilter::exact('status'),
+                \Spatie\QueryBuilder\AllowedFilter::callback('course_slug', function ($query, $value) {
+                    $query->whereHas('course', function ($q) use ($value) {
+                        $q->where('slug', $value);
+                    });
+                }),
+                \Spatie\QueryBuilder\AllowedFilter::callback('search', function ($query, $value) {
+                    $query->search($value);
+                }),
+            ])
+            ->allowedSorts(['order', 'title', 'created_at', 'updated_at'])
+            ->defaultSort('-created_at')
+            ->with('course:id,slug,title'); // Always load course for course_slug and course_name
+
+        return $queryBuilder->paginate($perPage);
     }
 
     public function getContentOrder(Unit $unit): array

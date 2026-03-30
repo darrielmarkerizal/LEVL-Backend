@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Modules\Common\Models\Audit;
+use Modules\Common\Models\AuditLog;
 
 class CreateAuditJob implements ShouldQueue
 {
@@ -37,7 +37,7 @@ class CreateAuditJob implements ShouldQueue
      */
     public function handle(): void
     {
-        Audit::create($this->auditData);
+        AuditLog::create($this->auditData);
     }
 
     /**

@@ -147,13 +147,8 @@ class UnitController extends Controller
     {
         $user = auth('api')->user();
 
-        $filters = $request->query('filter', []);
-        if ($request->has('search')) {
-            $filters['search'] = $request->query('search');
-        }
-
         $paginator = $this->service->paginateAll(
-            $filters,
+            [],
             (int) $request->query('per_page', 15),
             $user
         );

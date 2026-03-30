@@ -25,7 +25,8 @@ class UnitResource extends JsonResource
 
         $data = [
             'id' => $this->id,
-            'course_id' => $this->course_id,
+            'course_slug' => $this->course?->slug,
+            'course_name' => $this->course?->title,
             'code' => $this->code,
             'slug' => $this->slug,
             'title' => $this->title,
@@ -38,6 +39,105 @@ class UnitResource extends JsonResource
 
         if ($isManager || $isEnrolledStudent) {
             $data['lessons'] = LessonResource::collection($this->whenLoaded('lessons'));
+            
+            // Add quizzes and assignments for managers and enrolled students
+            $data['quizzes'] = $this->whenLoaded('quizzes', function () {
+                return $this->quizzes->map(function ($quiz) {
+                    return [
+                        'id' => $quiz->id,
+                        'title' => $quiz->title,
+                        'order' => $quiz->order,
+                        'status' => $quiz->status?->value,
+                        'status_label' => $quiz->status ? __('enums.quiz_status.'.$quiz->status->value) : null,
+                        'randomization_type' => $quiz->randomization_type,
+                        'time_limit_minutes' => $quiz->time_limit_minutes,
+                        'passing_grade' => $quiz->passing_grade,
+                        'max_attempts' => $quiz->max_attempts,
+                        'max_score' => $quiz->max_score,
+                        'created_at' => $quiz->created_at?->toIso8601String(),
+                        'updated_at' => $quiz->updated_at?->toIso8601String(),
+                    ];
+                });
+            });
+            
+            $data['assignments'] = $this->whenLoaded('assignments', function () {
+                return $this->assignments->map(function ($assignment) {
+                    return [
+                        'id' => $assignment->id,
+                        'title' => $assignment->title,
+                        'order' => $assignment->order,
+                        'status' => $assignment->status?->value,
+                        'status_label' => $assignment->status ? __('enums.assignment_status.'.$assignment->status->value) : null,
+                        'submission_type' => $assignment->submission_type?->value,
+                        'submission_type_label' => $assignment->submission_type ? __('enums.submission_type.'.$assignment->submission_type->value) : null,
+                        'max_score' => $assignment->max_score,
+                        'deadline_at' => $assignment->deadline_at?->toIso8601String(),
+                        'created_at' => $assignment->created_at?->toIso8601String(),
+                        'updated_at' => $assignment->updated_at?->toIso8601String(),
+                    ];
+                });
+            });
+            
+            // Add combined 'elements' array if all three are loaded
+            if ($this->relationLoaded('lessons') && $this->relationLoaded('quizzes') && $this->relationLoaded('assignments')) {
+                $elements = collect();
+                
+                // Add lessons
+                foreach ($this->lessons as $lesson) {
+                    $elements->push([
+                        'id' => $lesson->id,
+                        'type' => 'lesson',
+                        'title' => $lesson->title,
+                        'slug' => $lesson->slug,
+                        'order' => $lesson->order,
+                        'status' => $lesson->status,
+                        'duration_minutes' => $lesson->duration_minutes,
+                        'xp_reward' => $lesson->xp_reward,
+                        'created_at' => $lesson->created_at?->toIso8601String(),
+                        'updated_at' => $lesson->updated_at?->toIso8601String(),
+                    ]);
+                }
+                
+                // Add quizzes
+                foreach ($this->quizzes as $quiz) {
+                    $elements->push([
+                        'id' => $quiz->id,
+                        'type' => 'quiz',
+                        'title' => $quiz->title,
+                        'order' => $quiz->order,
+                        'status' => $quiz->status?->value,
+                        'status_label' => $quiz->status ? __('enums.quiz_status.'.$quiz->status->value) : null,
+                        'randomization_type' => $quiz->randomization_type,
+                        'time_limit_minutes' => $quiz->time_limit_minutes,
+                        'passing_grade' => $quiz->passing_grade,
+                        'max_attempts' => $quiz->max_attempts,
+                        'max_score' => $quiz->max_score,
+                        'created_at' => $quiz->created_at?->toIso8601String(),
+                        'updated_at' => $quiz->updated_at?->toIso8601String(),
+                    ]);
+                }
+                
+                // Add assignments
+                foreach ($this->assignments as $assignment) {
+                    $elements->push([
+                        'id' => $assignment->id,
+                        'type' => 'assignment',
+                        'title' => $assignment->title,
+                        'order' => $assignment->order,
+                        'status' => $assignment->status?->value,
+                        'status_label' => $assignment->status ? __('enums.assignment_status.'.$assignment->status->value) : null,
+                        'submission_type' => $assignment->submission_type?->value,
+                        'submission_type_label' => $assignment->submission_type ? __('enums.submission_type.'.$assignment->submission_type->value) : null,
+                        'max_score' => $assignment->max_score,
+                        'deadline_at' => $assignment->deadline_at?->toIso8601String(),
+                        'created_at' => $assignment->created_at?->toIso8601String(),
+                        'updated_at' => $assignment->updated_at?->toIso8601String(),
+                    ]);
+                }
+                
+                // Sort by order
+                $data['elements'] = $elements->sortBy('order')->values()->all();
+            }
         }
 
         // Add progress info for students

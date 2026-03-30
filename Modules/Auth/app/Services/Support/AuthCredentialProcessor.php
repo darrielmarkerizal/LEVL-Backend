@@ -49,15 +49,17 @@ class AuthCredentialProcessor
         ?string $userAgent,
     ): void {
         dispatch(new CreateAuditJob([
-            'action' => 'update',
+            'action' => 'profile_update',
+            'subject_type' => User::class,
+            'subject_id' => $user->id,
+            'actor_type' => User::class,
+            'actor_id' => $user->id,
             'user_id' => $user->id,
-            'module' => 'Auth',
-            'target_table' => 'users',
-            'target_id' => $user->id,
-            'ip_address' => $ip,
-            'user_agent' => $userAgent,
-            'meta' => ['action' => 'profile.update', 'changes' => $changes],
-            'logged_at' => now(),
+            'context' => [
+                'changes' => $changes,
+                'ip_address' => $ip,
+                'user_agent' => $userAgent,
+            ],
         ]));
     }
 
@@ -69,19 +71,18 @@ class AuthCredentialProcessor
         ?string $userAgent,
     ): void {
         dispatch(new CreateAuditJob([
-            'action' => 'update',
+            'action' => 'email_change_request',
+            'subject_type' => User::class,
+            'subject_id' => $user->id,
+            'actor_type' => User::class,
+            'actor_id' => $user->id,
             'user_id' => $user->id,
-            'module' => 'Auth',
-            'target_table' => 'users',
-            'target_id' => $user->id,
-            'ip_address' => $ip,
-            'user_agent' => $userAgent,
-            'meta' => [
-                'action' => 'email.change.request',
+            'context' => [
                 'new_email' => $newEmail,
                 'uuid' => $uuid,
+                'ip_address' => $ip,
+                'user_agent' => $userAgent,
             ],
-            'logged_at' => now(),
         ]));
     }
 }

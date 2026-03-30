@@ -38,9 +38,9 @@ class UnitPolicy
             return true;
         }
 
-        // Instructor can view units in their courses
+        // Instructor can view units in their assigned courses
         if ($user->hasRole('Instructor')) {
-            return $course->instructor_id === $user->id;
+            return $course->instructors()->where('user_id', $user->id)->exists();
         }
 
         // Student can view if enrolled
@@ -65,8 +65,8 @@ class UnitPolicy
             return true;
         }
 
-        // Instructor can create units in their courses
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+        // Instructor can create units in their assigned courses
+        return $user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists();
     }
 
     public function update(User $user, Unit $unit): bool
@@ -85,8 +85,8 @@ class UnitPolicy
             return true;
         }
 
-        // Instructor can update units in their courses
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+        // Instructor can update units in their assigned courses
+        return $user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists();
     }
 
     public function delete(User $user, Unit $unit): bool
@@ -105,8 +105,8 @@ class UnitPolicy
             return true;
         }
 
-        // Instructor can delete units in their courses
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+        // Instructor can delete units in their assigned courses
+        return $user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists();
     }
 
     public function reorder(User $user, Unit $unit): bool

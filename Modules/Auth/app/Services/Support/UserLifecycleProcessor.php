@@ -269,15 +269,17 @@ class UserLifecycleProcessor
 
             if (! empty($changes)) {
                 dispatch(new CreateAuditJob([
-                    'action' => 'update',
+                    'action' => 'profile_update',
+                    'subject_type' => User::class,
+                    'subject_id' => $user->id,
+                    'actor_type' => User::class,
+                    'actor_id' => $user->id,
                     'user_id' => $user->id,
-                    'module' => 'Auth',
-                    'target_table' => 'users',
-                    'target_id' => $user->id,
-                    'meta' => ['action' => 'profile.update', 'changes' => $changes],
-                    'logged_at' => now(),
-                    'ip_address' => $ip,
-                    'user_agent' => $userAgent,
+                    'context' => [
+                        'changes' => $changes,
+                        'ip_address' => $ip,
+                        'user_agent' => $userAgent,
+                    ],
                 ]));
             }
 

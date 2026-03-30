@@ -94,17 +94,17 @@ class LogApiAction
 
             dispatch(new \App\Jobs\CreateAuditJob([
                 'action' => $action,
-                'actor_id' => $user?->id,
                 'actor_type' => $user ? get_class($user) : null,
+                'actor_id' => $user?->id,
                 'user_id' => $user?->id,
-                'module' => $module,
-                'target_table' => $targetTable,
-                'target_id' => $targetId,
-                'context' => 'application',
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'meta' => $meta,
-                'logged_at' => now(),
+                'context' => [
+                    'module' => $module,
+                    'target_table' => $targetTable,
+                    'target_id' => $targetId,
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'meta' => $meta,
+                ],
             ]));
         } catch (\Exception $e) {
             Log::error('Failed to log API action: '.$e->getMessage(), [
