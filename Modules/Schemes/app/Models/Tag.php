@@ -73,13 +73,14 @@ class Tag extends Model
         'slug',
     ];
 
-    public function courses(): BelongsToMany
+    public function courses(): \Illuminate\Database\Eloquent\Relations\MorphToMany
     {
-        return $this->belongsToMany(
+        return $this->morphedByMany(
             Course::class,
-            'course_tag_pivot',
+            'taggable',
+            'taggables',
             'tag_id',
-            'course_id'
+            'taggable_id'
         )->withTimestamps();
     }
 

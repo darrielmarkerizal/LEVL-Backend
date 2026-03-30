@@ -128,8 +128,6 @@ class CourseSeederEnhanced extends Seeder
             return;
         }
 
-        $courseTags = [];
-
         foreach ($courses as $course) {
             $numTags = fake()->numberBetween(3, 8);
             $selectedTags = $tags->random(min($numTags, $tags->count()));
@@ -138,20 +136,9 @@ class CourseSeederEnhanced extends Seeder
                 $selectedTags = collect([$selectedTags]);
             }
 
-            foreach ($selectedTags as $tag) {
-                $courseTags[] = [
-                    'course_id' => $course->id,
-                    'tag_id' => $tag->id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
-        }
-
-        if (! empty($courseTags)) {
-            foreach (array_chunk($courseTags, 200) as $chunk) {
-                DB::table('course_tag_pivot')->insertOrIgnore($chunk);
-            }
+            // Use polymorphic relationship to attach tags
+            $tagIds = $selectedTags->pluck('id')->toArray();
+            $course->tags()->syncWithoutDetaching($tagIds);
         }
     }
 

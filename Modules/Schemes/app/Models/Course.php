@@ -199,18 +199,14 @@ class Course extends Model implements HasMedia
         ]);
     }
 
-    public function tagPivot(): HasMany
+    public function tags(): \Illuminate\Database\Eloquent\Relations\MorphToMany
     {
-        return $this->hasMany(CourseTag::class, 'course_id');
-    }
-
-    public function tags(): BelongsToMany
-    {
-        return $this->belongsToMany(
+        return $this->morphToMany(
             Tag::class,
-            'course_tag_pivot',
-            'course_id',
-            'tag_id',
+            'taggable',
+            'taggables',
+            'taggable_id',
+            'tag_id'
         )->withTimestamps();
     }
 
