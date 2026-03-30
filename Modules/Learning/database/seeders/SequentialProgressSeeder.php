@@ -139,12 +139,12 @@ class SequentialProgressSeeder extends Seeder
 
     private function processLessonCompletion(int $studentId, Lesson $lesson, string $studentType): bool
     {
-        $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
-        $accessCheck = $prerequisiteService->checkLessonAccess($lesson, $studentId);
-
-        if (! $accessCheck['accessible']) {
-            return false;
-        }
+        // Skip prerequisite check in seeder for performance
+        // $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
+        // $accessCheck = $prerequisiteService->checkLessonAccess($lesson, $studentId);
+        // if (! $accessCheck['accessible']) {
+        //     return false;
+        // }
 
         $completionChance = match ($studentType) {
             'complete' => 100,
@@ -186,12 +186,12 @@ class SequentialProgressSeeder extends Seeder
 
     private function processAssignmentProgress(int $studentId, Assignment $assignment, int $enrollmentId, string $studentType): bool
     {
-        $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
-        $accessCheck = $prerequisiteService->checkAssignmentAccess($assignment, $studentId);
-
-        if (! $accessCheck['accessible']) {
-            return false;
-        }
+        // Skip prerequisite check in seeder for performance
+        // $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
+        // $accessCheck = $prerequisiteService->checkAssignmentAccess($assignment, $studentId);
+        // if (! $accessCheck['accessible']) {
+        //     return false;
+        // }
 
         if (! $enrollmentId) {
             return false;
@@ -291,12 +291,12 @@ class SequentialProgressSeeder extends Seeder
 
     private function processQuizProgress(int $studentId, Quiz $quiz, int $enrollmentId, string $studentType): bool
     {
-        $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
-        $accessCheck = $prerequisiteService->checkQuizAccess($quiz, $studentId);
-
-        if (! $accessCheck['accessible']) {
-            return false;
-        }
+        // Skip prerequisite check in seeder for performance
+        // $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
+        // $accessCheck = $prerequisiteService->checkQuizAccess($quiz, $studentId);
+        // if (! $accessCheck['accessible']) {
+        //     return false;
+        // }
 
         if (! $enrollmentId) {
             return false;

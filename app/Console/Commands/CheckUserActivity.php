@@ -7,7 +7,7 @@ use Modules\Auth\Models\User;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Learning\Models\QuizSubmission;
 use Modules\Learning\Models\Submission;
-use Modules\Schemes\Models\LessonCompletion;
+use Modules\Enrollments\Models\LessonProgress;
 
 class CheckUserActivity extends Command
 {
@@ -51,20 +51,25 @@ class CheckUserActivity extends Command
 
         // 3. Check lesson completions
         $this->line('--- LESSON COMPLETIONS ---');
-        $lessonCompletions = LessonCompletion::where('user_id', $userId)->get();
+        $lessonCompletions = LessonProgress::query()
+            ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
+            ->where('enrollments.user_id', $userId)
+            ->where('lesson_progress.status', 'completed')
+            ->select('lesson_progress.*')
+            ->get();
         $this->info('Total lesson completions: '.$lessonCompletions->count());
 
         if ($lessonCompletions->count() > 0) {
             foreach ($lessonCompletions->take(5) as $completion) {
-                $lesson = $completion->lesson;
-                $unit = $lesson->unit;
-                $course = $unit->course;
+                $lesson = \Modules\Schemes\Models\Lesson::find($completion->lesson_id);
+                $unit = $lesson->unit ?? null;
+                $course = $unit->course ?? null;
 
                 $this->line("  - Lesson ID: {$completion->lesson_id}");
                 $this->line("    Lesson: {$lesson->title}");
-                $this->line("    Unit: {$unit->title}");
-                $this->line("    Course ID: {$course->id}");
-                $this->line("    Course: {$course->title}");
+                $this->line("    Unit: ".($unit ? $unit->title : 'N/A'));
+                $this->line("    Course ID: ".($course ? $course->id : 'N/A'));
+                $this->line("    Course: ".($course ? $course->title : 'N/A'));
                 $this->line("    Completed at: {$completion->completed_at}");
                 $this->line("    Updated at: {$completion->updated_at}\n");
             }

@@ -71,7 +71,11 @@ class DashboardService
             ->get();
 
         // Get lesson completions for sorting
-        $lessonCompletions = \Modules\Schemes\Models\LessonCompletion::where('user_id', $userId)
+        $lessonCompletions = \Modules\Enrollments\Models\LessonProgress::query()
+            ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
+            ->where('enrollments.user_id', $userId)
+            ->where('lesson_progress.status', 'completed')
+            ->select('lesson_progress.*')
             ->get()
             ->groupBy('lesson_id')
             ->map(fn ($group) => $group->first());
@@ -98,14 +102,21 @@ class DashboardService
             $totalLessons = $course->units->sum(fn ($unit) => $unit->lessons->count());
 
             // Get completed lessons
-            $completedLessons = \Modules\Schemes\Models\LessonCompletion::where('user_id', $userId)
-                ->whereIn('lesson_id', $course->units->flatMap(fn ($unit) => $unit->lessons->pluck('id')))
+            $completedLessons = \Modules\Enrollments\Models\LessonProgress::query()
+                ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
+                ->where('enrollments.user_id', $userId)
+                ->where('lesson_progress.status', 'completed')
+                ->whereIn('lesson_progress.lesson_id', $course->units->flatMap(fn ($unit) => $unit->lessons->pluck('id')))
                 ->count();
 
             // Get last accessed lesson
-            $lastLesson = \Modules\Schemes\Models\LessonCompletion::where('user_id', $userId)
-                ->whereIn('lesson_id', $course->units->flatMap(fn ($unit) => $unit->lessons->pluck('id')))
-                ->latest('updated_at')
+            $lastLesson = \Modules\Enrollments\Models\LessonProgress::query()
+                ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
+                ->where('enrollments.user_id', $userId)
+                ->where('lesson_progress.status', 'completed')
+                ->whereIn('lesson_progress.lesson_id', $course->units->flatMap(fn ($unit) => $unit->lessons->pluck('id')))
+                ->select('lesson_progress.*')
+                ->latest('lesson_progress.updated_at')
                 ->first();
 
             $lastLessonData = null;
@@ -312,7 +323,11 @@ class DashboardService
     private function getLearningHours(int $userId): float
     {
         // Count lesson completions (assume 15 minutes per lesson)
-        $lessonCount = \Modules\Schemes\Models\LessonCompletion::where('user_id', $userId)->count();
+        $lessonCount = \Modules\Enrollments\Models\LessonProgress::query()
+            ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
+            ->where('enrollments.user_id', $userId)
+            ->where('lesson_progress.status', 'completed')
+            ->count();
         $lessonHours = ($lessonCount * 15) / 60;
 
         // Count quiz submissions (assume 20 minutes per quiz)

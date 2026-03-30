@@ -4,7 +4,7 @@ use Modules\Auth\Models\User;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Learning\Models\QuizSubmission;
 use Modules\Learning\Models\Submission;
-use Modules\Schemes\Models\LessonCompletion;
+use Modules\Enrollments\Models\LessonProgress;
 
 $userId = 8;
 
@@ -39,13 +39,19 @@ if ($enrollments->count() > 0) {
 
 // 3. Check lesson completions
 echo "--- LESSON COMPLETIONS ---\n";
-$lessonCompletions = LessonCompletion::where('user_id', $userId)->get();
+$lessonCompletions = LessonProgress::query()
+    ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
+    ->where('enrollments.user_id', $userId)
+    ->where('lesson_progress.status', 'completed')
+    ->select('lesson_progress.*')
+    ->get();
 echo 'Total lesson completions: '.$lessonCompletions->count()."\n";
 
 if ($lessonCompletions->count() > 0) {
     foreach ($lessonCompletions->take(5) as $completion) {
+        $lesson = \Modules\Schemes\Models\Lesson::find($completion->lesson_id);
         echo "  - Lesson ID: {$completion->lesson_id}\n";
-        echo "    Lesson: {$completion->lesson->title}\n";
+        echo "    Lesson: {$lesson->title}\n";
         echo "    Completed at: {$completion->completed_at}\n";
         echo "    Updated at: {$completion->updated_at}\n\n";
     }

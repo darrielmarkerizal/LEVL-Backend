@@ -255,9 +255,12 @@ class UnitService
 
         $completedLessonIds = [];
         if ($user) {
-            $completedLessonIds = \Modules\Schemes\Models\LessonCompletion::where('user_id', $user->id)
-                ->whereIn('lesson_id', $lessonIds)
-                ->pluck('lesson_id')
+            $completedLessonIds = \Modules\Enrollments\Models\LessonProgress::query()
+                ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
+                ->where('enrollments.user_id', $user->id)
+                ->where('lesson_progress.status', 'completed')
+                ->whereIn('lesson_progress.lesson_id', $lessonIds)
+                ->pluck('lesson_progress.lesson_id')
                 ->toArray();
         }
 

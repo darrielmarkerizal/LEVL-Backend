@@ -73,14 +73,20 @@ class Lesson extends Model
         return $this->hasMany(LessonBlock::class);
     }
 
-    public function completions(): HasMany
+    public function progress(): HasMany
     {
-        return $this->hasMany(LessonCompletion::class);
+        return $this->hasMany(\Modules\Enrollments\Models\LessonProgress::class);
     }
 
     public function isCompletedBy(int $userId): bool
     {
-        return $this->completions()->where('user_id', $userId)->exists();
+        // Check via lesson_progress table using enrollment_id
+        return \DB::table('lesson_progress')
+            ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
+            ->where('lesson_progress.lesson_id', $this->id)
+            ->where('enrollments.user_id', $userId)
+            ->where('lesson_progress.status', 'completed')
+            ->exists();
     }
 
     public function getRouteKeyName(): string
