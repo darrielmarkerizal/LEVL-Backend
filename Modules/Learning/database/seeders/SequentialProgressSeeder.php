@@ -407,15 +407,13 @@ class SequentialProgressSeeder extends Seeder
         }
 
         try {
-            $submissionFile = \Modules\Learning\Models\SubmissionFile::create([
-                'submission_id' => $submission->id,
-            ]);
-
-            $submissionFile->addMedia($dummyFilePath)
+            // Files are now stored directly in submissions table or via media library
+            // Attach file directly to submission model
+            $submission->addMedia($dummyFilePath)
                 ->preservingOriginal()
                 ->usingName('submission-'.$submission->id)
                 ->usingFileName('submission-'.$submission->id.'.pdf')
-                ->toMediaCollection('file', 'do');
+                ->toMediaCollection('files', 'do');
         } catch (\Exception $e) {
             echo "⚠️  Failed to attach file for submission {$submission->id}: ".$e->getMessage()."\n";
         }
@@ -475,13 +473,8 @@ class SequentialProgressSeeder extends Seeder
         \DB::table('quiz_answers')->delete();
         echo "  ✓ Cleaned quiz answers\n";
 
-        \DB::table('media')->where('collection_name', 'file')->whereIn('model_id', function ($query) {
-            $query->select('id')->from('submission_files');
-        })->delete();
-        echo "  ✓ Cleaned submission files media\n";
-
-        \DB::table('submission_files')->delete();
-        echo "  ✓ Cleaned submission files\n";
+        // submission_files table was dropped in Phase 1 optimization
+        // Files are now stored directly in submissions table as JSON
 
         \DB::table('submissions')->delete();
         echo "  ✓ Cleaned submissions\n";

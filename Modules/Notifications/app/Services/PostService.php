@@ -254,13 +254,15 @@ class PostService
     public function markAsViewed(Post $post, int $userId): void
     {
         try {
-            PostView::firstOrCreate(
+            // Use polymorphic content_reads instead of post_views
+            \Modules\Common\Models\ContentRead::firstOrCreate(
                 [
-                    'post_id' => $post->id,
+                    'readable_type' => 'Modules\\Notifications\\Models\\Post',
+                    'readable_id' => $post->id,
                     'user_id' => $userId,
                 ],
                 [
-                    'viewed_at' => now(),
+                    'read_at' => now(),
                 ]
             );
         } catch (\Exception $e) {
