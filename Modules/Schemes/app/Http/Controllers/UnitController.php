@@ -186,4 +186,46 @@ class UnitController extends Controller
 
         return $this->success($content, __('messages.units.content_reordered'));
     }
+
+    public function storeGlobal(\Modules\Schemes\Http\Requests\GlobalUnitRequest $request)
+    {
+        $validated = $request->validated();
+        $courseSlug = $validated['course_slug'];
+
+        $course = Course::where('slug', $courseSlug)->firstOrFail();
+        $this->authorize('update', $course);
+
+        $unit = $this->service->create($course->id, $validated);
+
+        // Return minimal response for create operation (avoid loading unnecessary relations)
+        return $this->created([
+            'unit' => [
+                'id' => $unit->id,
+                'course_slug' => $course->slug,
+                'course_name' => $course->title,
+                'code' => $unit->code,
+                'slug' => $unit->slug,
+                'title' => $unit->title,
+                'description' => $unit->description,
+                'order' => $unit->order,
+                'status' => $unit->status,
+                'created_at' => $unit->created_at?->toIso8601String(),
+                'updated_at' => $unit->updated_at?->toIso8601String(),
+            ],
+        ], __('messages.units.created'));
+    }
+
+    public function generateSlug(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+        ]);
+
+        $slug = $this->service->generateUniqueSlug($request->input('title'));
+
+        return $this->success(
+            $slug,
+            __('messages.units.slug_generated')
+        );
+    }
 }

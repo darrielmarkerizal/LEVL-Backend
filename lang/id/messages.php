@@ -134,6 +134,11 @@ return [
         'code_unique' => 'Kode unit ini sudah digunakan. Gunakan kode yang berbeda.',
         'title_required' => 'Judul unit wajib diisi.',
         'order_unique' => 'Posisi urutan ini sudah digunakan di kursus ini.',
+        'course_slug_required' => 'Slug kursus wajib diisi.',
+        'course_slug_not_found' => 'Kursus dengan slug tersebut tidak ditemukan.',
+        'slug_unique' => 'Slug ini sudah digunakan. Gunakan slug yang berbeda.',
+        'slug_format' => 'Slug harus berupa huruf kecil, angka, dan tanda hubung saja (contoh: unit-saya).',
+        'slug_generated' => 'Slug berhasil dibuat.',
     ],
 
     // Lessons

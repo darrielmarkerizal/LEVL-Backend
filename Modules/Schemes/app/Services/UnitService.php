@@ -84,6 +84,21 @@ class UnitService
 
         $unit->load('course');
         $user = auth('api')->user();
+        
+        // Check if 'elements' is requested in include
+        $requestedIncludes = array_filter(explode(',', $includeParam));
+        $hasElementsInclude = in_array('elements', $requestedIncludes);
+        
+        // If elements is requested, replace it with lessons, quizzes, assignments
+        if ($hasElementsInclude) {
+            $requestedIncludes = array_diff($requestedIncludes, ['elements']);
+            $requestedIncludes = array_merge($requestedIncludes, ['lessons', 'quizzes', 'assignments']);
+            $requestedIncludes = array_unique($requestedIncludes);
+            
+            // Override the include parameter for Spatie
+            request()->merge(['include' => implode(',', $requestedIncludes)]);
+        }
+        
         $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $unit);
 
         return QueryBuilder::for(Unit::class)
@@ -102,16 +117,31 @@ class UnitService
                 $attributes['code'] = CodeGenerator::generate('UNIT-', 4, Unit::class);
             }
 
+            // Get max order for this course
+            $maxOrder = Unit::where('course_id', $courseId)->max('order') ?? 0;
+
             if (isset($attributes['order'])) {
+                // Normalize order if it exceeds max + 1 (prevent gaps)
+                if ($attributes['order'] > $maxOrder + 1) {
+                    $attributes['order'] = $maxOrder + 1;
+                }
+
+                // Shift existing units if inserting in between
                 Unit::where('course_id', $courseId)
                     ->where('order', '>=', $attributes['order'])
                     ->increment('order');
             } else {
-                $maxOrder = Unit::where('course_id', $courseId)->max('order');
-                $attributes['order'] = $maxOrder ? $maxOrder + 1 : 1;
+                // Auto-assign next order
+                $attributes['order'] = $maxOrder + 1;
             }
 
-            $attributes = Arr::except($attributes, ['slug']);
+            // Handle custom slug if provided, otherwise let model auto-generate
+            if (empty($attributes['slug'])) {
+                $attributes = Arr::except($attributes, ['slug']);
+            }
+
+            // Remove course_slug from attributes (only used for routing)
+            $attributes = Arr::except($attributes, ['course_slug']);
 
             $unit = $this->repository->create($attributes);
             cache()->tags(['schemes', 'units'])->flush();
@@ -639,5 +669,19 @@ class UnitService
 
             return $this->getContentOrder($unit);
         });
+    }
+
+    public function generateUniqueSlug(string $title): string
+    {
+        $baseSlug = \Illuminate\Support\Str::slug($title);
+        $slug = $baseSlug;
+        $counter = 1;
+
+        while (Unit::where('slug', $slug)->exists()) {
+            $slug = $baseSlug.'-'.$counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 }

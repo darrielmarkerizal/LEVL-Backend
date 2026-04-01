@@ -134,6 +134,11 @@ return [
         'code_unique' => 'This unit code is already in use. Please choose a different one.',
         'title_required' => 'A unit title is required.',
         'order_unique' => 'This order position is already occupied in the course.',
+        'course_slug_required' => 'Course slug is required.',
+        'course_slug_not_found' => 'Course with the specified slug was not found.',
+        'slug_unique' => 'This slug is already in use. Please choose a different one.',
+        'slug_format' => 'Slug must be lowercase alphanumeric with hyphens only (e.g., my-unit-slug).',
+        'slug_generated' => 'Slug generated successfully.',
     ],
 
     // Lessons

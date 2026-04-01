@@ -61,6 +61,12 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('units.show');
     });
 
+    // Global unit management (Admin, Instructor)
+    Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
+        Route::post('units/generate-slug', [UnitController::class, 'generateSlug'])->name('units.generate-slug');
+        Route::post('units', [UnitController::class, 'storeGlobal'])->name('units.store');
+    });
+
     // Global lesson routes (without course/unit context)
     Route::middleware(['auth:api'])->group(function () {
         Route::get('lessons', [LessonController::class, 'indexAll'])->name('lessons.index');

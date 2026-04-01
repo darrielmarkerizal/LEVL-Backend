@@ -81,6 +81,7 @@ class UnitResource extends JsonResource
             // Add combined 'elements' array if all three are loaded
             if ($this->relationLoaded('lessons') && $this->relationLoaded('quizzes') && $this->relationLoaded('assignments')) {
                 $elements = collect();
+                $unitOrder = $this->order;
                 
                 // Add lessons
                 foreach ($this->lessons as $lesson) {
@@ -90,6 +91,7 @@ class UnitResource extends JsonResource
                         'title' => $lesson->title,
                         'slug' => $lesson->slug,
                         'order' => $lesson->order,
+                        'sequence' => $unitOrder . '.' . $lesson->order,
                         'status' => $lesson->status,
                         'duration_minutes' => $lesson->duration_minutes,
                         'xp_reward' => $lesson->xp_reward,
@@ -105,6 +107,7 @@ class UnitResource extends JsonResource
                         'type' => 'quiz',
                         'title' => $quiz->title,
                         'order' => $quiz->order,
+                        'sequence' => $unitOrder . '.' . $quiz->order,
                         'status' => $quiz->status?->value,
                         'status_label' => $quiz->status ? __('enums.quiz_status.'.$quiz->status->value) : null,
                         'randomization_type' => $quiz->randomization_type,
@@ -124,6 +127,7 @@ class UnitResource extends JsonResource
                         'type' => 'assignment',
                         'title' => $assignment->title,
                         'order' => $assignment->order,
+                        'sequence' => $unitOrder . '.' . $assignment->order,
                         'status' => $assignment->status?->value,
                         'status_label' => $assignment->status ? __('enums.assignment_status.'.$assignment->status->value) : null,
                         'submission_type' => $assignment->submission_type?->value,

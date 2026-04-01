@@ -15,6 +15,8 @@ class UnitIncludeAuthorizer
 
     private const ENROLLED_STUDENT_INCLUDES = [
         'lessons',
+        'quizzes',
+        'assignments',
     ];
 
     private const MANAGER_INCLUDES = [
