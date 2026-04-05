@@ -154,6 +154,15 @@ class CourseFinder
             return null;
         }
 
+        $requestedIncludes = array_filter(explode(',', $includeParam));
+        if (in_array('elements', $requestedIncludes)) {
+            $requestedIncludes = array_diff($requestedIncludes, ['elements']);
+            if (!in_array('units', $requestedIncludes)) {
+                $requestedIncludes[] = 'units';
+            }
+            $request->merge(['include' => implode(',', $requestedIncludes)]);
+        }
+
         // Build QueryBuilder with includes
         $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $course);
 

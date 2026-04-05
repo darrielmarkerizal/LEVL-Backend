@@ -128,6 +128,7 @@ class TrashBinService
                 'metadata' => [
                     'title' => $this->extractDisplayTitle($model),
                     'course_id' => $this->extractCourseId($model),
+                    'original_order' => $this->extractOrder($model),
                 ],
                 'restored_at' => null,
                 'force_deleted_at' => null,
@@ -148,14 +149,72 @@ class TrashBinService
             ->where('trashable_id', (int) $model->getKey())
             ->first();
 
-        if ($bin && $this->hasStatusColumn($model) && ! empty($bin->original_status)) {
-            $model->forceFill(['status' => $bin->original_status]);
-            $model->saveQuietly();
-        }
-
         if ($bin) {
+            // Restore original status
+            if ($this->hasStatusColumn($model) && ! empty($bin->original_status)) {
+                $model->forceFill(['status' => $bin->original_status]);
+                $model->saveQuietly();
+            }
+
+            // Restore original order for lessons, quizzes, and assignments
+            if ($this->hasOrderColumn($model) && isset($bin->metadata['original_order'])) {
+                $this->restoreOriginalOrder($model, (int) $bin->metadata['original_order']);
+            }
+
             $bin->delete();
         }
+    }
+
+    private function restoreOriginalOrder(Model $model, int $originalOrder): void
+    {
+        $unitId = null;
+        
+        if ($model instanceof Lesson) {
+            $unitId = $model->unit_id;
+        } elseif ($model instanceof Quiz || $model instanceof Assignment) {
+            $unitId = $model->unit_id;
+        }
+
+        if (!$unitId) {
+            return;
+        }
+
+        DB::transaction(function () use ($model, $originalOrder, $unitId) {
+            $currentOrder = $model->order;
+
+            // Make space for the restored element at its original position
+            // Increment order of all elements >= original order
+            Lesson::where('unit_id', $unitId)
+                ->where('order', '>=', $originalOrder)
+                ->where('id', '!=', $model->getKey())
+                ->increment('order');
+            
+            Quiz::where('unit_id', $unitId)
+                ->where('order', '>=', $originalOrder)
+                ->where('id', '!=', $model->getKey())
+                ->increment('order');
+            
+            Assignment::where('unit_id', $unitId)
+                ->where('order', '>=', $originalOrder)
+                ->where('id', '!=', $model->getKey())
+                ->increment('order');
+
+            // Set the restored element to its original order
+            $model->forceFill(['order' => $originalOrder]);
+            $model->saveQuietly();
+        });
+    }
+
+    private function hasOrderColumn(Model $model): bool
+    {
+        $table = $model->getTable();
+        $cacheKey = "schema:has_order_column:{$table}";
+
+        return \Illuminate\Support\Facades\Cache::remember(
+            $cacheKey,
+            now()->addHours(24),
+            fn () => Schema::hasColumn($table, 'order')
+        );
     }
 
     public function afterForceDeleted(Model $model): void
@@ -677,6 +736,7 @@ class TrashBinService
             'metadata' => json_encode([
                 'title' => $this->extractDisplayTitle($model),
                 'course_id' => $courseId,
+                'original_order' => $this->extractOrder($model),
             ]),
             'restored_at' => null,
             'force_deleted_at' => null,
@@ -789,6 +849,15 @@ class TrashBinService
             $courseId = $model->getCourseId();
 
             return $courseId !== null ? (int) $courseId : null;
+        }
+
+        return null;
+    }
+
+    private function extractOrder(Model $model): ?int
+    {
+        if ($model instanceof Lesson || $model instanceof Quiz || $model instanceof Assignment) {
+            return $model->order !== null ? (int) $model->order : null;
         }
 
         return null;

@@ -108,7 +108,29 @@ class QuizService implements QuizServiceInterface
 
     public function delete(Quiz $quiz): bool
     {
-        return DB::transaction(fn () => $this->repository->delete($quiz));
+        return DB::transaction(function () use ($quiz) {
+            $unitId = $quiz->unit_id;
+            $deletedOrder = $quiz->order;
+
+            $deleted = $this->repository->delete($quiz);
+
+            if ($deleted) {
+                // Reorder remaining elements in the unit
+                \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)
+                    ->where('order', '>', $deletedOrder)
+                    ->decrement('order');
+                
+                Quiz::where('unit_id', $unitId)
+                    ->where('order', '>', $deletedOrder)
+                    ->decrement('order');
+                
+                \Modules\Learning\Models\Assignment::where('unit_id', $unitId)
+                    ->where('order', '>', $deletedOrder)
+                    ->decrement('order');
+            }
+
+            return $deleted;
+        });
     }
 
     public function publish(Quiz $quiz): Quiz

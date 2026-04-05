@@ -145,7 +145,7 @@ class AssignmentEnrichmentService
 
     public function enrichSingleForStudent(Assignment $assignment, int $userId): array
     {
-        $assignment->load(['unit:id,slug,course_id', 'unit.course:id,slug', 'creator:id,name', 'media']);
+        $assignment->load(['unit:id,slug,title,code,course_id', 'unit.course:id,slug,title,code', 'creator:id,name', 'media']);
 
         $submission = Submission::where('user_id', $userId)
             ->where('assignment_id', $assignment->id)
@@ -155,7 +155,6 @@ class AssignmentEnrichmentService
         $submissionData = $this->calculateSubmissionData($assignment, $submission, $userId);
         $prerequisiteCheck = $this->prerequisiteService->checkAssignmentAccess($assignment, $userId);
 
-        // Get XP rewards
         $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
             'assignment_submitted',
             'perfect_score',
@@ -164,15 +163,44 @@ class AssignmentEnrichmentService
         $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 0;
         $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
+        $attachmentFiles = $assignment->getMedia('attachments')->map(fn ($media) => [
+            'id' => $media->id,
+            'file_name' => $media->file_name,
+            'file_url' => $media->getUrl(),
+            'url' => $media->getUrl(),
+            'size' => $media->size,
+            'mime_type' => $media->mime_type,
+        ])->toArray();
+
+        $maxFileSizeInBytes = (int) config('media-library.max_file_size', 52428800);
+        $maxFileSizeInMb = (int) ceil($maxFileSizeInBytes / 1024 / 1024);
+
         return [
             'id' => $assignment->id,
             'title' => $assignment->title,
             'description' => $assignment->description,
+            'instructions' => $assignment->description,
             'submission_type' => $assignment->submission_type->value,
             'max_score' => $assignment->max_score,
             'passing_grade' => $assignment->passing_grade,
             'status' => $assignment->status->value,
+            'accepted_formats' => ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.jpg', '.jpeg', '.png', '.webp'],
+            'max_file_size' => $maxFileSizeInMb,
+            'grading_scheme' => "Manual Grading by Instructor (1 - {$assignment->max_score} Points)",
             'unit_slug' => $assignment->unit->slug ?? null,
+            'course_slug' => $assignment->unit->course->slug ?? null,
+            'unit' => [
+                'id' => $assignment->unit->id ?? null,
+                'slug' => $assignment->unit->slug ?? null,
+                'title' => $assignment->unit->title ?? null,
+                'code' => $assignment->unit->code ?? null,
+                'course' => $assignment->unit?->course ? [
+                    'id' => $assignment->unit->course->id,
+                    'slug' => $assignment->unit->course->slug,
+                    'title' => $assignment->unit->course->title,
+                    'code' => $assignment->unit->course->code,
+                ] : null,
+            ],
             'is_locked' => ! $prerequisiteCheck['accessible'],
             'submission_status' => $submissionData['submission_status'],
             'submission_status_label' => $submissionData['submission_status_label'],
@@ -182,13 +210,8 @@ class AssignmentEnrichmentService
             'attempts_used' => $submissionData['attempts_used'],
             'xp_reward' => $baseXp,
             'xp_perfect_bonus' => $perfectScoreXp,
-            'attachments' => $assignment->getMedia('attachments')->map(fn ($media) => [
-                'id' => $media->id,
-                'name' => $media->file_name,
-                'url' => $media->getUrl(),
-                'size' => $media->size,
-                'mime_type' => $media->mime_type,
-            ])->toArray(),
+            'attached_files' => $attachmentFiles,
+            'attachments' => $attachmentFiles,
             'creator' => $assignment->creator ? [
                 'id' => $assignment->creator->id,
                 'name' => $assignment->creator->name,

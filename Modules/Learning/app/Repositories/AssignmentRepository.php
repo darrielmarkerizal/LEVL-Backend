@@ -56,7 +56,7 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
 
     public function findWithRelations(Assignment $assignment): Assignment
     {
-        return $assignment->loadMissing(['creator:id,name,email', 'unit:id,title,slug', 'questions']);
+        return $assignment->loadMissing(['creator:id,name,email', 'unit:id,title,slug,code,course_id', 'unit.course:id,slug,title,code', 'questions']);
     }
 
     public function findForDuplication(int $id): ?Assignment

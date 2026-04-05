@@ -32,7 +32,12 @@ class ContentService
 
     private function createLesson(Unit $unit, array $data): array
     {
-        $lesson = $this->lessonService->create($unit, $data);
+        // Set default status if not provided
+        if (!isset($data['status'])) {
+            $data['status'] = 'draft';
+        }
+
+        $lesson = $this->lessonService->create($unit->id, $data);
 
         return [
             'type' => 'lesson',
@@ -40,14 +45,19 @@ class ContentService
             'slug' => $lesson->slug,
             'title' => $lesson->title,
             'order' => $lesson->order,
-            'status' => $lesson->status->value,
+            'status' => $lesson->status?->value ?? 'draft',
             'data' => $lesson,
         ];
     }
 
     private function createAssignment(Unit $unit, array $data, int $creatorId): array
     {
-        $data['unit_slug'] = $unit->slug;
+        // Set default status if not provided
+        if (!isset($data['status'])) {
+            $data['status'] = 'draft';
+        }
+
+        $data['unit_id'] = $unit->id;
         $assignment = $this->assignmentService->create($data, $creatorId);
 
         return [
@@ -56,14 +66,19 @@ class ContentService
             'slug' => null,
             'title' => $assignment->title,
             'order' => $assignment->order,
-            'status' => $assignment->status->value,
+            'status' => $assignment->status?->value ?? 'draft',
             'data' => $assignment,
         ];
     }
 
     private function createQuiz(Unit $unit, array $data, int $creatorId): array
     {
-        $data['unit_slug'] = $unit->slug;
+        // Set default status if not provided
+        if (!isset($data['status'])) {
+            $data['status'] = 'draft';
+        }
+
+        $data['unit_id'] = $unit->id;
         $quiz = $this->quizService->create($data, $creatorId);
 
         return [
@@ -72,7 +87,7 @@ class ContentService
             'slug' => null,
             'title' => $quiz->title,
             'order' => $quiz->order,
-            'status' => $quiz->status->value,
+            'status' => $quiz->status?->value ?? 'draft',
             'data' => $quiz,
         ];
     }

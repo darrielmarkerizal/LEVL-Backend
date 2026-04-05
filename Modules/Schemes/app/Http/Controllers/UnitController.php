@@ -228,4 +228,26 @@ class UnitController extends Controller
             __('messages.units.slug_generated')
         );
     }
+
+    public function getContentMetadata(Request $request, int $contentId)
+    {
+        $metadataService = app(\Modules\Schemes\Services\ContentMetadataService::class);
+        
+        try {
+            // Check if type parameter is provided
+            $type = $request->query('type');
+            
+            if ($type && in_array($type, ['lesson', 'assignment', 'quiz'])) {
+                // Use specific type lookup for better accuracy
+                $metadata = $metadataService->getContentMetadata($contentId, $type);
+            } else {
+                // Auto-detect type
+                $metadata = $metadataService->getContentMetadataByIdOnly($contentId);
+            }
+            
+            return $this->success($metadata, __('messages.content.metadata_retrieved'));
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->error(__('messages.content.not_found'), 404);
+        }
+    }
 }

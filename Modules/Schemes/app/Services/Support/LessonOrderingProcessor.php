@@ -87,7 +87,16 @@ class LessonOrderingProcessor
             $deleted = $this->repository->delete($lesson);
 
             if ($deleted) {
+                // Reorder remaining elements in the unit
                 Lesson::where('unit_id', $unitId)
+                    ->where('order', '>', $deletedOrder)
+                    ->decrement('order');
+                
+                \Modules\Learning\Models\Quiz::where('unit_id', $unitId)
+                    ->where('order', '>', $deletedOrder)
+                    ->decrement('order');
+                
+                \Modules\Learning\Models\Assignment::where('unit_id', $unitId)
                     ->where('order', '>', $deletedOrder)
                     ->decrement('order');
             }

@@ -65,6 +65,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
     Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
         Route::post('units/generate-slug', [UnitController::class, 'generateSlug'])->name('units.generate-slug');
         Route::post('units', [UnitController::class, 'storeGlobal'])->name('units.store');
+        Route::get('contents/{contentId}/metadata', [UnitController::class, 'getContentMetadata'])->name('contents.metadata');
     });
 
     // Global lesson routes (without course/unit context)

@@ -139,6 +139,17 @@ return [
         'slug_unique' => 'This slug is already in use. Please choose a different one.',
         'slug_format' => 'Slug must be lowercase alphanumeric with hyphens only (e.g., my-unit-slug).',
         'slug_generated' => 'Slug generated successfully.',
+        'content_order_retrieved' => 'Unit content order retrieved successfully.',
+        'content_reordered' => 'Unit content reordered successfully.',
+    ],
+
+    // Content
+    'content' => [
+        'created' => 'Content created successfully.',
+        'updated' => 'Content updated successfully.',
+        'deleted' => 'Content deleted successfully.',
+        'not_found' => 'The requested content could not be found.',
+        'metadata_retrieved' => 'Content metadata retrieved successfully.',
     ],
 
     // Lessons

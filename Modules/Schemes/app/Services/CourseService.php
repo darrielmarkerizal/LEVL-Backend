@@ -241,7 +241,7 @@ class CourseService implements CourseServiceInterface
 
     public function canAccessProtectedIncludes(?int $userId, Course $course, array $requestedIncludes): bool
     {
-        $protectedIncludes = ['lessons', 'progress', 'enrollment'];
+        $protectedIncludes = ['lessons', 'progress', 'enrollment', 'elements'];
         $hasProtectedIncludes = !empty(array_intersect($requestedIncludes, $protectedIncludes));
 
         if (!$hasProtectedIncludes) {

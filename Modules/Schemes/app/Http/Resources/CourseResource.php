@@ -6,6 +6,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class CourseResource extends JsonResource
 {
+    protected ?array $elementsData;
+
+    public function __construct($resource, ?array $elementsData = null)
+    {
+        parent::__construct($resource);
+        $this->elementsData = $elementsData;
+    }
     public function toArray($request): array
     {
         $user = auth('api')->user();
@@ -78,11 +85,22 @@ class CourseResource extends JsonResource
             }
         }
 
-        if ($isManager || ($isStudent && $enrollment && $enrollment->status->value === 'active')) {
-            // For students, add progress info to units
+        if ($isManager || ($isStudent && $enrollment && in_array($enrollment->status->value, ['active', 'completed']))) {
             if ($isStudent && $enrollment && $this->relationLoaded('units')) {
                 $data['units'] = $this->units->map(function ($unit) use ($enrollment) {
-                    return new UnitResource($unit, $enrollment);
+                    $resource = new UnitResource($unit, $enrollment);
+                    if ($this->elementsData && isset($this->elementsData[$unit->id])) {
+                        $resource->setElements($this->elementsData[$unit->id]);
+                    }
+                    return $resource;
+                });
+            } elseif ($this->relationLoaded('units')) {
+                $data['units'] = $this->units->map(function ($unit) {
+                    $resource = new UnitResource($unit);
+                    if ($this->elementsData && isset($this->elementsData[$unit->id])) {
+                        $resource->setElements($this->elementsData[$unit->id]);
+                    }
+                    return $resource;
                 });
             } else {
                 $data['units'] = $this->whenLoaded('units');
@@ -91,6 +109,8 @@ class CourseResource extends JsonResource
             $data['lessons'] = $this->whenLoaded('lessons');
             $data['quizzes'] = $this->whenLoaded('quizzes');
             $data['assignments'] = $this->whenLoaded('assignments');
+        } else {
+            $data['units'] = $this->whenLoaded('units');
         }
 
         // Add overall course progress for students

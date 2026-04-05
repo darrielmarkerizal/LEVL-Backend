@@ -139,6 +139,17 @@ return [
         'slug_unique' => 'Slug ini sudah digunakan. Gunakan slug yang berbeda.',
         'slug_format' => 'Slug harus berupa huruf kecil, angka, dan tanda hubung saja (contoh: unit-saya).',
         'slug_generated' => 'Slug berhasil dibuat.',
+        'content_order_retrieved' => 'Urutan konten unit berhasil diambil.',
+        'content_reordered' => 'Urutan konten unit berhasil diperbarui.',
+    ],
+
+    // Content
+    'content' => [
+        'created' => 'Konten berhasil dibuat.',
+        'updated' => 'Konten berhasil diperbarui.',
+        'deleted' => 'Konten berhasil dihapus.',
+        'not_found' => 'Konten yang diminta tidak ditemukan.',
+        'metadata_retrieved' => 'Metadata konten berhasil diambil.',
     ],
 
     // Lessons

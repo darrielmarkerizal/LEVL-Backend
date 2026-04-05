@@ -10,11 +10,18 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class UnitResource extends JsonResource
 {
     protected $enrollment;
+    protected ?array $elements = null;
 
     public function __construct($resource, $enrollment = null)
     {
         parent::__construct($resource);
         $this->enrollment = $enrollment;
+    }
+
+    public function setElements(array $elements): static
+    {
+        $this->elements = $elements;
+        return $this;
     }
 
     public function toArray(Request $request): array
@@ -147,6 +154,10 @@ class UnitResource extends JsonResource
         // Add progress info for students
         if ($isEnrolledStudent && $this->enrollment) {
             $data['progress'] = $this->getUnitProgress($this->enrollment);
+        }
+
+        if ($this->elements !== null) {
+            $data['elements'] = $this->elements;
         }
 
         return $data;

@@ -202,7 +202,29 @@ class AssignmentService implements AssignmentServiceInterface
 
     public function delete(Assignment $assignment): bool
     {
-        return DB::transaction(fn () => $this->repository->delete($assignment));
+        return DB::transaction(function () use ($assignment) {
+            $unitId = $assignment->unit_id;
+            $deletedOrder = $assignment->order;
+
+            $deleted = $this->repository->delete($assignment);
+
+            if ($deleted) {
+                // Reorder remaining elements in the unit
+                \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)
+                    ->where('order', '>', $deletedOrder)
+                    ->decrement('order');
+                
+                \Modules\Learning\Models\Quiz::where('unit_id', $unitId)
+                    ->where('order', '>', $deletedOrder)
+                    ->decrement('order');
+                
+                Assignment::where('unit_id', $unitId)
+                    ->where('order', '>', $deletedOrder)
+                    ->decrement('order');
+            }
+
+            return $deleted;
+        });
     }
 
     public function getWithRelations(Assignment $assignment): Assignment

@@ -23,41 +23,89 @@ class AssignmentResource extends JsonResource
 
     private function toStudentArray(): array
     {
+        $attachmentFiles = $this->resource->getMedia('attachments')->map(function ($media) {
+            return [
+                'id' => $media->id,
+                'file_name' => $media->file_name,
+                'file_url' => $media->getUrl(),
+                'url' => $media->getUrl(),
+                'mime_type' => $media->mime_type,
+                'size' => $media->size,
+            ];
+        });
+
         return [
             'id' => $this->resource->id,
             'title' => $this->resource->title,
             'description' => $this->resource->description,
+            'instructions' => $this->resource->description,
             'submission_type' => $this->resource->submission_type?->value ?? $this->resource->submission_type,
             'max_score' => $this->resource->max_score,
             'passing_grade' => $this->resource->passing_grade,
             'review_mode' => $this->resource->review_mode?->value ?? $this->resource->review_mode,
+            'accepted_formats' => $this->acceptedFormats(),
+            'max_file_size' => $this->maxFileSizeInMb(),
+            'grading_scheme' => $this->gradingScheme(),
             'unit_slug' => $this->resource->unit->slug ?? null,
             'course_slug' => $this->resource->unit->course->slug ?? null,
-            'attachments' => $this->resource->getMedia('attachments')->map(function ($media) {
-                return [
-                    'id' => $media->id,
-                    'file_name' => $media->file_name,
-                    'url' => $media->getUrl(),
-                    'mime_type' => $media->mime_type,
-                    'size' => $media->size,
-                ];
-            }),
+            'unit' => [
+                'id' => $this->resource->unit->id ?? null,
+                'slug' => $this->resource->unit->slug ?? null,
+                'title' => $this->resource->unit->title ?? null,
+                'code' => $this->resource->unit->code ?? null,
+                'course' => $this->resource->unit?->course ? [
+                    'id' => $this->resource->unit->course->id,
+                    'slug' => $this->resource->unit->course->slug,
+                    'title' => $this->resource->unit->course->title,
+                    'code' => $this->resource->unit->course->code,
+                ] : null,
+            ],
+            'attached_files' => $attachmentFiles,
+            'attachments' => $attachmentFiles,
             'created_at' => $this->resource->created_at?->toIso8601String(),
         ];
     }
 
     private function toInstructorArray(): array
     {
+        $attachmentFiles = $this->resource->getMedia('attachments')->map(function ($media) {
+            return [
+                'id' => $media->id,
+                'file_name' => $media->file_name,
+                'file_url' => $media->getUrl(),
+                'url' => $media->getUrl(),
+                'mime_type' => $media->mime_type,
+                'size' => $media->size,
+            ];
+        });
+
         return [
             'id' => $this->resource->id,
             'title' => $this->resource->title,
             'description' => $this->resource->description,
+            'instructions' => $this->resource->description,
             'submission_type' => $this->resource->submission_type?->value ?? $this->resource->submission_type,
             'max_score' => $this->resource->max_score,
+            'passing_grade' => $this->resource->passing_grade,
             'review_mode' => $this->resource->review_mode?->value ?? $this->resource->review_mode,
             'status' => $this->resource->status?->value ?? $this->resource->status,
+            'accepted_formats' => $this->acceptedFormats(),
+            'max_file_size' => $this->maxFileSizeInMb(),
+            'grading_scheme' => $this->gradingScheme(),
             'unit_slug' => $this->resource->unit->slug ?? null,
             'course_slug' => $this->resource->unit->course->slug ?? null,
+            'unit' => [
+                'id' => $this->resource->unit->id ?? null,
+                'slug' => $this->resource->unit->slug ?? null,
+                'title' => $this->resource->unit->title ?? null,
+                'code' => $this->resource->unit->code ?? null,
+                'course' => $this->resource->unit?->course ? [
+                    'id' => $this->resource->unit->course->id,
+                    'slug' => $this->resource->unit->course->slug,
+                    'title' => $this->resource->unit->course->title,
+                    'code' => $this->resource->unit->course->code,
+                ] : null,
+            ],
             'is_available' => $this->resource->isAvailable(),
             'created_at' => $this->resource->created_at?->toIso8601String(),
             'updated_at' => $this->resource->updated_at?->toIso8601String(),
@@ -80,15 +128,27 @@ class AssignmentResource extends JsonResource
                     ];
                 });
             }),
-            'attachments' => $this->resource->getMedia('attachments')->map(function ($media) {
-                return [
-                    'id' => $media->id,
-                    'url' => $media->getUrl(),
-                    'file_name' => $media->file_name,
-                    'mime_type' => $media->mime_type,
-                    'size' => $media->size,
-                ];
-            }),
+            'attached_files' => $attachmentFiles,
+            'attachments' => $attachmentFiles,
         ];
+    }
+
+    private function acceptedFormats(): array
+    {
+        return ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.jpg', '.jpeg', '.png', '.webp'];
+    }
+
+    private function maxFileSizeInMb(): int
+    {
+        $maxFileSizeInBytes = (int) config('media-library.max_file_size', 52428800);
+
+        return (int) ceil($maxFileSizeInBytes / 1024 / 1024);
+    }
+
+    private function gradingScheme(): string
+    {
+        $maxScore = (int) ($this->resource->max_score ?? 100);
+
+        return "Manual Grading by Instructor (1 - {$maxScore} Points)";
     }
 }

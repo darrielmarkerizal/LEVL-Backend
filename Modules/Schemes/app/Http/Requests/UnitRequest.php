@@ -22,6 +22,13 @@ class UnitRequest extends FormRequest
                 \Illuminate\Validation\Rule::unique('units', 'code')->ignore($unitId),
             ],
             'title' => ['required', 'string', 'max:255'],
+            'slug' => [
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^[a-z0-9-]+$/',
+                \Illuminate\Validation\Rule::unique('units', 'slug')->ignore($unitId),
+            ],
             'description' => ['nullable', 'string'],
             'order' => [
                 'nullable',
@@ -41,6 +48,8 @@ class UnitRequest extends FormRequest
             'code.required' => __('messages.units.code_required'),
             'code.unique' => __('messages.units.code_unique'),
             'title.required' => __('messages.units.title_required'),
+            'slug.unique' => __('messages.units.slug_unique'),
+            'slug.regex' => __('messages.units.slug_format'),
             'order.unique' => __('messages.units.order_unique'),
         ];
     }

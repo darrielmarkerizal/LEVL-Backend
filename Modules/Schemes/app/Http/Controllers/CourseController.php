@@ -15,6 +15,7 @@ use Modules\Schemes\Http\Requests\PublishCourseRequest;
 use Modules\Schemes\Http\Resources\CourseResource;
 use Modules\Schemes\Jobs\DeleteCourseJob;
 use Modules\Schemes\Models\Course;
+use Modules\Schemes\Services\UnitService;
 
 class CourseController extends Controller
 {
@@ -22,6 +23,7 @@ class CourseController extends Controller
 
     public function __construct(
         private readonly CourseServiceInterface $service,
+        private readonly UnitService $unitService,
     ) {}
 
     public function index(Request $request)
@@ -74,7 +76,26 @@ class CourseController extends Controller
             return $this->notFound(__('messages.courses.not_found'));
         }
 
-        return $this->success(new CourseResource($courseWithIncludes));
+        $elementsData = null;
+        if (in_array('elements', $requestedIncludes)) {
+            $elementsData = $this->loadElementsForUnits($courseWithIncludes, $user);
+        }
+
+        return $this->success(new CourseResource($courseWithIncludes, $elementsData));
+    }
+
+    private function loadElementsForUnits(Course $course, $user): array
+    {
+        if (!$course->relationLoaded('units')) {
+            $course->load(['units' => fn ($q) => $q->where('status', 'published')->orderBy('order')]);
+        }
+
+        $elementsData = [];
+        foreach ($course->units as $unit) {
+            $elementsData[$unit->id] = $this->unitService->getContents($unit, $user);
+        }
+
+        return $elementsData;
     }
 
     public function update(CourseRequest $request, Course $course)

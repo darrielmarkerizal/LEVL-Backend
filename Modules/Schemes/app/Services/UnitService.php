@@ -176,7 +176,8 @@ class UnitService
                 }
             }
 
-            $attributes = Arr::except($attributes, ['slug']);
+            // Allow slug to be updated
+            // $attributes = Arr::except($attributes, ['slug']);
 
             $updated = $this->repository->update($unit, $attributes);
             cache()->tags(['schemes', 'units'])->flush();
@@ -380,6 +381,7 @@ class UnitService
                     'slug' => $item->slug,
                     'description' => $item->description,
                     'order' => $item->order,
+                    'sequence' => $unit->order . '.' . $item->order,
                     'status' => $item->status,
                     'created_at' => $item->created_at,
                     'is_completed' => $isCompleted,
@@ -404,6 +406,7 @@ class UnitService
                     'title' => $item->title,
                     'description' => $item->description,
                     'order' => $item->order,
+                    'sequence' => $unit->order . '.' . $item->order,
                     'status' => $item->status->value,
                     'max_score' => $item->max_score,
                     'passing_grade' => $item->passing_grade,
@@ -433,6 +436,7 @@ class UnitService
                     'title' => $item->title,
                     'description' => $item->description,
                     'order' => $item->order,
+                    'sequence' => $unit->order . '.' . $item->order,
                     'status' => $item->status->value,
                     'max_score' => $item->max_score,
                     'submission_type' => $item->submission_type->value,

@@ -20,7 +20,6 @@ return new class extends Migration
             $table->json('tags_json')->nullable();
             $table->json('outcomes_json')->nullable();
             $table->text('prereq_text')->nullable();
-            // $table->integer('duration_estimate')->nullable(); (Notes BE:Ganti di Response menampilkan by logic)
             $table->string('thumbnail_path', 255)->nullable();
             $table->string('banner_path', 255)->nullable();
             $table->enum('enrollment_type', ['auto_accept', 'key_based', 'approval'])->default('auto_accept');

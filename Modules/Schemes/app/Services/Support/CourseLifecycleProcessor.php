@@ -133,7 +133,8 @@ class CourseLifecycleProcessor
                     $outcomes = [$outcomes];
                 }
 
-                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'instructor_ids', 'outcomes']);
+                // Allow slug to be updated
+                $attributes = Arr::except($attributes, ['tags', 'tags_list', 'instructor_ids', 'outcomes']);
 
                 $this->repository->update($course, $attributes);
 
