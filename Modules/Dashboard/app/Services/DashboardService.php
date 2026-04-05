@@ -176,12 +176,15 @@ class DashboardService
 
     /**
      * Get recommended courses based on enrolled courses
+     * Only returns courses that user has NOT enrolled in
      */
     public function getRecommendedCourses(int $userId, int $limit = 2): Collection
     {
-        // Get user's enrolled courses
+        // Get user's enrolled courses (all statuses: pending, active, completed, rejected)
+        // We exclude ALL enrolled courses, not just active ones
         $enrolledCourseIds = Enrollment::where('user_id', $userId)
             ->pluck('course_id')
+            ->unique()
             ->toArray();
 
         if (empty($enrolledCourseIds)) {
@@ -190,12 +193,12 @@ class DashboardService
         }
 
         // Get category IDs from enrolled courses
-        $enrolledCourses = Course::whereIn('id', $enrolledCourseIds)->get();
+        $enrolledCourses = Course::whereIn('id', $enrolledCourseIds)->with('category')->get();
         $categoryIds = $enrolledCourses->pluck('category.id')->filter()->unique()->toArray();
 
-        // Find courses with similar categories
+        // Find courses with similar categories, excluding ALL enrolled courses
         $query = Course::query()
-            ->whereNotIn('id', $enrolledCourseIds)
+            ->whereNotIn('id', $enrolledCourseIds) // Exclude all enrolled courses
             ->where('status', 'published');
 
         if (! empty($categoryIds)) {
@@ -210,7 +213,7 @@ class DashboardService
             ->limit($limit)
             ->get();
 
-        // If not enough courses found, fill with popular courses
+        // If not enough courses found, fill with popular courses (also excluding enrolled)
         if ($courses->count() < $limit) {
             $remaining = $limit - $courses->count();
             $popularCourses = $this->getPopularCourses($remaining, array_merge($enrolledCourseIds, $courses->pluck('id')->toArray()));
