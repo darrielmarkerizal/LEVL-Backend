@@ -85,32 +85,24 @@ class CourseResource extends JsonResource
             }
         }
 
-        if ($isManager || ($isStudent && $enrollment && in_array($enrollment->status->value, ['active', 'completed']))) {
-            if ($isStudent && $enrollment && $this->relationLoaded('units')) {
-                $data['units'] = $this->units->map(function ($unit) use ($enrollment) {
-                    $resource = new UnitResource($unit, $enrollment);
-                    if ($this->elementsData && isset($this->elementsData[$unit->id])) {
-                        $resource->setElements($this->elementsData[$unit->id]);
-                    }
-                    return $resource;
-                });
-            } elseif ($this->relationLoaded('units')) {
-                $data['units'] = $this->units->map(function ($unit) {
-                    $resource = new UnitResource($unit);
-                    if ($this->elementsData && isset($this->elementsData[$unit->id])) {
-                        $resource->setElements($this->elementsData[$unit->id]);
-                    }
-                    return $resource;
-                });
-            } else {
-                $data['units'] = $this->whenLoaded('units');
-            }
+        $canViewElements = $isManager || ($isStudent && $enrollment && in_array($enrollment->status->value, ['active', 'completed']));
 
+        if ($this->relationLoaded('units')) {
+            $data['units'] = $this->units->map(function ($unit) use ($enrollment, $isStudent, $canViewElements) {
+                $resource = new UnitResource($unit, $isStudent ? $enrollment : null);
+                if ($canViewElements && $this->elementsData && isset($this->elementsData[$unit->id])) {
+                    $resource->setElements($this->elementsData[$unit->id]);
+                }
+                return $resource;
+            });
+        } else {
+            $data['units'] = $this->whenLoaded('units');
+        }
+
+        if ($canViewElements) {
             $data['lessons'] = $this->whenLoaded('lessons');
             $data['quizzes'] = $this->whenLoaded('quizzes');
             $data['assignments'] = $this->whenLoaded('assignments');
-        } else {
-            $data['units'] = $this->whenLoaded('units');
         }
 
         // Add overall course progress for students
