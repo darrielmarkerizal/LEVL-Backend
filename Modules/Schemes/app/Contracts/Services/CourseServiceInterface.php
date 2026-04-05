@@ -48,4 +48,8 @@ interface CourseServiceInterface
     public function canAccessCourse(?int $userId, Course $course): bool;
 
     public function canAccessProtectedIncludes(?int $userId, Course $course, array $requestedIncludes): bool;
+
+    public function filterIncludesByEnrollment(?int $userId, Course $course, array $requestedIncludes): array;
+
+    public function findBySlugWithFilteredIncludes(string $slug, array $includes): ?Course;
 }

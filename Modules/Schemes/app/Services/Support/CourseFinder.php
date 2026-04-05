@@ -321,4 +321,26 @@ class CourseFinder
 
         return $builder->paginate($perPage);
     }
+
+    public function findBySlugWithFilteredIncludes(string $slug, array $includes): ?Course
+    {
+        $user = auth('api')->user();
+
+        // Build base query
+        $query = Course::where('slug', $slug);
+
+        // Load filtered includes
+        if (!empty($includes)) {
+            $query->with($includes);
+        }
+
+        // Always load enrollments for authenticated users
+        if ($user) {
+            $query->with(['enrollments' => function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            }]);
+        }
+
+        return $query->first();
+    }
 }

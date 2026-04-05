@@ -63,21 +63,18 @@ class CourseController extends Controller
         $includes = $request->query('include', '');
         $requestedIncludes = array_filter(explode(',', $includes));
 
-        if (!$this->service->canAccessProtectedIncludes($userId, $course, $requestedIncludes)) {
-            if ($user) {
-                return $this->forbidden(__('messages.courses.enrollment_required'));
-            }
-            return $this->unauthorized(__('messages.courses.authentication_required'));
-        }
+        // Filter includes based on enrollment status
+        $allowedIncludes = $this->service->filterIncludesByEnrollment($userId, $course, $requestedIncludes);
 
-        $courseWithIncludes = $this->service->findBySlugWithIncludes($course->slug);
+        // Load course with filtered includes
+        $courseWithIncludes = $this->service->findBySlugWithFilteredIncludes($course->slug, $allowedIncludes);
 
         if (!$courseWithIncludes) {
             return $this->notFound(__('messages.courses.not_found'));
         }
 
         $elementsData = null;
-        if (in_array('elements', $requestedIncludes)) {
+        if (in_array('elements', $allowedIncludes)) {
             $elementsData = $this->loadElementsForUnits($courseWithIncludes, $user);
         }
 

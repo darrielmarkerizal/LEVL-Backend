@@ -274,4 +274,57 @@ class CourseService implements CourseServiceInterface
 
         return false;
     }
+
+    public function filterIncludesByEnrollment(?int $userId, Course $course, array $requestedIncludes): array
+    {
+        // Define public and restricted includes
+        $publicIncludes = ['category', 'tags', 'instructor', 'outcomes'];
+        $restrictedIncludes = ['units', 'elements', 'lessons', 'quizzes', 'assignments', 'progress', 'enrollments'];
+
+        // Check if user can access restricted content
+        $canAccessRestricted = false;
+        
+        if ($userId) {
+            $user = \Modules\Auth\Models\User::find($userId);
+            
+            if ($user) {
+                // Managers (Superadmin, Admin, Instructor) can access all
+                if ($user->hasRole('Superadmin') || $user->hasRole('Admin')) {
+                    $canAccessRestricted = true;
+                } elseif ($user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists()) {
+                    $canAccessRestricted = true;
+                } elseif ($user->hasRole('Student')) {
+                    // Students can only access if enrolled
+                    $canAccessRestricted = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
+                        ->where('course_id', $course->id)
+                        ->whereIn('status', ['active', 'completed'])
+                        ->exists();
+                }
+            }
+        }
+
+        // Filter requested includes
+        $allowedIncludes = [];
+        foreach ($requestedIncludes as $include) {
+            $include = trim($include);
+            
+            // Always allow public includes
+            if (in_array($include, $publicIncludes)) {
+                $allowedIncludes[] = $include;
+                continue;
+            }
+            
+            // Only allow restricted includes if user has access
+            if (in_array($include, $restrictedIncludes) && $canAccessRestricted) {
+                $allowedIncludes[] = $include;
+            }
+        }
+
+        return $allowedIncludes;
+    }
+
+    public function findBySlugWithFilteredIncludes(string $slug, array $includes): ?Course
+    {
+        return $this->finder->findBySlugWithFilteredIncludes($slug, $includes);
+    }
 }

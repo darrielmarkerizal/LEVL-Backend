@@ -46,6 +46,7 @@ class CourseResource extends JsonResource
             'status_label' => $this->status ? __('enums.course_status.'.$this->status->value) : null,
             'enrollment_status' => $isStudent ? $enrollment?->status?->value : null,
             'enrollment_status_label' => $isStudent && $enrollment?->status ? __('enums.enrollment_status.'.$enrollment->status->value) : null,
+            'is_enrolled' => $isStudent && $enrollment && in_array($enrollment->status->value, ['active', 'completed']),
             'published_at' => $this->published_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),
