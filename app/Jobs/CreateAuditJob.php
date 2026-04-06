@@ -19,6 +19,11 @@ class CreateAuditJob implements ShouldQueue
     public int $tries = 3;
 
     /**
+     * The number of seconds to wait before retrying the job.
+     */
+    public int $backoff = 5;
+
+    /**
      * The number of seconds the job can run before timing out.
      */
     public int $timeout = 30;

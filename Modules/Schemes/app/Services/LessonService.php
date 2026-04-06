@@ -55,7 +55,14 @@ class LessonService implements LessonServiceInterface
     {
         $lesson = $this->findOrFail($id);
 
-        return $this->orderingProcessor->update($lesson, $data);
+        $updated = $this->orderingProcessor->update($lesson, $data);
+
+        // Handle blocks reordering if provided
+        if (isset($data['blocks']) && is_array($data['blocks'])) {
+            $this->reorderBlocks($id, $data['blocks']);
+        }
+
+        return $updated->fresh(['blocks' => fn($q) => $q->orderBy('order')]);
     }
 
     public function delete(int $id): bool
@@ -87,5 +94,18 @@ class LessonService implements LessonServiceInterface
     public function getRepository(): LessonRepositoryInterface
     {
         return app(LessonRepositoryInterface::class);
+    }
+
+    private function reorderBlocks(int $lessonId, array $blocks): void
+    {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($lessonId, $blocks) {
+            foreach ($blocks as $blockData) {
+                \Modules\Schemes\Models\LessonBlock::where('lesson_id', $lessonId)
+                    ->where('id', $blockData['id'])
+                    ->update(['order' => $blockData['order']]);
+            }
+
+            cache()->tags(['schemes', 'lesson_blocks'])->flush();
+        });
     }
 }

@@ -38,6 +38,32 @@ class LessonResource extends JsonResource
             $data['blocks'] = LessonBlockResource::collection($this->whenLoaded('blocks'));
         }
 
+        // Add unit and course info when included via Spatie Query Builder
+        if ($this->relationLoaded('unit')) {
+            $unit = $this->unit;
+            $data['unit'] = [
+                'id' => $unit->id,
+                'slug' => $unit->slug,
+                'title' => $unit->title,
+                'code' => $unit->code,
+                'course_slug' => $unit->course_slug,
+            ];
+
+            // Add course info if loaded
+            if ($unit->relationLoaded('course')) {
+                $course = $unit->course;
+                $data['unit']['course'] = [
+                    'id' => $course->id,
+                    'slug' => $course->slug,
+                    'title' => $course->title,
+                    'code' => $course->code,
+                ];
+            }
+
+            // Add sequence (format: unit_order.lesson_order)
+            $data['sequence'] = $unit->order . '.' . $this->order;
+        }
+
         return $data;
     }
 

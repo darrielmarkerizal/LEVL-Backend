@@ -186,6 +186,21 @@ class LessonBlockService
         });
     }
 
+    public function reorder(int $lessonId, array $blocks): bool
+    {
+        return DB::transaction(function () use ($lessonId, $blocks) {
+            foreach ($blocks as $blockData) {
+                LessonBlock::where('lesson_id', $lessonId)
+                    ->where('id', $blockData['id'])
+                    ->update(['order' => $blockData['order']]);
+            }
+
+            cache()->tags(['schemes', 'lesson_blocks'])->flush();
+
+            return true;
+        });
+    }
+
     private function storeVideoMetadata($media): void
     {
         try {

@@ -200,6 +200,7 @@ return [
         'created' => 'Blok pelajaran berhasil dibuat.',
         'updated' => 'Blok pelajaran berhasil diperbarui.',
         'deleted' => 'Blok pelajaran berhasil dihapus.',
+        'reordered' => 'Urutan blok pelajaran berhasil diperbarui.',
         'not_found' => 'Blok pelajaran yang diminta tidak ditemukan.',
         'lesson_not_in_course' => 'Pelajaran ini tidak termasuk dalam kursus yang dimaksud.',
         'course_not_found' => 'Kursus terkait tidak ditemukan.',

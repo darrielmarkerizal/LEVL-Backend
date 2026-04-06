@@ -10,6 +10,7 @@ use Modules\Schemes\Enums\CourseStatus;
 use Modules\Schemes\Enums\CourseType;
 use Modules\Schemes\Enums\EnrollmentType;
 use Modules\Schemes\Enums\LevelTag;
+use Modules\Schemes\Enums\PublishStatus;
 
 trait HasSchemesRequestRules
 {
@@ -169,7 +170,10 @@ trait HasSchemesRequestRules
             'markdown_content' => ['nullable', 'string'],
             'order' => ['nullable', 'integer', 'min:1'],
             'duration_minutes' => ['sometimes', 'integer', 'min:0'],
-            'status' => ['sometimes', Rule::enum(CourseStatus::class)->only([CourseStatus::Draft, CourseStatus::Published])],
+            'status' => ['sometimes', Rule::enum(PublishStatus::class)],
+            'blocks' => ['sometimes', 'array'],
+            'blocks.*.id' => ['required_with:blocks', 'integer', 'exists:lesson_blocks,id'],
+            'blocks.*.order' => ['required_with:blocks', 'integer', 'min:1'],
         ];
     }
 

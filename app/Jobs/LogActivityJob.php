@@ -36,9 +36,15 @@ class LogActivityJob implements ShouldQueue
      */
     public function handle(): void
     {
-        activity($this->activityData['log_name'] ?? 'default')
-            ->causedBy($this->activityData['causer_id'] ?? null)
-            ->performedOn($this->activityData['subject'] ?? null)
+        $activityLogger = activity($this->activityData['log_name'] ?? 'default')
+            ->causedBy($this->activityData['causer_id'] ?? null);
+        
+        // Only call performedOn if subject is not null
+        if (isset($this->activityData['subject']) && $this->activityData['subject'] !== null) {
+            $activityLogger->performedOn($this->activityData['subject']);
+        }
+        
+        $activityLogger
             ->withProperties($this->activityData['properties'] ?? [])
             ->tap(function (\Illuminate\Database\Eloquent\Model $activity) {
                 if (! isset($this->activityData['device_info']) || ! is_array($this->activityData['device_info'])) {

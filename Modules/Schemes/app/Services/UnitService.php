@@ -541,6 +541,13 @@ class UnitService
             }
         }
 
+        // Handle search manually before QueryBuilder
+        // Support both 'search' and 'filter[search]' formats
+        $searchQuery = request()->query('search') ?? request()->query('filter.search');
+        if ($searchQuery && trim((string) $searchQuery) !== '') {
+            $query->search($searchQuery);
+        }
+
         // Build QueryBuilder with Spatie (without includes, we handle them manually above)
         $queryBuilder = \Spatie\QueryBuilder\QueryBuilder::for($query)
             ->allowedFilters([
@@ -551,7 +558,8 @@ class UnitService
                     });
                 }),
                 \Spatie\QueryBuilder\AllowedFilter::callback('search', function ($query, $value) {
-                    $query->search($value);
+                    // This is just to allow the filter, actual search is handled above
+                    // to avoid double search execution
                 }),
             ])
             ->allowedSorts(['order', 'title', 'created_at', 'updated_at'])

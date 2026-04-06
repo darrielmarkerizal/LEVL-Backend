@@ -158,6 +158,8 @@ Route::prefix('v1')->scopeBindings()->group(function () {
     Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
         Route::post('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/blocks', [LessonBlockController::class, 'store'])
             ->name('courses.units.lessons.blocks.store');
+        Route::put('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/blocks/reorder', [LessonBlockController::class, 'reorder'])
+            ->name('courses.units.lessons.blocks.reorder');
         Route::put('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/blocks/{block:slug}', [LessonBlockController::class, 'update'])
             ->name('courses.units.lessons.blocks.update');
         Route::delete('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/blocks/{block:slug}', [LessonBlockController::class, 'destroy'])

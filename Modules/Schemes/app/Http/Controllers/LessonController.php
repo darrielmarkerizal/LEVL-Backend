@@ -16,6 +16,8 @@ use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Services\LessonService;
 use Modules\Schemes\Services\ProgressionService;
+use Spatie\QueryBuilder\AllowedInclude;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class LessonController extends Controller
 {
@@ -67,7 +69,18 @@ class LessonController extends Controller
             return $error;
         }
 
-        $result = $this->service->getLessonForUser($lesson, $course, auth('api')->user());
+        // Use QueryBuilder to handle includes
+        $query = QueryBuilder::for(Lesson::class)
+            ->where('id', $lesson->id)
+            ->allowedIncludes([
+                AllowedInclude::relationship('unit.course'),
+                AllowedInclude::callback('blocks', function ($query) {
+                    $query->orderBy('order');
+                }),
+            ])
+            ->first();
+
+        $result = $this->service->getLessonForUser($query, $course, auth('api')->user());
 
         return $this->success(new LessonResource($result));
     }

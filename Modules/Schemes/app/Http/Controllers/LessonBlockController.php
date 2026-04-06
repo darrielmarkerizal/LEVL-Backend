@@ -89,6 +89,22 @@ class LessonBlockController extends Controller
         return $this->success(new LessonBlockResource($updated), __('messages.lesson_blocks.updated'));
     }
 
+    public function reorder(Request $request, Course $course, Unit $unit, Lesson $lesson)
+    {
+        $this->service->validateHierarchy($course->id, $unit->id, $lesson->id);
+        $this->authorize('update', $lesson);
+
+        $request->validate([
+            'blocks' => 'required|array',
+            'blocks.*.id' => 'required|integer|exists:lesson_blocks,id',
+            'blocks.*.order' => 'required|integer|min:1',
+        ]);
+
+        $this->service->reorder($lesson->id, $request->input('blocks'));
+
+        return $this->success([], __('messages.lesson_blocks.reordered'));
+    }
+
     public function destroy(Course $course, Unit $unit, Lesson $lesson, LessonBlock $block)
     {
         $this->service->validateHierarchy($course->id, $unit->id, $lesson->id);

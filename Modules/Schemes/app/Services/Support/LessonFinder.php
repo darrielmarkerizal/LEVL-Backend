@@ -34,7 +34,12 @@ class LessonFinder
                         AllowedFilter::exact('content_type'),
                         AllowedFilter::exact('status'),
                     ])
-                    ->allowedIncludes(['unit', 'blocks'])
+                    ->allowedIncludes([
+                        'unit',
+                        \Spatie\QueryBuilder\AllowedInclude::callback('blocks', function ($query) {
+                            $query->orderBy('order');
+                        }),
+                    ])
                     ->allowedSorts(['order', 'title', 'created_at'])
                     ->defaultSort('order')
                     ->paginate($perPage);
@@ -82,7 +87,7 @@ class LessonFinder
             }
         }
 
-        return $lesson->load('blocks');
+        return $lesson->load(['blocks' => fn($q) => $q->orderBy('order')]);
     }
 
     public function paginateAll(array $filters = [], int $perPage = 15, ?\Modules\Auth\Models\User $user = null): LengthAwarePaginator
@@ -136,7 +141,13 @@ class LessonFinder
             $allowedIncludes = ['unit', 'unit.course', 'blocks'];
             $validIncludes = array_intersect($includes, $allowedIncludes);
             if (! empty($validIncludes)) {
-                $query->with($validIncludes);
+                foreach ($validIncludes as $include) {
+                    if ($include === 'blocks') {
+                        $query->with(['blocks' => fn($q) => $q->orderBy('order')]);
+                    } else {
+                        $query->with($include);
+                    }
+                }
             }
         }
 
