@@ -114,4 +114,28 @@ class LessonBlockController extends Controller
 
         return $this->success([], __('messages.lesson_blocks.deleted'));
     }
+
+    public function bulkDestroy(Request $request, Course $course, Unit $unit, Lesson $lesson)
+    {
+        $this->service->validateHierarchy($course->id, $unit->id, $lesson->id);
+        $this->authorize('update', $lesson);
+
+        $validated = $request->validate([
+            'block_ids' => 'required|array',
+            'block_ids.*' => 'required|integer',
+        ]);
+
+        // Only delete blocks that belong to this lesson
+        $blockIds = $validated['block_ids'];
+        $deleted = $this->service->bulkDelete($lesson->id, $blockIds);
+
+        if ($deleted === 0) {
+            return $this->error(__('messages.lesson_blocks.not_found'), [], 404);
+        }
+
+        return $this->success(
+            ['deleted_count' => $deleted],
+            __('messages.lesson_blocks.bulk_deleted', ['count' => $deleted])
+        );
+    }
 }

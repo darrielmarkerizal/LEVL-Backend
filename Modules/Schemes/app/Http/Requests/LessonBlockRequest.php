@@ -22,36 +22,70 @@ class LessonBlockRequest extends FormRequest
         $maxMb = config('app.lesson_block_max_upload_mb', 50);
         $maxKb = $maxMb * 1024;
 
+        $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
+
         return [
-            'type' => ['required', BlockType::rule()],
+            'type' => [$isUpdate ? 'sometimes' : 'required', BlockType::rule()],
             'content' => 'nullable|string',
             'order' => 'nullable|integer|min:1',
-            
-            // External URL for link types
+            'video_source' => 'nullable|in:upload,embed',
             'external_url' => [
                 'nullable',
                 'url',
                 'max:500',
                 function ($attribute, $value, $fail) {
-                    $type = $this->input('type');
-                    $blockType = BlockType::tryFrom($type);
-                    
-                    if ($blockType && $blockType->requiresExternalUrl() && !$value) {
+                    $resolvedType = $this->resolveBlockType();
+                    if (! $resolvedType) {
+                        return;
+                    }
+
+                    $blockType = BlockType::tryFrom($resolvedType);
+                    if (! $blockType) {
+                        return;
+                    }
+
+                    if ($resolvedType === 'video') {
+                        $videoSource = $this->resolveVideoSource();
+                        $existingExternalUrl = $this->route('block')?->external_url;
+                        if ($videoSource === 'embed' && ! $value && ! $existingExternalUrl) {
+                            $fail(__('validation.custom.external_url.required_for_video_embed'));
+                        }
+                        return;
+                    }
+
+                    if ($blockType->requiresExternalUrl() && ! $value) {
                         $fail(__('validation.custom.external_url.required_for_type'));
                     }
                 },
             ],
-            
-            // Media file for upload types
             'media' => [
                 'nullable',
                 'file',
                 'max:'.$maxKb,
-                function ($attribute, $value, $fail) {
-                    $type = $this->input('type');
-                    $blockType = BlockType::tryFrom($type);
-                    
-                    if ($blockType && $blockType->requiresMedia() && !$value && !$this->input('external_url')) {
+                function ($attribute, $value, $fail) use ($isUpdate) {
+                    $resolvedType = $this->resolveBlockType();
+                    if (! $resolvedType) {
+                        return;
+                    }
+
+                    $existingMedia = $this->route('block')?->media;
+
+                    if ($resolvedType === 'image' && ! $value && ! $existingMedia) {
+                        $fail(__('validation.custom.media.required_for_image'));
+                        return;
+                    }
+
+                    if ($resolvedType === 'video' && $this->resolveVideoSource() === 'upload' && ! $value && ! $existingMedia) {
+                        $fail(__('validation.custom.media.required_for_video_upload'));
+                        return;
+                    }
+
+                    if ($isUpdate) {
+                        return;
+                    }
+
+                    $blockType = BlockType::tryFrom($resolvedType);
+                    if ($blockType && $blockType->requiresMedia() && ! $value && ! $this->input('external_url')) {
                         $fail(__('validation.custom.media.required_for_type'));
                     }
                 },
@@ -59,12 +93,17 @@ class LessonBlockRequest extends FormRequest
                     if (! $value) {
                         return;
                     }
-                    $type = $this->input('type');
+
+                    $resolvedType = $this->resolveBlockType();
+                    if (! $resolvedType) {
+                        return;
+                    }
+
                     $mime = $value->getMimeType();
                     $ok = true;
-                    if ($type === 'image') {
+                    if ($resolvedType === 'image') {
                         $ok = str_starts_with($mime, 'image/');
-                    } elseif ($type === 'video') {
+                    } elseif ($resolvedType === 'video') {
                         $ok = str_starts_with($mime, 'video/');
                     }
                     if (! $ok) {
@@ -82,10 +121,50 @@ class LessonBlockRequest extends FormRequest
             'content.string' => __('validation.string', ['attribute' => __('validation.attributes.content')]),
             'order.integer' => __('validation.integer', ['attribute' => __('validation.attributes.order')]),
             'order.min' => __('validation.min.numeric', ['attribute' => __('validation.attributes.order'), 'min' => 1]),
+            'video_source.in' => __('validation.in', ['attribute' => __('validation.attributes.video_source')]),
             'external_url.url' => __('validation.url', ['attribute' => __('validation.attributes.external_url')]),
             'external_url.max' => __('validation.max.string', ['attribute' => __('validation.attributes.external_url'), 'max' => 500]),
             'media.file' => __('validation.file', ['attribute' => __('validation.attributes.media')]),
             'media.max' => __('validation.max.file', ['attribute' => __('validation.attributes.media'), 'max' => config('app.lesson_block_max_upload_mb', 50)]),
         ];
+    }
+
+    private function resolveBlockType(): ?string
+    {
+        $type = $this->input('type');
+        if (is_string($type) && $type !== '') {
+            return $type;
+        }
+
+        $routeBlockType = $this->route('block')?->block_type;
+        if ($routeBlockType instanceof BlockType) {
+            return $routeBlockType->value;
+        }
+
+        if (is_string($routeBlockType) && $routeBlockType !== '') {
+            return $routeBlockType;
+        }
+
+        return null;
+    }
+
+    private function resolveVideoSource(): string
+    {
+        $videoSource = $this->input('video_source');
+        if (in_array($videoSource, ['upload', 'embed'], true)) {
+            return $videoSource;
+        }
+
+        $externalUrl = $this->input('external_url');
+        if (is_string($externalUrl) && $externalUrl !== '') {
+            return 'embed';
+        }
+
+        $existingExternalUrl = $this->route('block')?->external_url;
+        if (is_string($existingExternalUrl) && $existingExternalUrl !== '') {
+            return 'embed';
+        }
+
+        return 'upload';
     }
 }

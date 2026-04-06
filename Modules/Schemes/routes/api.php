@@ -160,6 +160,8 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.units.lessons.blocks.store');
         Route::put('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/blocks/reorder', [LessonBlockController::class, 'reorder'])
             ->name('courses.units.lessons.blocks.reorder');
+        Route::post('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/blocks/bulk-delete', [LessonBlockController::class, 'bulkDestroy'])
+            ->name('courses.units.lessons.blocks.bulk-destroy');
         Route::put('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/blocks/{block:slug}', [LessonBlockController::class, 'update'])
             ->name('courses.units.lessons.blocks.update');
         Route::delete('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/blocks/{block:slug}', [LessonBlockController::class, 'destroy'])

@@ -118,9 +118,12 @@ $base = [
         ],
         'external_url' => [
             'required_for_type' => 'URL eksternal wajib diisi untuk tipe link/youtube/drive/embed.',
+            'required_for_video_embed' => 'URL video wajib diisi ketika sumber video adalah embed.',
         ],
         'media' => [
             'required_for_type' => 'File media wajib diisi untuk tipe ini.',
+            'required_for_image' => 'File gambar wajib diisi.',
+            'required_for_video_upload' => 'File video wajib diisi ketika sumber video adalah unggah.',
             'mismatch_type' => 'Tipe file tidak sesuai dengan tipe block.',
         ],
         'attribute-name' => [
@@ -135,6 +138,7 @@ $base = [
         'type' => 'tipe',
         'external_url' => 'URL eksternal',
         'media' => 'file media',
+        'video_source' => 'sumber video',
         'content' => 'konten',
         'time_limit_minutes' => 'batas waktu (menit)',
         'max_score' => 'skor maksimal',

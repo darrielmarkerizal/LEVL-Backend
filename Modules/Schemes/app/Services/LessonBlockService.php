@@ -40,6 +40,7 @@ class LessonBlockService
             300,
             function () use ($lessonId, $filters) {
                 $query = QueryBuilder::for(LessonBlock::class, $this->buildQueryBuilderRequest($filters))
+                    ->with(['lesson.unit.course'])
                     ->where('lesson_id', $lessonId)
                     ->allowedFilters([
                         AllowedFilter::exact('block_type'),
@@ -106,13 +107,18 @@ class LessonBlockService
                 throw new \Illuminate\Database\Eloquent\ModelNotFoundException;
             }
 
+            // Type cannot be changed during update
             $update = [
-                'block_type' => $data['type'] ?? $block->block_type,
                 'content' => data_get($data, 'content', $block->content),
             ];
 
-            // Update external URL if provided
-            if (isset($data['external_url'])) {
+            $blockTypeValue = $block->block_type instanceof \BackedEnum
+                ? $block->block_type->value
+                : $block->block_type;
+
+            if (($data['video_source'] ?? null) === 'upload' && $blockTypeValue === 'video') {
+                $update['external_url'] = null;
+            } elseif (isset($data['external_url'])) {
                 $update['external_url'] = $data['external_url'];
             }
 
@@ -139,6 +145,10 @@ class LessonBlockService
 
             $block->update($update);
 
+            if (($data['video_source'] ?? null) === 'embed' && $blockTypeValue === 'video') {
+                $block->clearMediaCollection('media');
+            }
+
             if ($mediaFile) {
                 $block->clearMediaCollection('media');
 
@@ -146,8 +156,8 @@ class LessonBlockService
                     ->addMedia($mediaFile)
                     ->toMediaCollection('media');
 
-                $blockType = $data['type'] ?? $block->block_type;
-                if ($blockType === 'video') {
+                // Use existing block type for video metadata
+                if ($block->block_type === 'video') {
                     $this->storeVideoMetadata($media);
                 }
             }
@@ -198,6 +208,46 @@ class LessonBlockService
             cache()->tags(['schemes', 'lesson_blocks'])->flush();
 
             return true;
+        });
+    }
+
+    public function bulkDelete(int $lessonId, array $blockIds): int
+    {
+        return DB::transaction(function () use ($lessonId, $blockIds) {
+            $blocks = LessonBlock::where('lesson_id', $lessonId)
+                ->whereIn('id', $blockIds)
+                ->orderBy('order')
+                ->get();
+
+            if ($blocks->isEmpty()) {
+                return 0;
+            }
+
+            $deletedCount = 0;
+            $minOrder = $blocks->min('order');
+
+            foreach ($blocks as $block) {
+                if ($block->delete()) {
+                    $deletedCount++;
+                }
+            }
+
+            if ($deletedCount > 0) {
+                $remainingBlocks = LessonBlock::where('lesson_id', $lessonId)
+                    ->where('order', '>', $minOrder)
+                    ->orderBy('order')
+                    ->get();
+
+                $newOrder = $minOrder;
+                foreach ($remainingBlocks as $block) {
+                    $block->update(['order' => $newOrder]);
+                    $newOrder++;
+                }
+
+                cache()->tags(['schemes', 'lesson_blocks'])->flush();
+            }
+
+            return $deletedCount;
         });
     }
 

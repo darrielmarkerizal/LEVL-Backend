@@ -200,6 +200,7 @@ return [
         'created' => 'Lesson block created successfully.',
         'updated' => 'Lesson block updated successfully.',
         'deleted' => 'Lesson block deleted successfully.',
+        'bulk_deleted' => ':count lesson blocks deleted successfully.',
         'reordered' => 'Lesson blocks reordered successfully.',
         'not_found' => 'The requested lesson block could not be found.',
         'lesson_not_in_course' => 'This lesson does not belong to the specified course.',

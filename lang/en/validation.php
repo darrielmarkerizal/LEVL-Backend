@@ -173,6 +173,16 @@ return [
         'username' => [
             'regex' => 'Username may only contain letters, numbers, dots (.), underscores (_), and hyphens (-).',
         ],
+        'external_url' => [
+            'required_for_type' => 'The external URL is required for link/youtube/drive/embed types.',
+            'required_for_video_embed' => 'The video URL is required when video source is embed.',
+        ],
+        'media' => [
+            'required_for_type' => 'The media file is required for this type.',
+            'required_for_image' => 'The image file is required.',
+            'required_for_video_upload' => 'The video file is required when video source is upload.',
+            'mismatch_type' => 'The file type does not match the block type.',
+        ],
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
@@ -184,6 +194,9 @@ return [
         'title' => 'title',
         'description' => 'description',
         'type' => 'type',
+        'external_url' => 'external URL',
+        'media' => 'media file',
+        'video_source' => 'video source',
         'time_limit_minutes' => 'time limit (minutes)',
         'max_score' => 'maximum score',
         'available_from' => 'available from',
