@@ -277,12 +277,12 @@ class CourseService implements CourseServiceInterface
 
     public function filterIncludesByEnrollment(?int $userId, Course $course, array $requestedIncludes): array
     {
-        // Define public and restricted includes
-        $publicIncludes = ['category', 'tags', 'instructor', 'outcomes'];
-        $restrictedIncludes = ['units', 'elements', 'lessons', 'quizzes', 'assignments', 'progress', 'enrollments'];
+        // Define include categories
+        $publicIncludes = ['category', 'tags', 'instructor', 'outcomes', 'units']; // units is public for preview
+        $enrollmentRequiredIncludes = ['elements', 'lessons', 'quizzes', 'assignments', 'progress', 'enrollments'];
 
-        // Check if user can access restricted content
-        $canAccessRestricted = false;
+        // Check if user can access enrollment-required content
+        $canAccessEnrollmentContent = false;
         
         if ($userId) {
             $user = \Modules\Auth\Models\User::find($userId);
@@ -290,12 +290,12 @@ class CourseService implements CourseServiceInterface
             if ($user) {
                 // Managers (Superadmin, Admin, Instructor) can access all
                 if ($user->hasRole('Superadmin') || $user->hasRole('Admin')) {
-                    $canAccessRestricted = true;
+                    $canAccessEnrollmentContent = true;
                 } elseif ($user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists()) {
-                    $canAccessRestricted = true;
+                    $canAccessEnrollmentContent = true;
                 } elseif ($user->hasRole('Student')) {
-                    // Students can only access if enrolled
-                    $canAccessRestricted = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
+                    // Students can only access enrollment-required content if enrolled
+                    $canAccessEnrollmentContent = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
                         ->where('course_id', $course->id)
                         ->whereIn('status', ['active', 'completed'])
                         ->exists();
@@ -308,14 +308,14 @@ class CourseService implements CourseServiceInterface
         foreach ($requestedIncludes as $include) {
             $include = trim($include);
             
-            // Always allow public includes
+            // Always allow public includes (including units for preview)
             if (in_array($include, $publicIncludes)) {
                 $allowedIncludes[] = $include;
                 continue;
             }
             
-            // Only allow restricted includes if user has access
-            if (in_array($include, $restrictedIncludes) && $canAccessRestricted) {
+            // Only allow enrollment-required includes if user has access
+            if (in_array($include, $enrollmentRequiredIncludes) && $canAccessEnrollmentContent) {
                 $allowedIncludes[] = $include;
             }
         }
