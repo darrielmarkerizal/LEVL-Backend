@@ -34,26 +34,53 @@ class LessonBlock extends Model implements HasMedia
             ->acceptsMimeTypes([
                 // Images
                 'image/jpeg',
+                'image/jpg',
                 'image/png',
                 'image/gif',
                 'image/webp',
+                'image/svg+xml',
+                'image/bmp',
                 // Videos
                 'video/mp4',
                 'video/webm',
                 'video/ogg',
                 'video/quicktime',
+                'video/x-msvideo', // .avi
+                'video/x-matroska', // .mkv
                 // Audio
                 'audio/mpeg',
                 'audio/wav',
                 'audio/ogg',
                 'audio/mp3',
-                // Documents (for downloadable resources)
+                'audio/mp4',
+                'audio/aac',
+                // Documents
                 'application/pdf',
+                'text/plain', // .txt
+                'text/csv',
+                'text/html',
+                'application/rtf',
                 // Microsoft Office
                 'application/msword', // .doc
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
                 'application/vnd.ms-excel', // .xls
                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+                'application/vnd.ms-powerpoint', // .ppt
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+                // Archives
+                'application/zip',
+                'application/x-zip-compressed',
+                'application/x-rar-compressed',
+                'application/x-rar',
+                'application/x-7z-compressed',
+                'application/x-tar',
+                'application/gzip',
+                'application/x-gzip',
+                // Other common formats
+                'application/json',
+                'application/xml',
+                'text/xml',
+                'application/octet-stream', // Generic binary
             ]);
     }
 
