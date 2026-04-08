@@ -6,6 +6,8 @@ namespace Modules\Learning\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class AssignmentResource extends JsonResource
 {
@@ -23,21 +25,11 @@ class AssignmentResource extends JsonResource
 
     private function toStudentArray(): array
     {
-        $attachmentFiles = $this->resource->getMedia('attachments')->map(function ($media) {
-            return [
-                'id' => $media->id,
-                'file_name' => $media->file_name,
-                'file_url' => $media->getUrl(),
-                'url' => $media->getUrl(),
-                'mime_type' => $media->mime_type,
-                'size' => $media->size,
-            ];
-        });
+        $attachmentFiles = $this->mapAttachmentFiles();
 
         return [
             'id' => $this->resource->id,
             'title' => $this->resource->title,
-            'description' => $this->resource->description,
             'instructions' => $this->resource->description,
             'submission_type' => $this->resource->submission_type?->value ?? $this->resource->submission_type,
             'max_score' => $this->resource->max_score,
@@ -68,21 +60,11 @@ class AssignmentResource extends JsonResource
 
     private function toInstructorArray(): array
     {
-        $attachmentFiles = $this->resource->getMedia('attachments')->map(function ($media) {
-            return [
-                'id' => $media->id,
-                'file_name' => $media->file_name,
-                'file_url' => $media->getUrl(),
-                'url' => $media->getUrl(),
-                'mime_type' => $media->mime_type,
-                'size' => $media->size,
-            ];
-        });
+        $attachmentFiles = $this->mapAttachmentFiles();
 
         return [
             'id' => $this->resource->id,
             'title' => $this->resource->title,
-            'description' => $this->resource->description,
             'instructions' => $this->resource->description,
             'submission_type' => $this->resource->submission_type?->value ?? $this->resource->submission_type,
             'max_score' => $this->resource->max_score,
@@ -150,5 +132,38 @@ class AssignmentResource extends JsonResource
         $maxScore = (int) ($this->resource->max_score ?? 100);
 
         return "Manual Grading by Instructor (1 - {$maxScore} Points)";
+    }
+
+    private function resolveMediaUrl($media): string
+    {
+        try {
+            return $media->getTemporaryUrl(now()->addMinutes(30));
+        } catch (Throwable) {
+            return $media->getUrl();
+        }
+    }
+
+    private function mapAttachmentFiles()
+    {
+        return $this->resource->getMedia('attachments')
+            ->filter(fn ($media) => $this->isMediaFileAvailable($media))
+            ->map(function ($media) {
+                $url = $this->resolveMediaUrl($media);
+
+                return [
+                    'id' => $media->id,
+                    'file_name' => $media->file_name,
+                    'file_url' => $url,
+                    'url' => $url,
+                    'mime_type' => $media->mime_type,
+                    'size' => $media->size,
+                ];
+            })
+            ->values();
+    }
+
+    private function isMediaFileAvailable($media): bool
+    {
+        return Storage::disk($media->disk)->exists($media->getPath());
     }
 }

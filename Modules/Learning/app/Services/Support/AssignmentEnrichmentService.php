@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Modules\Learning\Services\Support;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
 use Modules\Schemes\Services\PrerequisiteService;
+use Throwable;
 
 class AssignmentEnrichmentService
 {
@@ -163,14 +165,22 @@ class AssignmentEnrichmentService
         $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 0;
         $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
-        $attachmentFiles = $assignment->getMedia('attachments')->map(fn ($media) => [
-            'id' => $media->id,
-            'file_name' => $media->file_name,
-            'file_url' => $media->getUrl(),
-            'url' => $media->getUrl(),
-            'size' => $media->size,
-            'mime_type' => $media->mime_type,
-        ])->toArray();
+        $attachmentFiles = $assignment->getMedia('attachments')
+            ->filter(fn ($media) => Storage::disk($media->disk)->exists($media->getPath()))
+            ->map(function ($media) {
+                $url = $this->resolveMediaUrl($media);
+
+                return [
+                    'id' => $media->id,
+                    'file_name' => $media->file_name,
+                    'file_url' => $url,
+                    'url' => $url,
+                    'size' => $media->size,
+                    'mime_type' => $media->mime_type,
+                ];
+            })
+            ->values()
+            ->toArray();
 
         $maxFileSizeInBytes = (int) config('media-library.max_file_size', 52428800);
         $maxFileSizeInMb = (int) ceil($maxFileSizeInBytes / 1024 / 1024);
@@ -219,5 +229,14 @@ class AssignmentEnrichmentService
             'created_at' => $assignment->created_at?->toIso8601String(),
             'updated_at' => $assignment->updated_at?->toIso8601String(),
         ];
+    }
+
+    private function resolveMediaUrl($media): string
+    {
+        try {
+            return $media->getTemporaryUrl(now()->addMinutes(30));
+        } catch (Throwable) {
+            return $media->getUrl();
+        }
     }
 }

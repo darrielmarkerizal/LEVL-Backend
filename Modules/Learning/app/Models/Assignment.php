@@ -92,11 +92,6 @@ class Assignment extends Model implements HasMedia
         return $this->hasMany(Submission::class);
     }
 
-    public function questions(): HasMany
-    {
-        return $this->hasMany(Question::class)->ordered();
-    }
-
     public function isAvailable(): bool
     {
         return $this->status === AssignmentStatus::Published;

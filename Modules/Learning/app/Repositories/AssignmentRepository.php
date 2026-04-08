@@ -27,12 +27,10 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
 
     protected const DEFAULT_EAGER_LOAD = [
         'creator:id,name,email',
-        'questions',
     ];
 
     protected const DETAILED_EAGER_LOAD = [
         'creator:id,name,email',
-        'questions',
         'prerequisites:id,title',
         'assignable',
     ];
@@ -56,12 +54,12 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
 
     public function findWithRelations(Assignment $assignment): Assignment
     {
-        return $assignment->loadMissing(['creator:id,name,email', 'unit:id,title,slug,code,course_id', 'unit.course:id,slug,title,code', 'questions']);
+        return $assignment->loadMissing(['creator:id,name,email', 'unit:id,title,slug,code,course_id', 'unit.course:id,slug,title,code']);
     }
 
     public function findForDuplication(int $id): ?Assignment
     {
-        return Assignment::with(['questions', 'prerequisites'])->find($id);
+        return Assignment::with(['prerequisites'])->find($id);
     }
 
     public function update(Model $model, array $attributes): Assignment
@@ -133,9 +131,6 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
                     ->where('id', $id)
                     ->with([
                         'creator:id,name,email',
-                        'questions' => function ($query) {
-                            $query->ordered();
-                        },
                         'assignable',
                     ])
                     ->first();
@@ -156,9 +151,6 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
                     ->where('id', $id)
                     ->with([
                         'creator:id,name,email',
-                        'questions' => function ($query) {
-                            $query->ordered();
-                        },
                         'prerequisites:id,title',
                         'assignable',
                         'submissions' => function ($query) {
@@ -190,7 +182,6 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
     {
         $original = Assignment::query()
             ->where('id', $id)
-            ->with(['questions'])
             ->firstOrFail();
 
         // Create new assignment
@@ -198,12 +189,8 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
         $newAssignment->title = $original->title.' (Copy)';
         $newAssignment->save();
 
-        // Replicate questions
-        foreach ($original->questions as $question) {
-            $newQuestion = $question->replicate(['id', 'created_at', 'updated_at']);
-            $newQuestion->assignment_id = $newAssignment->id;
-            $newQuestion->save();
-        }
+        // Note: Questions are no longer part of assignments
+        // Questions have been removed from the system
 
         // Invalidate lists where this new assignment might appear
         if ($newAssignment->assignable_type && $newAssignment->assignable_id) {
@@ -225,7 +212,7 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
                 'creator:id,name,email',
                 'submissions' => function ($query) {
                     $query->where('state', 'pending_manual_grading')
-                        ->with(['user:id,name,email', 'answers.question:id,type,content,weight'])
+                        ->with(['user:id,name,email'])
                         ->orderBy('submitted_at', 'asc');
                 },
             ])

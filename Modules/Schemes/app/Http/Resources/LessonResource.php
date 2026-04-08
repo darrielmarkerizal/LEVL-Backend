@@ -34,6 +34,13 @@ class LessonResource extends JsonResource
             ->first();
         $data['xp_reward'] = $xpSource ? $xpSource->xp_amount : 50;
 
+        // Add progress information for enrolled students
+        if ($isEnrolledStudent) {
+            $progressInfo = $this->getStudentProgressInfo($user);
+            $data['is_completed'] = $progressInfo['is_completed'];
+            $data['is_locked'] = $progressInfo['is_locked'];
+        }
+
         if ($isManager || $isEnrolledStudent) {
             $data['blocks'] = LessonBlockResource::collection($this->whenLoaded('blocks'));
         }
@@ -112,5 +119,57 @@ class LessonResource extends JsonResource
             ->where('user_id', $user->id)
             ->where('status', 'active')
             ->exists();
+    }
+
+    private function getStudentProgressInfo(?object $user): array
+    {
+        if (! $user) {
+            return ['is_completed' => false, 'is_locked' => false];
+        }
+
+        $unit = $this->relationLoaded('unit') ? $this->unit : $this->unit()->first();
+        $course = $unit?->relationLoaded('course') ? $unit->course : $unit?->course()->first();
+
+        if (! $course) {
+            return ['is_completed' => false, 'is_locked' => false];
+        }
+
+        // Get enrollment
+        $enrollment = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->whereIn('status', [\Modules\Enrollments\Enums\EnrollmentStatus::Active, \Modules\Enrollments\Enums\EnrollmentStatus::Completed])
+            ->first();
+
+        if (! $enrollment) {
+            return ['is_completed' => false, 'is_locked' => true];
+        }
+
+        // Check if this lesson is completed
+        $lessonProgress = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
+            ->where('lesson_id', $this->id)
+            ->first();
+
+        $isCompleted = $lessonProgress && $lessonProgress->status === \Modules\Enrollments\Enums\ProgressStatus::Completed;
+
+        // Check if lesson is locked (previous lessons not completed)
+        $previousLessons = \Modules\Schemes\Models\Lesson::where('unit_id', $this->unit_id)
+            ->where('order', '<', $this->order)
+            ->where('status', 'published')
+            ->pluck('id');
+
+        $isLocked = false;
+        if ($previousLessons->isNotEmpty()) {
+            $completedCount = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
+                ->whereIn('lesson_id', $previousLessons)
+                ->where('status', \Modules\Enrollments\Enums\ProgressStatus::Completed)
+                ->count();
+
+            $isLocked = $completedCount < $previousLessons->count();
+        }
+
+        return [
+            'is_completed' => $isCompleted,
+            'is_locked' => $isLocked,
+        ];
     }
 }
