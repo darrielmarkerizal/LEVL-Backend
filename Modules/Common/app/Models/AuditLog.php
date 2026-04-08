@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Common\Models;
 
 use Illuminate\Support\Facades\Auth;
+use Modules\Common\Traits\PgSearchable;
 use Spatie\Activitylog\Models\Activity;
 
 /**
@@ -28,10 +29,19 @@ use Spatie\Activitylog\Models\Activity;
  */
 class AuditLog extends Activity
 {
+    use PgSearchable;
+
     /**
      * The table associated with the model.
      */
     protected $table = 'activity_log';
+
+    /**
+     * Searchable columns for PgSearchable trait.
+     */
+    protected array $searchable_columns = [
+        'description',
+    ];
 
     /**
      * Scope for filtering by multiple actions.

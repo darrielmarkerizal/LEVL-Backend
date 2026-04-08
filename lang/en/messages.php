@@ -61,6 +61,7 @@ return [
     'hours' => '{1} :count hour|[2,*] :count hours',
     'days' => '{1} :count day|[2,*] :count days',
     'records_found' => '{0} No records found|{1} 1 record found|[2,*] :count records found',
+    'and_n_more_errors' => 'and :count more error|and :count more errors',
 
     // Categories
     'categories' => [

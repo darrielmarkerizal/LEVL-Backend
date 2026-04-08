@@ -24,7 +24,10 @@ class ThreadController extends Controller
 
     public function index(Request $request, Course $course, ThreadReadService $threadReadService): JsonResponse
     {
-        $threads = $threadReadService->paginateCourseThreads($course->id, $request->input('search'), (int) $request->input('per_page', 20));
+        $search = $request->query('search');
+        $perPage = (int) $request->query('per_page', 20);
+        
+        $threads = $threadReadService->paginateCourseThreads($course->id, $search, $perPage);
 
         return $this->paginateResponse($threads, __('messages.forums.threads_retrieved'));
     }

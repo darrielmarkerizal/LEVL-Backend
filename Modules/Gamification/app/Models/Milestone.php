@@ -4,12 +4,19 @@ namespace Modules\Gamification\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Common\Traits\PgSearchable;
 
 class Milestone extends Model
 {
-    use HasFactory;
+    use HasFactory, PgSearchable;
 
     protected $table = 'gamification_milestones';
+
+    protected array $searchable_columns = [
+        'name',
+        'description',
+        'code',
+    ];
 
     protected $fillable = [
         'code',

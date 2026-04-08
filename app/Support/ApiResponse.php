@@ -143,6 +143,67 @@ trait ApiResponse
         );
     }
 
+    /**
+     * Format validation errors into a readable summary.
+     *
+     * @param  array  $errors  Validation errors array
+     * @param  int  $maxFields  Maximum number of fields to include in summary
+     * @return string Formatted error summary
+     */
+    protected function formatValidationSummary(array $errors, int $maxFields = 3): string
+    {
+        $fieldCount = count($errors);
+        
+        if ($fieldCount === 0) {
+            return __('messages.validation_failed');
+        }
+        
+        $messages = [];
+        $count = 0;
+        
+        foreach ($errors as $field => $fieldErrors) {
+            if ($count >= $maxFields) {
+                break;
+            }
+            
+            $errorMessages = is_array($fieldErrors) ? $fieldErrors : [$fieldErrors];
+            $messages[] = implode(' ', $errorMessages);
+            $count++;
+        }
+        
+        $summary = implode(' ', $messages);
+        
+        if ($fieldCount > $maxFields) {
+            $remaining = $fieldCount - $maxFields;
+            $summary .= ' '.trans_choice('messages.and_n_more_errors', $remaining, ['count' => $remaining]);
+        }
+        
+        return $summary;
+    }
+
+    /**
+     * Enhanced validation error response with formatted summary.
+     *
+     * @param  array  $errors  Validation errors array
+     * @param  string|null  $customMessage  Custom message (optional)
+     * @param  array  $params  Translation parameters
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function validationErrorEnhanced(
+        array $errors,
+        ?string $customMessage = null,
+        array $params = []
+    ): JsonResponse {
+        $message = $customMessage ?? $this->formatValidationSummary($errors);
+        
+        return $this->error(
+            message: $message,
+            params: $params,
+            status: 422,
+            errors: $errors
+        );
+    }
+
     protected function notFound(
         string $message = 'messages.not_found',
         array $params = []

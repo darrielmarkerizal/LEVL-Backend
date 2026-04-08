@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Auth\Models\User;
+use Modules\Common\Traits\PgSearchable;
 use Modules\Content\Enums\ContentStatus;
 use Modules\Content\Enums\Priority;
 use Modules\Content\Enums\TargetType;
@@ -20,12 +21,17 @@ use Spatie\Sluggable\SlugOptions;
 
 class Announcement extends Model
 {
-    use HasContentRevisions, HasFactory, HasSlug, SoftDeletes, TracksTrashBin;
+    use HasContentRevisions, HasFactory, HasSlug, PgSearchable, SoftDeletes, TracksTrashBin;
 
     protected static function newFactory()
     {
         return \Modules\Content\Database\Factories\AnnouncementFactory::new();
     }
+
+    protected array $searchable_columns = [
+        'title',
+        'content',
+    ];
 
     protected $fillable = [
         'author_id',

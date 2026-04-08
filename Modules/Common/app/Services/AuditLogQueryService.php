@@ -29,9 +29,14 @@ class AuditLogQueryService
         $query = AuditLog::query();
         $search = $validated['search'] ?? null;
 
-        if ($search) {
-            $query->where('description', 'ILIKE', "%{$search}%")
-                ->orWhereRaw('properties::text ILIKE ?', ["%{$search}%"]);
+        // Use PgSearchable trait for search
+        if ($search && trim($search) !== '') {
+            $query->search($search);
+        }
+
+        // Also search in properties JSON if search term provided
+        if ($search && trim($search) !== '') {
+            $query->orWhereRaw('properties::text ILIKE ?', ["%{$search}%"]);
         }
 
         return cache()->tags(['common', 'audit_logs'])->remember(
@@ -51,7 +56,6 @@ class AuditLogQueryService
                         AllowedFilter::scope('context_contains'),
                         AllowedFilter::scope('assignment_id'),
                         AllowedFilter::scope('student_id'),
-                        AllowedFilter::callback('search', fn ($q, $v) => $q->where('description', 'ILIKE', "%{$v}%")),
                     ])
                     ->allowedSorts(['created_at', 'id', 'description', 'causer_id'])
                     ->defaultSort('-created_at')

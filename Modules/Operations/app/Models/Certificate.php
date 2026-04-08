@@ -3,12 +3,17 @@
 namespace Modules\Operations\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Common\Traits\PgSearchable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Certificate extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use InteractsWithMedia, PgSearchable;
+
+    protected array $searchable_columns = [
+        'certificate_number',
+    ];
 
     protected $fillable = [
         'user_id', 'course_id', 'certificate_number',

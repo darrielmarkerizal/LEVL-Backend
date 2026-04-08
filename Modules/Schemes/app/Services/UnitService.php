@@ -542,8 +542,7 @@ class UnitService
         }
 
         // Handle search manually before QueryBuilder
-        // Support both 'search' and 'filter[search]' formats
-        $searchQuery = request()->query('search') ?? request()->query('filter.search');
+        $searchQuery = request()->query('search');
         if ($searchQuery && trim((string) $searchQuery) !== '') {
             $query->search($searchQuery);
         }

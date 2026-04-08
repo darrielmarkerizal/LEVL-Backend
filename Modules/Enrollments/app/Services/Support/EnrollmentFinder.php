@@ -321,7 +321,7 @@ class EnrollmentFinder
     private function buildQuery(QueryBuilder $builder, array $filters, int $perPage, bool $usePrioritySort = true): LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, 100));
-        $searchQuery = trim((string) (data_get($filters, 'search') ?? data_get($filters, 'filter.search') ?? ''));
+        $searchQuery = trim((string) (data_get($filters, 'search') ?? ''));
 
         if ($searchQuery !== '') {
             $term = "%{$searchQuery}%";
@@ -376,7 +376,7 @@ class EnrollmentFinder
     private function buildQueryForIndex(QueryBuilder $builder, array $filters, int $perPage, bool $usePrioritySort = true): LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, 100));
-        $searchQuery = trim((string) (data_get($filters, 'search') ?? data_get($filters, 'filter.search') ?? ''));
+        $searchQuery = trim((string) (data_get($filters, 'search') ?? ''));
 
         if ($searchQuery !== '') {
             $term = "%{$searchQuery}%";

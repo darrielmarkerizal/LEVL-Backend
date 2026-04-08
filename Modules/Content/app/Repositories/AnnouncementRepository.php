@@ -17,6 +17,11 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
             ->with(['author', 'course'])
             ->withCount('reads');
 
+        // Handle search
+        if (isset($filters['search']) && trim($filters['search']) !== '') {
+            $query->search($filters['search']);
+        }
+
         if (isset($filters['course_id'])) {
             $query->forCourse($filters['course_id']);
         }
@@ -48,6 +53,11 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
             ->forCourse($courseId)
             ->with(['author'])
             ->withCount('reads');
+
+        // Handle search
+        if (isset($filters['search']) && trim($filters['search']) !== '') {
+            $query->search($filters['search']);
+        }
 
         $query->orderByRaw("CASE 
                 WHEN priority = 'high' THEN 1 

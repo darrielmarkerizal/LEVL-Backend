@@ -7,10 +7,11 @@ namespace Modules\Common\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Common\Enums\SettingType;
+use Modules\Common\Traits\PgSearchable;
 
 class SystemSetting extends Model
 {
-    use HasFactory;
+    use HasFactory, PgSearchable;
 
     protected $table = 'system_settings';
 
@@ -19,6 +20,11 @@ class SystemSetting extends Model
     protected $keyType = 'string';
 
     public $incrementing = false;
+
+    protected array $searchable_columns = [
+        'key',
+        'value',
+    ];
 
     protected $fillable = [
         'key',

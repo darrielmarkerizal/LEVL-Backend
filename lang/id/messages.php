@@ -61,6 +61,7 @@ return [
     'hours' => '{1} :count jam|[2,*] :count jam',
     'days' => '{1} :count hari|[2,*] :count hari',
     'records_found' => '{0} Tidak ada data ditemukan|{1} 1 data ditemukan|[2,*] :count data ditemukan',
+    'and_n_more_errors' => 'dan :count error lagi|dan :count error lagi',
 
     // Categories
     'categories' => [
