@@ -35,6 +35,25 @@ class QuizResource extends JsonResource
             'status_label' => $this->when(isset($this->status_label), $this->status_label) ?: $this->status?->label(),
             'is_locked' => $this->when(isset($this->is_locked), $this->is_locked),
             'unit_slug' => $this->unit->slug ?? null,
+            'course_slug' => $this->unit->course->slug ?? null,
+            'unit' => $this->when(
+                $this->relationLoaded('unit'),
+                fn () => [
+                    'id' => $this->unit->id,
+                    'slug' => $this->unit->slug,
+                    'title' => $this->unit->title,
+                    'code' => $this->unit->code,
+                    'course' => $this->when(
+                        $this->unit && $this->unit->relationLoaded('course') && $this->unit->course,
+                        fn () => [
+                            'id' => $this->unit->course->id,
+                            'slug' => $this->unit->course->slug,
+                            'title' => $this->unit->course->title,
+                            'code' => $this->unit->course->code,
+                        ]
+                    ),
+                ]
+            ),
             'questions_count' => $this->when(
                 $this->relationLoaded('questions'),
                 fn () => $this->questions->count()
@@ -83,6 +102,26 @@ class QuizResource extends JsonResource
             'assignable_type' => $this->assignable_type,
             'assignable_id' => $this->assignable_id,
             'lesson_id' => $this->lesson_id,
+            'unit_slug' => $this->unit->slug ?? null,
+            'course_slug' => $this->unit->course->slug ?? null,
+            'unit' => $this->when(
+                $this->relationLoaded('unit'),
+                fn () => [
+                    'id' => $this->unit->id,
+                    'slug' => $this->unit->slug,
+                    'title' => $this->unit->title,
+                    'code' => $this->unit->code,
+                    'course' => $this->when(
+                        $this->unit && $this->unit->relationLoaded('course') && $this->unit->course,
+                        fn () => [
+                            'id' => $this->unit->course->id,
+                            'slug' => $this->unit->course->slug,
+                            'title' => $this->unit->course->title,
+                            'code' => $this->unit->course->code,
+                        ]
+                    ),
+                ]
+            ),
             'created_by' => $this->created_by,
             'creator' => $this->when(
                 $this->relationLoaded('creator'),

@@ -40,8 +40,8 @@ class QuizRepository extends BaseRepository implements QuizRepositoryInterface
     {
         return $quiz->loadMissing([
             'creator:id,name,email',
-            'unit:id,slug',
-            'unit.course:id,slug',
+            'unit:id,slug,title,code,course_id',
+            'unit.course:id,slug,title,code',
             'questions',
         ]);
     }
