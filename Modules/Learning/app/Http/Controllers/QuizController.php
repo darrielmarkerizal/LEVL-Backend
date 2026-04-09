@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Learning\Contracts\Services\QuizQuestionServiceInterface;
 use Modules\Learning\Contracts\Services\QuizServiceInterface;
+use Modules\Learning\Http\Requests\ListQuizQuestionsRequest;
 use Modules\Learning\Http\Requests\StoreQuizQuestionRequest;
 use Modules\Learning\Http\Requests\StoreQuizRequest;
 use Modules\Learning\Http\Requests\UpdateQuizQuestionRequest;
@@ -137,11 +138,13 @@ class QuizController extends Controller
         return $this->success(QuizResource::make($archived), __('messages.quizzes.archived'));
     }
 
-    public function listQuestions(Request $request, Quiz $quiz): JsonResponse
+    public function listQuestions(ListQuizQuestionsRequest $request, Quiz $quiz): JsonResponse
     {
         $this->authorize('view', $quiz);
         $user = auth('api')->user();
-        $questions = $this->questionService->getQuizQuestionsForUser($quiz->id, $request->all(), $user);
+        $filters = $request->validated();
+        $questions = $this->questionService->getQuizQuestionsForUser($quiz->id, $filters, $user);
+        $questions->setCollection(QuizQuestionResource::collection($questions->getCollection())->collection);
 
         return $this->paginateResponse($questions, 'messages.quizzes.questions_retrieved');
     }

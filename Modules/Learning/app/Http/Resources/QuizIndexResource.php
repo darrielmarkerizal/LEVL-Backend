@@ -13,6 +13,7 @@ class QuizIndexResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
+            'sequence' => $this->sequence(),
             'passing_grade' => $this->passing_grade,
             'max_score' => $this->max_score,
             'status' => $this->status?->value,
@@ -27,5 +28,17 @@ class QuizIndexResource extends JsonResource
             'scope_type' => $this->scope_type,
             'created_at' => $this->created_at?->toISOString(),
         ];
+    }
+
+    private function sequence(): ?string
+    {
+        $unitOrder = $this->unit?->order;
+        $elementOrder = $this->order;
+
+        if ($unitOrder === null || $elementOrder === null) {
+            return null;
+        }
+
+        return $unitOrder . '.' . $elementOrder;
     }
 }

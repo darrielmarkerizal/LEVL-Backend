@@ -30,10 +30,12 @@ class AssignmentResource extends JsonResource
         return [
             'id' => $this->resource->id,
             'title' => $this->resource->title,
+            'sequence' => $this->sequence(),
             'instructions' => $this->resource->description,
             'submission_type' => $this->resource->submission_type?->value ?? $this->resource->submission_type,
             'max_score' => $this->resource->max_score,
             'passing_grade' => $this->resource->passing_grade,
+            'time_limit_minutes' => $this->resource->time_limit_minutes,
             'review_mode' => $this->resource->review_mode?->value ?? $this->resource->review_mode,
             'accepted_formats' => $this->acceptedFormats(),
             'max_file_size' => $this->maxFileSizeInMb(),
@@ -65,10 +67,12 @@ class AssignmentResource extends JsonResource
         return [
             'id' => $this->resource->id,
             'title' => $this->resource->title,
+            'sequence' => $this->sequence(),
             'instructions' => $this->resource->description,
             'submission_type' => $this->resource->submission_type?->value ?? $this->resource->submission_type,
             'max_score' => $this->resource->max_score,
             'passing_grade' => $this->resource->passing_grade,
+            'time_limit_minutes' => $this->resource->time_limit_minutes,
             'review_mode' => $this->resource->review_mode?->value ?? $this->resource->review_mode,
             'status' => $this->resource->status?->value ?? $this->resource->status,
             'accepted_formats' => $this->acceptedFormats(),
@@ -132,6 +136,18 @@ class AssignmentResource extends JsonResource
         $maxScore = (int) ($this->resource->max_score ?? 100);
 
         return "Manual Grading by Instructor (1 - {$maxScore} Points)";
+    }
+
+    private function sequence(): ?string
+    {
+        $unitOrder = $this->resource->unit?->order;
+        $elementOrder = $this->resource->order;
+
+        if ($unitOrder === null || $elementOrder === null) {
+            return null;
+        }
+
+        return $unitOrder . '.' . $elementOrder;
     }
 
     private function resolveMediaUrl($media): string

@@ -25,12 +25,15 @@ class QuizResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
+            'sequence' => $this->sequence(),
             'description' => $this->description,
             'passing_grade' => $this->passing_grade,
             'max_score' => $this->max_score,
             'time_limit_minutes' => $this->time_limit_minutes,
             'auto_grading' => $this->auto_grading,
             'review_mode' => $this->review_mode?->value ?? $this->review_mode,
+            'randomization_type' => $this->randomization_type?->value ?? $this->randomization_type,
+            'question_bank_count' => $this->question_bank_count,
             'status' => $this->when(isset($this->status_value), $this->status_value) ?: $this->status?->value,
             'status_label' => $this->when(isset($this->status_label), $this->status_label) ?: $this->status?->label(),
             'is_locked' => $this->when(isset($this->is_locked), $this->is_locked),
@@ -86,12 +89,15 @@ class QuizResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
+            'sequence' => $this->sequence(),
             'description' => $this->description,
             'passing_grade' => $this->passing_grade,
             'auto_grading' => $this->auto_grading,
             'max_score' => $this->max_score,
             'time_limit_minutes' => $this->time_limit_minutes,
             'review_mode' => $this->review_mode,
+            'randomization_type' => $this->randomization_type?->value ?? $this->randomization_type,
+            'question_bank_count' => $this->question_bank_count,
             'status' => $this->status?->value,
             'status_label' => $this->status?->label(),
             'available_from' => $this->available_from?->toISOString(),
@@ -148,5 +154,17 @@ class QuizResource extends JsonResource
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];
+    }
+
+    private function sequence(): ?string
+    {
+        $unitOrder = $this->unit?->order;
+        $elementOrder = $this->order;
+
+        if ($unitOrder === null || $elementOrder === null) {
+            return null;
+        }
+
+        return $unitOrder . '.' . $elementOrder;
     }
 }

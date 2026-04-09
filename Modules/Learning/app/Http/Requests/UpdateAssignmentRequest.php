@@ -29,7 +29,7 @@ class UpdateAssignmentRequest extends FormRequest
             'status' => ['sometimes', Rule::enum(AssignmentStatus::class)],
             'time_limit_minutes' => ['nullable', 'integer', 'min:1'],
             'attachments' => ['nullable', 'array', 'max:5'],
-            'attachments.*' => ['file', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,jpg,jpeg,png,webp', 'max:10240'],
+            'attachments.*' => ['file', 'max:10240'],
             'delete_attachments' => ['nullable', 'array'],
             'delete_attachments.*' => ['integer', 'exists:media,id'],
         ];

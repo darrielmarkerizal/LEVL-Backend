@@ -102,7 +102,7 @@ class QuizService implements QuizServiceInterface
                 }
             }
 
-            return $updated->fresh(['lesson', 'creator', 'media']);
+            return $updated->fresh(['unit', 'unit.course', 'creator', 'media', 'questions']);
         });
     }
 
@@ -146,20 +146,20 @@ class QuizService implements QuizServiceInterface
             }
 
             return $this->repository->update($quiz, ['status' => QuizStatus::Published->value])
-                ->fresh(['lesson', 'creator']);
+                ->fresh(['unit', 'unit.course', 'creator', 'questions']);
         });
     }
 
     public function unpublish(Quiz $quiz): Quiz
     {
         return DB::transaction(fn () => $this->repository->update($quiz, ['status' => QuizStatus::Draft->value])
-            ->fresh(['lesson', 'creator']));
+            ->fresh(['unit', 'unit.course', 'creator', 'questions']));
     }
 
     public function archive(Quiz $quiz): Quiz
     {
         return DB::transaction(fn () => $this->repository->update($quiz, ['status' => QuizStatus::Archived->value])
-            ->fresh(['lesson', 'creator']));
+            ->fresh(['unit', 'unit.course', 'creator', 'questions']));
     }
 
     public function getWithRelations(Quiz $quiz): Quiz

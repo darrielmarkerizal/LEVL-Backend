@@ -29,7 +29,7 @@ class StoreAssignmentRequest extends FormRequest
             'status' => ['nullable', Rule::enum(AssignmentStatus::class)],
             'time_limit_minutes' => ['nullable', 'integer', 'min:1'],
             'attachments' => ['nullable', 'array', 'max:5'],
-            'attachments.*' => ['file', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,jpg,jpeg,png,webp', 'max:10240'],
+            'attachments.*' => ['file', 'max:10240'],
         ];
     }
 

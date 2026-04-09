@@ -51,7 +51,7 @@ class QuizQuestionRepository extends BaseRepository implements QuizQuestionRepos
         foreach ($questionIds as $order => $questionId) {
             QuizQuestion::where('id', $questionId)
                 ->where('quiz_id', $quizId)
-                ->update(['order' => $order]);
+                ->update(['order' => $order + 1]);
         }
     }
 

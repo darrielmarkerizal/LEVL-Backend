@@ -163,13 +163,21 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
             ->middleware('can:update,quiz')
             ->name('quizzes.archive');
 
-        Route::get('quizzes/{quiz}/questions/{question}', [QuizController::class, 'showQuestion'])
-            ->middleware('can:view,quiz')
-            ->name('quizzes.questions.show');
-
         Route::post('quizzes/{quiz}/questions', [QuizController::class, 'addQuestion'])
             ->middleware('can:update,quiz')
             ->name('quizzes.questions.store');
+
+        Route::post('quizzes/{quiz}/questions/reorder', [QuizController::class, 'reorderQuestions'])
+            ->middleware('can:update,quiz')
+            ->name('quizzes.questions.reorder');
+
+        Route::put('quizzes/{quiz}/questions/reorder', [QuizController::class, 'reorderQuestions'])
+            ->middleware('can:update,quiz')
+            ->name('quizzes.questions.reorder.put');
+
+        Route::get('quizzes/{quiz}/questions/{question}', [QuizController::class, 'showQuestion'])
+            ->middleware('can:view,quiz')
+            ->name('quizzes.questions.show');
 
         Route::put('quizzes/{quiz}/questions/{question}', [QuizController::class, 'updateQuestion'])
             ->middleware('can:update,quiz')
@@ -178,9 +186,5 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         Route::delete('quizzes/{quiz}/questions/{question}', [QuizController::class, 'deleteQuestion'])
             ->middleware('can:update,quiz')
             ->name('quizzes.questions.destroy');
-
-        Route::post('quizzes/{quiz}/questions/reorder', [QuizController::class, 'reorderQuestions'])
-            ->middleware('can:update,quiz')
-            ->name('quizzes.questions.reorder');
     });
 });

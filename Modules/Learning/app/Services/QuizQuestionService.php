@@ -6,6 +6,9 @@ namespace Modules\Learning\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 use Modules\Learning\Contracts\Services\QuizQuestionServiceInterface;
 use Modules\Learning\Models\Quiz;
 use Modules\Learning\Models\QuizQuestion;
@@ -25,7 +28,7 @@ class QuizQuestionService implements QuizQuestionServiceInterface
             $data['quiz_id'] = $quizId;
 
             if (! isset($data['order'])) {
-                $maxOrder = QuizQuestion::where('quiz_id', $quizId)->max('order') ?? -1;
+                $maxOrder = QuizQuestion::where('quiz_id', $quizId)->max('order') ?? 0;
                 $data['order'] = $maxOrder + 1;
             }
 
@@ -81,20 +84,56 @@ class QuizQuestionService implements QuizQuestionServiceInterface
 
     public function reorderQuestions(int $quizId, array $questionIds): void
     {
-        $this->repository->reorder($quizId, $questionIds);
+        DB::transaction(function () use ($quizId, $questionIds) {
+            $submittedIds = array_values(array_map('intval', $questionIds));
+            $existingIds = QuizQuestion::where('quiz_id', $quizId)
+                ->orderBy('order')
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->values()
+                ->all();
+
+            if (count($submittedIds) !== count(array_unique($submittedIds))) {
+                throw ValidationException::withMessages([
+                    'ids' => ['Duplicate question IDs are not allowed.'],
+                ]);
+            }
+
+            if (count($submittedIds) !== count($existingIds)) {
+                throw ValidationException::withMessages([
+                    'ids' => ['Reorder payload must contain all quiz question IDs.'],
+                ]);
+            }
+
+            $sortedSubmittedIds = $submittedIds;
+            $sortedExistingIds = $existingIds;
+            sort($sortedSubmittedIds);
+            sort($sortedExistingIds);
+
+            if ($sortedSubmittedIds !== $sortedExistingIds) {
+                throw ValidationException::withMessages([
+                    'ids' => ['Reorder payload contains invalid question IDs.'],
+                ]);
+            }
+
+            $this->repository->reorder($quizId, $submittedIds);
+        });
     }
 
     public function getQuizQuestions(int $quizId, array $filters = []): LengthAwarePaginator
     {
-        $perPage = (int) ($filters['per_page'] ?? 15);
+        $perPage = (int) ($filters['per_page'] ?? $filters['perPage'] ?? 15);
         $perPage = max(1, min($perPage, 100));
 
-        return \Spatie\QueryBuilder\QueryBuilder::for(QuizQuestion::class)
+        return QueryBuilder::for(QuizQuestion::class)
             ->where('quiz_id', $quizId)
             ->allowedFilters([
-                \Spatie\QueryBuilder\AllowedFilter::exact('type'),
+                AllowedFilter::exact('type'),
+                AllowedFilter::partial('content'),
+                AllowedFilter::exact('order'),
             ])
-            ->allowedSorts(['order', 'weight', 'created_at'])
+            ->allowedSorts(['order', 'weight', 'max_score', 'created_at', 'updated_at'])
+            ->allowedIncludes(['media'])
             ->defaultSort('order')
             ->paginate($perPage)
             ->appends($filters);

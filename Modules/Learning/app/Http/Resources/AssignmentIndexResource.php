@@ -16,6 +16,9 @@ class AssignmentIndexResource extends JsonResource
         return [
             'id' => $assignment->id,
             'title' => $assignment->title,
+            'sequence' => $assignment->unit?->order !== null && $assignment->order !== null
+                ? $assignment->unit->order . '.' . $assignment->order
+                : null,
             'description' => $assignment->description,
             'submission_type' => $assignment->submission_type?->value ?? $assignment->submission_type,
             'max_score' => $assignment->max_score,

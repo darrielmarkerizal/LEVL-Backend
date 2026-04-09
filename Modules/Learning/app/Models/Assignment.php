@@ -31,19 +31,7 @@ class Assignment extends Model implements HasMedia
     {
         $this->addMediaCollection('attachments')
             ->useDisk('do')
-            ->acceptsMimeTypes([
-                'application/pdf',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'application/vnd.ms-excel',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'application/vnd.ms-powerpoint',
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                'application/zip',
-                'image/jpeg',
-                'image/png',
-                'image/webp',
-            ]);
+            ->acceptsFile(static fn (): bool => true);
     }
 
     protected $fillable = [
