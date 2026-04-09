@@ -30,8 +30,18 @@ class BenchmarkRepository extends BaseRepository
         return $this->query()->insert($data);
     }
 
+    public function createUser(array $data): User
+    {
+        /** @var User $user */
+        $user = $this->create($data);
+
+        return $user;
+    }
+
     public function truncateUsers(): void
     {
-        $this->query()->truncate();
+        $this->query()
+            ->where('username', 'like', 'bench_%')
+            ->forceDelete();
     }
 }

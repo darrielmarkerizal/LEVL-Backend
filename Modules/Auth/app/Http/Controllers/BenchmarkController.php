@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Auth\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Modules\Auth\Services\BenchmarkService;
 
@@ -24,13 +25,21 @@ class BenchmarkController extends Controller
         ]);
     }
 
-    public function store(): JsonResponse
+    public function store(Request $request): JsonResponse
     {
-        $this->service->createBenchmarkUsers();
+        $user = $this->service->createBenchmarkUser(
+            $request->only(['name', 'email', 'password', 'username'])
+        );
 
         return response()->json([
-            'message' => 'Successfully created 1000 users',
+            'message' => 'Benchmark user created successfully',
             'success' => true,
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+            ],
         ], 201);
     }
 

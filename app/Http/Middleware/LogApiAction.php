@@ -214,6 +214,7 @@ class LogApiAction
             'up',
             'health',
             'api/v1/system-audits',
+            'api/v1/benchmark',
         ];
 
         foreach ($skipPaths as $skipPath) {
