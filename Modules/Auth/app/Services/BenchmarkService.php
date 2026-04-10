@@ -23,7 +23,7 @@ class BenchmarkService
     public function createBenchmarkUsers(): bool
     {
         $users = [];
-        $password = 'password';
+        $password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
         $now = now();
 
         for ($i = 0; $i < 1000; $i++) {
@@ -45,9 +45,10 @@ class BenchmarkService
     {
         $name = trim((string) ($payload['name'] ?? 'Benchmark User'));
         $baseEmail = trim((string) ($payload['email'] ?? 'bench@example.com'));
-        $password = (string) ($payload['password'] ?? 'password123');
+        $password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
         $baseUsername = trim((string) ($payload['username'] ?? Str::slug($name, '_')));
         $suffix = Str::lower((string) Str::ulid());
+        $now = now();
 
         if ($name === '') {
             $name = 'Benchmark User';
@@ -76,7 +77,9 @@ class BenchmarkService
             'username' => $username,
             'email' => $email,
             'password' => $password,
-            'email_verified_at' => now(),
+            'email_verified_at' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
         ]);
     }
 

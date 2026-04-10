@@ -32,10 +32,9 @@ class BenchmarkRepository extends BaseRepository
 
     public function createUser(array $data): User
     {
-        /** @var User $user */
-        $user = $this->create($data);
+        $id = $this->query()->toBase()->insertGetId($data);
 
-        return $user;
+        return User::query()->findOrFail((int) $id);
     }
 
     public function truncateUsers(): void

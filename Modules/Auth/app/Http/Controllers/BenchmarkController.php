@@ -27,19 +27,11 @@ class BenchmarkController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $user = $this->service->createBenchmarkUser(
-            $request->only(['name', 'email', 'password', 'username'])
-        );
+        $this->service->createBenchmarkUsers();
 
         return response()->json([
-            'message' => 'Benchmark user created successfully',
+            'message' => '1000 Benchmark users batch inserted successfully',
             'success' => true,
-            'data' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'username' => $user->username,
-                'email' => $user->email,
-            ],
         ], 201);
     }
 
