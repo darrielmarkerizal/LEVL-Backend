@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Auth\Services;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Modules\Auth\Models\User;
 use Modules\Auth\Repositories\BenchmarkRepository;
@@ -24,7 +23,7 @@ class BenchmarkService
     public function createBenchmarkUsers(): bool
     {
         $users = [];
-        $password = Hash::make('password');
+        $password = 'password';
         $now = now();
 
         for ($i = 0; $i < 1000; $i++) {
@@ -76,7 +75,7 @@ class BenchmarkService
             'name' => $name,
             'username' => $username,
             'email' => $email,
-            'password' => Hash::make($password),
+            'password' => $password,
             'email_verified_at' => now(),
         ]);
     }
