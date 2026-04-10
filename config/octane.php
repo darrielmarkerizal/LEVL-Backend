@@ -116,8 +116,8 @@ return [
             'task_worker_num' => env('SWOOLE_TASK_WORKER_NUM', $cpuCount),
             'reactor_num' => env('SWOOLE_REACTOR_NUM', $cpuCount),
 
-            'max_request' => 0,
-            'max_request_grace' => 0,
+            'max_request' => env('OCTANE_MAX_REQUESTS', 500),
+            'max_request_grace' => env('OCTANE_MAX_REQUESTS_GRACE', 50),
 
             'max_wait_time' => 60,
             'dispatch_mode' => 2,
