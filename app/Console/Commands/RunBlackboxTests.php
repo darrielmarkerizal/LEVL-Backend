@@ -58,6 +58,7 @@ class RunBlackboxTests extends Command
     private int $statsSkip = 0;
     private int $statsDryRun = 0;
     private array $failures = [];
+    private array $scenarioResults = [];
 
     public function handle(): int
     {
@@ -71,16 +72,10 @@ class RunBlackboxTests extends Command
                 $this->reportMeta['status'] = 'failed';
                 $this->recordReportError("File JSON tidak ditemukan: {$file}");
 
-                return self::FAILURE;
-            }
-
-            $this->baseUrl = $this->option('url') ?: rtrim(config('app.url', 'http://localhost:8000'), '/');
-            $this->reportMeta['base_url'] = $this->baseUrl;
-
             $this->info("🚀 Memulai Blackbox Runner API: {$this->baseUrl}");
 
-            $shouldDisableThrottle = !$this->option('with-throttle') || $this->option('disable-throttle');
-            if ($shouldDisableThrottle) {
+        $this->statsPass++;
+        $this->line("   <info>✓ PASS</info> - {$scenario}");
                 $this->disableThrottleMiddleware();
             } else {
                 $this->line('ℹ️ Menjalankan blackbox dengan throttle aktif (--with-throttle).');
@@ -231,12 +226,12 @@ class RunBlackboxTests extends Command
             $scenarioBody   = $case['body'] ?? [];
 
             if ($expectedStatus === 401 && !$this->expectsAuthMiddleware($endpoint)) {
-                $this->markAsSkipped($scenarioName . ' (endpoint tidak mewajibkan auth)');
+                $this->markAsSkipped($scenarioName . ' (endpoint tidak mewajibkan auth)', $method . ' ' . $uri);
                 continue;
             }
 
             if ($expectedStatus === 403 && !$this->expectsRoleOrPolicyMiddleware($endpoint)) {
-                $this->markAsSkipped($scenarioName . ' (endpoint tidak mewajibkan role/policy)');
+                $this->markAsSkipped($scenarioName . ' (endpoint tidak mewajibkan role/policy)', $method . ' ' . $uri);
                 continue;
             }
             
@@ -251,18 +246,18 @@ class RunBlackboxTests extends Command
                 $scenarioBody = $positiveData;
             }
 
-            $this->runScenario($scenarioName, $url, $method, $scenarioBody, $caseToken, [$expectedStatus]);
+            $this->runScenario($scenarioName, $uri, $url, $method, $scenarioBody, $caseToken, [$expectedStatus]);
         }
 
         // Positive test is executed after auth tests so destructive endpoints do not break 401/403 assertions.
-        $this->runScenario("Skenario Positif (Valid Body) - Role: {$roleUsed}", $url, $method, $positiveData, $token, [200, 201, 202, 204]);
+        $this->runScenario("Skenario Positif (Valid Body) - Role: {$roleUsed}", $uri, $url, $method, $positiveData, $token, [200, 201, 202, 204]);
 
         foreach ($otherCases as $case) {
             $expectedStatus = $case['expected_status'];
             $scenarioName   = $case['scenario'];
             $scenarioBody   = $case['body'] ?? [];
 
-            $this->runScenario($scenarioName, $url, $method, $scenarioBody, $token, [$expectedStatus]);
+            $this->runScenario($scenarioName, $uri, $url, $method, $scenarioBody, $token, [$expectedStatus]);
         }
         
         $this->newLine();
@@ -350,11 +345,19 @@ class RunBlackboxTests extends Command
     /**
      * Run an individual HTTP Request scenario
      */
-    private function runScenario(string $scenario, string $url, string $method, array $body, ?string $token, array $expectedStatuses): void
+    private function runScenario(string $scenario, string $api, string $url, string $method, array $body, ?string $token, array $expectedStatuses): void
     {
         if ($this->option('dry-run')) {
             $this->statsDryRun++;
             $this->line("   - [DRY] {$scenario}");
+            $this->scenarioResults[] = [
+                'api' => $api,
+                'scenario' => $scenario,
+                'status' => 'dry_run',
+                'expected' => implode(',', $expectedStatuses),
+                'actual' => null,
+                'response' => null,
+            ];
             return;
         }
 
@@ -406,7 +409,7 @@ class RunBlackboxTests extends Command
             $actualStatus = $response->getStatusCode();
             $responseBody = $response->getContent();
         } catch (\Exception $e) {
-            $this->markAsFailed($scenario, "Internal Exception: " . $e->getMessage(), implode(',', $expectedStatuses), 'Exception');
+            $this->markAsFailed($scenario, $api, "Internal Exception: " . $e->getMessage(), implode(',', $expectedStatuses), 'Exception');
             $this->cleanupTemporaryFiles($temporaryFiles);
             return;
         }
@@ -414,9 +417,9 @@ class RunBlackboxTests extends Command
         $this->cleanupTemporaryFiles($temporaryFiles);
 
         if (in_array($actualStatus, $expectedStatuses)) {
-            $this->markAsPassed($scenario);
+            $this->markAsPassed($scenario, $api, (string) $actualStatus, $responseBody, implode(',', $expectedStatuses));
         } else {
-            $this->markAsFailed($scenario, rtrim($responseBody), implode(',', $expectedStatuses), (string) $actualStatus);
+            $this->markAsFailed($scenario, $api, $responseBody, implode(',', $expectedStatuses), (string) $actualStatus);
         }
     }
 
@@ -785,25 +788,40 @@ class RunBlackboxTests extends Command
         }
     }
 
-    private function markAsPassed(string $scenario): void
+    private function markAsPassed(string $scenario, string $api, string $actual, string $responseBody, string $expected): void
     {
         $this->statsPass++;
         $this->line("   <info>✓ PASS</info> - {$scenario}");
+        $this->scenarioResults[] = [
+            'api' => $api,
+            'scenario' => $scenario,
+            'status' => 'pass',
+            'expected' => $expected,
+            'actual' => $actual,
+            'response' => $responseBody,
+        ];
     }
 
-    private function markAsSkipped(string $scenario): void
+    private function markAsSkipped(string $scenario, string $api): void
     {
         $this->statsSkip++;
         $this->line("   <comment>↷ SKIP</comment> - {$scenario}");
+        $this->scenarioResults[] = [
+            'api' => $api,
+            'scenario' => $scenario,
+            'status' => 'skip',
+            'expected' => null,
+            'actual' => null,
+            'response' => null,
+        ];
     }
 
-    private function markAsFailed(string $scenario, string $responseBody, string $expected, string $actual): void
+    private function markAsFailed(string $scenario, string $api, string $responseBody, string $expected, string $actual): void
     {
         $this->statsFail++;
         $this->line("   <error>✗ FAIL</error> - {$scenario}");
         $this->line("     Expected Status: {$expected} | Actual: {$actual}");
-        
-        // Show snippet of response body if available
+
         $snippet = substr($responseBody, 0, 200);
         if (strlen($responseBody) > 200) {
             $snippet .= '...';
@@ -813,9 +831,20 @@ class RunBlackboxTests extends Command
         }
 
         $this->failures[] = [
+            'api' => $api,
             'scenario' => $scenario,
             'expected' => $expected,
             'actual' => $actual,
+            'response' => $responseBody,
+        ];
+
+        $this->scenarioResults[] = [
+            'api' => $api,
+            'scenario' => $scenario,
+            'status' => 'fail',
+            'expected' => $expected,
+            'actual' => $actual,
+            'response' => $responseBody,
         ];
     }
 
@@ -896,6 +925,7 @@ class RunBlackboxTests extends Command
             'dry_run' => $this->statsDryRun,
             'total' => $this->statsPass + $this->statsFail + $this->statsSkip + $this->statsDryRun,
         ];
+        $this->reportMeta['results'] = $this->scenarioResults;
         $this->reportMeta['failures'] = $this->failures;
 
         $directory = dirname($this->reportFilePath);
