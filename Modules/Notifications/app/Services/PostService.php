@@ -21,7 +21,7 @@ use Modules\Notifications\Repositories\PostRepository;
 class PostService
 {
     public function __construct(
-        private PostRepository $repository
+        public readonly PostRepository $repository
     ) {}
 
     /**

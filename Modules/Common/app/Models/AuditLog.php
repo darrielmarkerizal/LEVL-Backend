@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Common\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Modules\Common\Traits\PgSearchable;
 use Spatie\Activitylog\Models\Activity;
@@ -137,10 +139,10 @@ class AuditLog extends Activity
     /**
      * Scope a query to only include logs for a specific subject.
      */
-    public function scopeForSubject($query, $model)
+    public function scopeForSubject(Builder $query, Model $subject): Builder
     {
-        return $query->where('subject_type', get_class($model))
-            ->where('subject_id', $model->getKey());
+        return $query->where('subject_type', get_class($subject))
+            ->where('subject_id', $subject->getKey());
     }
 
     /**

@@ -84,14 +84,15 @@ class CategoryService implements CategoryServiceInterface
         });
     }
 
-    public function find(int $id): ?Category
+    public function find(int|string $id): ?Category
     {
-        return $this->repository->find($id);
+        return $this->repository->findById((int) $id);
     }
 
-    public function update(int $id, UpdateCategoryDTO|array $data): ?Category
+    public function update(int|string $id, UpdateCategoryDTO|array $data): ?Category
     {
-        $category = $this->repository->find($id);
+        $categoryId = (int) $id;
+        $category = $this->repository->findById($categoryId);
         if (! $category) {
             return null;
         }
@@ -106,10 +107,10 @@ class CategoryService implements CategoryServiceInterface
         });
     }
 
-    public function delete(int $id): bool
+    public function delete(int|string $id): bool
     {
         return DB::transaction(function () use ($id) {
-            $category = $this->repository->find($id);
+            $category = $this->repository->findById((int) $id);
             if (! $category) {
                 return false;
             }

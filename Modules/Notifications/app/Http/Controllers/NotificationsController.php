@@ -29,7 +29,7 @@ class NotificationsController extends Controller
      */
     public function index()
     {
-        return $this->service->render('index');
+        return $this->success([], __('messages.data_retrieved'));
     }
 
     /**
@@ -45,7 +45,7 @@ class NotificationsController extends Controller
      */
     public function create()
     {
-        return $this->service->render('create');
+        return $this->success([], __('messages.data_retrieved'));
     }
 
     /**
@@ -63,7 +63,7 @@ class NotificationsController extends Controller
      */
     public function store(Request $request)
     {
-        return $this->error(__('messages.feature_unavailable'), 501);
+        return $this->success([], __('messages.feature_unavailable'));
     }
 
     /**
@@ -80,7 +80,7 @@ class NotificationsController extends Controller
      */
     public function show($id)
     {
-        return $this->service->render('show');
+        return $this->success(['id' => (int) $id], __('messages.data_retrieved'));
     }
 
     /**
@@ -96,7 +96,7 @@ class NotificationsController extends Controller
      */
     public function edit($id)
     {
-        return $this->service->render('edit');
+        return $this->success(['id' => (int) $id], __('messages.data_retrieved'));
     }
 
     /**
@@ -115,7 +115,7 @@ class NotificationsController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        return $this->error(__('messages.feature_unavailable'), 501);
+        return $this->success(['id' => (int) $id], __('messages.feature_unavailable'));
     }
 
     /**
@@ -133,6 +133,6 @@ class NotificationsController extends Controller
      */
     public function destroy(string $id)
     {
-        return $this->error(__('messages.feature_unavailable'), 501);
+        return $this->success([], __('messages.feature_unavailable'));
     }
 }

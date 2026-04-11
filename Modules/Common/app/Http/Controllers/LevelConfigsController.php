@@ -50,7 +50,7 @@ class LevelConfigsController extends Controller
         $model = $this->service->find($levelConfig);
 
         if (! $model) {
-            return $this->error(__('messages.level_configs.not_found'), 404);
+            return $this->error(__('messages.level_configs.not_found'), [], 404);
         }
 
         $this->authorize('view', $model);
@@ -63,7 +63,7 @@ class LevelConfigsController extends Controller
         $model = $this->service->find($levelConfig);
 
         if (! $model) {
-            return $this->error(__('messages.level_configs.not_found'), 404);
+            return $this->error(__('messages.level_configs.not_found'), [], 404);
         }
 
         $this->authorize('update', $model);
@@ -78,7 +78,7 @@ class LevelConfigsController extends Controller
         $model = $this->service->find($levelConfig);
 
         if (! $model) {
-            return $this->error(__('messages.level_configs.not_found'), 404);
+            return $this->error(__('messages.level_configs.not_found'), [], 404);
         }
 
         $this->authorize('delete', $model);
@@ -86,7 +86,7 @@ class LevelConfigsController extends Controller
         $deleted = $this->service->delete($levelConfig);
 
         if (! $deleted) {
-            return $this->error(__('messages.level_configs.not_found'), 404);
+            return $this->error(__('messages.level_configs.not_found'), [], 404);
         }
 
         return $this->success([], __('messages.level_configs.deleted'));
