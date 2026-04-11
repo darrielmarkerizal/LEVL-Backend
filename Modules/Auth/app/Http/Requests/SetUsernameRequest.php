@@ -24,7 +24,7 @@ class SetUsernameRequest extends FormRequest
                 'min:3',
                 'max:255',
                 'regex:/^[a-z0-9_\.\-]+$/i',
-                Rule::unique(User::class, 'username'),
+                Rule::unique(User::class, 'username')->ignore($this->user()?->id),
             ],
         ];
     }

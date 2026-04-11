@@ -72,10 +72,16 @@ class RunBlackboxTests extends Command
                 $this->reportMeta['status'] = 'failed';
                 $this->recordReportError("File JSON tidak ditemukan: {$file}");
 
+                return self::FAILURE;
+            }
+
+            $this->baseUrl = $this->option('url') ?: rtrim(config('app.url', 'http://localhost:8000'), '/');
+            $this->reportMeta['base_url'] = $this->baseUrl;
+
             $this->info("🚀 Memulai Blackbox Runner API: {$this->baseUrl}");
 
-        $this->statsPass++;
-        $this->line("   <info>✓ PASS</info> - {$scenario}");
+            $shouldDisableThrottle = !$this->option('with-throttle') || $this->option('disable-throttle');
+            if ($shouldDisableThrottle) {
                 $this->disableThrottleMiddleware();
             } else {
                 $this->line('ℹ️ Menjalankan blackbox dengan throttle aktif (--with-throttle).');
@@ -135,28 +141,21 @@ class RunBlackboxTests extends Command
         $this->info('🔑 Mendapatkan JWT Tokens untuk Role...');
         $bar = $this->output->createProgressBar(count($this->roleCredentials));
 
-        foreach ($this->roleCredentials as $role => $creds) {
-            try {
-                $kernel = app()->make(\Illuminate\Contracts\Http\Kernel::class);
-                $request = \Illuminate\Http\Request::create($this->baseUrl . '/api/v1/auth/login', 'POST', $creds);
-                $request->headers->set('Accept', 'application/json');
+        if ($this->authenticateRolesFromDevEndpoint()) {
+            $bar->advance(count($this->roleCredentials));
+            $bar->finish();
+            $this->newLine(2);
 
-                $response = $kernel->handle($request);
-
-                if ($response->getStatusCode() === 200) {
-                    $json = json_decode($response->getContent(), true);
-                    $token = $json['data']['access_token'] ?? null;
-                    if ($token) {
-                        $this->tokens[$role] = $token;
-                    } else {
-                        $this->warn("\n⚠️ Token tidak ditemukan di payload untuk {$role}.");
-                    }
-                } else {
-                    $this->warn("\n⚠️ Gagal login untuk role {$role} ({$creds['login']}). HTTP " . $response->getStatusCode());
-                }
-            } catch (\Exception $e) {
-                 $this->warn("\n⚠️ Gagal koneksi untuk role {$role}: " . $e->getMessage());
+            if (empty($this->tokens)) {
+                $this->error('Gagal mendapatkan token apa pun. Testing untuk endpoint yang terautentikasi akan gagal.');
+                $this->newLine();
             }
+
+            return;
+        }
+
+        foreach ($this->roleCredentials as $role => $creds) {
+            $this->authenticateRole($role, $creds);
             $bar->advance();
         }
 
@@ -166,6 +165,84 @@ class RunBlackboxTests extends Command
         if (empty($this->tokens)) {
             $this->error('Gagal mendapatkan token apa pun. Testing untuk endpoint yang terautentikasi akan gagal.');
             $this->newLine();
+        }
+    }
+
+    private function authenticateRolesFromDevEndpoint(): bool
+    {
+        try {
+            $kernel = app()->make(\Illuminate\Contracts\Http\Kernel::class);
+            $request = \Illuminate\Http\Request::create($this->baseUrl . '/api/v1/dev/tokens', 'GET');
+            $request->headers->set('Accept', 'application/json');
+
+            $response = $kernel->handle($request);
+            if ($response->getStatusCode() !== 200) {
+                return false;
+            }
+
+            $payload = json_decode($response->getContent(), true);
+            $tokenData = $payload['data'] ?? null;
+            if (!is_array($tokenData)) {
+                return false;
+            }
+
+            $loaded = false;
+            foreach ($this->roleCredentials as $role => $_creds) {
+                $candidate = $tokenData[$role] ?? null;
+
+                if (
+                    is_array($candidate)
+                    && isset($candidate['access_token'])
+                    && is_string($candidate['access_token'])
+                    && $candidate['access_token'] !== ''
+                ) {
+                    $this->tokens[$role] = $candidate['access_token'];
+
+                    $loaded = true;
+                }
+            }
+
+            if ($loaded) {
+                $this->info('✅ Menggunakan token dari endpoint dev tokens.');
+            }
+
+            return $loaded;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    private function authenticateRole(string $role, array $creds): bool
+    {
+        try {
+            $kernel = app()->make(\Illuminate\Contracts\Http\Kernel::class);
+            $request = \Illuminate\Http\Request::create($this->baseUrl . '/api/v1/auth/login', 'POST', $creds);
+            $request->headers->set('Accept', 'application/json');
+
+            $response = $kernel->handle($request);
+            if ($response->getStatusCode() !== 200) {
+                $this->warn("\n⚠️ Gagal login untuk role {$role} ({$creds['login']}). HTTP " . $response->getStatusCode());
+
+                return false;
+            }
+
+            $json = json_decode($response->getContent(), true);
+            $accessToken = $json['data']['access_token'] ?? null;
+            $refreshToken = $json['data']['refresh_token'] ?? null;
+
+            if (!is_string($accessToken) || $accessToken === '') {
+                $this->warn("\n⚠️ Token tidak ditemukan di payload untuk {$role}.");
+
+                return false;
+            }
+
+            $this->tokens[$role] = $accessToken;
+
+            return true;
+        } catch (\Exception $e) {
+            $this->warn("\n⚠️ Gagal koneksi untuk role {$role}: " . $e->getMessage());
+
+            return false;
         }
     }
 
@@ -186,13 +263,13 @@ class RunBlackboxTests extends Command
 
         // Determine token to use
         $token = null;
-        $roleUsed = 'None';
+        $roleUsed = null;
         if ($endpoint['requires_auth']) {
             $roles = $endpoint['required_roles'] ?? [];
             if (empty($roles)) {
                 // If auth is required but no specific role, just use the first available token
                 $token = reset($this->tokens);
-                $roleUsed = array_key_first($this->tokens);
+                $roleUsed = array_key_first($this->tokens) ?: null;
             } else {
                 foreach ($roles as $role) {
                     if (isset($this->tokens[$role])) {
@@ -246,18 +323,23 @@ class RunBlackboxTests extends Command
                 $scenarioBody = $positiveData;
             }
 
-            $this->runScenario($scenarioName, $uri, $url, $method, $scenarioBody, $caseToken, [$expectedStatus]);
+            $this->runScenario($scenarioName, $method . ' ' . $uri, $url, $method, $scenarioBody, $caseToken, [$expectedStatus], $roleUsed);
         }
 
         // Positive test is executed after auth tests so destructive endpoints do not break 401/403 assertions.
-        $this->runScenario("Skenario Positif (Valid Body) - Role: {$roleUsed}", $uri, $url, $method, $positiveData, $token, [200, 201, 202, 204]);
+        // Skip positive test if it's a business logic scenario that requires specific state
+        if ($this->shouldSkipPositiveTest($endpoint, $positiveData)) {
+            $this->markAsSkipped("Skenario Positif (Valid Body) - Requires specific data state", $method . ' ' . $uri);
+        } else {
+            $this->runScenario("Skenario Positif (Valid Body) - Role: " . ($roleUsed ?? 'None'), $method . ' ' . $uri, $url, $method, $positiveData, $token, [200, 201, 202, 204], $roleUsed);
+        }
 
         foreach ($otherCases as $case) {
             $expectedStatus = $case['expected_status'];
             $scenarioName   = $case['scenario'];
             $scenarioBody   = $case['body'] ?? [];
 
-            $this->runScenario($scenarioName, $uri, $url, $method, $scenarioBody, $token, [$expectedStatus]);
+            $this->runScenario($scenarioName, $method . ' ' . $uri, $url, $method, $scenarioBody, $token, [$expectedStatus], $roleUsed);
         }
         
         $this->newLine();
@@ -270,7 +352,7 @@ class RunBlackboxTests extends Command
 
         $suffix = (string) now()->timestamp . random_int(100, 999);
 
-        $stringUniqueKeys = ['code', 'username', 'email', 'slug', 'value'];
+        $stringUniqueKeys = ['code', 'username', 'email', 'slug', 'value', 'new_email'];
         foreach ($stringUniqueKeys as $key) {
             if (!array_key_exists($key, $data)) {
                 continue;
@@ -280,7 +362,7 @@ class RunBlackboxTests extends Command
                 continue;
             }
 
-            if ($key === 'email') {
+            if ($key === 'email' || $key === 'new_email') {
                 $data[$key] = "blackbox.{$suffix}@levl.test";
                 continue;
             }
@@ -295,6 +377,17 @@ class RunBlackboxTests extends Command
         if (($endpoint['uri'] ?? '') === 'api/v1/tags' && !array_key_exists('names', $data)) {
             if (array_key_exists('name', $data) && is_string($data['name']) && $data['name'] !== '') {
                 $data['names'] = [$data['name'] . "-{$suffix}"];
+            }
+        }
+        
+        // Handle 'confirmed' fields
+        foreach ($rules as $field => $ruleDef) {
+            if (!is_string($ruleDef)) {
+                continue;
+            }
+            
+            if (str_contains($ruleDef, 'confirmed') && array_key_exists($field, $data)) {
+                $data[$field . '_confirmation'] = $data[$field];
             }
         }
 
@@ -345,7 +438,7 @@ class RunBlackboxTests extends Command
     /**
      * Run an individual HTTP Request scenario
      */
-    private function runScenario(string $scenario, string $api, string $url, string $method, array $body, ?string $token, array $expectedStatuses): void
+    private function runScenario(string $scenario, string $api, string $url, string $method, array $body, ?string $token, array $expectedStatuses, ?string $roleUsed = null): void
     {
         if ($this->option('dry-run')) {
             $this->statsDryRun++;
@@ -937,5 +1030,30 @@ class RunBlackboxTests extends Command
             $this->reportFilePath,
             json_encode($this->reportMeta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
         );
+    }
+
+    /**
+     * Check if positive test should be skipped due to business logic requirements
+     */
+    private function shouldSkipPositiveTest(array $endpoint, array $data): bool
+    {
+        $uri = $endpoint['uri'] ?? '';
+        
+        // Email verification send - requires unverified email
+        if (str_contains($uri, 'email/verify/send')) {
+            return true;
+        }
+        
+        // Account deletion - requires specific state
+        if (str_contains($uri, 'account/delete')) {
+            return true;
+        }
+        
+        // Restore account - requires deleted account
+        if (str_contains($uri, 'account/restore')) {
+            return true;
+        }
+        
+        return false;
     }
 }

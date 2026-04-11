@@ -97,10 +97,12 @@ class AuthenticationService implements AuthenticationServiceInterface
         return $response;
     }
 
-    public function logout(User $user, string $currentJwt, ?string $refreshToken = null): void
+    public function logout(User $user, ?string $currentJwt = null, ?string $refreshToken = null): void
     {
         DB::transaction(function () use ($user, $currentJwt, $refreshToken) {
-            $this->jwt->setToken($currentJwt)->invalidate();
+            if ($currentJwt) {
+                $this->jwt->setToken($currentJwt)->invalidate();
+            }
 
             if ($refreshToken) {
                 $this->authRepository->revokeRefreshToken($refreshToken, $user->id);

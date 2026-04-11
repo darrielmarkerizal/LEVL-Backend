@@ -19,10 +19,11 @@ class GenerateBlackboxTests extends Command
         // ─── Auth / Identity ──────────────────────
         'login'                => 'admin@levl.test',
         'email'                => 'testuser@levl.test',
-        'password'             => 'Password123!',
-        'password_confirmation'=> 'Password123!',
-        'current_password'     => 'OldPassword123!',
-        'new_password'         => 'NewPassword123!',
+        'password'             => 'Password123!@',
+        'password_confirmation'=> 'Password123!@',
+        'current_password'     => 'OldPassword123!@',
+        'new_password'         => 'NewPassword123!@',
+        'new_password_confirmation' => 'NewPassword123!@',
         'username'             => 'testuser_levl',
         'name'                 => 'Test User Levl',
         'full_name'            => 'Test Full Name',
@@ -156,6 +157,10 @@ class GenerateBlackboxTests extends Command
         'dev/tokens',
         'telescope',
         'horizon',
+        'google/callback',
+        'google/redirect',
+        'facebook/callback',
+        'oauth',
     ];
 
     // ──────────────────────────────────────────────
@@ -174,6 +179,12 @@ class GenerateBlackboxTests extends Command
         $requiresAuth     = count(array_filter($routes, fn ($r) => $r['requires_auth']));
         $totalInvalid     = array_sum(array_map(fn ($r) => count($r['invalid_cases']), $routes));
 
+        // Log validation detection stats
+        $noValidation = $totalEndpoints - $withValidation;
+        if ($noValidation > 0) {
+            $this->warn("⚠️  {$noValidation} endpoints tanpa validation rules terdeteksi");
+        }
+
         file_put_contents(
             $outputFile,
             json_encode($routes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
@@ -186,6 +197,7 @@ class GenerateBlackboxTests extends Command
             [
                 ['Total Endpoint', $totalEndpoints],
                 ['Dengan Validasi', $withValidation],
+                ['Tanpa Validasi', $noValidation],
                 ['Butuh Autentikasi', $requiresAuth],
                 ['Total Test Case Negatif', $totalInvalid],
                 ['Total Test Case (Positif + Negatif)', $totalEndpoints + $totalInvalid],
@@ -428,7 +440,9 @@ class GenerateBlackboxTests extends Command
             // Case 2: Direct return [...] array
             return $this->parseRulesArrayFromSource($rulesBody);
 
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            // Log error for debugging
+            $this->warn("Failed to parse FormRequest source: {$formRequestClass} - " . $e->getMessage());
             return [];
         }
     }
@@ -679,6 +693,11 @@ class GenerateBlackboxTests extends Command
             }
 
             $body[$field] = $this->guessValidValue($field, $ruleString);
+            
+            // Handle 'confirmed' rule - add confirmation field
+            if (str_contains($ruleString, 'confirmed')) {
+                $body[$field . '_confirmation'] = $body[$field];
+            }
         }
         return $body;
     }
@@ -696,14 +715,25 @@ class GenerateBlackboxTests extends Command
             return trim($options[0]);
         }
 
-        // 3. Partial match (e.g., "new_email" -> email)
+        // 3. Handle 'confirmed' rule - add confirmation field
+        if (str_contains($ruleString, 'confirmed')) {
+            return $this->validValues[$field] ?? 'Password123!@';
+        }
+
+        // 4. Handle 'size:N' rule - exact length
+        if (preg_match('/size:(\d+)/', $ruleString, $m)) {
+            $size = (int) $m[1];
+            return str_repeat('a', $size);
+        }
+
+        // 5. Partial match (e.g., "new_email" -> email)
         foreach ($this->validValues as $key => $val) {
             if (strlen($key) >= 3 && str_contains($field, $key) && $val !== null) {
                 return $val;
             }
         }
 
-        // 4. Infer from rule types
+        // 6. Infer from rule types
         if (str_contains($ruleString, 'integer')) return 1;
         if (str_contains($ruleString, 'numeric')) return 1.0;
         if (str_contains($ruleString, 'email'))   return 'test@levl.test';
@@ -724,7 +754,7 @@ class GenerateBlackboxTests extends Command
             return null;
         }
 
-        // 5. min:N for strings
+        // 7. min:N for strings
         if (preg_match('/min:(\d+)/', $ruleString, $m)) {
             return str_repeat('a', max((int) $m[1], 3));
         }
@@ -748,6 +778,10 @@ class GenerateBlackboxTests extends Command
             if (str_contains($ruleString, 'required') && !str_contains($ruleString, 'required_if') && !str_contains($ruleString, 'required_with')) {
                 $body = $validBody;
                 unset($body[$field]);
+                // Also remove confirmation field if exists
+                if (isset($body[$field . '_confirmation'])) {
+                    unset($body[$field . '_confirmation']);
+                }
                 $cases[] = [
                     'scenario'        => "Field '{$field}' tidak diisi (wajib diisi)",
                     'body'            => $body,
@@ -814,7 +848,7 @@ class GenerateBlackboxTests extends Command
                 ];
             }
 
-            // Invalid enum / in: value
+            // Invalid enum / in: value (skip for free-text fields)
             if (preg_match('/in:([^\|]+)/', $ruleString, $m)) {
                 $body         = $validBody;
                 $body[$field] = 'nilai_tidak_valid_xyz';
@@ -826,16 +860,16 @@ class GenerateBlackboxTests extends Command
                 ];
             }
 
-            // Unique constraint
-            if (str_contains($ruleString, 'unique')) {
-                $cases[] = [
-                    'scenario'        => "Field '{$field}' menggunakan nilai yang sudah ada (unique constraint)",
-                    'body'            => $validBody,
-                    'expected_status' => 422,
-                    'expected_error'  => $field,
-                    'note'            => 'Perlu data existing di database untuk test ini',
-                ];
-            }
+            // Unique constraint - skip this as it requires existing data
+            // if (str_contains($ruleString, 'unique')) {
+            //     $cases[] = [
+            //         'scenario'        => "Field '{$field}' menggunakan nilai yang sudah ada (unique constraint)",
+            //         'body'            => $validBody,
+            //         'expected_status' => 422,
+            //         'expected_error'  => $field,
+            //         'note'            => 'Perlu data existing di database untuk test ini',
+            //     ];
+            // }
 
             // Invalid UUID
             if (str_contains($ruleString, 'uuid')) {
@@ -843,6 +877,18 @@ class GenerateBlackboxTests extends Command
                 $body[$field] = 'bukan-uuid-valid';
                 $cases[] = [
                     'scenario'        => "Field '{$field}' diisi format UUID tidak valid",
+                    'body'            => $body,
+                    'expected_status' => 422,
+                    'expected_error'  => $field,
+                ];
+            }
+            
+            // Confirmation mismatch
+            if (str_contains($ruleString, 'confirmed')) {
+                $body         = $validBody;
+                $body[$field . '_confirmation'] = 'different_value';
+                $cases[] = [
+                    'scenario'        => "Field '{$field}' konfirmasi tidak cocok",
                     'body'            => $body,
                     'expected_status' => 422,
                     'expected_error'  => $field,
