@@ -26,11 +26,13 @@ class BenchmarkService
         $password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
         $now = now();
 
+        $prefix = uniqid('b_', true);
+
         for ($i = 0; $i < 1000; $i++) {
             $users[] = [
-                'name' => 'Benchmark User '.Str::random(10),
-                'username' => 'bench_'.Str::random(10).'_'.$i,
-                'email' => 'bench_'.Str::random(10).'_'.$i.'@example.com',
+                'name' => 'Benchmark User ' . $i,
+                'username' => $prefix . '_' . $i,
+                'email' => $prefix . '_' . $i . '@example.com',
                 'password' => $password,
                 'email_verified_at' => $now,
                 'created_at' => $now,
