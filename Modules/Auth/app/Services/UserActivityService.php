@@ -29,7 +29,7 @@ class UserActivityService implements UserActivityServiceInterface
 
     public function getActivities(User $user, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        $query = ActivityLog::queries() // using queries() if available or query()
+        $query = ActivityLog::query()
             ->where('log_name', 'user_activity')
             ->where('causer_type', User::class)
             ->where('causer_id', $user->id)

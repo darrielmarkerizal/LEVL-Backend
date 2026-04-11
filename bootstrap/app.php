@@ -26,6 +26,20 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn () => null);
+        
+        // Set middleware priority - auth MUST run before validation
+        $middleware->priority([
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \Illuminate\Auth\Middleware\Authenticate::class,
+            \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
+            \Illuminate\Routing\Middleware\ThrottleRequests::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \Illuminate\Auth\Middleware\Authorize::class,
+            \App\Http\Middleware\EnsureRole::class,
+            \App\Http\Middleware\EnsurePermission::class,
+        ]);
+        
         $middleware->alias([
             'role' => EnsureRole::class,
             'permission' => EnsurePermission::class,
