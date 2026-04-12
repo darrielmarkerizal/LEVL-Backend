@@ -1,6 +1,6 @@
 <?php
 
-use Modules\Auth\app\Models\User;
+use Modules\Auth\Models\User;
 
 test('superadmin can list all users', function () {
     $superadmin = User::factory()->create();

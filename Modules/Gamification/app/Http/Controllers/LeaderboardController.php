@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Modules\Gamification\Contracts\Services\GamificationServiceInterface;
 use Modules\Gamification\Contracts\Services\LeaderboardServiceInterface;
 use Modules\Gamification\Transformers\LeaderboardResource;
-use Modules\Gamification\Transformers\PointResource;
+use Symfony\Component\HttpFoundation\Response;
 
 class LeaderboardController extends Controller
 {
@@ -73,16 +73,30 @@ class LeaderboardController extends Controller
         return $this->success($rankData, __('gamification.rank_retrieved'));
     }
 
-    public function userPointsHistory(Request $request, int $userId): JsonResponse
+    public function userGamificationLog(Request $request, string $userId): JsonResponse
     {
+        $userId = (int) $userId;
         $perPage = (int) ($request->input('per_page') ?? 15);
-        $perPage = $perPage > 0 ? $perPage : 15;
+        $result = $this->gamificationService->getUserGamificationLog($userId, $perPage, $request);
+        $result['logs']->appends($request->query());
 
-        $points = $this->gamificationService->getPointsHistory($userId, $perPage);
-        $points->appends($request->query());
+        return $this->paginateResponse(
+            $result['logs'],
+            __('gamification.points_history_retrieved'),
+            200,
+            [
+                'summary' => $result['summary'],
+                'point_history' => $result['point_history'],
+                'badge_history' => $result['badge_history'],
+            ]
+        );
+    }
 
-        $points->getCollection()->transform(fn ($item) => new PointResource($item));
+    public function exportUserGamificationLog(Request $request, string $userId): Response
+    {
+        $userId = (int) $userId;
+        $type = (string) $request->query('type', 'csv');
 
-        return $this->paginateResponse($points, __('gamification.points_history_retrieved'));
+        return $this->gamificationService->exportUserGamificationLog($userId, $type, $request);
     }
 }

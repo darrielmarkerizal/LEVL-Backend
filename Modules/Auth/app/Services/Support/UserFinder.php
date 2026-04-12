@@ -72,9 +72,9 @@ class UserFinder
                 }
 
                 if ($authUser->hasRole('Admin') && ! $authUser->hasRole('Superadmin')) {
-                    // Admin can see all Students and Instructors, but NOT other Admins or Superadmins
+                    // Admin can see all users including other Admins, but NOT Superadmins
                     $query->whereDoesntHave('roles', function (Builder $roleQuery) {
-                        $roleQuery->whereIn('name', ['Admin', 'Superadmin']);
+                        $roleQuery->where('name', 'Superadmin');
                     });
                 } elseif ($authUser->hasRole('Instructor')) {
                     $instructorCourseIds = Course::query()

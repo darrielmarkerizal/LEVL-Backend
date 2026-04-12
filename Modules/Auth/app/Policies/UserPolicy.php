@@ -58,23 +58,20 @@ class UserPolicy
             return false;
         }
 
-        // Admin CANNOT view other Admins or Superadmins
-        if ($targetUser->hasRole(['Admin', 'Superadmin'])) {
+        // Admin CANNOT view Superadmins
+        if ($targetUser->hasRole('Superadmin')) {
             return false;
         }
 
-        // Admin can view all Students and Instructors
-        if ($targetUser->hasRole(['Instructor', 'Student'])) {
-            return true;
-        }
-
-        return false;
+        // Admin can view all Students, Instructors, and other Admins
+        return true;
     }
 
     public function create(User $authUser): bool
     {
-        // Only Superadmin can create users (including Admin)
-        return $authUser->hasRole('Superadmin');
+        // Superadmin and Admin can create users
+        // Admin cannot create Superadmin (enforced in UserLifecycleProcessor)
+        return $authUser->hasRole(['Superadmin', 'Admin']);
     }
 
     public function update(User $authUser, User $targetUser): bool
@@ -84,16 +81,22 @@ class UserPolicy
 
     public function delete(User $authUser, User $targetUser): bool
     {
-        if (! $authUser->hasRole('Superadmin')) {
-            return false;
-        }
-
         // Cannot delete self
         if ($authUser->id === $targetUser->id) {
             return false;
         }
 
-        return true;
+        // Superadmin can delete anyone (except self)
+        if ($authUser->hasRole('Superadmin')) {
+            return true;
+        }
+
+        // Admin can delete users except Superadmins
+        if ($authUser->hasRole('Admin')) {
+            return ! $targetUser->hasRole('Superadmin');
+        }
+
+        return false;
     }
 
     public function updateStatus(User $authUser, User $targetUser): bool

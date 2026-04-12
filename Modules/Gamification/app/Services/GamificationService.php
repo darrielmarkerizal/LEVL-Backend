@@ -4,9 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Services;
 
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator as PaginationLengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
+use Modules\Auth\Models\User;
 use Modules\Gamification\Contracts\Services\GamificationServiceInterface;
 use Modules\Gamification\Contracts\Services\LeaderboardServiceInterface;
 use Modules\Gamification\Models\Point;
@@ -16,6 +24,9 @@ use Modules\Gamification\Repositories\GamificationRepository;
 use Modules\Gamification\Services\Support\BadgeManager;
 use Modules\Gamification\Services\Support\LeaderboardManager;
 use Modules\Gamification\Services\Support\PointManager;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
+use Symfony\Component\HttpFoundation\Response;
 
 class GamificationService implements GamificationServiceInterface
 {
@@ -84,6 +95,164 @@ class GamificationService implements GamificationServiceInterface
     public function getPointsHistory(int $userId, int $perPage, $request = null): LengthAwarePaginator
     {
         return $this->pointManager->getPointsHistory($userId, $perPage, $request);
+    }
+
+    public function getUserGamificationLog(int $userId, int $perPage = 15, $request = null): array
+    {
+        $request = $request instanceof Request ? $request : request();
+        $perPage = max(1, min($perPage, 100));
+        $items = $this->buildGamificationLogItems($userId, $request);
+        $page = max(1, (int) $request->input('page', 1));
+
+        $logs = new PaginationLengthAwarePaginator(
+            $items->forPage($page, $perPage)->values(),
+            $items->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        $pageLogs = $logs->getCollection();
+
+        return [
+            'summary' => $this->buildGamificationLogSummary($userId),
+            'logs' => $logs,
+            'point_history' => $pageLogs->where('event_type', 'xp')->values()->all(),
+            'badge_history' => $pageLogs->where('event_type', 'badge')->values()->all(),
+        ];
+    }
+
+    public function getUserGamificationLogExportRows(int $userId, $request = null): array
+    {
+        $request = $request instanceof Request ? $request : request();
+
+        return $this->buildGamificationLogItems($userId, $request)
+            ->map(fn (array $item) => [
+                'date_time' => $this->formatExportDateTime($item['created_at']),
+                'description' => $item['description'],
+                'reward' => $item['reward_text'],
+                'category' => '['.$item['category_label'].']',
+                'event_type' => $item['event_type'],
+            ])
+            ->values()
+            ->all();
+    }
+
+    public function exportUserGamificationLog(int $userId, string $type = 'csv', $request = null): Response
+    {
+        $request = $request instanceof Request ? $request : request();
+        $exportType = strtolower($type);
+
+        if (! in_array($exportType, ['csv', 'excel', 'pdf', 'json'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.validation_failed'),
+                'errors' => ['type' => ['Supported export types: csv, excel, pdf, json']],
+            ], 422);
+        }
+
+        $rows = $this->getUserGamificationLogExportRows($userId, $request);
+        $baseFileName = sprintf('gamification-log-user-%d-%s', $userId, now()->format('Ymd-His'));
+
+        if ($exportType === 'json') {
+            return response()->streamDownload(function () use ($rows) {
+                echo json_encode($rows, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            }, $baseFileName.'.json', [
+                'Content-Type' => 'application/json',
+                'Content-Disposition' => 'attachment; filename="'.$baseFileName.'.json"',
+            ]);
+        }
+
+        if ($exportType === 'excel') {
+            $export = new class($rows) implements FromArray, WithHeadings
+            {
+                public function __construct(
+                    private readonly array $rows
+                ) {}
+
+                public function headings(): array
+                {
+                    return ['Date Time', 'Description', 'Reward', 'Category', 'Event Type'];
+                }
+
+                public function array(): array
+                {
+                    return array_map(
+                        fn (array $row): array => [
+                            $row['date_time'] ?? '',
+                            $row['description'] ?? '',
+                            $row['reward'] ?? '',
+                            $row['category'] ?? '',
+                            $row['event_type'] ?? '',
+                        ],
+                        $this->rows
+                    );
+                }
+            };
+
+            return Excel::download($export, $baseFileName.'.xlsx');
+        }
+
+        if ($exportType === 'pdf') {
+            $options = new Options;
+            $options->set('isRemoteEnabled', false);
+            $options->set('isHtml5ParserEnabled', true);
+            $dompdf = new Dompdf($options);
+
+            $html = '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><style>body{font-family: DejaVu Sans, sans-serif;font-size:10px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #d0d7de;padding:6px;text-align:left;}th{background:#f3f4f6;}</style></head><body><h3>Gamification Log</h3><table><thead><tr><th>Date Time</th><th>Description</th><th>Reward</th><th>Category</th><th>Event Type</th></tr></thead><tbody>';
+
+            foreach ($rows as $row) {
+                $html .= '<tr>'
+                    .'<td>'.htmlspecialchars((string) ($row['date_time'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
+                    .'<td>'.htmlspecialchars((string) ($row['description'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
+                    .'<td>'.htmlspecialchars((string) ($row['reward'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
+                    .'<td>'.htmlspecialchars((string) ($row['category'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
+                    .'<td>'.htmlspecialchars((string) ($row['event_type'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
+                    .'</tr>';
+            }
+
+            $html .= '</tbody></table></body></html>';
+
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('a4', 'landscape');
+            $dompdf->render();
+
+            return response()->streamDownload(
+                fn () => print($dompdf->output()),
+                $baseFileName.'.pdf',
+                [
+                    'Content-Type' => 'application/pdf',
+                ]
+            );
+        }
+
+        // CSV export with proper UTF-8 BOM for Excel compatibility
+        return response()->streamDownload(function () use ($rows) {
+            // Add UTF-8 BOM for Excel compatibility
+            echo "\xEF\xBB\xBF";
+            
+            $handle = fopen('php://output', 'w');
+            
+            // Write headers
+            fputcsv($handle, ['Date Time', 'Description', 'Reward', 'Category', 'Event Type']);
+            
+            // Write data rows
+            foreach ($rows as $row) {
+                fputcsv($handle, [
+                    $row['date_time'] ?? '',
+                    $row['description'] ?? '',
+                    $row['reward'] ?? '',
+                    $row['category'] ?? '',
+                    $row['event_type'] ?? '',
+                ]);
+            }
+            
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
+        }, $baseFileName.'.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 
     public function getAchievements(int $userId): array
@@ -211,6 +380,260 @@ class GamificationService implements GamificationServiceInterface
     private function getTotalStudents(): int
     {
         return \Modules\Auth\Models\User::role('Student')->count();
+    }
+
+    private function buildGamificationLogSummary(int $userId): array
+    {
+        $user = User::query()
+            ->select(['id', 'name', 'email', 'username'])
+            ->find($userId);
+
+        $stats = $this->pointManager->getOrCreateStats($userId);
+
+        return [
+            'participant' => [
+                'id' => $user?->id,
+                'name' => $user?->name,
+                'email' => $user?->email,
+                'username' => $user?->username,
+                'avatar_url' => $user?->avatar_url,
+            ],
+            'current_stat' => 'Level '.$stats->global_level,
+            'current_level' => $stats->global_level,
+            'total_xp' => $stats->total_xp,
+            'badges_count' => UserBadge::query()->where('user_id', $userId)->count(),
+        ];
+    }
+
+    private function buildGamificationLogItems(int $userId, Request $request): Collection
+    {
+        $eventType = strtolower((string) $request->input('filter.event_type', 'all'));
+        $events = collect();
+
+        if ($eventType !== 'badge') {
+            $events = $events->concat($this->buildPointLogItems($userId));
+        }
+
+        if ($eventType !== 'xp') {
+            $events = $events->concat($this->buildBadgeLogItems($userId));
+        }
+
+        $sort = strtolower((string) $request->input('sort', '-created_at'));
+        $isAscending = in_array($sort, ['created_at', 'oldest', 'oldest_first'], true);
+
+        return $isAscending
+            ? $events->sortBy('created_at')->values()
+            : $events->sortByDesc('created_at')->values();
+    }
+
+    private function buildPointLogItems(int $userId): Collection
+    {
+        $points = QueryBuilder::for(Point::query()->where('user_id', $userId))
+            ->allowedFilters([
+                AllowedFilter::exact('source_type'),
+                AllowedFilter::exact('reason'),
+                AllowedFilter::callback('search', function ($query, $value): void {
+                    $needle = '%'.strtolower((string) $value).'%';
+                    $query->whereRaw("LOWER(COALESCE(description, '')) LIKE ?", [$needle]);
+                }),
+                AllowedFilter::callback('category', function ($query, $value): void {
+                    $this->applyPointCategoryFilter($query, $this->normalizeCategory($value));
+                }),
+                AllowedFilter::callback('month', function ($query, $value): void {
+                    $month = (string) $value;
+                    if (preg_match('/^\d{4}-\d{2}$/', $month) !== 1) {
+                        return;
+                    }
+
+                    try {
+                        $date = \Carbon\Carbon::createFromFormat('Y-m', $month);
+                        $query->whereYear('created_at', $date->year)
+                            ->whereMonth('created_at', $date->month);
+                    } catch (\Exception $e) {
+                    }
+                }),
+                AllowedFilter::callback('period', function ($query, $value): void {
+                    if (request()->has('filter.month')) {
+                        return;
+                    }
+
+                    $this->applyPeriodFilterToQuery($query, (string) $value);
+                }),
+                AllowedFilter::callback('date_from', function ($query, $value): void {
+                    $query->whereDate('created_at', '>=', (string) $value);
+                }),
+                AllowedFilter::callback('date_to', function ($query, $value): void {
+                    $query->whereDate('created_at', '<=', (string) $value);
+                }),
+                AllowedFilter::callback('points_min', function ($query, $value): void {
+                    $query->where('points', '>=', (int) $value);
+                }),
+                AllowedFilter::callback('points_max', function ($query, $value): void {
+                    $query->where('points', '<=', (int) $value);
+                }),
+            ])
+            ->allowedSorts(['created_at', 'points', 'source_type', 'reason'])
+            ->defaultSort('-created_at')
+            ->get();
+
+        $result = $points->map(function (Point $point): array {
+            $reason = $point->reason?->value;
+            $category = $this->mapPointReasonToCategory($reason);
+
+            return [
+                'id' => 'xp-'.$point->id,
+                'event_type' => 'xp',
+                'description' => $point->description ?? ($point->reason?->label() ?? 'XP reward'),
+                'reward_text' => $this->formatXpReward((int) $point->points),
+                'reward_value' => (int) $point->points,
+                'category' => $category,
+                'category_label' => ucfirst($category),
+                'created_at' => $point->created_at?->toISOString(),
+            ];
+        });
+
+        // If no point records exist but user has total XP, create a summary entry
+        if ($result->isEmpty()) {
+            $stats = UserGamificationStat::where('user_id', $userId)->first();
+            if ($stats && $stats->total_xp > 0) {
+                $result->push([
+                    'id' => 'xp-summary',
+                    'event_type' => 'xp',
+                    'description' => 'Total XP earned (historical data)',
+                    'reward_text' => $this->formatXpReward((int) $stats->total_xp),
+                    'reward_value' => (int) $stats->total_xp,
+                    'category' => 'completion',
+                    'category_label' => 'Completion',
+                    'created_at' => $stats->created_at?->toISOString() ?? now()->toISOString(),
+                ]);
+            }
+        }
+
+        return $result;
+    }
+
+    private function buildBadgeLogItems(int $userId): Collection
+    {
+        $badges = QueryBuilder::for(UserBadge::query()->where('user_id', $userId)->with(['badge:id,name,type']))
+            ->allowedFilters([
+                AllowedFilter::callback('search', function ($query, $value): void {
+                    $needle = '%'.strtolower((string) $value).'%';
+                    $query->whereHas('badge', function ($badgeQuery) use ($needle): void {
+                        $badgeQuery->whereRaw("LOWER(COALESCE(name, '')) LIKE ?", [$needle])
+                            ->orWhereRaw("LOWER(COALESCE(description, '')) LIKE ?", [$needle]);
+                    });
+                }),
+                AllowedFilter::callback('category', function ($query, $value): void {
+                    $category = $this->normalizeCategory($value);
+                    if ($category === null) {
+                        return;
+                    }
+
+                    $query->whereHas('badge', function ($badgeQuery) use ($category): void {
+                        $badgeQuery->where('type', $category);
+                    });
+                }),
+                AllowedFilter::callback('month', function ($query, $value): void {
+                    $month = (string) $value;
+                    if (preg_match('/^\d{4}-\d{2}$/', $month) !== 1) {
+                        return;
+                    }
+
+                    try {
+                        $date = \Carbon\Carbon::createFromFormat('Y-m', $month);
+                        $query->whereYear('earned_at', $date->year)
+                            ->whereMonth('earned_at', $date->month);
+                    } catch (\Exception $e) {
+                    }
+                }),
+                AllowedFilter::callback('period', function ($query, $value): void {
+                    if (request()->has('filter.month')) {
+                        return;
+                    }
+
+                    $this->applyPeriodFilterToBadges($query, (string) $value);
+                }),
+                AllowedFilter::callback('date_from', function ($query, $value): void {
+                    $query->whereDate('earned_at', '>=', (string) $value);
+                }),
+                AllowedFilter::callback('date_to', function ($query, $value): void {
+                    $query->whereDate('earned_at', '<=', (string) $value);
+                }),
+            ])
+            ->allowedSorts(['earned_at'])
+            ->defaultSort('-earned_at')
+            ->get();
+
+        return $badges->map(function (UserBadge $userBadge): array {
+            $category = strtolower((string) ($userBadge->badge?->type?->value ?? 'completion'));
+
+            return [
+                'id' => 'badge-'.$userBadge->id,
+                'event_type' => 'badge',
+                'description' => 'System Award: '.($userBadge->badge?->name ?? 'Badge'),
+                'reward_text' => '+1 Badge',
+                'reward_value' => 1,
+                'category' => $category,
+                'category_label' => ucfirst($category),
+                'created_at' => $userBadge->earned_at?->toISOString(),
+            ];
+        });
+    }
+
+    private function normalizeCategory(mixed $value): ?string
+    {
+        $category = strtolower(trim((string) $value));
+
+        if ($category === '' || $category === 'all' || $category === 'all category') {
+            return null;
+        }
+
+        return $category;
+    }
+
+    private function mapPointReasonToCategory(?string $reason): string
+    {
+        return match ($reason) {
+            'perfect_score', 'quiz_passed', 'quiz_completed', 'score' => 'quality',
+            'daily_streak' => 'habit',
+            'forum_post', 'forum_reply', 'reaction_received', 'engagement' => 'social',
+            'first_attempt', 'first_submission' => 'speed',
+            'bonus', 'penalty' => 'hidden',
+            default => 'completion',
+        };
+    }
+
+    private function applyPointCategoryFilter($query, ?string $category): void
+    {
+        if ($category === null) {
+            return;
+        }
+
+        match ($category) {
+            'quality' => $query->whereIn('reason', ['perfect_score', 'quiz_passed', 'quiz_completed', 'score']),
+            'habit' => $query->where('reason', 'daily_streak'),
+            'social' => $query->whereIn('reason', ['forum_post', 'forum_reply', 'reaction_received', 'engagement']),
+            'speed' => $query->whereIn('reason', ['first_attempt', 'first_submission']),
+            'hidden' => $query->whereIn('reason', ['bonus', 'penalty']),
+            'completion' => $query->whereIn('reason', ['lesson_completed', 'assignment_submitted', 'unit_completed', 'assignment_completed', 'completion']),
+            default => $query->whereRaw('1 = 0'),
+        };
+    }
+
+    private function formatXpReward(int $points): string
+    {
+        $prefix = $points >= 0 ? '+' : '-';
+
+        return $prefix.number_format(abs($points)).' XP';
+    }
+
+    private function formatExportDateTime(?string $isoDateTime): string
+    {
+        if (! $isoDateTime) {
+            return '';
+        }
+
+        return \Carbon\Carbon::parse($isoDateTime)->timezone('Asia/Jakarta')->format('M d, Y H:i').' WIB';
     }
 
     public function getUnitLevels(int $userId, int $courseId): Collection

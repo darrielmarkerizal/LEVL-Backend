@@ -108,7 +108,8 @@ class UserLifecycleProcessor
                 $targetRole = $data['role'];
 
                 if ($authUser->hasRole('Admin') && ! $authUser->hasRole('Superadmin')) {
-                    if ($targetRole !== 'Admin') {
+                    // Admin can assign Student, Instructor, and Admin roles, but NOT Superadmin
+                    if (! in_array($targetRole, ['Student', 'Instructor', 'Admin'], true)) {
                         throw new AuthorizationException(__('messages.forbidden'));
                     }
                 } elseif ($authUser->hasRole('Superadmin')) {

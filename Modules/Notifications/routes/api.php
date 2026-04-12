@@ -9,13 +9,10 @@ use Modules\Notifications\Http\Controllers\PostMediaController;
 Route::middleware(['auth:api'])->prefix('v1')->group(function () {
     Route::apiResource('notifications', NotificationsController::class)->names('notifications');
 
-    // Notification Preferences
     Route::get('notification-preferences', [NotificationPreferenceController::class, 'index'])->name('notification-preferences.index');
     Route::put('notification-preferences', [NotificationPreferenceController::class, 'update'])->name('notification-preferences.update');
     Route::post('notification-preferences/reset', [NotificationPreferenceController::class, 'reset'])->name('notification-preferences.reset');
 
-    // ─── Info & News Management - Shared Routes ────────────────────────────────
-    // All authenticated users can view published posts filtered by their role
     Route::prefix('posts')->name('posts.')->group(function () {
         Route::get('/', [PostController::class, 'index'])
             ->middleware('throttle:60,1')
@@ -34,10 +31,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->name('view');
     });
 
-    // ─── Info & News Management - Admin Routes ─────────────────────────────────
-    // Only Admin users can manage posts
     Route::prefix('admin/posts')->name('admin.posts.')->middleware(['role:Admin|Superadmin'])->group(function () {
-        // Core CRUD operations
         Route::post('/', [PostController::class, 'store'])
             ->middleware('throttle:60,1')
             ->name('store');

@@ -10,7 +10,8 @@ use Modules\Gamification\Http\Controllers\MetricsController;
 Route::middleware(['auth:api'])->prefix('v1')->group(function () {
 
     Route::get('leaderboards', [LeaderboardController::class, 'index'])->name('leaderboards.index');
-    Route::get('leaderboards/{userId}/points-history', [LeaderboardController::class, 'userPointsHistory'])->name('leaderboards.user-points-history');
+    Route::get('leaderboards/{userId}/gamification-log', [LeaderboardController::class, 'userGamificationLog'])->name('leaderboards.user-gamification-log');
+    Route::get('leaderboards/{userId}/gamification-log/export', [LeaderboardController::class, 'exportUserGamificationLog'])->name('leaderboards.user-gamification-log-export');
 
     // Metrics endpoint for monitoring (Prometheus/Grafana)
     Route::get('metrics', [MetricsController::class, 'index'])
