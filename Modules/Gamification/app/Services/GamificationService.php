@@ -157,10 +157,7 @@ class GamificationService implements GamificationServiceInterface
         if ($exportType === 'json') {
             return response()->streamDownload(function () use ($rows) {
                 echo json_encode($rows, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            }, $baseFileName.'.json', [
-                'Content-Type' => 'application/json',
-                'Content-Disposition' => 'attachment; filename="'.$baseFileName.'.json"',
-            ]);
+            }, $baseFileName.'.json', ['Content-Type' => 'application/json']);
         }
 
         if ($exportType === 'excel') {
@@ -179,35 +176,34 @@ class GamificationService implements GamificationServiceInterface
                 {
                     return array_map(
                         fn (array $row): array => [
-                            $row['date_time'] ?? '',
-                            $row['description'] ?? '',
-                            $row['reward'] ?? '',
-                            $row['category'] ?? '',
-                            $row['event_type'] ?? '',
+                            $row['date_time'],
+                            $row['description'],
+                            $row['reward'],
+                            $row['category'],
+                            $row['event_type'],
                         ],
                         $this->rows
                     );
                 }
             };
 
-            return Excel::download($export, $baseFileName.'.xlsx');
+            return Excel::download($export, $baseFileName.'.xlsx', \Maatwebsite\Excel\Excel::XLSX);
         }
 
         if ($exportType === 'pdf') {
             $options = new Options;
             $options->set('isRemoteEnabled', false);
-            $options->set('isHtml5ParserEnabled', true);
             $dompdf = new Dompdf($options);
 
-            $html = '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><style>body{font-family: DejaVu Sans, sans-serif;font-size:10px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #d0d7de;padding:6px;text-align:left;}th{background:#f3f4f6;}</style></head><body><h3>Gamification Log</h3><table><thead><tr><th>Date Time</th><th>Description</th><th>Reward</th><th>Category</th><th>Event Type</th></tr></thead><tbody>';
+            $html = '<html><head><style>body{font-family: DejaVu Sans, sans-serif;font-size:10px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #d0d7de;padding:6px;text-align:left;}th{background:#f3f4f6;}</style></head><body><h3>Gamification Log</h3><table><thead><tr><th>Date Time</th><th>Description</th><th>Reward</th><th>Category</th><th>Event Type</th></tr></thead><tbody>';
 
             foreach ($rows as $row) {
                 $html .= '<tr>'
-                    .'<td>'.htmlspecialchars((string) ($row['date_time'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
-                    .'<td>'.htmlspecialchars((string) ($row['description'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
-                    .'<td>'.htmlspecialchars((string) ($row['reward'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
-                    .'<td>'.htmlspecialchars((string) ($row['category'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
-                    .'<td>'.htmlspecialchars((string) ($row['event_type'] ?? ''), ENT_QUOTES, 'UTF-8').'</td>'
+                    .'<td>'.e((string) $row['date_time']).'</td>'
+                    .'<td>'.e((string) $row['description']).'</td>'
+                    .'<td>'.e((string) $row['reward']).'</td>'
+                    .'<td>'.e((string) $row['category']).'</td>'
+                    .'<td>'.e((string) $row['event_type']).'</td>'
                     .'</tr>';
             }
 
@@ -217,42 +213,20 @@ class GamificationService implements GamificationServiceInterface
             $dompdf->setPaper('a4', 'landscape');
             $dompdf->render();
 
-            return response()->streamDownload(
-                fn () => print($dompdf->output()),
-                $baseFileName.'.pdf',
-                [
-                    'Content-Type' => 'application/pdf',
-                ]
-            );
+            return response($dompdf->output(), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.$baseFileName.'.pdf"',
+            ]);
         }
 
-        // CSV export with proper UTF-8 BOM for Excel compatibility
         return response()->streamDownload(function () use ($rows) {
-            // Add UTF-8 BOM for Excel compatibility
-            echo "\xEF\xBB\xBF";
-            
             $handle = fopen('php://output', 'w');
-            
-            // Write headers
             fputcsv($handle, ['Date Time', 'Description', 'Reward', 'Category', 'Event Type']);
-            
-            // Write data rows
             foreach ($rows as $row) {
-                fputcsv($handle, [
-                    $row['date_time'] ?? '',
-                    $row['description'] ?? '',
-                    $row['reward'] ?? '',
-                    $row['category'] ?? '',
-                    $row['event_type'] ?? '',
-                ]);
+                fputcsv($handle, [$row['date_time'], $row['description'], $row['reward'], $row['category'], $row['event_type']]);
             }
-            
-            if (is_resource($handle)) {
-                fclose($handle);
-            }
-        }, $baseFileName.'.csv', [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-        ]);
+            fclose($handle);
+        }, $baseFileName.'.csv', ['Content-Type' => 'text/csv']);
     }
 
     public function getAchievements(int $userId): array
@@ -476,7 +450,7 @@ class GamificationService implements GamificationServiceInterface
             ->defaultSort('-created_at')
             ->get();
 
-        $result = $points->map(function (Point $point): array {
+        return $points->map(function (Point $point): array {
             $reason = $point->reason?->value;
             $category = $this->mapPointReasonToCategory($reason);
 
@@ -491,25 +465,6 @@ class GamificationService implements GamificationServiceInterface
                 'created_at' => $point->created_at?->toISOString(),
             ];
         });
-
-        // If no point records exist but user has total XP, create a summary entry
-        if ($result->isEmpty()) {
-            $stats = UserGamificationStat::where('user_id', $userId)->first();
-            if ($stats && $stats->total_xp > 0) {
-                $result->push([
-                    'id' => 'xp-summary',
-                    'event_type' => 'xp',
-                    'description' => 'Total XP earned (historical data)',
-                    'reward_text' => $this->formatXpReward((int) $stats->total_xp),
-                    'reward_value' => (int) $stats->total_xp,
-                    'category' => 'completion',
-                    'category_label' => 'Completion',
-                    'created_at' => $stats->created_at?->toISOString() ?? now()->toISOString(),
-                ]);
-            }
-        }
-
-        return $result;
     }
 
     private function buildBadgeLogItems(int $userId): Collection

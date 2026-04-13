@@ -9,7 +9,6 @@ use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Common\Http\Resources\LevelConfigResource;
-use Modules\Common\Models\LevelConfig;
 use Modules\Gamification\Services\LevelService;
 use Modules\Gamification\Services\Support\PointManager;
 
@@ -22,36 +21,11 @@ class LevelController extends Controller
         private readonly PointManager $pointManager
     ) {}
 
-    /**
-     * Get all level configurations
-     */
     public function index(Request $request): JsonResponse
     {
         $perPage = min((int) $request->get('per_page', 20), 100);
-
-        $levels = \Spatie\QueryBuilder\QueryBuilder::for(LevelConfig::class)
-            ->with('milestoneBadge')
-            ->allowedFilters([
-                \Spatie\QueryBuilder\AllowedFilter::exact('level'),
-                \Spatie\QueryBuilder\AllowedFilter::callback('level_min', function ($query, $value) {
-                    $query->where('level', '>=', (int) $value);
-                }),
-                \Spatie\QueryBuilder\AllowedFilter::callback('level_max', function ($query, $value) {
-                    $query->where('level', '<=', (int) $value);
-                }),
-                \Spatie\QueryBuilder\AllowedFilter::callback('xp_min', function ($query, $value) {
-                    $query->where('xp_required', '>=', (int) $value);
-                }),
-                \Spatie\QueryBuilder\AllowedFilter::callback('xp_max', function ($query, $value) {
-                    $query->where('xp_required', '<=', (int) $value);
-                }),
-            ])
-            ->allowedSorts(['level', 'xp_required', 'bonus_xp'])
-            ->defaultSort('level')
-            ->paginate($perPage);
-
-        // Transform using resource
-        $levels->getCollection()->transform(fn ($level) => new LevelConfigResource($level));
+        
+        $levels = $this->levelService->getPaginatedLevels($perPage);
 
         return $this->paginateResponse(
             $levels,
@@ -59,9 +33,33 @@ class LevelController extends Controller
         );
     }
 
-    /**
-     * Get level progression table
-     */
+    public function allTiers(): JsonResponse
+    {
+        $data = $this->levelService->getAllLevelsGroupedByTier();
+
+        return $this->success(
+            $data,
+            'messages.levels_retrieved'
+        );
+    }
+
+    public function tierLevels(int $tier): JsonResponse
+    {
+        if ($tier < 1 || $tier > 10) {
+            return $this->error(
+                'Tier must be between 1 and 10',
+                422
+            );
+        }
+
+        $data = $this->levelService->getLevelsByTier($tier);
+
+        return $this->success(
+            $data,
+            'messages.levels_retrieved'
+        );
+    }
+
     public function progression(Request $request): JsonResponse
     {
         $startLevel = max(1, (int) $request->get('start', 1));
@@ -75,14 +73,11 @@ class LevelController extends Controller
         );
     }
 
-    /**
-     * Get user's current level info
-     */
     public function userLevel(Request $request): JsonResponse
     {
         $user = auth('api')->user();
 
-        if (! $user) {
+        if (!$user) {
             return $this->unauthorized('messages.unauthorized');
         }
 
@@ -97,9 +92,6 @@ class LevelController extends Controller
         );
     }
 
-    /**
-     * Calculate level from XP (utility endpoint)
-     */
     public function calculate(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -115,9 +107,6 @@ class LevelController extends Controller
         );
     }
 
-    /**
-     * Sync level configurations (Admin only)
-     */
     public function sync(Request $request): JsonResponse
     {
         $this->authorize('manage-gamification');
@@ -138,9 +127,6 @@ class LevelController extends Controller
         );
     }
 
-    /**
-     * Update specific level config (Admin only)
-     */
     public function update(Request $request, int $id): JsonResponse
     {
         $this->authorize('manage-gamification');
@@ -153,12 +139,7 @@ class LevelController extends Controller
             'bonus_xp' => 'sometimes|integer|min:0',
         ]);
 
-        $levelConfig = LevelConfig::findOrFail($id);
-        $levelConfig->update($validated);
-        $levelConfig->load('milestoneBadge');
-
-        // Clear cache
-        cache()->forget('gamification.level_configs');
+        $levelConfig = $this->levelService->updateLevelConfig($id, $validated);
 
         return $this->success(
             new LevelConfigResource($levelConfig),
@@ -166,23 +147,39 @@ class LevelController extends Controller
         );
     }
 
-    /**
-     * Get level statistics
-     */
+    public function updateTier(Request $request, int $tier): JsonResponse
+    {
+        $this->authorize('manage-gamification');
+
+        if ($tier < 1 || $tier > 10) {
+            return $this->error(
+                'Tier must be between 1 and 10',
+                422
+            );
+        }
+
+        $validated = $request->validate([
+            'base_tier_name' => 'required|string|max:255',
+        ]);
+
+        $updated = $this->levelService->updateTierName($tier, $validated['base_tier_name']);
+
+        return $this->success(
+            [
+                'tier' => $tier,
+                'base_tier_name' => $validated['base_tier_name'],
+                'updated_count' => $updated,
+            ],
+            'messages.tier_updated',
+            ['count' => $updated]
+        );
+    }
+
     public function statistics(): JsonResponse
     {
         $this->authorize('manage-gamification');
 
-        $stats = [
-            'total_levels' => LevelConfig::count(),
-            'max_level' => LevelConfig::max('level'),
-            'total_xp_to_max' => $this->levelService->calculateTotalXpForLevel(100),
-            'users_by_level' => \DB::table('user_gamification_stats')
-                ->select('global_level', \DB::raw('count(*) as count'))
-                ->groupBy('global_level')
-                ->orderBy('global_level')
-                ->get(),
-        ];
+        $stats = $this->levelService->getLevelStatistics();
 
         return $this->success(
             $stats,
@@ -190,18 +187,15 @@ class LevelController extends Controller
         );
     }
 
-    /**
-     * Get user's daily XP stats
-     */
     public function dailyXpStats(Request $request): JsonResponse
     {
         $user = auth('api')->user();
 
-        if (! $user) {
+        if (!$user) {
             return $this->unauthorized('messages.unauthorized');
         }
 
-        $days = min((int) $request->get('days', 7), 30); // Max 30 days
+        $days = min((int) $request->get('days', 7), 30);
         $stats = $this->pointManager->getDailyXpStats($user->id, $days);
 
         return $this->success(

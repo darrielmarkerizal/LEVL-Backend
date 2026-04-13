@@ -20,6 +20,7 @@ return [
     'level_info_retrieved' => 'Level information retrieved successfully.',
     'level_calculated' => 'Level calculated successfully.',
     'levels_synced' => 'Successfully synced :count level configurations.',
+    'tier_updated' => 'Tier updated successfully. :count levels have been renamed.',
     'level_updated' => 'Level configuration updated successfully.',
     'level_statistics_retrieved' => 'Level statistics retrieved successfully.',
     'daily_xp_stats_retrieved' => 'Daily XP statistics retrieved successfully.',

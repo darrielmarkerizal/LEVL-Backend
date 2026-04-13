@@ -32,11 +32,14 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
 
     Route::prefix('levels')->name('levels.')->group(function () {
         Route::get('/', [LevelController::class, 'index'])->name('index');
+        Route::get('/tiers', [LevelController::class, 'allTiers'])->name('all-tiers');
+        Route::get('/tiers/{tier}', [LevelController::class, 'tierLevels'])->name('tier-levels');
         Route::get('/progression', [LevelController::class, 'progression'])->name('progression');
         Route::post('/calculate', [LevelController::class, 'calculate'])->name('calculate');
 
-        Route::middleware(['role:Superadmin'])->group(function () {
+        Route::middleware(['role:Superadmin|Admin'])->group(function () {
             Route::post('/sync', [LevelController::class, 'sync'])->name('sync');
+            Route::put('/tiers/{tier}', [LevelController::class, 'updateTier'])->name('update-tier');
             Route::put('/{id}', [LevelController::class, 'update'])->name('update');
             Route::get('/statistics', [LevelController::class, 'statistics'])->name('statistics');
         });

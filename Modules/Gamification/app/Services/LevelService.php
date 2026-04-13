@@ -4,15 +4,106 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Services;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Modules\Common\Http\Resources\LevelConfigResource;
 use Modules\Common\Models\LevelConfig;
+use Modules\Gamification\Repositories\LevelRepository;
 
 class LevelService
 {
-    /**
-     * Calculate XP required for a specific level using formula: XP(level) = 100 × level^1.6
-     */
+    public function __construct(
+        private readonly LevelRepository $levelRepository
+    ) {}
+
+    public function getTierName(int $tier): string
+    {
+        $startLevel = ($tier - 1) * 10 + 1;
+        $firstLevel = $this->levelRepository->findById($startLevel);
+        
+        if ($firstLevel && $firstLevel->name) {
+            return preg_replace('/\s+\d+$/', '', $firstLevel->name);
+        }
+        
+        return 'Unknown';
+    }
+
+    public function getPaginatedLevels(int $perPage = 20): LengthAwarePaginator
+    {
+        $levels = $this->levelRepository->getPaginated($perPage);
+        
+        $levels->getCollection()->transform(fn ($level) => new LevelConfigResource($level));
+        
+        return $levels;
+    }
+
+    public function getLevelsByTier(int $tier): array
+    {
+        $levels = $this->levelRepository->getByTier($tier);
+        $startLevel = ($tier - 1) * 10 + 1;
+        $endLevel = $tier * 10;
+
+        return [
+            'tier' => $tier,
+            'tier_name' => $this->getTierName($tier),
+            'level_range' => [
+                'start' => $startLevel,
+                'end' => $endLevel,
+            ],
+            'levels' => $levels->map(fn ($level) => new LevelConfigResource($level)),
+        ];
+    }
+
+    public function getAllLevelsGroupedByTier(): array
+    {
+        $tiers = $this->levelRepository->getAllGroupedByTier();
+
+        $result = array_map(function ($tier) {
+            return [
+                'tier' => $tier['tier'],
+                'tier_name' => $this->getTierName($tier['tier']),
+                'level_range' => [
+                    'start' => $tier['start_level'],
+                    'end' => $tier['end_level'],
+                ],
+                'levels' => $tier['levels']->map(fn ($level) => new LevelConfigResource($level)),
+            ];
+        }, $tiers);
+
+        return [
+            'tiers' => $result,
+            'total_tiers' => count($result),
+        ];
+    }
+
+    public function updateLevelConfig(int $id, array $data): LevelConfig
+    {
+        $levelConfig = $this->levelRepository->findById($id);
+        
+        if (!$levelConfig) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Level config not found');
+        }
+
+        $updated = $this->levelRepository->update($levelConfig, $data);
+
+        Cache::forget('gamification.level_configs');
+
+        return $updated;
+    }
+
+    public function getLevelStatistics(): array
+    {
+        $stats = $this->levelRepository->getStatistics();
+        
+        return [
+            'total_levels' => $stats['total_levels'],
+            'max_level' => $stats['max_level'],
+            'total_xp_to_max' => $this->calculateTotalXpForLevel(100),
+            'users_by_level' => $stats['users_by_level'],
+        ];
+    }
+
     public function calculateXpForLevel(int $level): int
     {
         if ($level <= 0) {
@@ -22,18 +113,14 @@ class LevelService
         return (int) round(100 * pow($level, 1.6));
     }
 
-    /**
-     * Calculate level from total XP
-     */
     public function calculateLevelFromXp(int $totalXp): int
     {
         if ($totalXp <= 0) {
             return 0;
         }
 
-        // Binary search untuk efisiensi
         $low = 0;
-        $high = 100; // Max level
+        $high = 100;
         $result = 0;
 
         while ($low <= $high) {
@@ -51,9 +138,6 @@ class LevelService
         return $result;
     }
 
-    /**
-     * Calculate total XP required to reach a level (cumulative)
-     */
     public function calculateTotalXpForLevel(int $level): int
     {
         if ($level <= 0) {
@@ -68,9 +152,6 @@ class LevelService
         return $total;
     }
 
-    /**
-     * Get XP progress for current level
-     */
     public function getLevelProgress(int $totalXp): array
     {
         $currentLevel = $this->calculateLevelFromXp($totalXp);
@@ -95,9 +176,6 @@ class LevelService
         ];
     }
 
-    /**
-     * Generate level configs for a range of levels
-     */
     public function generateLevelConfigs(int $startLevel = 1, int $endLevel = 100): Collection
     {
         $configs = collect();
@@ -116,9 +194,6 @@ class LevelService
         return $configs;
     }
 
-    /**
-     * Sync level configs to database
-     */
     public function syncLevelConfigs(int $startLevel = 1, int $endLevel = 100): int
     {
         $configs = $this->generateLevelConfigs($startLevel, $endLevel);
@@ -132,29 +207,24 @@ class LevelService
             $synced++;
         }
 
-        // Clear cache
         Cache::forget('gamification.level_configs');
 
         return $synced;
     }
 
-    /**
-     * Get level name based on level number with tier system
-     * Format: "Tier Name X" where X is 1-10 within each tier
-     */
     private function getLevelName(int $level): string
     {
         $tiers = [
-            1 => 'Beginner',      // Level 1-10
-            11 => 'Novice',       // Level 11-20
-            21 => 'Competent',    // Level 21-30
-            31 => 'Intermediate', // Level 31-40
-            41 => 'Proficient',   // Level 41-50
-            51 => 'Advanced',     // Level 51-60
-            61 => 'Expert',       // Level 61-70
-            71 => 'Master',       // Level 71-80
-            81 => 'Grand Master', // Level 81-90
-            91 => 'Legendary',    // Level 91-100
+            1 => 'Beginner',
+            11 => 'Novice',
+            21 => 'Competent',
+            31 => 'Intermediate',
+            41 => 'Proficient',
+            51 => 'Advanced',
+            61 => 'Expert',
+            71 => 'Master',
+            81 => 'Grand Master',
+            91 => 'Legendary',
         ];
 
         $tierStart = (int) (floor(($level - 1) / 10) * 10) + 1;
@@ -164,20 +234,15 @@ class LevelService
         return "{$tierName} {$tierNumber}";
     }
 
-    /**
-     * Get default rewards for a level
-     */
     private function getDefaultRewards(int $level): array
     {
         $rewards = [];
 
-        // Milestone rewards
         if ($level % 10 === 0) {
             $rewards['badge'] = "level_{$level}_milestone";
             $rewards['bonus_xp'] = $level * 10;
         }
 
-        // Special rewards for major milestones
         if (in_array($level, [25, 50, 75, 100])) {
             $rewards['title'] = $this->getLevelName($level);
             $rewards['bonus_xp'] = $level * 20;
@@ -186,9 +251,29 @@ class LevelService
         return $rewards;
     }
 
-    /**
-     * Get level configs from cache or database
-     */
+    public function updateTierName(int $tier, string $baseTierName): int
+    {
+        $startLevel = ($tier - 1) * 10 + 1;
+        $endLevel = $tier * 10;
+        
+        $updated = 0;
+        
+        for ($level = $startLevel; $level <= $endLevel; $level++) {
+            $tierNumber = (($level - 1) % 10) + 1;
+            $newName = "{$baseTierName} {$tierNumber}";
+            
+            LevelConfig::where('level', $level)->update([
+                'name' => $newName,
+            ]);
+            
+            $updated++;
+        }
+        
+        Cache::forget('gamification.level_configs');
+        
+        return $updated;
+    }
+
     public function getLevelConfigs(): Collection
     {
         return Cache::remember('gamification.level_configs', 3600, function () {
@@ -196,17 +281,11 @@ class LevelService
         });
     }
 
-    /**
-     * Get specific level config
-     */
     public function getLevelConfig(int $level): ?LevelConfig
     {
         return $this->getLevelConfigs()->firstWhere('level', $level);
     }
 
-    /**
-     * Get level progression table (for display)
-     */
     public function getLevelProgressionTable(int $startLevel = 1, int $endLevel = 20): array
     {
         $table = [];

@@ -20,6 +20,7 @@ return [
     'level_info_retrieved' => 'Informasi level berhasil diambil.',
     'level_calculated' => 'Kalkulasi level berhasil.',
     'levels_synced' => 'Berhasil sinkronisasi :count konfigurasi level.',
+    'tier_updated' => 'Tier berhasil diperbarui. :count level telah diubah namanya.',
     'level_updated' => 'Konfigurasi level berhasil diperbarui.',
     'level_statistics_retrieved' => 'Statistik level berhasil diambil.',
     'daily_xp_stats_retrieved' => 'Statistik XP harian berhasil diambil.',
