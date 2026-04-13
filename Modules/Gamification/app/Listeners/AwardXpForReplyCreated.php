@@ -23,11 +23,14 @@ class AwardXpForReplyCreated
     public function handle(ReplyCreated $event): void
     {
         $reply = $event->reply;
-        $userId = $reply->user_id;
+        $userId = (int) ($reply->author_id ?? 0);
+
+        if ($userId <= 0) {
+            return;
+        }
 
         $xp = (int) SystemSetting::get('gamification.points.reply_created', 3);
 
-        // 1. Award XP
         $this->gamification->awardXp(
             $userId,
             $xp,
@@ -40,7 +43,6 @@ class AwardXpForReplyCreated
             ]
         );
 
-        // 2. Log event
         $this->loggerService->log(
             $userId,
             'reply_created',
@@ -52,12 +54,10 @@ class AwardXpForReplyCreated
             ]
         );
 
-        // 3. Increment counters
         $this->counterService->increment($userId, 'reply_created', 'global', null, 'lifetime');
         $this->counterService->increment($userId, 'reply_created', 'global', null, 'daily');
         $this->counterService->increment($userId, 'reply_created', 'global', null, 'weekly');
 
-        // 4. Evaluate badge rules
         $user = \Modules\Auth\Models\User::find($userId);
         if ($user) {
             $payload = [

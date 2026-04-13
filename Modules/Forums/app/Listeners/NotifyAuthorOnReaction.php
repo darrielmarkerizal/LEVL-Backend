@@ -25,7 +25,7 @@ class NotifyAuthorOnReaction
             return;
         }
 
-        $reactionType = ucfirst($reaction->type);
+        $reactionType = ucfirst($reaction->type->value);
         $userName = $reaction->user->name;
 
         if ($reactable instanceof Thread) {

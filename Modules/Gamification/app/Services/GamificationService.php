@@ -112,9 +112,13 @@ class GamificationService implements GamificationServiceInterface
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
+        $pageLogs = $logs->getCollection();
+
         return [
             'summary' => $this->buildGamificationLogSummary($userId),
             'logs' => $logs,
+            'point_history' => $pageLogs->where('event_type', 'xp')->values()->all(),
+            'badge_history' => $pageLogs->where('event_type', 'badge')->values()->all(),
         ];
     }
 
@@ -183,11 +187,7 @@ class GamificationService implements GamificationServiceInterface
                 }
             };
 
-            return response()->streamDownload(function () use ($export) {
-                echo Excel::raw($export, \Maatwebsite\Excel\Excel::XLSX);
-            }, $baseFileName.'.xlsx', [
-                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            ]);
+            return Excel::download($export, $baseFileName.'.xlsx', \Maatwebsite\Excel\Excel::XLSX);
         }
 
         if ($exportType === 'pdf') {
@@ -217,12 +217,6 @@ class GamificationService implements GamificationServiceInterface
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'attachment; filename="'.$baseFileName.'.pdf"',
             ]);
-        }
-
-        // CSV export (default)
-        // Bersihkan semua output buffer
-        while (ob_get_level()) {
-            ob_end_clean();
         }
 
         return response()->streamDownload(function () use ($rows) {
@@ -452,6 +446,7 @@ class GamificationService implements GamificationServiceInterface
                     $query->where('points', '<=', (int) $value);
                 }),
             ])
+            ->allowedSorts(['created_at', 'points', 'source_type', 'reason'])
             ->defaultSort('-created_at')
             ->get();
 
@@ -520,6 +515,7 @@ class GamificationService implements GamificationServiceInterface
                     $query->whereDate('earned_at', '<=', (string) $value);
                 }),
             ])
+            ->allowedSorts(['earned_at'])
             ->defaultSort('-earned_at')
             ->get();
 

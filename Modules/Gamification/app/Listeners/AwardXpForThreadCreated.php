@@ -14,7 +14,7 @@ use Modules\Gamification\Traits\CachesUsers;
 
 class AwardXpForThreadCreated
 {
-    use CachesUsers; // FIX: Use cached user lookups
+    use CachesUsers;
 
     public function __construct(
         private readonly GamificationService $gamification,
@@ -26,11 +26,14 @@ class AwardXpForThreadCreated
     public function handle(ThreadCreated $event): void
     {
         $thread = $event->thread;
-        $userId = $thread->user_id;
+        $userId = (int) ($thread->author_id ?? 0);
+
+        if ($userId <= 0) {
+            return;
+        }
 
         $xp = (int) SystemSetting::get('gamification.points.thread_created', 5);
 
-        // 1. Award XP
         $this->gamification->awardXp(
             $userId,
             $xp,
@@ -43,7 +46,6 @@ class AwardXpForThreadCreated
             ]
         );
 
-        // 2. Log event
         $this->loggerService->log(
             $userId,
             'thread_created',
@@ -55,13 +57,10 @@ class AwardXpForThreadCreated
             ]
         );
 
-        // 3. Increment counters
         $this->counterService->increment($userId, 'thread_created', 'global', null, 'lifetime');
         $this->counterService->increment($userId, 'thread_created', 'global', null, 'daily');
         $this->counterService->increment($userId, 'thread_created', 'global', null, 'weekly');
 
-        // 4. Evaluate badge rules
-        // FIX: Use cached user lookup
         $user = $this->getCachedUser($userId);
         if ($user) {
             $payload = [

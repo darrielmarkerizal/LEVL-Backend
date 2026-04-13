@@ -7,6 +7,7 @@ namespace Modules\Gamification\Services\Support;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Modules\Gamification\Events\UserLeveledUp;
 use Modules\Gamification\Models\Point;
 use Modules\Gamification\Models\UserGamificationStat;
@@ -133,7 +134,11 @@ class PointManager
 
                 // Update point with new level
                 $point->new_level = $newLevel;
-                $point->triggered_level_up = $newLevel > $oldLevel;
+
+                if (Schema::hasColumn('points', 'triggered_level_up')) {
+                    $point->triggered_level_up = $newLevel > $oldLevel;
+                }
+
                 $point->save();
 
                 // Update global daily cap tracking

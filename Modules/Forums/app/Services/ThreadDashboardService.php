@@ -50,7 +50,7 @@ class ThreadDashboardService
         return $this->repository->getTrendingThreads($filters, $search);
     }
 
-    public function getWithIncludes(Thread $thread, array $includes = ['author', 'author.media', 'course', 'media', 'tags', 'topLevelReplies', 'topLevelReplies.author', 'topLevelReplies.author.media', 'topLevelReplies.media']): Thread
+    public function getWithIncludes(Thread $thread, array $includes = ['author', 'author.media', 'course', 'media', 'topLevelReplies', 'topLevelReplies.author', 'topLevelReplies.author.media', 'topLevelReplies.media']): Thread
     {
         return Thread::with($includes)->where('id', $thread->id)->firstOrFail();
     }

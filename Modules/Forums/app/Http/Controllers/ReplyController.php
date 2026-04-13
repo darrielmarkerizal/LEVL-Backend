@@ -43,7 +43,7 @@ class ReplyController extends Controller
         return $this->created(new ReplyResource($replyWithIncludes), __('messages.forums.reply_created'));
     }
 
-    public function update(UpdateReplyRequest $request, Course $course, Reply $reply, ReplyService $replyService, ReplyRepositoryInterface $replyRepository): JsonResponse
+    public function update(UpdateReplyRequest $request, Course $course, Thread $thread, Reply $reply, ReplyService $replyService, ReplyRepositoryInterface $replyRepository): JsonResponse
     {
         $this->authorize('update', $reply);
         $updatedReply = $replyService->update($reply, $request->validated());
@@ -59,7 +59,7 @@ class ReplyController extends Controller
         return $this->success(ReplyResource::collection($children), __('messages.forums.replies_retrieved'));
     }
 
-    public function destroy(Request $request, Course $course, Reply $reply, ReplyService $replyService): JsonResponse
+    public function destroy(Request $request, Course $course, Thread $thread, Reply $reply, ReplyService $replyService): JsonResponse
     {
         $this->authorize('delete', $reply);
         $replyService->delete($reply, $request->user());
