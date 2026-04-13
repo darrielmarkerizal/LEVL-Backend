@@ -1,0 +1,69 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Gamification\Database\Seeders;
+
+use Carbon\Carbon;
+use Illuminate\Database\Seeder;
+use Modules\Gamification\Models\Point;
+use Modules\Gamification\Models\UserGamificationStat;
+
+class BackfillPointsSeeder extends Seeder
+{
+    /**
+     * Backfill points table for users who have XP but no point history
+     * This creates historical point records based on existing XP
+     */
+    public function run(): void
+    {
+        $this->command->info('Backfilling points for users with XP but no point history...');
+
+        // Get users with XP but no points using subquery
+        $usersWithXp = UserGamificationStat::where('total_xp', '>', 0)
+            ->whereNotExists(function ($query) {
+                $query->select(\DB::raw(1))
+                    ->from('points')
+                    ->whereColumn('points.user_id', 'user_gamification_stats.user_id');
+            })
+            ->get();
+
+        if ($usersWithXp->isEmpty()) {
+            $this->command->info('No users need backfilling.');
+            return;
+        }
+
+        $this->command->info("Found {$usersWithXp->count()} users to backfill.");
+
+        $bar = $this->command->getOutput()->createProgressBar($usersWithXp->count());
+        $bar->start();
+
+        foreach ($usersWithXp as $stat) {
+            $this->backfillUserPoints($stat);
+            $bar->advance();
+        }
+
+        $bar->finish();
+        $this->command->newLine();
+        $this->command->info('Backfill completed successfully!');
+    }
+
+    private function backfillUserPoints(UserGamificationStat $stat): void
+    {
+        $userId = $stat->user_id;
+        $totalXp = $stat->total_xp;
+        $currentLevel = $stat->global_level;
+
+        // Create a single historical point entry representing accumulated XP
+        Point::create([
+            'user_id' => $userId,
+            'points' => $totalXp,
+            'reason' => 'bonus', // Using existing enum value
+            'source_type' => 'system',
+            'source_id' => null,
+            'description' => 'Historical XP backfill - accumulated points from before point tracking',
+            'created_at' => $stat->created_at ?? Carbon::now()->subDays(30),
+            'updated_at' => Carbon::now(),
+        ]);
+    }
+}

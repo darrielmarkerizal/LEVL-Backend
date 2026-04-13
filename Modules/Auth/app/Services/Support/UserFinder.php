@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Auth\Contracts\UserAccessPolicyInterface;
 use Modules\Auth\Models\JwtRefreshToken;
@@ -420,9 +421,15 @@ class UserFinder
                 ->value('last_used_at');
         }
 
-        $rank = Leaderboard::query()
-            ->whereNull('course_id')
-            ->where('user_id', $target->id)
+        $rank = DB::table('user_gamification_stats as ugs')
+            ->selectRaw('COUNT(*) + 1 as rank')
+            ->where(function ($query) use ($target) {
+                $query->where('total_xp', '>', $target->gamificationStats?->total_xp ?? 0)
+                    ->orWhere(function ($q) use ($target) {
+                        $q->where('total_xp', '=', $target->gamificationStats?->total_xp ?? 0)
+                            ->where('user_id', '<', $target->id);
+                    });
+            })
             ->value('rank');
 
         $target->setAttribute('learning_statistics', [

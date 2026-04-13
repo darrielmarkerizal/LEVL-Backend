@@ -86,8 +86,6 @@ class LeaderboardController extends Controller
             200,
             [
                 'summary' => $result['summary'],
-                'point_history' => $result['point_history'],
-                'badge_history' => $result['badge_history'],
             ]
         );
     }
@@ -97,6 +95,13 @@ class LeaderboardController extends Controller
         $userId = (int) $userId;
         $type = (string) $request->query('type', 'csv');
 
-        return $this->gamificationService->exportUserGamificationLog($userId, $type, $request);
+        $response = $this->gamificationService->exportUserGamificationLog($userId, $type, $request);
+        
+        // Ensure binary response is not wrapped
+        if ($type === 'excel') {
+            $response->headers->set('X-Vapor-Base64-Encode', 'False');
+        }
+        
+        return $response;
     }
 }

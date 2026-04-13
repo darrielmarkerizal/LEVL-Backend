@@ -129,6 +129,7 @@ class UserResource extends JsonResource
 
             if ($isStudent) {
                 $data['rank'] = $this->resource->getAttribute('rank');
+                $data['global_rank'] = $this->resource->getAttribute('rank'); // Alias for clarity
                 $data['total_xp'] = (int) ($this->resource->getAttribute('total_xp') ?? 0);
 
                 $recentBadges = collect($this->resource->badges ?? [])->take(3)->map(function ($userBadge) {
@@ -184,6 +185,8 @@ class UserResource extends JsonResource
             'bio',
             'phone',
             'location',
+            'rank',
+            'global_rank',
         ];
 
         // Remove null keys (but keep empty arrays/false/0), except preserved keys.
@@ -210,6 +213,7 @@ class UserResource extends JsonResource
             'last_login_at',
             'learning_statistics',
             'rank',
+            'global_rank',
             'total_xp',
             'recent_badges',
             'privacySettings',
