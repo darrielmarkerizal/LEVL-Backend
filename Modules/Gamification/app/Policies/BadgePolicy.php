@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Gamification\Policies;
 
 use Modules\Auth\Models\User;
@@ -19,16 +21,16 @@ class BadgePolicy
 
     public function create(User $user): bool
     {
-        return $user->hasRole('Superadmin') || $user->hasRole('Admin');
+        return $user->hasAnyRole(['Superadmin', 'Admin']);
     }
 
     public function update(User $user, Badge $badge): bool
     {
-        return $user->hasRole('Superadmin') || $user->hasRole('Admin');
+        return $user->hasAnyRole(['Superadmin', 'Admin']);
     }
 
     public function delete(User $user, Badge $badge): bool
     {
-        return $user->hasRole('Superadmin');
+        return $user->hasAnyRole(['Superadmin', 'Admin']);
     }
 }

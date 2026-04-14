@@ -23,7 +23,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
         Route::get('/available', [BadgesController::class, 'available'])->name('available');
         Route::get('/{badge}', [BadgesController::class, 'show'])->name('show');
 
-        Route::middleware(['role:Superadmin'])->group(function () {
+        Route::middleware(['role:Superadmin,Admin'])->group(function () {
             Route::post('/', [BadgesController::class, 'store'])->name('store');
             Route::put('/{badge}', [BadgesController::class, 'update'])->name('update');
             Route::delete('/{badge}', [BadgesController::class, 'destroy'])->name('destroy');
@@ -37,7 +37,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
         Route::get('/progression', [LevelController::class, 'progression'])->name('progression');
         Route::post('/calculate', [LevelController::class, 'calculate'])->name('calculate');
 
-        Route::middleware(['role:Superadmin|Admin'])->group(function () {
+        Route::middleware(['role:Superadmin,Admin'])->group(function () {
             Route::post('/sync', [LevelController::class, 'sync'])->name('sync');
             Route::put('/tiers/{tier}', [LevelController::class, 'updateTier'])->name('update-tier');
             Route::put('/{id}', [LevelController::class, 'update'])->name('update');

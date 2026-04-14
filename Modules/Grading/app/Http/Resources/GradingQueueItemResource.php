@@ -6,26 +6,53 @@ namespace Modules\Grading\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Learning\Models\QuizSubmission;
 
 class GradingQueueItemResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        if (is_array($this->resource)) {
-            return $this->resource;
+        if ($this->resource instanceof QuizSubmission) {
+            return $this->toQuizArray();
         }
 
+        return $this->toAssignmentArray();
+    }
+
+    private function toAssignmentArray(): array
+    {
         return [
+            'type' => 'assignment',
             'submission_id' => $this->id,
             'student_name' => $this->user?->name,
             'student_email' => $this->user?->email,
             'assignment_id' => $this->assignment_id,
             'assignment_title' => $this->assignment?->title,
             'submitted_at' => $this->submitted_at,
-            'is_late' => $this->is_late,
+            'state' => $this->state instanceof \BackedEnum ? $this->state->value : $this->state,
+            'score' => $this->score,
+            'total_questions' => $this->relationLoaded('answers') ? $this->answers->count() : null,
+            'graded_questions' => $this->relationLoaded('answers') ? $this->answers->filter(fn ($a) => $a->score !== null)->count() : null,
+        ];
+    }
+
+    private function toQuizArray(): array
+    {
+        return [
+            'type' => 'quiz',
+            'submission_id' => $this->id,
+            'student_name' => $this->user?->name,
+            'student_email' => $this->user?->email,
+            'quiz_id' => $this->quiz_id,
+            'quiz_title' => $this->quiz?->title,
+            'submitted_at' => $this->submitted_at,
+            'status' => $this->status?->value,
+            'grading_status' => $this->grading_status?->value,
+            'score' => $this->score,
+            'final_score' => $this->final_score,
+            'total_questions' => $this->relationLoaded('answers') ? $this->answers->count() : null,
+            'graded_questions' => $this->relationLoaded('answers') ? $this->answers->filter(fn ($a) => $a->score !== null)->count() : null,
             'questions_requiring_grading' => $this->getQuestionsRequiringGrading(),
-            'total_questions' => $this->answers->count(),
-            'graded_questions' => $this->answers->filter(fn ($a) => $a->score !== null)->count(),
         ];
     }
 
@@ -39,43 +66,13 @@ class GradingQueueItemResource extends JsonResource
             ->filter(fn ($answer) => $answer->score === null && ! $answer->question?->canAutoGrade())
             ->map(fn ($answer) => [
                 'answer_id' => $answer->id,
-                'question_id' => $answer->question_id,
+                'question_id' => $answer->quiz_question_id,
                 'question_type' => $answer->question?->type?->value,
                 'question_content' => $answer->question?->content,
                 'question_max_score' => $answer->question?->max_score,
-                'student_answer' => $this->formatStudentAnswer($answer),
+                'student_answer' => $answer->content,
             ])
             ->values()
             ->toArray();
-    }
-
-    private function formatStudentAnswer($answer): array
-    {
-        $questionType = $answer->question?->type?->value;
-
-        switch ($questionType) {
-            case 'essay':
-                return [
-                    'content' => $answer->content ?? null,
-                ];
-
-            case 'file_upload':
-                return [
-                    'file_paths' => $answer->file_paths ?? [],
-                ];
-
-            case 'multiple_choice':
-            case 'checkbox':
-                return [
-                    'selected_options' => $answer->selected_options ?? [],
-                ];
-
-            default:
-                return [
-                    'content' => $answer->content ?? null,
-                    'selected_options' => $answer->selected_options ?? null,
-                    'file_paths' => $answer->file_paths ?? null,
-                ];
-        }
     }
 }

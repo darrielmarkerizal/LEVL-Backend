@@ -16,10 +16,14 @@ class GradingQueueRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'assignment_id' => ['nullable', 'integer', 'exists:assignments,id'],
-            'user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'date_from' => ['nullable', 'date', 'before_or_equal:date_to'],
-            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'filter' => ['nullable', 'array'],
+            'filter.status' => ['nullable', 'string'],
+            'filter.user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'filter.assignment_id' => ['nullable', 'integer', 'exists:assignments,id'],
+            'filter.quiz_id' => ['nullable', 'integer', 'exists:quizzes,id'],
+            'filter.grading_status' => ['nullable', 'string'],
+            'filter.date_from' => ['nullable', 'date', 'before_or_equal:filter.date_to'],
+            'filter.date_to' => ['nullable', 'date', 'after_or_equal:filter.date_from'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -28,10 +32,13 @@ class GradingQueueRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'assignment_id' => __('validation.attributes.assignment'),
-            'user_id' => __('validation.attributes.student'),
-            'date_from' => __('validation.attributes.date_from'),
-            'date_to' => __('validation.attributes.date_to'),
+            'filter.status' => __('validation.attributes.status'),
+            'filter.user_id' => __('validation.attributes.student'),
+            'filter.assignment_id' => __('validation.attributes.assignment'),
+            'filter.quiz_id' => __('validation.attributes.quiz'),
+            'filter.grading_status' => __('validation.attributes.grading_status'),
+            'filter.date_from' => __('validation.attributes.date_from'),
+            'filter.date_to' => __('validation.attributes.date_to'),
         ];
     }
 }

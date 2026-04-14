@@ -100,7 +100,8 @@ class CommonServiceProvider extends ServiceProvider
     protected function registerPolicies(): void
     {
         Gate::policy(Category::class, CategoryPolicy::class);
-        Gate::policy(Badge::class, BadgePolicy::class);
+        // Badge policy is registered in GamificationServiceProvider
+        // Gate::policy(Badge::class, BadgePolicy::class);
         Gate::policy(LevelConfig::class, LevelConfigPolicy::class);
     }
 

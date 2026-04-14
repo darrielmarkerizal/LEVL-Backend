@@ -13,9 +13,9 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
     });
 
     Route::middleware(['role:Superadmin|Admin|Instructor'])->prefix('submissions/{submission}/grades')->group(function () {
+        Route::get('/', [GradingController::class, 'getGrade'])->name('grading.show');
         Route::post('/', [GradingController::class, 'manualGrade'])->name('grading.store');
         Route::put('draft', [GradingController::class, 'saveDraftGrade'])->name('grading.save-draft');
-        Route::get('draft', [GradingController::class, 'getDraftGrade'])->name('grading.get-draft');
         Route::patch('/', [GradingController::class, 'overrideGrade'])->name('grading.override');
         Route::patch('release', [GradingController::class, 'releaseGrade'])->name('grading.release');
         Route::patch('return-to-queue', [GradingController::class, 'returnToQueue'])->name('grading.return-to-queue');

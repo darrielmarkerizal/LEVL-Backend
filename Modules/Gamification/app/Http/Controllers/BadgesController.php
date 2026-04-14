@@ -52,7 +52,7 @@ class BadgesController extends Controller
         $model = $this->service->find($badge);
 
         if (! $model) {
-            return $this->error(__('messages.badges.not_found'), 404);
+            return $this->error(__('messages.badges.not_found'), [], 404);
         }
 
         $this->authorize('view', $model);

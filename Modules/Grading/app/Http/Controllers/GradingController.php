@@ -17,7 +17,6 @@ use Modules\Grading\Http\Requests\GradingQueueRequest;
 use Modules\Grading\Http\Requests\ManualGradeRequest;
 use Modules\Grading\Http\Requests\OverrideGradeRequest;
 use Modules\Grading\Http\Requests\SaveDraftGradeRequest;
-use Modules\Grading\Http\Resources\DraftGradeResource;
 use Modules\Grading\Http\Resources\GradeResource;
 use Modules\Grading\Http\Resources\GradingQueueItemResource;
 use Modules\Grading\Services\GradingBulkService;
@@ -121,11 +120,11 @@ class GradingController extends Controller
         }
     }
 
-    public function getDraftGrade(Submission $submission): JsonResponse
+    public function getGrade(Submission $submission): JsonResponse
     {
-        $draftGrade = $this->queueService->getDraftGrade($submission->id);
+        $grade = $this->queueService->getGrade($submission->id);
 
-        return $this->success($draftGrade ? DraftGradeResource::make($draftGrade) : null);
+        return $this->success($grade ? GradeResource::make($grade) : null);
     }
 
     public function overrideGrade(OverrideGradeRequest $request, Submission $submission): JsonResponse
