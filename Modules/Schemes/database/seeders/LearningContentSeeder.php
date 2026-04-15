@@ -28,6 +28,19 @@ class LearningContentSeeder extends Seeder
         $this->command->info("\n📖 Creating learning content hierarchy with media...");
         $this->command->info('   Course → Unit → Lesson → Lesson Block (with files)');
 
+        // Test DigitalOcean Spaces connection
+        try {
+            $disk = \Storage::disk('do');
+            $testFile = 'test-connection-' . time() . '.txt';
+            $disk->put($testFile, 'test');
+            $disk->delete($testFile);
+            $this->command->info('  ✓ DigitalOcean Spaces connection successful');
+        } catch (\Exception $e) {
+            $this->command->error('  ❌ DigitalOcean Spaces connection failed: ' . $e->getMessage());
+            $this->command->warn('  ⚠️  Media upload will be skipped. Please check DO credentials.');
+            return;
+        }
+
         $this->checkDummyFiles();
 
         $courses = Course::all();
@@ -92,6 +105,13 @@ class LearningContentSeeder extends Seeder
         
         $this->dummyFiles = UATMediaFixtures::paths();
 
+        // Debug: Show all file paths
+        $this->command->info('  📁 Checking dummy file paths:');
+        foreach ($this->dummyFiles as $type => $path) {
+            $exists = File::exists($path) ? '✓' : '✗';
+            $this->command->info("     {$exists} {$type}: {$path}");
+        }
+
         $fallbackBase = public_path('dummy');
         $fallback = [
             'video' => $fallbackBase.'/file_example_MP4_480_1_5MG.mp4',
@@ -107,6 +127,7 @@ class LearningContentSeeder extends Seeder
                 $missing[] = $type;
                 if (File::exists($fallback[$type] ?? '')) {
                     $this->dummyFiles[$type] = $fallback[$type];
+                    $this->command->info("     → Using fallback for {$type}: {$fallback[$type]}");
                 }
             }
         }
@@ -216,45 +237,58 @@ class LearningContentSeeder extends Seeder
         try {
             switch ($blockType) {
                 case 'video':
-                    if (File::exists($this->dummyFiles['video'])) {
-                        $block->addMedia($this->dummyFiles['video'])
-                            ->preservingOriginal()
-                            ->toMediaCollection('media', 'do');
-
-                        return true;
+                    if (!isset($this->dummyFiles['video'])) {
+                        $this->command->warn("    ⚠️  Video file path not set in dummyFiles");
+                        return false;
                     }
-                    break;
+                    if (!File::exists($this->dummyFiles['video'])) {
+                        $this->command->warn("    ⚠️  Video file not found: {$this->dummyFiles['video']}");
+                        return false;
+                    }
+                    $block->addMedia($this->dummyFiles['video'])
+                        ->preservingOriginal()
+                        ->toMediaCollection('media', 'do');
+                    return true;
 
                 case 'file':
                     $fileType = ['pdf', 'doc', 'excel'][$block->id % 3];
                     $filePath = match ($fileType) {
-                        'pdf' => $this->dummyFiles['pdf'],
-                        'doc' => $this->dummyFiles['doc'],
-                        'excel' => $this->dummyFiles['excel'],
+                        'pdf' => $this->dummyFiles['pdf'] ?? null,
+                        'doc' => $this->dummyFiles['doc'] ?? null,
+                        'excel' => $this->dummyFiles['excel'] ?? null,
                         default => null,
                     };
 
-                    if ($filePath && File::exists($filePath)) {
-                        $block->addMedia($filePath)
-                            ->preservingOriginal()
-                            ->toMediaCollection('media', 'do');
-
-                        return true;
+                    if (!$filePath) {
+                        $this->command->warn("    ⚠️  File path not set for type: {$fileType}");
+                        return false;
                     }
-                    break;
+                    if (!File::exists($filePath)) {
+                        $this->command->warn("    ⚠️  File not found: {$filePath}");
+                        return false;
+                    }
+                    $block->addMedia($filePath)
+                        ->preservingOriginal()
+                        ->toMediaCollection('media', 'do');
+                    return true;
 
                 case 'image':
-                    if (File::exists($this->dummyFiles['image'])) {
-                        $block->addMedia($this->dummyFiles['image'])
-                            ->preservingOriginal()
-                            ->toMediaCollection('media', 'do');
-
-                        return true;
+                    if (!isset($this->dummyFiles['image'])) {
+                        $this->command->warn("    ⚠️  Image file path not set in dummyFiles");
+                        return false;
                     }
-                    break;
+                    if (!File::exists($this->dummyFiles['image'])) {
+                        $this->command->warn("    ⚠️  Image file not found: {$this->dummyFiles['image']}");
+                        return false;
+                    }
+                    $block->addMedia($this->dummyFiles['image'])
+                        ->preservingOriginal()
+                        ->toMediaCollection('media', 'do');
+                    return true;
             }
         } catch (\Exception $e) {
-            $this->command->warn("    ⚠️  Failed to attach media: {$e->getMessage()}");
+            $this->command->error("    ❌ Failed to attach media to block {$block->id} ({$blockType}): {$e->getMessage()}");
+            $this->command->error("    Stack trace: " . $e->getTraceAsString());
         }
 
         return false;
