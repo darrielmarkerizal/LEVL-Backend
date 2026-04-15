@@ -60,6 +60,7 @@ class LessonBlock extends Model implements HasMedia
                 'text/csv',
                 'text/html',
                 'application/rtf',
+                'text/rtf', // RTF documents (alternative mime type)
                 // Microsoft Office
                 'application/msword', // .doc
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
