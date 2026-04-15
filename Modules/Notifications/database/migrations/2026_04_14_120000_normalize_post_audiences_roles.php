@@ -9,17 +9,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Check if the column is already using the enum type
-        $columnType = DB::selectOne(
-            "SELECT data_type FROM information_schema.columns 
-             WHERE table_name = 'post_audiences' AND column_name = 'role'"
-        )->data_type;
-
-        // If it's using an enum (USER-DEFINED type), convert to varchar first
-        if ($columnType === 'USER-DEFINED') {
+        // Use a more robust approach with exception handling
+        try {
+            // First, try to convert the column to varchar
+            // This will work whether it's currently an enum or already varchar
+            DB::statement('ALTER TABLE post_audiences ALTER COLUMN role TYPE varchar(32)');
+        } catch (\Exception $e) {
+            // If that fails, try with explicit casting
             DB::statement('ALTER TABLE post_audiences ALTER COLUMN role TYPE varchar(32) USING role::text');
-            DB::statement('DROP TYPE IF EXISTS post_audience_role CASCADE');
         }
+
+        // Now safely drop the enum type if it exists
+        DB::statement('DROP TYPE IF EXISTS post_audience_role CASCADE');
 
         // Normalize the role values
         DB::statement("UPDATE post_audiences SET role = 'admin' WHERE role IN ('Admin', 'Superadmin')");
