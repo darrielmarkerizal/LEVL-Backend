@@ -78,9 +78,11 @@ class CourseSeederEnhanced extends Seeder
 
     private function createCoursesForScenario(string $scenario, int $count, $categories, $instructors): \Illuminate\Support\Collection
     {
-        $state = function () use ($categories, $instructors) {
-            $this->courseSeq++;
-            $i = $this->courseSeq - 1;
+        $courseSeq = &$this->courseSeq;
+        
+        $state = function () use ($categories, $instructors, &$courseSeq) {
+            $courseSeq++;
+            $i = $courseSeq - 1;
 
             return [
                 'category_id' => $categories[$i % $categories->count()]->id,

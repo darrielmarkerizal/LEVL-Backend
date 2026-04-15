@@ -4,8 +4,8 @@ namespace Modules\Content\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
+use Modules\Common\Models\Category;
 use Modules\Content\Models\Announcement;
-use Modules\Content\Models\ContentCategory;
 use Modules\Content\Models\News;
 use Modules\Schemes\Models\Course;
 
@@ -13,17 +13,17 @@ class ContentSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create categories
+        // Create categories for news (using consolidated categories system)
         $categories = [
-            ['name' => 'Teknologi', 'slug' => 'teknologi', 'description' => 'Berita seputar teknologi'],
-            ['name' => 'Pendidikan', 'slug' => 'pendidikan', 'description' => 'Berita seputar pendidikan'],
-            ['name' => 'Pengumuman Umum', 'slug' => 'pengumuman-umum', 'description' => 'Pengumuman umum'],
-            ['name' => 'Event', 'slug' => 'event', 'description' => 'Informasi event'],
+            ['name' => 'Teknologi', 'value' => 'teknologi', 'scope' => 'news', 'status' => 'active'],
+            ['name' => 'Pendidikan', 'value' => 'pendidikan', 'scope' => 'news', 'status' => 'active'],
+            ['name' => 'Pengumuman Umum', 'value' => 'pengumuman-umum', 'scope' => 'news', 'status' => 'active'],
+            ['name' => 'Event', 'value' => 'event', 'scope' => 'news', 'status' => 'active'],
         ];
 
         foreach ($categories as $category) {
-            ContentCategory::firstOrCreate(
-                ['slug' => $category['slug']],
+            Category::firstOrCreate(
+                ['value' => $category['value'], 'scope' => 'news'],
                 $category
             );
         }
@@ -43,6 +43,7 @@ class ContentSeeder extends Seeder
         $announcements = [
             [
                 'title' => 'Selamat Datang di Platform LMS',
+                'slug' => 'selamat-datang-di-platform-lms',
                 'content' => 'Selamat datang di platform Learning Management System kami. Kami berkomitmen untuk memberikan pengalaman belajar terbaik.',
                 'status' => 'published',
                 'target_type' => 'all',
@@ -51,6 +52,7 @@ class ContentSeeder extends Seeder
             ],
             [
                 'title' => 'Pemeliharaan Sistem Terjadwal',
+                'slug' => 'pemeliharaan-sistem-terjadwal',
                 'content' => 'Sistem akan menjalani pemeliharaan rutin pada hari Minggu, 10 Desember 2025 pukul 02:00 - 06:00 WIB.',
                 'status' => 'published',
                 'target_type' => 'all',
@@ -59,6 +61,7 @@ class ContentSeeder extends Seeder
             ],
             [
                 'title' => 'Pengumuman untuk Instruktur',
+                'slug' => 'pengumuman-untuk-instruktur',
                 'content' => 'Mohon semua instruktur untuk mengupdate materi kursus sebelum akhir bulan.',
                 'status' => 'published',
                 'target_type' => 'role',
@@ -70,7 +73,7 @@ class ContentSeeder extends Seeder
 
         foreach ($announcements as $announcementData) {
             Announcement::firstOrCreate(
-                ['title' => $announcementData['title']],
+                ['slug' => $announcementData['slug']],
                 array_merge($announcementData, ['author_id' => $admin->id])
             );
         }
@@ -106,7 +109,7 @@ class ContentSeeder extends Seeder
             ],
         ];
 
-        $categoryIds = ContentCategory::pluck('id')->toArray();
+        $categoryIds = Category::where('scope', 'news')->pluck('id')->toArray();
 
         foreach ($newsArticles as $newsData) {
             $news = News::firstOrCreate(
@@ -115,7 +118,7 @@ class ContentSeeder extends Seeder
             );
 
             // Attach random categories
-            if ($news->wasRecentlyCreated) {
+            if ($news->wasRecentlyCreated && !empty($categoryIds)) {
                 $randomCategories = array_rand(array_flip($categoryIds), min(2, count($categoryIds)));
                 $news->categories()->sync(is_array($randomCategories) ? $randomCategories : [$randomCategories]);
             }
@@ -125,10 +128,11 @@ class ContentSeeder extends Seeder
         $course = Course::first();
         if ($course) {
             Announcement::firstOrCreate(
-                ['title' => 'Pengumuman Kursus: '.$course->title],
+                ['slug' => 'pengumuman-kursus-' . \Illuminate\Support\Str::slug($course->title)],
                 [
                     'author_id' => $admin->id,
                     'course_id' => $course->id,
+                    'title' => 'Pengumuman Kursus: '.$course->title,
                     'content' => 'Ini adalah pengumuman khusus untuk kursus '.$course->title.'. Mohon perhatikan jadwal dan deadline tugas.',
                     'status' => 'published',
                     'target_type' => 'course',

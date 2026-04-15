@@ -19,11 +19,11 @@ class ActiveUsersSeeder extends Seeder
         Role::firstOrCreate(['name' => 'Instructor', 'guard_name' => 'api']);
         Role::firstOrCreate(['name' => 'Student', 'guard_name' => 'api']);
 
-        $superadmin = User::query()->firstOrCreate(
-            ['email' => RealisticSeederContent::demoEmail('superadmin')],
+        $superadmin = User::query()->updateOrCreate(
+            ['username' => 'superadmin'],
             [
+                'email' => RealisticSeederContent::demoEmail('superadmin'),
                 'name' => 'Rizky Pratama',
-                'username' => 'superadmin',
                 'password' => Hash::make('password'),
                 'status' => 'active',
                 'email_verified_at' => now(),
@@ -33,11 +33,11 @@ class ActiveUsersSeeder extends Seeder
             $superadmin->assignRole('Superadmin');
         }
 
-        $admin = User::query()->firstOrCreate(
-            ['email' => RealisticSeederContent::demoEmail('admin')],
+        $admin = User::query()->updateOrCreate(
+            ['username' => 'admin'],
             [
+                'email' => RealisticSeederContent::demoEmail('admin'),
                 'name' => 'Dian Lestari',
-                'username' => 'admin',
                 'password' => Hash::make('password'),
                 'status' => 'active',
                 'email_verified_at' => now(),
@@ -47,11 +47,11 @@ class ActiveUsersSeeder extends Seeder
             $admin->assignRole('Admin');
         }
 
-        $instructor = User::query()->firstOrCreate(
-            ['email' => RealisticSeederContent::demoEmail('instruktur')],
+        $instructor = User::query()->updateOrCreate(
+            ['username' => 'instructor'],
             [
+                'email' => RealisticSeederContent::demoEmail('instruktur'),
                 'name' => 'Budi Santoso',
-                'username' => 'instructor',
                 'password' => Hash::make('password'),
                 'status' => 'active',
                 'email_verified_at' => now(),
@@ -61,11 +61,11 @@ class ActiveUsersSeeder extends Seeder
             $instructor->assignRole('Instructor');
         }
 
-        $student = User::query()->firstOrCreate(
-            ['email' => RealisticSeederContent::demoEmail('peserta')],
+        $student = User::query()->updateOrCreate(
+            ['username' => 'student'],
             [
+                'email' => RealisticSeederContent::demoEmail('peserta'),
                 'name' => 'Citra Anggraini',
-                'username' => 'student',
                 'password' => Hash::make('password'),
                 'status' => 'active',
                 'email_verified_at' => now(),

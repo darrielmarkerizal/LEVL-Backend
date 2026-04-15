@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Auth\Models\User;
+use Modules\Common\Models\Category;
 use Modules\Common\Traits\PgSearchable;
 use Modules\Content\Enums\ContentStatus;
 use Modules\Content\Traits\HasContentRevisions;
@@ -170,7 +171,8 @@ class News extends Model implements HasMedia
 
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(ContentCategory::class, 'news_category', 'news_id', 'category_id');
+        return $this->belongsToMany(Category::class, 'news_category', 'news_id', 'category_id')
+            ->where('scope', 'news');
     }
 
     public function tags(): BelongsToMany

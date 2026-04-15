@@ -30,7 +30,6 @@ class OperationsDatabaseSeeder extends Seeder
                 ],
                 [
                     'certificate_number' => 'UAT-'.$row->user_id.'-'.$row->course_id,
-                    'file_path' => null,
                     'issued_at' => $row->completed_at ?? now(),
                     'expired_at' => null,
                     'status' => CertificateStatus::Active,
@@ -38,32 +37,8 @@ class OperationsDatabaseSeeder extends Seeder
             );
         }
 
-        $adminId = User::query()->role('Admin')->orderBy('id')->value('id')
-            ?? User::query()->role('Superadmin')->orderBy('id')->value('id');
-
-        if ($adminId !== null) {
-            $now = now()->toDateTimeString();
-            DB::table('reports')->insert([
-                'type' => 'activity',
-                'generated_by' => $adminId,
-                'filters' => json_encode(['range' => 'last_30_days']),
-                'file_path' => null,
-                'notes' => 'UAT sample activity export',
-                'generated_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-            DB::table('reports')->insert([
-                'type' => 'grading',
-                'generated_by' => $adminId,
-                'filters' => json_encode(['course_id' => 'all']),
-                'file_path' => null,
-                'notes' => 'UAT grading summary',
-                'generated_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-        }
+        // Note: Reports table was dropped in cleanup migration (2026_03_30_000001_drop_unused_tables.php)
+        // Reports functionality may have been moved to a different system or removed
 
         $this->command->info('Operations seeding done.');
     }

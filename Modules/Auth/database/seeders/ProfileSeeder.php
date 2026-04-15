@@ -82,6 +82,11 @@ class ProfileSeeder extends Seeder
 
         echo "✅ Created $privacyCount privacy settings\n";
         echo "✅ Created $activityCount user activities\n";
+        
+        if ($privacyCount === 0 && $activityCount === 0) {
+            echo "ℹ️  All users already have profile data (privacy settings and activities)\n";
+        }
+        
         echo "✅ Profile seeding completed!\n";
 
         gc_collect_cycles();
