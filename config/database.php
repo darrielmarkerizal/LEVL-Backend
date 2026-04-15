@@ -37,7 +37,7 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::ATTR_PERSISTENT => false,        // ← diubah: tidak aman untuk Octane
-                PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::ATTR_EMULATE_PREPARES => true,   
                 PDO::ATTR_STRINGIFY_FETCHES => false,
                 PDO::ATTR_TIMEOUT => 30,
             ]) : [],
@@ -77,7 +77,7 @@ return [
             'sslmode' => 'disable',
             'options' => [
                 PDO::ATTR_PERSISTENT => false,        // ← diubah: biang kerok utama
-                PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::ATTR_EMULATE_PREPARES => true,   
                 PDO::ATTR_STRINGIFY_FETCHES => false,
             ],
         ],
