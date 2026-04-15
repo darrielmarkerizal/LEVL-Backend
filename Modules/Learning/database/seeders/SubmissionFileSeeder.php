@@ -2,6 +2,7 @@
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,9 @@ class SubmissionFileSeeder extends Seeder
     public function run(): void
     {
         DB::connection()->disableQueryLog();
+
+        // Ensure UAT fixture files exist
+        UATMediaFixtures::ensureFilesExist();
 
         $this->command->info('Seeding submission files with Object Storage uploads...');
 
@@ -67,25 +71,26 @@ class SubmissionFileSeeder extends Seeder
                         'submission_id' => $submission->id,
                     ]);
 
-                    // Create a dummy file
-                    $fileName = "submission_{$submission->id}_file_{$i}.txt";
-                    $fileContent = "This is a dummy submission file for Submission ID: {$submission->id}.\nGenerated at: ".now();
+                    // Use UAT fixture files instead of creating dummy files
+                    $fileTypes = ['pdf', 'doc', 'excel'];
+                    $fileType = $fileTypes[$i % count($fileTypes)];
+                    $fixturePaths = UATMediaFixtures::paths();
+                    $filePath = $fixturePaths[$fileType];
 
-                    // Use a temporary path
-                    $tempPath = sys_get_temp_dir().'/'.$fileName;
-                    file_put_contents($tempPath, $fileContent);
+                    if (!file_exists($filePath)) {
+                        $this->command->warn("\nFixture file not found: {$filePath}");
+                        continue;
+                    }
+
+                    $fileName = "submission_{$submission->id}_file_{$i}." . pathinfo($filePath, PATHINFO_EXTENSION);
 
                     // Upload to Media Library (Object Storage)
-                    $submissionFile->addMedia($tempPath)
+                    $submissionFile->addMedia($filePath)
+                        ->preservingOriginal()
                         ->usingFileName($fileName)
                         ->toMediaCollection('file');
 
                     $fileCount++;
-
-                    // Cleanup temp file
-                    if (file_exists($tempPath)) {
-                        unlink($tempPath);
-                    }
 
                 } catch (\Exception $e) {
                     $this->command->error("\nFailed to upload file for submission {$submission->id}: ".$e->getMessage());

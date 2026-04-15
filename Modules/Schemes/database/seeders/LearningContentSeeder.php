@@ -87,6 +87,9 @@ class LearningContentSeeder extends Seeder
 
     private function checkDummyFiles(): void
     {
+        // Ensure UAT fixture files exist (will create them if missing)
+        UATMediaFixtures::ensureFilesExist();
+        
         $this->dummyFiles = UATMediaFixtures::paths();
 
         $fallbackBase = public_path('dummy');
@@ -110,6 +113,8 @@ class LearningContentSeeder extends Seeder
 
         if (! empty($missing)) {
             $this->command->warn('  ⚠️  Missing UAT fixture files (used fallback where possible): '.implode(', ', $missing));
+        } else {
+            $this->command->info('  ✓ All UAT fixture files are ready');
         }
     }
 
