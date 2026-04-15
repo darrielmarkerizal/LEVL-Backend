@@ -81,6 +81,11 @@ class Enrollment extends Model
         return $this->hasOne(CourseProgress::class);
     }
 
+    public function activities()
+    {
+        return $this->hasMany(EnrollmentActivity::class);
+    }
+
     protected static function newFactory()
     {
         return \Modules\Enrollments\Database\Factories\EnrollmentFactory::new();

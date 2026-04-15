@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\RealisticSeederContent;
+use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Quiz;
@@ -166,7 +168,7 @@ class SequentialProgressSeeder extends Seeder
             ->select('enrollments.id as enrollment_id')
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             return false;
         }
 
@@ -412,10 +414,15 @@ class SequentialProgressSeeder extends Seeder
 
     private function attachFileToSubmission(Submission $submission): void
     {
-        $dummyFilePath = public_path('dummy/pdf-sample_0.pdf');
+        UATMediaFixtures::ensureFilesExist();
+        $dummyFilePath = UATMediaFixtures::paths()['pdf'];
+        $fallback = public_path('dummy/pdf-sample_0.pdf');
+        if (! file_exists($dummyFilePath) && file_exists($fallback)) {
+            $dummyFilePath = $fallback;
+        }
 
         if (! file_exists($dummyFilePath)) {
-            echo "⚠️  Dummy file not found: {$dummyFilePath}\n";
+            echo "⚠️  Submission fixture PDF not found.\n";
 
             return;
         }
@@ -435,7 +442,6 @@ class SequentialProgressSeeder extends Seeder
 
     private function createGradeForSubmission(Submission $submission, Assignment $assignment, string $status, ?float $score): void
     {
-        $faker = \Faker\Factory::create('id_ID');
         $instructorIds = \DB::table('users')
             ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
             ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
@@ -458,7 +464,7 @@ class SequentialProgressSeeder extends Seeder
             'graded_by' => $instructorIds[array_rand($instructorIds)],
             'score' => $score,
             'max_score' => $assignment->max_score,
-            'feedback' => $status === 'graded' ? $faker->paragraph(1) : null,
+            'feedback' => $status === 'graded' ? RealisticSeederContent::assignmentFeedback($submission->id) : null,
             'status' => $gradeStatus,
             'graded_at' => $gradedAt,
             'created_at' => $this->createdAt,
@@ -468,13 +474,9 @@ class SequentialProgressSeeder extends Seeder
 
     private function pregenerateFakeData(): void
     {
-        $faker = \Faker\Factory::create('id_ID');
-
         for ($i = 0; $i < 50; $i++) {
-            $this->pregenAnswers[] = $faker->paragraph(3);
+            $this->pregenAnswers[] = RealisticSeederContent::paragraph($i + 400);
         }
-
-        unset($faker);
     }
 
     private function cleanExistingProgress(): void

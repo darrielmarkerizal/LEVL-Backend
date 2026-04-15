@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -8,11 +10,6 @@ use Modules\Auth\Models\User;
 
 class ProfilePrivacySettingSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * Creates privacy settings for users that don't have them
-     */
     public function run(): void
     {
         echo "Creating profile privacy settings...\n";
@@ -21,9 +18,14 @@ class ProfilePrivacySettingSeeder extends Seeder
         $count = 0;
 
         foreach ($users as $user) {
+            $m = $user->id % 10;
             $visibility = match ($user->status) {
-                'pending' => fake()->randomElement(['public', 'private']),
-                'active' => fake()->randomElement(['public', 'friends_only', 'private']),
+                'pending' => $m < 5 ? 'public' : 'private',
+                'active' => match ($m % 3) {
+                    0 => 'public',
+                    1 => 'friends_only',
+                    default => 'private',
+                },
                 'inactive' => 'private',
                 'banned' => 'private',
                 default => 'public',
@@ -32,11 +34,11 @@ class ProfilePrivacySettingSeeder extends Seeder
             ProfilePrivacySetting::create([
                 'user_id' => $user->id,
                 'profile_visibility' => $visibility,
-                'show_email' => fake()->boolean(30),
-                'show_phone' => fake()->boolean(20),
-                'show_activity_history' => fake()->boolean(70),
-                'show_achievements' => fake()->boolean(80),
-                'show_statistics' => fake()->boolean(60),
+                'show_email' => ($m % 3) === 0,
+                'show_phone' => ($m % 4) === 0,
+                'show_activity_history' => ($m % 10) < 7,
+                'show_achievements' => ($m % 10) < 8,
+                'show_statistics' => ($m % 10) < 6,
             ]);
 
             $count++;

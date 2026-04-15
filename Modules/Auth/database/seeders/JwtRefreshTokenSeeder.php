@@ -1,26 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
 
 class JwtRefreshTokenSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * Creates JWT refresh tokens for users:
-     * - Active users: 2-5 valid tokens (multi-device)
-     * - Pending users: 0 tokens
-     * - Inactive users: 1 revoked token
-     * - Banned users: 1 revoked token
-     */
     public function run(): void
     {
         echo "Creating JWT refresh tokens...\n";
 
-        // ✅ Load all users at once (no query per user)
         $users = User::whereNull('deleted_at')->get();
 
         if ($users->isEmpty()) {
@@ -34,7 +27,7 @@ class JwtRefreshTokenSeeder extends Seeder
 
         foreach ($users as $user) {
             $tokenCount = match ($user->status) {
-                'active' => rand(2, 5),
+                'active' => 2 + ($user->id % 4),
                 'pending' => 0,
                 'inactive' => 1,
                 'banned' => 1,
@@ -46,28 +39,27 @@ class JwtRefreshTokenSeeder extends Seeder
             }
 
             for ($i = 0; $i < $tokenCount; $i++) {
-                // ✅ Build token data for batch insert
+                $salt = $user->id * 100 + $i;
                 $tokens[] = [
                     'user_id' => $user->id,
-                    'device_id' => hash('sha256', fake()->ipv4().fake()->userAgent().$user->id),
+                    'device_id' => hash('sha256', RealisticSeederContent::ipv4ForIndex($salt).RealisticSeederContent::userAgentForIndex($salt).$user->id),
                     'token' => hash('sha256', \Illuminate\Support\Str::random(64)),
-                    'ip' => fake()->ipv4(),
-                    'user_agent' => fake()->userAgent(),
-                    'last_used_at' => now()->subDays(rand(0, 7)),
+                    'ip' => RealisticSeederContent::ipv4ForIndex($salt),
+                    'user_agent' => RealisticSeederContent::userAgentForIndex($salt),
+                    'last_used_at' => now()->subDays($salt % 8),
                     'idle_expires_at' => now()->addDays(14),
                     'absolute_expires_at' => now()->addDays(90),
-                    'revoked_at' => in_array($user->status, ['inactive', 'banned'])
-                        ? now()->subDays(rand(1, 30))
+                    'revoked_at' => in_array($user->status, ['inactive', 'banned'], true)
+                        ? now()->subDays(1 + ($salt % 30))
                         : null,
                     'replaced_by' => null,
-                    'created_at' => now()->subDays(rand(0, 30)),
-                    'updated_at' => now()->subDays(rand(0, 30)),
+                    'created_at' => now()->subDays($salt % 31),
+                    'updated_at' => now()->subDays($salt % 31),
                 ];
                 $count++;
             }
         }
 
-        // ✅ Batch insert all tokens at once
         if (! empty($tokens)) {
             foreach (array_chunk($tokens, 1000) as $chunk) {
                 \Illuminate\Support\Facades\DB::table('jwt_refresh_tokens')->insertOrIgnore($chunk);

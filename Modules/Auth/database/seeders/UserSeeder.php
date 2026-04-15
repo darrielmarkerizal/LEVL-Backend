@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\RealisticSeederContent;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -70,7 +71,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Super Admin Demo',
                 'username' => 'superadmin_demo',
-                'email' => 'superadmin.demo@test.com',
+                'email' => RealisticSeederContent::demoEmail('superadmin.demo'),
                 'role' => 'Superadmin',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -78,7 +79,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Admin Demo',
                 'username' => 'admin_demo',
-                'email' => 'admin.demo@test.com',
+                'email' => RealisticSeederContent::demoEmail('admin.demo'),
                 'role' => 'Admin',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -86,7 +87,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Instructor Demo',
                 'username' => 'instructor_demo',
-                'email' => 'instructor.demo@test.com',
+                'email' => RealisticSeederContent::demoEmail('instructor.demo'),
                 'role' => 'Instructor',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -94,7 +95,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Student Demo',
                 'username' => 'student_demo',
-                'email' => 'student.demo@test.com',
+                'email' => RealisticSeederContent::demoEmail('student.demo'),
                 'role' => 'Student',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -102,7 +103,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Student Pending Demo',
                 'username' => 'student_pending_demo',
-                'email' => 'student.pending.demo@test.com',
+                'email' => RealisticSeederContent::demoEmail('student.pending.demo'),
                 'role' => 'Student',
                 'status' => UserStatus::Pending,
                 'verified' => false,
@@ -110,7 +111,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Student Inactive Demo',
                 'username' => 'student_inactive_demo',
-                'email' => 'student.inactive.demo@test.com',
+                'email' => RealisticSeederContent::demoEmail('student.inactive.demo'),
                 'role' => 'Student',
                 'status' => UserStatus::Inactive,
                 'verified' => true,
@@ -132,6 +133,7 @@ class UserSeeder extends Seeder
                 continue;
             }
 
+            $seed = abs(crc32($demoUser['email']));
             $user = User::create([
                 'name' => $demoUser['name'],
                 'username' => $demoUser['username'],
@@ -140,8 +142,8 @@ class UserSeeder extends Seeder
                 'status' => $demoUser['status'],
                 'email_verified_at' => $demoUser['verified'] ? now() : null,
                 'is_password_set' => true,
-                'phone' => '+62812'.rand(10000000, 99999999),
-                'bio' => 'Demo user for testing purposes.',
+                'phone' => RealisticSeederContent::phoneForIndex($seed % 100000 + 1),
+                'bio' => RealisticSeederContent::bioForUser($seed % 10000 + 1),
             ]);
 
             $user->assignRole($demoUser['role']);
@@ -149,8 +151,8 @@ class UserSeeder extends Seeder
             $privacySettings[] = [
                 'user_id' => $user->id,
                 'profile_visibility' => 'public',
-                'show_email' => rand(0, 1) === 1,
-                'show_phone' => rand(0, 1) === 1,
+                'show_email' => ($seed % 2) === 0,
+                'show_phone' => ($seed % 3) === 0,
                 'show_activity_history' => true,
                 'show_achievements' => true,
                 'show_statistics' => true,
@@ -216,10 +218,16 @@ class UserSeeder extends Seeder
             $attributes = UserFactory::new()
                 ->state([
                     'status' => $status->value,
-                    'email_verified_at' => $verified ? now()->subDays(rand(1, 365)) : null,
-                    'is_password_set' => $role !== 'Student' ? rand(1, 100) <= 80 : true,
+                    'email_verified_at' => $verified ? now()->subDays(1) : null,
+                    'is_password_set' => true,
                 ])
                 ->raw();
+
+            $seed = crc32($attributes['email']);
+            $attributes['is_password_set'] = $role !== 'Student' ? ($seed % 5 !== 0) : true;
+            if ($verified) {
+                $attributes['email_verified_at'] = now()->subDays(($seed % 300) + 1);
+            }
 
             if (User::where('email', $attributes['email'])
                 ->orWhere('username', $attributes['username'])
@@ -245,17 +253,18 @@ class UserSeeder extends Seeder
 
         $createdAt = now()->toDateTimeString();
         $privacySettings = collect($users)->map(function ($user) use ($role, $createdAt) {
+            $m = $user->id % 10;
             $privacyVisibility = match (true) {
-                $role === 'Student' && rand(1, 100) <= 60 => 'private',
-                $role === 'Student' && rand(1, 100) <= 50 => 'friends_only',
+                $role === 'Student' && $m < 4 => 'private',
+                $role === 'Student' && $m < 7 => 'friends_only',
                 default => 'public',
             };
 
             return [
                 'user_id' => $user->id,
                 'profile_visibility' => $privacyVisibility,
-                'show_email' => rand(0, 1) === 1,
-                'show_phone' => rand(0, 1) === 1,
+                'show_email' => ($user->id % 3) === 0,
+                'show_phone' => ($user->id % 4) === 0,
                 'show_activity_history' => true,
                 'show_achievements' => true,
                 'show_statistics' => true,
@@ -293,31 +302,30 @@ class UserSeeder extends Seeder
             ];
 
             $relatedTypes = [null, 'Course', 'Lesson', 'Assignment'];
-            $pregenTitles = ['Enrolled in course', 'Completed lesson', 'Submitted assignment', 'Earned badge', 'Achieved milestone'];
-            $pregenDescriptions = ['Progress made', 'New achievement unlocked', 'Course completed successfully', 'Badge earned', 'Activity recorded'];
             $createdAt = now()->toDateTimeString();
 
             $activities = [];
             foreach ($users as $user) {
                 $activityCount = match ($status) {
-                    UserStatus::Active => rand(5, 10),
+                    UserStatus::Active => 5 + ($user->id % 6),
                     UserStatus::Pending => 0,
-                    UserStatus::Inactive => rand(1, 3),
+                    UserStatus::Inactive => 1 + ($user->id % 3),
                     UserStatus::Banned => 1,
                     default => 0,
                 };
 
                 for ($i = 0; $i < $activityCount; $i++) {
+                    $seed = $user->id * 31 + $i;
                     $activities[] = [
                         'user_id' => $user->id,
-                        'activity_type' => $activityTypes[array_rand($activityTypes)],
+                        'activity_type' => $activityTypes[$seed % count($activityTypes)],
                         'activity_data' => json_encode([
-                            'title' => $pregenTitles[array_rand($pregenTitles)],
-                            'description' => $pregenDescriptions[array_rand($pregenDescriptions)],
-                            'points' => rand(10, 100),
+                            'title' => RealisticSeederContent::activityLogTitle($seed),
+                            'description' => RealisticSeederContent::shortSentence($seed + 1),
+                            'points' => 10 + ($seed % 90),
                         ]),
-                        'related_type' => $relatedTypes[array_rand($relatedTypes)],
-                        'related_id' => rand(0, 1) ? rand(1, 100) : null,
+                        'related_type' => $relatedTypes[$seed % count($relatedTypes)],
+                        'related_id' => ($seed % 5 === 0) ? null : (($seed % 100) + 1),
                         'created_at' => $createdAt,
                     ];
                 }

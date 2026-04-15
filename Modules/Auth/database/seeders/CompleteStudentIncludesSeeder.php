@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
@@ -46,16 +47,16 @@ class CompleteStudentIncludesSeeder extends Seeder
         Role::firstOrCreate(['name' => 'Student', 'guard_name' => 'api']);
 
         // Deterministic identifiers so we can update-or-create safely.
-        $studentEmail = 'student.full.includes@test.com';
+        $studentEmail = RealisticSeederContent::demoEmail('student.full.includes');
         $studentUsername = 'student_full_includes';
 
-        $adminEmail = 'admin.full.includes@test.com';
+        $adminEmail = RealisticSeederContent::demoEmail('admin.full.includes');
         $adminUsername = 'admin_full_includes';
 
-        $instructorEmail = 'instructor.full.includes@test.com';
+        $instructorEmail = RealisticSeederContent::demoEmail('instructor.full.includes');
         $instructorUsername = 'instructor_full_includes';
 
-        $otherStudentEmail = 'student.granted.overrides@test.com';
+        $otherStudentEmail = RealisticSeederContent::demoEmail('student.granted.overrides');
         $otherStudentUsername = 'student_granted_overrides';
 
         $student = User::updateOrCreate(

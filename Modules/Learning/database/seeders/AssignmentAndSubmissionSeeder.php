@@ -2,6 +2,7 @@
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
 
 class AssignmentAndSubmissionSeeder extends Seeder
@@ -306,10 +307,15 @@ class AssignmentAndSubmissionSeeder extends Seeder
 
     private function attachFilesToSubmissions(): void
     {
-        $dummyFilePath = public_path('dummy/pdf-sample_0.pdf');
+        UATMediaFixtures::ensureFilesExist();
+        $dummyFilePath = UATMediaFixtures::paths()['pdf'];
+        $fallback = public_path('dummy/pdf-sample_0.pdf');
+        if (! file_exists($dummyFilePath) && file_exists($fallback)) {
+            $dummyFilePath = $fallback;
+        }
 
         if (! file_exists($dummyFilePath)) {
-            echo "⚠️  Dummy file not found at: $dummyFilePath\n";
+            echo "⚠️  Submission PDF fixture not found.\n";
 
             return;
         }

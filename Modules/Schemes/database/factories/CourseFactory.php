@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Database\Factories;
 
-use Bezhanov\Faker\Provider\Commerce;
-use Bezhanov\Faker\Provider\Educator;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 use Modules\Schemes\Enums\CourseStatus;
 use Modules\Schemes\Enums\CourseType;
 use Modules\Schemes\Enums\EnrollmentType;
@@ -16,72 +15,77 @@ class CourseFactory extends Factory
 {
     protected $model = Course::class;
 
+    private static int $sequence = 0;
+
     public function definition(): array
     {
-        fake()->addProvider(new Educator(fake()));
-        fake()->addProvider(new Commerce(fake()));
+        self::$sequence++;
+        $idx = self::$sequence;
 
         $courseTitles = [
-            'Complete Web Development Bootcamp',
-            'Python for Data Science and Machine Learning',
-            'AWS Certified Solutions Architect Training',
-            'Full-Stack JavaScript Development',
-            'Digital Marketing Mastery',
-            'UI/UX Design Fundamentals',
-            'Cybersecurity Essentials',
-            'Project Management Professional (PMP) Prep',
-            'React.js - The Complete Guide',
-            'Docker and Kubernetes for Developers',
-            'Business Analytics with Power BI',
-            'Flutter Mobile App Development',
-            'Advanced SQL and Database Design',
-            'Laravel PHP Framework Masterclass',
-            'Ethical Hacking and Penetration Testing',
-            'Financial Analysis and Modeling',
-            'Leadership and Management Skills',
-            'Social Media Marketing Strategy',
-            'DevOps Engineering on AWS',
-            'Vue.js 3 Complete Course',
+            'Pelatihan Kompetensi Jaringan Dasar',
+            'Sertifikasi Administrasi Perkantoran',
+            'Pengelolaan Dokumen dan Arsip Digital',
+            'Keselamatan dan Kesehatan Kerja (K3)',
+            'Komunikasi Bisnis dan Layanan Prima',
+            'Pemrograman Aplikasi untuk Uji Kompetensi',
+            'Manajemen Proyek Sesuai Standar Industri',
+            'Analisis Data untuk Pengambilan Keputusan',
+            'Pemasaran Digital untuk UMKM',
+            'Desain Grafis untuk Media Pembelajaran',
+            'Keamanan Informasi pada Lingkungan Kerja',
+            'Akuntansi Dasar untuk Supervisor',
+            'Pengawasan Mutu Produk',
+            'Operasional Gudang dan Logistik',
+            'Perawatan Mesin Produksi',
+            'Pelayanan Pelanggan Berbasis SOP',
+            'Kepemimpinan Tim Lapangan',
+            'Instruksi Kerja dan Prosedur Baku',
+            'Pengendalian Biaya Operasional',
+            'Literasi Digital untuk Instruktur',
         ];
 
-        $title = fake()->randomElement($courseTitles);
-        $code = strtoupper(fake()->lexify('???')).fake()->numerify('###');
-        $slug = \Illuminate\Support\Str::slug($title).'-'.uniqid();
+        $title = $courseTitles[$idx % count($courseTitles)];
+        $code = 'CRS'.str_pad((string) ($idx % 10000), 4, '0', STR_PAD_LEFT);
+        $slug = Str::slug($title).'-'.$idx;
 
         $descriptions = [
-            'Master the fundamentals and advanced concepts in this comprehensive course. Learn through hands-on projects and real-world examples.',
-            'From beginner to professional level. This course covers everything you need to know with practical applications and industry best practices.',
-            'Build your expertise step by step with guided instruction, quizzes, and assignments. Perfect for career advancement.',
-            'Gain in-demand skills with this intensive training program. Includes certification preparation and portfolio projects.',
-            'Learn from industry experts and apply your knowledge immediately. Structured curriculum with lifetime access to materials.',
+            'Kurikulum disusun mengacu pada unit kompetensi skema terdaftar dan kebutuhan industri.',
+            'Materi mencakup teori ringkas, demonstrasi, dan latihan yang dapat dibuktikan untuk asesmen.',
+            'Setiap modul memiliki capaian yang terukur dan alur belajar yang konsisten.',
+            'Pendekatan pembelajaran mengutamakan prosedur standar dan keselamatan kerja.',
+            'Studi kasus disesuaikan dengan konteks organisasi peserta dan regulasi terkini.',
         ];
+
+        $statusCycle = [CourseStatus::Published->value, CourseStatus::Draft->value];
 
         return [
             'code' => $code,
             'title' => $title,
             'slug' => $slug,
-            'short_desc' => fake()->randomElement($descriptions),
-            'type' => fake()->randomElement([CourseType::Okupasi->value, CourseType::Kluster->value]),
-            'level_tag' => fake()->randomElement(['dasar', 'menengah', 'mahir']),
-            'enrollment_type' => fake()->randomElement([
+            'short_desc' => $descriptions[$idx % count($descriptions)],
+            'type' => [CourseType::Okupasi->value, CourseType::Kluster->value][$idx % 2],
+            'level_tag' => ['dasar', 'menengah', 'mahir'][$idx % 3],
+            'enrollment_type' => [
                 EnrollmentType::AutoAccept->value,
                 EnrollmentType::KeyBased->value,
                 EnrollmentType::Approval->value,
-            ]),
-            'status' => fake()->randomElement([
-                CourseStatus::Published->value,
-                CourseStatus::Draft->value,
-            ]),
-            'published_at' => fake()->boolean(80) ? now()->subDays(rand(1, 180)) : null,
+            ][$idx % 3],
+            'status' => $statusCycle[$idx % 2],
+            'published_at' => ($idx % 5 !== 0) ? now()->subDays(($idx % 180) + 1) : null,
         ];
     }
 
     public function published(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'status' => CourseStatus::Published->value,
-            'published_at' => now()->subDays(rand(1, 180)),
-        ]);
+        return $this->state(function (array $attributes) {
+            $seed = crc32($attributes['code'] ?? 'course');
+
+            return [
+                'status' => CourseStatus::Published->value,
+                'published_at' => now()->subDays(($seed % 180) + 1),
+            ];
+        });
     }
 
     public function draft(): static

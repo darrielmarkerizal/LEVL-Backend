@@ -2,6 +2,7 @@
 
 namespace Modules\Grading\Database\Seeders;
 
+use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 
 class GradeSeeder extends Seeder
@@ -22,18 +23,14 @@ class GradeSeeder extends Seeder
 
         echo "\n📋 Seeding grades...\n";
 
-        $faker = \Faker\Factory::create('id_ID');
         $pregenFeedback = [];
-        $pregenReasons = [];
         $createdAt = now()->toDateTimeString();
         $gradedAt = now()->subDays(10)->toDateTimeString();
         $releasedAt = now()->subDays(5)->toDateTimeString();
 
         for ($i = 0; $i < 100; $i++) {
-            $pregenFeedback[] = $faker->paragraph(1);
-            $pregenReasons[] = $faker->paragraph(1);
+            $pregenFeedback[] = RealisticSeederContent::assignmentFeedback($i);
         }
-        unset($faker);
 
         $instructorIds = \DB::table('users')
             ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
@@ -136,7 +133,7 @@ class GradeSeeder extends Seeder
             $offset += $chunkSize;
         }
 
-        unset($pregenFeedback, $pregenReasons);
+        unset($pregenFeedback);
 
         echo "\n✅ Grading seeding completed!\n";
         echo "   📊 Total grades created: $gradeCount\n";

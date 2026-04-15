@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use Bezhanov\Faker\Provider\Commerce;
-use Bezhanov\Faker\Provider\Educator;
+use App\Support\RealisticSeederContent;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -18,71 +17,34 @@ class UserFactory extends Factory
 
     protected static ?string $password;
 
+    private static int $sequence = 0;
+
     public function definition(): array
     {
-        fake()->addProvider(new Educator(fake()));
-        fake()->addProvider(new Commerce(fake()));
+        self::$sequence++;
+        $idx = self::$sequence;
+        [$first, $last] = RealisticSeederContent::indonesianNamePair($idx);
+        $fullName = $first.' '.$last;
+        $username = Str::slug($first.'-'.$last.'-'.$idx, '_');
+        $email = 'peserta.'.$idx.'@peserta.'.RealisticSeederContent::EMAIL_DOMAIN_DEMO;
 
-        $firstName = fake()->firstName();
-        $lastName = fake()->lastName();
-        $fullName = "$firstName $lastName";
-        $username = strtolower($firstName.'.'.$lastName.rand(10, 999));
-
-        $bioTemplates = [
-            "Passionate {$this->getEducatorRole()} with {$this->getYearsExperience()} years of experience in education.",
-            'Technology enthusiast and lifelong learner exploring new opportunities in online education.',
-            'Dedicated to making quality education accessible to everyone. Love teaching and mentoring.',
-            "Former {$this->getIndustryRole()} transitioning to education. Excited about learning new skills.",
-            "Student at heart, always curious about {$this->getInterestArea()}. Believer in continuous improvement.",
-        ];
+        $statusCycle = [UserStatus::Active, UserStatus::Pending, UserStatus::Inactive];
+        $status = $statusCycle[$idx % 3]->value;
 
         return [
             'name' => $fullName,
             'username' => $username,
-            'email' => strtolower($firstName.'.'.$lastName.rand(100, 9999)).'@'.fake()->safeEmailDomain(),
-            'phone' => fake()->optional(0.7)->e164PhoneNumber(),
-            'bio' => fake()->optional(0.6)->randomElement($bioTemplates),
-            'specialization_id' => null, // Will be set for instructors
+            'email' => $email,
+            'phone' => RealisticSeederContent::phoneForIndex($idx),
+            'bio' => ($idx % 5 !== 0) ? RealisticSeederContent::bioForUser($idx) : null,
+            'specialization_id' => null,
             'password' => static::$password ??= Hash::make('password'),
-            'status' => fake()->randomElement([
-                UserStatus::Active->value,
-                UserStatus::Pending->value,
-                UserStatus::Inactive->value,
-            ]),
-            'email_verified_at' => fake()->boolean(80) ? now()->subDays(rand(1, 365)) : null,
+            'status' => $status,
+            'email_verified_at' => ($idx % 5 !== 1) ? now()->subDays(($idx % 300) + 1) : null,
             'is_password_set' => true,
-            'last_profile_update' => fake()->optional(0.8)->dateTimeBetween('-6 months'),
+            'last_profile_update' => ($idx % 4 !== 0) ? now()->subDays(($idx % 60) + 1) : null,
             'remember_token' => Str::random(10),
         ];
-    }
-
-    private function getEducatorRole(): string
-    {
-        return fake()->randomElement([
-            'educator', 'instructor', 'teacher', 'lecturer', 'tutor',
-            'mentor', 'coach', 'trainer', 'facilitator',
-        ]);
-    }
-
-    private function getYearsExperience(): int
-    {
-        return fake()->numberBetween(1, 20);
-    }
-
-    private function getIndustryRole(): string
-    {
-        return fake()->randomElement([
-            'software engineer', 'data analyst', 'project manager', 'designer',
-            'marketing specialist', 'business analyst', 'consultant',
-        ]);
-    }
-
-    private function getInterestArea(): string
-    {
-        return fake()->randomElement([
-            'technology', 'science', 'arts', 'business', 'languages',
-            'programming', 'design', 'data science', 'digital marketing',
-        ]);
     }
 
     public function unverified(): static
@@ -105,7 +67,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => UserStatus::Active->value,
-            'email_verified_at' => now()->subDays(rand(1, 365)),
+            'email_verified_at' => now()->subDays(30),
         ]);
     }
 
@@ -113,7 +75,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => UserStatus::Inactive->value,
-            'email_verified_at' => now()->subDays(rand(1, 365)),
+            'email_verified_at' => now()->subDays(90),
         ]);
     }
 
@@ -121,7 +83,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => UserStatus::Banned->value,
-            'email_verified_at' => now()->subDays(rand(1, 365)),
+            'email_verified_at' => now()->subDays(60),
         ]);
     }
 
@@ -136,17 +98,27 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_password_set' => false,
-            'password' => Hash::make(Str::random(12)),
+            'password' => Hash::make(Str::random(32)),
         ]);
     }
 
     public function withCompleteProfile(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'phone' => fake()->phoneNumber(),
-            'bio' => fake()->paragraph(nb_sentences: 5),
-            'last_profile_update' => now()->subDays(rand(1, 30)),
-        ]);
+        return $this->state(function (array $attributes) {
+            $email = $attributes['email'] ?? '';
+            $idx = 1;
+            if (preg_match('/peserta\.(\d+)@/', $email, $m)) {
+                $idx = (int) $m[1];
+            } else {
+                $idx = (abs(crc32($email)) % 9999) + 1;
+            }
+
+            return [
+                'phone' => RealisticSeederContent::phoneForIndex($idx),
+                'bio' => RealisticSeederContent::bioForUser($idx),
+                'last_profile_update' => now()->subDays(($idx % 20) + 1),
+            ];
+        });
     }
 
     public function withMinimalProfile(): static
@@ -160,19 +132,29 @@ class UserFactory extends Factory
 
     public function instructor(): static
     {
-        // Get active categories from database
-        $categoryIds = \Modules\Common\Models\Category::where('status', 'active')
-            ->pluck('id')
-            ->toArray();
+        return $this->state(function (array $attributes) {
+            $categoryIds = \Modules\Common\Models\Category::where('status', 'active')
+                ->pluck('id')
+                ->toArray();
 
-        // Fallback to null if no categories available
-        $specializationId = ! empty($categoryIds) ? fake()->randomElement($categoryIds) : null;
+            $email = $attributes['email'] ?? '';
+            $idx = 1;
+            if (preg_match('/peserta\.(\d+)@/', $email, $m)) {
+                $idx = (int) $m[1];
+            } else {
+                $idx = (abs(crc32($email)) % 9999) + 1;
+            }
 
-        return $this->state(fn (array $attributes) => [
-            'specialization_id' => $specializationId,
-            'status' => UserStatus::Active->value,
-            'email_verified_at' => now()->subDays(rand(1, 365)),
-        ]);
+            $specializationId = ! empty($categoryIds)
+                ? $categoryIds[$idx % count($categoryIds)]
+                : null;
+
+            return [
+                'specialization_id' => $specializationId,
+                'status' => UserStatus::Active->value,
+                'email_verified_at' => now()->subDays(($idx % 200) + 1),
+            ];
+        });
     }
 
     public function configure(): static

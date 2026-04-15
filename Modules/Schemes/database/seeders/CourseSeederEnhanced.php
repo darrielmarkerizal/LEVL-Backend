@@ -21,8 +21,11 @@ class CourseSeederEnhanced extends Seeder
 
     private const TOTAL_COURSES = 50;
 
+    private int $courseSeq = 0;
+
     public function run(): void
     {
+        $this->courseSeq = 0;
         $this->command->info("\n📚 Creating realistic courses...");
 
         $instructors = User::whereHas('roles', function ($q) {
@@ -75,11 +78,13 @@ class CourseSeederEnhanced extends Seeder
 
     private function createCoursesForScenario(string $scenario, int $count, $categories, $instructors): \Illuminate\Support\Collection
     {
-        // Define a state callback to assign random category and instructor for each course
         $state = function () use ($categories, $instructors) {
+            $this->courseSeq++;
+            $i = $this->courseSeq - 1;
+
             return [
-                'category_id' => $categories->random()->id,
-                'instructor_id' => $instructors->random()->id,
+                'category_id' => $categories[$i % $categories->count()]->id,
+                'instructor_id' => $instructors[$i % $instructors->count()]->id,
             ];
         };
 
@@ -113,8 +118,8 @@ class CourseSeederEnhanced extends Seeder
         }
 
         foreach ($courses as $course) {
-            $numInstructors = fake()->numberBetween(1, 3);
-            $selectedInstructors = $instructors->random(min($numInstructors, $instructors->count()));
+            $numInstructors = 1 + ($course->id % 3);
+            $selectedInstructors = $instructors->take(min($numInstructors, $instructors->count()));
 
             // Use the instructors() relationship to attach instructors
             $instructorIds = $selectedInstructors->pluck('id')->toArray();
@@ -129,8 +134,8 @@ class CourseSeederEnhanced extends Seeder
         }
 
         foreach ($courses as $course) {
-            $numTags = fake()->numberBetween(3, 8);
-            $selectedTags = $tags->random(min($numTags, $tags->count()));
+            $numTags = 3 + ($course->id % 6);
+            $selectedTags = $tags->take(min($numTags, $tags->count()));
 
             if ($selectedTags instanceof Tag) {
                 $selectedTags = collect([$selectedTags]);
@@ -194,24 +199,22 @@ class CourseSeederEnhanced extends Seeder
 
         $outcomes = [];
         $outcomeTexts = [
-            'Build real-world projects from scratch',
-            'Master industry-standard tools and technologies',
-            'Understand advanced concepts and best practices',
-            'Prepare for professional certification exams',
-            'Develop a strong portfolio of work',
-            'Collaborate effectively in team environments',
-            'Apply theoretical knowledge to practical scenarios',
-            'Troubleshoot and debug complex problems',
-            'Implement security and performance best practices',
-            'Stay updated with latest industry trends',
+            'Menerapkan prosedur kerja sesuai standar kompetensi.',
+            'Menyusun dokumentasi bukti yang dapat diverifikasi asesor.',
+            'Mengoperasikan peralatan sesuai instruksi keselamatan.',
+            'Berkoordinasi dengan rekan kerja dalam tugas terstruktur.',
+            'Mengidentifikasi risiko dan tindakan pencegahan di tempat kerja.',
+            'Menyampaikan informasi secara jelas kepada pemangku kepentingan.',
+            'Memantau indikator kinerja sesuai target organisasi.',
+            'Mengikuti alur asesmen dan jadwal pelatihan yang ditetapkan.',
+            'Menggunakan alat bantu digital untuk pelaporan.',
+            'Menjaga etika profesi pada interaksi dengan klien.',
         ];
 
         foreach ($courses as $course) {
-            $numOutcomes = rand(4, 7);
-            $selectedOutcomes = array_rand($outcomeTexts, $numOutcomes);
-            $selectedOutcomes = is_array($selectedOutcomes) ? $selectedOutcomes : [$selectedOutcomes];
-
-            foreach ($selectedOutcomes as $order => $idx) {
+            $numOutcomes = 4 + ($course->id % 4);
+            for ($order = 0; $order < $numOutcomes; $order++) {
+                $idx = ($course->id + $order) % count($outcomeTexts);
                 $outcomes[] = [
                     'course_id' => $course->id,
                     'outcome_text' => $outcomeTexts[$idx],

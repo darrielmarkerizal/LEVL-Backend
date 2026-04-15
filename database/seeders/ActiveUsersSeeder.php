@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
+use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Modules\Auth\Models\User;
@@ -11,17 +14,15 @@ class ActiveUsersSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ensure roles exist
-        $superadminRole = Role::firstOrCreate(['name' => 'Superadmin', 'guard_name' => 'api']);
-        $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'api']);
-        $instructorRole = Role::firstOrCreate(['name' => 'Instructor', 'guard_name' => 'api']);
-        $studentRole = Role::firstOrCreate(['name' => 'Student', 'guard_name' => 'api']);
+        Role::firstOrCreate(['name' => 'Superadmin', 'guard_name' => 'api']);
+        Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'api']);
+        Role::firstOrCreate(['name' => 'Instructor', 'guard_name' => 'api']);
+        Role::firstOrCreate(['name' => 'Student', 'guard_name' => 'api']);
 
-        // Create Superadmin user
         $superadmin = User::query()->firstOrCreate(
-            ['email' => 'superadmin@example.com'],
+            ['email' => RealisticSeederContent::demoEmail('superadmin')],
             [
-                'name' => 'Super Admin',
+                'name' => 'Rizky Pratama',
                 'username' => 'superadmin',
                 'password' => Hash::make('password'),
                 'status' => 'active',
@@ -32,11 +33,10 @@ class ActiveUsersSeeder extends Seeder
             $superadmin->assignRole('Superadmin');
         }
 
-        // Create Admin user
         $admin = User::query()->firstOrCreate(
-            ['email' => 'admin@example.com'],
+            ['email' => RealisticSeederContent::demoEmail('admin')],
             [
-                'name' => 'Admin',
+                'name' => 'Dian Lestari',
                 'username' => 'admin',
                 'password' => Hash::make('password'),
                 'status' => 'active',
@@ -47,11 +47,10 @@ class ActiveUsersSeeder extends Seeder
             $admin->assignRole('Admin');
         }
 
-        // Create Instructor user
         $instructor = User::query()->firstOrCreate(
-            ['email' => 'instructor@example.com'],
+            ['email' => RealisticSeederContent::demoEmail('instruktur')],
             [
-                'name' => 'Instructor',
+                'name' => 'Budi Santoso',
                 'username' => 'instructor',
                 'password' => Hash::make('password'),
                 'status' => 'active',
@@ -62,11 +61,10 @@ class ActiveUsersSeeder extends Seeder
             $instructor->assignRole('Instructor');
         }
 
-        // Create Student user
         $student = User::query()->firstOrCreate(
-            ['email' => 'student@example.com'],
+            ['email' => RealisticSeederContent::demoEmail('peserta')],
             [
-                'name' => 'Student',
+                'name' => 'Citra Anggraini',
                 'username' => 'student',
                 'password' => Hash::make('password'),
                 'status' => 'active',
@@ -77,7 +75,6 @@ class ActiveUsersSeeder extends Seeder
             $student->assignRole('Student');
         }
 
-        // Add avatars: DiceBear first, fallback to ui-avatars.com
         $avatarUrls = fn ($user) => [
             "https://api.dicebear.com/9.x/avataaars/png?seed={$user->username}",
             'https://ui-avatars.com/api/?name='.rawurlencode($user->name).'&size=256&background=random',

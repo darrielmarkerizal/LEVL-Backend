@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -28,6 +30,23 @@ class DatabaseSeeder extends Seeder
             \Modules\Gamification\Database\Seeders\GamificationDatabaseSeeder::class,
             \Modules\Forums\Database\Seeders\ForumsDatabaseSeeder::class,
             \Modules\Grading\Database\Seeders\GradingDatabaseSeeder::class,
+            \Modules\Content\Database\Seeders\ContentDatabaseSeeder::class,
+            \Modules\Notifications\Database\Seeders\NotificationsDatabaseSeeder::class,
+            \Modules\Search\Database\Seeders\SearchDatabaseSeeder::class,
+            \Modules\Dashboard\Database\Seeders\DashboardDatabaseSeeder::class,
+            \Modules\Mail\Database\Seeders\MailDatabaseSeeder::class,
+            \Modules\Operations\Database\Seeders\OperationsDatabaseSeeder::class,
         ]);
+
+        if (config('seeding.mode') === 'uat') {
+            $this->call([
+                \Modules\Auth\Database\Seeders\UATPersonaSeeder::class,
+                UATGamificationPipelineSeeder::class,
+            ]);
+        } else {
+            $this->call([
+                \Modules\Enrollments\Database\Seeders\EnrollmentActivityTimelineSeeder::class,
+            ]);
+        }
     }
 }

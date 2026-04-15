@@ -30,7 +30,7 @@ class ContentSeeder extends Seeder
 
         // Get admin user
         $admin = User::whereHas('roles', function ($q) {
-            $q->where('name', 'admin');
+            $q->where('name', 'Admin');
         })->first();
 
         if (! $admin) {
@@ -125,11 +125,11 @@ class ContentSeeder extends Seeder
         $course = Course::first();
         if ($course) {
             Announcement::firstOrCreate(
-                ['title' => 'Pengumuman Kursus: '.$course->name],
+                ['title' => 'Pengumuman Kursus: '.$course->title],
                 [
                     'author_id' => $admin->id,
                     'course_id' => $course->id,
-                    'content' => 'Ini adalah pengumuman khusus untuk kursus '.$course->name.'. Mohon perhatikan jadwal dan deadline tugas.',
+                    'content' => 'Ini adalah pengumuman khusus untuk kursus '.$course->title.'. Mohon perhatikan jadwal dan deadline tugas.',
                     'status' => 'published',
                     'target_type' => 'course',
                     'priority' => 'normal',

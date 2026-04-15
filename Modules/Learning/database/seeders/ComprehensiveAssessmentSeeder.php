@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Learning\Enums\QuestionType;
@@ -485,8 +486,8 @@ class ComprehensiveAssessmentSeeder extends Seeder
 
             case QuestionType::FileUpload->value:
                 $answerData['file_paths'] = json_encode([
-                    'uploads/dummy_'.rand(1000, 9999).'.pdf',
-                    'uploads/dummy_'.rand(1000, 9999).'.docx',
+                    'fixtures/uat/sample-minimal.pdf',
+                    'fixtures/uat/sample-readme.txt',
                 ]);
                 if ($state !== SubmissionState::PendingManualGrading->value) {
                     $answerData['score'] = rand(35, $question['max_score']);
@@ -602,16 +603,12 @@ class ComprehensiveAssessmentSeeder extends Seeder
 
     private function pregenerateFakeData(): void
     {
-        $faker = \Faker\Factory::create('id_ID');
-
         for ($i = 0; $i < 100; $i++) {
-            $this->pregenSentences[] = $faker->sentence(8);
-            $this->pregenParagraphs[] = $faker->paragraph(3);
-            $this->pregenWords[] = $faker->word();
-            $this->pregenUuids[] = $faker->uuid();
+            $this->pregenSentences[] = RealisticSeederContent::assessmentSentence($i);
+            $this->pregenParagraphs[] = RealisticSeederContent::paragraph($i);
+            $this->pregenWords[] = RealisticSeederContent::wordToken($i);
+            $this->pregenUuids[] = RealisticSeederContent::stableUuid($i);
         }
-
-        unset($faker);
     }
 
     private function cleanup(): void

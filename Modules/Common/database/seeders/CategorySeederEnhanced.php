@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Common\Database\Seeders;
 
-use Bezhanov\Faker\Provider\Educator;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Common\Models\Category;
@@ -15,10 +14,7 @@ class CategorySeederEnhanced extends Seeder
     {
         $this->command->info("\n📂 Creating realistic categories...");
 
-        fake()->addProvider(new Educator(fake()));
-
         $categories = [
-            // Technology & IT
             ['name' => 'Web Development', 'value' => 'web-development', 'description' => 'Full-stack web development, frontend, backend'],
             ['name' => 'Mobile Development', 'value' => 'mobile-development', 'description' => 'iOS, Android, React Native, Flutter development'],
             ['name' => 'Data Science', 'value' => 'data-science', 'description' => 'Machine learning, AI, data analysis, big data'],

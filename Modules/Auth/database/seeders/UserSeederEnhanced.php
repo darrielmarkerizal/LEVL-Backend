@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\RealisticSeederContent;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +49,7 @@ class UserSeederEnhanced extends Seeder
             [
                 'name' => 'Super Admin Demo',
                 'username' => 'superadmin_demo',
-                'email' => 'superadmin.demo@test.com',
+                'email' => RealisticSeederContent::demoEmail('superadmin.demo'),
                 'role' => 'Superadmin',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -56,7 +57,7 @@ class UserSeederEnhanced extends Seeder
             [
                 'name' => 'Admin Demo',
                 'username' => 'admin_demo',
-                'email' => 'admin.demo@test.com',
+                'email' => RealisticSeederContent::demoEmail('admin.demo'),
                 'role' => 'Admin',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -64,7 +65,7 @@ class UserSeederEnhanced extends Seeder
             [
                 'name' => 'Instructor Demo',
                 'username' => 'instructor_demo',
-                'email' => 'instructor.demo@test.com',
+                'email' => RealisticSeederContent::demoEmail('instructor.demo'),
                 'role' => 'Instructor',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -72,7 +73,7 @@ class UserSeederEnhanced extends Seeder
             [
                 'name' => 'Student Demo',
                 'username' => 'student_demo',
-                'email' => 'student.demo@test.com',
+                'email' => RealisticSeederContent::demoEmail('student.demo'),
                 'role' => 'Student',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -99,7 +100,7 @@ class UserSeederEnhanced extends Seeder
             [
                 'name' => 'Email Unverified Student',
                 'username' => 'unverified_student',
-                'email' => 'unverified.student@test.com',
+                'email' => RealisticSeederContent::demoEmail('student.unverified'),
                 'role' => 'Student',
                 'status' => UserStatus::Pending,
                 'verified' => false,
@@ -108,7 +109,7 @@ class UserSeederEnhanced extends Seeder
             [
                 'name' => 'Password Not Set Student',
                 'username' => 'no_password_student',
-                'email' => 'no.password.student@test.com',
+                'email' => RealisticSeederContent::demoEmail('student.no-password'),
                 'role' => 'Student',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -118,7 +119,7 @@ class UserSeederEnhanced extends Seeder
             [
                 'name' => 'Inactive Student',
                 'username' => 'inactive_student',
-                'email' => 'inactive.student@test.com',
+                'email' => RealisticSeederContent::demoEmail('student.inactive'),
                 'role' => 'Student',
                 'status' => UserStatus::Inactive,
                 'verified' => true,
@@ -127,7 +128,7 @@ class UserSeederEnhanced extends Seeder
             [
                 'name' => 'Banned Student',
                 'username' => 'banned_student',
-                'email' => 'banned.student@test.com',
+                'email' => RealisticSeederContent::demoEmail('student.banned'),
                 'role' => 'Student',
                 'status' => UserStatus::Banned,
                 'verified' => true,
@@ -136,7 +137,7 @@ class UserSeederEnhanced extends Seeder
             [
                 'name' => 'Pending Email Change Student',
                 'username' => 'email_change_pending',
-                'email' => 'email.change.student@test.com',
+                'email' => RealisticSeederContent::demoEmail('student.email-change'),
                 'role' => 'Student',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -145,7 +146,7 @@ class UserSeederEnhanced extends Seeder
             [
                 'name' => 'Deletion Pending Student',
                 'username' => 'deletion_pending',
-                'email' => 'deletion.pending@test.com',
+                'email' => RealisticSeederContent::demoEmail('student.deletion-pending'),
                 'role' => 'Student',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -154,7 +155,7 @@ class UserSeederEnhanced extends Seeder
             [
                 'name' => 'Password Reset Pending Student',
                 'username' => 'password_reset_pending',
-                'email' => 'password.reset.student@test.com',
+                'email' => RealisticSeederContent::demoEmail('student.password-reset'),
                 'role' => 'Student',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -163,7 +164,7 @@ class UserSeederEnhanced extends Seeder
             [
                 'name' => 'Recently Deleted Student',
                 'username' => 'soft_deleted_student',
-                'email' => 'soft.deleted.student@test.com',
+                'email' => RealisticSeederContent::demoEmail('student.soft-deleted'),
                 'role' => 'Student',
                 'status' => UserStatus::Active,
                 'verified' => true,
@@ -241,10 +242,16 @@ class UserSeederEnhanced extends Seeder
                 $attributes = UserFactory::new()
                     ->state([
                         'status' => $status->value,
-                        'email_verified_at' => $verified ? now()->subDays(rand(1, 365)) : null,
-                        'is_password_set' => $role !== 'Student' ? fake()->boolean(80) : true,
+                        'email_verified_at' => $verified ? now()->subDays(1) : null,
+                        'is_password_set' => true,
                     ])
                     ->raw();
+
+                $seed = crc32($attributes['email']);
+                $attributes['is_password_set'] = $role !== 'Student' ? ($seed % 5 !== 0) : true;
+                if ($verified) {
+                    $attributes['email_verified_at'] = now()->subDays(($seed % 300) + 1);
+                }
 
                 if (User::where('email', $attributes['email'])
                     ->orWhere('username', $attributes['username'])
@@ -288,8 +295,8 @@ class UserSeederEnhanced extends Seeder
             'status' => $data['status']->value ?? $data['status'],
             'email_verified_at' => ($data['verified'] ?? true) ? now() : null,
             'is_password_set' => $data['is_password_set'] ?? true,
-            'phone' => fake()->e164PhoneNumber(),
-            'bio' => fake()->paragraph(),
+            'phone' => RealisticSeederContent::phoneForIndex(abs(crc32($data['email'])) % 100000 + 1),
+            'bio' => RealisticSeederContent::bioForUser(abs(crc32($data['email'])) % 10000 + 1),
         ]);
 
         $user->assignRole($data['role']);
@@ -350,17 +357,18 @@ class UserSeederEnhanced extends Seeder
         }
 
         $privacySettings = $users->map(function ($user) use ($role) {
+            $m = $user->id % 10;
             $privacyVisibility = match (true) {
-                $role === 'Student' && fake()->boolean(60) => 'private',
-                $role === 'Student' && fake()->boolean(50) => 'friends_only',
+                $role === 'Student' && $m < 4 => 'private',
+                $role === 'Student' && $m < 7 => 'friends_only',
                 default => 'public',
             };
 
             return [
                 'user_id' => $user->id,
                 'profile_visibility' => $privacyVisibility,
-                'show_email' => fake()->boolean(),
-                'show_phone' => fake()->boolean(),
+                'show_email' => ($user->id % 3) === 0,
+                'show_phone' => ($user->id % 4) === 0,
                 'show_activity_history' => true,
                 'show_achievements' => true,
                 'show_statistics' => true,
@@ -391,25 +399,26 @@ class UserSeederEnhanced extends Seeder
             $activities = [];
             foreach ($users as $user) {
                 $activityCount = match ($status) {
-                    UserStatus::Active => rand(10, 30),
+                    UserStatus::Active => 10 + ($user->id % 21),
                     UserStatus::Pending => 0,
-                    UserStatus::Inactive => rand(2, 5),
+                    UserStatus::Inactive => 2 + ($user->id % 4),
                     UserStatus::Banned => 1,
                     default => 0,
                 };
 
                 for ($i = 0; $i < $activityCount; $i++) {
+                    $seed = $user->id * 31 + $i;
                     $activities[] = [
                         'user_id' => $user->id,
-                        'activity_type' => fake()->randomElement($activityTypes),
+                        'activity_type' => $activityTypes[$seed % count($activityTypes)],
                         'activity_data' => json_encode([
-                            'title' => fake()->sentence(),
-                            'description' => fake()->sentence(),
-                            'points' => fake()->numberBetween(10, 100),
+                            'title' => RealisticSeederContent::activityLogTitle($seed),
+                            'description' => RealisticSeederContent::shortSentence($seed + 1),
+                            'points' => 10 + ($seed % 90),
                         ]),
-                        'related_type' => fake()->randomElement([null, 'Course', 'Lesson', 'Assignment']),
-                        'related_id' => fake()->boolean(60) ? fake()->numberBetween(1, 100) : null,
-                        'created_at' => now()->subDays(rand(1, 90)),
+                        'related_type' => ($seed % 3 === 0) ? null : ['Course', 'Lesson', 'Assignment'][$seed % 3],
+                        'related_id' => ($seed % 5 === 0) ? null : (($seed % 100) + 1),
+                        'created_at' => now()->subDays(($seed % 90) + 1),
                     ];
                 }
             }

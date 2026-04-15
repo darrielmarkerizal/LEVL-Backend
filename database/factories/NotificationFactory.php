@@ -1,39 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Notifications\Models\Notification;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Notifications\Models\Notification>
- */
 class NotificationFactory extends Factory
 {
     protected $model = Notification::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    private static int $sequence = 0;
+
     public function definition(): array
     {
+        self::$sequence++;
+        $idx = self::$sequence;
+
+        $types = ['system', 'assignment', 'assessment', 'grading', 'gamification', 'custom'];
+        $channels = ['in_app', 'email', 'push'];
+        $priorities = ['low', 'normal', 'high'];
+
         return [
-            'type' => fake()->randomElement(['system', 'assignment', 'assessment', 'grading', 'gamification', 'custom']),
-            'title' => fake()->sentence(),
-            'message' => fake()->paragraph(),
-            'channel' => fake()->randomElement(['in_app', 'email', 'push']),
-            'priority' => fake()->randomElement(['low', 'normal', 'high']),
+            'type' => $types[$idx % count($types)],
+            'title' => 'Notifikasi '.$idx.' — pembaruan status pembelajaran',
+            'message' => 'Pesan sistem: ada pembaruan terkait kursus atau tugas Anda. Silakan buka aplikasi untuk detail.',
+            'channel' => $channels[$idx % count($channels)],
+            'priority' => $priorities[$idx % count($priorities)],
             'is_broadcast' => false,
             'scheduled_at' => null,
             'sent_at' => null,
         ];
     }
 
-    /**
-     * Indicate that the notification is a broadcast.
-     */
     public function broadcast(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -41,13 +41,14 @@ class NotificationFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the notification is scheduled.
-     */
     public function scheduled(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'scheduled_at' => fake()->dateTimeBetween('now', '+1 week'),
-        ]);
+        return $this->state(function (array $attributes) {
+            $seed = crc32($attributes['title'] ?? 'n');
+
+            return [
+                'scheduled_at' => now()->addDays(($seed % 7) + 1),
+            ];
+        });
     }
 }

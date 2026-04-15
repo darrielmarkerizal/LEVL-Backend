@@ -1,24 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
 
 class ProfileAuditLogSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * Creates audit logs for profile changes in activity_log table
-     * (profile_audit_logs was consolidated into activity_log)
-     */
     public function run(): void
     {
         echo "Creating profile audit logs in activity_log...\n";
 
-        // ✅ Load active users once (no query per user)
         $activeUsers = User::where('status', 'active')
             ->limit(500)
             ->get();
@@ -33,39 +29,56 @@ class ProfileAuditLogSeeder extends Seeder
         $count = 0;
 
         foreach ($activeUsers as $user) {
-            $logCount = fake()->numberBetween(1, 10);
+            $logCount = 1 + ($user->id % 10);
 
             for ($i = 0; $i < $logCount; $i++) {
-                $action = fake()->randomElement([
+                $seed = $user->id * 17 + $i;
+                $actions = [
                     'profile_update',
                     'avatar_upload',
                     'avatar_delete',
                     'email_change',
                     'password_change',
                     'privacy_settings_update',
-                ]);
+                ];
+                $action = $actions[$seed % count($actions)];
+
+                [$n1f, $n1l] = RealisticSeederContent::indonesianNamePair($seed);
+                [$n2f, $n2l] = RealisticSeederContent::indonesianNamePair($seed + 11);
+                $nameBefore = $n1f.' '.$n1l;
+                $nameAfter = $n2f.' '.$n2l;
 
                 $changes = match ($action) {
                     'profile_update' => [
-                        'name' => [fake()->name(), fake()->name()],
-                        'bio' => [fake()->sentence(), fake()->sentence()],
+                        'name' => [$nameBefore, $nameAfter],
+                        'bio' => [
+                            RealisticSeederContent::shortSentence($seed),
+                            RealisticSeederContent::shortSentence($seed + 3),
+                        ],
                     ],
                     'email_change' => [
-                        'email' => [fake()->email(), fake()->email()],
+                        'email' => [
+                            RealisticSeederContent::demoEmail('lama.'.$user->id),
+                            RealisticSeederContent::demoEmail('baru.'.$user->id),
+                        ],
                     ],
                     'password_change' => [
                         'password' => ['***', '***'],
                     ],
                     'privacy_settings_update' => [
-                        'profile_visibility' => [fake()->randomElement(['public', 'private', 'friends_only']), 'public'],
-                        'show_email' => [fake()->boolean(), fake()->boolean()],
+                        'profile_visibility' => [['public', 'private', 'friends_only'][$seed % 3], 'public'],
+                        'show_email' => [($seed % 2) === 0, ($seed % 2) === 1],
                     ],
-                    default => ['field' => [fake()->word(), fake()->word()]],
+                    default => [
+                        'field' => [
+                            RealisticSeederContent::wordToken($seed),
+                            RealisticSeederContent::wordToken($seed + 1),
+                        ],
+                    ],
                 };
 
-                $createdAt = now()->subDays(rand(1, 365));
+                $createdAt = now()->subDays(($seed % 365) + 1);
 
-                // ✅ Build activity log data for batch insert (matching activity_log schema)
                 $activityLogs[] = [
                     'log_name' => 'profile',
                     'description' => $action,
@@ -75,8 +88,8 @@ class ProfileAuditLogSeeder extends Seeder
                     'causer_id' => $user->id,
                     'properties' => json_encode([
                         'changes' => $changes,
-                        'ip_address' => fake()->ipv4(),
-                        'user_agent' => substr(fake()->userAgent(), 0, 500),
+                        'ip_address' => RealisticSeederContent::ipv4ForIndex($seed),
+                        'user_agent' => substr(RealisticSeederContent::userAgentForIndex($seed), 0, 500),
                     ]),
                     'created_at' => $createdAt,
                     'updated_at' => $createdAt,
@@ -85,7 +98,6 @@ class ProfileAuditLogSeeder extends Seeder
             }
         }
 
-        // ✅ Batch insert all activity logs at once
         if (! empty($activityLogs)) {
             foreach (array_chunk($activityLogs, 1000) as $chunk) {
                 DB::table('activity_log')->insertOrIgnore($chunk);

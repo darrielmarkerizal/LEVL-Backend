@@ -2,8 +2,8 @@
 
 namespace Modules\Grading\Database\Seeders;
 
+use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
-use Modules\Grading\Models\Grade;
 
 class GradeReviewSeeder extends Seeder
 {
@@ -91,8 +91,10 @@ class GradeReviewSeeder extends Seeder
                 $reviews[] = [
                     'grade_id' => $grade->id,
                     'requested_by' => $grade->user_id,
-                    'reason' => fake()->paragraph(),
-                    'response' => in_array($reviewStatus, ['approved', 'rejected']) ? fake()->paragraph() : null,
+                    'reason' => RealisticSeederContent::gradingReviewReason($grade->id),
+                    'response' => in_array($reviewStatus, ['approved', 'rejected'], true)
+                        ? RealisticSeederContent::gradingReviewResponse($grade->id)
+                        : null,
                     'reviewed_by' => $reviewerId,
                     'status' => $reviewStatus,
                     'created_at' => now(),

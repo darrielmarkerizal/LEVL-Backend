@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Database\Seeders;
 
+use App\Support\RealisticSeederContent;
+use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Modules\Schemes\Models\Course;
@@ -46,7 +48,7 @@ class LearningContentSeeder extends Seeder
         foreach ($courses as $index => $course) {
             $this->command->info("\n  📘 Course ".($index + 1)."/{$courses->count()}: {$course->title}");
 
-            $unitCount = rand(...self::UNITS_PER_COURSE);
+            $unitCount = self::UNITS_PER_COURSE[0] + (($course->id + $index) % (self::UNITS_PER_COURSE[1] - self::UNITS_PER_COURSE[0] + 1));
             $units = $this->createUnitsForCourse($course, $unitCount);
             $totalUnits += $units->count();
             $this->command->info("    ✓ Created {$units->count()} units");
@@ -56,7 +58,7 @@ class LearningContentSeeder extends Seeder
             $courseMedia = 0;
 
             foreach ($units as $unit) {
-                $lessonCount = rand(...self::LESSONS_PER_UNIT);
+                $lessonCount = self::LESSONS_PER_UNIT[0] + ($unit->id % (self::LESSONS_PER_UNIT[1] - self::LESSONS_PER_UNIT[0] + 1));
                 $lessons = $this->createLessonsForUnit($unit, $lessonCount);
                 $courseLessons += $lessons->count();
 
@@ -85,26 +87,29 @@ class LearningContentSeeder extends Seeder
 
     private function checkDummyFiles(): void
     {
-        $basePath = public_path('dummy');
+        $this->dummyFiles = UATMediaFixtures::paths();
 
-        $this->dummyFiles = [
-            'video' => $basePath.'/file_example_MP4_480_1_5MG.mp4',
-            'image' => $basePath.'/file_example_PNG_500kB (1).png',
-            'excel' => $basePath.'/file_example_XLS_5000.xls',
-            'doc' => $basePath.'/file-sample_500kB.doc',
-            'pdf' => $basePath.'/pdf-sample_0.pdf',
+        $fallbackBase = public_path('dummy');
+        $fallback = [
+            'video' => $fallbackBase.'/file_example_MP4_480_1_5MG.mp4',
+            'image' => $fallbackBase.'/file_example_PNG_500kB (1).png',
+            'excel' => $fallbackBase.'/file_example_XLS_5000.xls',
+            'doc' => $fallbackBase.'/file-sample_500kB.doc',
+            'pdf' => $fallbackBase.'/pdf-sample_0.pdf',
         ];
 
         $missing = [];
         foreach ($this->dummyFiles as $type => $path) {
             if (! File::exists($path)) {
                 $missing[] = $type;
+                if (File::exists($fallback[$type] ?? '')) {
+                    $this->dummyFiles[$type] = $fallback[$type];
+                }
             }
         }
 
         if (! empty($missing)) {
-            $this->command->warn('  ⚠️  Missing dummy files: '.implode(', ', $missing));
-            $this->command->warn('  Files will be created without media attachments.');
+            $this->command->warn('  ⚠️  Missing UAT fixture files (used fallback where possible): '.implode(', ', $missing));
         }
     }
 
@@ -128,16 +133,16 @@ class LearningContentSeeder extends Seeder
         ];
 
         for ($i = 1; $i <= $count; $i++) {
-            $title = $unitTitles[$i - 1] ?? "Unit {$i}: ".fake()->words(3, true);
-            $code = sprintf('U%d_%d_%s', $course->id, $i, bin2hex(random_bytes(3)));
-            $slug = \Illuminate\Support\Str::slug($title).'-'.$course->id.'-'.bin2hex(random_bytes(3));
+            $title = $unitTitles[$i - 1] ?? "Unit {$i}: ".RealisticSeederContent::wordToken($i).' '.RealisticSeederContent::wordToken($i + 3);
+            $code = sprintf('U%d_%d_%s', $course->id, $i, substr(md5($course->id.'-unit-'.$i), 0, 6));
+            $slug = \Illuminate\Support\Str::slug($title).'-'.$course->id.'-'.substr(md5($title.$course->id), 0, 6);
 
             $units->push(Unit::create([
                 'course_id' => $course->id,
                 'code' => $code,
                 'title' => $title,
                 'slug' => $slug,
-                'description' => $this->generateUnitDescription($title),
+                'description' => $this->generateUnitDescription($title, $i),
                 'order' => $i,
                 'status' => 'published',
             ]));
@@ -158,12 +163,12 @@ class LearningContentSeeder extends Seeder
                 'unit_id' => $unit->id,
                 'title' => $title,
                 'slug' => $slug,
-                'description' => $this->generateLessonDescription(),
-                'markdown_content' => $this->generateMarkdownContent(),
-                'content_type' => fake()->randomElement(['markdown', 'video', 'link']),
-                'content_url' => fake()->optional(0.3)->url(),
+                'description' => $this->generateLessonDescription($i),
+                'markdown_content' => $this->generateMarkdownContent($unit->id * 100 + $i),
+                'content_type' => ['markdown', 'video', 'link'][$i % 3],
+                'content_url' => ($i % 10 < 3) ? 'https://demo.levl.id/materi/'.$unit->id.'/'.$i : null,
                 'order' => $i,
-                'duration_minutes' => fake()->randomElement([10, 15, 20, 30, 45, 60]),
+                'duration_minutes' => [10, 15, 20, 30, 45, 60][$i % 6],
                 'status' => 'published',
             ]));
         }
@@ -173,7 +178,7 @@ class LearningContentSeeder extends Seeder
 
     private function createBlocksForLesson(Lesson $lesson): array
     {
-        $count = rand(...self::BLOCKS_PER_LESSON);
+        $count = self::BLOCKS_PER_LESSON[0] + ($lesson->id % (self::BLOCKS_PER_LESSON[1] - self::BLOCKS_PER_LESSON[0] + 1));
         $blockTypes = ['text', 'video', 'file', 'image', 'embed'];
         $weights = [0.35, 0.25, 0.20, 0.15, 0.05];
 
@@ -181,12 +186,12 @@ class LearningContentSeeder extends Seeder
         $mediaUploaded = 0;
 
         for ($i = 1; $i <= $count; $i++) {
-            $blockType = $this->weightedRandom($blockTypes, $weights);
+            $blockType = $blockTypes[$this->pickWeightedIndex($lesson->id + $i, $weights)];
 
             $block = LessonBlock::create([
                 'lesson_id' => $lesson->id,
                 'block_type' => $blockType,
-                'content' => $this->generateBlockContent($blockType),
+                'content' => $this->generateBlockContent($blockType, $lesson->id * 50 + $i),
                 'order' => $i,
                 'slug' => \Illuminate\Support\Str::slug($lesson->title.'-block-'.$i),
             ]);
@@ -216,7 +221,7 @@ class LearningContentSeeder extends Seeder
                     break;
 
                 case 'file':
-                    $fileType = fake()->randomElement(['pdf', 'doc', 'excel']);
+                    $fileType = ['pdf', 'doc', 'excel'][$block->id % 3];
                     $filePath = match ($fileType) {
                         'pdf' => $this->dummyFiles['pdf'],
                         'doc' => $this->dummyFiles['doc'],
@@ -250,111 +255,100 @@ class LearningContentSeeder extends Seeder
         return false;
     }
 
-    private function generateUnitDescription(string $title): string
+    private function generateUnitDescription(string $title, int $i): string
     {
         $descriptions = [
-            "In this unit, you'll learn the essential concepts and build a solid foundation.",
-            'This unit covers practical techniques and hands-on exercises to reinforce your skills.',
-            'Dive deeper into advanced topics and explore real-world applications.',
-            'Learn industry best practices and professional development workflows.',
-            'Master the tools and techniques used by professionals in the field.',
-            'Apply your knowledge to build complete projects from scratch.',
+            "Unit ini membahas fondasi kompetensi sesuai skema: {$title}.",
+            "Peserta mempraktikkan prosedur standar dan merujuk pada pedoman asesmen untuk {$title}.",
+            "Materi mengaitkan teori dengan studi kasus industri terkait {$title}.",
+            'Aktivitas dirancang agar capaian dapat diverifikasi melalui tugas terstruktur.',
+            'Ringkasan kompetensi dan kriteria penilaian disampaikan di awal unit.',
+            'Latihan mandiri melengkapi pembahasan kelas untuk penguasaan bertahap.',
         ];
 
-        return fake()->randomElement($descriptions);
+        return $descriptions[$i % count($descriptions)];
     }
 
     private function generateLessonTitle(int $order): string
     {
         $templates = [
-            'Introduction to %s',
-            'Understanding %s',
-            'Working with %s',
-            'Implementing %s',
-            'Advanced %s Techniques',
-            'Best Practices for %s',
-            '%s in Practice',
-            'Mastering %s',
-            '%s Deep Dive',
-            'Building with %s',
+            'Pengantar %s',
+            'Memahami %s',
+            'Penerapan %s dalam Praktik',
+            'Langkah Kerja %s',
+            'Teknik Lanjutan untuk %s',
+            'Studi Kasus %s',
+            '%s untuk Uji Kompetensi',
+            'Checklist %s',
         ];
 
         $topics = [
-            'Core Concepts', 'Data Structures', 'Algorithms', 'Design Patterns',
-            'APIs', 'Authentication', 'Database Design', 'Testing Strategies',
-            'Error Handling', 'Performance Optimization', 'Security Measures',
-            'User Interfaces', 'State Management', 'Data Validation',
+            'Unit Kompetensi', 'Prosedur Kerja', 'Instrumen Asesmen', 'Kriteria Bukti',
+            'K3 Lingkungan', 'Dokumentasi', 'Komunikasi Profesional', 'Etika Profesi',
+            'Perencanaan Aktivitas', 'Evaluasi Diri', 'Kepatuhan Standar', 'Kolaborasi Tim',
         ];
 
-        $template = fake()->randomElement($templates);
-        $topic = fake()->randomElement($topics);
+        $template = $templates[$order % count($templates)];
+        $topic = $topics[$order % count($topics)];
 
         return sprintf($template, $topic);
     }
 
-    private function generateLessonDescription(): string
+    private function generateLessonDescription(int $order): string
     {
         $descriptions = [
-            'Learn key concepts through practical examples and hands-on exercises.',
-            'Understand the fundamentals and apply them to real-world scenarios.',
-            'Master essential techniques with step-by-step guidance.',
-            'Explore advanced topics and industry best practices.',
-            'Build practical skills through interactive demonstrations.',
-            'Discover professional workflows and efficient development patterns.',
+            'Materi disusun mengikuti urutan pembelajaran dari konsep dasar hingga penerapan.',
+            'Setiap bagian dilengkapi dengan contoh yang relevan dengan konteks LSP.',
+            'Peserta mengumpulkan bukti sesuai instruksi asesor di akhir sesi.',
+            'Fokus pada prosedur yang dapat direplikasi di tempat kerja.',
+            'Latihan membantu peserta memantau penguasaan indikator kinerja.',
+            'Ringkasan menegaskan poin yang sering diuji pada asesmen.',
         ];
 
-        return fake()->randomElement($descriptions);
+        return $descriptions[$order % count($descriptions)];
     }
 
-    private function generateMarkdownContent(): string
+    private function generateMarkdownContent(int $seed): string
     {
-        $sections = [
-            "## Overview\n\nThis lesson covers important concepts that you'll use throughout your learning journey.\n\n",
-            "## Key Takeaways\n\n- Master fundamental principles\n- Apply concepts to real projects\n- Understand industry standards\n\n",
-            "## Prerequisites\n\nBefore starting, make sure you're familiar with the previous lessons.\n\n",
-            "## Learning Objectives\n\n1. Understand core concepts\n2. Implement practical solutions\n3. Apply best practices\n\n",
-        ];
+        $n = 2 + ($seed % 2);
 
-        return implode("\n", fake()->randomElements($sections, rand(2, 3)));
+        return implode("\n", array_map(
+            fn (int $j) => RealisticSeederContent::lessonMarkdownSection($seed + $j),
+            range(0, $n - 1)
+        ));
     }
 
-    private function generateBlockContent(string $blockType): string
+    private function generateBlockContent(string $blockType, int $seed): string
     {
+        $yt = substr(md5('yt-'.$seed), 0, 11);
+
         return match ($blockType) {
-            'text' => $this->generateTextBlockContent(),
-            'image' => '<figure><img src="" alt="'.fake()->words(5, true).'" /><figcaption>'.fake()->sentence().'</figcaption></figure>',
-            'video' => '<div class="video-wrapper"><video controls><source src="" type="video/mp4" /></video><p class="video-description">'.fake()->paragraph().'</p></div>',
-            'file' => '<div class="file-download"><h4>'.fake()->sentence().'</h4><p>'.fake()->paragraph().'</p><a href="" download>Download File</a></div>',
-            'embed' => '<div class="embed-responsive"><iframe src="https://www.youtube.com/embed/'.\Illuminate\Support\Str::random(11).'" frameborder="0" allowfullscreen></iframe></div>',
-            default => fake()->paragraph(),
+            'text' => $this->generateTextBlockContent($seed),
+            'image' => '<figure><img src="" alt="'.htmlspecialchars(RealisticSeederContent::assessmentSentence($seed), ENT_QUOTES, 'UTF-8').'" /><figcaption>'.htmlspecialchars(RealisticSeederContent::shortSentence($seed + 1), ENT_QUOTES, 'UTF-8').'</figcaption></figure>',
+            'video' => '<div class="video-wrapper"><video controls><source src="" type="video/mp4" /></video><p class="video-description">'.htmlspecialchars(RealisticSeederContent::paragraph($seed), ENT_QUOTES, 'UTF-8').'</p></div>',
+            'file' => '<div class="file-download"><h4>'.htmlspecialchars(RealisticSeederContent::shortSentence($seed + 2), ENT_QUOTES, 'UTF-8').'</h4><p>'.htmlspecialchars(RealisticSeederContent::paragraph($seed + 3), ENT_QUOTES, 'UTF-8').'</p><a href="" download>Unduh berkas</a></div>',
+            'embed' => '<div class="embed-responsive"><iframe src="https://www.youtube.com/embed/'.$yt.'" title="materi" frameborder="0" allowfullscreen></iframe></div>',
+            default => RealisticSeederContent::paragraph($seed + 4),
         };
     }
 
-    private function generateTextBlockContent(): string
+    private function generateTextBlockContent(int $seed): string
     {
-        $paragraphs = [
-            "This concept is fundamental to understanding how the system works. By mastering this, you'll be able to apply it across various scenarios.",
-            "Let's explore this topic in detail. We'll look at practical examples and see how professionals use these techniques in production environments.",
-            'Understanding this principle will help you make better design decisions and write more maintainable code.',
-            'In practice, this technique is widely used across the industry. Many successful projects rely on this approach.',
-        ];
-
-        return implode("\n\n", fake()->randomElements($paragraphs, rand(2, 3)));
+        return RealisticSeederContent::paragraph($seed)."\n\n".RealisticSeederContent::paragraph($seed + 1);
     }
 
-    private function weightedRandom(array $values, array $weights): mixed
+    private function pickWeightedIndex(int $seed, array $weights): int
     {
         $totalWeight = array_sum($weights);
-        $random = mt_rand(1, (int) ($totalWeight * 100)) / 100;
-
-        $sum = 0;
-        foreach ($values as $index => $value) {
-            $sum += $weights[$index];
-            if ($random <= $sum) {
-                return $value;
+        $r = ($seed % 10000) / 10000 * $totalWeight;
+        $sum = 0.0;
+        foreach ($weights as $index => $w) {
+            $sum += $w;
+            if ($r <= $sum) {
+                return $index;
             }
         }
 
-        return $values[0];
+        return 0;
     }
 }
