@@ -36,8 +36,8 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::ATTR_PERSISTENT => false,        // ← diubah: tidak aman untuk Octane
-                PDO::ATTR_EMULATE_PREPARES => true,   
+                PDO::ATTR_PERSISTENT => false,
+                PDO::ATTR_EMULATE_PREPARES => false,
                 PDO::ATTR_STRINGIFY_FETCHES => false,
                 PDO::ATTR_TIMEOUT => 30,
             ]) : [],
@@ -76,10 +76,27 @@ return [
             'search_path' => 'public',
             'sslmode' => 'disable',
             'options' => [
-                PDO::ATTR_PERSISTENT => false,        // ← diubah: biang kerok utama
-                PDO::ATTR_EMULATE_PREPARES => true,   
+                PDO::ATTR_PERSISTENT => false,
+                PDO::ATTR_EMULATE_PREPARES => false, // false untuk runtime (boolean support)
                 PDO::ATTR_STRINGIFY_FETCHES => false,
             ],
+        ],
+
+        // Koneksi khusus migration — bypass PgBouncer langsung ke PostgreSQL
+        'pgsql_migrate' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_MIGRATION_PORT', '5432'), // langsung ke Postgres, bukan PgBouncer
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => 'disable',
+            // Tidak ada EMULATE_PREPARES — pakai native prepared statements PostgreSQL
         ],
 
         'sqlsrv' => [
@@ -109,7 +126,7 @@ return [
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'predis'),
             'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-database-'),
-            'persistent' => false,                    // ← diubah: cegah koneksi Redis menumpuk
+            'persistent' => false,
         ],
 
         'default' => [
