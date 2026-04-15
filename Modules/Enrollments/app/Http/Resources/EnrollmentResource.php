@@ -43,6 +43,7 @@ class EnrollmentResource extends JsonResource
                     'id' => $this->user->id,
                     'name' => $this->user->name,
                     'email' => $this->user->email,
+                    'username' => $this->user->username ?? null,
                     'avatar_url' => $avatarUrl,
                 ];
             }),
@@ -53,6 +54,40 @@ class EnrollmentResource extends JsonResource
                     'title' => $this->course->title,
                     'slug' => $this->course->slug,
                     'code' => $this->course->code ?? null,
+                ];
+            }),
+
+            'completed_units' => $this->whenLoaded('unitProgress', function () {
+                $total = $this->unitProgress->count();
+                $completed = $this->unitProgress->where('status', 'completed')->count();
+
+                return [
+                    'completed' => $completed,
+                    'total' => $total,
+                    'text' => "{$completed} of {$total}",
+                ];
+            }),
+
+            'assignments' => $this->whenLoaded('assignmentSubmissions', function () {
+                $submitted = $this->assignmentSubmissions->whereIn('status', ['submitted', 'graded', 'late'])->count();
+                $graded = $this->assignmentSubmissions->where('status', 'graded')->count();
+
+                return [
+                    'submitted' => $submitted,
+                    'graded' => $graded,
+                    'text' => "{$submitted} Submitted, {$graded} Graded",
+                ];
+            }),
+
+            'quizzes' => $this->whenLoaded('quizSubmissions', function () {
+                $gradedSubmissions = $this->quizSubmissions->where('status', 'graded');
+                $passed = $gradedSubmissions->where('score', '>=', 70)->count();
+                $avgScore = $gradedSubmissions->avg('score');
+
+                return [
+                    'passed' => $passed,
+                    'average_score' => round($avgScore ?? 0, 0),
+                    'text' => "{$passed} Passed (Avg Score: ".round($avgScore ?? 0, 0).')',
                 ];
             }),
         ];

@@ -86,6 +86,16 @@ class Enrollment extends Model
         return $this->hasMany(EnrollmentActivity::class);
     }
 
+    public function assignmentSubmissions()
+    {
+        return $this->hasMany(\Modules\Learning\Models\Submission::class, 'enrollment_id');
+    }
+
+    public function quizSubmissions()
+    {
+        return $this->hasMany(\Modules\Learning\Models\QuizSubmission::class, 'enrollment_id');
+    }
+
     protected static function newFactory()
     {
         return \Modules\Enrollments\Database\Factories\EnrollmentFactory::new();

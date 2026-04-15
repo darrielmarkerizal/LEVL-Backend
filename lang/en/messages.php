@@ -523,6 +523,7 @@ return [
         'user_status_pending' => 'Your registration is currently awaiting verification. Please complete the verification process to activate your account.',
         'user_status_inactive' => 'Your account is currently deactivated. You can reactivate it yourself or contact an admin for assistance.',
         'user_status_banned' => 'Your account has been blocked. Please contact an admin if you need assistance.',
+        'activities_retrieved' => 'Enrollment activities retrieved successfully.',
     ],
 
     // Assignments

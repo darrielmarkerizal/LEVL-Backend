@@ -61,6 +61,9 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
         Route::get('enrollments/{enrollment}', [EnrollmentsController::class, 'show'])
             ->whereNumber('enrollment')
             ->name('enrollments.show');
+        Route::get('enrollments/{enrollment}/activities', [EnrollmentsController::class, 'activities'])
+            ->whereNumber('enrollment')
+            ->name('enrollments.activities');
         Route::get('me/enrollments/invitations', [EnrollmentsController::class, 'listInvitations'])
             ->middleware('role:Student')
             ->name('me.enrollments.invitations.list');

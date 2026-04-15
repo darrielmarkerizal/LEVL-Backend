@@ -527,6 +527,7 @@ return [
         'user_status_pending' => 'Pendaftaran Anda sedang menunggu verifikasi. Silakan selesaikan proses verifikasi untuk mengaktifkan akun Anda.',
         'user_status_inactive' => 'Akun Anda saat ini dinonaktifkan. Anda dapat mengaktifkannya kembali sendiri atau hubungi admin untuk bantuan.',
         'user_status_banned' => 'Akun Anda telah diblokir. Silakan hubungi admin jika Anda memerlukan bantuan.',
+        'activities_retrieved' => 'Aktivitas pendaftaran berhasil diambil.',
     ],
 
     // Assignments

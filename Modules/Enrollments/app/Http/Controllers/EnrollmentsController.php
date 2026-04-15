@@ -48,7 +48,14 @@ class EnrollmentsController extends Controller
     {
         $enrollment = \Spatie\QueryBuilder\QueryBuilder::for(Enrollment::class)
             ->allowedIncludes(['user', 'course'])
-            ->with(['user', 'course', 'courseProgress'])
+            ->with([
+                'user',
+                'course',
+                'courseProgress',
+                'unitProgress',
+                'assignmentSubmissions',
+                'quizSubmissions',
+            ])
             ->findOrFail($id);
 
         $this->authorize('view', $enrollment);
@@ -67,6 +74,27 @@ class EnrollmentsController extends Controller
         $this->authorize('view', $enrollment);
 
         return $this->success(new EnrollmentResource($enrollment), __('messages.enrollments.retrieved'));
+    }
+
+    public function activities(Request $request, $enrollmentId)
+    {
+        $enrollment = Enrollment::findOrFail($enrollmentId);
+        $this->authorize('view', $enrollment);
+
+        $perPage = max(1, min(100, (int) $request->query('per_page', 15)));
+
+        $paginator = \Spatie\QueryBuilder\QueryBuilder::for(\Modules\Enrollments\Models\EnrollmentActivity::class)
+            ->where('enrollment_id', $enrollmentId)
+            ->allowedSorts(['occurred_at', 'created_at', 'event_type'])
+            ->allowedFilters(['event_type'])
+            ->defaultSort('-occurred_at')
+            ->with(['lesson', 'quiz', 'assignment'])
+            ->paginate($perPage)
+            ->appends($request->query());
+
+        $paginator->getCollection()->transform(fn ($item) => new \Modules\Enrollments\Http\Resources\EnrollmentActivityResource($item));
+
+        return $this->paginateResponse($paginator, __('messages.enrollments.activities_retrieved'));
     }
 
     public function store(Request $request, Course $course)
