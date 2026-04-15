@@ -7,23 +7,37 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
+     * Disable transaction supaya error asli kelihatan di PostgreSQL
+     */
+    public $withinTransaction = false;
+
+    /**
      * Run the migrations.
      */
     public function up(): void
     {
         Schema::create('master_data', function (Blueprint $table) {
             $table->id();
-            $table->string('type', 50)->index();
+
+            $table->string('type', 50);
             $table->string('value', 100);
             $table->string('label', 255);
+
             $table->json('metadata')->nullable();
+
             $table->boolean('is_system')->default(false);
             $table->boolean('is_active')->default(true);
-            $table->unsignedInteger('sort_order')->default(0);
+
+            // PostgreSQL tidak punya unsigned integer → pakai integer biasa
+            $table->integer('sort_order')->default(0);
+
             $table->timestamps();
 
-            $table->unique(['type', 'value']);
-            $table->index(['type', 'is_active']);
+            // kasih nama constraint manual biar aman
+            $table->unique(['type', 'value'], 'md_type_value_unique');
+
+            // index tambahan
+            $table->index(['type', 'is_active'], 'md_type_active_index');
         });
     }
 
