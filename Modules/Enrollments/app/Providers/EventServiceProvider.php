@@ -12,6 +12,15 @@ class EventServiceProvider extends ServiceProvider
         \Modules\Enrollments\Events\EnrollmentCreated::class => [
             \Modules\Enrollments\Listeners\InitializeProgressForEnrollment::class,
         ],
+        \Modules\Schemes\Events\LessonCompleted::class => [
+            \Modules\Enrollments\Listeners\RecordLessonCompletedActivity::class,
+        ],
+        \Modules\Learning\Events\SubmissionStateChanged::class => [
+            \Modules\Enrollments\Listeners\RecordAssignmentActivity::class,
+        ],
+        \Modules\Learning\Events\QuizCompleted::class => [
+            \Modules\Enrollments\Listeners\RecordQuizCompletedActivity::class,
+        ],
     ];
 
     protected static $shouldDiscoverEvents = false;
