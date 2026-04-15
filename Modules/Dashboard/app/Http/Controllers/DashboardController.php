@@ -23,8 +23,7 @@ class DashboardController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $userId = $request->user()->id;
-        $data = $this->dashboardService->getOverview($userId);
+        $data = $this->dashboardService->getDashboardData($request->user());
 
         return $this->success($data, __('messages.dashboard_retrieved'));
     }

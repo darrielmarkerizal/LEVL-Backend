@@ -10,7 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Modules\Auth\app\Models\User;
+use Modules\Auth\Models\User;
 use Modules\Notifications\Models\Post;
 
 class SendPostNotificationJob implements ShouldQueue

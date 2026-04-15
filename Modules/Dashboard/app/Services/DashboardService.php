@@ -6,6 +6,8 @@ namespace Modules\Dashboard\Services;
 
 use Illuminate\Support\Collection;
 use Modules\Auth\Models\User;
+use Modules\Dashboard\Contracts\Repositories\DashboardRepositoryInterface;
+use Modules\Dashboard\Contracts\Services\DashboardServiceInterface;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Gamification\Models\UserBadge;
 use Modules\Gamification\Models\UserGamificationStat;
@@ -13,8 +15,35 @@ use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Lesson;
 use Spatie\QueryBuilder\QueryBuilder;
 
-class DashboardService
+class DashboardService implements DashboardServiceInterface
 {
+    public function __construct(
+        private readonly DashboardRepositoryInterface $dashboardRepository
+    ) {
+    }
+
+    public function getDashboardData(User $user): array
+    {
+        if ($user->hasRole('Student')) {
+            return [
+                'gamification_stats' => $this->dashboardRepository->getStudentGamificationStats($user),
+                'latest_learning_activity' => $this->dashboardRepository->getLatestLearningActivity($user),
+                'recent_achievements' => $this->dashboardRepository->getRecentAchievements($user),
+                'global_top_leaderboard' => $this->dashboardRepository->getTopLeaderboard(),
+            ];
+        }
+
+        return [
+            'pending_enrollment' => $this->dashboardRepository->getPendingEnrollmentCount($user),
+            'total_users' => $this->dashboardRepository->getTotalUsersCount($user),
+            'total_schemes' => $this->dashboardRepository->getTotalSchemesCount($user),
+            'registration_and_class_queue' => $this->dashboardRepository->getRegistrationQueue($user),
+            'learning_content_statistic' => $this->dashboardRepository->getContentStatistics($user),
+            'global_top_leaderboard' => $this->dashboardRepository->getTopLeaderboard(),
+            'latest_posts' => $this->dashboardRepository->getLatestPosts(),
+        ];
+    }
+
     /**
      * Get dashboard overview
      */

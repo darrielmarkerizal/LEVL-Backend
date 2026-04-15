@@ -15,6 +15,7 @@ use Modules\Gamification\Models\Point;
 use Modules\Gamification\Models\UserBadge;
 use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Learning\Models\QuizQuestion;
+use Modules\Notifications\Models\Post;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\LessonBlock;
 
@@ -33,12 +34,6 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             $query->whereHas('course', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
             });
-        } elseif ($user->hasRole('Admin')) {
-            $query->whereHas('course', function ($q) use ($user) {
-                $q->whereHas('admins', function ($aq) use ($user) {
-                    $aq->where('user_id', $user->id);
-                });
-            });
         }
 
         return $query->count();
@@ -56,17 +51,6 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             $pendingQuery->whereHas('course', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
             });
-        } elseif ($user->hasRole('Admin')) {
-            $totalQuery->whereHas('course', function ($q) use ($user) {
-                $q->whereHas('admins', function ($aq) use ($user) {
-                    $aq->where('user_id', $user->id);
-                });
-            });
-            $pendingQuery->whereHas('course', function ($q) use ($user) {
-                $q->whereHas('admins', function ($aq) use ($user) {
-                    $aq->where('user_id', $user->id);
-                });
-            });
         }
 
         $total = $totalQuery->count();
@@ -83,12 +67,6 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             if ($user->hasRole('Instructor')) {
                 $eq->whereHas('course', function ($cq) use ($user) {
                     $cq->where('instructor_id', $user->id);
-                });
-            } elseif ($user->hasRole('Admin')) {
-                $eq->whereHas('course', function ($cq) use ($user) {
-                    $cq->whereHas('admins', function ($aq) use ($user) {
-                        $aq->where('user_id', $user->id);
-                    });
                 });
             }
         });
@@ -110,10 +88,6 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
 
         if ($user->hasRole('Instructor')) {
             $query->where('instructor_id', $user->id);
-        } elseif ($user->hasRole('Admin')) {
-            $query->whereHas('admins', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            });
         }
 
         return $query->count();
@@ -136,12 +110,6 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
         if ($user->hasRole('Instructor')) {
             $query->whereHas('course', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
-            });
-        } elseif ($user->hasRole('Admin')) {
-            $query->whereHas('course', function ($q) use ($user) {
-                $q->whereHas('admins', function ($aq) use ($user) {
-                    $aq->where('user_id', $user->id);
-                });
             });
         }
 
@@ -166,16 +134,6 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
 
             $quizQuestionQuery->whereHas('quiz.unit.course', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
-            });
-        } elseif ($user->hasRole('Admin')) {
-            $lessonBlockQuery->whereHas('lesson.unit.course', function ($q) use ($user) {
-                $q->whereHas('admins', function ($aq) use ($user) {
-                    $aq->where('user_id', $user->id);
-                });
-            });
-
-            $quizQuestionQuery->whereHas('quiz.unit.course.admins', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
             });
         }
 
@@ -419,6 +377,35 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
 
             return $this->getRandomPublishedCourses(2);
         }
+    }
+
+    public function getLatestPosts(int $limit = 9): array
+    {
+        return Post::query()
+            ->published()
+            ->with(['author'])
+            ->orderByDesc('published_at')
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get()
+            ->map(fn (Post $post) => [
+                'uuid' => $post->uuid,
+                'title' => $post->title,
+                'category' => [
+                    'value' => $post->category->value,
+                    'label' => $post->category->label(),
+                ],
+                'status' => [
+                    'value' => $post->status->value,
+                    'label' => $post->status->label(),
+                ],
+                'is_pinned' => $post->is_pinned,
+                'author_name' => $post->author?->name,
+                'view_count' => 0,
+                'published_at' => $post->published_at?->toIso8601String(),
+                'created_at' => $post->created_at->toIso8601String(),
+            ])
+            ->toArray();
     }
 
     private function getRandomPublishedCourses(int $limit): array

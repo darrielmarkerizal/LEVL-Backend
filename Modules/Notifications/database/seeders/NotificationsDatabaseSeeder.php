@@ -15,6 +15,10 @@ class NotificationsDatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call([
+            PostSeeder::class,
+        ]);
+
         $this->command->info('Seeding in-app notifications...');
 
         $studentIds = User::query()->role('Student')->orderBy('id')->limit(80)->pluck('id')->all();

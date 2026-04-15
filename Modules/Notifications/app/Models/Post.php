@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Auth\app\Models\User;
+use Modules\Auth\Models\User;
 use Modules\Common\Traits\PgSearchable;
 use Modules\Notifications\Enums\PostCategory;
 use Modules\Notifications\Enums\PostStatus;

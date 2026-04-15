@@ -5,7 +5,7 @@ namespace Modules\Notifications\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Auth\app\Models\User;
+use Modules\Auth\Models\User;
 
 class PostView extends Model
 {
