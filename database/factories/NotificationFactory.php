@@ -20,7 +20,7 @@ class NotificationFactory extends Factory
     public function definition(): array
     {
         return [
-            'type' => fake()->randomElement(['system', 'assignment', 'assessment', 'grading', 'gamification', 'news', 'custom']),
+            'type' => fake()->randomElement(['system', 'assignment', 'assessment', 'grading', 'gamification', 'custom']),
             'title' => fake()->sentence(),
             'message' => fake()->paragraph(),
             'channel' => fake()->randomElement(['in_app', 'email', 'push']),

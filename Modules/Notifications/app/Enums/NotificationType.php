@@ -9,7 +9,6 @@ enum NotificationType: string
     case Assessment = 'assessment';
     case Grading = 'grading';
     case Gamification = 'gamification';
-    case News = 'news';
     case Custom = 'custom';
     case CourseCompleted = 'course_completed';
     case CourseUpdates = 'course_updates';
@@ -49,7 +48,6 @@ enum NotificationType: string
             self::Assessment => __('enums.notification_type.assessment'),
             self::Grading => __('enums.notification_type.grading'),
             self::Gamification => __('enums.notification_type.gamification'),
-            self::News => __('enums.notification_type.news'),
             self::Custom => __('enums.notification_type.custom'),
             self::CourseCompleted => __('enums.notification_type.course_completed'),
             self::CourseUpdates => __('enums.notification_type.course_updates'),
