@@ -205,28 +205,47 @@ class LearningContentSeeder extends Seeder
     private function createBlocksForLesson(Lesson $lesson): array
     {
         $count = self::BLOCKS_PER_LESSON[0] + ($lesson->id % (self::BLOCKS_PER_LESSON[1] - self::BLOCKS_PER_LESSON[0] + 1));
+        
+        // Use round-robin distribution to ensure all types are created
+        // This guarantees media files will be uploaded
         $blockTypes = ['text', 'video', 'file', 'image', 'embed'];
-        $weights = [0.35, 0.25, 0.20, 0.15, 0.05];
 
         $blocksCreated = 0;
         $mediaUploaded = 0;
+        $blockTypeCount = [];
 
-        for ($i = 1; $i <= $count; $i++) {
-            $blockType = $blockTypes[$this->pickWeightedIndex($lesson->id + $i, $weights)];
+        for ($i = 0; $i < $count; $i++) {
+            // Round-robin: cycle through all block types
+            // Use simple modulo to ensure even distribution
+            $blockType = $blockTypes[$i % count($blockTypes)];
+            
+            // Track block types
+            if (!isset($blockTypeCount[$blockType])) {
+                $blockTypeCount[$blockType] = 0;
+            }
+            $blockTypeCount[$blockType]++;
 
             $block = LessonBlock::create([
                 'lesson_id' => $lesson->id,
                 'block_type' => $blockType,
                 'content' => $this->generateBlockContent($blockType, $lesson->id * 50 + $i),
-                'order' => $i,
-                'slug' => \Illuminate\Support\Str::slug($lesson->title.'-block-'.$i),
+                'order' => $i + 1, // Order starts from 1
+                'slug' => \Illuminate\Support\Str::slug($lesson->title.'-block-'.($i + 1)),
             ]);
 
             $blocksCreated++;
 
-            if ($this->attachMediaToBlock($block, $blockType)) {
-                $mediaUploaded++;
+            // Only try to attach media for types that support it
+            if (in_array($blockType, ['video', 'file', 'image'])) {
+                if ($this->attachMediaToBlock($block, $blockType)) {
+                    $mediaUploaded++;
+                }
             }
+        }
+
+        // Debug: Log block types for first 3 lessons only
+        if ($lesson->id <= 3) {
+            $this->command->info("    📊 Block types for lesson {$lesson->id}: " . json_encode($blockTypeCount));
         }
 
         return ['blocks' => $blocksCreated, 'media' => $mediaUploaded];
@@ -234,6 +253,14 @@ class LearningContentSeeder extends Seeder
 
     private function attachMediaToBlock(LessonBlock $block, string $blockType): bool
     {
+        // Debug: Log every attempt
+        static $attemptCount = 0;
+        $attemptCount++;
+        
+        if ($attemptCount <= 5) {
+            $this->command->info("    🔍 Attempt #{$attemptCount}: Attaching {$blockType} media to block {$block->id}");
+        }
+        
         try {
             switch ($blockType) {
                 case 'video':
@@ -248,6 +275,10 @@ class LearningContentSeeder extends Seeder
                     $block->addMedia($this->dummyFiles['video'])
                         ->preservingOriginal()
                         ->toMediaCollection('media', 'do');
+                    
+                    if ($attemptCount <= 5) {
+                        $this->command->info("    ✅ Successfully uploaded video for block {$block->id}");
+                    }
                     return true;
 
                 case 'file':
@@ -270,6 +301,10 @@ class LearningContentSeeder extends Seeder
                     $block->addMedia($filePath)
                         ->preservingOriginal()
                         ->toMediaCollection('media', 'do');
+                    
+                    if ($attemptCount <= 5) {
+                        $this->command->info("    ✅ Successfully uploaded {$fileType} for block {$block->id}");
+                    }
                     return true;
 
                 case 'image':
@@ -284,11 +319,17 @@ class LearningContentSeeder extends Seeder
                     $block->addMedia($this->dummyFiles['image'])
                         ->preservingOriginal()
                         ->toMediaCollection('media', 'do');
+                    
+                    if ($attemptCount <= 5) {
+                        $this->command->info("    ✅ Successfully uploaded image for block {$block->id}");
+                    }
                     return true;
             }
         } catch (\Exception $e) {
             $this->command->error("    ❌ Failed to attach media to block {$block->id} ({$blockType}): {$e->getMessage()}");
-            $this->command->error("    Stack trace: " . $e->getTraceAsString());
+            if ($attemptCount <= 3) {
+                $this->command->error("    Stack trace: " . $e->getTraceAsString());
+            }
         }
 
         return false;
