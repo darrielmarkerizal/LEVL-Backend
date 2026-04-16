@@ -30,9 +30,9 @@ class AssignmentPolicy
         }
 
         if ($user->hasRole('Instructor')) {
-            $assignment->loadMissing('lesson.unit.course');
+            $assignment->loadMissing('unit.course');
 
-            return $assignment->lesson?->unit?->course?->instructor_id === $user->id;
+            return $assignment->unit?->course?->instructor_id === $user->id;
         }
 
         if ($user->hasRole('Student')) {
