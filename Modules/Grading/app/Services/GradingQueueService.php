@@ -96,7 +96,7 @@ class GradingQueueService
         $request = new Request(['filter' => $relevant]);
 
         $query = QueryBuilder::for(Submission::class, $request)
-            ->with(['user:id,name,email', 'assignment:id,title,max_score', 'answers'])
+            ->with(['user:id,name,email', 'assignment:id,title,max_score'])
             ->allowedFilters([
                 AllowedFilter::callback('status', fn ($q, $v) => $q->where('state', $v)),
                 AllowedFilter::exact('user_id'),

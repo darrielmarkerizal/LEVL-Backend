@@ -31,8 +31,6 @@ class GradingQueueItemResource extends JsonResource
             'submitted_at' => $this->submitted_at,
             'state' => $this->state instanceof \BackedEnum ? $this->state->value : $this->state,
             'score' => $this->score,
-            'total_questions' => $this->relationLoaded('answers') ? $this->answers->count() : null,
-            'graded_questions' => $this->relationLoaded('answers') ? $this->answers->filter(fn ($a) => $a->score !== null)->count() : null,
         ];
     }
 
@@ -50,8 +48,8 @@ class GradingQueueItemResource extends JsonResource
             'grading_status' => $this->grading_status?->value,
             'score' => $this->score,
             'final_score' => $this->final_score,
-            'total_questions' => $this->relationLoaded('answers') ? $this->answers->count() : null,
-            'graded_questions' => $this->relationLoaded('answers') ? $this->answers->filter(fn ($a) => $a->score !== null)->count() : null,
+            'total_questions' => $this->relationLoaded('answers') ? $this->answers->count() : 0,
+            'graded_questions' => $this->relationLoaded('answers') ? $this->answers->filter(fn ($a) => $a->score !== null)->count() : 0,
             'questions_requiring_grading' => $this->getQuestionsRequiringGrading(),
         ];
     }
