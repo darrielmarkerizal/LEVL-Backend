@@ -39,12 +39,17 @@ class RouteServiceProvider extends ServiceProvider
                     abort(404);
                 }
 
+                $assignmentId = is_object($assignment) ? $assignment->id : (is_numeric($assignment) ? (int) $assignment : null);
+                if (! $assignmentId) {
+                    abort(404);
+                }
+
                 $userId = auth('api')->id();
                 if (! $userId) {
                     abort(401);
                 }
 
-                $submission = \Modules\Learning\Models\Submission::where('assignment_id', $assignment->id)
+                $submission = \Modules\Learning\Models\Submission::where('assignment_id', $assignmentId)
                     ->where('user_id', $userId)
                     ->orderByDesc('score')
                     ->orderByDesc('submitted_at')
