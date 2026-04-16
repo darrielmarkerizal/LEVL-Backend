@@ -168,13 +168,23 @@ class ComprehensiveAssessmentSeeder extends Seeder
     {
         $stats = ['assignments' => 0, 'submissions' => 0, 'grades' => 0];
 
+        // Randomly choose submission type with distribution: 60% file, 25% text, 15% mixed
+        $rand = rand(1, 100);
+        if ($rand <= 60) {
+            $submissionType = 'file';
+        } elseif ($rand <= 85) {
+            $submissionType = 'text';
+        } else {
+            $submissionType = 'mixed';
+        }
+
         $assignmentId = DB::table('assignments')->insertGetId([
             'unit_id' => $unitId,
             'order' => $order,
             'created_by' => $this->instructorIds[array_rand($this->instructorIds)],
             'title' => $this->pregenSentences[array_rand($this->pregenSentences)],
             'description' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
-            'submission_type' => 'file',
+            'submission_type' => $submissionType,
             'max_score' => 100,
             'passing_grade' => rand(60, 80),
             'status' => 'published',

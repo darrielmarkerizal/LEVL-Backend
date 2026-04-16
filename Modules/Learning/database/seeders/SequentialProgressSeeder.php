@@ -262,8 +262,16 @@ class SequentialProgressSeeder extends Seeder
         }
 
         $answerText = null;
-        if ($assignment->submission_type === \Modules\Learning\Enums\SubmissionType::Text) {
+        $submissionType = $assignment->submission_type;
+        
+        // Handle answer_text based on submission type
+        if ($submissionType === \Modules\Learning\Enums\SubmissionType::Text) {
             $answerText = $this->pregenAnswers[array_rand($this->pregenAnswers)];
+        } elseif ($submissionType === \Modules\Learning\Enums\SubmissionType::Mixed) {
+            // For mixed type, randomly decide to include text or not (70% chance)
+            if (rand(1, 100) <= 70) {
+                $answerText = $this->pregenAnswers[array_rand($this->pregenAnswers)];
+            }
         }
 
         $submittedAt = now()->subDays(rand(1, 14))->toDateTimeString();
@@ -280,7 +288,11 @@ class SequentialProgressSeeder extends Seeder
             'attempt_number' => 1,
         ]);
 
-        if ($assignment->submission_type === \Modules\Learning\Enums\SubmissionType::File) {
+        // Handle file attachment based on submission type
+        if ($submissionType === \Modules\Learning\Enums\SubmissionType::File) {
+            $this->attachFileToSubmission($submission);
+        } elseif ($submissionType === \Modules\Learning\Enums\SubmissionType::Mixed) {
+            // For mixed type, always attach file (since it's required or optional)
             $this->attachFileToSubmission($submission);
         }
 
@@ -417,26 +429,31 @@ class SequentialProgressSeeder extends Seeder
         UATMediaFixtures::ensureFilesExist();
         $dummyFilePath = UATMediaFixtures::paths()['pdf'];
         $fallback = public_path('dummy/pdf-sample_0.pdf');
+        
         if (! file_exists($dummyFilePath) && file_exists($fallback)) {
             $dummyFilePath = $fallback;
         }
 
         if (! file_exists($dummyFilePath)) {
-            echo "⚠️  Submission fixture PDF not found.\n";
-
+            echo "⚠️  Submission fixture PDF not found at: {$dummyFilePath}\n";
+            echo "⚠️  Skipping file attachment for submission {$submission->id}\n";
             return;
         }
 
         try {
-            // Files are now stored directly in submissions table or via media library
-            // Attach file directly to submission model
-            $submission->addMedia($dummyFilePath)
+            // Attach file directly to submission model using Spatie Media Library
+            $media = $submission->addMedia($dummyFilePath)
                 ->preservingOriginal()
                 ->usingName('submission-'.$submission->id)
                 ->usingFileName('submission-'.$submission->id.'.pdf')
                 ->toMediaCollection('submission_files', 'do');
+                
+            if ($media) {
+                echo "✓ File attached to submission {$submission->id}\n";
+            }
         } catch (\Exception $e) {
             echo "⚠️  Failed to attach file for submission {$submission->id}: ".$e->getMessage()."\n";
+            echo "⚠️  File path: {$dummyFilePath}\n";
         }
     }
 
