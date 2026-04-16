@@ -28,6 +28,8 @@ class ModerationService implements ModerationServiceInterface
     {
         $this->threadRepository->update($thread, ['is_pinned' => true]);
 
+        $this->clearThreadCache($thread);
+
         $this->logModerationAction('pin_thread', $moderator, $thread);
 
         event(new \Modules\Forums\Events\ThreadPinned($thread));
@@ -39,6 +41,8 @@ class ModerationService implements ModerationServiceInterface
     {
         $this->threadRepository->update($thread, ['is_pinned' => false]);
 
+        $this->clearThreadCache($thread);
+
         $this->logModerationAction('unpin_thread', $moderator, $thread);
 
         return $thread->fresh();
@@ -48,6 +52,8 @@ class ModerationService implements ModerationServiceInterface
     {
         $thread->is_closed = true;
         $thread->save();
+
+        $this->clearThreadCache($thread);
 
         event(new ThreadClosed($thread, $actor));
 
@@ -59,6 +65,8 @@ class ModerationService implements ModerationServiceInterface
         $thread->is_closed = false;
         $thread->save();
 
+        $this->clearThreadCache($thread);
+
         event(new ThreadOpened($thread, $actor));
 
         return $thread->fresh();
@@ -69,6 +77,8 @@ class ModerationService implements ModerationServiceInterface
         $thread->is_resolved = true;
         $thread->save();
 
+        $this->clearThreadCache($thread);
+
         event(new ThreadResolved($thread, $actor));
 
         return $thread->fresh();
@@ -78,6 +88,8 @@ class ModerationService implements ModerationServiceInterface
     {
         $thread->is_resolved = false;
         $thread->save();
+
+        $this->clearThreadCache($thread);
 
         event(new ThreadUnresolved($thread, $actor));
 
@@ -158,5 +170,17 @@ class ModerationService implements ModerationServiceInterface
         }
 
         Log::channel('daily')->info('Forum moderation action', $logData);
+    }
+
+    /**
+     * Clear all thread-related cache
+     */
+    protected function clearThreadCache(Thread $thread): void
+    {
+        cache()->tags(['forums', 'threads'])->flush();
+        
+        if ($thread->course_id) {
+            cache()->tags(['forums', 'threads', "course:{$thread->course_id}"])->flush();
+        }
     }
 }

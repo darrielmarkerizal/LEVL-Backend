@@ -41,6 +41,11 @@ class CourseService implements CourseServiceInterface
         return $this->finder->listForIndex($filters, $perPage);
     }
 
+    public function listAll(array $filters = [])
+    {
+        return $this->finder->listAll($filters);
+    }
+
     public function listPublic(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         return $this->finder->listPublic($perPage, $filters);
@@ -278,7 +283,7 @@ class CourseService implements CourseServiceInterface
     public function filterIncludesByEnrollment(?int $userId, Course $course, array $requestedIncludes): array
     {
         // Define include categories
-        $publicIncludes = ['category', 'tags', 'instructor', 'outcomes', 'units']; // units is public for preview
+        $publicIncludes = ['category', 'tags', 'instructors', 'learning_outcomes', 'outcomes', 'units']; // units is public for preview
         $enrollmentRequiredIncludes = ['elements', 'lessons', 'quizzes', 'assignments', 'progress', 'enrollments'];
 
         // Check if user can access enrollment-required content
@@ -308,14 +313,17 @@ class CourseService implements CourseServiceInterface
         foreach ($requestedIncludes as $include) {
             $include = trim($include);
             
-            // Always allow public includes (including units for preview)
-            if (in_array($include, $publicIncludes)) {
+            // Extract base relation (before first dot for nested includes)
+            $baseRelation = explode('.', $include)[0];
+            
+            // Always allow public includes and their nested relations
+            if (in_array($baseRelation, $publicIncludes)) {
                 $allowedIncludes[] = $include;
                 continue;
             }
             
             // Only allow enrollment-required includes if user has access
-            if (in_array($include, $enrollmentRequiredIncludes) && $canAccessEnrollmentContent) {
+            if (in_array($baseRelation, $enrollmentRequiredIncludes) && $canAccessEnrollmentContent) {
                 $allowedIncludes[] = $include;
             }
         }

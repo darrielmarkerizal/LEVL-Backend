@@ -28,6 +28,14 @@ class CourseController extends Controller
 
     public function index(Request $request)
     {
+        // Check if 'all' parameter is true
+        if ($request->query('all') === 'true' || $request->query('all') === true) {
+            $courses = $this->service->listAll($request->all());
+            $courses = $courses->map(fn ($course) => new \Modules\Schemes\Http\Resources\CourseIndexResource($course));
+            
+            return $this->success($courses, __('messages.courses.list_retrieved'));
+        }
+
         $paginator = $this->service->listForIndex(
             $request->all(),
             (int) $request->query('per_page', 15)

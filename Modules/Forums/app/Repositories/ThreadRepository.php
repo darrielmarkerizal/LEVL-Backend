@@ -23,7 +23,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
         return parent::query()->withIsMentioned();
     }
 
-    protected array $allowedFilters = ['author_id', 'pinned', 'resolved', 'closed', 'is_mentioned'];
+    protected array $allowedFilters = ['author_id', 'pinned', 'resolved', 'closed', 'is_mentioned', 'course_slug'];
 
     protected array $allowedSorts = ['id', 'created_at', 'last_activity_at', 'is_pinned', 'views_count', 'replies_count'];
 
@@ -229,6 +229,13 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                         AllowedFilter::scope('resolved'),
                         AllowedFilter::scope('closed'),
                         AllowedFilter::scope('is_mentioned'),
+                        AllowedFilter::callback('course_slug', function ($query, $value) {
+                            if ($value && $value !== 'all') {
+                                $query->whereHas('course', function ($q) use ($value) {
+                                    $q->where('slug', $value);
+                                });
+                            }
+                        }),
                     ],
                     ['last_activity_at', 'created_at', 'replies_count', 'views_count', 'is_pinned'],
                     ['-is_pinned', '-last_activity_at'],

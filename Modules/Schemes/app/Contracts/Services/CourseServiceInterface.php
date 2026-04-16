@@ -15,6 +15,8 @@ interface CourseServiceInterface
 
     public function listForIndex(array $filters = [], int $perPage = 15): LengthAwarePaginator;
 
+    public function listAll(array $filters = []);
+
     public function listPublicForIndex(int $perPage = 15, array $filters = []): LengthAwarePaginator;
 
     public function create(array $data, ?\Modules\Auth\Models\User $actor = null, array $files = []): Course;

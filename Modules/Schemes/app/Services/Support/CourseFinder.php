@@ -83,6 +83,17 @@ class CourseFinder
         return $this->paginateForIndex($filters, $perPage);
     }
 
+    public function listAll(array $filters = [])
+    {
+        if (data_get($filters, 'status') === 'published') {
+            return $this->buildQueryForIndex($filters)
+                ->where('status', 'published')
+                ->get();
+        }
+
+        return $this->buildQueryForIndex($filters)->get();
+    }
+
     public function listPublic(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, $perPage);
