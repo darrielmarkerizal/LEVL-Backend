@@ -434,7 +434,7 @@ class SequentialProgressSeeder extends Seeder
                 ->preservingOriginal()
                 ->usingName('submission-'.$submission->id)
                 ->usingFileName('submission-'.$submission->id.'.pdf')
-                ->toMediaCollection('files', 'do');
+                ->toMediaCollection('submission_files', 'do');
         } catch (\Exception $e) {
             echo "⚠️  Failed to attach file for submission {$submission->id}: ".$e->getMessage()."\n";
         }

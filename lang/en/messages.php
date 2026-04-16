@@ -576,6 +576,7 @@ return [
 
     // Submissions
     'submissions' => [
+        'list_retrieved' => 'Submission list retrieved successfully.',
         'submitted' => 'Submission submitted successfully.',
         'created' => 'Congratulations! Your assignment has been submitted successfully. Wait for the instructor to grade it.',
         'updated' => 'Submission updated successfully.',

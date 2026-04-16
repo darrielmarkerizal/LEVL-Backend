@@ -89,7 +89,7 @@ class SubmissionCreationProcessor
 
             SubmissionCreated::dispatch($submission);
 
-            return $submission->fresh(['assignment', 'user', 'enrollment', 'files', 'grade', 'media']);
+            return $submission->fresh(['assignment', 'user', 'enrollment', 'grade', 'media']);
         });
     }
 

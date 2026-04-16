@@ -22,7 +22,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
         'answers.question',
         'grade',
         'enrollment',
-        'files',
+        'media',
     ];
 
     protected const DETAILED_EAGER_LOAD = [
@@ -72,7 +72,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
                     ->with([
                         'user:id,name,email',
                         'enrollment:id,status',
-                        'files',
+                        'media',
                         'grade.grader:id,name,email',
                         'answers.question:id,type,content,weight',
                     ])

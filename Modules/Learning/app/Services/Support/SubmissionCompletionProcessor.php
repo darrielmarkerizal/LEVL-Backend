@@ -38,7 +38,7 @@ class SubmissionCompletionProcessor
                 'answer_text' => $data['answer_text'] ?? $submission->answer_text,
             ]);
 
-            return $updated->fresh(['assignment', 'user', 'enrollment', 'files']);
+            return $updated->fresh(['assignment', 'user', 'enrollment', 'media']);
         });
     }
 
@@ -64,7 +64,7 @@ class SubmissionCompletionProcessor
 
             $updated = $this->repository->update($submission, [
                 'status' => SubmissionStatus::Graded->value,
-            ])->fresh(['assignment', 'user', 'enrollment', 'files']);
+            ])->fresh(['assignment', 'user', 'enrollment', 'media']);
             $updated->setRelation('grade', $grade);
 
             return $updated;

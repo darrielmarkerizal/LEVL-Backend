@@ -580,6 +580,7 @@ return [
 
     // Submissions
     'submissions' => [
+        'list_retrieved' => 'Daftar pengumpulan berhasil diambil.',
         'submitted' => 'Pengumpulan berhasil dikirim.',
         'created' => 'Selamat! Tugas Anda berhasil dikumpulkan. Tunggu hasil penilaian dari instruktur.',
         'updated' => 'Pengumpulan berhasil diperbarui.',
