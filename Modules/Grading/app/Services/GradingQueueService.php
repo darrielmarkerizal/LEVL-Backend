@@ -26,7 +26,7 @@ class GradingQueueService
 
     private const ASSIGNMENT_ONLY_FILTERS = ['assignment_id'];
 
-    public function getGradingQueue(array $filters = []): LengthAwarePaginator
+    public function getGradingQueue(array $filters = [], ?int $actorId = null, bool $isInstructor = false): LengthAwarePaginator
     {
         $this->validateFilters((array) data_get($filters, 'filter', []));
 
@@ -38,8 +38,8 @@ class GradingQueueService
         $hasQuizOnlyFilter = ! empty(array_intersect(array_keys($filterData), self::QUIZ_ONLY_FILTERS));
         $hasAssignmentOnlyFilter = ! empty(array_intersect(array_keys($filterData), self::ASSIGNMENT_ONLY_FILTERS));
 
-        $assignmentSubmissions = $hasQuizOnlyFilter ? collect() : $this->buildAssignmentQuery($filterData)->get();
-        $quizSubmissions = $hasAssignmentOnlyFilter ? collect() : $this->buildQuizQuery($filterData)->get();
+        $assignmentSubmissions = $hasQuizOnlyFilter ? collect() : $this->buildAssignmentQuery($filterData, $actorId, $isInstructor)->get();
+        $quizSubmissions = $hasAssignmentOnlyFilter ? collect() : $this->buildQuizQuery($filterData, $actorId, $isInstructor)->get();
 
         $all = $assignmentSubmissions->concat($quizSubmissions)
             ->sortByDesc('submitted_at')
@@ -90,12 +90,12 @@ class GradingQueueService
         }
     }
 
-    private function buildAssignmentQuery(array $filterData): QueryBuilder
+    private function buildAssignmentQuery(array $filterData, ?int $actorId = null, bool $isInstructor = false): QueryBuilder
     {
         $relevant = array_intersect_key($filterData, array_flip(self::ASSIGNMENT_FILTERS));
         $request = new Request(['filter' => $relevant]);
 
-        return QueryBuilder::for(Submission::class, $request)
+        $query = QueryBuilder::for(Submission::class, $request)
             ->with(['user:id,name,email', 'assignment:id,title,max_score', 'answers'])
             ->allowedFilters([
                 AllowedFilter::callback('status', fn ($q, $v) => $q->where('state', $v)),
@@ -104,14 +104,20 @@ class GradingQueueService
                 AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
                 AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
             ]);
+
+        if ($isInstructor && $actorId) {
+            $query->whereHas('assignment.unit.course', fn ($q) => $q->where('instructor_id', $actorId));
+        }
+
+        return $query;
     }
 
-    private function buildQuizQuery(array $filterData): QueryBuilder
+    private function buildQuizQuery(array $filterData, ?int $actorId = null, bool $isInstructor = false): QueryBuilder
     {
         $relevant = array_intersect_key($filterData, array_flip(self::QUIZ_FILTERS));
         $request = new Request(['filter' => $relevant]);
 
-        return QueryBuilder::for(QuizSubmission::class, $request)
+        $query = QueryBuilder::for(QuizSubmission::class, $request)
             ->with(['user:id,name,email', 'quiz:id,title', 'answers.question'])
             ->allowedFilters([
                 AllowedFilter::exact('status'),
@@ -121,5 +127,11 @@ class GradingQueueService
                 AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
                 AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
             ]);
+
+        if ($isInstructor && $actorId) {
+            $query->whereHas('quiz.unit.course', fn ($q) => $q->where('instructor_id', $actorId));
+        }
+
+        return $query;
     }
 }

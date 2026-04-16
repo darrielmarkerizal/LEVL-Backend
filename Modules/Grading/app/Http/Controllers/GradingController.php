@@ -59,7 +59,12 @@ class GradingController extends Controller
 
     public function queue(GradingQueueRequest $request): JsonResponse
     {
-        $paginator = $this->queueService->getGradingQueue($request->all());
+        $actor = auth('api')->user();
+        $paginator = $this->queueService->getGradingQueue(
+            $request->all(),
+            $actor?->id,
+            (bool) $actor?->hasRole('Instructor')
+        );
         $paginator->getCollection()->transform(fn ($item) => new GradingQueueItemResource($item));
 
         return $this->paginateResponse($paginator, 'messages.grading.queue_fetched');
