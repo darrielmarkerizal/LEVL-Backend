@@ -32,8 +32,10 @@ class SubmissionFinder
     public function paginateByAssignment(int $assignmentId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $perPage = max(1, min($perPage, 100));
+        $assignment = Assignment::findOrFail($assignmentId);
+        $filters['per_page'] = $perPage;
 
-        return $this->listForAssignmentForIndex($assignment, $user, $filters);
+        return $this->repository->listForAssignment($assignment, null, $filters);
     }
 
     public function listForAssignmentForIndex(Assignment $assignment, User $user, array $filters = []): LengthAwarePaginator

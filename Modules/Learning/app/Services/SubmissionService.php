@@ -63,7 +63,7 @@ class SubmissionService implements SubmissionServiceInterface
 
     public function listForAssignmentForIndex(Assignment $assignment, User $user, array $filters = []): LengthAwarePaginator
     {
-        return $this->finder->listForIndex($assignment, $user, $filters);
+        return $this->finder->listForAssignmentForIndex($assignment, $user, $filters);
     }
 
     public function getSubmission(int $submissionId, array $filters = []): Submission
