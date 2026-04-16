@@ -153,7 +153,8 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
             $gradedSubmission = $this->autoGrade($submission);
 
-            // Dispatch QuizCompleted event if quiz is fully graded
+            event(new \Modules\Learning\Events\QuizSubmitted($gradedSubmission));
+
             if ($gradedSubmission->grading_status === QuizGradingStatus::Graded) {
                 event(new \Modules\Learning\Events\QuizCompleted($gradedSubmission));
             }

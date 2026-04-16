@@ -56,6 +56,16 @@ class XpSourceSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'code' => 'quiz_submitted',
+                'name' => 'Quiz Submitted',
+                'description' => 'Submit a quiz',
+                'xp_amount' => 50,
+                'cooldown_seconds' => 0,
+                'daily_limit' => null,
+                'daily_xp_cap' => null,
+                'is_active' => true,
+            ],
+            [
                 'code' => 'quiz_passed',
                 'name' => 'Quiz Passed',
                 'description' => 'Pass a quiz',

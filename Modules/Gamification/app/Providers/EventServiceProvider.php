@@ -22,6 +22,9 @@ class EventServiceProvider extends ServiceProvider
         \Modules\Learning\Events\SubmissionStateChanged::class => [
             \Modules\Gamification\Listeners\AwardXpForAssignmentSubmitted::class,
         ],
+        \Modules\Learning\Events\QuizSubmitted::class => [
+            \Modules\Gamification\Listeners\AwardXpForQuizSubmitted::class,
+        ],
         \Modules\Learning\Events\QuizCompleted::class => [
             \Modules\Gamification\Listeners\AwardXpForQuizPassed::class,
         ],

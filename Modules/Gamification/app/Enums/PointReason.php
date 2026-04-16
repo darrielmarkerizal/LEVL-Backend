@@ -6,6 +6,7 @@ enum PointReason: string
 {
     case LessonCompleted = 'lesson_completed';
     case AssignmentSubmitted = 'assignment_submitted';
+    case QuizSubmitted = 'quiz_submitted';
     case QuizCompleted = 'quiz_completed';
     case QuizPassed = 'quiz_passed';
     case PerfectScore = 'perfect_score';
@@ -40,6 +41,7 @@ enum PointReason: string
         return match ($this) {
             self::LessonCompleted => __('enums.point_reason.lesson_completed'),
             self::AssignmentSubmitted => __('enums.point_reason.assignment_submitted'),
+            self::QuizSubmitted => __('enums.point_reason.quiz_submitted'),
             self::QuizCompleted => __('enums.point_reason.quiz_completed'),
             self::QuizPassed => __('enums.point_reason.quiz_passed'),
             self::PerfectScore => __('enums.point_reason.perfect_score'),
