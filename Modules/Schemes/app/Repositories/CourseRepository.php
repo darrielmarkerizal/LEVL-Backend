@@ -46,7 +46,9 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
             throw new RuntimeException('Course update did not affect exactly one row.');
         }
 
-        return $model->refresh();
+        $model->forceFill($attributes);
+
+        return $model;
     }
 
     public function findBySlug(string $slug): ?Course
