@@ -10,6 +10,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\Auth\Models\User;
 use Modules\Schemes\Contracts\Repositories\CourseRepositoryInterface;
 use Modules\Schemes\DTOs\CreateCourseDTO;
@@ -147,24 +148,36 @@ class CourseLifecycleProcessor
                 // Allow slug to be updated
                 $attributes = Arr::except($attributes, ['tags', 'tags_list', 'instructor_ids', 'outcomes']);
 
-                Course::withoutEvents(fn () => $this->repository->update($course, $attributes));
+                $this->runUpdateStep('course.update', function () use ($course, $attributes) {
+                    Course::withoutEvents(fn () => $this->repository->update($course, $attributes));
+                }, $course->id);
 
                 if ($hasTagsInput && is_array($tags)) {
-                    $this->tagService->syncCourseTags($course, $tags);
+                    $this->runUpdateStep('course.sync_tags', function () use ($course, $tags) {
+                        $this->tagService->syncCourseTags($course, $tags);
+                    }, $course->id);
                 }
 
                 // Sync instructors if provided
                 if (is_array($instructorIds)) {
-                    $course->instructors()->sync($instructorIds);
+                    $this->runUpdateStep('course.sync_instructors', function () use ($course, $instructorIds) {
+                        $course->instructors()->sync($instructorIds);
+                    }, $course->id);
                 }
 
                 // Sync outcomes if provided
                 if (is_array($outcomes)) {
-                    $this->syncOutcomes($course, $outcomes);
+                    $this->runUpdateStep('course.sync_outcomes', function () use ($course, $outcomes) {
+                        $this->syncOutcomes($course, $outcomes);
+                    }, $course->id);
                 }
 
-                $this->handleMedia($course, $files);
-                $this->cacheService->invalidateCourse($course->id, $course->slug);
+                $this->runUpdateStep('course.handle_media', function () use ($course, $files) {
+                    $this->handleMedia($course, $files);
+                }, $course->id);
+                $this->runUpdateStep('course.invalidate_cache', function () use ($course) {
+                    $this->cacheService->invalidateCourse($course->id, $course->slug);
+                }, $course->id);
 
                 $updatedCourse = $course->fresh(['tags', 'instructors', 'outcomes']);
 
@@ -460,6 +473,23 @@ class CourseLifecycleProcessor
             $connection->reconnect();
         } catch (\Throwable) {
             // Ignore reconnection errors
+        }
+    }
+
+    private function runUpdateStep(string $step, callable $callback, int $courseId): void
+    {
+        try {
+            $callback();
+        } catch (\Throwable $exception) {
+            Log::error('Course update step failed', [
+                'step' => $step,
+                'course_id' => $courseId,
+                'message' => $exception->getMessage(),
+                'transaction_level' => DB::connection()->transactionLevel(),
+                'exception' => get_class($exception),
+            ]);
+
+            throw $exception;
         }
     }
 
