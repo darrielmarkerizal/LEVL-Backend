@@ -27,6 +27,8 @@ class CourseLifecycleProcessor
 
     public function create(CreateCourseDTO|array $data, ?User $actor = null, array $files = []): Course
     {
+        $loggingGuard = new Course();
+        $loggingGuard->disableLogging();
         activity()->disableLogging();
 
         try {
@@ -102,11 +104,13 @@ class CourseLifecycleProcessor
             throw $e;
         } finally {
             activity()->enableLogging();
+            $loggingGuard->enableLogging();
         }
     }
 
     public function update(Course $course, UpdateCourseDTO|array $data, array $files = []): Course
     {
+        $course->disableLogging();
         activity()->disableLogging();
 
         try {
@@ -176,6 +180,7 @@ class CourseLifecycleProcessor
             throw $e;
         } finally {
             activity()->enableLogging();
+            $course->enableLogging();
         }
     }
 
