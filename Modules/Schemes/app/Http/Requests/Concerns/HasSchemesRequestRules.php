@@ -26,7 +26,7 @@ trait HasSchemesRequestRules
         }
 
         return [
-            'code' => ['required', 'string', 'max:50', $uniqueCode],
+            'code' => [Rule::requiredIf(fn () => $courseId === 0), 'string', 'max:50', $uniqueCode],
             'slug' => ['nullable', 'string', 'max:100', $uniqueSlug],
             'title' => ['required', 'string', 'max:255'],
             'short_desc' => ['nullable', 'string'],
