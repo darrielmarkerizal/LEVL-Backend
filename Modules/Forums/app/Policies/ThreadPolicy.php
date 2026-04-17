@@ -34,10 +34,6 @@ class ThreadPolicy
 
     public function update(User $user, Thread $thread): bool
     {
-        if ($user->hasRole(['Admin', 'Superadmin'])) {
-            return true;
-        }
-
         return $user->id === $thread->author_id;
     }
 
@@ -58,12 +54,12 @@ class ThreadPolicy
 
     public function close(User $user, Thread $thread): bool
     {
-        return $this->isModerator($user, $thread->course_id);
+        return $user->id === $thread->author_id;
     }
 
     public function open(User $user, Thread $thread): bool
     {
-        return $this->isModerator($user, $thread->course_id);
+        return $user->id === $thread->author_id;
     }
 
     public function resolve(User $user, Thread $thread): bool

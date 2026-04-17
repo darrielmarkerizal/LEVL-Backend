@@ -109,11 +109,20 @@ class SystemSetting extends Model
     {
         static::saved(function (SystemSetting $setting) {
             \Illuminate\Support\Facades\Cache::forget('system_setting:'.$setting->key);
+            static::forgetDerivedCaches($setting->key);
         });
 
         static::deleted(function (SystemSetting $setting) {
             \Illuminate\Support\Facades\Cache::forget('system_setting:'.$setting->key);
+            static::forgetDerivedCaches($setting->key);
         });
+    }
+
+    protected static function forgetDerivedCaches(string $key): void
+    {
+        if (str_starts_with($key, 'auth.')) {
+            \Illuminate\Support\Facades\Cache::forget('auth:throttle:config');
+        }
     }
 
     /**

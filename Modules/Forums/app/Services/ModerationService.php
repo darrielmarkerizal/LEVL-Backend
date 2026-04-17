@@ -100,6 +100,8 @@ class ModerationService implements ModerationServiceInterface
     {
         $this->threadRepository->update($thread, ['is_closed' => false]);
 
+        $this->clearThreadCache($thread);
+
         $this->logModerationAction('open_thread', $moderator, $thread);
 
         return $thread->fresh();
@@ -115,6 +117,9 @@ class ModerationService implements ModerationServiceInterface
 
             $this->logModerationAction('mark_accepted_answer', $user, $reply);
 
+            cache()->tags(['forums', 'threads'])->flush();
+            cache()->tags(['forums', 'replies', "thread:{$thread->id}"])->flush();
+
             return $reply->fresh();
         });
     }
@@ -129,6 +134,9 @@ class ModerationService implements ModerationServiceInterface
 
             $this->logModerationAction('unmark_accepted_answer', $user, $reply);
 
+            cache()->tags(['forums', 'threads'])->flush();
+            cache()->tags(['forums', 'replies', "thread:{$thread->id}"])->flush();
+
             return $reply->fresh();
         });
     }
@@ -136,6 +144,7 @@ class ModerationService implements ModerationServiceInterface
     public function moderateDelete($content, User $moderator, string $reason): bool
     {
         $result = false;
+        $type = null;
 
         if ($content instanceof Thread) {
             $result = $this->threadRepository->delete($content, $moderator->id);
@@ -149,6 +158,14 @@ class ModerationService implements ModerationServiceInterface
             $this->logModerationAction("moderate_delete_{$type}", $moderator, $content, [
                 'reason' => $reason,
             ]);
+
+            if ($content instanceof Thread) {
+                cache()->tags(['forums', 'threads'])->flush();
+                cache()->tags(['forums', 'replies', "thread:{$content->id}"])->flush();
+            } elseif ($content instanceof Reply) {
+                cache()->tags(['forums', 'threads'])->flush();
+                cache()->tags(['forums', 'replies', "thread:{$content->thread_id}"])->flush();
+            }
         }
 
         return $result;
@@ -178,7 +195,7 @@ class ModerationService implements ModerationServiceInterface
     protected function clearThreadCache(Thread $thread): void
     {
         cache()->tags(['forums', 'threads'])->flush();
-        
+
         if ($thread->course_id) {
             cache()->tags(['forums', 'threads', "course:{$thread->course_id}"])->flush();
         }

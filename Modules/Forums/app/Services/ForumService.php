@@ -195,8 +195,10 @@ class ForumService implements \App\Contracts\Services\ForumServiceInterface, Mod
             $this->processMentions($updatedReply, $data['content']);
         }
 
-        return $updatedReply;
+        cache()->tags(['forums', 'threads'])->flush();
         cache()->tags(['forums', 'replies', "thread:{$reply->thread_id}"])->flush();
+
+        return $updatedReply;
     }
 
     public function deleteReply(Reply $reply, User $user): bool

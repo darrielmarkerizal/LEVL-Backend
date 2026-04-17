@@ -39,6 +39,8 @@ class ThreadService
 
             $this->processMentions($thread, $data['content']);
 
+            cache()->tags(['forums', 'threads'])->flush();
+
             return $thread->fresh();
         });
     }
@@ -64,6 +66,9 @@ class ThreadService
                 $this->processMentions($updatedThread, $data['content']);
             }
 
+            cache()->tags(['forums', 'threads'])->flush();
+            cache()->tags(['forums', 'replies', "thread:{$thread->id}"])->flush();
+
             return $updatedThread->fresh();
         }
 
@@ -72,7 +77,14 @@ class ThreadService
 
     public function delete(Thread $thread, User $actor): bool
     {
-        return $this->repository->delete($thread, $actor->id);
+        $deleted = $this->repository->delete($thread, $actor->id);
+
+        if ($deleted) {
+            cache()->tags(['forums', 'threads'])->flush();
+            cache()->tags(['forums', 'replies', "thread:{$thread->id}"])->flush();
+        }
+
+        return $deleted;
     }
 
     private function processMentions(Thread $thread, string $content): void

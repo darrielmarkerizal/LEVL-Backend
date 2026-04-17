@@ -35,22 +35,17 @@ class ReplyPolicy
 
     public function update(User $user, Reply $reply): bool
     {
-        if ($user->hasRole(['Admin', 'Superadmin'])) {
-            return true;
-        }
-
         return $user->id === $reply->author_id;
     }
 
     public function delete(User $user, Reply $reply): bool
     {
-
         return $user->id === $reply->author_id || $this->isModerator($user, $reply->thread->course_id);
     }
 
     public function markAsAccepted(User $user, Reply $reply): bool
     {
-        return $this->isInstructor($user, $reply->thread->course_id);
+        return $user->id === $reply->thread->author_id;
     }
 
     protected function isModerator(User $user, int $courseId): bool

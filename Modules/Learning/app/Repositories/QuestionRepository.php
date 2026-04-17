@@ -126,20 +126,23 @@ class QuestionRepository extends BaseRepository implements QuestionRepositoryInt
     {
         $cacheKey = $this->getRandomQuestionsCacheKey($assignmentId, $count, $seed);
 
-        return Cache::remember($cacheKey, self::CACHE_TTL_QUESTION, function () use ($assignmentId, $count, $seed) {
+        return Cache::tags(['learning', 'questions', "assignment:{$assignmentId}:random"])->remember(
+            $cacheKey,
+            self::CACHE_TTL_QUESTION,
+            function () use ($assignmentId, $count, $seed) {
+                srand($seed);
 
-            srand($seed);
+                $questions = Question::where('assignment_id', $assignmentId)
+                    ->with(self::DEFAULT_EAGER_LOAD)
+                    ->get();
 
-            $questions = Question::where('assignment_id', $assignmentId)
-                ->with(self::DEFAULT_EAGER_LOAD)
-                ->get();
+                if ($questions->count() <= $count) {
+                    return $questions->shuffle($seed);
+                }
 
-            if ($questions->count() <= $count) {
-                return $questions->shuffle($seed);
+                return $questions->shuffle($seed)->take($count);
             }
-
-            return $questions->shuffle($seed)->take($count);
-        });
+        );
     }
 
     public function searchByAssignment(int $assignmentId, string $query): Collection
@@ -229,11 +232,10 @@ class QuestionRepository extends BaseRepository implements QuestionRepositoryInt
 
     public function invalidateAssignmentQuestionsCache(int $assignmentId): void
     {
-
         Cache::forget($this->getAssignmentQuestionsCacheKey($assignmentId));
-
         Cache::forget($this->getAssignmentQuestionsCacheKey($assignmentId, 'manual'));
         Cache::forget($this->getAssignmentQuestionsCacheKey($assignmentId, 'auto'));
 
+        Cache::tags(["assignment:{$assignmentId}:random"])->flush();
     }
 }

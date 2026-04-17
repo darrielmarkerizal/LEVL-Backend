@@ -92,7 +92,11 @@ class MasterDataService
     {
         $data['type'] = $type;
 
-        return $this->repository->create($data);
+        $item = $this->repository->create($data);
+
+        Cache::tags([self::CACHE_TAG])->flush();
+
+        return $item;
     }
 
     public function update(string $type, int $id, array $data): MasterDataItem
@@ -103,7 +107,11 @@ class MasterDataService
             throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Master data item not found.');
         }
 
-        return $this->repository->update($item, $data);
+        $updated = $this->repository->update($item, $data);
+
+        Cache::tags([self::CACHE_TAG])->flush();
+
+        return $updated;
     }
 
     public function getStudents(?string $search = null): Collection
@@ -150,7 +158,13 @@ class MasterDataService
             throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Master data item not found.');
         }
 
-        return $this->repository->delete($item);
+        $deleted = $this->repository->delete($item);
+
+        if ($deleted) {
+            Cache::tags([self::CACHE_TAG])->flush();
+        }
+
+        return $deleted;
     }
 
     private function buildStaticTypesList(): Collection
