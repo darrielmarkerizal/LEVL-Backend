@@ -136,8 +136,10 @@ class TagService
 
         $course->tags()->sync($tagIds);
 
-        cache()->tags(['schemes', 'tags'])->flush();
-        cache()->tags(['schemes', 'courses'])->flush();
+        \Illuminate\Support\Facades\DB::afterCommit(function (): void {
+            cache()->tags(['schemes', 'tags'])->flush();
+            cache()->tags(['schemes', 'courses'])->flush();
+        });
     }
 
     private function preparePayload(array $data, ?int $ignoreId = null, ?string $currentSlug = null, ?string $currentName = null): array
@@ -185,38 +187,53 @@ class TagService
 
     private function resolveTagIds(array $tags): array
     {
-        return BaseCollection::make($tags)
-            ->map(function ($tag) {
-                if (is_numeric($tag)) {
-                    return Tag::query()->where('id', (int) $tag)->value('id');
-                }
+        $numericIds = [];
+        $textValues = [];
 
-                $value = trim((string) $tag);
-                if ($value === '') {
-                    return null;
-                }
+        foreach ($tags as $tag) {
+            if (is_numeric($tag)) {
+                $numericIds[] = (int) $tag;
 
-                $bySlug = Tag::query()
-                    ->where('slug', Str::slug($value))
-                    ->orWhere('slug', $value)
-                    ->first();
+                continue;
+            }
 
-                if ($bySlug) {
-                    return $bySlug->id;
-                }
+            $value = trim((string) $tag);
+            if ($value === '') {
+                continue;
+            }
 
-                $byName = Tag::query()->whereRaw('LOWER(name) = ?', [mb_strtolower($value)])->first();
-                if ($byName) {
-                    return $byName->id;
-                }
+            $textValues[mb_strtolower($value)] = $value;
+        }
 
-                $payload = $this->preparePayload(['name' => $value]);
+        $resolved = [];
 
-                return $this->repository->create($payload)->id;
-            })
-            ->filter()
-            ->unique()
-            ->values()
-            ->toArray();
+        if (! empty($numericIds)) {
+            $resolved = Tag::query()
+                ->whereIn('id', array_unique($numericIds))
+                ->pluck('id')
+                ->all();
+        }
+
+        foreach ($textValues as $lower => $value) {
+            $slug = Str::slug($value);
+
+            $existing = Tag::query()
+                ->where(function ($q) use ($slug, $lower) {
+                    $q->whereRaw('LOWER(slug) = ?', [$slug])
+                        ->orWhereRaw('LOWER(slug) = ?', [$lower])
+                        ->orWhereRaw('LOWER(name) = ?', [$lower]);
+                })
+                ->value('id');
+
+            if ($existing !== null) {
+                $resolved[] = $existing;
+
+                continue;
+            }
+
+            $resolved[] = $this->repository->create($this->preparePayload(['name' => $value]))->getKey();
+        }
+
+        return array_values(array_unique(array_filter($resolved)));
     }
 }
