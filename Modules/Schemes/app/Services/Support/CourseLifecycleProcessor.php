@@ -321,8 +321,18 @@ class CourseLifecycleProcessor
                 } elseif (strpos($constraint, 'title') !== false) {
                     $errors['title'] = [__('messages.courses.title_exists')];
                 } else {
-                    $errors['general'] = [__('messages.courses.duplicate_constraint', ['constraint' => $constraint])];
+                    // Return more detailed error with constraint name
+                    $errors['general'] = [
+                        __('messages.courses.duplicate_constraint', ['constraint' => $constraint]),
+                        'Detail: '.$message,
+                    ];
                 }
+            } else {
+                // No constraint name found, return full error message
+                $errors['general'] = [
+                    __('messages.courses.duplicate_data'),
+                    'Detail: '.$message,
+                ];
             }
         }
 
