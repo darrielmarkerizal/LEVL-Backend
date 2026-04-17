@@ -7,6 +7,7 @@ namespace Modules\Schemes\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Modules\Common\Http\Requests\Concerns\HasApiValidation;
 use Modules\Schemes\Http\Requests\Concerns\HasSchemesRequestRules;
+use Modules\Schemes\Models\Course;
 
 class CourseRequest extends FormRequest
 {
@@ -20,7 +21,7 @@ class CourseRequest extends FormRequest
     public function rules(): array
     {
         $course = $this->route('course');
-        $courseId = $course ? (is_object($course) ? $course->id : (int) $course) : 0;
+        $courseId = $this->resolveCourseId($course);
 
         return $this->rulesCourse($courseId);
     }
@@ -82,5 +83,27 @@ class CourseRequest extends FormRequest
         }
 
         return $data;
+    }
+
+    private function resolveCourseId(mixed $course): int
+    {
+        if (is_object($course) && isset($course->id)) {
+            return (int) $course->id;
+        }
+
+        if (is_scalar($course)) {
+            $courseValue = (string) $course;
+            if (is_numeric($courseValue)) {
+                return (int) $courseValue;
+            }
+
+            $resolvedId = Course::query()
+                ->where('slug', $courseValue)
+                ->value('id');
+
+            return (int) ($resolvedId ?? 0);
+        }
+
+        return 0;
     }
 }

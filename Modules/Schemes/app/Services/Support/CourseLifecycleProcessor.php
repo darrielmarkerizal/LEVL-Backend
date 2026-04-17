@@ -274,69 +274,85 @@ class CourseLifecycleProcessor
     private function parseCourseDuplicates(QueryException $e): array
     {
         $message = $e->getMessage();
-        $errors = [];
-
-        // Check for specific unique constraint violations
-        if (preg_match('/courses?_code_unique/i', $message)) {
-            $errors['code'] = [__('messages.courses.code_exists')];
+        $fields = [];
+        $constraint = $this->extractConstraintName($message);
+        $constraintField = $this->detectDuplicateField($constraint);
+        if ($constraintField !== null) {
+            $fields[] = $constraintField;
         }
 
-        if (preg_match('/courses?_slug_unique/i', $message)) {
-            $errors['slug'] = [__('messages.courses.slug_exists')];
-        }
-
-        if (preg_match('/courses?_title_unique/i', $message)) {
-            $errors['title'] = [__('messages.courses.title_exists')];
-        }
-
-        // Try to extract column name from PostgreSQL error message
-        if (empty($errors) && preg_match('/Key \(([^)]+)\)=\(([^)]+)\) already exists/i', $message, $matches)) {
-            $column = trim($matches[1]);
-            $value = trim($matches[2]);
-
-            // Map database column names to user-friendly field names
-            $fieldMap = [
-                'code' => 'Kode Skema',
-                'slug' => 'URL Slug',
-                'title' => 'Judul Skema',
-            ];
-
-            $fieldName = $fieldMap[$column] ?? ucfirst(str_replace('_', ' ', $column));
-            $errors[$column] = [__('messages.courses.duplicate_field_value', [
-                'field' => $fieldName,
-                'value' => $value,
-            ])];
-        }
-
-        // If still no specific error found, check for duplicate key constraint
-        if (empty($errors) && preg_match('/duplicate key value violates unique constraint/i', $message)) {
-            // Try to extract constraint name
-            if (preg_match('/constraint "([^"]+)"/i', $message, $matches)) {
-                $constraint = $matches[1];
-
-                if (strpos($constraint, 'code') !== false) {
-                    $errors['code'] = [__('messages.courses.code_exists')];
-                } elseif (strpos($constraint, 'slug') !== false) {
-                    $errors['slug'] = [__('messages.courses.slug_exists')];
-                } elseif (strpos($constraint, 'title') !== false) {
-                    $errors['title'] = [__('messages.courses.title_exists')];
-                } else {
-                    // Return more detailed error with constraint name
-                    $errors['general'] = [
-                        __('messages.courses.duplicate_constraint', ['constraint' => $constraint]),
-                        'Detail: '.$message,
-                    ];
-                }
-            } else {
-                // No constraint name found, return full error message
-                $errors['general'] = [
-                    __('messages.courses.duplicate_data'),
-                    'Detail: '.$message,
-                ];
+        foreach ($this->extractDetailColumns($message) as $column) {
+            $columnField = $this->detectDuplicateField($column);
+            if ($columnField !== null) {
+                $fields[] = $columnField;
             }
         }
 
-        return $errors ?: ['general' => [__('messages.courses.duplicate_data')]];
+        $fields = array_values(array_unique($fields));
+        if (empty($fields)) {
+            return ['general' => [__('messages.courses.duplicate_data')]];
+        }
+
+        $errors = [];
+        foreach ($fields as $field) {
+            $errors[$field] = [$this->duplicateMessageForField($field)];
+        }
+
+        return $errors;
+    }
+
+    private function extractConstraintName(string $message): ?string
+    {
+        if (preg_match('/constraint "([^"]+)"/i', $message, $matches)) {
+            return strtolower(trim($matches[1]));
+        }
+
+        return null;
+    }
+
+    private function extractDetailColumns(string $message): array
+    {
+        if (! preg_match('/Key \(([^)]+)\)=\(([^)]*)\)/i', $message, $matches)) {
+            return [];
+        }
+
+        return array_map(
+            fn (string $column): string => strtolower(trim($column)),
+            explode(',', $matches[1]),
+        );
+    }
+
+    private function detectDuplicateField(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $normalized = strtolower($value);
+
+        if (str_contains($normalized, 'slug')) {
+            return 'slug';
+        }
+
+        if (str_contains($normalized, 'code')) {
+            return 'code';
+        }
+
+        if (str_contains($normalized, 'title')) {
+            return 'title';
+        }
+
+        return null;
+    }
+
+    private function duplicateMessageForField(string $field): string
+    {
+        return match ($field) {
+            'code' => __('messages.courses.code_exists'),
+            'slug' => __('messages.courses.slug_exists'),
+            'title' => __('messages.courses.title_exists'),
+            default => __('messages.courses.duplicate_data'),
+        };
     }
 
     private function generateCourseCode(): string

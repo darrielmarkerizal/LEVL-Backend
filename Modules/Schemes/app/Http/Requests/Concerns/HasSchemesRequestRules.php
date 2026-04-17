@@ -21,8 +21,8 @@ trait HasSchemesRequestRules
         $uniqueCode = Rule::unique('courses', 'code')->whereNull('deleted_at');
         $uniqueSlug = Rule::unique('courses', 'slug')->whereNull('deleted_at');
         if ($courseId > 0) {
-            $uniqueCode = $uniqueCode->ignore($courseId);
-            $uniqueSlug = $uniqueSlug->ignore($courseId);
+            $uniqueCode = $uniqueCode->ignore($courseId, 'id');
+            $uniqueSlug = $uniqueSlug->ignore($courseId, 'id');
         }
 
         return [
@@ -74,6 +74,7 @@ trait HasSchemesRequestRules
         return [
             'code.required' => __('validation.required', ['attribute' => __('validation.attributes.code')]),
             'code.unique' => __('validation.unique', ['attribute' => __('validation.attributes.code')]),
+            'slug.unique' => __('validation.unique', ['attribute' => __('validation.attributes.slug')]),
             'title.required' => __('validation.required', ['attribute' => __('validation.attributes.title')]),
             'level_tag.required' => __('validation.required', ['attribute' => __('validation.attributes.level')]),
             'type.required' => __('validation.required', ['attribute' => __('validation.attributes.type')]),
