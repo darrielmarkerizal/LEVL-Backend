@@ -7,6 +7,7 @@ namespace Modules\Schemes\Services\Support;
 use App\Exceptions\DuplicateResourceException;
 use App\Support\CodeGenerator;
 use Illuminate\Database\QueryException;
+use RuntimeException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -103,6 +104,17 @@ class CourseLifecycleProcessor
         } catch (QueryException $e) {
             if ($this->isUniqueConstraintViolation($e)) {
                 throw new DuplicateResourceException($this->parseCourseDuplicates($e));
+            }
+
+            if ($this->isFailedTransactionState($e)) {
+                throw new RuntimeException(
+                    sprintf(
+                        'Course update failed because the transaction is already aborted (SQLSTATE 25P02). Root cause: %s',
+                        $e->getPrevious()?->getMessage() ?? $e->getMessage()
+                    ),
+                    0,
+                    $e
+                );
             }
 
             throw $e;
@@ -489,8 +501,19 @@ class CourseLifecycleProcessor
                 'exception' => get_class($exception),
             ]);
 
-            throw $exception;
+            throw new RuntimeException(
+                sprintf('Course update failed at step [%s]: %s', $step, $exception->getMessage()),
+                0,
+                $exception
+            );
         }
+    }
+
+    private function isFailedTransactionState(QueryException $e): bool
+    {
+        $sqlState = is_array($e->errorInfo) ? ($e->errorInfo[0] ?? null) : null;
+
+        return $sqlState === '25P02';
     }
 
     private function generateCourseCode(): string
