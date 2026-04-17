@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Modules\Common\Models\AuditLog;
+use Spatie\Activitylog\Models\Activity;
 
 class CreateAuditJob implements ShouldQueue
 {
@@ -42,7 +42,34 @@ class CreateAuditJob implements ShouldQueue
      */
     public function handle(): void
     {
-        AuditLog::create($this->normalizeAuditData($this->auditData));
+        $payload = $this->normalizeAuditData($this->auditData);
+
+        $activity = activity((string) $payload['log_name'])
+            ->withProperties($payload['properties'])
+            ->event((string) $payload['description'])
+            ->log((string) $payload['description']);
+
+        if (! empty($payload['causer_type']) && ! empty($payload['causer_id'])) {
+            $causerClass = $payload['causer_type'];
+            if (class_exists($causerClass)) {
+                $causer = $causerClass::query()->find($payload['causer_id']);
+                if ($causer) {
+                    $activity->causer()->associate($causer);
+                }
+            }
+        }
+
+        if (! empty($payload['subject_type']) && ! empty($payload['subject_id'])) {
+            $subjectClass = $payload['subject_type'];
+            if (class_exists($subjectClass)) {
+                $subject = $subjectClass::query()->find($payload['subject_id']);
+                if ($subject) {
+                    $activity->subject()->associate($subject);
+                }
+            }
+        }
+
+        $activity->save();
     }
 
     /**
@@ -56,6 +83,17 @@ class CreateAuditJob implements ShouldQueue
         ]);
     }
 
+    /**
+     * @return array{
+     *     log_name: string,
+     *     description: string,
+     *     subject_type: class-string<\Illuminate\Database\Eloquent\Model>|null,
+     *     subject_id: int|string|null,
+     *     causer_type: class-string<\Illuminate\Database\Eloquent\Model>|null,
+     *     causer_id: int|string|null,
+     *     properties: array<string, mixed>
+     * }
+     */
     private function normalizeAuditData(array $data): array
     {
         $context = $data['context'] ?? [];
