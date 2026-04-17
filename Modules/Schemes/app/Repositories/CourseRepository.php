@@ -8,6 +8,8 @@ use App\Repositories\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use RuntimeException;
 use Illuminate\Support\Str;
 use Modules\Schemes\Contracts\Repositories\CourseRepositoryInterface;
 use Modules\Schemes\Models\Course;
@@ -32,6 +34,19 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
     protected function model(): string
     {
         return Course::class;
+    }
+
+    public function update(Model $model, array $attributes): Model
+    {
+        $updated = $this->model()::query()
+            ->whereKey($model->getKey())
+            ->update($attributes);
+
+        if ($updated !== 1) {
+            throw new RuntimeException('Course update did not affect exactly one row.');
+        }
+
+        return $model->refresh();
     }
 
     public function findBySlug(string $slug): ?Course
