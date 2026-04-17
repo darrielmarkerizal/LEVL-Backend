@@ -484,7 +484,12 @@ class CourseLifecycleProcessor
         try {
             $connection->reconnect();
         } catch (\Throwable) {
-            // Ignore reconnection errors
+        }
+
+        try {
+            DB::purge($connection->getName());
+            DB::reconnect($connection->getName());
+        } catch (\Throwable) {
         }
     }
 
@@ -493,16 +498,19 @@ class CourseLifecycleProcessor
         try {
             $callback();
         } catch (\Throwable $exception) {
+            $rootCause = $this->resolveRootCauseMessage($exception);
+
             Log::error('Course update step failed', [
                 'step' => $step,
                 'course_id' => $courseId,
                 'message' => $exception->getMessage(),
+                'root_cause' => $rootCause,
                 'transaction_level' => DB::connection()->transactionLevel(),
                 'exception' => get_class($exception),
             ]);
 
             throw new RuntimeException(
-                sprintf('Course update failed at step [%s]: %s', $step, $exception->getMessage()),
+                sprintf('Course update failed at step [%s]. Root cause: %s', $step, $rootCause),
                 0,
                 $exception
             );
@@ -514,6 +522,30 @@ class CourseLifecycleProcessor
         $sqlState = is_array($e->errorInfo) ? ($e->errorInfo[0] ?? null) : null;
 
         return $sqlState === '25P02';
+    }
+
+    private function resolveRootCauseMessage(\Throwable $exception): string
+    {
+        $current = $exception;
+        $fallback = $exception->getMessage();
+
+        while ($current !== null) {
+            if ($current instanceof QueryException && ! $this->isFailedTransactionState($current)) {
+                return $current->getMessage();
+            }
+
+            if (trim($current->getMessage()) !== '') {
+                $fallback = $current->getMessage();
+            }
+
+            $current = $current->getPrevious();
+        }
+
+        if ($exception instanceof QueryException && $this->isFailedTransactionState($exception)) {
+            return 'Transaction already aborted (25P02) and no earlier query exception is available in the chain; likely failed state leaked from reused worker connection.';
+        }
+
+        return $fallback;
     }
 
     private function generateCourseCode(): string
