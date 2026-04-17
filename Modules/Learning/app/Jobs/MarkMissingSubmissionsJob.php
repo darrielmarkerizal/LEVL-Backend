@@ -47,8 +47,6 @@ class MarkMissingSubmissionsJob implements ShouldQueue
     private function markMissingAssignmentSubmissions(\Carbon\Carbon $now): int
     {
         $overdueAssignments = Assignment::where('status', 'published')
-            ->whereNotNull('deadline_at')
-            ->where('deadline_at', '<', $now)
             ->with('unit.course')
             ->get();
 
@@ -107,8 +105,6 @@ class MarkMissingSubmissionsJob implements ShouldQueue
     private function markMissingQuizSubmissions(\Carbon\Carbon $now): int
     {
         $overdueQuizzes = Quiz::where('status', 'published')
-            ->whereNotNull('deadline_at')
-            ->where('deadline_at', '<', $now)
             ->with('unit.course')
             ->get();
 
