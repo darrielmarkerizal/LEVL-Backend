@@ -163,7 +163,36 @@ class TagService
 
         $payload = $this->preparePayload(['name' => $name]);
 
-        return $this->repository->create($payload);
+        try {
+            return $this->repository->create($payload);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // If we hit a unique constraint violation, try to find the tag again
+            // This handles race conditions where another process created the tag
+            if ($this->isUniqueConstraintViolation($e)) {
+                $existing = Tag::query()
+                    ->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])
+                    ->first();
+
+                if ($existing) {
+                    return $existing;
+                }
+            }
+
+            throw $e;
+        }
+    }
+
+    private function isUniqueConstraintViolation(\Illuminate\Database\QueryException $e): bool
+    {
+        $sqlState = is_array($e->errorInfo) ? ($e->errorInfo[0] ?? null) : null;
+        $message = strtolower($e->getMessage());
+
+        return $sqlState === '23505'
+            || $sqlState === '23000'
+            || str_contains($message, 'duplicate key')
+            || str_contains($message, 'unique constraint')
+            || str_contains($message, 'already exists')
+            || str_contains($message, 'duplicate entry');
     }
 
     private function ensureUniqueSlug(string $slug, ?int $ignoreId = null): string
@@ -208,30 +237,49 @@ class TagService
         $resolved = [];
 
         if (! empty($numericIds)) {
-            $resolved = Tag::query()
-                ->whereIn('id', array_unique($numericIds))
-                ->pluck('id')
-                ->all();
+            try {
+                $resolved = Tag::query()
+                    ->whereIn('id', array_unique($numericIds))
+                    ->pluck('id')
+                    ->all();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to resolve numeric tag IDs', [
+                    'ids' => $numericIds,
+                    'error' => $e->getMessage(),
+                ]);
+                throw $e;
+            }
         }
 
         foreach ($textValues as $lower => $value) {
             $slug = Str::slug($value);
 
-            $existing = Tag::query()
-                ->where(function ($q) use ($slug, $lower) {
-                    $q->whereRaw('LOWER(slug) = ?', [$slug])
-                        ->orWhereRaw('LOWER(slug) = ?', [$lower])
-                        ->orWhereRaw('LOWER(name) = ?', [$lower]);
-                })
-                ->value('id');
+            try {
+                $existing = Tag::query()
+                    ->where(function ($q) use ($slug, $lower) {
+                        $q->whereRaw('LOWER(slug) = ?', [$slug])
+                            ->orWhereRaw('LOWER(slug) = ?', [$lower])
+                            ->orWhereRaw('LOWER(name) = ?', [$lower]);
+                    })
+                    ->value('id');
 
-            if ($existing !== null) {
-                $resolved[] = $existing;
+                if ($existing !== null) {
+                    $resolved[] = $existing;
 
-                continue;
+                    continue;
+                }
+
+                // Use firstOrCreateByName which handles race conditions
+                $tag = $this->firstOrCreateByName($value);
+                $resolved[] = $tag->getKey();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to resolve or create tag', [
+                    'value' => $value,
+                    'slug' => $slug,
+                    'error' => $e->getMessage(),
+                ]);
+                throw $e;
             }
-
-            $resolved[] = $this->repository->create($this->preparePayload(['name' => $value]))->getKey();
         }
 
         return array_values(array_unique(array_filter($resolved)));

@@ -435,6 +435,7 @@ class CourseLifecycleProcessor
     {
         $connection = DB::connection();
 
+        // First, try to rollback any active transactions
         while ($connection->transactionLevel() > 0) {
             try {
                 $connection->rollBack();
@@ -443,9 +444,22 @@ class CourseLifecycleProcessor
             }
         }
 
+        // For PostgreSQL, explicitly rollback any failed transaction
         try {
-            $connection->unprepared('ROLLBACK');
+            if ($connection->getDriverName() === 'pgsql') {
+                $connection->getPdo()->exec('ROLLBACK');
+            } else {
+                $connection->unprepared('ROLLBACK');
+            }
         } catch (\Throwable) {
+            // Ignore errors if there's no transaction to rollback
+        }
+
+        // Ensure we're in a clean state
+        try {
+            $connection->reconnect();
+        } catch (\Throwable) {
+            // Ignore reconnection errors
         }
     }
 
