@@ -29,6 +29,8 @@ class CourseLifecycleProcessor
     {
         $loggingGuard = new Course();
         $loggingGuard->disableLogging();
+        $eventDispatcher = Course::getEventDispatcher();
+        Course::unsetEventDispatcher();
         activity()->disableLogging();
 
         try {
@@ -104,6 +106,7 @@ class CourseLifecycleProcessor
             throw $e;
         } finally {
             activity()->enableLogging();
+            Course::setEventDispatcher($eventDispatcher);
             $loggingGuard->enableLogging();
         }
     }
@@ -111,6 +114,8 @@ class CourseLifecycleProcessor
     public function update(Course $course, UpdateCourseDTO|array $data, array $files = []): Course
     {
         $course->disableLogging();
+        $eventDispatcher = Course::getEventDispatcher();
+        Course::unsetEventDispatcher();
         activity()->disableLogging();
 
         try {
@@ -180,6 +185,7 @@ class CourseLifecycleProcessor
             throw $e;
         } finally {
             activity()->enableLogging();
+            Course::setEventDispatcher($eventDispatcher);
             $course->enableLogging();
         }
     }
