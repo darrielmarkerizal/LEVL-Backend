@@ -100,7 +100,11 @@ class CourseLifecycleProcessor
             });
         } catch (QueryException $e) {
             activity()->enableLogging(); // Ensure re-enabled on error
-            throw new DuplicateResourceException($this->parseCourseDuplicates($e));
+            if ($this->isUniqueConstraintViolation($e)) {
+                throw new DuplicateResourceException($this->parseCourseDuplicates($e));
+            }
+
+            throw $e;
         }
     }
 
@@ -173,7 +177,11 @@ class CourseLifecycleProcessor
             });
         } catch (QueryException $e) {
             activity()->enableLogging(); // Ensure re-enabled on error
-            throw new DuplicateResourceException($this->parseCourseDuplicates($e));
+            if ($this->isUniqueConstraintViolation($e)) {
+                throw new DuplicateResourceException($this->parseCourseDuplicates($e));
+            }
+
+            throw $e;
         }
     }
 
@@ -401,6 +409,19 @@ class CourseLifecycleProcessor
         }
 
         return strtolower(implode(' | ', array_unique($parts)));
+    }
+
+    private function isUniqueConstraintViolation(QueryException $e): bool
+    {
+        $source = $this->buildDuplicateSourceMessage($e);
+        $sqlState = is_array($e->errorInfo) ? ($e->errorInfo[0] ?? null) : null;
+
+        return $sqlState === '23505'
+            || $sqlState === '23000'
+            || str_contains($source, 'duplicate key')
+            || str_contains($source, 'unique constraint')
+            || str_contains($source, 'already exists')
+            || str_contains($source, 'duplicate entry');
     }
 
     private function generateCourseCode(): string

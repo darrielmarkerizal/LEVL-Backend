@@ -42,7 +42,7 @@ class CreateAuditJob implements ShouldQueue
      */
     public function handle(): void
     {
-        AuditLog::create($this->auditData);
+        AuditLog::create($this->normalizeAuditData($this->auditData));
     }
 
     /**
@@ -54,5 +54,17 @@ class CreateAuditJob implements ShouldQueue
             'data' => $this->auditData,
             'error' => $exception->getMessage(),
         ]);
+    }
+
+    private function normalizeAuditData(array $data): array
+    {
+        if (array_key_exists('context', $data) && is_array($data['context'])) {
+            $data['context'] = json_encode(
+                $data['context'],
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+            ) ?: '{}';
+        }
+
+        return $data;
     }
 }
