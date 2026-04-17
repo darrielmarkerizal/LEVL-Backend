@@ -27,10 +27,10 @@ class CourseLifecycleProcessor
 
     public function create(CreateCourseDTO|array $data, ?User $actor = null, array $files = []): Course
     {
-        try {
-            // Disable automatic activity logging to prevent duplicate logs
-            activity()->disableLogging();
+        Course::disableLogging();
+        activity()->disableLogging();
 
+        try {
             return DB::transaction(function () use ($data, $actor, $files) {
                 $attributes = $data instanceof CreateCourseDTO ? $data->toArrayWithoutNull() : $data;
 
@@ -85,9 +85,6 @@ class CourseLifecycleProcessor
 
                 $course = $course->fresh(['tags', 'instructors', 'outcomes']);
 
-                // Re-enable logging and create single activity log
-                activity()->enableLogging();
-
                 if ($actor) {
                     activity('schemes')
                         ->causedBy($actor)
@@ -99,21 +96,23 @@ class CourseLifecycleProcessor
                 return $course;
             });
         } catch (QueryException $e) {
-            activity()->enableLogging(); // Ensure re-enabled on error
             if ($this->isUniqueConstraintViolation($e)) {
                 throw new DuplicateResourceException($this->parseCourseDuplicates($e));
             }
 
             throw $e;
+        } finally {
+            activity()->enableLogging();
+            Course::enableLogging();
         }
     }
 
     public function update(Course $course, UpdateCourseDTO|array $data, array $files = []): Course
     {
-        try {
-            // Disable automatic activity logging to prevent duplicate logs
-            activity()->disableLogging();
+        Course::disableLogging();
+        activity()->disableLogging();
 
+        try {
             return DB::transaction(function () use ($course, $data, $files) {
                 $attributes = $data instanceof UpdateCourseDTO ? $data->toArrayWithoutNull() : $data;
 
@@ -161,9 +160,6 @@ class CourseLifecycleProcessor
 
                 $updatedCourse = $course->fresh(['tags', 'instructors', 'outcomes']);
 
-                // Re-enable logging and create single activity log
-                activity()->enableLogging();
-
                 $actor = auth()->user();
                 if ($actor) {
                     activity('schemes')
@@ -176,12 +172,14 @@ class CourseLifecycleProcessor
                 return $updatedCourse;
             });
         } catch (QueryException $e) {
-            activity()->enableLogging(); // Ensure re-enabled on error
             if ($this->isUniqueConstraintViolation($e)) {
                 throw new DuplicateResourceException($this->parseCourseDuplicates($e));
             }
 
             throw $e;
+        } finally {
+            activity()->enableLogging();
+            Course::enableLogging();
         }
     }
 
