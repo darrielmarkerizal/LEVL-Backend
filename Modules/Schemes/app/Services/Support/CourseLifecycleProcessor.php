@@ -63,7 +63,7 @@ class CourseLifecycleProcessor
 
                 $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'instructor_ids', 'outcomes']);
 
-                $course = $this->repository->create($attributes);
+                $course = Course::withoutEvents(fn () => $this->repository->create($attributes));
 
                 if ($hasTagsInput && is_array($tags)) {
                     $this->tagService->syncCourseTags($course, $tags);
@@ -136,7 +136,7 @@ class CourseLifecycleProcessor
                 // Allow slug to be updated
                 $attributes = Arr::except($attributes, ['tags', 'tags_list', 'instructor_ids', 'outcomes']);
 
-                $this->repository->update($course, $attributes);
+                Course::withoutEvents(fn () => $this->repository->update($course, $attributes));
 
                 if ($hasTagsInput && is_array($tags)) {
                     $this->tagService->syncCourseTags($course, $tags);
