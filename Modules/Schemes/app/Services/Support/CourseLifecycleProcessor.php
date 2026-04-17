@@ -32,6 +32,7 @@ class CourseLifecycleProcessor
         $eventDispatcher = Course::getEventDispatcher();
         Course::unsetEventDispatcher();
         activity()->disableLogging();
+        $this->resetFailedTransactionState();
 
         try {
             return DB::transaction(function () use ($data, $actor, $files) {
@@ -117,6 +118,7 @@ class CourseLifecycleProcessor
         $eventDispatcher = Course::getEventDispatcher();
         Course::unsetEventDispatcher();
         activity()->disableLogging();
+        $this->resetFailedTransactionState();
 
         try {
             return DB::transaction(function () use ($course, $data, $files) {
@@ -427,6 +429,24 @@ class CourseLifecycleProcessor
             || str_contains($source, 'unique constraint')
             || str_contains($source, 'already exists')
             || str_contains($source, 'duplicate entry');
+    }
+
+    private function resetFailedTransactionState(): void
+    {
+        $connection = DB::connection();
+
+        while ($connection->transactionLevel() > 0) {
+            try {
+                $connection->rollBack();
+            } catch (\Throwable) {
+                break;
+            }
+        }
+
+        try {
+            $connection->unprepared('ROLLBACK');
+        } catch (\Throwable) {
+        }
     }
 
     private function generateCourseCode(): string
