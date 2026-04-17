@@ -465,23 +465,48 @@ class CourseLifecycleProcessor
     }
 
     private function resetFailedTransactionState(): void
-{
-    $connection = DB::connection();
+    {
+        $connectionName = DB::getDefaultConnection();
+        $connection = DB::connection($connectionName);
 
-    while ($connection->transactionLevel() > 0) {
+        while ($connection->transactionLevel() > 0) {
+            try {
+                $connection->rollBack();
+            } catch (\Throwable) {
+                break;
+            }
+        }
+
         try {
-            $connection->rollBack();
+            $pdo = $connection->getRawPdo();
+            if ($pdo instanceof \PDO && $pdo->inTransaction()) {
+                try {
+                    $pdo->rollBack();
+                } catch (\Throwable) {
+                    // fall through to purge
+                }
+            }
         } catch (\Throwable) {
-            break;
+            // ignore
+        }
+
+        // Fully dispose the Connection so the next query gets a brand-new PDO.
+        // Under Octane a prior request can leave the PG session in aborted
+        // state (SQLSTATE 25P02); reconnect() alone does not always clear it
+        // because Laravel's transaction counter resets while the underlying
+        // session stays aborted.
+        try {
+            DB::purge($connectionName);
+        } catch (\Throwable) {
+            // ignore
+        }
+
+        try {
+            DB::reconnect($connectionName);
+        } catch (\Throwable) {
+            // ignore
         }
     }
-
-    try {
-        $connection->reconnect();
-    } catch (\Throwable) {
-        // Fallback: kalau reconnect gagal, biarkan Octane handle di request berikutnya
-    }
-}
 
     private function runUpdateStep(string $step, callable $callback, int $courseId): void
     {
