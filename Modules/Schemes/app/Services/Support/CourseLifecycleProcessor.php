@@ -163,11 +163,13 @@ class CourseLifecycleProcessor
                 $this->runUpdateStep('course.update', function () use ($course, $attributes) {
                     Course::withoutEvents(fn () => $this->repository->update($course, $attributes));
                 }, $course->id);
+                $this->assertHealthyTransaction('course.update', $course->id);
 
                 if ($hasTagsInput && is_array($tags)) {
                     $this->runUpdateStep('course.sync_tags', function () use ($course, $tags) {
                         $this->tagService->syncCourseTags($course, $tags);
                     }, $course->id);
+                    $this->assertHealthyTransaction('course.sync_tags', $course->id);
                 }
 
                 // Sync instructors if provided
@@ -175,6 +177,7 @@ class CourseLifecycleProcessor
                     $this->runUpdateStep('course.sync_instructors', function () use ($course, $instructorIds) {
                         $course->instructors()->sync($instructorIds);
                     }, $course->id);
+                    $this->assertHealthyTransaction('course.sync_instructors', $course->id);
                 }
 
                 // Sync outcomes if provided
@@ -182,14 +185,17 @@ class CourseLifecycleProcessor
                     $this->runUpdateStep('course.sync_outcomes', function () use ($course, $outcomes) {
                         $this->syncOutcomes($course, $outcomes);
                     }, $course->id);
+                    $this->assertHealthyTransaction('course.sync_outcomes', $course->id);
                 }
 
                 $this->runUpdateStep('course.handle_media', function () use ($course, $files) {
                     $this->handleMedia($course, $files);
                 }, $course->id);
+                $this->assertHealthyTransaction('course.handle_media', $course->id);
                 $this->runUpdateStep('course.invalidate_cache', function () use ($course) {
                     $this->cacheService->invalidateCourse($course->id, $course->slug);
                 }, $course->id);
+                $this->assertHealthyTransaction('course.invalidate_cache', $course->id);
 
                 $updatedCourse = $course->fresh(['tags', 'instructors', 'outcomes']);
 
@@ -534,6 +540,30 @@ class CourseLifecycleProcessor
         }
 
         return $fallback;
+    }
+
+    private function assertHealthyTransaction(string $step, int $courseId): void
+    {
+        try {
+            DB::select('select 1');
+        } catch (QueryException $e) {
+            if ($this->isFailedTransactionState($e)) {
+                Log::error('Course update transaction became aborted after step', [
+                    'step' => $step,
+                    'course_id' => $courseId,
+                    'message' => $e->getMessage(),
+                    'transaction_level' => DB::connection()->transactionLevel(),
+                ]);
+
+                throw new RuntimeException(
+                    sprintf('Course update transaction aborted after step [%s]. Root cause likely happened inside this step and was swallowed before bubbling up.', $step),
+                    0,
+                    $e
+                );
+            }
+
+            throw $e;
+        }
     }
 
     private function generateCourseCode(): string
