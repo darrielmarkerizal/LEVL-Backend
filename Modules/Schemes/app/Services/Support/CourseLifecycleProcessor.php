@@ -273,7 +273,7 @@ class CourseLifecycleProcessor
 
     private function parseCourseDuplicates(QueryException $e): array
     {
-        $message = $e->getMessage();
+        $message = $this->buildDuplicateSourceMessage($e);
         $fields = [];
         $constraint = $this->extractConstraintName($message);
         $constraintField = $this->detectDuplicateField($constraint);
@@ -307,18 +307,40 @@ class CourseLifecycleProcessor
             return strtolower(trim($matches[1]));
         }
 
+        if (preg_match("/for key '([^']+)'/i", $message, $matches)) {
+            return strtolower(trim($matches[1]));
+        }
+
+        if (preg_match('/for key `([^`]+)`/i', $message, $matches)) {
+            return strtolower(trim($matches[1]));
+        }
+
+        if (preg_match('/for key ([^\\s,]+)/i', $message, $matches)) {
+            return strtolower(trim($matches[1], " \t\n\r\0\x0B'`"));
+        }
+
         return null;
     }
 
     private function extractDetailColumns(string $message): array
     {
-        if (! preg_match('/Key \(([^)]+)\)=\(([^)]*)\)/i', $message, $matches)) {
-            return [];
+        $columns = [];
+
+        if (preg_match('/Key \(([^)]+)\)=\(([^)]*)\)/i', $message, $matches)) {
+            $columns = array_merge($columns, explode(',', $matches[1]));
+        }
+
+        if (preg_match('/for key [\'`]?([^\'`\\s,]+)[\'`]?/i', $message, $matches)) {
+            $columns[] = $matches[1];
+        }
+
+        if (preg_match('/Duplicate entry .* for key [\'`]?([^\'`\\s,]+)[\'`]?/i', $message, $matches)) {
+            $columns[] = $matches[1];
         }
 
         return array_map(
             fn (string $column): string => strtolower(trim($column)),
-            explode(',', $matches[1]),
+            array_values(array_filter($columns, fn (string $column): bool => trim($column) !== '')),
         );
     }
 
@@ -342,6 +364,14 @@ class CourseLifecycleProcessor
             return 'title';
         }
 
+        if (str_contains($normalized, 'course_tag') || str_contains($normalized, 'tag')) {
+            return 'tags';
+        }
+
+        if (str_contains($normalized, 'course_admin') || str_contains($normalized, 'instructor')) {
+            return 'instructor_ids';
+        }
+
         return null;
     }
 
@@ -351,8 +381,26 @@ class CourseLifecycleProcessor
             'code' => __('messages.courses.code_exists'),
             'slug' => __('messages.courses.slug_exists'),
             'title' => __('messages.courses.title_exists'),
+            'tags' => __('messages.courses.duplicate_data_field', ['field' => __('validation.attributes.tags')]),
+            'instructor_ids' => __('messages.courses.duplicate_data_field', ['field' => __('validation.attributes.instructors')]),
             default => __('messages.courses.duplicate_data'),
         };
+    }
+
+    private function buildDuplicateSourceMessage(QueryException $e): string
+    {
+        $parts = [(string) $e->getMessage()];
+        $errorInfo = $e->errorInfo;
+
+        if (is_array($errorInfo)) {
+            foreach ($errorInfo as $value) {
+                if (is_string($value) && $value !== '') {
+                    $parts[] = $value;
+                }
+            }
+        }
+
+        return strtolower(implode(' | ', array_unique($parts)));
     }
 
     private function generateCourseCode(): string
