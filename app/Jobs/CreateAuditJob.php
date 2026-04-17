@@ -58,13 +58,22 @@ class CreateAuditJob implements ShouldQueue
 
     private function normalizeAuditData(array $data): array
     {
-        if (array_key_exists('context', $data) && is_array($data['context'])) {
-            $data['context'] = json_encode(
-                $data['context'],
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-            ) ?: '{}';
+        $context = $data['context'] ?? [];
+        if (is_string($context)) {
+            $decoded = json_decode($context, true);
+            $context = is_array($decoded) ? $decoded : ['raw_context' => $context];
+        } elseif (! is_array($context)) {
+            $context = ['context' => $context];
         }
 
-        return $data;
+        return [
+            'log_name' => (string) ($data['log_name'] ?? 'api_audit'),
+            'description' => (string) ($data['description'] ?? $data['action'] ?? 'activity'),
+            'subject_type' => $data['subject_type'] ?? null,
+            'subject_id' => $data['subject_id'] ?? $data['target_id'] ?? null,
+            'causer_type' => $data['causer_type'] ?? $data['actor_type'] ?? null,
+            'causer_id' => $data['causer_id'] ?? $data['actor_id'] ?? $data['user_id'] ?? null,
+            'properties' => $context,
+        ];
     }
 }
