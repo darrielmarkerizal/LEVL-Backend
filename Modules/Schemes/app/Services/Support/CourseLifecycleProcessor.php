@@ -457,41 +457,23 @@ class CourseLifecycleProcessor
     }
 
     private function resetFailedTransactionState(): void
-    {
-        $connection = DB::connection();
+{
+    $connection = DB::connection();
 
-        // First, try to rollback any active transactions
-        while ($connection->transactionLevel() > 0) {
-            try {
-                $connection->rollBack();
-            } catch (\Throwable) {
-                break;
-            }
-        }
-
-        // For PostgreSQL, explicitly rollback any failed transaction
+    while ($connection->transactionLevel() > 0) {
         try {
-            if ($connection->getDriverName() === 'pgsql') {
-                $connection->getPdo()->exec('ROLLBACK');
-            } else {
-                $connection->unprepared('ROLLBACK');
-            }
+            $connection->rollBack();
         } catch (\Throwable) {
-            // Ignore errors if there's no transaction to rollback
-        }
-
-        // Ensure we're in a clean state
-        try {
-            $connection->reconnect();
-        } catch (\Throwable) {
-        }
-
-        try {
-            DB::purge($connection->getName());
-            DB::reconnect($connection->getName());
-        } catch (\Throwable) {
+            break;
         }
     }
+
+    try {
+        $connection->reconnect();
+    } catch (\Throwable) {
+        // Fallback: kalau reconnect gagal, biarkan Octane handle di request berikutnya
+    }
+}
 
     private function runUpdateStep(string $step, callable $callback, int $courseId): void
     {
