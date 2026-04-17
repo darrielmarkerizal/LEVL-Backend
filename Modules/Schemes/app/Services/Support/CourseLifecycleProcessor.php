@@ -135,6 +135,8 @@ class CourseLifecycleProcessor
 
         try {
             return DB::transaction(function () use ($course, $data, $files) {
+                $this->assertHealthyTransaction('transaction.start', $course->id);
+
                 $attributes = $data instanceof UpdateCourseDTO ? $data->toArrayWithoutNull() : $data;
 
                 $hasTagsInput = array_key_exists('tags', $attributes)
