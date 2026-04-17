@@ -42,6 +42,7 @@ return [
         ],
 
         RequestReceived::class => [
+            DisconnectFromDatabases::class,
             ...Octane::prepareApplicationForNextOperation(),
             ...Octane::prepareApplicationForNextRequest(),
         ],

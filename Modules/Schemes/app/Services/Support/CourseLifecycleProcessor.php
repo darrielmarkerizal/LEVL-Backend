@@ -496,7 +496,13 @@ class CourseLifecycleProcessor
     private function runUpdateStep(string $step, callable $callback, int $courseId): void
     {
         try {
-            $callback();
+            // Bungkus setiap step dalam savepoint (nested transaction).
+            // Jika step gagal, hanya savepoint ini yang di-rollback,
+            // bukan seluruh outer transaction — kritis untuk PostgreSQL
+            // yang menandai seluruh transaksi sebagai aborted saat ada query error.
+            DB::connection()->transaction(function () use ($callback) {
+                $callback();
+            });
         } catch (\Throwable $exception) {
             $rootCause = $this->resolveRootCauseMessage($exception);
 
