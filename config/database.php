@@ -76,8 +76,8 @@ return [
             'search_path' => 'public',
             'sslmode' => 'disable',
             'options' => [
-                PDO::ATTR_PERSISTENT => false,
-                PDO::ATTR_EMULATE_PREPARES => false, // false untuk runtime (boolean support)
+                PDO::ATTR_PERSISTENT => filter_var(env('DB_PERSISTENT', false), FILTER_VALIDATE_BOOL),
+                PDO::ATTR_EMULATE_PREPARES => filter_var(env('DB_EMULATE_PREPARES', true), FILTER_VALIDATE_BOOL),
                 PDO::ATTR_STRINGIFY_FETCHES => false,
             ],
         ],
