@@ -76,7 +76,6 @@ class AssignmentSeederEnhanced extends Seeder
 
             for ($i = 0; $i < $numAssignments; $i++) {
                 $daysFromNow = rand(-30, 60);
-                $deadline = Carbon::now()->addDays($daysFromNow);
                 $availableFrom = $daysFromNow > 0
                     ? Carbon::now()->subDays(rand(1, 7))
                     : Carbon::now()->subDays(rand(7, 90));
@@ -93,7 +92,6 @@ class AssignmentSeederEnhanced extends Seeder
                     'submission_type' => fake()->randomElement(['text', 'file', 'mixed']),
                     'max_score' => $this->getRandomMaxScore(),
                     'available_from' => $availableFrom,
-                    'deadline_at' => $deadline,
                     'review_mode' => fake()->randomElement(['immediate', 'deferred', 'hidden']),
                     'randomization_type' => fake()->randomElement(['static', 'random_order', 'bank']),
                     'status' => 'published',

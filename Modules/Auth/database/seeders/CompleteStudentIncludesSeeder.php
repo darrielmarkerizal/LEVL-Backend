@@ -253,7 +253,6 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'submission_type' => 'text',
                 'max_score' => 100,
                 'available_from' => now()->subDays(3),
-                'deadline_at' => now()->addDays(7),
                 'status' => 'published',
             ]),
         );
@@ -286,7 +285,6 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'submission_type' => 'text',
                 'max_score' => 50,
                 'available_from' => now()->subDays(1),
-                'deadline_at' => now()->addDays(3),
                 'status' => 'published',
             ]),
         );

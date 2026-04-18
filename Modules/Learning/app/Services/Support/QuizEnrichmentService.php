@@ -233,7 +233,6 @@ class QuizEnrichmentService
                 'unit_slug' => $item->unit->slug ?? null,
                 'questions_count' => $item->questions_count ?? null,
                 'available_from' => $item->available_from?->toISOString(),
-                'deadline_at' => $item->deadline_at?->toISOString(),
                 'scope_type' => $item->getScopeTypeAttribute(),
                 'created_at' => $item->created_at?->toISOString(),
             ];

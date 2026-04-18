@@ -17,7 +17,6 @@ return new class extends Migration
             $table->enum('submission_type', ['text', 'file', 'mixed'])->default('text');
             $table->integer('max_score')->default(100);
             $table->timestamp('available_from')->nullable();
-            $table->timestamp('deadline_at')->nullable();
             $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
             $table->timestamps();
 

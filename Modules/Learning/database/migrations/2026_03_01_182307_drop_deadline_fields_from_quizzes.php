@@ -10,7 +10,6 @@ return new class extends Migration
     {
         Schema::table('quizzes', function (Blueprint $table) {
             $table->dropColumn([
-                'deadline_at',
                 'available_from',
                 'tolerance_minutes',
                 'late_penalty_percent',
@@ -22,7 +21,6 @@ return new class extends Migration
     {
         Schema::table('quizzes', function (Blueprint $table) {
             $table->timestamp('available_from')->nullable();
-            $table->timestamp('deadline_at')->nullable();
             $table->integer('tolerance_minutes')->default(0);
             $table->integer('late_penalty_percent')->default(0);
         });

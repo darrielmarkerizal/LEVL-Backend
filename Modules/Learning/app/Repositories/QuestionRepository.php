@@ -28,7 +28,7 @@ class QuestionRepository extends BaseRepository implements QuestionRepositoryInt
     ];
 
     protected const DETAILED_EAGER_LOAD = [
-        'assignment:id,title,deadline_at',
+        'assignment:id,title',
         'answers.submission:id,user_id,submitted_at',
         'answers.submission.user:id,name,email',
     ];

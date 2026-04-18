@@ -237,7 +237,7 @@ return [
             ],
             'assignments_index' => [
                 'filterableAttributes' => ['lesson_id', 'assignable_type', 'assignable_id', 'created_by', 'type', 'submission_type', 'status'],
-                'sortableAttributes' => ['title', 'max_score', 'available_from', 'deadline_at', 'created_at'],
+                'sortableAttributes' => ['title', 'max_score', 'available_from', 'created_at'],
                 'searchableAttributes' => ['title', 'description'],
                 'typoTolerance' => $defaultTypoTolerance,
             ],

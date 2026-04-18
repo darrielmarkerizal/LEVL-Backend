@@ -279,7 +279,6 @@ $overrides = [
         'allow_resubmit' => 'Izinkan Pengiriman Ulang',
         'late_penalty_percent' => 'Persentase Penalti Terlambat',
         'attachments' => 'Lampiran',
-        'deadline_at' => 'Batas Waktu',
         'available_from' => 'Tersedia Dari',
         'status' => 'Status',
         'code' => 'Kode',

@@ -50,7 +50,6 @@ return new class extends Migration
             $table->integer('late_penalty_percent')->nullable();
             $table->integer('tolerance_minutes')->default(0);
             $table->timestamp('available_from')->nullable();
-            $table->timestamp('deadline_at')->nullable();
         });
 
         Schema::table('quizzes', function (Blueprint $table) {
@@ -58,7 +57,6 @@ return new class extends Migration
             $table->integer('late_penalty_percent')->default(0);
             $table->integer('tolerance_minutes')->default(0);
             $table->timestamp('available_from')->nullable();
-            $table->timestamp('deadline_at')->nullable();
         });
 
         Schema::table('submissions', function (Blueprint $table) {

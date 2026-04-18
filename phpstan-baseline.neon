@@ -2533,7 +2533,7 @@ parameters:
 			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
 
 		-
-			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$deadline_at\.$#'
+			message: '#^Access to an undefined property Modules\\Learning\\Http\\Resources\\AssignmentResource\:\:\$due_removed\.$#'
 			identifier: property.notFound
 			count: 1
 			path: Modules/Learning/app/Http/Resources/AssignmentResource.php
@@ -2701,7 +2701,7 @@ parameters:
 			path: Modules/Learning/app/Models/Assignment.php
 
 		-
-			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$deadline_at\.$#'
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$due_removed\.$#'
 			identifier: property.notFound
 			count: 1
 			path: Modules/Learning/app/Models/Assignment.php
@@ -2815,7 +2815,7 @@ parameters:
 			path: Modules/Learning/app/Services/AssignmentService.php
 
 		-
-			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$deadline_at\.$#'
+			message: '#^Access to an undefined property Modules\\Learning\\Models\\Assignment\:\:\$due_removed\.$#'
 			identifier: property.notFound
 			count: 1
 			path: Modules/Learning/app/Services/AssignmentService.php

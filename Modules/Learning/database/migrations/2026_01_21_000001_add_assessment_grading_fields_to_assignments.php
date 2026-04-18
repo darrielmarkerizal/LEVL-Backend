@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('assignable_type')->nullable()->after('id');
             $table->unsignedBigInteger('assignable_id')->nullable()->after('assignable_type');
 
-            $table->integer('tolerance_minutes')->default(0)->after('deadline_at');
+            $table->integer('tolerance_minutes')->default(0)->after('available_from');
 
             $table->integer('max_attempts')->nullable()->after('tolerance_minutes');
             $table->integer('cooldown_minutes')->default(0)->after('max_attempts');

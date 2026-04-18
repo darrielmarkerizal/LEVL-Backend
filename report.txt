@@ -133,7 +133,7 @@ Total file: 1027 | Total masalah:       57
     Context: $this->userIds = DB::table('users')->limit(50)->pluck('id')->toArray();
 
 [Magic Number di Logic                        ] Modules/Learning/database/factories/AssignmentFactory.php baris 36
-    Context: 'deadline_at' => now()->addDays(7),
+    Context: 'due_removed' => now()->addDays(7),
 
 [Magic Number di Logic                        ] Modules/Learning/database/factories/AssignmentFactory.php baris 143
     Context: 'available_from' => now()->addDays(1),

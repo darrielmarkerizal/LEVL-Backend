@@ -117,9 +117,6 @@
                 @if($assignment->available_from)
                 <p><strong>Tersedia dari:</strong> {{ $assignment->available_from->format('d F Y, H:i') }}</p>
                 @endif
-                @if($assignment->deadline_at)
-                <p class="deadline"><strong>Deadline:</strong> {{ $assignment->deadline_at->format('d F Y, H:i') }}</p>
-                @endif
                 <p><strong>Maksimal Score:</strong> {{ $assignment->max_score }}</p>
             </div>
 

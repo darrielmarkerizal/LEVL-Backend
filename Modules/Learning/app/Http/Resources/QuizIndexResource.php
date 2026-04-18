@@ -24,7 +24,6 @@ class QuizIndexResource extends JsonResource
                 fn () => $this->questions->count()
             ),
             'available_from' => $this->available_from?->toISOString(),
-            'deadline_at' => $this->deadline_at?->toISOString(),
             'scope_type' => $this->scope_type,
             'created_at' => $this->created_at?->toISOString(),
         ];

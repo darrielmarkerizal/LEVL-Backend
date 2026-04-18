@@ -13,9 +13,6 @@
         @if($assignment->available_from)
         <p style="font-size: 14px; color: #666666; margin: 8px 0;"><strong>{{ __('mail.assignment_published.available_from_label') }}:</strong> {{ $assignment->available_from->format('d F Y, H:i') }}</p>
         @endif
-        @if($assignment->deadline_at)
-        <p style="font-size: 14px; color: #d97706; margin: 8px 0; font-weight: 500;"><strong>{{ __('mail.assignment_published.deadline_label') }}:</strong> {{ $assignment->deadline_at->format('d F Y, H:i') }}</p>
-        @endif
         <p style="font-size: 14px; color: #666666; margin: 8px 0;"><strong>{{ __('mail.assignment_published.max_score_label') }}:</strong> {{ $assignment->max_score }}</p>
     @endcomponent
 

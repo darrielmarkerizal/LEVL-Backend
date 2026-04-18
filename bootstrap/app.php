@@ -4,9 +4,12 @@ use App\Exceptions\BusinessException;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsureRole;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
@@ -437,6 +440,54 @@ return Application::configure(basePath: dirname(__DIR__))
                     404,
                 );
             }
+        });
+
+        $exceptions->render(function (QueryException $e, \Illuminate\Http\Request $request) {
+            if (! str_contains($e->getMessage(), 'SQLSTATE[25P02]')) {
+                return null;
+            }
+
+            $connectionName = DB::getDefaultConnection();
+            $connection = DB::connection($connectionName);
+
+            while ($connection->transactionLevel() > 0) {
+                try {
+                    $connection->rollBack();
+                } catch (\Throwable) {
+                    break;
+                }
+            }
+
+            try {
+                $pdo = $connection->getRawPdo();
+                if ($pdo instanceof \PDO && $pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+            } catch (\Throwable) {
+                // ignore and continue with purge/reconnect
+            }
+
+            try {
+                DB::purge($connectionName);
+                DB::reconnect($connectionName);
+            } catch (\Throwable) {
+                // ignore reconnection issues in exception renderer
+            }
+
+            Log::warning('Recovered aborted PostgreSQL transaction session (25P02).', [
+                'path' => $request->path(),
+                'method' => $request->method(),
+            ]);
+
+            if ($request->is('api/*') || $request->is('v1/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('messages.error'),
+                    'errors' => null,
+                ], 500);
+            }
+
+            return null;
         });
     })
     ->create();

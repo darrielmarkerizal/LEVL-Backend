@@ -4919,7 +4919,7 @@
                     {
                       "key": "sort",
                       "value": null,
-                      "description": "id, title, created_at, updated_at, deadline_at, available_from",
+                      "description": "id, title, created_at, updated_at, available_from",
                       "type": "text",
                       "uuid": "f6247495-1532-4c5c-a049-e13e4c416cba",
                       "disabled": true
@@ -5016,7 +5016,7 @@
                     {
                       "key": "sort",
                       "value": null,
-                      "description": "id, title, created_at, updated_at, deadline_at, available_from",
+                      "description": "id, title, created_at, updated_at, available_from",
                       "type": "text",
                       "uuid": "f6247495-1532-4c5c-a049-e13e4c416cba",
                       "disabled": true
@@ -5305,7 +5305,7 @@
                     {
                       "key": "sort",
                       "value": null,
-                      "description": "id, title, created_at, updated_at, deadline_at, available_from",
+                      "description": "id, title, created_at, updated_at, available_from",
                       "type": "text",
                       "uuid": "f6247495-1532-4c5c-a049-e13e4c416cba",
                       "disabled": true
@@ -5371,11 +5371,6 @@
                       "value": " 2026-01-25 08:00:00",
                       "type": "text",
                       "uuid": "1c9a7c2d-76df-4c79-a99c-bfd5fcad273b"
-                    },
-                    {
-                      "key": "deadline_at",
-                      "value": " 2026-02-01 23:59:59",
-                      "type": "text"
                     },
                     {
                       "key": "tolerance_minutes",
@@ -5554,7 +5549,7 @@
                     {
                       "key": "sort",
                       "value": null,
-                      "description": "id, title, created_at, updated_at, deadline_at, available_from",
+                      "description": "id, title, created_at, updated_at, available_from",
                       "type": "text",
                       "uuid": "f6247495-1532-4c5c-a049-e13e4c416cba",
                       "disabled": true
@@ -5635,7 +5630,7 @@
                     {
                       "key": "sort",
                       "value": null,
-                      "description": "id, title, created_at, updated_at, deadline_at, available_from",
+                      "description": "id, title, created_at, updated_at, available_from",
                       "type": "text",
                       "uuid": "f6247495-1532-4c5c-a049-e13e4c416cba",
                       "disabled": true
@@ -5716,7 +5711,7 @@
                     {
                       "key": "sort",
                       "value": null,
-                      "description": "id, title, created_at, updated_at, deadline_at, available_from",
+                      "description": "id, title, created_at, updated_at, available_from",
                       "type": "text",
                       "uuid": "f6247495-1532-4c5c-a049-e13e4c416cba",
                       "disabled": true
@@ -5797,7 +5792,7 @@
                     {
                       "key": "sort",
                       "value": null,
-                      "description": "id, title, created_at, updated_at, deadline_at, available_from",
+                      "description": "id, title, created_at, updated_at, available_from",
                       "type": "text",
                       "uuid": "f6247495-1532-4c5c-a049-e13e4c416cba",
                       "disabled": true
@@ -5877,7 +5872,7 @@
                     {
                       "key": "sort",
                       "value": null,
-                      "description": "id, title, created_at, updated_at, deadline_at, available_from",
+                      "description": "id, title, created_at, updated_at, available_from",
                       "type": "text",
                       "uuid": "f6247495-1532-4c5c-a049-e13e4c416cba",
                       "disabled": true
@@ -5958,7 +5953,7 @@
                     {
                       "key": "sort",
                       "value": null,
-                      "description": "id, title, created_at, updated_at, deadline_at, available_from",
+                      "description": "id, title, created_at, updated_at, available_from",
                       "type": "text",
                       "uuid": "f6247495-1532-4c5c-a049-e13e4c416cba",
                       "disabled": true

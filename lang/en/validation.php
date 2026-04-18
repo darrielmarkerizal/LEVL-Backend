@@ -228,7 +228,6 @@ return [
         'allow_resubmit' => 'allow resubmit',
         'late_penalty_percent' => 'late penalty percent',
         'attachments' => 'attachments',
-        'deadline_at' => 'deadline',
         'status' => 'status',
         'code' => 'code',
         'level_tag' => 'level',

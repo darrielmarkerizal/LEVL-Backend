@@ -78,7 +78,6 @@ class UnitResource extends JsonResource
                         'submission_type' => $assignment->submission_type?->value,
                         'submission_type_label' => $assignment->submission_type ? __('enums.submission_type.'.$assignment->submission_type->value) : null,
                         'max_score' => $assignment->max_score,
-                        'deadline_at' => $assignment->deadline_at?->toIso8601String(),
                         'created_at' => $assignment->created_at?->toIso8601String(),
                         'updated_at' => $assignment->updated_at?->toIso8601String(),
                     ];
@@ -140,7 +139,6 @@ class UnitResource extends JsonResource
                         'submission_type' => $assignment->submission_type?->value,
                         'submission_type_label' => $assignment->submission_type ? __('enums.submission_type.'.$assignment->submission_type->value) : null,
                         'max_score' => $assignment->max_score,
-                        'deadline_at' => $assignment->deadline_at?->toIso8601String(),
                         'created_at' => $assignment->created_at?->toIso8601String(),
                         'updated_at' => $assignment->updated_at?->toIso8601String(),
                     ]);

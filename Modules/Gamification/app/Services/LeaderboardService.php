@@ -6,6 +6,8 @@ namespace Modules\Gamification\Services;
 
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Modules\Gamification\Contracts\Services\LeaderboardServiceInterface;
 use Modules\Gamification\Models\Leaderboard;
@@ -258,16 +260,20 @@ class LeaderboardService implements LeaderboardServiceInterface
 
     public function updateRankings(): void
     {
+        $this->recoverFailedTransactionState();
+
         $stats = UserGamificationStat::orderByDesc('total_xp')
             ->orderBy('user_id')
             ->get();
 
-        DB::transaction(function () use ($stats) {
+        try {
             $rank = 1;
             $userIds = $stats->pluck('user_id')->toArray();
             $data = [];
 
-            // FIX: Prepare batch data instead of individual upserts
+            // Keep global leaderboard updates outside a single transaction.
+            // This prevents one failure from poisoning subsequent statements
+            // with SQLSTATE 25P02 in long-lived workers/scheduler processes.
             foreach ($stats as $stat) {
                 $data[] = [
                     'course_id' => null,
@@ -278,12 +284,11 @@ class LeaderboardService implements LeaderboardServiceInterface
                 ];
             }
 
-            // FIX: Batch upsert (Laravel 8+)
             if (! empty($data)) {
                 Leaderboard::upsert(
                     $data,
-                    ['course_id', 'user_id'], // Unique keys
-                    ['rank', 'updated_at'] // Update columns
+                    ['course_id', 'user_id'],
+                    ['rank', 'updated_at']
                 );
             }
 
@@ -294,9 +299,49 @@ class LeaderboardService implements LeaderboardServiceInterface
             }
 
             $this->updateCourseRankings();
-
             cache()->tags(['gamification', 'leaderboard'])->flush();
-        });
+        } catch (QueryException $e) {
+            if (str_contains($e->getMessage(), 'SQLSTATE[25P02]')) {
+                $this->recoverFailedTransactionState();
+            }
+
+            Log::error('Leaderboard update failed.', [
+                'message' => $e->getMessage(),
+                'code' => $e->getCode(),
+            ]);
+
+            throw $e;
+        }
+    }
+
+    private function recoverFailedTransactionState(): void
+    {
+        $connectionName = DB::getDefaultConnection();
+        $connection = DB::connection($connectionName);
+
+        while ($connection->transactionLevel() > 0) {
+            try {
+                $connection->rollBack();
+            } catch (\Throwable) {
+                break;
+            }
+        }
+
+        try {
+            $pdo = $connection->getRawPdo();
+            if ($pdo instanceof \PDO && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+        } catch (\Throwable) {
+            // ignore
+        }
+
+        try {
+            DB::purge($connectionName);
+            DB::reconnect($connectionName);
+        } catch (\Throwable) {
+            // ignore
+        }
     }
 
     private function applyPeriodFilter($query, string $period, bool $isPointTable = false): void

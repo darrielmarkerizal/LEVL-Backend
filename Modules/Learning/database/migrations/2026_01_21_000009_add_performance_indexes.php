@@ -45,12 +45,6 @@ return new class extends Migration
             }
         });
 
-        Schema::table('assignments', function (Blueprint $table) {
-
-            if (! $this->indexExists('assignments', 'idx_assignments_deadline')) {
-                $table->index('deadline_at', 'idx_assignments_deadline');
-            }
-        });
     }
 
     /**
@@ -76,11 +70,6 @@ return new class extends Migration
             }
         });
 
-        Schema::table('assignments', function (Blueprint $table) {
-            if ($this->indexExists('assignments', 'idx_assignments_deadline')) {
-                $table->dropIndex('idx_assignments_deadline');
-            }
-        });
     }
 
     /**

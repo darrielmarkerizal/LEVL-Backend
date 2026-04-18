@@ -101,7 +101,6 @@ class QuizResource extends JsonResource
             'status' => $this->status?->value,
             'status_label' => $this->status?->label(),
             'available_from' => $this->available_from?->toISOString(),
-            'deadline_at' => $this->deadline_at?->toISOString(),
             'tolerance_minutes' => $this->tolerance_minutes,
             'late_penalty_percent' => $this->late_penalty_percent,
             'scope_type' => $this->scope_type,

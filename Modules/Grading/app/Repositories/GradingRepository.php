@@ -19,7 +19,7 @@ class GradingRepository implements GradingRepositoryInterface
 
     protected const DETAILED_EAGER_LOAD = [
         'submission.user:id,name,email',
-        'submission.assignment:id,title,deadline_at,review_mode',
+        'submission.assignment:id,title,review_mode',
         'submission.answers.question:id,type,content,weight,max_score',
         'grader:id,name,email',
     ];
@@ -135,7 +135,7 @@ class GradingRepository implements GradingRepositoryInterface
                     ])
                     ->with([
                         'submission.user:id,name,email',
-                        'submission.assignment:id,title,deadline_at',
+                        'submission.assignment:id,title',
                         'submission.answers' => function ($q) {
                             $q->whereNull('score')
                                 ->orWhereHas('question', function ($q) {
