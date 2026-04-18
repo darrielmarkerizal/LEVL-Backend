@@ -21,6 +21,18 @@ class EventServiceProvider extends ServiceProvider
         \Modules\Forums\Events\ReactionAdded::class => [
             \Modules\Forums\Listeners\NotifyAuthorOnReaction::class,
         ],
+        \Modules\Forums\Events\ThreadClosed::class => [
+            \Modules\Forums\Listeners\NotifyAuthorOnThreadClosed::class,
+        ],
+        \Modules\Forums\Events\ThreadOpened::class => [
+            \Modules\Forums\Listeners\NotifyAuthorOnThreadOpened::class,
+        ],
+        \Modules\Forums\Events\ThreadResolved::class => [
+            \Modules\Forums\Listeners\NotifyAuthorOnThreadResolved::class,
+        ],
+        \Modules\Forums\Events\ThreadUnresolved::class => [
+            \Modules\Forums\Listeners\NotifyAuthorOnThreadUnresolved::class,
+        ],
     ];
 
     protected static $shouldDiscoverEvents = false;

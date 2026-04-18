@@ -2,12 +2,17 @@
 
 namespace Modules\Content\Listeners;
 
-use Illuminate\Support\Facades\Log;
 use Modules\Content\Events\ContentRejected;
 use Modules\Content\Models\ContentWorkflowHistory;
+use Modules\Notifications\Enums\NotificationType;
+use Modules\Notifications\Services\NotificationService;
 
 class NotifyAuthorOnContentRejected
 {
+    public function __construct(
+        private readonly NotificationService $notificationService
+    ) {}
+
     /**
      * Handle the event.
      */
@@ -16,8 +21,6 @@ class NotifyAuthorOnContentRejected
         $author = $event->content->author;
 
         if (! $author) {
-            Log::warning('Content has no author to notify for rejection');
-
             return;
         }
 
@@ -32,10 +35,17 @@ class NotifyAuthorOnContentRejected
             ->latest()
             ->value('note');
 
-        // Send notification to author with rejection reason
-        // In a real implementation, this would use the Notifications module
-        // Notification::send($author, new ContentRejectedNotification($event->content, $event->user, $reason));
-
-        Log::info("Notifying author {$author->name} that their {$contentType} '{$contentTitle}' was rejected by {$reviewerName}. Reason: {$reason}");
+        $this->notificationService->notifyByPreferences(
+            $author,
+            NotificationType::CourseUpdates->value,
+            "{$contentType} ditolak",
+            "{$reviewerName} menolak {$contentType} \"{$contentTitle}\".".($reason ? " Alasan: {$reason}" : ''),
+            [
+                'content_id' => $event->content->id,
+                'content_type' => get_class($event->content),
+                'reviewer_id' => $event->user->id,
+                'reason' => $reason,
+            ]
+        );
     }
 }

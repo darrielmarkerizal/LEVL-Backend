@@ -2,11 +2,16 @@
 
 namespace Modules\Content\Listeners;
 
-use Illuminate\Support\Facades\Log;
 use Modules\Content\Events\ContentApproved;
+use Modules\Notifications\Enums\NotificationType;
+use Modules\Notifications\Services\NotificationService;
 
 class NotifyAuthorOnContentApproved
 {
+    public function __construct(
+        private readonly NotificationService $notificationService
+    ) {}
+
     /**
      * Handle the event.
      */
@@ -15,8 +20,6 @@ class NotifyAuthorOnContentApproved
         $author = $event->content->author;
 
         if (! $author) {
-            Log::warning('Content has no author to notify for approval');
-
             return;
         }
 
@@ -24,10 +27,16 @@ class NotifyAuthorOnContentApproved
         $contentTitle = $event->content->title ?? 'Untitled';
         $approverName = $event->user->name;
 
-        // Send notification to author
-        // In a real implementation, this would use the Notifications module
-        // Notification::send($author, new ContentApprovedNotification($event->content, $event->user));
-
-        Log::info("Notifying author {$author->name} that their {$contentType} '{$contentTitle}' was approved by {$approverName}");
+        $this->notificationService->notifyByPreferences(
+            $author,
+            NotificationType::CourseUpdates->value,
+            "{$contentType} disetujui",
+            "{$approverName} menyetujui {$contentType} \"{$contentTitle}\".",
+            [
+                'content_id' => $event->content->id,
+                'content_type' => get_class($event->content),
+                'approver_id' => $event->user->id,
+            ]
+        );
     }
 }

@@ -28,8 +28,13 @@ class SendBadgeEarnedNotification implements ShouldQueue
 
     public function handle(BadgeEarned $event): void
     {
-        $this->notificationService->send(
-            $event->userId,
+        $user = \Modules\Auth\Models\User::query()->find($event->userId);
+        if (! $user) {
+            return;
+        }
+
+        $this->notificationService->notifyByPreferences(
+            $user,
             NotificationType::Achievements->value,
             __('gamification::notifications.badge_earned_title', ['badge' => $event->badge->name]),
             __('gamification::notifications.badge_earned_message', [

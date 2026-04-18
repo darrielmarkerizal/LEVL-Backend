@@ -9,7 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Modules\Auth\Models\User;
-use Modules\Notifications\app\Models\Post;
+use Modules\Notifications\Models\Post;
 
 class PostPublishedMail extends Mailable implements ShouldQueue
 {

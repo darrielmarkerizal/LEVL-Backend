@@ -98,6 +98,7 @@ class User extends Authenticatable implements HasMedia, JWTSubject
         'location',
         'last_profile_update',
         'is_password_set',
+        'fcm_token',
     ];
 
     protected $hidden = ['password', 'remember_token'];

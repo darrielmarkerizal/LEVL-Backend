@@ -20,7 +20,7 @@ final class NotificationPreferenceItemDTO extends Data
 
         public bool $enabled = true,
 
-        #[In(['immediate', 'daily', 'weekly'])]
+        #[In(['immediate', 'daily', 'weekly', 'never'])]
         public string $frequency = 'immediate',
     ) {}
 

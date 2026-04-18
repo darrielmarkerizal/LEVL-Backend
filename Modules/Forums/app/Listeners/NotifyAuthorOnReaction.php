@@ -5,6 +5,7 @@ namespace Modules\Forums\Listeners;
 use Modules\Forums\Events\ReactionAdded;
 use Modules\Forums\Models\Reply;
 use Modules\Forums\Models\Thread;
+use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
 class NotifyAuthorOnReaction
@@ -29,9 +30,13 @@ class NotifyAuthorOnReaction
         $userName = $reaction->user->name;
 
         if ($reactable instanceof Thread) {
-            $this->notificationService->send(
-                $reactable->author_id,
-                'forum_reaction_thread',
+            if (! $reactable->author) {
+                return;
+            }
+
+            $this->notificationService->notifyByPreferences(
+                $reactable->author,
+                NotificationType::ForumReactionThread->value,
                 'New Reaction',
                 "{$userName} reacted {$reactionType} to your thread",
                 [
@@ -42,9 +47,13 @@ class NotifyAuthorOnReaction
                 ]
             );
         } elseif ($reactable instanceof Reply) {
-            $this->notificationService->send(
-                $reactable->author_id,
-                'forum_reaction_reply',
+            if (! $reactable->author) {
+                return;
+            }
+
+            $this->notificationService->notifyByPreferences(
+                $reactable->author,
+                NotificationType::ForumReactionReply->value,
                 'New Reaction',
                 "{$userName} reacted {$reactionType} to your reply",
                 [

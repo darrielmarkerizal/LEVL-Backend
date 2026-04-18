@@ -6,6 +6,7 @@ namespace Modules\Learning\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Modules\Learning\Events\AssignmentPublished;
 use Modules\Learning\Enums\AssignmentStatus;
 use Modules\Learning\Models\Assignment;
 
@@ -64,6 +65,7 @@ class PublishScheduledAssignments extends Command
                         'status' => AssignmentStatus::Published->value,
                         'updated_at' => now(),
                     ]);
+                    AssignmentPublished::dispatch($assignment->fresh());
                 }
             });
 

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Notifications\Http\Controllers\NotificationDeviceController;
 use Modules\Notifications\Http\Controllers\NotificationPreferenceController;
 use Modules\Notifications\Http\Controllers\NotificationsController;
 use Modules\Notifications\Http\Controllers\PostController;
@@ -12,6 +13,8 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
     Route::get('notification-preferences', [NotificationPreferenceController::class, 'index'])->name('notification-preferences.index');
     Route::put('notification-preferences', [NotificationPreferenceController::class, 'update'])->name('notification-preferences.update');
     Route::post('notification-preferences/reset', [NotificationPreferenceController::class, 'reset'])->name('notification-preferences.reset');
+    Route::post('notification-device/fcm-token', [NotificationDeviceController::class, 'store'])->name('notification-device.store');
+    Route::delete('notification-device/fcm-token', [NotificationDeviceController::class, 'destroy'])->name('notification-device.destroy');
 
     Route::prefix('posts')->name('posts.')->group(function () {
         Route::get('/', [PostController::class, 'index'])

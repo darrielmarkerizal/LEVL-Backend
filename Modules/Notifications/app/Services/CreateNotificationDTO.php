@@ -10,7 +10,7 @@ class CreateNotificationDTO
         public string $title,
         public string $message,
         public ?array $data = null,
-        public ?string $readAt = null,
+        public ?string $actionUrl = null,
         public ?string $channel = 'in_app',
     ) {}
 
@@ -22,7 +22,7 @@ class CreateNotificationDTO
             title: $data['title'],
             message: $data['message'],
             data: $data['data'] ?? null,
-            readAt: $data['read_at'] ?? null,
+            actionUrl: $data['action_url'] ?? null,
             channel: $data['channel'] ?? 'in_app',
         );
     }
@@ -30,12 +30,11 @@ class CreateNotificationDTO
     public function toModelArray(): array
     {
         return [
-            'user_id' => $this->userId,
             'type' => $this->type,
             'title' => $this->title,
             'message' => $this->message,
             'data' => $this->data,
-            'read_at' => $this->readAt,
+            'action_url' => $this->actionUrl,
             'channel' => $this->channel,
         ];
     }

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
 use Modules\Notifications\Contracts\Services\NotificationPreferenceServiceInterface;
 use Modules\Notifications\DTOs\UpdateNotificationPreferencesDTO;
+use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Models\NotificationPreference;
 
 class NotificationPreferenceService implements NotificationPreferenceServiceInterface
@@ -66,14 +67,16 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
             return true;
         }
 
+        $categories = $this->resolveCategoryAliases($category);
         $preference = NotificationPreference::where('user_id', $user->id)
-            ->where('category', $category)
+            ->whereIn('category', $categories)
             ->where('channel', $channel)
+            ->orderByRaw("CASE WHEN category = ? THEN 0 ELSE 1 END", [$category])
             ->first();
 
         // If no preference exists, check defaults
         if (! $preference) {
-            return $this->shouldSendByDefault($category, $channel);
+            return $this->shouldSendByDefault($categories[0] ?? $category, $channel);
         }
 
         return $preference->enabled;
@@ -160,7 +163,9 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
         // Email enabled by default for important categories
         if ($channel === NotificationPreference::CHANNEL_EMAIL) {
             return collect([
-                NotificationPreference::CATEGORY_ASSIGNMENTS,
+                NotificationType::Assignment->value,
+                NotificationType::Grading->value,
+                NotificationType::Enrollment->value,
                 NotificationPreference::CATEGORY_SYSTEM,
             ])->contains($category);
         }
@@ -170,7 +175,6 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
             return true;
         }
 
-        // Push notifications disabled by default
         if ($channel === NotificationPreference::CHANNEL_PUSH) {
             return false;
         }
@@ -189,7 +193,7 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
         }
 
         // Forum notifications can be daily digest
-        if ($category === NotificationPreference::CATEGORY_FORUM) {
+        if ($category === NotificationType::Forum->value) {
             return NotificationPreference::FREQUENCY_DAILY;
         }
 
@@ -202,5 +206,32 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
     protected function shouldSendByDefault(string $category, string $channel): bool
     {
         return $this->getDefaultEnabledState($category, $channel);
+    }
+
+    protected function resolveCategoryAliases(string $category): array
+    {
+        $aliases = match ($category) {
+            NotificationType::Assignment->value => [NotificationType::Assignment->value, NotificationType::Assignments->value],
+            NotificationType::Assignments->value => [NotificationType::Assignments->value, NotificationType::Assignment->value],
+            NotificationType::Gamification->value => [NotificationType::Gamification->value, NotificationType::Achievements->value],
+            NotificationType::Achievements->value => [NotificationType::Achievements->value, NotificationType::Gamification->value],
+            NotificationType::Forum->value => [
+                NotificationType::Forum->value,
+                NotificationType::ForumReplyToThread->value,
+                NotificationType::ForumReplyToReply->value,
+                NotificationType::ForumReactionThread->value,
+                NotificationType::ForumReactionReply->value,
+            ],
+            NotificationType::ForumReplyToThread->value,
+            NotificationType::ForumReplyToReply->value,
+            NotificationType::ForumReactionThread->value,
+            NotificationType::ForumReactionReply->value => [
+                $category,
+                NotificationType::Forum->value,
+            ],
+            default => [$category],
+        };
+
+        return array_values(array_unique($aliases));
     }
 }

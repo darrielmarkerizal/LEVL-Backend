@@ -46,7 +46,7 @@ class AccountDeletionService
             'uuid' => $uuid,
             'user_id' => $user->id,
             'channel' => 'email',
-            'provider' => 'mailhog',
+            'provider' => (string) config('mail.default', 'smtp'),
             'purpose' => self::PURPOSE,
             'code' => 'magic',
             'meta' => ['token_hash' => $tokenHash],

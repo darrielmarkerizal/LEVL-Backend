@@ -2,13 +2,18 @@
 
 namespace Modules\Content\Listeners;
 
-use Illuminate\Support\Facades\Log;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\User;
 use Modules\Content\Events\ContentSubmitted;
+use Modules\Notifications\Enums\NotificationType;
+use Modules\Notifications\Services\NotificationService;
 
 class NotifyReviewersOnContentSubmitted
 {
+    public function __construct(
+        private readonly NotificationService $notificationService
+    ) {}
+
     /**
      * Handle the event.
      */
@@ -18,20 +23,24 @@ class NotifyReviewersOnContentSubmitted
         $reviewers = $this->getReviewers();
 
         if ($reviewers->isEmpty()) {
-            Log::info('No reviewers found to notify for content submission');
-
             return;
         }
 
         $contentType = class_basename($event->content);
         $contentTitle = $event->content->title ?? 'Untitled';
 
-        // Send notification to reviewers
         foreach ($reviewers as $reviewer) {
-            // In a real implementation, this would use the Notifications module
-            // Notification::send($reviewer, new ContentSubmittedNotification($event->content, $event->user));
-
-            Log::info("Notifying reviewer {$reviewer->name} about {$contentType} submission: {$contentTitle}");
+            $this->notificationService->notifyByPreferences(
+                $reviewer,
+                NotificationType::CourseUpdates->value,
+                "{$contentType} menunggu review",
+                "{$event->user->name} mengajukan {$contentType} \"{$contentTitle}\" untuk ditinjau.",
+                [
+                    'content_id' => $event->content->id,
+                    'content_type' => get_class($event->content),
+                    'author_id' => $event->user->id,
+                ]
+            );
         }
     }
 

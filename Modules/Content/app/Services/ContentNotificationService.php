@@ -3,14 +3,19 @@
 namespace Modules\Content\Services;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Notification;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\User;
 use Modules\Content\Models\Announcement;
 use Modules\Content\Models\News;
+use Modules\Notifications\Enums\NotificationType;
+use Modules\Notifications\Services\NotificationService;
 
 class ContentNotificationService
 {
+    public function __construct(
+        private readonly NotificationService $notificationService
+    ) {}
+
     public function notifyTargetAudience(Announcement $announcement): void
     {
         $targetUsers = $this->getTargetUsers($announcement);
@@ -19,11 +24,18 @@ class ContentNotificationService
             return;
         }
 
-        // Send notification to target users
-        // This would integrate with the Notifications module
-        // For now, we'll just log or queue the notification
         foreach ($targetUsers as $user) {
-            // Notification::send($user, new AnnouncementPublishedNotification($announcement));
+            $this->notificationService->notifyByPreferences(
+                $user,
+                NotificationType::CourseUpdates->value,
+                'Pengumuman Baru',
+                $announcement->title,
+                [
+                    'announcement_id' => $announcement->id,
+                    'target_type' => $announcement->target_type,
+                    'target_value' => $announcement->target_value,
+                ]
+            );
         }
     }
 
@@ -60,11 +72,18 @@ class ContentNotificationService
 
     public function notifyNewNews(News $news): void
     {
-        // Get all active users or specific subscribers
         $users = User::where('status', UserStatus::Active->value)->get();
 
         foreach ($users as $user) {
-            // Notification::send($user, new NewsPublishedNotification($news));
+            $this->notificationService->notifyByPreferences(
+                $user,
+                NotificationType::CourseUpdates->value,
+                'Berita Baru',
+                $news->title,
+                [
+                    'news_id' => $news->id,
+                ]
+            );
         }
     }
 

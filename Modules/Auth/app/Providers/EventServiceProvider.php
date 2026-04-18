@@ -18,6 +18,21 @@ class EventServiceProvider extends ServiceProvider
             \Modules\Auth\Listeners\LogUserStatusChange::class,
             \Modules\Auth\Listeners\NotifyUserStatusChange::class,
         ],
+        \Modules\Auth\Events\UserRegistered::class => [
+            \Modules\Auth\Listeners\NotifyUserOnRegistered::class,
+        ],
+        \Modules\Auth\Events\UserLoggedIn::class => [
+            \Modules\Auth\Listeners\NotifyUserOnLoggedIn::class,
+        ],
+        \Modules\Auth\Events\ProfileUpdated::class => [
+            \Modules\Auth\Listeners\NotifyUserOnProfileUpdated::class,
+        ],
+        \Modules\Auth\Events\PasswordChanged::class => [
+            \Modules\Auth\Listeners\NotifyUserOnPasswordChanged::class,
+        ],
+        \Modules\Auth\Events\AccountDeleted::class => [
+            \Modules\Auth\Listeners\NotifyAdminsOnAccountDeleted::class,
+        ],
     ];
 
     /**

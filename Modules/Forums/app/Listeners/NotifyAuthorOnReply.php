@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Forums\Listeners;
 
 use Modules\Forums\Events\ReplyCreated;
+use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
 class NotifyAuthorOnReply
@@ -22,9 +23,14 @@ class NotifyAuthorOnReply
 
             $parentReply = $reply->parent;
             if ($parentReply && $parentReply->author_id != $reply->author_id) {
-                $this->notificationService->send(
-                    $parentReply->author_id,
-                    'forum_reply_to_reply',
+                $parentAuthor = $parentReply->author;
+                if (! $parentAuthor) {
+                    return;
+                }
+
+                $this->notificationService->notifyByPreferences(
+                    $parentAuthor,
+                    NotificationType::ForumReplyToReply->value,
                     'New Reply to Your Comment',
                     "{$reply->author->name} replied to your comment",
                     [
@@ -38,9 +44,14 @@ class NotifyAuthorOnReply
         } else {
 
             if ($thread->author_id != $reply->author_id) {
-                $this->notificationService->send(
-                    $thread->author_id,
-                    'forum_reply_to_thread',
+                $threadAuthor = $thread->author;
+                if (! $threadAuthor) {
+                    return;
+                }
+
+                $this->notificationService->notifyByPreferences(
+                    $threadAuthor,
+                    NotificationType::ForumReplyToThread->value,
                     'New Reply to Your Thread',
                     "{$reply->author->name} replied to your thread",
                     [

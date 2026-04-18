@@ -41,7 +41,7 @@ class VerificationTokenManager
             'uuid' => $uuid,
             'user_id' => $user->id,
             'channel' => 'email',
-            'provider' => 'mailhog',
+            'provider' => (string) config('mail.default', 'smtp'),
             'purpose' => self::PURPOSE_REGISTER,
             'code' => 'magic',
             'meta' => ['token_hash' => $tokenHash],
@@ -79,7 +79,7 @@ class VerificationTokenManager
             'uuid' => $uuid,
             'user_id' => $user->id,
             'channel' => 'email',
-            'provider' => 'mailhog',
+            'provider' => (string) config('mail.default', 'smtp'),
             'purpose' => self::PURPOSE_CHANGE_EMAIL,
             'code' => 'magic',
             'meta' => [

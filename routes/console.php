@@ -26,6 +26,18 @@ Schedule::command('posts:publish-scheduled')
     ->withoutOverlapping()
     ->runInBackground();
 
+// Schedule Assignment Publishing (Every Minute)
+Schedule::command('assignments:publish-scheduled')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// Schedule Enrollment Activation (Every Minute)
+Schedule::command('enrollments:activate-scheduled')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->runInBackground();
+
 // Schedule Orphaned Media Cleanup (Daily at 2 AM)
 Schedule::command('posts:cleanup-orphaned-media')
     ->dailyAt('02:00')

@@ -27,6 +27,12 @@ class EventServiceProvider extends ServiceProvider
         \Modules\Content\Events\ContentRejected::class => [
             \Modules\Content\Listeners\NotifyAuthorOnContentRejected::class,
         ],
+        \Modules\Content\Events\ContentScheduled::class => [
+            \Modules\Content\Listeners\NotifyAuthorOnContentScheduled::class,
+        ],
+        \Modules\Content\Events\ContentPublished::class => [
+            \Modules\Content\Listeners\NotifyAuthorOnContentPublished::class,
+        ],
     ];
 
     /**

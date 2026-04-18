@@ -9,9 +9,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\User;
+use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Models\Post;
+use Modules\Notifications\Services\NotificationService;
 
 class SendPostNotificationJob implements ShouldQueue
 {
@@ -46,8 +50,11 @@ class SendPostNotificationJob implements ShouldQueue
             $totalUsers = 0;
             $hasUsers = false;
 
-            User::whereIn('role', $this->audiences)
-                ->where('status', 'active')
+            User::query()
+                ->where('status', UserStatus::Active->value)
+                ->whereHas('roles', function ($query): void {
+                    $query->whereIn(DB::raw('LOWER(name)'), array_map('strtolower', $this->audiences));
+                })
                 ->chunkById(100, function ($chunk) use (&$totalUsers, &$hasUsers) {
                     $hasUsers = true;
                     $totalUsers += $chunk->count();
@@ -96,8 +103,24 @@ class SendPostNotificationJob implements ShouldQueue
      */
     private function sendEmailNotifications($users): void
     {
-        // TODO: Implement email notification using PostPublishedMail
-        // This will be implemented in task 13.1
+        $notificationService = app(NotificationService::class);
+        $message = strip_tags((string) $this->post->content);
+
+        foreach ($users as $user) {
+            $notificationService->notifyByPreferences(
+                $user,
+                NotificationType::CourseUpdates->value,
+                $this->post->title,
+                $message,
+                [
+                    'post_id' => $this->post->id,
+                    'post_uuid' => $this->post->uuid,
+                    'category' => $this->post->category?->value,
+                ],
+                ['email']
+            );
+        }
+
         Log::info('Email notifications queued', [
             'post_uuid' => $this->post->uuid,
             'user_count' => $users->count(),
@@ -109,8 +132,22 @@ class SendPostNotificationJob implements ShouldQueue
      */
     private function sendInAppNotifications($users): void
     {
-        // TODO: Implement in-app notification creation
-        // Create notification records in the database
+        $notificationService = app(NotificationService::class);
+        foreach ($users as $user) {
+            $notificationService->notifyByPreferences(
+                $user,
+                NotificationType::CourseUpdates->value,
+                $this->post->title,
+                strip_tags((string) $this->post->content),
+                [
+                    'post_id' => $this->post->id,
+                    'post_uuid' => $this->post->uuid,
+                    'category' => $this->post->category?->value,
+                ],
+                ['in_app']
+            );
+        }
+
         Log::info('In-app notifications created', [
             'post_uuid' => $this->post->uuid,
             'user_count' => $users->count(),
@@ -122,8 +159,23 @@ class SendPostNotificationJob implements ShouldQueue
      */
     private function sendPushNotifications($users): void
     {
-        // TODO: Implement push notification via FCM/APNS
-        Log::info('Push notifications sent', [
+        $notificationService = app(NotificationService::class);
+        foreach ($users as $user) {
+            $notificationService->notifyByPreferences(
+                $user,
+                NotificationType::CourseUpdates->value,
+                $this->post->title,
+                strip_tags((string) $this->post->content),
+                [
+                    'post_id' => $this->post->id,
+                    'post_uuid' => $this->post->uuid,
+                    'category' => $this->post->category?->value,
+                ],
+                ['push']
+            );
+        }
+
+        Log::info('Push notifications processed', [
             'post_uuid' => $this->post->uuid,
             'user_count' => $users->count(),
         ]);

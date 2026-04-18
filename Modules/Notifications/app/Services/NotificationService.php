@@ -2,18 +2,27 @@
 
 namespace Modules\Notifications\Services;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Modules\Auth\Models\User;
 use Modules\Notifications\Contracts\Services\NotificationPreferenceServiceInterface;
 use Modules\Notifications\Models\Notification;
 use Modules\Notifications\Models\NotificationPreference;
+use Modules\Notifications\Models\UserNotification;
 
 class NotificationService
 {
     protected NotificationPreferenceServiceInterface $preferenceService;
+    protected FirebasePushService $firebasePushService;
 
-    public function __construct(NotificationPreferenceServiceInterface $preferenceService)
+    public function __construct(
+        NotificationPreferenceServiceInterface $preferenceService,
+        FirebasePushService $firebasePushService
+    )
     {
         $this->preferenceService = $preferenceService;
+        $this->firebasePushService = $firebasePushService;
     }
 
     /**
@@ -38,16 +47,91 @@ class NotificationService
         return $notification;
     }
 
-    public function markAsRead(Notification $notification): bool
+    public function listForUser(int $userId, int $perPage = 15): LengthAwarePaginator
     {
-        return $notification->update(['read_at' => now()]);
+        return Notification::query()
+            ->whereHas('users', fn ($query) => $query->where('users.id', $userId))
+            ->with(['users' => fn ($query) => $query->where('users.id', $userId)])
+            ->latest('notifications.created_at')
+            ->paginate($perPage);
+    }
+
+    public function findForUser(int $userId, int $notificationId): ?Notification
+    {
+        return Notification::query()
+            ->whereKey($notificationId)
+            ->whereHas('users', fn ($query) => $query->where('users.id', $userId))
+            ->with(['users' => fn ($query) => $query->where('users.id', $userId)])
+            ->first();
+    }
+
+    public function markAsRead(Notification $notification, ?int $userId = null): bool
+    {
+        $query = UserNotification::query()->where('notification_id', $notification->id);
+        if ($userId !== null) {
+            $query->where('user_id', $userId);
+        }
+
+        return $query->update([
+            'status' => 'read',
+            'read_at' => now(),
+            'updated_at' => now(),
+        ]) > 0;
     }
 
     public function markAllAsRead(int $userId): int
     {
-        return Notification::where('user_id', $userId)
-            ->whereNull('read_at')
-            ->update(['read_at' => now()]);
+        return UserNotification::query()
+            ->where('user_id', $userId)
+            ->where('status', 'unread')
+            ->update([
+                'status' => 'read',
+                'read_at' => now(),
+                'updated_at' => now(),
+            ]);
+    }
+
+    public function unreadCount(int $userId): int
+    {
+        return UserNotification::query()
+            ->where('user_id', $userId)
+            ->where('status', 'unread')
+            ->count();
+    }
+
+    public function deleteForUser(Notification $notification, int $userId): bool
+    {
+        $detached = $notification->users()->detach($userId);
+        if ($detached === 0) {
+            return false;
+        }
+
+        if (! $notification->users()->exists()) {
+            $notification->delete();
+        }
+
+        return true;
+    }
+
+    public function toPayload(Notification $notification, int $userId): array
+    {
+        $pivot = $notification->users->first()?->pivot;
+
+        return [
+            'id' => $notification->id,
+            'type' => $notification->type?->value ?? $notification->type,
+            'title' => $notification->title,
+            'message' => $notification->message,
+            'data' => $notification->data,
+            'action_url' => $notification->action_url,
+            'channel' => $notification->channel?->value ?? $notification->channel,
+            'priority' => $notification->priority?->value ?? $notification->priority,
+            'is_read' => $pivot?->status === 'read',
+            'read_at' => $pivot?->read_at?->toIso8601String(),
+            'created_at' => $notification->created_at?->toIso8601String(),
+            'updated_at' => $notification->updated_at?->toIso8601String(),
+            'user_id' => $userId,
+        ];
     }
 
     /**
@@ -103,6 +187,34 @@ class NotificationService
         return $this->sendToChannel($user, $channel, $category, $title, $message, $data);
     }
 
+    public function notifyByPreferences(
+        User $user,
+        string $category,
+        string $title,
+        string $message,
+        ?array $data = null,
+        ?array $channels = null,
+        bool $isCritical = false
+    ): void {
+        $targetChannels = $channels ?? $this->getEnabledPreferenceChannels();
+        foreach ($targetChannels as $channel) {
+            $this->sendWithPreferences(
+                $user,
+                $category,
+                $channel,
+                $title,
+                $message,
+                $data,
+                $isCritical
+            );
+        }
+    }
+
+    public function getEnabledPreferenceChannels(): array
+    {
+        return NotificationPreference::getChannels();
+    }
+
     /**
      * Send notification to specific channel.
      */
@@ -145,8 +257,15 @@ class NotificationService
      */
     protected function sendEmailNotification(User $user, string $title, string $message, ?array $data = null): void
     {
-        // TODO: Implement email sending logic
-        // This would typically use Laravel's Mail facade
+        if (! $user->email) {
+            return;
+        }
+
+        $payload = $data ? "\n\n".json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '';
+
+        Mail::raw($message.$payload, function ($mail) use ($user, $title): void {
+            $mail->to($user->email)->subject($title);
+        });
     }
 
     /**
@@ -154,7 +273,27 @@ class NotificationService
      */
     protected function sendPushNotification(User $user, string $title, string $message, ?array $data = null): void
     {
-        // TODO: Implement push notification logic
-        // This would typically use a service like Firebase Cloud Messaging
+        $token = (string) ($user->fcm_token ?? '');
+        if ($token === '') {
+            Log::warning('Push notification skipped because user has no FCM token', [
+                'user_id' => $user->id,
+                'title' => $title,
+            ]);
+            return;
+        }
+
+        $sent = $this->firebasePushService->sendToToken($token, $title, $message, $data);
+        if (! $sent) {
+            Log::warning('Push notification failed to send', [
+                'user_id' => $user->id,
+                'title' => $title,
+            ]);
+            return;
+        }
+
+        Log::info('Push notification sent', [
+            'user_id' => $user->id,
+            'title' => $title,
+        ]);
     }
 }

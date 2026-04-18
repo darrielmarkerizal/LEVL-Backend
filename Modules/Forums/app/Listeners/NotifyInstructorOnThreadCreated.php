@@ -3,6 +3,7 @@
 namespace Modules\Forums\Listeners;
 
 use Modules\Forums\Events\ThreadCreated;
+use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
 class NotifyInstructorOnThreadCreated
@@ -20,35 +21,45 @@ class NotifyInstructorOnThreadCreated
         $scheme = $thread->scheme;
 
         if ($scheme && $scheme->instructor_id) {
-            $this->notificationService->send(
-                $scheme->instructor_id,
-                'forum_thread_created',
-                [
-                    'thread_id' => $thread->id,
-                    'thread_title' => $thread->title,
-                    'author_name' => $thread->author->name,
-                    'scheme_name' => $scheme->name,
-                ],
-                "New thread created: {$thread->title}"
-            );
+            $scheme->loadMissing('instructor');
+            if ($scheme->instructor) {
+                $this->notificationService->notifyByPreferences(
+                    $scheme->instructor,
+                    NotificationType::Forum->value,
+                    "New thread created: {$thread->title}",
+                    "Ada thread baru pada {$scheme->name} oleh {$thread->author->name}.",
+                    [
+                        'thread_id' => $thread->id,
+                        'thread_title' => $thread->title,
+                        'author_name' => $thread->author->name,
+                        'scheme_name' => $scheme->name,
+                    ]
+                );
+            }
         }
 
         if ($thread->author->hasRole('instructor')) {
             $enrollments = \Modules\Enrollments\Models\Enrollment::where('course_id', $thread->scheme_id)
                 ->where('user_id', '!=', $thread->author_id)
+                ->with('user')
                 ->get();
 
             foreach ($enrollments as $enrollment) {
-                $this->notificationService->send(
-                    $enrollment->user_id,
-                    'forum_instructor_thread',
+                if (! $enrollment->user) {
+                    continue;
+                }
+
+                $this->notificationService->notifyByPreferences(
+                    $enrollment->user,
+                    NotificationType::Forum->value,
+                    "Instructor posted: {$thread->title}",
+                    "Instruktur {$thread->author->name} membuat thread baru pada {$scheme->name}.",
                     [
                         'thread_id' => $thread->id,
                         'thread_title' => $thread->title,
                         'instructor_name' => $thread->author->name,
                         'scheme_name' => $scheme->name,
-                    ],
-                    "Instructor posted: {$thread->title}"
+                    ]
                 );
             }
         }

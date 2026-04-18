@@ -50,6 +50,6 @@ return [
 
     ],
 
-    'combined_queue_order' => 'grading,notifications,file-processing,default',
+    'combined_queue_order' => 'emails-critical,emails-transactional,grading,notifications,file-processing,trash,logging,audit,default',
 
 ];
