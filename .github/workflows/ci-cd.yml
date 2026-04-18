@@ -106,8 +106,8 @@ jobs:
               git reset --hard "$PREVIOUS_COMMIT"
               composer install --no-dev --optimize-autoloader --quiet
 
-              # Migrate back (|| true so rollback itself won't abort if no down migration)
-              php artisan migrate --force --quiet || true
+              # Rollback last migration batch through direct PostgreSQL port
+              php artisan migrate:rollback --database=pgsql_migrate --force --quiet || true
 
               # Clear all caches only — skip rebuilding to avoid stale cache errors
               php artisan optimize:clear --quiet || true
@@ -129,8 +129,8 @@ jobs:
             # ── Install dependencies ──────────────────────────────────────────
             composer install --no-dev --optimize-autoloader
 
-            # ── Run migrations ────────────────────────────────────────────────
-            php artisan migrate --force
+            # ── Run migrations via direct PostgreSQL (bypass PgBouncer) ─────
+            php artisan migrate --database=pgsql_migrate --force
 
             # ── Clear & rebuild all caches (no view:cache — pure API) ──────────
             php artisan optimize:clear
@@ -140,6 +140,9 @@ jobs:
 
             # ── Restart Octane via systemd ────────────────────────────────────
             sudo systemctl restart octane
+
+            # ── Restart queue workers (long-lived processes) ─────────────────
+            sudo supervisorctl restart levl-queue-worker:*
 
             # ── Bring application back online ─────────────────────────────────
             php artisan up
