@@ -30,5 +30,7 @@ rr
 frankenphp
 frankenphp-worker.php
 levl_db_backup.sql
+# GCP / Firebase service account JSON (local only; never commit)
 levl-ugm-*.json
+/levl-ugm-6ec031ad589f.json
 firebase-*.json
