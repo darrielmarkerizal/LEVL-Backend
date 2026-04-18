@@ -64,7 +64,14 @@ class EnrollmentsServiceProvider extends ServiceProvider
         );
     }
 
-    protected function registerCommands(): void {}
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\Enrollments\Console\ActivateScheduledEnrollmentsCommand::class,
+            ]);
+        }
+    }
 
     protected function registerCommandSchedules(): void {}
 

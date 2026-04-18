@@ -26,12 +26,6 @@ Schedule::command('posts:publish-scheduled')
     ->withoutOverlapping()
     ->runInBackground();
 
-// Schedule Assignment Publishing (Every Minute)
-Schedule::command('assignments:publish-scheduled')
-    ->everyMinute()
-    ->withoutOverlapping()
-    ->runInBackground();
-
 // Schedule Enrollment Activation (Every Minute)
 Schedule::command('enrollments:activate-scheduled')
     ->everyMinute()
