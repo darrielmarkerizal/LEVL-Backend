@@ -28,9 +28,16 @@ class PostListResource extends JsonResource
             ],
             'is_pinned' => $this->is_pinned,
             'author_name' => $this->whenLoaded('author', fn () => $this->author->name),
+            'last_editor' => $this->whenLoaded('lastEditor', function () {
+                return $this->lastEditor ? [
+                    'id' => $this->lastEditor->id,
+                    'name' => $this->lastEditor->name,
+                ] : null;
+            }),
             'view_count' => $this->views_count ?? 0,
             'published_at' => $this->published_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
+            'updated_at' => $this->updated_at->toIso8601String(),
         ];
     }
 }

@@ -24,7 +24,7 @@ class PostRepository extends BaseRepository
 
     protected string $defaultSort = '-created_at';
 
-    protected array $with = ['author', 'audiences'];
+    protected array $with = ['author', 'lastEditor', 'audiences'];
 
     protected function model(): string
     {
@@ -172,7 +172,7 @@ class PostRepository extends BaseRepository
         ?string $role = null
     ): QueryBuilder {
         $query = $this->model()::query()
-            ->with(['author', 'audiences'])
+            ->with(['author', 'lastEditor', 'audiences'])
             ->withCount('views');
 
         if ($search !== null) {
