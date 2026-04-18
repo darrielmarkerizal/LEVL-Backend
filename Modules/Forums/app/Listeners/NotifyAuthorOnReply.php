@@ -31,8 +31,10 @@ class NotifyAuthorOnReply
                 $this->notificationService->notifyByPreferences(
                     $parentAuthor,
                     NotificationType::ForumReplyToReply->value,
-                    'New Reply to Your Comment',
-                    "{$reply->author->name} replied to your comment",
+                    __('notifications.forum.reply_to_comment_title'),
+                    __('notifications.forum.reply_to_comment_message', [
+                        'author' => $reply->author->name,
+                    ]),
                     [
                         'reply_id' => $reply->id,
                         'thread_id' => $thread->id,
@@ -52,8 +54,10 @@ class NotifyAuthorOnReply
                 $this->notificationService->notifyByPreferences(
                     $threadAuthor,
                     NotificationType::ForumReplyToThread->value,
-                    'New Reply to Your Thread',
-                    "{$reply->author->name} replied to your thread",
+                    __('notifications.forum.reply_to_thread_title'),
+                    __('notifications.forum.reply_to_thread_message', [
+                        'author' => $reply->author->name,
+                    ]),
                     [
                         'reply_id' => $reply->id,
                         'thread_id' => $thread->id,

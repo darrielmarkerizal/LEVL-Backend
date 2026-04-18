@@ -26,15 +26,19 @@ class NotifyReviewersOnContentSubmitted
             return;
         }
 
-        $contentType = class_basename($event->content);
-        $contentTitle = $event->content->title ?? 'Untitled';
+        $contentTypeLabel = notifications_content_type_label($event->content);
+        $contentTitle = $event->content->title ?? __('notifications.content.untitled');
 
         foreach ($reviewers as $reviewer) {
             $this->notificationService->notifyByPreferences(
                 $reviewer,
                 NotificationType::CourseUpdates->value,
-                "{$contentType} menunggu review",
-                "{$event->user->name} mengajukan {$contentType} \"{$contentTitle}\" untuk ditinjau.",
+                __('notifications.content.submitted_review_title', ['type' => $contentTypeLabel]),
+                __('notifications.content.submitted_review_message', [
+                    'author' => $event->user->name,
+                    'type' => $contentTypeLabel,
+                    'title' => $contentTitle,
+                ]),
                 [
                     'content_id' => $event->content->id,
                     'content_type' => get_class($event->content),

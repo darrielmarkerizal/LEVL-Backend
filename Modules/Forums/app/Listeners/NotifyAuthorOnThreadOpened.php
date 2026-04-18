@@ -22,8 +22,11 @@ class NotifyAuthorOnThreadOpened
         $this->notificationService->notifyByPreferences(
             $thread->author,
             NotificationType::Forum->value,
-            'Thread dibuka kembali',
-            "{$event->actor->name} membuka kembali thread \"{$thread->title}\".",
+            __('notifications.forum.thread_opened_title'),
+            __('notifications.forum.thread_opened_message', [
+                'actor' => $event->actor->name,
+                'title' => $thread->title,
+            ]),
             [
                 'thread_id' => $thread->id,
                 'actor_id' => $event->actor->id,

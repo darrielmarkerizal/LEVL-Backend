@@ -146,6 +146,7 @@ return [
     // Learning Emails
     'assignment_published' => [
         'subject' => 'Assignment Baru Tersedia',
+        'subject_with_details' => 'Assignment baru: :assignment — :course',
         'title' => 'Assignment Baru Tersedia',
         'greeting' => 'Halo, <strong>:name</strong>!',
         'body' => 'Assignment baru telah dipublikasikan untuk course yang Anda ikuti:',

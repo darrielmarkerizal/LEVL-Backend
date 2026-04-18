@@ -33,8 +33,8 @@ class NotifyUsersOnThreadPinned
             $this->notificationService->notifyByPreferences(
                 $enrollment->user,
                 NotificationType::Forum->value,
-                "Important: {$thread->title}",
-                "Thread dipin dan ditandai penting pada {$scheme->name}.",
+                __('notifications.forum.pinned_title', ['title' => $thread->title]),
+                __('notifications.forum.pinned_message', ['scheme' => $scheme->name]),
                 [
                     'thread_id' => $thread->id,
                     'thread_title' => $thread->title,

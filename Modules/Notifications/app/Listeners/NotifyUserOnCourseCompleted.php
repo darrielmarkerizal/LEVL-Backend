@@ -38,11 +38,8 @@ class NotifyUserOnCourseCompleted implements ShouldQueue
         $this->notificationService->notifyByPreferences(
             $user,
             NotificationType::CourseCompleted->value,
-            'Selamat! Course Selesai',
-            sprintf(
-                'Anda telah menyelesaikan course "%s". Selamat atas pencapaian Anda!',
-                $course->title
-            ),
+            __('notifications.course.completed_title'),
+            __('notifications.course.completed_message', ['course' => $course->title]),
             [
                 'course_id' => $course->id,
                 'course_slug' => $course->slug,

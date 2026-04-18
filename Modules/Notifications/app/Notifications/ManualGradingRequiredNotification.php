@@ -26,35 +26,42 @@ class ManualGradingRequiredNotification extends Notification implements ShouldQu
 
     public function toMail($notifiable): MailMessage
     {
-        $assignmentTitle = $this->submission->assignment?->title ?? 'Assignment';
-        $studentName = $this->submission->student?->name ?? 'A student';
+        $assignmentTitle = $this->submission->assignment?->title ?? __('notifications.assignment');
+        $studentName = $this->submission->user?->name ?? __('notifications.mail.student_fallback');
 
         $message = (new MailMessage)
-            ->subject("Manual grading required for \"{$assignmentTitle}\"")
-            ->greeting("Hello {$notifiable->name}!")
-            ->line("{$studentName} has submitted \"{$assignmentTitle}\" and it requires manual grading.");
+            ->subject(__('notifications.mail.manual_grading_required.subject', ['assignment' => $assignmentTitle]))
+            ->greeting(__('notifications.mail.manual_grading_required.greeting', ['name' => $notifiable->name]))
+            ->line(__('notifications.mail.manual_grading_required.line_body', [
+                'student' => $studentName,
+                'assignment' => $assignmentTitle,
+            ]));
 
         if ($this->questionsRequiringGrading > 0) {
-            $message->line("Number of questions requiring grading: {$this->questionsRequiringGrading}");
+            $message->line(__('notifications.mail.manual_grading_required.questions_line', [
+                'count' => $this->questionsRequiringGrading,
+            ]));
         }
 
         return $message
-            ->action('Grade Submission', $this->getGradingUrl())
-            ->line('Please review and grade the submission at your earliest convenience.');
+            ->action(__('notifications.mail.manual_grading_required.action'), $this->getGradingUrl())
+            ->line(__('notifications.mail.manual_grading_required.outro'));
     }
 
     public function toArray($notifiable): array
     {
+        $assignmentTitle = $this->submission->assignment?->title ?? __('notifications.assignment');
+
         return [
             'type' => 'manual_grading_required',
             'submission_id' => $this->submission->id,
             'assignment_id' => $this->submission->assignment_id,
             'assignment_title' => $this->submission->assignment?->title,
-            'student_id' => $this->submission->student_id,
-            'student_name' => $this->submission->student?->name,
+            'student_id' => $this->submission->user_id,
+            'student_name' => $this->submission->user?->name,
             'questions_requiring_grading' => $this->questionsRequiringGrading,
             'submitted_at' => $this->submission->submitted_at?->toIso8601String(),
-            'message' => "A submission for \"{$this->submission->assignment?->title}\" requires manual grading.",
+            'message' => __('notifications.mail.manual_grading_required.database_message', ['assignment' => $assignmentTitle]),
         ];
     }
 

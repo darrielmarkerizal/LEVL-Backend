@@ -27,22 +27,27 @@ class SubmissionGradedNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        $assignmentTitle = $this->submission->assignment?->title ?? 'Assignment';
+        $assignmentTitle = $this->submission->assignment?->title ?? __('notifications.assignment');
 
-        return (new MailMessage)
-            ->subject("Your submission for \"{$assignmentTitle}\" has been graded")
-            ->greeting("Hello {$notifiable->name}!")
-            ->line("Your submission for \"{$assignmentTitle}\" has been graded.")
-            ->line("Your score: {$this->score}/100")
-            ->when($this->feedback, function (MailMessage $message) {
-                return $message->line("Feedback: {$this->feedback}");
-            })
-            ->action('View Submission', $this->getSubmissionUrl())
-            ->line('Thank you for your hard work!');
+        $message = (new MailMessage)
+            ->subject(__('notifications.mail.submission_graded.subject', ['assignment' => $assignmentTitle]))
+            ->greeting(__('notifications.mail.submission_graded.greeting', ['name' => $notifiable->name]))
+            ->line(__('notifications.mail.submission_graded.line_graded', ['assignment' => $assignmentTitle]))
+            ->line(__('notifications.mail.submission_graded.score_line', ['score' => $this->score]));
+
+        if ($this->feedback) {
+            $message->line(__('notifications.mail.submission_graded.feedback_line', ['feedback' => $this->feedback]));
+        }
+
+        return $message
+            ->action(__('notifications.mail.submission_graded.action'), $this->getSubmissionUrl())
+            ->line(__('notifications.mail.submission_graded.outro'));
     }
 
     public function toArray($notifiable): array
     {
+        $assignmentTitle = $this->submission->assignment?->title ?? __('notifications.assignment');
+
         return [
             'type' => 'submission_graded',
             'submission_id' => $this->submission->id,
@@ -50,7 +55,10 @@ class SubmissionGradedNotification extends Notification implements ShouldQueue
             'assignment_title' => $this->submission->assignment?->title,
             'score' => $this->score,
             'feedback' => $this->feedback,
-            'message' => "Your submission for \"{$this->submission->assignment?->title}\" has been graded. Score: {$this->score}/100",
+            'message' => __('notifications.mail.submission_graded.database_message', [
+                'assignment' => $assignmentTitle,
+                'score' => $this->score,
+            ]),
         ];
     }
 

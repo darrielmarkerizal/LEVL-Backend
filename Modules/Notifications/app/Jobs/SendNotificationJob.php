@@ -34,20 +34,20 @@ class SendNotificationJob implements ShouldQueue
     public function handle(): void
     {
         if (empty($this->userIds)) {
-            Log::info('SendNotificationJob: No user IDs provided, skipping');
+            Log::info(__('notifications.jobs.send_notification.no_user_ids'));
 
             return;
         }
 
         if (! class_exists($this->notificationClass)) {
-            Log::error('SendNotificationJob: Notification class does not exist', [
+            Log::error(__('notifications.jobs.send_notification.class_missing'), [
                 'notification_class' => $this->notificationClass,
             ]);
 
             return;
         }
 
-        Log::info('SendNotificationJob: Starting notification dispatch', [
+        Log::info(__('notifications.jobs.send_notification.dispatch_start'), [
             'user_count' => count($this->userIds),
             'notification_class' => $this->notificationClass,
         ]);
@@ -56,7 +56,7 @@ class SendNotificationJob implements ShouldQueue
             $users = User::whereIn('id', $this->userIds)->get();
 
             if ($users->isEmpty()) {
-                Log::warning('SendNotificationJob: No users found for provided IDs', [
+                Log::warning(__('notifications.jobs.send_notification.no_users_found'), [
                     'user_ids' => $this->userIds,
                 ]);
 
@@ -67,12 +67,12 @@ class SendNotificationJob implements ShouldQueue
 
             Notification::send($users, $notification);
 
-            Log::info('SendNotificationJob: Completed notification dispatch', [
+            Log::info(__('notifications.jobs.send_notification.dispatch_complete'), [
                 'users_notified' => $users->count(),
                 'notification_class' => $this->notificationClass,
             ]);
         } catch (\Throwable $e) {
-            Log::error('SendNotificationJob: Failed to send notification', [
+            Log::error(__('notifications.jobs.send_notification.failed'), [
                 'user_ids' => $this->userIds,
                 'notification_class' => $this->notificationClass,
                 'error' => $e->getMessage(),
@@ -84,7 +84,7 @@ class SendNotificationJob implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        Log::error('SendNotificationJob: Job failed after all retries', [
+        Log::error(__('notifications.jobs.send_notification.job_failed'), [
             'user_ids' => $this->userIds,
             'notification_class' => $this->notificationClass,
             'error' => $exception->getMessage(),

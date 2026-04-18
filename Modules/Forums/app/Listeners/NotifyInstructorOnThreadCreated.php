@@ -26,8 +26,11 @@ class NotifyInstructorOnThreadCreated
                 $this->notificationService->notifyByPreferences(
                     $scheme->instructor,
                     NotificationType::Forum->value,
-                    "New thread created: {$thread->title}",
-                    "Ada thread baru pada {$scheme->name} oleh {$thread->author->name}.",
+                    __('notifications.forum.new_thread_title', ['title' => $thread->title]),
+                    __('notifications.forum.new_thread_message', [
+                        'scheme' => $scheme->name,
+                        'author' => $thread->author->name,
+                    ]),
                     [
                         'thread_id' => $thread->id,
                         'thread_title' => $thread->title,
@@ -52,8 +55,11 @@ class NotifyInstructorOnThreadCreated
                 $this->notificationService->notifyByPreferences(
                     $enrollment->user,
                     NotificationType::Forum->value,
-                    "Instructor posted: {$thread->title}",
-                    "Instruktur {$thread->author->name} membuat thread baru pada {$scheme->name}.",
+                    __('notifications.forum.instructor_posted_title', ['title' => $thread->title]),
+                    __('notifications.forum.instructor_posted_message', [
+                        'instructor' => $thread->author->name,
+                        'scheme' => $scheme->name,
+                    ]),
                     [
                         'thread_id' => $thread->id,
                         'thread_title' => $thread->title,

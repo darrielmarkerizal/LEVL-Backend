@@ -19,11 +19,17 @@ class NotifyAuthorOnContentScheduled
             return;
         }
 
+        $typeLabel = notifications_content_type_label($content);
+        $title = $content->title ?? __('notifications.content.untitled');
+
         $this->notificationService->notifyByPreferences(
             $content->author,
             NotificationType::CourseUpdates->value,
-            class_basename($content).' dijadwalkan',
-            class_basename($content)." \"{$content->title}\" berhasil dijadwalkan untuk publikasi.",
+            __('notifications.content.scheduled_title', ['type' => $typeLabel]),
+            __('notifications.content.scheduled_message', [
+                'type' => $typeLabel,
+                'title' => $title,
+            ]),
             [
                 'content_id' => $content->id,
                 'content_type' => get_class($content),

@@ -146,6 +146,7 @@ return [
     // Learning Emails
     'assignment_published' => [
         'subject' => 'New Assignment Available',
+        'subject_with_details' => 'New assignment: :assignment — :course',
         'title' => 'New Assignment Available',
         'greeting' => 'Hello, <strong>:name</strong>!',
         'body' => 'A new assignment has been published for a course you are enrolled in:',

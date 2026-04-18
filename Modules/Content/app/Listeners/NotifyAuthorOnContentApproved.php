@@ -23,15 +23,19 @@ class NotifyAuthorOnContentApproved
             return;
         }
 
-        $contentType = class_basename($event->content);
-        $contentTitle = $event->content->title ?? 'Untitled';
+        $contentTypeLabel = notifications_content_type_label($event->content);
+        $contentTitle = $event->content->title ?? __('notifications.content.untitled');
         $approverName = $event->user->name;
 
         $this->notificationService->notifyByPreferences(
             $author,
             NotificationType::CourseUpdates->value,
-            "{$contentType} disetujui",
-            "{$approverName} menyetujui {$contentType} \"{$contentTitle}\".",
+            __('notifications.content.approved_title', ['type' => $contentTypeLabel]),
+            __('notifications.content.approved_message', [
+                'approver' => $approverName,
+                'type' => $contentTypeLabel,
+                'title' => $contentTitle,
+            ]),
             [
                 'content_id' => $event->content->id,
                 'content_type' => get_class($event->content),

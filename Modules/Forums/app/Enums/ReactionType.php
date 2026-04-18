@@ -21,9 +21,9 @@ enum ReactionType: string
     public function label(): string
     {
         return match ($this) {
-            self::Like => 'Like',
-            self::Helpful => 'Helpful',
-            self::Solved => 'Solved',
+            self::Like => __('notifications.forum.reaction_labels.like'),
+            self::Helpful => __('notifications.forum.reaction_labels.helpful'),
+            self::Solved => __('notifications.forum.reaction_labels.solved'),
         };
     }
 }

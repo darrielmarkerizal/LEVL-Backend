@@ -19,11 +19,17 @@ class NotifyAuthorOnContentPublished
             return;
         }
 
+        $typeLabel = notifications_content_type_label($content);
+        $title = $content->title ?? __('notifications.content.untitled');
+
         $this->notificationService->notifyByPreferences(
             $content->author,
             NotificationType::CourseUpdates->value,
-            class_basename($content).' dipublikasikan',
-            class_basename($content)." \"{$content->title}\" sudah dipublikasikan.",
+            __('notifications.content.published_title', ['type' => $typeLabel]),
+            __('notifications.content.published_message', [
+                'type' => $typeLabel,
+                'title' => $title,
+            ]),
             [
                 'content_id' => $content->id,
                 'content_type' => get_class($content),

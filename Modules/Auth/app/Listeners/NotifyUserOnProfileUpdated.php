@@ -17,13 +17,13 @@ class NotifyUserOnProfileUpdated
     public function handle(ProfileUpdated $event): void
     {
         $message = $event->emailChanged
-            ? 'Profil diperbarui dan email Anda berubah. Silakan verifikasi ulang email.'
-            : 'Profil Anda berhasil diperbarui.';
+            ? __('notifications.auth.profile_updated_email_changed_message')
+            : __('notifications.auth.profile_updated_message');
 
         $this->notificationService->notifyByPreferences(
             $event->user,
             NotificationType::System->value,
-            'Profil diperbarui',
+            __('notifications.auth.profile_updated_title'),
             $message,
             [
                 'email_changed' => $event->emailChanged,

@@ -34,7 +34,10 @@ class AssignmentPublishedMail extends Mailable implements ShouldQueue
 
     public function build(): self
     {
-        return $this->subject('Assignment Baru: '.$this->assignment->title.' - '.$this->course->title)
+        return $this->subject(__('mail.assignment_published.subject_with_details', [
+            'assignment' => $this->assignment->title,
+            'course' => $this->course->title,
+        ]))
             ->view('mail::emails.learning.assignment-published')
             ->with([
                 'user' => $this->user,

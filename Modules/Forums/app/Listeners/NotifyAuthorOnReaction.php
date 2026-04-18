@@ -26,7 +26,7 @@ class NotifyAuthorOnReaction
             return;
         }
 
-        $reactionType = ucfirst($reaction->type->value);
+        $reactionType = $reaction->type->label();
         $userName = $reaction->user->name;
 
         if ($reactable instanceof Thread) {
@@ -37,8 +37,11 @@ class NotifyAuthorOnReaction
             $this->notificationService->notifyByPreferences(
                 $reactable->author,
                 NotificationType::ForumReactionThread->value,
-                'New Reaction',
-                "{$userName} reacted {$reactionType} to your thread",
+                __('notifications.forum.reaction_title'),
+                __('notifications.forum.reaction_thread_message', [
+                    'user' => $userName,
+                    'reaction' => $reactionType,
+                ]),
                 [
                     'thread_id' => $reactable->id,
                     'thread_title' => $reactable->title,
@@ -54,8 +57,11 @@ class NotifyAuthorOnReaction
             $this->notificationService->notifyByPreferences(
                 $reactable->author,
                 NotificationType::ForumReactionReply->value,
-                'New Reaction',
-                "{$userName} reacted {$reactionType} to your reply",
+                __('notifications.forum.reaction_title'),
+                __('notifications.forum.reaction_reply_message', [
+                    'user' => $userName,
+                    'reaction' => $reactionType,
+                ]),
                 [
                     'reply_id' => $reactable->id,
                     'thread_id' => $reactable->thread_id,

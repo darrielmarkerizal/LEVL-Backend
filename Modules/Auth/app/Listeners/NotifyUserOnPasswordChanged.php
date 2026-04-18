@@ -19,8 +19,8 @@ class NotifyUserOnPasswordChanged
         $this->notificationService->notifyByPreferences(
             $event->user,
             NotificationType::System->value,
-            'Password berhasil diubah',
-            'Password akun Anda telah diperbarui.',
+            __('notifications.auth.password_changed_title'),
+            __('notifications.auth.password_changed_message'),
             [
                 'user_id' => $event->user->id,
             ],

@@ -22,8 +22,11 @@ class NotifyAuthorOnThreadResolved
         $this->notificationService->notifyByPreferences(
             $thread->author,
             NotificationType::Forum->value,
-            'Thread ditandai selesai',
-            "{$event->actor->name} menandai thread \"{$thread->title}\" sebagai selesai.",
+            __('notifications.forum.thread_resolved_title'),
+            __('notifications.forum.thread_resolved_message', [
+                'actor' => $event->actor->name,
+                'title' => $thread->title,
+            ]),
             [
                 'thread_id' => $thread->id,
                 'actor_id' => $event->actor->id,

@@ -19,8 +19,11 @@ class NotifyUserOnLoggedIn
         $this->notificationService->notifyByPreferences(
             $event->user,
             NotificationType::System->value,
-            'Login berhasil',
-            "Login terdeteksi via {$event->loginType} dari {$event->ip}.",
+            __('notifications.auth.login_title'),
+            __('notifications.auth.login_message', [
+                'login_type' => $event->loginType,
+                'ip' => $event->ip,
+            ]),
             [
                 'ip' => $event->ip,
                 'login_type' => $event->loginType,

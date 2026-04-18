@@ -19,8 +19,8 @@ class NotifyUserOnRegistered
         $this->notificationService->notifyByPreferences(
             $event->user,
             NotificationType::System->value,
-            'Akun berhasil dibuat',
-            'Selamat datang di LEVL. Akun Anda sudah aktif dan siap digunakan.',
+            __('notifications.auth.registered_title'),
+            __('notifications.auth.registered_message'),
             [
                 'user_id' => $event->user->id,
             ],

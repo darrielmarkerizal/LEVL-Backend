@@ -43,30 +43,30 @@ class UserStatusChangedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $message = (new MailMessage)
-            ->subject(__('notifications.user_status_changed.subject'))
-            ->greeting(__('notifications.user_status_changed.greeting', ['name' => $notifiable->name]));
+            ->subject(__('auth::notifications.user_status_changed.subject'))
+            ->greeting(__('auth::notifications.user_status_changed.greeting', ['name' => $notifiable->name]));
 
         // Customize message based on new status
         $message = match ($this->newStatus) {
             UserStatus::Active => $message
-                ->line(__('notifications.user_status_changed.activated'))
-                ->line(__('notifications.user_status_changed.can_access_all_features'))
-                ->action(__('notifications.user_status_changed.login_now'), url('/login')),
+                ->line(__('auth::notifications.user_status_changed.activated'))
+                ->line(__('auth::notifications.user_status_changed.can_access_all_features'))
+                ->action(__('auth::notifications.user_status_changed.login_now'), url('/login')),
 
             UserStatus::Inactive => $message
-                ->line(__('notifications.user_status_changed.deactivated'))
-                ->line(__('notifications.user_status_changed.contact_admin_for_reactivation'))
-                ->line($this->reason ? __('notifications.user_status_changed.reason', ['reason' => $this->reason]) : ''),
+                ->line(__('auth::notifications.user_status_changed.deactivated'))
+                ->line(__('auth::notifications.user_status_changed.contact_admin_for_reactivation'))
+                ->line($this->reason ? __('auth::notifications.user_status_changed.reason', ['reason' => $this->reason]) : ''),
 
             UserStatus::Banned => $message
-                ->line(__('notifications.user_status_changed.banned'))
-                ->line(__('notifications.user_status_changed.contact_admin_for_appeal'))
-                ->line($this->reason ? __('notifications.user_status_changed.reason', ['reason' => $this->reason]) : ''),
+                ->line(__('auth::notifications.user_status_changed.banned'))
+                ->line(__('auth::notifications.user_status_changed.contact_admin_for_appeal'))
+                ->line($this->reason ? __('auth::notifications.user_status_changed.reason', ['reason' => $this->reason]) : ''),
 
-            default => $message->line(__('notifications.user_status_changed.status_updated')),
+            default => $message->line(__('auth::notifications.user_status_changed.status_updated')),
         };
 
-        return $message->line(__('notifications.user_status_changed.thank_you'));
+        return $message->line(__('auth::notifications.user_status_changed.thank_you'));
     }
 
     /**

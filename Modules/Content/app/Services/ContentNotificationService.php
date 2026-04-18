@@ -28,7 +28,7 @@ class ContentNotificationService
             $this->notificationService->notifyByPreferences(
                 $user,
                 NotificationType::CourseUpdates->value,
-                'Pengumuman Baru',
+                __('notifications.content.new_announcement_title'),
                 $announcement->title,
                 [
                     'announcement_id' => $announcement->id,
@@ -78,7 +78,7 @@ class ContentNotificationService
             $this->notificationService->notifyByPreferences(
                 $user,
                 NotificationType::CourseUpdates->value,
-                'Berita Baru',
+                __('notifications.content.new_news_title'),
                 $news->title,
                 [
                     'news_id' => $news->id,

@@ -28,32 +28,34 @@ class GradesReleasedNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        $assignmentTitle = $this->assignment->title ?? 'Assignment';
+        $assignmentTitle = $this->assignment->title ?? __('notifications.assignment');
 
         $message = (new MailMessage)
-            ->subject("Grades released for \"{$assignmentTitle}\"")
-            ->greeting("Hello {$notifiable->name}!")
-            ->line("Grades have been released for \"{$assignmentTitle}\".");
+            ->subject(__('notifications.mail.grades_released.subject', ['assignment' => $assignmentTitle]))
+            ->greeting(__('notifications.mail.grades_released.greeting', ['name' => $notifiable->name]))
+            ->line(__('notifications.mail.grades_released.line_released', ['assignment' => $assignmentTitle]));
 
         if ($this->score !== null) {
-            $message->line("Your score: {$this->score}/100");
+            $message->line(__('notifications.mail.grades_released.score_line', ['score' => $this->score]));
         }
 
         return $message
-            ->line('You can now view your detailed feedback and answers.')
-            ->action('View Results', $this->getResultsUrl())
-            ->line('Thank you for your participation!');
+            ->line(__('notifications.mail.grades_released.line_view_feedback'))
+            ->action(__('notifications.mail.grades_released.action'), $this->getResultsUrl())
+            ->line(__('notifications.mail.grades_released.outro'));
     }
 
     public function toArray($notifiable): array
     {
+        $assignmentTitle = $this->assignment->title ?? __('notifications.assignment');
+
         return [
             'type' => 'grades_released',
             'assignment_id' => $this->assignment->id,
             'assignment_title' => $this->assignment->title,
             'submission_id' => $this->submission?->id,
             'score' => $this->score,
-            'message' => "Grades have been released for \"{$this->assignment->title}\". You can now view your detailed feedback.",
+            'message' => __('notifications.mail.grades_released.database_message', ['assignment' => $assignmentTitle]),
         ];
     }
 

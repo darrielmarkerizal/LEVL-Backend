@@ -22,8 +22,11 @@ class NotifyAuthorOnThreadClosed
         $this->notificationService->notifyByPreferences(
             $thread->author,
             NotificationType::Forum->value,
-            'Thread ditutup',
-            "{$event->actor->name} menutup thread \"{$thread->title}\".",
+            __('notifications.forum.thread_closed_title'),
+            __('notifications.forum.thread_closed_message', [
+                'actor' => $event->actor->name,
+                'title' => $thread->title,
+            ]),
             [
                 'thread_id' => $thread->id,
                 'actor_id' => $event->actor->id,

@@ -39,7 +39,7 @@ class SendPostNotificationJob implements ShouldQueue
 
     public function handle(): void
     {
-        Log::info('SendPostNotificationJob: Starting notification dispatch', [
+        Log::info(__('notifications.jobs.post.dispatch_start'), [
             'post_uuid' => $this->post->uuid,
             'post_title' => $this->post->title,
             'channels' => $this->channels,
@@ -63,13 +63,13 @@ class SendPostNotificationJob implements ShouldQueue
                             'email' => $this->sendEmailNotifications($chunk),
                             'in_app' => $this->sendInAppNotifications($chunk),
                             'push' => $this->sendPushNotifications($chunk),
-                            default => Log::warning('Unknown notification channel', ['channel' => $channel]),
+                            default => Log::warning(__('notifications.jobs.post.unknown_channel', ['channel' => (string) $channel])),
                         };
                     }
                 });
 
             if (! $hasUsers) {
-                Log::warning('SendPostNotificationJob: No active users found for audiences', [
+                Log::warning(__('notifications.jobs.post.no_users_for_audiences'), [
                     'audiences' => $this->audiences,
                 ]);
 
@@ -82,13 +82,13 @@ class SendPostNotificationJob implements ShouldQueue
                     ->update(['sent_at' => now()]);
             }
 
-            Log::info('SendPostNotificationJob: Completed notification dispatch', [
+            Log::info(__('notifications.jobs.post.dispatch_complete'), [
                 'post_uuid' => $this->post->uuid,
                 'users_notified' => $totalUsers,
                 'channels' => $this->channels,
             ]);
         } catch (\Throwable $e) {
-            Log::error('SendPostNotificationJob: Failed to send notifications', [
+            Log::error(__('notifications.jobs.post.failed'), [
                 'post_uuid' => $this->post->uuid,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -121,7 +121,7 @@ class SendPostNotificationJob implements ShouldQueue
             );
         }
 
-        Log::info('Email notifications queued', [
+        Log::info(__('notifications.jobs.post.email_queued'), [
             'post_uuid' => $this->post->uuid,
             'user_count' => $users->count(),
         ]);
@@ -148,7 +148,7 @@ class SendPostNotificationJob implements ShouldQueue
             );
         }
 
-        Log::info('In-app notifications created', [
+        Log::info(__('notifications.jobs.post.in_app_created'), [
             'post_uuid' => $this->post->uuid,
             'user_count' => $users->count(),
         ]);
@@ -175,7 +175,7 @@ class SendPostNotificationJob implements ShouldQueue
             );
         }
 
-        Log::info('Push notifications processed', [
+        Log::info(__('notifications.jobs.post.push_processed'), [
             'post_uuid' => $this->post->uuid,
             'user_count' => $users->count(),
         ]);
@@ -183,7 +183,7 @@ class SendPostNotificationJob implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        Log::error('SendPostNotificationJob: Job failed after all retries', [
+        Log::error(__('notifications.jobs.post.job_failed'), [
             'post_uuid' => $this->post->uuid,
             'channels' => $this->channels,
             'audiences' => $this->audiences,

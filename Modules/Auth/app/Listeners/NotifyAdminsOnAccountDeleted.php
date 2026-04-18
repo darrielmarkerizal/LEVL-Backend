@@ -27,8 +27,11 @@ class NotifyAdminsOnAccountDeleted
             $this->notificationService->notifyByPreferences(
                 $admin,
                 NotificationType::System->value,
-                'Akun pengguna dihapus',
-                "{$event->user->name} ({$event->user->email}) telah menghapus akun.",
+                __('notifications.auth.account_deleted_admin_title'),
+                __('notifications.auth.account_deleted_admin_message', [
+                    'name' => $event->user->name,
+                    'email' => $event->user->email,
+                ]),
                 [
                     'deleted_user_id' => $event->user->id,
                 ],

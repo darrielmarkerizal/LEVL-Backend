@@ -22,8 +22,11 @@ class NotifyAuthorOnThreadUnresolved
         $this->notificationService->notifyByPreferences(
             $thread->author,
             NotificationType::Forum->value,
-            'Thread dibuka untuk diskusi',
-            "{$event->actor->name} membuka kembali diskusi untuk thread \"{$thread->title}\".",
+            __('notifications.forum.thread_unresolved_title'),
+            __('notifications.forum.thread_unresolved_message', [
+                'actor' => $event->actor->name,
+                'title' => $thread->title,
+            ]),
             [
                 'thread_id' => $thread->id,
                 'actor_id' => $event->actor->id,
