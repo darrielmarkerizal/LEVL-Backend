@@ -6,9 +6,15 @@ namespace Modules\Enrollments\Console;
 
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Modules\Enrollments\Enums\EnrollmentStatus;
+use Modules\Enrollments\Events\EnrollmentActivated;
 use Modules\Enrollments\Models\Enrollment;
+use Modules\Mail\Mail\Enrollments\StudentEnrollmentActivatedMail;
+use Throwable;
 
 class ActivateScheduledEnrollmentsCommand extends Command
 {
@@ -23,7 +29,9 @@ class ActivateScheduledEnrollmentsCommand extends Command
         $now = Carbon::now();
 
         // Find all pending enrollments where enrolled_at is today or in the past
-        $enrollments = Enrollment::where('status', EnrollmentStatus::Pending)
+        $enrollments = Enrollment::query()
+            ->useWritePdo()
+            ->where('status', EnrollmentStatus::Pending)
             ->whereDate('enrolled_at', '<=', $now->toDateString())
             ->with(['user:id,name,email', 'course:id,title,slug,code'])
             ->get();
@@ -39,28 +47,47 @@ class ActivateScheduledEnrollmentsCommand extends Command
 
         foreach ($enrollments as $enrollment) {
             try {
-                DB::transaction(function () use ($enrollment) {
-                    $enrollment->status = EnrollmentStatus::Active;
-                    $enrollment->save();
+                $this->resetFailedTransactionState();
 
-                    // Dispatch event for activation
-                    \Modules\Enrollments\Events\EnrollmentActivated::dispatch($enrollment);
+                $updatedRows = DB::transaction(function () use ($enrollment) {
+                    return Enrollment::query()
+                        ->whereKey($enrollment->id)
+                        ->where('status', EnrollmentStatus::Pending->value)
+                        ->update([
+                            'status' => EnrollmentStatus::Active->value,
+                            'updated_at' => now(),
+                        ]);
+                });
 
-                    // Send notification email
+                if ($updatedRows === 0) {
+                    continue;
+                }
+
+                // Keep side effects outside the transaction to avoid cascading failures.
+                EnrollmentActivated::dispatch($enrollment);
+
+                if ($enrollment->user?->email && $enrollment->course?->slug) {
                     $courseUrl = config('app.frontend_url').'/courses/'.$enrollment->course->slug;
-                    \Illuminate\Support\Facades\Mail::to($enrollment->user->email)
-                        ->queue((new \Modules\Mail\Mail\Enrollments\StudentEnrollmentActivatedMail(
+                    Mail::to($enrollment->user->email)
+                        ->queue((new StudentEnrollmentActivatedMail(
                             $enrollment->user,
                             $enrollment->course,
                             $courseUrl
                         ))->onQueue('emails-transactional'));
-                });
+                }
 
                 $activated++;
-                $this->info("✓ Activated enrollment #{$enrollment->id} for {$enrollment->user->name}");
-            } catch (\Exception $e) {
+                $studentName = $enrollment->user?->name ?? 'unknown user';
+                $this->info("✓ Activated enrollment #{$enrollment->id} for {$studentName}");
+            } catch (Throwable $e) {
                 $failed++;
                 $this->error("✗ Failed to activate enrollment #{$enrollment->id}: {$e->getMessage()}");
+                Log::error('ActivateScheduledEnrollmentsCommand failed for enrollment', [
+                    'enrollment_id' => $enrollment->id,
+                    'error' => $e->getMessage(),
+                ]);
+
+                $this->resetFailedTransactionState();
             }
         }
 
@@ -71,5 +98,35 @@ class ActivateScheduledEnrollmentsCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    private function resetFailedTransactionState(): void
+    {
+        try {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+        } catch (Throwable) {
+            // Best effort cleanup before continuing.
+        }
+
+        try {
+            DB::select('select 1');
+        } catch (QueryException $e) {
+            if (! $this->isFailedTransactionError($e)) {
+                throw $e;
+            }
+
+            DB::disconnect();
+            DB::purge();
+            DB::reconnect();
+        }
+    }
+
+    private function isFailedTransactionError(Throwable $e): bool
+    {
+        return str_contains($e->getMessage(), '25P02')
+            || str_contains(strtolower($e->getMessage()), 'failed sql transaction')
+            || str_contains(strtolower($e->getMessage()), 'current transaction is aborted');
     }
 }

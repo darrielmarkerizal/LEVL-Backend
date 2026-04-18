@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\BusinessException;
+use App\Http\Middleware\EnsureCleanDatabaseSession;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsureRole;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -46,6 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => EnsureRole::class,
             'permission' => EnsurePermission::class,
+            'ensure.clean.db.session' => EnsureCleanDatabaseSession::class,
             'cache.response' => \App\Http\Middleware\CacheResponse::class,
             'xp.info' => \Modules\Gamification\Http\Middleware\AppendXpInfoToResponse::class,
             'track.daily.login' => \Modules\Gamification\Http\Middleware\TrackDailyLogin::class,
@@ -62,7 +64,10 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         // Set locale before processing API requests
-        $middleware->api(prepend: [\App\Http\Middleware\SetLocale::class]);
+        $middleware->api(prepend: [
+            \App\Http\Middleware\SetLocale::class,
+            EnsureCleanDatabaseSession::class,
+        ]);
 
         // Ensure user is active on all authenticated API requests
         $middleware->appendToGroup('api', \Modules\Auth\Http\Middleware\EnsureUserActive::class);
