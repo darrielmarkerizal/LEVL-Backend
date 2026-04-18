@@ -72,8 +72,8 @@ class BadgeRuleEvaluator
             function () use ($event) {
                 return BadgeRule::with('badge')
                     ->where('event_trigger', $event)
-                    ->where('rule_enabled', true) // Only evaluate enabled rules
-                    ->orderBy('priority', 'desc') // HIGH priority first
+                    ->whereRaw('rule_enabled IS TRUE')
+                    ->orderBy('priority', 'desc')
                     ->get();
             }
         );
