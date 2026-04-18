@@ -12,6 +12,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Modules\Auth\Models\User;
 use Modules\Schemes\Contracts\Repositories\CourseRepositoryInterface;
 use Modules\Schemes\DTOs\CreateCourseDTO;
@@ -44,6 +45,10 @@ class CourseLifecycleProcessor
                     $attributes['code'] = $this->generateCourseCode();
                 }
 
+                if (! isset($attributes['slug']) || trim((string) $attributes['slug']) === '') {
+                    $attributes['slug'] = $this->generateUniqueSlug((string) ($attributes['title'] ?? 'course'));
+                }
+
                 if (! isset($attributes['instructor_id'])) {
                     $attributes['instructor_id'] = null;
                 }
@@ -68,7 +73,7 @@ class CourseLifecycleProcessor
                     $outcomes = [$outcomes];
                 }
 
-                $attributes = Arr::except($attributes, ['slug', 'tags', 'tags_list', 'instructor_ids', 'outcomes']);
+                $attributes = Arr::except($attributes, ['tags', 'tags_list', 'instructor_ids', 'outcomes']);
 
                 $course = Course::withoutEvents(fn () => $this->repository->create($attributes));
 
@@ -157,6 +162,13 @@ class CourseLifecycleProcessor
                 $outcomes = $attributes['outcomes'] ?? null;
                 if (! is_array($outcomes) && $outcomes !== null) {
                     $outcomes = [$outcomes];
+                }
+
+                if (! isset($attributes['slug']) || trim((string) $attributes['slug']) === '') {
+                    $attributes['slug'] = $this->generateUniqueSlug(
+                        (string) ($attributes['title'] ?? $course->title),
+                        $course->id,
+                    );
                 }
 
                 // Allow slug to be updated
@@ -596,6 +608,30 @@ class CourseLifecycleProcessor
     private function generateCourseCode(): string
     {
         return CodeGenerator::generate('CRS-', 6, Course::class);
+    }
+
+    private function generateUniqueSlug(string $title, ?int $ignoreCourseId = null): string
+    {
+        $baseSlug = Str::slug($title);
+
+        if ($baseSlug === '') {
+            $baseSlug = 'course';
+        }
+
+        $slug = $baseSlug;
+        $counter = 1;
+
+        while (
+            Course::query()
+                ->where('slug', $slug)
+                ->when($ignoreCourseId !== null, fn ($query) => $query->whereKeyNot($ignoreCourseId))
+                ->exists()
+        ) {
+            $slug = $baseSlug.'-'.$counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 
     private function syncOutcomes(Course $course, array $outcomes): void

@@ -145,9 +145,11 @@ class TagService
     private function preparePayload(array $data, ?int $ignoreId = null, ?string $currentSlug = null, ?string $currentName = null): array
     {
         $name = trim((string) ($data['name'] ?? ''));
+        $slug = $this->ensureUniqueSlug((string) ($data['slug'] ?? Str::slug($name) ?: 'tag'), $ignoreId);
 
         return [
             'name' => $name,
+            'slug' => $slug,
         ];
     }
 
@@ -161,7 +163,7 @@ class TagService
             return $existing;
         }
 
-        $payload = $this->preparePayload(['name' => $name]);
+    $payload = $this->preparePayload(['name' => $name]);
 
         try {
             return $this->repository->create($payload);
