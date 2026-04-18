@@ -43,8 +43,8 @@ class PostRepository extends BaseRepository
         }
 
         $filters = request()->get('filter', []);
-        $page = request()->get('page', 1);
-        $sort = request()->get('sort', $this->defaultSort);
+        $page = (int) request()->get('page', 1);
+        $sort = (string) request()->get('sort', $this->defaultSort);
         $cacheKey = $this->buildCacheKey('list', $filters, $role, $page, $sort);
 
         return Cache::tags(['posts'])->remember(

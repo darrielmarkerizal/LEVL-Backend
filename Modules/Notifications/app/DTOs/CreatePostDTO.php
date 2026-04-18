@@ -43,9 +43,4 @@ final class CreatePostDTO extends Data
         #[MapInputName('scheduled_at')]
         public ?string $scheduledAt = null,
     ) {}
-
-    public static function fromRequest(array $data): self
-    {
-        return self::from($data);
-    }
 }

@@ -39,9 +39,4 @@ final class UpdatePostDTO extends Data
         #[MapInputName('resend_notification_channels')]
         public array $resendNotificationChannels = [],
     ) {}
-
-    public static function fromRequest(array $data): self
-    {
-        return self::from($data);
-    }
 }

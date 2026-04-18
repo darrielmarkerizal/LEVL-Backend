@@ -25,9 +25,4 @@ final class CreateEnrollmentDTO extends Data
             'enrollment_key' => $this->enrollmentKey,
         ];
     }
-
-    public static function fromRequest(array $data): static
-    {
-        return self::from($data);
-    }
 }
