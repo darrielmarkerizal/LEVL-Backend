@@ -38,15 +38,11 @@ class CourseRepository extends BaseRepository implements CourseRepositoryInterfa
 
     public function update(Model $model, array $attributes): Model
     {
-        $updated = $this->model()::query()
-            ->whereKey($model->getKey())
-            ->update($attributes);
+        $model->fill($attributes);
 
-        if ($updated !== 1) {
-            throw new RuntimeException('Course update did not affect exactly one row.');
+        if (! $model->save()) {
+            throw new RuntimeException('Course update could not be persisted.');
         }
-
-        $model->forceFill($attributes);
 
         return $model;
     }

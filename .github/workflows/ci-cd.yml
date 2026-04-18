@@ -142,7 +142,13 @@ jobs:
             sudo systemctl restart octane
 
             # ── Restart queue workers (long-lived processes) ─────────────────
-            sudo supervisorctl restart levl-queue-worker:*
+            # Avoid shell glob expansion issues on zsh by restarting explicit names from supervisor status.
+            QUEUE_PROCESSES=$(sudo supervisorctl status | awk '/^levl-queue-worker:/{print $1}')
+            if [ -n "$QUEUE_PROCESSES" ]; then
+              echo "$QUEUE_PROCESSES" | xargs -r sudo supervisorctl restart
+            else
+              echo "⚠️  No levl-queue-worker processes found in supervisor status"
+            fi
 
             # ── Bring application back online ─────────────────────────────────
             php artisan up
