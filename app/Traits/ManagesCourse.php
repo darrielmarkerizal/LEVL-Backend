@@ -13,7 +13,7 @@ trait ManagesCourse
             return true;
         }
 
-        return $course->hasInstructor($user) || $course->hasAdmin($user);
+        return $course->isAssignedInstructor($user);
     }
 
     protected function isSystemAdmin(User $user): bool
@@ -23,6 +23,6 @@ trait ManagesCourse
 
     protected function isInstructorOfCourse(User $user, Course $course): bool
     {
-        return $course->hasInstructor($user);
+        return $course->isAssignedInstructor($user);
     }
 }

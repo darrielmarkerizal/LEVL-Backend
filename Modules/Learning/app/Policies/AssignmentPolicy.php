@@ -31,8 +31,9 @@ class AssignmentPolicy
 
         if ($user->hasRole('Instructor')) {
             $assignment->loadMissing('unit.course');
+            $course = $assignment->unit?->course;
 
-            return $assignment->unit?->course?->instructor_id === $user->id;
+            return $course && $course->isAssignedInstructor($user);
         }
 
         if ($user->hasRole('Student')) {
@@ -66,8 +67,7 @@ class AssignmentPolicy
             return true;
         }
 
-        // Instructor can create assignments in their courses
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+        return $user->hasRole('Instructor') && $course->isAssignedInstructor($user);
     }
 
     public function update(User $user, Assignment $assignment): bool
@@ -86,8 +86,7 @@ class AssignmentPolicy
             return true;
         }
 
-        // Instructor can update assignments in their courses
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+        return $user->hasRole('Instructor') && $course->isAssignedInstructor($user);
     }
 
     public function delete(User $user, Assignment $assignment): bool
@@ -106,8 +105,7 @@ class AssignmentPolicy
             return true;
         }
 
-        // Instructor can delete assignments in their courses
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+        return $user->hasRole('Instructor') && $course->isAssignedInstructor($user);
     }
 
     public function publish(User $user, Assignment $assignment): bool
@@ -138,8 +136,7 @@ class AssignmentPolicy
             return true;
         }
 
-        // Instructor can duplicate assignments in their courses
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+        return $user->hasRole('Instructor') && $course->isAssignedInstructor($user);
     }
 
     public function listQuestions(User $user, Assignment $assignment): bool
@@ -171,7 +168,6 @@ class AssignmentPolicy
             return true;
         }
 
-        // Instructor can view questions in their courses
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+        return $user->hasRole('Instructor') && $course->isAssignedInstructor($user);
     }
 }

@@ -34,7 +34,7 @@ class SubmissionPolicy
         }
 
         if ($user->hasRole('Instructor')) {
-            return $course->instructor_id === $user->id;
+            return $course->isAssignedInstructor($user);
         }
 
         return false;
@@ -133,7 +133,6 @@ class SubmissionPolicy
             return true;
         }
 
-        // Instructor can grade submissions in their courses
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+        return $user->hasRole('Instructor') && $course->isAssignedInstructor($user);
     }
 }

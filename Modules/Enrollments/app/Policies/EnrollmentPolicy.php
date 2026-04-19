@@ -26,9 +26,8 @@ class EnrollmentPolicy
             return true;
         }
 
-        // Instructor can only manage their assigned courses
         if ($user->hasRole('Instructor')) {
-            return $course->hasInstructor($user);
+            return $course->isAssignedInstructor($user);
         }
 
         return false;
@@ -50,9 +49,8 @@ class EnrollmentPolicy
                 return true;
             }
 
-            // Instructor can only view enrollments in their courses
             if ($user->hasRole('Instructor')) {
-                return $enrollment->course->hasInstructor($user);
+                return $enrollment->course->isAssignedInstructor($user);
             }
         }
 
@@ -120,9 +118,8 @@ class EnrollmentPolicy
             return true;
         }
 
-        // Instructor can only manage enrollments in their courses
         if ($user->hasRole('Instructor')) {
-            return $enrollment->course->hasInstructor($user);
+            return $enrollment->course->isAssignedInstructor($user);
         }
 
         return false;

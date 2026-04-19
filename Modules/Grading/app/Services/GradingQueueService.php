@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Grading\Services;
 
+use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -106,7 +107,7 @@ class GradingQueueService
             ]);
 
         if ($isInstructor && $actorId) {
-            $query->whereHas('assignment.unit.course', fn ($q) => $q->where('instructor_id', $actorId));
+            $query->whereHas('assignment.unit.course', $this->courseInstructorScope($actorId));
         }
 
         return $query;
@@ -129,9 +130,19 @@ class GradingQueueService
             ]);
 
         if ($isInstructor && $actorId) {
-            $query->whereHas('quiz.unit.course', fn ($q) => $q->where('instructor_id', $actorId));
+            $query->whereHas('quiz.unit.course', $this->courseInstructorScope($actorId));
         }
 
         return $query;
+    }
+
+    private function courseInstructorScope(int $actorId): Closure
+    {
+        return function ($courseQuery) use ($actorId) {
+            $courseQuery->where(function ($q) use ($actorId) {
+                $q->where('instructor_id', $actorId)
+                    ->orWhereHas('instructors', fn ($iq) => $iq->whereKey($actorId));
+            });
+        };
     }
 }

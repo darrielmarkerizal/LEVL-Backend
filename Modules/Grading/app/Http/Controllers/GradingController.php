@@ -60,10 +60,13 @@ class GradingController extends Controller
     public function queue(GradingQueueRequest $request): JsonResponse
     {
         $actor = auth('api')->user();
+        $scopeToInstructorCourses = $actor
+            && $actor->hasRole('Instructor')
+            && ! $actor->hasAnyRole(['Admin', 'Superadmin']);
         $paginator = $this->queueService->getGradingQueue(
             $request->all(),
             $actor?->id,
-            (bool) $actor?->hasRole('Instructor')
+            $scopeToInstructorCourses
         );
         $paginator->getCollection()->transform(fn ($item) => new GradingQueueItemResource($item));
 

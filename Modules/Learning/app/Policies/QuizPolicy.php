@@ -43,7 +43,7 @@ class QuizPolicy
         }
 
         if ($user->hasRole('Instructor')) {
-            return $course->instructor_id === $user->id;
+            return $course->isAssignedInstructor($user);
         }
 
         if ($user->hasRole('Student')) {
@@ -64,8 +64,7 @@ class QuizPolicy
             return true;
         }
 
-        // Instructor can create quizzes in their courses
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+        return $user->hasRole('Instructor') && $course->isAssignedInstructor($user);
     }
 
     public function update(User $user, Quiz $quiz): bool
@@ -84,8 +83,7 @@ class QuizPolicy
             return true;
         }
 
-        // Instructor can update quizzes in their courses
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+        return $user->hasRole('Instructor') && $course->isAssignedInstructor($user);
     }
 
     public function delete(User $user, Quiz $quiz): bool
@@ -109,8 +107,7 @@ class QuizPolicy
             return true;
         }
 
-        // Instructor can view submissions in their courses
-        return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
+        return $user->hasRole('Instructor') && $course->isAssignedInstructor($user);
     }
 
     public function takeQuiz(User $user, Quiz $quiz): bool

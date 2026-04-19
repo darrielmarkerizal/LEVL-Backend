@@ -282,6 +282,11 @@ class Course extends Model implements HasMedia
         return $this->instructor_id === (is_object($user) ? $user->id : $user);
     }
 
+    public function isAssignedInstructor($user): bool
+    {
+        return $this->hasInstructor($user) || $this->hasInstructorAssignment($user);
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
