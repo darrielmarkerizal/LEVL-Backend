@@ -3,6 +3,7 @@
 namespace Modules\Learning\Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 use Modules\Learning\Enums\QuestionType;
 use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Enums\SubmissionStatus;
@@ -25,6 +26,20 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
         ini_set('memory_limit', '1536M');
 
         echo "Seeding questions, options, answers, and submissions...\n";
+
+        // This seeder targets legacy assignment-question schema.
+        // Skip gracefully when running on newer schema variants.
+        if (! Schema::hasTable('assignment_questions')) {
+            echo "⚠️  Table assignment_questions not found. Skipping QuestionOptionAnswerSubmissionSeeder.\n";
+
+            return;
+        }
+
+        if (! Schema::hasTable('answers') || ! Schema::hasColumn('answers', 'question_id')) {
+            echo "⚠️  answers.question_id not found. Skipping QuestionOptionAnswerSubmissionSeeder.\n";
+
+            return;
+        }
 
         $this->pregenerateFakeData();
         $this->createdAt = now()->toDateTimeString();
@@ -60,19 +75,34 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
             SubmissionState::Released->value,
         ];
 
-        $userIds = \DB::table('users')->limit(50)->pluck('id')->toArray();
+        $userIds = \DB::table('users')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', 'Student')
+            ->where('model_has_roles.model_type', 'Modules\\Auth\\Models\\User')
+            ->limit(50)
+            ->pluck('users.id')
+            ->toArray();
+
+        if ($userIds === []) {
+            $userIds = \DB::table('users')->limit(50)->pluck('id')->toArray();
+        }
 
         $questionCount = 0;
         $submissionCount = 0;
         $answerCount = 0;
         $processedAssignments = 0;
 
-        foreach (\DB::table('assignments')->select('id', 'title')->orderBy('id')->cursor() as $assignment) {
+        foreach (\DB::table('assignments')->select('id', 'title', 'unit_id')->orderBy('id')->cursor() as $assignment) {
             $processedAssignments++;
 
             if (rand(1, 100) > 20) {
                 continue;
             }
+
+            $courseId = $assignment->unit_id
+                ? (int) \DB::table('units')->where('id', $assignment->unit_id)->value('course_id')
+                : 0;
 
             $numQuestions = rand(2, 3);
             $questionIds = [];
@@ -138,22 +168,43 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
 
                 $status = match ($state) {
                     SubmissionState::InProgress->value => SubmissionStatus::Draft->value,
-                    SubmissionState::Submitted->value => SubmissionStatus::Submitted->value,
-                    default => SubmissionStatus::Graded->value,
+                    SubmissionState::Submitted->value,
+                    SubmissionState::PendingManualGrading->value => SubmissionStatus::Submitted->value,
+                    SubmissionState::AutoGraded->value,
+                    SubmissionState::Graded->value,
+                    SubmissionState::Released->value => SubmissionStatus::Graded->value,
+                    default => SubmissionStatus::Draft->value,
                 };
+
+                $nextAttempt = (int) (\DB::table('submissions')
+                    ->where('assignment_id', $assignment->id)
+                    ->where('user_id', $userId)
+                    ->max('attempt_number') ?? 0) + 1;
+
+                $enrollmentId = $courseId > 0
+                    ? \DB::table('enrollments')
+                        ->where('user_id', $userId)
+                        ->where('course_id', $courseId)
+                        ->where('status', 'active')
+                        ->value('id')
+                    : null;
 
                 $submissionId = \DB::table('submissions')->insertGetId([
                     'assignment_id' => $assignment->id,
                     'user_id' => $userId,
+                    'enrollment_id' => $enrollmentId,
                     'status' => $status,
                     'state' => $state,
                     'submitted_at' => $state !== SubmissionState::InProgress->value ? $this->createdAt : null,
-                    'attempt_number' => rand(1, 3),
+                    'attempt_number' => $nextAttempt,
                     'is_late' => rand(1, 100) <= 15,
+                    'score' => null,
                     'created_at' => $this->createdAt,
                     'updated_at' => $this->createdAt,
                 ]);
                 $submissionCount++;
+
+                $answerScoresSum = 0.0;
 
                 foreach ($questionIds as $q) {
                     $answerData = [
@@ -169,30 +220,50 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
                         'updated_at' => $this->createdAt,
                     ];
 
-                    switch ($q['type']) {
-                        case QuestionType::MultipleChoice->value:
-                        case QuestionType::Checkbox->value:
-                            if ($q['options']) {
-                                $answerData['selected_options'] = json_encode([$q['options'][rand(0, 3)]['id']]);
-                            }
-                            break;
+                    $isDraft = $state === SubmissionState::InProgress->value;
 
-                        case QuestionType::Essay->value:
-                            $answerData['content'] = $this->pregenParagraphs[array_rand($this->pregenParagraphs)];
-                            break;
+                    if (! $isDraft || rand(1, 100) <= 60) {
+                        switch ($q['type']) {
+                            case QuestionType::MultipleChoice->value:
+                            case QuestionType::Checkbox->value:
+                                if ($q['options']) {
+                                    $answerData['selected_options'] = json_encode([$q['options'][rand(0, 3)]['id']]);
+                                }
+                                break;
 
-                        case QuestionType::FileUpload->value:
-                            $answerData['file_paths'] = json_encode([$this->pregenWords[array_rand($this->pregenWords)].'.pdf']);
-                            break;
+                            case QuestionType::Essay->value:
+                                $answerData['content'] = $this->pregenParagraphs[array_rand($this->pregenParagraphs)];
+                                break;
+
+                            case QuestionType::FileUpload->value:
+                                $answerData['file_paths'] = json_encode([$this->pregenWords[array_rand($this->pregenWords)].'.pdf']);
+                                break;
+                        }
                     }
 
-                    if (in_array($state, [SubmissionState::AutoGraded->value, SubmissionState::Graded->value, SubmissionState::Released->value])) {
+                    if (in_array($state, [
+                        SubmissionState::AutoGraded->value,
+                        SubmissionState::Graded->value,
+                        SubmissionState::Released->value,
+                    ], true)) {
                         $answerData['score'] = rand(0, $q['maxScore']);
                         $answerData['is_auto_graded'] = rand(1, 100) <= 70;
+                        $answerScoresSum += (float) $answerData['score'];
                     }
 
                     \DB::table('answers')->insertOrIgnore($answerData);
                     $answerCount++;
+                }
+
+                if (in_array($state, [
+                    SubmissionState::AutoGraded->value,
+                    SubmissionState::Graded->value,
+                    SubmissionState::Released->value,
+                ], true)) {
+                    \DB::table('submissions')->where('id', $submissionId)->update([
+                        'score' => round($answerScoresSum, 2),
+                        'updated_at' => $this->createdAt,
+                    ]);
                 }
             }
 

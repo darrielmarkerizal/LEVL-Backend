@@ -7,6 +7,7 @@ namespace Modules\Learning\Database\Seeders;
 use App\Support\RealisticSeederContent;
 use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
+use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Quiz;
 use Modules\Learning\Models\QuizSubmission;
@@ -263,18 +264,30 @@ class SequentialProgressSeeder extends Seeder
 
         $answerText = null;
         $submissionType = $assignment->submission_type;
-        
-        // Handle answer_text based on submission type
+
         if ($submissionType === \Modules\Learning\Enums\SubmissionType::Text) {
-            $answerText = $this->pregenAnswers[array_rand($this->pregenAnswers)];
+            $answerText = $this->ensureMinAnswerLength(
+                $this->pregenAnswers[array_rand($this->pregenAnswers)]
+            );
         } elseif ($submissionType === \Modules\Learning\Enums\SubmissionType::Mixed) {
-            // For mixed type, randomly decide to include text or not (70% chance)
             if (rand(1, 100) <= 70) {
-                $answerText = $this->pregenAnswers[array_rand($this->pregenAnswers)];
+                $answerText = $this->ensureMinAnswerLength(
+                    $this->pregenAnswers[array_rand($this->pregenAnswers)]
+                );
             }
         }
 
         $submittedAt = now()->subDays(rand(1, 14))->toDateTimeString();
+
+        $stateValue = match ($status) {
+            'draft' => SubmissionState::InProgress->value,
+            'submitted' => rand(0, 1) === 0
+                ? SubmissionState::Submitted->value
+                : SubmissionState::PendingManualGrading->value,
+            default => rand(1, 100) <= 85
+                ? SubmissionState::Graded->value
+                : SubmissionState::Released->value,
+        };
 
         $submission = Submission::create([
             'assignment_id' => $assignment->id,
@@ -282,7 +295,7 @@ class SequentialProgressSeeder extends Seeder
             'enrollment_id' => $enrollmentId,
             'answer_text' => $answerText,
             'status' => $status,
-            'state' => $status,
+            'state' => $stateValue,
             'score' => $score,
             'submitted_at' => $submittedAt,
             'attempt_number' => 1,
@@ -292,8 +305,13 @@ class SequentialProgressSeeder extends Seeder
         if ($submissionType === \Modules\Learning\Enums\SubmissionType::File) {
             $this->attachFileToSubmission($submission);
         } elseif ($submissionType === \Modules\Learning\Enums\SubmissionType::Mixed) {
-            // For mixed type, always attach file (since it's required or optional)
             $this->attachFileToSubmission($submission);
+            if ($answerText === null && $submission->getMedia('submission_files')->isEmpty()) {
+                $answerText = $this->ensureMinAnswerLength(
+                    $this->pregenAnswers[array_rand($this->pregenAnswers)]
+                );
+                $submission->update(['answer_text' => $answerText]);
+            }
         }
 
         if ($status === 'graded' || $status === 'submitted') {
@@ -338,19 +356,44 @@ class SequentialProgressSeeder extends Seeder
 
         $daysAgo = rand(1, 14);
         $submittedAt = now()->subDays($daysAgo)->toDateTimeString();
-        $startedAt = now()->subDays($daysAgo)->subMinutes(rand(30, 120))->toDateTimeString();
+        $startedAt = now()->subDays($daysAgo)->subMinutes(rand(10, 120))->toDateTimeString();
+
+        // Match QuizSubmissionService lifecycle: draft/submitted/graded
+        $scenarioRoll = rand(1, 100);
+        $scenario = match (true) {
+            $scenarioRoll <= 25 => 'draft',
+            $scenarioRoll <= 65 => 'submitted',
+            default => 'graded',
+        };
+
+        $status = match ($scenario) {
+            'draft' => \Modules\Learning\Enums\QuizSubmissionStatus::Draft->value,
+            'submitted' => \Modules\Learning\Enums\QuizSubmissionStatus::Submitted->value,
+            default => \Modules\Learning\Enums\QuizSubmissionStatus::Graded->value,
+        };
+
+        $gradingStatus = match ($scenario) {
+            'draft' => \Modules\Learning\Enums\QuizGradingStatus::Pending->value,
+            // With essays present, autoGrade produces partially_graded and keeps status=submitted.
+            'submitted' => \Modules\Learning\Enums\QuizGradingStatus::PartiallyGraded->value,
+            default => \Modules\Learning\Enums\QuizGradingStatus::Graded->value,
+        };
+
+        $attemptNumber = (int) (QuizSubmission::where('quiz_id', $quiz->id)
+            ->where('user_id', $studentId)
+            ->max('attempt_number') ?? 0) + 1;
 
         $submission = QuizSubmission::create([
             'quiz_id' => $quiz->id,
             'user_id' => $studentId,
             'enrollment_id' => $enrollmentId,
-            'status' => 'graded',
-            'grading_status' => 'graded',
-            'score' => 0,
-            'final_score' => 0,
-            'submitted_at' => $submittedAt,
+            'status' => $status,
+            'grading_status' => $gradingStatus,
+            'score' => null,
+            'final_score' => null,
+            'submitted_at' => $scenario === 'draft' ? null : $submittedAt,
             'started_at' => $startedAt,
-            'attempt_number' => 1,
+            'attempt_number' => $attemptNumber,
         ]);
 
         $passingGrade = (float) ($quiz->passing_grade ?? 75);
@@ -371,7 +414,9 @@ class SequentialProgressSeeder extends Seeder
             default => rand(max(30, (int) ($passingGrade - 20)), max(40, (int) ($passingGrade - 5))),
         };
 
-        $totalScore = 0;
+        $objectiveWeightTotal = 0.0;
+        $objectiveEarned = 0.0;
+        $essayScore = 0.0;
 
         foreach ($questions as $question) {
             $randomChance = rand(1, 100);
@@ -384,8 +429,8 @@ class SequentialProgressSeeder extends Seeder
                 'quiz_question_id' => $question->id,
                 'content' => null,
                 'selected_options' => null,
-                'score' => $questionScore,
-                'is_auto_graded' => true,
+                'score' => $scenario === 'draft' ? null : $questionScore,
+                'is_auto_graded' => $question->type !== 'essay',
                 'feedback' => null,
                 'created_at' => $this->createdAt,
                 'updated_at' => $this->createdAt,
@@ -402,26 +447,66 @@ class SequentialProgressSeeder extends Seeder
             } elseif ($question->type === 'essay') {
                 $answerData['content'] = $this->pregenAnswers[array_rand($this->pregenAnswers)];
                 $answerData['is_auto_graded'] = false;
-                if ($isCorrect) {
-                    $answerData['score'] = rand((int) ($weight * 0.8), (int) $weight);
-                    $answerData['feedback'] = 'Good answer';
+
+                if ($scenario === 'graded') {
+                    if ($isCorrect) {
+                        $answerData['score'] = rand((int) ($weight * 0.8), (int) $weight);
+                        $answerData['feedback'] = 'Good answer';
+                    } else {
+                        $answerData['score'] = rand((int) ($weight * 0.3), (int) ($weight * 0.6));
+                        $answerData['feedback'] = 'Needs improvement';
+                    }
+                    $essayScore = (float) $answerData['score'];
                 } else {
-                    $answerData['score'] = rand((int) ($weight * 0.3), (int) ($weight * 0.6));
-                    $answerData['feedback'] = 'Needs improvement';
+                    // draft/submitted: essay not graded yet
+                    $answerData['score'] = null;
+                    $answerData['feedback'] = null;
                 }
-                $questionScore = $answerData['score'];
             }
 
             \DB::table('quiz_answers')->insert($answerData);
-            $totalScore += $answerData['score'];
+
+            if ($scenario !== 'draft' && $question->type !== 'essay') {
+                $objectiveWeightTotal += $weight;
+                $objectiveEarned += (float) ($answerData['score'] ?? 0);
+            }
         }
 
+        if ($scenario === 'draft') {
+            return false;
+        }
+
+        $maxScore = (float) ($quiz->max_score ?? 100);
+        $objectiveScore = $objectiveWeightTotal > 0
+            ? round(($objectiveEarned / $objectiveWeightTotal) * $maxScore, 2)
+            : 0.0;
+
+        if ($scenario === 'submitted') {
+            $submission->update([
+                'score' => $objectiveScore,
+                'final_score' => null,
+            ]);
+
+            return false;
+        }
+
+        $finalScore = max((float) $passingGrade, min((float) $maxScore, round($objectiveScore + $essayScore, 2)));
+
         $submission->update([
-            'score' => $totalScore,
-            'final_score' => $totalScore,
+            'score' => $finalScore,
+            'final_score' => $finalScore,
         ]);
 
-        return $totalScore >= $passingGrade;
+        return $finalScore >= $passingGrade;
+    }
+
+    private function ensureMinAnswerLength(string $text, int $min = 10): string
+    {
+        if (mb_strlen($text) >= $min) {
+            return $text;
+        }
+
+        return $text.' '.str_repeat('x', $min - mb_strlen($text));
     }
 
     private function attachFileToSubmission(Submission $submission): void
@@ -429,7 +514,7 @@ class SequentialProgressSeeder extends Seeder
         UATMediaFixtures::ensureFilesExist();
         $dummyFilePath = UATMediaFixtures::paths()['pdf'];
         $fallback = public_path('dummy/pdf-sample_0.pdf');
-        
+
         if (! file_exists($dummyFilePath) && file_exists($fallback)) {
             $dummyFilePath = $fallback;
         }
@@ -437,6 +522,7 @@ class SequentialProgressSeeder extends Seeder
         if (! file_exists($dummyFilePath)) {
             echo "⚠️  Submission fixture PDF not found at: {$dummyFilePath}\n";
             echo "⚠️  Skipping file attachment for submission {$submission->id}\n";
+
             return;
         }
 
@@ -447,7 +533,7 @@ class SequentialProgressSeeder extends Seeder
                 ->usingName('submission-'.$submission->id)
                 ->usingFileName('submission-'.$submission->id.'.pdf')
                 ->toMediaCollection('submission_files', 'do');
-                
+
             if ($media) {
                 echo "✓ File attached to submission {$submission->id}\n";
             }
@@ -483,6 +569,7 @@ class SequentialProgressSeeder extends Seeder
             'max_score' => $assignment->max_score,
             'feedback' => $status === 'graded' ? RealisticSeederContent::assignmentFeedback($submission->id) : null,
             'status' => $gradeStatus,
+            'is_draft' => $status === 'submitted',
             'graded_at' => $gradedAt,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,

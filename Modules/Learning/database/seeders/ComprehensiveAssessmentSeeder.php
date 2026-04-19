@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Learning\Database\Seeders;
 
 use App\Support\RealisticSeederContent;
+use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Learning\Enums\QuestionType;
@@ -13,6 +14,8 @@ use Modules\Learning\Enums\QuizQuestionType;
 use Modules\Learning\Enums\QuizSubmissionStatus;
 use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Enums\SubmissionStatus;
+use Modules\Learning\Enums\SubmissionType;
+use Modules\Learning\Models\Submission;
 
 class ComprehensiveAssessmentSeeder extends Seeder
 {
@@ -286,46 +289,154 @@ class ComprehensiveAssessmentSeeder extends Seeder
         $stats = ['submissions' => 0, 'grades' => 0];
 
         $assignment = DB::table('assignments')->where('id', $assignmentId)->first();
-        $passingGrade = $assignment->passing_grade ?? 75;
+        if (! $assignment) {
+            return $stats;
+        }
 
-        $states = [SubmissionState::Graded->value, SubmissionState::PendingManualGrading->value, SubmissionState::Released->value];
-        $state = $states[array_rand($states)];
+        $passingGrade = (float) ($assignment->passing_grade ?? 75);
+        $maxScore = (float) ($assignment->max_score ?? 100);
+        $submissionType = SubmissionType::tryFrom((string) ($assignment->submission_type ?? 'text'))
+            ?? SubmissionType::Text;
 
-        $status = match ($state) {
-            SubmissionState::PendingManualGrading->value => SubmissionStatus::Submitted->value,
-            default => SubmissionStatus::Graded->value,
+        $enrollmentId = DB::table('enrollments')
+            ->where('user_id', $userId)
+            ->where('course_id', $courseId)
+            ->where('status', 'active')
+            ->value('id');
+
+        $roll = rand(1, 100);
+        $state = match (true) {
+            $roll <= 12 => SubmissionState::InProgress,
+            $roll <= 35 => SubmissionState::Submitted,
+            $roll <= 58 => SubmissionState::PendingManualGrading,
+            $roll <= 72 => SubmissionState::AutoGraded,
+            $roll <= 88 => SubmissionState::Graded,
+            default => SubmissionState::Released,
         };
 
-        $totalScore = in_array($state, [SubmissionState::Graded->value, SubmissionState::Released->value])
-            ? rand((int) $passingGrade, 100)
-            : null;
+        $status = match ($state) {
+            SubmissionState::InProgress => SubmissionStatus::Draft,
+            SubmissionState::Submitted,
+            SubmissionState::PendingManualGrading => SubmissionStatus::Submitted,
+            SubmissionState::AutoGraded,
+            SubmissionState::Graded,
+            SubmissionState::Released => SubmissionStatus::Graded,
+        };
 
-        $submissionId = DB::table('submissions')->insertGetId([
+        $submittedAt = $state === SubmissionState::InProgress
+            ? null
+            : now()->subDays(rand(1, 14))->toDateTimeString();
+
+        $nextAttempt = (int) (DB::table('submissions')
+            ->where('assignment_id', $assignmentId)
+            ->where('user_id', $userId)
+            ->max('attempt_number') ?? 0) + 1;
+
+        $isSubmittedLike = $state !== SubmissionState::InProgress;
+
+        $includeText = false;
+        $includeFile = false;
+
+        match ($submissionType) {
+            SubmissionType::Text => $includeText = true,
+            SubmissionType::File => $includeFile = true,
+            SubmissionType::Mixed => match (rand(1, 3)) {
+                1 => $includeText = true,
+                2 => $includeFile = true,
+                default => $includeText = $includeFile = true,
+            },
+        };
+
+        if ($isSubmittedLike && $submissionType === SubmissionType::Mixed && ! $includeText && ! $includeFile) {
+            $includeFile = true;
+        }
+
+        $answerText = null;
+        if ($includeText) {
+            $answerText = $this->pregenParagraphs[array_rand($this->pregenParagraphs)];
+            if (mb_strlen((string) $answerText) < 10) {
+                $answerText .= ' '.str_repeat('x', 10 - mb_strlen((string) $answerText));
+            }
+        }
+
+        if ($isSubmittedLike && $submissionType === SubmissionType::Text) {
+            $answerText = $this->pregenParagraphs[array_rand($this->pregenParagraphs)];
+            if (mb_strlen((string) $answerText) < 10) {
+                $answerText .= ' '.str_repeat('x', 10 - mb_strlen((string) $answerText));
+            }
+        }
+
+        if ($isSubmittedLike && $submissionType === SubmissionType::File) {
+            $includeFile = true;
+        }
+
+        $totalScore = null;
+        if (in_array($state, [SubmissionState::Graded, SubmissionState::Released, SubmissionState::AutoGraded], true)) {
+            $cap = (int) max(1, min(100, (int) round($maxScore)));
+            $minScore = min($cap, max(1, (int) floor($passingGrade * 0.6)));
+            $maxScoreInt = $cap;
+            if ($minScore > $maxScoreInt) {
+                $minScore = $maxScoreInt;
+            }
+            $totalScore = (float) rand($minScore, $maxScoreInt);
+        }
+
+        $submission = Submission::create([
             'assignment_id' => $assignmentId,
             'user_id' => $userId,
+            'enrollment_id' => $enrollmentId,
+            'answer_text' => $answerText,
             'status' => $status,
-            'state' => $state,
-            'submitted_at' => now()->subDays(rand(1, 14))->toDateTimeString(),
-            'attempt_number' => 1,
+            'state' => $state->value,
+            'submitted_at' => $submittedAt,
+            'attempt_number' => $nextAttempt,
             'score' => $totalScore,
-            'created_at' => $this->createdAt,
-            'updated_at' => $this->createdAt,
         ]);
         $stats['submissions']++;
 
-        if (in_array($state, [SubmissionState::Graded->value, SubmissionState::Released->value])) {
+        if ($includeFile) {
+            $mustAttach = $isSubmittedLike
+                || $submissionType === SubmissionType::File
+                || rand(1, 100) <= 55;
+            if ($mustAttach) {
+                $this->attachFixturePdfToSubmission($submission);
+            }
+        }
+
+        if (in_array($state, [SubmissionState::Submitted, SubmissionState::PendingManualGrading], true)) {
             DB::table('grades')->insertOrIgnore([
-                'submission_id' => $submissionId,
+                'submission_id' => $submission->id,
+                'source_type' => 'assignment',
+                'source_id' => $assignmentId,
+                'user_id' => $userId,
+                'graded_by' => $this->instructorIds[array_rand($this->instructorIds)],
+                'score' => null,
+                'max_score' => $maxScore,
+                'feedback' => null,
+                'status' => 'pending',
+                'is_draft' => true,
+                'graded_at' => null,
+                'released_at' => null,
+                'created_at' => $this->createdAt,
+                'updated_at' => $this->createdAt,
+            ]);
+            $stats['grades']++;
+        }
+
+        if (in_array($state, [SubmissionState::Graded, SubmissionState::Released, SubmissionState::AutoGraded], true)) {
+            DB::table('grades')->insertOrIgnore([
+                'submission_id' => $submission->id,
                 'source_type' => 'assignment',
                 'source_id' => $assignmentId,
                 'user_id' => $userId,
                 'graded_by' => $this->instructorIds[array_rand($this->instructorIds)],
                 'score' => $totalScore,
-                'max_score' => 100,
+                'max_score' => $maxScore,
                 'feedback' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
+                'status' => 'graded',
                 'is_draft' => false,
                 'graded_at' => now()->subDays(rand(0, 7))->toDateTimeString(),
-                'released_at' => $state === SubmissionState::Released->value ? now()->toDateTimeString() : null,
+                'released_at' => $state === SubmissionState::Released ? now()->toDateTimeString() : null,
                 'created_at' => $this->createdAt,
                 'updated_at' => $this->createdAt,
             ]);
@@ -333,6 +444,32 @@ class ComprehensiveAssessmentSeeder extends Seeder
         }
 
         return $stats;
+    }
+
+    private function attachFixturePdfToSubmission(Submission $submission): void
+    {
+        UATMediaFixtures::ensureFilesExist();
+        $paths = UATMediaFixtures::paths();
+        $dummyFilePath = isset($paths['pdf']) && is_string($paths['pdf']) ? $paths['pdf'] : '';
+        $fallback = public_path('dummy/pdf-sample_0.pdf');
+
+        if ($dummyFilePath !== '' && ! file_exists($dummyFilePath) && file_exists($fallback)) {
+            $dummyFilePath = $fallback;
+        }
+
+        if ($dummyFilePath === '' || ! file_exists($dummyFilePath)) {
+            return;
+        }
+
+        try {
+            $submission->addMedia((string) $dummyFilePath)
+                ->preservingOriginal()
+                ->usingName('submission-'.$submission->id)
+                ->usingFileName('submission-'.$submission->id.'.pdf')
+                ->toMediaCollection('submission_files', 'do');
+        } catch (\Throwable) {
+            // Disk or storage may be unavailable in some environments; submission row still valid.
+        }
     }
 
     private function createQuizQuestion(int $quizId, string $type, int $order): int
@@ -436,35 +573,114 @@ class ComprehensiveAssessmentSeeder extends Seeder
         $quiz = DB::table('quizzes')->where('id', $quizId)->first();
         $passingGrade = (float) ($quiz->passing_grade ?? 75);
 
+        $courseId = DB::table('units')
+            ->where('id', $quiz->unit_id ?? 0)
+            ->value('course_id');
+
+        $enrollmentId = $courseId
+            ? DB::table('enrollments')
+                ->where('user_id', $userId)
+                ->where('course_id', $courseId)
+                ->where('status', 'active')
+                ->value('id')
+            : null;
+
+        $attemptNumber = (int) (DB::table('quiz_submissions')
+            ->where('quiz_id', $quizId)
+            ->where('user_id', $userId)
+            ->max('attempt_number') ?? 0) + 1;
+
+        $daysAgo = rand(1, 14);
+        $startedAt = now()->subDays($daysAgo)->subMinutes(rand(10, 120))->toDateTimeString();
+        $submittedAt = now()->subDays($daysAgo)->toDateTimeString();
+
+        // Match QuizSubmissionService lifecycle:
+        // - draft: status=draft, grading_status=pending, submitted_at null
+        // - submitted: status=submitted, grading_status=partially_graded (we include essay), final_score null
+        // - graded: status=graded, grading_status=graded, final_score not null
+        $scenario = match (true) {
+            rand(1, 100) <= 20 => 'draft',
+            rand(1, 100) <= 55 => 'submitted',
+            default => 'graded',
+        };
+
+        $status = match ($scenario) {
+            'draft' => QuizSubmissionStatus::Draft->value,
+            'submitted' => QuizSubmissionStatus::Submitted->value,
+            default => QuizSubmissionStatus::Graded->value,
+        };
+
+        $gradingStatus = match ($scenario) {
+            'draft' => QuizGradingStatus::Pending->value,
+            'submitted' => QuizGradingStatus::PartiallyGraded->value,
+            default => QuizGradingStatus::Graded->value,
+        };
+
         $submissionId = DB::table('quiz_submissions')->insertGetId([
             'quiz_id' => $quizId,
             'user_id' => $userId,
-            'status' => QuizSubmissionStatus::Graded->value,
-            'grading_status' => QuizGradingStatus::Graded->value,
+            'enrollment_id' => $enrollmentId,
+            'status' => $status,
+            'grading_status' => $gradingStatus,
             'score' => null,
             'final_score' => null,
-            'submitted_at' => now()->subDays(rand(1, 14))->toDateTimeString(),
-            'started_at' => now()->subDays(rand(1, 15))->toDateTimeString(),
-            'attempt_number' => 1,
+            'submitted_at' => $scenario === 'draft' ? null : $submittedAt,
+            'started_at' => $startedAt,
+            'attempt_number' => $attemptNumber,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
         ]);
         $stats['submissions']++;
 
-        $totalScore = 0;
+        $objectiveWeightTotal = 0.0;
+        $objectiveEarned = 0.0;
+        $essayScore = 0.0;
+
         foreach ($questions as $question) {
+            $isEssay = $question['type'] === QuizQuestionType::Essay->value;
             $score = $this->createQuizAnswer($submissionId, $question, $passingGrade);
             $stats['answers']++;
-            $totalScore += $score;
+
+            if ($isEssay) {
+                // Draft/submitted can have ungraded essay; graded implies manual grading completed.
+                if ($scenario === 'graded') {
+                    $essayScore = $score;
+                }
+            } else {
+                $objectiveWeightTotal += (float) $question['weight'];
+                $objectiveEarned += $score;
+            }
         }
 
-        if ($totalScore < $passingGrade) {
-            $totalScore = rand((int) $passingGrade, 100);
+        $maxScore = (float) ($quiz->max_score ?? 100);
+        $objectiveScore = $objectiveWeightTotal > 0
+            ? round(($objectiveEarned / $objectiveWeightTotal) * $maxScore, 2)
+            : 0.0;
+
+        if ($scenario === 'draft') {
+            // No scoring yet for draft
+            return $stats;
         }
+
+        if ($scenario === 'submitted') {
+            // Mirrors QuizSubmissionService::autoGrade behavior for quizzes with essay questions:
+            // grading_status=partially_graded, status=submitted, score=objectiveScore, final_score null
+            DB::table('quiz_submissions')->where('id', $submissionId)->update([
+                'score' => $objectiveScore,
+                'final_score' => null,
+                'updated_at' => $this->createdAt,
+            ]);
+
+            return $stats;
+        }
+
+        // graded: manual grading done -> final_score set
+        $finalScore = max((float) $passingGrade, min((float) $maxScore, round($objectiveScore + $essayScore, 2)));
 
         DB::table('quiz_submissions')->where('id', $submissionId)->update([
-            'score' => $totalScore,
-            'final_score' => $totalScore,
+            'score' => $finalScore,
+            'final_score' => $finalScore,
+            'updated_at' => $this->createdAt,
         ]);
 
         return $stats;

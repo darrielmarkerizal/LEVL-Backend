@@ -11,6 +11,7 @@ class LearningDatabaseSeeder extends Seeder
         $this->call([
             ComprehensiveAssessmentSeeder::class,
             SequentialProgressSeeder::class,
+            QuestionOptionAnswerSubmissionSeeder::class,
         ]);
     }
 }
