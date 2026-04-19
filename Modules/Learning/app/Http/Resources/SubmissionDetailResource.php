@@ -28,7 +28,7 @@ class SubmissionDetailResource extends JsonResource
                 'id' => $this->assignment->id,
                 'title' => $this->assignment->title,
             ],
-            'status' => $this->status,
+            'state' => $this->state instanceof \BackedEnum ? $this->state->value : $this->state,
             'attempt_number' => $this->attempt_number,
             'score' => $this->score,
             'submitted_at' => $this->submitted_at,
