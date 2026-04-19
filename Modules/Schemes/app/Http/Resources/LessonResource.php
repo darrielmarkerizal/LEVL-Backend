@@ -30,7 +30,7 @@ class LessonResource extends JsonResource
 
         // Add XP reward information
         $xpSource = \Modules\Gamification\Models\XpSource::where('code', 'lesson_completed')
-            ->where('is_active', true)
+            ->active()
             ->first();
         $data['xp_reward'] = $xpSource ? $xpSource->xp_amount : 50;
 

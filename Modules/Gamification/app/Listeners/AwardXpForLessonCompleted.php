@@ -42,7 +42,7 @@ class AwardXpForLessonCompleted implements ShouldQueue
         }
 
         $xpSource = \Modules\Gamification\Models\XpSource::where('code', 'lesson_completed')
-            ->where('is_active', true)
+            ->active()
             ->first();
 
         $xp = $xpSource ? $xpSource->xp_amount : 50;
