@@ -2,8 +2,10 @@
 
 namespace Tests\Traits;
 
-use Modules\Auth\app\Models\User;
+use Illuminate\Support\Str;
+use Modules\Auth\Models\User;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 /**
  * Trait for handling authentication in tests.
@@ -17,7 +19,10 @@ trait WithAuthentication
     {
         $this->ensureRolesExist();
 
-        $user = User::factory()->create($attributes);
+        $user = User::factory()->active()->create(array_merge([
+            'email' => 'trait-user-'.Str::uuid().'@example.test',
+            'username' => 'trait_user_'.Str::lower(Str::random(16)),
+        ], $attributes));
         $user->assignRole($role);
         $this->actingAs($user, 'api');
 
@@ -61,6 +66,8 @@ trait WithAuthentication
      */
     protected function ensureRolesExist(): void
     {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         $guard = 'api';
         $roles = ['Superadmin', 'Admin', 'Instructor', 'Student'];
 

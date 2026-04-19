@@ -3,7 +3,9 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Auth\app\Models\User;
+use Illuminate\Support\Str;
+use Modules\Auth\Models\User;
+use Spatie\Permission\PermissionRegistrar;
 
 /**
  * Base test case for API endpoint testing.
@@ -21,7 +23,10 @@ abstract class ApiTestCase extends TestCase
      */
     protected function actingAsUser(array $attributes = []): User
     {
-        $user = User::factory()->create($attributes);
+        $user = User::factory()->active()->create(array_merge([
+            'email' => 'api-user-'.Str::uuid().'@example.test',
+            'username' => 'api_user_'.Str::lower(Str::random(16)),
+        ], $attributes));
         $this->actingAs($user, 'api');
 
         return $user;
@@ -33,7 +38,10 @@ abstract class ApiTestCase extends TestCase
     protected function actingAsAdmin(): User
     {
         $this->ensureRolesExist();
-        $user = User::factory()->create();
+        $user = User::factory()->active()->create([
+            'email' => 'api-admin-'.Str::uuid().'@example.test',
+            'username' => 'api_admin_'.Str::lower(Str::random(16)),
+        ]);
         $user->assignRole('Admin');
         $this->actingAs($user, 'api');
 
@@ -46,7 +54,10 @@ abstract class ApiTestCase extends TestCase
     protected function actingAsInstructor(): User
     {
         $this->ensureRolesExist();
-        $user = User::factory()->create();
+        $user = User::factory()->active()->create([
+            'email' => 'api-instructor-'.Str::uuid().'@example.test',
+            'username' => 'api_instructor_'.Str::lower(Str::random(16)),
+        ]);
         $user->assignRole('Instructor');
         $this->actingAs($user, 'api');
 
@@ -59,7 +70,10 @@ abstract class ApiTestCase extends TestCase
     protected function actingAsStudent(): User
     {
         $this->ensureRolesExist();
-        $user = User::factory()->create();
+        $user = User::factory()->active()->create([
+            'email' => 'api-student-'.Str::uuid().'@example.test',
+            'username' => 'api_student_'.Str::lower(Str::random(16)),
+        ]);
         $user->assignRole('Student');
         $this->actingAs($user, 'api');
 
@@ -72,7 +86,10 @@ abstract class ApiTestCase extends TestCase
     protected function actingAsSuperadmin(): User
     {
         $this->ensureRolesExist();
-        $user = User::factory()->create();
+        $user = User::factory()->active()->create([
+            'email' => 'api-superadmin-'.Str::uuid().'@example.test',
+            'username' => 'api_superadmin_'.Str::lower(Str::random(16)),
+        ]);
         $user->assignRole('Superadmin');
         $this->actingAs($user, 'api');
 
@@ -139,6 +156,8 @@ abstract class ApiTestCase extends TestCase
      */
     protected function ensureRolesExist(): void
     {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         $guard = 'api';
         $roles = ['Superadmin', 'Admin', 'Instructor', 'Student'];
 
@@ -164,8 +183,18 @@ abstract class ApiTestCase extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutMiddleware(\App\Http\Middleware\EnsureCleanDatabaseSession::class);
 
         // Additional API test setup can go here
         // For example: setting up default headers, etc.
+    }
+
+    protected function afterRefreshingDatabase(): void
+    {
+        $this->artisan('module:migrate', [
+            '--all' => true,
+            '--force' => true,
+            '--no-interaction' => true,
+        ]);
     }
 }

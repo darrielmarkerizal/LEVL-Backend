@@ -3,6 +3,7 @@
 namespace Modules\Notifications\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Modules\Auth\Models\User;
@@ -116,6 +117,11 @@ class NotificationService
     public function toPayload(Notification $notification, int $userId): array
     {
         $pivot = $notification->users->first()?->pivot;
+        $readAt = $pivot?->read_at;
+
+        if (is_string($readAt)) {
+            $readAt = Carbon::parse($readAt);
+        }
 
         return [
             'id' => $notification->id,
@@ -127,7 +133,7 @@ class NotificationService
             'channel' => $notification->channel?->value ?? $notification->channel,
             'priority' => $notification->priority?->value ?? $notification->priority,
             'is_read' => $pivot?->status === 'read',
-            'read_at' => $pivot?->read_at?->toIso8601String(),
+            'read_at' => $readAt?->toIso8601String(),
             'created_at' => $notification->created_at?->toIso8601String(),
             'updated_at' => $notification->updated_at?->toIso8601String(),
             'user_id' => $userId,

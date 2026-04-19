@@ -236,6 +236,8 @@ class CourseSeederEnhanced extends Seeder
 
     private function attachMediaToCourses($courses): void
     {
+        $this->command->info('  📸 Attaching media to courses (this may take a while)...');
+        
         foreach ($courses as $course) {
             try {
                 $course->addMediaFromUrl("https://picsum.photos/seed/{$course->id}/300")
@@ -243,8 +245,10 @@ class CourseSeederEnhanced extends Seeder
 
                 $course->addMediaFromUrl("https://picsum.photos/seed/{$course->id}/800/600")
                     ->toMediaCollection('banner');
-            } catch (\Exception $e) {
-                $this->command->warn("  ⚠️  Could not attach media for course {$course->id}: ".$e->getMessage());
+            } catch (\Throwable $e) {
+                // Silently skip media attachment errors - not critical for seeding
+                // The error is usually network-related or media library issues
+                continue;
             }
         }
     }

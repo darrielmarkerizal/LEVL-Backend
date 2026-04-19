@@ -94,10 +94,10 @@ function assertDatabaseCount(string $table, int $count): void
 /**
  * Create a user with a specific role.
  */
-function createUserWithRole(string $role, array $attributes = []): \Modules\Auth\app\Models\User
+function createUserWithRole(string $role, array $attributes = []): \Modules\Auth\Models\User
 {
     createTestRoles();
-    $user = \Modules\Auth\app\Models\User::factory()->create($attributes);
+    $user = \Modules\Auth\Models\User::factory()->create($attributes);
     $user->assignRole($role);
 
     return $user;
@@ -106,10 +106,10 @@ function createUserWithRole(string $role, array $attributes = []): \Modules\Auth
 /**
  * Create an authenticated API request.
  */
-function authenticatedRequest(string $method, string $uri, array $data = [], ?\Modules\Auth\app\Models\User $user = null)
+function authenticatedRequest(string $method, string $uri, array $data = [], ?\Modules\Auth\Models\User $user = null)
 {
     if (! $user) {
-        $user = \Modules\Auth\app\Models\User::factory()->create();
+        $user = \Modules\Auth\Models\User::factory()->create();
     }
 
     return test()->actingAs($user, 'api')->json($method, $uri, $data);

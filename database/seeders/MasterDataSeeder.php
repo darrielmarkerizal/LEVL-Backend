@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Modules\Common\Models\MasterDataItem;
 
 class MasterDataSeeder extends Seeder
@@ -30,17 +31,21 @@ class MasterDataSeeder extends Seeder
         ];
 
         foreach ($categories as $index => $item) {
-            MasterDataItem::firstOrCreate(
-                [
+            $existing = MasterDataItem::where('type', 'categories')
+                ->where('value', $item['value'])
+                ->first();
+
+            if (!$existing) {
+                DB::table('master_data')->insert([
                     'type' => 'categories',
                     'value' => $item['value'],
-                ],
-                [
                     'label' => $item['label'],
-                    'is_active' => true,
+                    'is_active' => DB::raw('true'),
                     'sort_order' => $index + 1,
-                ],
-            );
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
     }
 
@@ -53,18 +58,22 @@ class MasterDataSeeder extends Seeder
         ];
 
         foreach ($difficultyLevels as $index => $item) {
-            MasterDataItem::firstOrCreate(
-                [
+            $existing = MasterDataItem::where('type', 'difficulty-levels')
+                ->where('value', $item['value'])
+                ->first();
+
+            if (!$existing) {
+                DB::table('master_data')->insert([
                     'type' => 'difficulty-levels',
                     'value' => $item['value'],
-                ],
-                [
                     'label' => $item['label_id'],
-                    'is_active' => true,
+                    'is_active' => DB::raw('true'),
                     'sort_order' => $index + 1,
-                    'metadata' => ['label_en' => $item['label']],
-                ],
-            );
+                    'metadata' => json_encode(['label_en' => $item['label']]),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
     }
 
@@ -77,17 +86,21 @@ class MasterDataSeeder extends Seeder
         ];
 
         foreach ($contentTypes as $index => $item) {
-            MasterDataItem::firstOrCreate(
-                [
+            $existing = MasterDataItem::where('type', 'content-types')
+                ->where('value', $item['value'])
+                ->first();
+
+            if (!$existing) {
+                DB::table('master_data')->insert([
                     'type' => 'content-types',
                     'value' => $item['value'],
-                ],
-                [
                     'label' => $item['label'],
-                    'is_active' => true,
+                    'is_active' => DB::raw('true'),
                     'sort_order' => $index + 1,
-                ],
-            );
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
     }
 

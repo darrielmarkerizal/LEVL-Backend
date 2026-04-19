@@ -80,9 +80,15 @@ class ActiveUsersSeeder extends Seeder
             'https://ui-avatars.com/api/?name='.rawurlencode($user->name).'&size=256&background=random',
         ];
         foreach ([$superadmin, $admin, $instructor, $student] as $user) {
-            if ($user->hasMedia('avatar')) {
+            try {
+                if ($user->hasMedia('avatar')) {
+                    continue;
+                }
+            } catch (\Throwable $e) {
+                // Skip media check if table doesn't exist
                 continue;
             }
+            
             foreach ($avatarUrls($user) as $url) {
                 try {
                     $user->addMediaFromUrl($url)->toMediaCollection('avatar');

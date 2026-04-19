@@ -211,9 +211,13 @@ class EnrollmentLifecycleProcessor
         }
     }
 
-    private function determineInitialStatus(string $enrollmentType): EnrollmentStatus
+    private function determineInitialStatus(EnrollmentType|string $enrollmentType): EnrollmentStatus
     {
-        return match ($enrollmentType) {
+        $resolvedType = $enrollmentType instanceof EnrollmentType
+            ? $enrollmentType
+            : EnrollmentType::tryFrom($enrollmentType);
+
+        return match ($resolvedType) {
             EnrollmentType::AutoAccept, EnrollmentType::KeyBased => EnrollmentStatus::Active,
             EnrollmentType::Approval => EnrollmentStatus::Pending,
             default => EnrollmentStatus::Pending,
@@ -291,7 +295,9 @@ class EnrollmentLifecycleProcessor
 
     private function getCourseManagers(Course $course): array
     {
-        return collect([$course->fresh(['instructor', 'admins'])->instructor, ...$course->admins])
+        $freshCourse = $course->fresh(['instructor', 'instructors']);
+
+        return collect([$freshCourse?->instructor, ...($freshCourse?->instructors?->all() ?? [])])
             ->filter()
             ->unique('id')
             ->all();

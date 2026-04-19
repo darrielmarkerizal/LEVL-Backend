@@ -260,6 +260,11 @@ class UserSeederEnhanced extends Seeder
                     continue;
                 }
 
+                // Remove null specialization_id to avoid PostgreSQL foreign key issues
+                if (isset($attributes['specialization_id']) && $attributes['specialization_id'] === null) {
+                    unset($attributes['specialization_id']);
+                }
+
                 $user = User::create($attributes);
                 $users->push($user);
             }
@@ -344,9 +349,8 @@ class UserSeederEnhanced extends Seeder
                 ->toMediaCollection('avatar');
 
         } catch (\Throwable $e) {
-            $this->command->warn(
-                "    ⚠️  Avatar gagal untuk [{$user->username}]: ".$e->getMessage()
-            );
+            // Silently skip avatar errors - not critical for seeding
+            // Common errors: media table issues, file system issues, etc.
         }
     }
 

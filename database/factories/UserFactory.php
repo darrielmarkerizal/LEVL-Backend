@@ -7,6 +7,7 @@ namespace Database\Factories;
 use App\Support\RealisticSeederContent;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\User;
@@ -161,15 +162,20 @@ class UserFactory extends Factory
     {
         return $this->afterCreating(function (User $user) {
             if (! $user->trashed()) {
+                $statsData = [
+                    'total_points' => 0,
+                    'current_streak' => 0,
+                    'longest_streak' => 0,
+                    'total_badges' => 0,
+                ];
+
+                if (Schema::hasColumn('user_gamification_stats', 'completed_challenges')) {
+                    $statsData['completed_challenges'] = 0;
+                }
+
                 $user->gamificationStats()->firstOrCreate(
                     ['user_id' => $user->id],
-                    [
-                        'total_points' => 0,
-                        'current_streak' => 0,
-                        'longest_streak' => 0,
-                        'total_badges' => 0,
-                        'completed_challenges' => 0,
-                    ]
+                    $statsData
                 );
             }
         });

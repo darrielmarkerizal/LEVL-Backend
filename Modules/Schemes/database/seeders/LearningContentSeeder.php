@@ -325,11 +325,13 @@ class LearningContentSeeder extends Seeder
                     }
                     return true;
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // Catch all errors including fatal errors from media library
             $this->command->error("    ❌ Failed to attach media to block {$block->id} ({$blockType}): {$e->getMessage()}");
             if ($attemptCount <= 3) {
-                $this->command->error("    Stack trace: " . $e->getTraceAsString());
+                $this->command->error("    Error type: " . get_class($e));
             }
+            return false;
         }
 
         return false;
