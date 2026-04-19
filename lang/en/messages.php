@@ -658,6 +658,7 @@ return [
         'no_access' => 'You do not have permission to perform this grading operation.',
         'auto_graded' => 'Submission graded automatically.',
         'manual_graded' => 'Submission graded successfully.',
+        'assignment_graded' => 'Assignment graded successfully.',
         'draft_saved' => 'Draft grades saved successfully.',
         'grade_overridden' => 'Grade overridden successfully.',
         'grade_released' => 'Grade released to the student.',

@@ -662,6 +662,7 @@ return [
         'no_access' => 'Anda tidak memiliki izin untuk melakukan operasi penilaian ini.',
         'auto_graded' => 'Pengumpulan berhasil dinilai secara otomatis.',
         'manual_graded' => 'Pengumpulan berhasil dinilai.',
+        'assignment_graded' => 'Assignment berhasil dinilai.',
         'draft_saved' => 'Draf nilai berhasil disimpan.',
         'grade_overridden' => 'Nilai berhasil di-override.',
         'grade_released' => 'Nilai berhasil dikirim ke peserta.',

@@ -38,20 +38,45 @@ class GradingController extends Controller
     public function manualGrade(ManualGradeRequest $request, Submission $submission): JsonResponse
     {
         try {
-            $dto = new SubmissionGradeDTO(
-                submissionId: $submission->id,
-                answers: $request->validated('grades'),
-                scoreOverride: null,
-                feedback: $request->validated('feedback'),
-                graderId: auth('api')->id()
-            );
+            // Check if this is quiz grading (with grades array) or assignment grading (with score)
+            $hasGrades = !empty($request->validated('grades'));
+            $hasScore = $request->has('score') && $request->validated('score') !== null;
 
-            $grade = $this->entryService->manualGrade($dto);
+            if ($hasGrades) {
+                // Quiz grading: grade individual questions
+                $dto = new SubmissionGradeDTO(
+                    submissionId: $submission->id,
+                    answers: $request->validated('grades'),
+                    scoreOverride: null,
+                    feedback: $request->validated('feedback'),
+                    graderId: auth('api')->id()
+                );
 
-            return $this->success(
-                GradeResource::make($grade),
-                __('messages.grading.manual_graded')
-            );
+                $grade = $this->entryService->manualGrade($dto);
+
+                return $this->success(
+                    GradeResource::make($grade),
+                    __('messages.grading.manual_graded')
+                );
+            } else {
+                // Assignment grading: overall score only
+                $this->entryService->overrideGrade(
+                    $submission->id,
+                    (float) $request->validated('score'),
+                    $request->validated('feedback') ?? 'Manual grading for assignment'
+                );
+
+                $submission->refresh();
+
+                return $this->success(
+                    [
+                        'submission_id' => $submission->id,
+                        'score' => $submission->score,
+                        'grade' => $submission->grade ? GradeResource::make($submission->grade) : null,
+                    ],
+                    __('messages.grading.assignment_graded')
+                );
+            }
         } catch (InvalidArgumentException|\Modules\Learning\Exceptions\SubmissionException $e) {
             return $this->error($e->getMessage(), [], 422);
         }
