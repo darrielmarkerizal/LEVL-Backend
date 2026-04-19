@@ -40,7 +40,6 @@ class GradingController extends Controller
         try {
             // Check if this is quiz grading (with grades array) or assignment grading (with score)
             $hasGrades = !empty($request->validated('grades'));
-            $hasScore = $request->has('score') && $request->validated('score') !== null;
 
             if ($hasGrades) {
                 // Quiz grading: grade individual questions
@@ -59,12 +58,16 @@ class GradingController extends Controller
                     __('messages.grading.manual_graded')
                 );
             } else {
-                // Assignment grading: overall score only
-                $this->entryService->overrideGrade(
-                    $submission->id,
-                    (float) $request->validated('score'),
-                    $request->validated('feedback') ?? 'Manual grading for assignment'
+                // Assignment grading: overall score with create-or-update behavior.
+                $dto = new SubmissionGradeDTO(
+                    submissionId: $submission->id,
+                    answers: [],
+                    scoreOverride: (float) $request->validated('score'),
+                    feedback: $request->validated('feedback'),
+                    graderId: auth('api')->id()
                 );
+
+                $grade = $this->entryService->manualGrade($dto);
 
                 $submission->refresh();
 
@@ -72,7 +75,7 @@ class GradingController extends Controller
                     [
                         'submission_id' => $submission->id,
                         'score' => $submission->score,
-                        'grade' => $submission->grade ? GradeResource::make($submission->grade) : null,
+                        'grade' => GradeResource::make($grade),
                     ],
                     __('messages.grading.assignment_graded')
                 );

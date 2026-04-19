@@ -17,9 +17,6 @@ Schedule::command('auth:cleanup-deleted-accounts')->daily();
 // Schedule Trash Bin Purge (Daily)
 Schedule::command('trash:purge-expired')->daily();
 
-// Housekeeping: mark missing submissions shortly after deadlines
-Schedule::job(new \Modules\Learning\Jobs\MarkMissingSubmissionsJob)->everyMinute();
-
 // Schedule Post Publishing (Every Minute)
 Schedule::command('posts:publish-scheduled')
     ->everyMinute()
