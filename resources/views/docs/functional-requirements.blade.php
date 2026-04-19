@@ -387,7 +387,7 @@
                             <td class="px-4 py-3 text-sm">
                                 <ul class="space-y-0.5">
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/submissions/search</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/submissions/{submission}/grade</span></li>
+                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/submissions/{submission}/grades</span></li>
                                 </ul>
                             </td>
                         </tr>
@@ -1037,7 +1037,7 @@
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/submissions/search</span></li>
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 font-medium">PUT</span> <span class="endpoint-badge text-gray-600">api/v1/submissions/{submission}</span></li>
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/submissions/{submission}/answers</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/submissions/{submission}/grade</span></li>
+                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/submissions/{submission}/grades</span></li>
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/submissions/{submission}/submit</span></li>
                                 </ul>
                             </td>

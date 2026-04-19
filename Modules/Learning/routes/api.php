@@ -88,10 +88,7 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         ->middleware(['can:submit,submission', 'xp.info'])
         ->name('submissions.submit');
 
-    // Grading route (Admin, Instructor, Superadmin only)
-    Route::post('submissions/{submission}/grade', [SubmissionController::class, 'grade'])
-        ->middleware(['role:Superadmin|Admin|Instructor', 'can:grade,submission'])
-        ->name('submissions.grade');
+    // Grading is handled centrally in Modules/Grading via /submissions/{submission}/grades
 
     // ─── Quiz Routes ────────────────────────────────────────────────────────────
 

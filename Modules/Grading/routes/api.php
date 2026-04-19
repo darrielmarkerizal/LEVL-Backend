@@ -12,7 +12,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
         Route::post('grading/bulk-feedback', [GradingController::class, 'bulkApplyFeedback'])->name('grading.bulk.feedback');
     });
 
-    Route::middleware(['role:Superadmin|Admin|Instructor'])->prefix('submissions/{submission}/grades')->group(function () {
+    Route::middleware(['role:Superadmin|Admin|Instructor', 'can:grade,submission'])->prefix('submissions/{submission}/grades')->group(function () {
         Route::get('/', [GradingController::class, 'getGrade'])->name('grading.get');
         Route::post('/', [GradingController::class, 'manualGrade'])->name('grading.store');
         Route::put('draft', [GradingController::class, 'saveDraftGrade'])->name('grading.save-draft');
