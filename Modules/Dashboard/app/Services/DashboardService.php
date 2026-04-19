@@ -44,9 +44,7 @@ class DashboardService implements DashboardServiceInterface
         ];
     }
 
-    /**
-     * Get dashboard overview
-     */
+    
     public function getOverview(int $userId): array
     {
         $stats = UserGamificationStat::where('user_id', $userId)->first();
@@ -78,9 +76,7 @@ class DashboardService implements DashboardServiceInterface
         ];
     }
 
-    /**
-     * Get recent learning activities
-     */
+    
     public function getRecentLearning(int $userId, int $limit = 1): Collection
     {
         $enrollments = Enrollment::where('user_id', $userId)
@@ -99,7 +95,7 @@ class DashboardService implements DashboardServiceInterface
             ])
             ->get();
 
-        // Get lesson completions for sorting
+        
         $lessonCompletions = \Modules\Enrollments\Models\LessonProgress::query()
             ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
             ->where('enrollments.user_id', $userId)
@@ -109,28 +105,28 @@ class DashboardService implements DashboardServiceInterface
             ->groupBy('lesson_id')
             ->map(fn ($group) => $group->first());
 
-        // Sort enrollments by most recent lesson completion or enrolled_at
+        
         $enrollments = $enrollments->sortByDesc(function ($enrollment) use ($lessonCompletions) {
             $courseId = $enrollment->course_id;
             $lessonIds = $enrollment->course->units->flatMap(fn ($unit) => $unit->lessons->pluck('id'));
 
-            // Find most recent lesson completion for this course
+            
             $mostRecentCompletion = $lessonCompletions
                 ->filter(fn ($completion) => $lessonIds->contains($completion->lesson_id))
                 ->sortByDesc('updated_at')
                 ->first();
 
-            // Return most recent completion time or enrolled_at
+            
             return $mostRecentCompletion ? $mostRecentCompletion->updated_at : $enrollment->enrolled_at;
         })->take($limit);
 
         return $enrollments->map(function ($enrollment) use ($userId) {
             $course = $enrollment->course;
 
-            // Get total lessons
+            
             $totalLessons = $course->units->sum(fn ($unit) => $unit->lessons->count());
 
-            // Get completed lessons
+            
             $completedLessons = \Modules\Enrollments\Models\LessonProgress::query()
                 ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
                 ->where('enrollments.user_id', $userId)
@@ -138,7 +134,7 @@ class DashboardService implements DashboardServiceInterface
                 ->whereIn('lesson_progress.lesson_id', $course->units->flatMap(fn ($unit) => $unit->lessons->pluck('id')))
                 ->count();
 
-            // Get last accessed lesson
+            
             $lastLesson = \Modules\Enrollments\Models\LessonProgress::query()
                 ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
                 ->where('enrollments.user_id', $userId)
@@ -178,9 +174,7 @@ class DashboardService implements DashboardServiceInterface
         })->values();
     }
 
-    /**
-     * Get recent achievements (badges)
-     */
+    
     public function getRecentAchievements(int $userId, int $limit = 4): Collection
     {
         return QueryBuilder::for(UserBadge::class)
@@ -203,31 +197,28 @@ class DashboardService implements DashboardServiceInterface
             });
     }
 
-    /**
-     * Get recommended courses based on enrolled courses
-     * Only returns courses that user has NOT enrolled in
-     */
+    
     public function getRecommendedCourses(int $userId, int $limit = 2): Collection
     {
-        // Get user's enrolled courses (all statuses: pending, active, completed, rejected)
-        // We exclude ALL enrolled courses, not just active ones
+        
+        
         $enrolledCourseIds = Enrollment::where('user_id', $userId)
             ->pluck('course_id')
             ->unique()
             ->toArray();
 
         if (empty($enrolledCourseIds)) {
-            // If no enrollments, return popular courses
+            
             return $this->getPopularCourses($limit);
         }
 
-        // Get category IDs from enrolled courses
+        
         $enrolledCourses = Course::whereIn('id', $enrolledCourseIds)->with('category')->get();
         $categoryIds = $enrolledCourses->pluck('category.id')->filter()->unique()->toArray();
 
-        // Find courses with similar categories, excluding ALL enrolled courses
+        
         $query = Course::query()
-            ->whereNotIn('id', $enrolledCourseIds) // Exclude all enrolled courses
+            ->whereNotIn('id', $enrolledCourseIds) 
             ->where('status', 'published');
 
         if (! empty($categoryIds)) {
@@ -242,7 +233,7 @@ class DashboardService implements DashboardServiceInterface
             ->limit($limit)
             ->get();
 
-        // If not enough courses found, fill with popular courses (also excluding enrolled)
+        
         if ($courses->count() < $limit) {
             $remaining = $limit - $courses->count();
             $popularCourses = $this->getPopularCourses($remaining, array_merge($enrolledCourseIds, $courses->pluck('id')->toArray()));
@@ -266,9 +257,7 @@ class DashboardService implements DashboardServiceInterface
         });
     }
 
-    /**
-     * Get popular courses
-     */
+    
     private function getPopularCourses(int $limit, array $excludeIds = []): Collection
     {
         $query = Course::query()
@@ -285,9 +274,7 @@ class DashboardService implements DashboardServiceInterface
             ->get();
     }
 
-    /**
-     * Get XP earned this month (from 1st to today)
-     */
+    
     private function getXpThisMonth(int $userId): int
     {
         $startOfMonth = now()->startOfMonth();
@@ -298,9 +285,7 @@ class DashboardService implements DashboardServiceInterface
             ->sum('points');
     }
 
-    /**
-     * Get next level XP requirement
-     */
+    
     private function getNextLevelXp(int $currentLevel): int
     {
         $nextLevel = \Modules\Common\Models\LevelConfig::where('level', $currentLevel + 1)->first();
@@ -308,9 +293,7 @@ class DashboardService implements DashboardServiceInterface
         return $nextLevel?->xp_required ?? 0;
     }
 
-    /**
-     * Calculate level progress percentage
-     */
+    
     private function calculateLevelProgress(?UserGamificationStat $stats): float
     {
         if (! $stats) {
@@ -338,9 +321,7 @@ class DashboardService implements DashboardServiceInterface
         return round(($xpInCurrentLevel / $xpNeededForNextLevel) * 100, 2);
     }
 
-    /**
-     * Get enrolled courses count
-     */
+    
     private function getEnrolledCoursesCount(int $userId): int
     {
         return Enrollment::where('user_id', $userId)
@@ -348,13 +329,10 @@ class DashboardService implements DashboardServiceInterface
             ->count();
     }
 
-    /**
-     * Get total learning hours
-     * Calculated from lesson completions and assignment/quiz submissions
-     */
+    
     private function getLearningHours(int $userId): float
     {
-        // Count lesson completions (assume 15 minutes per lesson)
+        
         $lessonCount = \Modules\Enrollments\Models\LessonProgress::query()
             ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
             ->where('enrollments.user_id', $userId)
@@ -362,11 +340,11 @@ class DashboardService implements DashboardServiceInterface
             ->count();
         $lessonHours = ($lessonCount * 15) / 60;
 
-        // Count quiz submissions (assume 20 minutes per quiz)
+        
         $quizCount = \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)->count();
         $quizHours = ($quizCount * 20) / 60;
 
-        // Count assignment submissions (assume 30 minutes per assignment)
+        
         $assignmentCount = \Modules\Learning\Models\Submission::where('user_id', $userId)->count();
         $assignmentHours = ($assignmentCount * 30) / 60;
 
@@ -375,9 +353,7 @@ class DashboardService implements DashboardServiceInterface
         return round($totalHours, 1);
     }
 
-    /**
-     * Get days active (days with any XP earning activity)
-     */
+    
     private function getDaysActive(int $userId): int
     {
         return \Modules\Gamification\Models\Point::where('user_id', $userId)
@@ -387,9 +363,7 @@ class DashboardService implements DashboardServiceInterface
             ->count();
     }
 
-    /**
-     * Get recent activity (XP earning activities)
-     */
+    
     private function getRecentActivity(int $userId, int $limit = 3): array
     {
         $points = \Modules\Gamification\Models\Point::where('user_id', $userId)
@@ -410,14 +384,12 @@ class DashboardService implements DashboardServiceInterface
         })->toArray();
     }
 
-    /**
-     * Format activity based on source type and metadata
-     */
+    
     private function formatActivity(\Modules\Gamification\Models\Point $point): array
     {
         $metadata = is_string($point->metadata) ? json_decode($point->metadata, true) : $point->metadata;
 
-        // Convert enum to string if needed
+        
         $sourceType = $point->source_type instanceof \BackedEnum
             ? $point->source_type->value
             : $point->source_type;
@@ -426,7 +398,7 @@ class DashboardService implements DashboardServiceInterface
             ? $point->reason->value
             : $point->reason;
 
-        // Determine activity type and description based on source_type and reason
+        
         $type = 'activity';
         $description = __('messages.activity.default');
 
@@ -488,7 +460,7 @@ class DashboardService implements DashboardServiceInterface
                 break;
 
             default:
-                // Use reason as fallback
+                
                 if ($reason) {
                     $description = ucfirst(str_replace('_', ' ', $reason));
                 }
@@ -501,12 +473,10 @@ class DashboardService implements DashboardServiceInterface
         ];
     }
 
-    /**
-     * Get lesson title from metadata or database
-     */
+    
     private function getLessonTitle(array $metadata): string
     {
-        // Try to get from metadata first
+        
         if (! empty($metadata['lesson_title'])) {
             return $metadata['lesson_title'];
         }
@@ -515,7 +485,7 @@ class DashboardService implements DashboardServiceInterface
             return $metadata['title'];
         }
 
-        // Try to get from database using lesson_id
+        
         if (! empty($metadata['lesson_id'])) {
             $lesson = \Modules\Schemes\Models\Lesson::find($metadata['lesson_id']);
             if ($lesson) {
@@ -523,7 +493,7 @@ class DashboardService implements DashboardServiceInterface
             }
         }
 
-        // Use source_name from seeded data as fallback
+        
         if (! empty($metadata['source_name'])) {
             return $metadata['source_name'];
         }
@@ -531,9 +501,7 @@ class DashboardService implements DashboardServiceInterface
         return 'Lesson';
     }
 
-    /**
-     * Get unit title from metadata or database
-     */
+    
     private function getUnitTitle(array $metadata): string
     {
         if (! empty($metadata['unit_title'])) {
@@ -551,7 +519,7 @@ class DashboardService implements DashboardServiceInterface
             }
         }
 
-        // Use source_name from seeded data as fallback
+        
         if (! empty($metadata['source_name'])) {
             return $metadata['source_name'];
         }
@@ -559,9 +527,7 @@ class DashboardService implements DashboardServiceInterface
         return 'Unit';
     }
 
-    /**
-     * Get quiz title from metadata or database
-     */
+    
     private function getQuizTitle(array $metadata): string
     {
         if (! empty($metadata['quiz_title'])) {
@@ -579,7 +545,7 @@ class DashboardService implements DashboardServiceInterface
             }
         }
 
-        // Try to get from sourceable (for real data, not seeded)
+        
         if (! empty($metadata['submission_id'])) {
             $submission = \Modules\Learning\Models\QuizSubmission::find($metadata['submission_id']);
             if ($submission && $submission->quiz) {
@@ -587,7 +553,7 @@ class DashboardService implements DashboardServiceInterface
             }
         }
 
-        // Use source_name from seeded data as fallback
+        
         if (! empty($metadata['source_name'])) {
             return $metadata['source_name'];
         }
@@ -595,9 +561,7 @@ class DashboardService implements DashboardServiceInterface
         return 'Quiz';
     }
 
-    /**
-     * Get assignment title from metadata or database
-     */
+    
     private function getAssignmentTitle(array $metadata): string
     {
         if (! empty($metadata['assignment_title'])) {
@@ -615,7 +579,7 @@ class DashboardService implements DashboardServiceInterface
             }
         }
 
-        // Try to get from sourceable (for real data, not seeded)
+        
         if (! empty($metadata['submission_id'])) {
             $submission = \Modules\Learning\Models\Submission::find($metadata['submission_id']);
             if ($submission && $submission->assignment) {
@@ -623,7 +587,7 @@ class DashboardService implements DashboardServiceInterface
             }
         }
 
-        // Use source_name from seeded data as fallback
+        
         if (! empty($metadata['source_name'])) {
             return $metadata['source_name'];
         }
@@ -631,9 +595,7 @@ class DashboardService implements DashboardServiceInterface
         return 'Tugas';
     }
 
-    /**
-     * Get badge name from metadata or database
-     */
+    
     private function getBadgeName(array $metadata): string
     {
         if (! empty($metadata['badge_name'])) {

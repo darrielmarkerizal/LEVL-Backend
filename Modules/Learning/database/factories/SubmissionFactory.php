@@ -8,42 +8,49 @@ use Modules\Enrollments\Models\Enrollment;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Learning\Models\Submission>
- */
+
 class SubmissionFactory extends Factory
 {
     protected $model = Submission::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function definition(): array
     {
         $submittedAt = fake()->dateTimeBetween('-3 months', 'now');
+        $roll = fake()->numberBetween(1, 100);
+        $status = match (true) {
+            $roll <= 25 => 'draft',
+            $roll <= 65 => 'submitted',
+            default => 'graded',
+        };
+        $state = match ($status) {
+            'draft' => 'in_progress',
+            'submitted' => 'pending_manual_grading',
+            'graded' => 'graded',
+            default => 'in_progress',
+        };
+        $score = $status === 'graded'
+            ? fake()->randomFloat(2, 0, 100)
+            : null;
 
         return [
             'assignment_id' => Assignment::factory(),
             'user_id' => User::factory(),
             'enrollment_id' => Enrollment::factory(),
             'answer_text' => fake()->optional(0.7)->paragraphs(3, true),
-            'status' => fake()->randomElement(['draft', 'submitted', 'graded']),
-            'submitted_at' => fake()->boolean(70) ? $submittedAt : null,
+            'status' => $status,
+            'submitted_at' => $status === 'draft' ? null : $submittedAt,
             'attempt_number' => 1,
-            'score' => fake()->optional(0.5)->randomFloat(2, 0, 100),
+            'score' => $score,
             'question_set' => null,
-            'state' => fake()->optional(0.4)->randomElement(['started', 'in_progress', 'submitted']),
+            'state' => $state,
             'started_at' => fake()->optional(0.8)->dateTimeBetween('-3 months', $submittedAt),
             'time_expired_at' => null,
             'auto_submitted_on_timeout' => false,
         ];
     }
 
-    /**
-     * Submission for assignment.
-     */
+    
     public function forAssignment(Assignment $assignment): static
     {
         return $this->state(fn (array $attributes) => [
@@ -51,9 +58,7 @@ class SubmissionFactory extends Factory
         ]);
     }
 
-    /**
-     * Submission for user.
-     */
+    
     public function forUser(User $user): static
     {
         return $this->state(fn (array $attributes) => [
@@ -61,9 +66,7 @@ class SubmissionFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the submission is a draft (in progress).
-     */
+    
     public function draft(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -72,33 +75,49 @@ class SubmissionFactory extends Factory
         ]);
     }
 
-    /**
-     * Graded submission.
-     */
+    
     public function graded(): static
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'graded',
+            'state' => 'graded',
             'score' => rand(0, 100),
         ]);
     }
 
-    /**
-     * Alias for draft - in progress state.
-     */
+    
     public function inProgress(): static
     {
         return $this->draft();
     }
 
-    /**
-     * Indicate that the submission is submitted.
-     */
+    
     public function submitted(): static
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'submitted',
+            'state' => 'pending_manual_grading',
             'submitted_at' => now(),
+        ]);
+    }
+
+    public function autoGraded(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'graded',
+            'state' => 'auto_graded',
+            'submitted_at' => now(),
+            'score' => rand(0, 100),
+        ]);
+    }
+
+    public function released(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'graded',
+            'state' => 'released',
+            'submitted_at' => now(),
+            'score' => rand(0, 100),
         ]);
     }
 
@@ -110,9 +129,7 @@ class SubmissionFactory extends Factory
         ]);
     }
 
-    /**
-     * Set a specific question set.
-     */
+    
     public function withQuestionSet(array $questionIds): static
     {
         return $this->state(fn (array $attributes) => [

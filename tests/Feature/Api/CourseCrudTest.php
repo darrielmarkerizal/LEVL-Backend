@@ -15,9 +15,9 @@ beforeEach(function () {
     $this->category = Category::factory()->create();
 });
 
-// ==================== POSITIVE TEST CASES ====================
 
-// POST - Create Course
+
+
 it('admin can create course with valid data', function () {
     $response = $this->actingAs($this->admin, 'api')
         ->postJson(api('/courses'), [
@@ -116,7 +116,7 @@ it('superadmin can create course', function () {
     $response->assertStatus(201);
 });
 
-// PUT - Update Course
+
 it('admin can update course', function () {
     $course = Course::factory()->create(['instructor_id' => $this->admin->id]);
 
@@ -182,7 +182,7 @@ it('admin can update course outcomes and prerequisites', function () {
     expect($course->outcomes)->toHaveCount(2);
 });
 
-// DELETE - Delete Course
+
 it('admin can delete course', function () {
     $course = Course::factory()->create(['instructor_id' => $this->admin->id]);
 
@@ -205,7 +205,7 @@ it('superadmin can delete any course', function () {
     assertDatabaseMissing('courses', ['id' => $course->id]);
 });
 
-// Publish/Unpublish
+
 it('admin can publish course', function () {
     $course = Course::factory()->create([
         'instructor_id' => $this->admin->id,
@@ -242,9 +242,9 @@ it('admin can unpublish course', function () {
     ]);
 });
 
-// ==================== NEGATIVE TEST CASES ====================
 
-// POST - Create Course Negative
+
+
 it('student cannot create course', function () {
     $response = $this->actingAs($this->student, 'api')
         ->postJson(api('/courses'), [
@@ -367,7 +367,7 @@ it('requires enrollment_key for key_based enrollment_type', function () {
 it('cannot create course with code exceeding max length', function () {
     $response = $this->actingAs($this->admin, 'api')
         ->postJson(api('/courses'), [
-            'code' => str_repeat('A', 51), // Max 50
+            'code' => str_repeat('A', 51), 
             'title' => 'Long Code Course',
             'level_tag' => 'dasar',
             'type' => 'okupasi',
@@ -380,7 +380,7 @@ it('cannot create course with code exceeding max length', function () {
         ->assertJsonValidationErrors(['code']);
 });
 
-// PUT - Update Course Negative
+
 it('student cannot update course', function () {
     $course = Course::factory()->create();
 
@@ -448,7 +448,7 @@ it('cannot update non-existent course', function () {
     $response->assertStatus(404);
 });
 
-// DELETE - Delete Course Negative
+
 it('student cannot delete course', function () {
     $course = Course::factory()->create();
 
@@ -476,7 +476,7 @@ it('cannot delete non-existent course', function () {
     $response->assertStatus(404);
 });
 
-// Publish/Unpublish Negative
+
 it('student cannot publish course', function () {
     $course = Course::factory()->create(['status' => 'draft']);
 

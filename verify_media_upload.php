@@ -1,10 +1,6 @@
 <?php
 
-/**
- * Script untuk verifikasi media upload setelah seeding
- * 
- * Usage: php verify_media_upload.php
- */
+
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -16,7 +12,7 @@ echo "════════════════════════�
 echo "  VERIFIKASI MEDIA UPLOAD - SEMUA SEEDER\n";
 echo "═══════════════════════════════════════════════════════════════\n\n";
 
-// 1. Total Media
+
 echo "📊 TOTAL MEDIA\n";
 echo "───────────────────────────────────────────────────────────────\n";
 $totalMedia = DB::table('media')->count();
@@ -29,7 +25,7 @@ if ($totalMedia > 1000) {
 }
 echo "\n";
 
-// 2. Media per Model Type
+
 echo "📦 MEDIA PER MODEL TYPE\n";
 echo "───────────────────────────────────────────────────────────────\n";
 $mediaByModel = DB::table('media')
@@ -56,7 +52,7 @@ if ($lessonBlockMedia >= 670) {
 }
 echo "\n";
 
-// 3. Media per Collection
+
 echo "📁 MEDIA PER COLLECTION\n";
 echo "───────────────────────────────────────────────────────────────\n";
 $mediaByCollection = DB::table('media')
@@ -70,7 +66,7 @@ foreach ($mediaByCollection as $row) {
 }
 echo "\n";
 
-// 4. Media per Disk
+
 echo "💾 MEDIA PER DISK\n";
 echo "───────────────────────────────────────────────────────────────\n";
 $mediaByDisk = DB::table('media')
@@ -94,7 +90,7 @@ if ($doMedia > 0) {
 }
 echo "\n";
 
-// 5. Block Types Distribution
+
 echo "🎨 LESSON BLOCK TYPES DISTRIBUTION\n";
 echo "───────────────────────────────────────────────────────────────\n";
 $blockTypes = DB::table('lesson_blocks')
@@ -128,7 +124,7 @@ if ($hasVideo && $hasFile && $hasImage) {
 }
 echo "\n";
 
-// 6. Sample Media Records
+
 echo "🔍 SAMPLE MEDIA RECORDS (First 5 LessonBlock media)\n";
 echo "───────────────────────────────────────────────────────────────\n";
 $sampleMedia = DB::table('media')
@@ -148,32 +144,32 @@ foreach ($sampleMedia as $media) {
 }
 echo "\n";
 
-// 7. Summary
+
 echo "═══════════════════════════════════════════════════════════════\n";
 echo "  SUMMARY\n";
 echo "═══════════════════════════════════════════════════════════════\n\n";
 
 $allPassed = true;
 
-// Check 1: Total media
+
 if ($totalMedia < 1000) {
     echo "❌ Total media files too low: " . number_format($totalMedia) . " (expected 1000+)\n";
     $allPassed = false;
 }
 
-// Check 2: LessonBlock media
+
 if ($lessonBlockMedia < 670) {
     echo "❌ LessonBlock media too low: " . number_format($lessonBlockMedia) . " (expected 670+)\n";
     $allPassed = false;
 }
 
-// Check 3: DigitalOcean Spaces
+
 if ($doMedia === 0) {
     echo "❌ No files uploaded to DigitalOcean Spaces\n";
     $allPassed = false;
 }
 
-// Check 4: Block types
+
 if (!$hasVideo || !$hasFile || !$hasImage) {
     echo "❌ Missing media block types (video, file, or image)\n";
     $allPassed = false;

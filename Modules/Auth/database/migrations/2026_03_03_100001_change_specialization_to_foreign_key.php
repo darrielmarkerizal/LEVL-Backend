@@ -9,14 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Drop old specialization column if exists
+            
             if (Schema::hasColumn('users', 'specialization')) {
                 $table->dropColumn('specialization');
             }
         });
 
         Schema::table('users', function (Blueprint $table) {
-            // Add new specialization_id as foreign key
+            
             $table->foreignId('specialization_id')
                 ->nullable()
                 ->after('bio')
@@ -35,7 +35,7 @@ return new class extends Migration
         });
 
         Schema::table('users', function (Blueprint $table) {
-            // Restore old specialization column
+            
             $table->string('specialization', 100)->nullable()->after('bio');
         });
     }

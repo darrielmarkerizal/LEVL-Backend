@@ -58,19 +58,19 @@ class UserPolicy
             return false;
         }
 
-        // Admin CANNOT view Superadmins
+        
         if ($targetUser->hasRole('Superadmin')) {
             return false;
         }
 
-        // Admin can view all Students, Instructors, and other Admins
+        
         return true;
     }
 
     public function create(User $authUser): bool
     {
-        // Superadmin and Admin can create users
-        // Admin cannot create Superadmin (enforced in UserLifecycleProcessor)
+        
+        
         return $authUser->hasRole(['Superadmin', 'Admin']);
     }
 
@@ -81,17 +81,17 @@ class UserPolicy
 
     public function delete(User $authUser, User $targetUser): bool
     {
-        // Cannot delete self
+        
         if ($authUser->id === $targetUser->id) {
             return false;
         }
 
-        // Superadmin can delete anyone (except self)
+        
         if ($authUser->hasRole('Superadmin')) {
             return true;
         }
 
-        // Admin can delete users except Superadmins
+        
         if ($authUser->hasRole('Admin')) {
             return ! $targetUser->hasRole('Superadmin');
         }
@@ -106,22 +106,22 @@ class UserPolicy
 
     public function resetPassword(User $authUser, User $targetUser): bool
     {
-        // Superadmin can reset password for anyone
+        
         if ($authUser->hasRole('Superadmin')) {
             return true;
         }
 
-        // Admin cannot reset passwords for other Admins or Superadmins
+        
         if ($authUser->hasRole('Admin')) {
             if ($targetUser->hasRole(['Admin', 'Superadmin'])) {
                 return false;
             }
 
-            // Admin can reset password for Students and Instructors
+            
             return $this->view($authUser, $targetUser);
         }
 
-        // Instructor and other roles cannot reset passwords
+        
         return false;
     }
 }

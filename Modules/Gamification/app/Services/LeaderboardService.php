@@ -91,17 +91,17 @@ class LeaderboardService implements LeaderboardServiceInterface
                     }
                     $query->orderBy('rank');
                 } else {
-                    // If month filter is present, ignore period filter
+                    
                     $effectivePeriod = $month ? 'custom_month' : $period;
 
                     if ($effectivePeriod === 'all_time') {
                         $query = QueryBuilder::for(UserGamificationStat::class)
                             ->allowedFilters([
                                 AllowedFilter::callback('period', function ($query, $value) {
-                                    // Handled manually below via $this->applyPeriodFilter()
+                                    
                                 }),
                                 AllowedFilter::callback('month', function ($query, $value) {
-                                    // Handled manually below
+                                    
                                 }),
                             ])
                             ->with(['user:id,name', 'user.media']);
@@ -131,14 +131,14 @@ class LeaderboardService implements LeaderboardServiceInterface
                         }
                         $query->orderByDesc('total_xp');
 
-                        // Apply month filter if present, otherwise apply period filter
+                        
                         if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
                             try {
                                 $date = Carbon::createFromFormat('Y-m', $month);
                                 $query->whereYear('points.created_at', $date->year)
                                     ->whereMonth('points.created_at', $date->month);
                             } catch (\Exception $e) {
-                                // Invalid date format, fallback to period filter
+                                
                                 $this->applyPeriodFilter($query, $effectivePeriod, true);
                             }
                         } else {
@@ -155,7 +155,7 @@ class LeaderboardService implements LeaderboardServiceInterface
                 $result->getCollection()->transform(function ($item) use ($badgeCounts, $effectivePeriod) {
                     $item->badges_count = $badgeCounts[$item->user_id] ?? 0;
 
-                    // Remap the loaded relationship into object variable for uniform output if it's points model
+                    
                     if ($effectivePeriod !== 'all_time') {
                         $item->global_level = $item->user?->gamificationStats?->global_level ?? 1;
                     }
@@ -170,7 +170,7 @@ class LeaderboardService implements LeaderboardServiceInterface
 
     public function getUserRank(int $userId, string $period = 'all_time', ?string $month = null): array
     {
-        // If month filter is present, override period
+        
         if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
             $period = 'custom_month';
         }
@@ -199,14 +199,14 @@ class LeaderboardService implements LeaderboardServiceInterface
         } else {
             $userPointQuery = \Modules\Gamification\Models\Point::where('user_id', $userId);
 
-            // Apply month filter if present
+            
             if ($period === 'custom_month' && $month) {
                 try {
                     $date = Carbon::createFromFormat('Y-m', $month);
                     $userPointQuery->whereYear('created_at', $date->year)
                         ->whereMonth('created_at', $date->month);
                 } catch (\Exception $e) {
-                    // Invalid date, fallback to all_time
+                    
                     $period = 'all_time';
                 }
             } else {
@@ -229,14 +229,14 @@ class LeaderboardService implements LeaderboardServiceInterface
                 ->groupBy('user_id')
                 ->having(DB::raw('SUM(points)'), '>', $totalXp);
 
-            // Apply month filter if present
+            
             if ($period === 'custom_month' && $month) {
                 try {
                     $date = Carbon::createFromFormat('Y-m', $month);
                     $rankQuery->whereYear('created_at', $date->year)
                         ->whereMonth('created_at', $date->month);
                 } catch (\Exception $e) {
-                    // Invalid date
+                    
                 }
             } else {
                 $this->applyPeriodFilter($rankQuery, $period, true);
@@ -271,9 +271,9 @@ class LeaderboardService implements LeaderboardServiceInterface
             $userIds = $stats->pluck('user_id')->toArray();
             $data = [];
 
-            // Keep global leaderboard updates outside a single transaction.
-            // This prevents one failure from poisoning subsequent statements
-            // with SQLSTATE 25P02 in long-lived workers/scheduler processes.
+            
+            
+            
             foreach ($stats as $stat) {
                 $data[] = [
                     'course_id' => null,
@@ -333,14 +333,14 @@ class LeaderboardService implements LeaderboardServiceInterface
                 $pdo->rollBack();
             }
         } catch (\Throwable) {
-            // ignore
+            
         }
 
         try {
             DB::purge($connectionName);
             DB::reconnect($connectionName);
         } catch (\Throwable) {
-            // ignore
+            
         }
     }
 
@@ -385,7 +385,7 @@ class LeaderboardService implements LeaderboardServiceInterface
 
     private function applyPeriodFilterToBadges($query, string $period, ?string $month = null): void
     {
-        // If month filter is present, use it instead of period
+        
         if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
             try {
                 $date = Carbon::createFromFormat('Y-m', $month);
@@ -394,7 +394,7 @@ class LeaderboardService implements LeaderboardServiceInterface
 
                 return;
             } catch (\Exception $e) {
-                // Invalid date, continue with period filter
+                
             }
         }
 
@@ -426,7 +426,7 @@ class LeaderboardService implements LeaderboardServiceInterface
             $userIds = $courseStats->pluck('user_id')->toArray();
             $data = [];
 
-            // FIX: Prepare batch data
+            
             foreach ($courseStats as $stat) {
                 $data[] = [
                     'course_id' => $courseId,
@@ -437,12 +437,12 @@ class LeaderboardService implements LeaderboardServiceInterface
                 ];
             }
 
-            // FIX: Batch upsert
+            
             if (! empty($data)) {
                 Leaderboard::upsert(
                     $data,
-                    ['course_id', 'user_id'], // Unique keys
-                    ['rank', 'updated_at'] // Update columns
+                    ['course_id', 'user_id'], 
+                    ['rank', 'updated_at'] 
                 );
             }
 
@@ -456,7 +456,7 @@ class LeaderboardService implements LeaderboardServiceInterface
 
     private function getSurroundingUsers(int $userId, int $userXp, int $count = 2, string $period = 'all_time', ?string $month = null): array
     {
-        // If month filter is present, override period
+        
         if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
             $period = 'custom_month';
         }
@@ -484,14 +484,14 @@ class LeaderboardService implements LeaderboardServiceInterface
                 ->having(DB::raw('SUM(points)'), '>', $userXp)
                 ->orderByDesc('total_xp');
 
-            // Apply month filter if present
+            
             if ($period === 'custom_month' && $month) {
                 try {
                     $date = Carbon::createFromFormat('Y-m', $month);
                     $aboveQuery->whereYear('created_at', $date->year)
                         ->whereMonth('created_at', $date->month);
                 } catch (\Exception $e) {
-                    // Invalid date
+                    
                 }
             } else {
                 $this->applyPeriodFilter($aboveQuery, $period, true);
@@ -504,14 +504,14 @@ class LeaderboardService implements LeaderboardServiceInterface
                 ->having(DB::raw('SUM(points)'), '<', $userXp)
                 ->orderByDesc('total_xp');
 
-            // Apply month filter if present
+            
             if ($period === 'custom_month' && $month) {
                 try {
                     $date = Carbon::createFromFormat('Y-m', $month);
                     $belowQuery->whereYear('created_at', $date->year)
                         ->whereMonth('created_at', $date->month);
                 } catch (\Exception $e) {
-                    // Invalid date
+                    
                 }
             } else {
                 $this->applyPeriodFilter($belowQuery, $period, true);
@@ -523,14 +523,14 @@ class LeaderboardService implements LeaderboardServiceInterface
                 ->where('user_id', $userId)
                 ->groupBy('user_id');
 
-            // Apply month filter if present
+            
             if ($period === 'custom_month' && $month) {
                 try {
                     $date = Carbon::createFromFormat('Y-m', $month);
                     $currentQuery->whereYear('created_at', $date->year)
                         ->whereMonth('created_at', $date->month);
                 } catch (\Exception $e) {
-                    // Invalid date
+                    
                 }
             } else {
                 $this->applyPeriodFilter($currentQuery, $period, true);
@@ -538,21 +538,21 @@ class LeaderboardService implements LeaderboardServiceInterface
             $current = $currentQuery->first();
         }
 
-        // FIX: Collect all stats and calculate ranks in batch
+        
         $allStats = collect();
         if ($current) {
             $allStats->push($current);
         }
         $allStats = $allStats->merge($above)->merge($below);
 
-        // FIX: Calculate all ranks in single query
+        
         $ranks = [];
         if ($allStats->isNotEmpty()) {
             if ($period === 'all_time') {
-                // Get all XP values
+                
                 $xpValues = $allStats->pluck('total_xp')->unique()->toArray();
 
-                // Single query to get ranks for all XP values
+                
                 $rankData = UserGamificationStat::select('total_xp', DB::raw('COUNT(*) as higher_count'))
                     ->whereIn('total_xp', $xpValues)
                     ->groupBy('total_xp')
@@ -565,7 +565,7 @@ class LeaderboardService implements LeaderboardServiceInterface
 
                 $ranks = $rankData->toArray();
             } else {
-                // For period-based, calculate ranks
+                
                 foreach ($allStats as $stat) {
                     $rankQuery = \Modules\Gamification\Models\Point::select('user_id', DB::raw('SUM(points) as period_xp'))
                         ->groupBy('user_id')
@@ -576,7 +576,7 @@ class LeaderboardService implements LeaderboardServiceInterface
             }
         }
 
-        // FIX: Batch load badge counts for all users
+        
         $userIds = $allStats->pluck('user_id')->unique()->toArray();
         $badgeCounts = $this->getBadgeCountsForUsers($userIds, $period);
 
@@ -619,9 +619,7 @@ class LeaderboardService implements LeaderboardServiceInterface
         ];
     }
 
-    /**
-     * Optimized version that uses pre-loaded badge counts
-     */
+    
     private function formatLeaderboardEntryOptimized($stat, int $rank, string $period, array $badgeCounts): array
     {
         $badgesCount = $badgeCounts[$stat->user_id] ?? 0;

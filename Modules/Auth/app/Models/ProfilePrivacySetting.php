@@ -46,22 +46,22 @@ class ProfilePrivacySetting extends Model
 
     public function canShowField(string $field, User $viewer): bool
     {
-        // Admin can see everything
+        
         if ($viewer->hasRole('Admin') || $viewer->hasRole('Superadmin')) {
             return true;
         }
 
-        // Owner can see everything
+        
         if ($this->user_id === $viewer->id) {
             return true;
         }
 
-        // Check profile visibility first
+        
         if ($this->profile_visibility === self::VISIBILITY_PRIVATE) {
             return false;
         }
 
-        // Check field-specific settings
+        
         $fieldMap = [
             'email' => 'show_email',
             'phone' => 'show_phone',
@@ -74,7 +74,7 @@ class ProfilePrivacySetting extends Model
             return (bool) $this->{$fieldMap[$field]};
         }
 
-        // Default to public for basic fields
+        
         return true;
     }
 }

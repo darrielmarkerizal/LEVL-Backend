@@ -9,9 +9,7 @@ use Modules\Gamification\Models\XpSource;
 
 trait IncludesXpInfo
 {
-    /**
-     * Get XP info for a specific action
-     */
+    
     protected function getXpInfo(string $xpSourceCode): array
     {
         $xpSource = XpSource::byCode($xpSourceCode)->active()->first();
@@ -38,9 +36,7 @@ trait IncludesXpInfo
         ];
     }
 
-    /**
-     * Get recent XP awards for a user
-     */
+    
     protected function getRecentXpAwards(int $userId, int $limit = 5): array
     {
         $recentAwards = Point::where('user_id', $userId)
@@ -64,9 +60,7 @@ trait IncludesXpInfo
         return $recentAwards;
     }
 
-    /**
-     * Add XP info to response data
-     */
+    
     protected function withXpInfo(array $data, string $xpSourceCode, ?int $userId = null): array
     {
         $data['xp_info'] = $this->getXpInfo($xpSourceCode);

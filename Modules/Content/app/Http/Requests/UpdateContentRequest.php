@@ -21,7 +21,7 @@ class UpdateContentRequest extends FormRequest
             'content' => 'sometimes|required|string',
         ];
 
-        // Add news-specific rules
+        
         if ($this->route('news')) {
             $rules['excerpt'] = 'nullable|string';
             $rules['featured_image'] = 'nullable|image|max:5120';
@@ -32,7 +32,7 @@ class UpdateContentRequest extends FormRequest
             $rules['tag_ids.*'] = 'exists:tags,id';
         }
 
-        // Add announcement-specific rules
+        
         if ($this->route('announcement')) {
             $rules['target_type'] = ['sometimes', 'required', Rule::enum(TargetType::class)];
             $rules['target_value'] = 'nullable|string|max:255';

@@ -17,11 +17,11 @@ class TagRequest extends FormRequest
 
     public function rules(): array
     {
-        /** @var \Modules\Schemes\Models\Tag|null $tag */
+        
         $tag = $this->route('tag');
         $tagId = $tag?->id;
 
-        /** @var Unique $uniqueName */
+        
         $uniqueName = Rule::unique('tags', 'name');
         if ($tagId) {
             $uniqueName = $uniqueName->ignore($tagId);

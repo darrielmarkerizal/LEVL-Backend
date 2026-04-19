@@ -11,14 +11,14 @@ class EnrollmentResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        // Calculate progress
+        
         $progress = 0;
 
-        // If status is pending, progress is 0
+        
         if ($this->status->value === 'pending') {
             $progress = 0;
         } else {
-            // Get progress from courseProgress relationship
+            
             if ($this->relationLoaded('courseProgress') && $this->courseProgress) {
                 $progress = round($this->courseProgress->progress_percent ?? 0, 2);
             }

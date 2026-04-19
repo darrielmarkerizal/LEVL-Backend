@@ -31,16 +31,14 @@ class HandleLevelUp implements ShouldQueue
         private readonly BadgeRuleEvaluator $evaluator
     ) {}
 
-    /**
-     * Handle the event.
-     */
+    
     public function handle(UserLeveledUp $event): void
     {
         try {
-            // Award milestone badge if this is a milestone level
+            
             $this->awardMilestoneBadge($event);
 
-            // Evaluate badge rules triggered by level_reached
+            
             $user = User::find($event->userId);
             if ($user) {
                 $this->evaluator->evaluate($user, 'level_reached', [
@@ -50,7 +48,7 @@ class HandleLevelUp implements ShouldQueue
                 ]);
             }
 
-            // Award additional rewards if any
+            
             if (! empty($event->rewards)) {
                 $this->awardRewards($event);
             }
@@ -69,12 +67,10 @@ class HandleLevelUp implements ShouldQueue
         }
     }
 
-    /**
-     * Award milestone badge if this level has one
-     */
+    
     private function awardMilestoneBadge(UserLeveledUp $event): void
     {
-        // Get level config to check for milestone badge
+        
         $levelConfig = \Modules\Common\Models\LevelConfig::where('level', $event->newLevel)
             ->with('milestoneBadge')
             ->first();
@@ -101,7 +97,7 @@ class HandleLevelUp implements ShouldQueue
 
     private function awardRewards(UserLeveledUp $event): void
     {
-        // Additional reward logic can be added here
-        // For example: unlock features, send notifications, etc.
+        
+        
     }
 }

@@ -14,7 +14,7 @@ class SubmissionFileSeeder extends Seeder
     {
         DB::connection()->disableQueryLog();
 
-        // Ensure UAT fixture files exist
+        
         UATMediaFixtures::ensureFilesExist();
 
         $this->command->info('Seeding submission files with Object Storage uploads...');
@@ -33,11 +33,11 @@ class SubmissionFileSeeder extends Seeder
 
         $this->command->info('   📁 Found '.count($fileUploadAssignmentIds).' assignments');
 
-        // Get submissions that need files
+        
         $submissions = DB::table('submissions')
             ->whereIn('assignment_id', $fileUploadAssignmentIds)
             ->orderBy('id')
-            ->get(); // We use get() here to iterate easier, assuming not millions suitable for cursor yet for complex logic
+            ->get(); 
 
         if ($submissions->isEmpty()) {
             $this->command->warn('⚠️  No submissions found.');
@@ -54,8 +54,8 @@ class SubmissionFileSeeder extends Seeder
         $bar->start();
 
         foreach ($submissions as $submission) {
-            // Randomly decide if this submission has files (simulate some empty or failed ones? nah, lets give most files)
-            // User requested robust seeding, let's say 80% have files
+            
+            
             if (rand(1, 100) > 80) {
                 $processed++;
                 $bar->advance();
@@ -63,7 +63,7 @@ class SubmissionFileSeeder extends Seeder
                 continue;
             }
 
-            $numFiles = rand(1, 2); // 1 or 2 files per submission
+            $numFiles = rand(1, 2); 
 
             for ($i = 0; $i < $numFiles; $i++) {
                 try {
@@ -71,7 +71,7 @@ class SubmissionFileSeeder extends Seeder
                         'submission_id' => $submission->id,
                     ]);
 
-                    // Use UAT fixture files instead of creating dummy files
+                    
                     $fileTypes = ['pdf', 'doc', 'excel'];
                     $fileType = $fileTypes[$i % count($fileTypes)];
                     $fixturePaths = UATMediaFixtures::paths();
@@ -84,7 +84,7 @@ class SubmissionFileSeeder extends Seeder
 
                     $fileName = "submission_{$submission->id}_file_{$i}." . pathinfo($filePath, PATHINFO_EXTENSION);
 
-                    // Upload to Media Library (Object Storage)
+                    
                     $submissionFile->addMedia($filePath)
                         ->preservingOriginal()
                         ->usingFileName($fileName)
@@ -100,7 +100,7 @@ class SubmissionFileSeeder extends Seeder
             $processed++;
             $bar->advance();
 
-            // Clean memory occasionally
+            
             if ($processed % 100 === 0) {
                 gc_collect_cycles();
             }

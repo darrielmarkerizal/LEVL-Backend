@@ -49,7 +49,14 @@ return [
         'submitted' => 'Dikumpulkan',
         'graded' => 'Dinilai',
         'late' => 'Terlambat',
-        'missing' => 'Tidak Dikumpulkan',
+    ],
+
+    'submission_state' => [
+        'in_progress' => 'Sedang Dikerjakan',
+        'auto_graded' => 'Dinilai Otomatis',
+        'pending_manual_grading' => 'Menunggu Penilaian Manual',
+        'graded' => 'Dinilai',
+        'released' => 'Dirilis',
     ],
 
     'review_mode' => [

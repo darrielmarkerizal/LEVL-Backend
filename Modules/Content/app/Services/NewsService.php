@@ -109,9 +109,7 @@ class NewsService implements NewsServiceInterface
         return $result;
     }
 
-    /**
-     * @throws BusinessException
-     */
+    
     public function publish(News $news): News
     {
         if ($news->status === 'published') {
@@ -133,9 +131,7 @@ class NewsService implements NewsServiceInterface
         });
     }
 
-    /**
-     * @throws BusinessException
-     */
+    
     public function schedule(News $news, \Carbon\Carbon $publishAt): News
     {
         if ($publishAt->isPast()) {

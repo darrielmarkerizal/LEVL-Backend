@@ -62,7 +62,7 @@ class AssignmentPolicy
             return true;
         }
 
-        // Admin can create assignments in all courses
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
@@ -81,7 +81,7 @@ class AssignmentPolicy
             return false;
         }
 
-        // Admin can update all assignments
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
@@ -100,7 +100,7 @@ class AssignmentPolicy
             return false;
         }
 
-        // Admin can delete all assignments
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
@@ -131,7 +131,7 @@ class AssignmentPolicy
             return false;
         }
 
-        // Admin can duplicate all assignments
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
@@ -141,12 +141,12 @@ class AssignmentPolicy
 
     public function listQuestions(User $user, Assignment $assignment): bool
     {
-        // Superadmins can always view
+        
         if ($user->hasRole('Superadmin')) {
             return true;
         }
 
-        // Students cannot view assignment questions
+        
         if ($user->hasRole('Student')) {
             return false;
         }
@@ -163,7 +163,7 @@ class AssignmentPolicy
             return false;
         }
 
-        // Admin can view all assignment questions
+        
         if ($user->hasRole('Admin')) {
             return true;
         }

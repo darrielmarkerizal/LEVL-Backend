@@ -24,9 +24,7 @@ class LogGradeCreated implements ShouldQueue
         private readonly AuditServiceInterface $auditService
     ) {}
 
-    /**
-     * Handle the event.
-     */
+    
     public function handle(GradeCreated $event): void
     {
         $this->auditService->logGrading($event->grade, $event->instructorId);

@@ -18,9 +18,7 @@ class DashboardController extends Controller
         private readonly DashboardService $dashboardService
     ) {}
 
-    /**
-     * Get student dashboard overview
-     */
+    
     public function index(Request $request): JsonResponse
     {
         $data = $this->dashboardService->getDashboardData($request->user());
@@ -28,9 +26,7 @@ class DashboardController extends Controller
         return $this->success($data, __('messages.dashboard_retrieved'));
     }
 
-    /**
-     * Get recent learning activities
-     */
+    
     public function recentLearning(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
@@ -41,9 +37,7 @@ class DashboardController extends Controller
         return $this->success($data, __('messages.recent_learning_retrieved'));
     }
 
-    /**
-     * Get recent achievements (badges)
-     */
+    
     public function recentAchievements(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
@@ -54,9 +48,7 @@ class DashboardController extends Controller
         return $this->success($data, __('messages.recent_achievements_retrieved'));
     }
 
-    /**
-     * Get recommended courses
-     */
+    
     public function recommendedCourses(Request $request): JsonResponse
     {
         $userId = $request->user()->id;

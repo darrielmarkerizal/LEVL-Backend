@@ -34,7 +34,7 @@ class LessonController extends Controller
         $this->service->validateHierarchy($course->id, $unit->id, null);
         $this->authorize('view', $unit);
 
-        // Require enrollment for students
+        
         if ($error = $this->requireEnrollment($course)) {
             return $error;
         }
@@ -64,12 +64,12 @@ class LessonController extends Controller
         $this->service->validateHierarchy($course->id, $unit->id, $lesson->id);
         $this->authorize('view', $lesson);
 
-        // Require enrollment for students
+        
         if ($error = $this->requireEnrollment($course)) {
             return $error;
         }
 
-        // Use QueryBuilder to handle includes
+        
         $query = QueryBuilder::for(Lesson::class)
             ->where('id', $lesson->id)
             ->allowedIncludes([

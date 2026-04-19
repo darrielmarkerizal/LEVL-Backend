@@ -85,7 +85,6 @@ class ReviewModeService implements ReviewModeServiceInterface
         }
 
         return in_array($state, [
-            SubmissionState::Submitted,
             SubmissionState::AutoGraded,
             SubmissionState::PendingManualGrading,
             SubmissionState::Graded,

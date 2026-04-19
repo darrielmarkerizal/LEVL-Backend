@@ -10,9 +10,7 @@ use ReflectionUnionType;
 
 class InterfaceGenerator
 {
-    /**
-     * Generate service interface from service class
-     */
+    
     public function generateServiceInterface(string $serviceClass): string
     {
         $reflection = new ReflectionClass($serviceClass);
@@ -26,9 +24,7 @@ class InterfaceGenerator
         return $this->buildInterfaceContent($interfaceNamespace, $interfaceName, $methods, $reflection);
     }
 
-    /**
-     * Generate repository interface from repository class
-     */
+    
     public function generateRepositoryInterface(string $repositoryClass): string
     {
         $reflection = new ReflectionClass($repositoryClass);
@@ -42,9 +38,7 @@ class InterfaceGenerator
         return $this->buildInterfaceContent($interfaceNamespace, $interfaceName, $methods, $reflection);
     }
 
-    /**
-     * Write interface to file
-     */
+    
     public function writeInterface(string $path, string $content): void
     {
         $directory = dirname($path);
@@ -56,20 +50,18 @@ class InterfaceGenerator
         file_put_contents($path, $content);
     }
 
-    /**
-     * Extract public methods from class
-     */
+    
     private function extractPublicMethods(ReflectionClass $reflection): array
     {
         $methods = [];
 
         foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-            // Skip constructor and magic methods
+            
             if ($method->isConstructor() || str_starts_with($method->getName(), '__')) {
                 continue;
             }
 
-            // Skip methods from parent classes (except interfaces)
+            
             if ($method->getDeclaringClass()->getName() !== $reflection->getName()) {
                 continue;
             }
@@ -85,9 +77,7 @@ class InterfaceGenerator
         return $methods;
     }
 
-    /**
-     * Extract method parameters
-     */
+    
     private function extractParameters(ReflectionMethod $method): array
     {
         $parameters = [];
@@ -105,9 +95,7 @@ class InterfaceGenerator
         return $parameters;
     }
 
-    /**
-     * Get parameter type as string
-     */
+    
     private function getParameterType(ReflectionParameter $param): ?string
     {
         $type = $param->getType();
@@ -131,9 +119,7 @@ class InterfaceGenerator
         return null;
     }
 
-    /**
-     * Extract return type
-     */
+    
     private function extractReturnType(ReflectionMethod $method): ?string
     {
         $returnType = $method->getReturnType();
@@ -157,9 +143,7 @@ class InterfaceGenerator
         return null;
     }
 
-    /**
-     * Build interface content
-     */
+    
     private function buildInterfaceContent(
         string $namespace,
         string $interfaceName,
@@ -169,7 +153,7 @@ class InterfaceGenerator
         $content = "<?php\n\n";
         $content .= "namespace {$namespace};\n\n";
 
-        // Add use statements for type hints
+        
         $useStatements = $this->extractUseStatements($reflection, $methods);
         if (! empty($useStatements)) {
             foreach ($useStatements as $use) {
@@ -182,7 +166,7 @@ class InterfaceGenerator
         $content .= "{\n";
 
         foreach ($methods as $method) {
-            // Add doc comment if exists
+            
             if ($method['docComment']) {
                 $docLines = explode("\n", $method['docComment']);
                 foreach ($docLines as $docLine) {
@@ -192,7 +176,7 @@ class InterfaceGenerator
 
             $content .= "    public function {$method['name']}(";
 
-            // Add parameters
+            
             $paramStrings = [];
             foreach ($method['parameters'] as $param) {
                 $paramStr = '';
@@ -209,7 +193,7 @@ class InterfaceGenerator
 
             $content .= ')';
 
-            // Add return type
+            
             if ($method['returnType']) {
                 $content .= ": {$method['returnType']}";
             }
@@ -222,14 +206,12 @@ class InterfaceGenerator
         return $content;
     }
 
-    /**
-     * Extract use statements needed for interface
-     */
+    
     private function extractUseStatements(ReflectionClass $reflection, array $methods): array
     {
         $uses = [];
 
-        // Get use statements from original file
+        
         $fileName = $reflection->getFileName();
         if ($fileName) {
             $content = file_get_contents($fileName);
@@ -237,7 +219,7 @@ class InterfaceGenerator
             if (! empty($matches[1])) {
                 foreach ($matches[1] as $use) {
                     $use = trim($use);
-                    // Only include uses that are referenced in method signatures
+                    
                     foreach ($methods as $method) {
                         $methodSignature = json_encode($method);
                         $shortName = substr($use, strrpos($use, '\\') + 1);
@@ -253,9 +235,7 @@ class InterfaceGenerator
         return array_unique($uses);
     }
 
-    /**
-     * Format default value for output
-     */
+    
     private function formatDefaultValue($value): string
     {
         if ($value === null) {

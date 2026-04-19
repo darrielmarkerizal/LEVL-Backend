@@ -7,9 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         Schema::create('posts', function (Blueprint $table) {
@@ -36,27 +34,25 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-            // FK indexes (PostgreSQL does NOT auto-index foreign keys)
+            
             $table->index('author_id');
             $table->index('last_editor_id');
 
-            // Composite indexes for common query patterns
+            
             $table->index(['status', 'published_at']);
             $table->index(['status', 'category']);
 
-            // Soft delete index
+            
             $table->index('deleted_at');
         });
 
-        // Partial indexes (PostgreSQL only) — smaller and faster than full indexes
+        
         DB::statement("CREATE INDEX idx_posts_published ON posts (published_at) WHERE status = 'published'");
         DB::statement("CREATE INDEX idx_posts_scheduled ON posts (scheduled_at) WHERE status = 'scheduled'");
         DB::statement('CREATE INDEX idx_posts_pinned ON posts (created_at) WHERE is_pinned = true');
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         DB::statement('DROP INDEX IF EXISTS idx_posts_published');

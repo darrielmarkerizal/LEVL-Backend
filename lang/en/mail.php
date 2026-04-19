@@ -1,7 +1,7 @@
 <?php
 
 return [
-    // Auth Emails
+    
     'credentials' => [
         'subject' => 'Your Account Credentials',
         'title' => 'Your Account Has Been Created',
@@ -65,7 +65,7 @@ return [
         'footer' => 'This email was sent automatically. Please do not reply to this email.',
     ],
 
-    // Enrollment Emails
+    
     'enrollment_active' => [
         'subject' => 'Enrollment Successful',
         'title' => 'Congratulations! Enrollment Successful',
@@ -143,7 +143,7 @@ return [
         'footer' => 'This email was sent automatically from the :app_name system.',
     ],
 
-    // Learning Emails
+    
     'assignment_published' => [
         'subject' => 'New Assignment Available',
         'subject_with_details' => 'New assignment: :assignment — :course',
@@ -160,7 +160,7 @@ return [
         'footer' => 'This email was sent automatically. Please do not reply to this email.',
     ],
 
-    // Schemes Emails
+    
     'course_completed' => [
         'subject' => 'Congratulations! Course Completed',
         'title' => 'Congratulations!',
@@ -177,7 +177,7 @@ return [
         'footer' => 'This email was sent automatically. Please do not reply to this email.',
     ],
 
-    // Notifications Emails
+    
     'post_published' => [
         'subject' => 'New Announcement Published',
         'title' => 'New Announcement Published',
@@ -191,7 +191,7 @@ return [
         'footer' => 'This email was sent automatically. Please do not reply to this email.',
     ],
 
-    // Common
+    
     'common' => [
         'fallback_url_text' => 'If the button above does not work, copy and paste the following URL into your browser:',
         'thanks' => 'Thank you',

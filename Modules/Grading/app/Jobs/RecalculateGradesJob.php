@@ -86,8 +86,8 @@ class RecalculateGradesJob implements ShouldQueue
 
         $uniqueSubmissionIds = $affectedSubmissionIds->unique();
 
-        // Process affected submissions in chunks as well to avoid memory issues
-        // Since we only need to trigger recalculation, we can find them by ID
+        
+        
         if ($uniqueSubmissionIds->isNotEmpty()) {
             \Modules\Learning\Models\Submission::whereIn('id', $uniqueSubmissionIds)
                 ->chunkById(100, function ($submissions) {

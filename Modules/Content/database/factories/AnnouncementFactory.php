@@ -6,9 +6,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\Models\User;
 use Modules\Content\Models\Announcement;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Content\Models\Announcement>
- */
+
 class AnnouncementFactory extends Factory
 {
     protected $model = Announcement::class;

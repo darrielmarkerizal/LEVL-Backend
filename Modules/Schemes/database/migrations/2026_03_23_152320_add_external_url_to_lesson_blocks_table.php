@@ -6,15 +6,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         Schema::table('lesson_blocks', function (Blueprint $table) {
             $table->string('external_url', 500)->nullable()->after('content');
             
-            // Update block_type enum to include new types
+            
             $table->dropColumn('block_type');
         });
         
@@ -25,9 +23,7 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         Schema::table('lesson_blocks', function (Blueprint $table) {

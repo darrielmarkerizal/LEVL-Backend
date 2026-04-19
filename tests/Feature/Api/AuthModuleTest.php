@@ -715,7 +715,7 @@ it('rejects password reset with wrong current password', function () {
     $response->assertStatus(422)->assertJsonPath('message', 'Password lama tidak cocok.');
 });
 
-// ==================== LOGIN THROTTLING & RATE LIMITING ====================
+
 
 it('throttles login after multiple failed attempts', function () {
     $user = User::factory()->create([
@@ -725,7 +725,7 @@ it('throttles login after multiple failed attempts', function () {
     ]);
     $user->assignRole('Student');
 
-    // Make 5 failed attempts (default max)
+    
     for ($i = 0; $i < 5; $i++) {
         $this->postJson(api('/auth/login'), [
             'login' => 'throttle@example.com',
@@ -733,7 +733,7 @@ it('throttles login after multiple failed attempts', function () {
         ]);
     }
 
-    // 6th attempt should be throttled
+    
     $response = $this->postJson(api('/auth/login'), [
         'login' => 'throttle@example.com',
         'password' => 'Secret123!',
@@ -752,7 +752,7 @@ it('locks account after threshold failed attempts', function () {
     ]);
     $user->assignRole('Student');
 
-    // Make 5 failed attempts to trigger lockout (default threshold)
+    
     for ($i = 0; $i < 5; $i++) {
         $this->postJson(api('/auth/login'), [
             'login' => 'lockout@example.com',
@@ -760,7 +760,7 @@ it('locks account after threshold failed attempts', function () {
         ]);
     }
 
-    // Next attempt should be locked
+    
     $response = $this->postJson(api('/auth/login'), [
         'login' => 'lockout@example.com',
         'password' => 'Secret123!',
@@ -778,7 +778,7 @@ it('clears throttling after successful login', function () {
     ]);
     $user->assignRole('Student');
 
-    // Make 3 failed attempts
+    
     for ($i = 0; $i < 3; $i++) {
         $this->postJson(api('/auth/login'), [
             'login' => 'clearthrottle@example.com',
@@ -786,7 +786,7 @@ it('clears throttling after successful login', function () {
         ]);
     }
 
-    // Successful login should clear throttling
+    
     $response = $this->postJson(api('/auth/login'), [
         'login' => 'clearthrottle@example.com',
         'password' => 'Secret123!',
@@ -794,7 +794,7 @@ it('clears throttling after successful login', function () {
 
     $response->assertStatus(200);
 
-    // Should be able to login again immediately
+    
     $response2 = $this->postJson(api('/auth/login'), [
         'login' => 'clearthrottle@example.com',
         'password' => 'Secret123!',
@@ -803,7 +803,7 @@ it('clears throttling after successful login', function () {
     $response2->assertStatus(200);
 });
 
-// ==================== REFRESH TOKEN EXPIRY ====================
+
 
 it('rejects refresh token with expired idle expiry', function () {
     $user = User::factory()->create([
@@ -821,7 +821,7 @@ it('rejects refresh token with expired idle expiry', function () {
     $refreshToken = $login->json('data.refresh_token');
     $hashed = hash('sha256', $refreshToken);
 
-    // Manually expire the idle expiry (14 days)
+    
     \Modules\Auth\Models\JwtRefreshToken::where('token', $hashed)->update([
         'idle_expires_at' => now()->subDay(),
     ]);
@@ -851,7 +851,7 @@ it('rejects refresh token with expired absolute expiry', function () {
     $refreshToken = $login->json('data.refresh_token');
     $hashed = hash('sha256', $refreshToken);
 
-    // Manually expire the absolute expiry (90 days)
+    
     \Modules\Auth\Models\JwtRefreshToken::where('token', $hashed)->update([
         'absolute_expires_at' => now()->subDay(),
     ]);
@@ -884,7 +884,7 @@ it('updates idle expiry on refresh token usage', function () {
     $originalIdleExpiry = \Modules\Auth\Models\JwtRefreshToken::where('token', $hashed)->first()
         ->idle_expires_at;
 
-    // Wait a bit and refresh
+    
     sleep(1);
     $response = $this->postJson(api('/auth/refresh'), [
         'refresh_token' => $refreshToken,
@@ -892,13 +892,13 @@ it('updates idle expiry on refresh token usage', function () {
 
     $response->assertStatus(200);
 
-    // Old token should have updated last_used_at and idle_expires_at
+    
     $oldToken = \Modules\Auth\Models\JwtRefreshToken::where('token', $hashed)->first();
     expect($oldToken->last_used_at)->not()->toBeNull();
     expect($oldToken->idle_expires_at->gt($originalIdleExpiry))->toBeTrue();
 });
 
-// ==================== REFRESH TOKEN ROTATION ====================
+
 
 it('rotates refresh token on each refresh', function () {
     $user = User::factory()->create([
@@ -916,7 +916,7 @@ it('rotates refresh token on each refresh', function () {
     $oldRefreshToken = $login->json('data.refresh_token');
     $oldHashed = hash('sha256', $oldRefreshToken);
 
-    // First refresh
+    
     $refresh1 = $this->postJson(api('/auth/refresh'), [
         'refresh_token' => $oldRefreshToken,
     ])->assertStatus(200);
@@ -924,11 +924,11 @@ it('rotates refresh token on each refresh', function () {
     $newRefreshToken1 = $refresh1->json('data.refresh_token');
     expect($newRefreshToken1)->not()->toBe($oldRefreshToken);
 
-    // Old token should be marked as replaced
+    
     $oldToken = \Modules\Auth\Models\JwtRefreshToken::where('token', $oldHashed)->first();
     expect($oldToken->replaced_by)->not()->toBeNull();
 
-    // Second refresh
+    
     $refresh2 = $this->postJson(api('/auth/refresh'), [
         'refresh_token' => $newRefreshToken1,
     ])->assertStatus(200);
@@ -953,12 +953,12 @@ it('rejects old refresh token after rotation', function () {
 
     $oldRefreshToken = $login->json('data.refresh_token');
 
-    // Refresh once to rotate
+    
     $refresh = $this->postJson(api('/auth/refresh'), [
         'refresh_token' => $oldRefreshToken,
     ])->assertStatus(200);
 
-    // Try to use old token - should be rejected
+    
     $response = $this->postJson(api('/auth/refresh'), [
         'refresh_token' => $oldRefreshToken,
     ]);
@@ -986,14 +986,14 @@ it('revokes all device tokens when replaced token is reused', function () {
     $oldToken = \Modules\Auth\Models\JwtRefreshToken::where('token', $oldHashed)->first();
     $deviceId = $oldToken->device_id;
 
-    // Refresh to rotate
+    
     $refresh = $this->postJson(api('/auth/refresh'), [
         'refresh_token' => $oldRefreshToken,
     ])->assertStatus(200);
 
     $newRefreshToken = $refresh->json('data.refresh_token');
 
-    // Manually mark old token as replaced (simulating reuse detection)
+    
     \Modules\Auth\Models\JwtRefreshToken::where('token', $oldHashed)->update([
         'replaced_by' => \Modules\Auth\Models\JwtRefreshToken::where(
             'token',
@@ -1001,19 +1001,19 @@ it('revokes all device tokens when replaced token is reused', function () {
         )->first()->id,
     ]);
 
-    // Try to use old token - should be rejected (401 because token is already replaced/invalid)
+    
     $response = $this->postJson(api('/auth/refresh'), [
         'refresh_token' => $oldRefreshToken,
     ]);
 
-    // Token is already replaced, so it should return 401
+    
     $response->assertStatus(401);
 
-    // Note: The actual implementation may not revoke all device tokens in this scenario
-    // The test verifies that replaced tokens cannot be reused, which is the main security feature
+    
+    
 });
 
-// ==================== PASSWORD VALIDATION EDGE CASES ====================
+
 
 it('rejects password shorter than 8 characters', function () {
     $response = $this->postJson(api('/auth/register'), [
@@ -1115,7 +1115,7 @@ it('accepts valid strong password for password reset', function () {
     expect(Hash::check($newPassword, $user->password))->toBeTrue();
 });
 
-// ==================== USERNAME VALIDATION EDGE CASES ====================
+
 
 it('rejects username shorter than 3 characters', function () {
     $response = $this->postJson(api('/auth/register'), [

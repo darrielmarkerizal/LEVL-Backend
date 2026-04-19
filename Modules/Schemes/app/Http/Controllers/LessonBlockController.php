@@ -30,7 +30,7 @@ class LessonBlockController extends Controller
         $this->service->validateHierarchy($course->id, $unit->id, $lesson->id);
         $this->authorize('view', $lesson);
 
-        // Require enrollment for students
+        
         if ($error = $this->requireEnrollment($course)) {
             return $error;
         }
@@ -63,7 +63,7 @@ class LessonBlockController extends Controller
         $this->service->validateHierarchy($course->id, $unit->id, $lesson->id);
         $this->authorize('view', $block);
 
-        // Require enrollment for students
+        
         if ($error = $this->requireEnrollment($course)) {
             return $error;
         }
@@ -125,7 +125,7 @@ class LessonBlockController extends Controller
             'block_ids.*' => 'required|integer',
         ]);
 
-        // Only delete blocks that belong to this lesson
+        
         $blockIds = $validated['block_ids'];
         $deleted = $this->service->bulkDelete($lesson->id, $blockIds);
 

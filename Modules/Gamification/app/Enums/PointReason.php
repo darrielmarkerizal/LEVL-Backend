@@ -22,7 +22,7 @@ enum PointReason: string
     case Bonus = 'bonus';
     case Penalty = 'penalty';
 
-    // Legacy support
+    
     case Completion = 'completion';
     case Score = 'score';
 

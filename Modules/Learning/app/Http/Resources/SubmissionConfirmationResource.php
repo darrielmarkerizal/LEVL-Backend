@@ -17,10 +17,7 @@ class SubmissionConfirmationResource extends JsonResource
         $totalQuestions = count($this->question_set ?? []);
         $answeredCount = $this->answers->count();
 
-        $isPendingGrade = in_array($this->state, [
-            SubmissionState::Submitted,
-            SubmissionState::PendingManualGrading,
-        ]);
+        $isPendingGrade = $this->state === SubmissionState::PendingManualGrading;
 
         return [
             'id' => $this->id,

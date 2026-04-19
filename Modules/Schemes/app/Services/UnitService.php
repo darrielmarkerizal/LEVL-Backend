@@ -85,17 +85,17 @@ class UnitService
         $unit->load('course');
         $user = auth('api')->user();
         
-        // Check if 'elements' is requested in include
+        
         $requestedIncludes = array_filter(explode(',', $includeParam));
         $hasElementsInclude = in_array('elements', $requestedIncludes);
         
-        // If elements is requested, replace it with lessons, quizzes, assignments
+        
         if ($hasElementsInclude) {
             $requestedIncludes = array_diff($requestedIncludes, ['elements']);
             $requestedIncludes = array_merge($requestedIncludes, ['lessons', 'quizzes', 'assignments']);
             $requestedIncludes = array_unique($requestedIncludes);
             
-            // Override the include parameter for Spatie
+            
             request()->merge(['include' => implode(',', $requestedIncludes)]);
         }
         
@@ -117,30 +117,30 @@ class UnitService
                 $attributes['code'] = CodeGenerator::generate('UNIT-', 4, Unit::class);
             }
 
-            // Get max order for this course
+            
             $maxOrder = Unit::where('course_id', $courseId)->max('order') ?? 0;
 
             if (isset($attributes['order'])) {
-                // Normalize order if it exceeds max + 1 (prevent gaps)
+                
                 if ($attributes['order'] > $maxOrder + 1) {
                     $attributes['order'] = $maxOrder + 1;
                 }
 
-                // Shift existing units if inserting in between
+                
                 Unit::where('course_id', $courseId)
                     ->where('order', '>=', $attributes['order'])
                     ->increment('order');
             } else {
-                // Auto-assign next order
+                
                 $attributes['order'] = $maxOrder + 1;
             }
 
-            // Handle custom slug if provided, otherwise let model auto-generate
+            
             if (empty($attributes['slug'])) {
                 $attributes = Arr::except($attributes, ['slug']);
             }
 
-            // Remove course_slug from attributes (only used for routing)
+            
             $attributes = Arr::except($attributes, ['course_slug']);
 
             $unit = $this->repository->create($attributes);
@@ -176,8 +176,8 @@ class UnitService
                 }
             }
 
-            // Allow slug to be updated
-            // $attributes = Arr::except($attributes, ['slug']);
+            
+            
 
             $updated = $this->repository->update($unit, $attributes);
             cache()->tags(['schemes', 'units'])->flush();
@@ -274,7 +274,7 @@ class UnitService
 
     public function getContents(Unit $unit, ?\Modules\Auth\Models\User $user = null): array
     {
-        // Get XP sources for rewards
+        
         $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
             'lesson_completed',
             'quiz_passed',
@@ -371,7 +371,7 @@ class UnitService
 
             if ($type === 'lesson') {
                 $isCompleted = in_array($item->id, $completedLessonIds);
-                // First item is never locked, subsequent items locked if previous not completed
+                
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
                 $contents->push([
@@ -393,10 +393,10 @@ class UnitService
             } elseif ($type === 'quiz') {
                 $submission = $submissionsByQuiz[$item->id] ?? null;
                 $isPassed = $submission ? ($submission->score >= $item->passing_grade) : false;
-                // First item is never locked, subsequent items locked if previous not completed
+                
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
-                // Quiz gives XP for passing + bonus for perfect score
+                
                 $baseXp = $xpSources['quiz_passed']->xp_amount ?? 0;
                 $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
@@ -423,10 +423,10 @@ class UnitService
             } elseif ($type === 'assignment') {
                 $submission = $submissionsByAssignment[$item->id] ?? null;
                 $isPassed = $submission && $submission->status->value === 'graded' && $submission->score >= ($item->max_score * 0.6);
-                // First item is never locked, subsequent items locked if previous not completed
+                
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
-                // Assignment gives XP for submission + bonus for perfect score
+                
                 $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 0;
                 $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
@@ -459,10 +459,10 @@ class UnitService
     {
         $perPage = max(1, min($perPage, 100));
 
-        // Build base query with access control
+        
         $query = Unit::query();
         
-        // Apply role-based filtering
+        
         if ($user && ! $user->hasRole('Superadmin') && ! $user->hasRole('Admin')) {
             $query->whereHas('course', function ($q) use ($user) {
                 if ($user->hasRole('Instructor')) {
@@ -481,22 +481,22 @@ class UnitService
             });
         }
 
-        // Check if 'elements' is requested in include
+        
         $includeParam = request()->query('include', '');
         $requestedIncludes = array_filter(explode(',', $includeParam));
         $hasElementsInclude = in_array('elements', $requestedIncludes);
         
-        // If elements is requested, replace it with lessons, quizzes, assignments
+        
         if ($hasElementsInclude) {
             $requestedIncludes = array_diff($requestedIncludes, ['elements']);
             $requestedIncludes = array_merge($requestedIncludes, ['lessons', 'quizzes', 'assignments']);
             $requestedIncludes = array_unique($requestedIncludes);
             
-            // Override the include parameter for Spatie
+            
             request()->merge(['include' => implode(',', $requestedIncludes)]);
         }
 
-        // Manually handle includes with ordering based on user role
+        
         if (in_array('lessons', $requestedIncludes)) {
             if ($user && $user->hasRole('Student')) {
                 $query->with(['lessons' => fn ($q) => $q->where('status', 'published')->orderBy('order', 'asc')]);
@@ -541,13 +541,13 @@ class UnitService
             }
         }
 
-        // Handle search manually before QueryBuilder
+        
         $searchQuery = request()->query('search');
         if ($searchQuery && trim((string) $searchQuery) !== '') {
             $query->search($searchQuery);
         }
 
-        // Build QueryBuilder with Spatie (without includes, we handle them manually above)
+        
         $queryBuilder = \Spatie\QueryBuilder\QueryBuilder::for($query)
             ->allowedFilters([
                 \Spatie\QueryBuilder\AllowedFilter::exact('status'),
@@ -557,13 +557,13 @@ class UnitService
                     });
                 }),
                 \Spatie\QueryBuilder\AllowedFilter::callback('search', function ($query, $value) {
-                    // This is just to allow the filter, actual search is handled above
-                    // to avoid double search execution
+                    
+                    
                 }),
             ])
             ->allowedSorts(['order', 'title', 'created_at', 'updated_at'])
             ->defaultSort('-created_at')
-            ->with('course:id,slug,title'); // Always load course for course_slug and course_name
+            ->with('course:id,slug,title'); 
 
         return $queryBuilder->paginate($perPage);
     }

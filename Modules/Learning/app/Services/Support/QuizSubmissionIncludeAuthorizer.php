@@ -77,12 +77,12 @@ class QuizSubmissionIncludeAuthorizer
 
     private function isCourseManager(User $user, $course): bool
     {
-        // Admin can manage all courses
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Instructor can only manage their assigned courses
+        
         if ($user->hasRole('Instructor')) {
             return $course->instructor_id === $user->id;
         }

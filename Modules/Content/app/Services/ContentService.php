@@ -30,14 +30,10 @@ class ContentService implements ContentServiceInterface
         $this->newsRepository = $newsRepository;
     }
 
-    /**
-     * Create announcement from DTO or array.
-     *
-     * @throws \Exception
-     */
+    
     public function createAnnouncement(CreateAnnouncementDTO|array $data, User $author): Announcement
     {
-        // Convert array to DTO if needed
+        
         if (is_array($data)) {
             $data = CreateAnnouncementDTO::from($data);
         }
@@ -47,20 +43,16 @@ class ContentService implements ContentServiceInterface
                 'author_id' => $author->id,
             ]);
 
-            // dd($announcementData);
+            
 
             return $this->announcementRepository->create($announcementData);
         });
     }
 
-    /**
-     * Create news from DTO or array.
-     *
-     * @throws \Exception
-     */
+    
     public function createNews(CreateNewsDTO|array $data, User $author): News
     {
-        // Convert array to DTO if needed
+        
         if (is_array($data)) {
             $data = CreateNewsDTO::from($data);
         }
@@ -74,12 +66,10 @@ class ContentService implements ContentServiceInterface
         });
     }
 
-    /**
-     * Update announcement from DTO or array.
-     */
+    
     public function updateAnnouncement(Announcement $announcement, UpdateAnnouncementDTO|array $data, User $editor): Announcement
     {
-        // Convert array to DTO if needed
+        
         if (is_array($data)) {
             $data = UpdateAnnouncementDTO::from($data);
         }
@@ -91,12 +81,10 @@ class ContentService implements ContentServiceInterface
         });
     }
 
-    /**
-     * Update news from DTO or array.
-     */
+    
     public function updateNews(News $news, UpdateNewsDTO|array $data, User $editor): News
     {
-        // Convert array to DTO if needed
+        
         if (is_array($data)) {
             $data = UpdateNewsDTO::from($data);
         }

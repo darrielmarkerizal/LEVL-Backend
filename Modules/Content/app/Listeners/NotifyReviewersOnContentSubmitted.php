@@ -14,12 +14,10 @@ class NotifyReviewersOnContentSubmitted
         private readonly NotificationService $notificationService
     ) {}
 
-    /**
-     * Handle the event.
-     */
+    
     public function handle(ContentSubmitted $event): void
     {
-        // Get all users with reviewer/admin role
+        
         $reviewers = $this->getReviewers();
 
         if ($reviewers->isEmpty()) {
@@ -48,9 +46,7 @@ class NotifyReviewersOnContentSubmitted
         }
     }
 
-    /**
-     * Get users with reviewer permissions.
-     */
+    
     private function getReviewers()
     {
         return User::whereHas('roles', function ($query) {

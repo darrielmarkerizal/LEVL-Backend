@@ -125,7 +125,7 @@ class CoursePublicationProcessor
 
     public function unarchive(Course $course): Course
     {
-        // When unarchiving, return to draft status
+        
         $this->repository->update($course, [
             'status' => 'draft',
         ]);

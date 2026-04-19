@@ -14,7 +14,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
     Route::get('courses/{course:slug}', [CourseController::class, 'show'])
         ->name('courses.show');
 
-    // Student enrolled courses
+    
     Route::middleware(['auth:api'])->group(function () {
         Route::get('my-courses', [CourseController::class, 'myEnrolledCourses'])->name('courses.my-enrolled');
     });
@@ -44,7 +44,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->middleware('can:update,course')
             ->name('courses.unarchive');
 
-        // Enrollment key management
+        
         Route::post('courses/{course:slug}/enrollment-key/generate', [CourseController::class, 'generateEnrollmentKey'])
             ->name('courses.enrollment-key.generate');
         Route::put('courses/{course:slug}/enrollment-key', [CourseController::class, 'updateEnrollmentKey'])
@@ -53,7 +53,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.enrollment-key.destroy');
     });
 
-    // Global unit routes (without course context)
+    
     Route::middleware(['auth:api'])->group(function () {
         Route::get('units', [UnitController::class, 'indexAll'])->name('units.index');
         Route::get('units/{unit:slug}', [UnitController::class, 'showGlobal'])
@@ -61,14 +61,14 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('units.show');
     });
 
-    // Global unit management (Admin, Instructor)
+    
     Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
         Route::post('units/generate-slug', [UnitController::class, 'generateSlug'])->name('units.generate-slug');
         Route::post('units', [UnitController::class, 'storeGlobal'])->name('units.store');
         Route::get('contents/{contentId}/metadata', [UnitController::class, 'getContentMetadata'])->name('contents.metadata');
     });
 
-    // Global lesson routes (without course/unit context)
+    
     Route::middleware(['auth:api'])->group(function () {
         Route::get('lessons', [LessonController::class, 'indexAll'])->name('lessons.index');
         Route::get('lessons/{lesson:slug}', [LessonController::class, 'showGlobal'])
@@ -76,10 +76,10 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('lessons.show');
     });
 
-    // Public unit routes (optional auth for progress info)
+    
     Route::get('courses/{course:slug}/units', [UnitController::class, 'index'])->name('courses.units.index');
 
-    // Authenticated unit routes
+    
     Route::middleware(['auth:api'])->group(function () {
         Route::get('courses/{course:slug}/units/{unit:slug}', [UnitController::class, 'show'])
             ->middleware('can:view,unit')
@@ -94,7 +94,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('lessons.incomplete');
     });
 
-    // Unit management routes (Admin, Instructor)
+    
     Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
         Route::post('courses/{course:slug}/units/{unit:slug}/contents', [UnitController::class, 'storeContent'])
             ->name('courses.units.contents.store');
@@ -116,7 +116,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.units.content-order.update');
     });
 
-    // Authenticated lesson and progress routes
+    
     Route::middleware(['auth:api'])->group(function () {
         Route::get('courses/{course:slug}/units/{unit:slug}/lessons', [LessonController::class, 'index'])
             ->name('courses.units.lessons.index');
@@ -132,7 +132,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.units.lessons.uncomplete');
     });
 
-    // Lesson management routes (Admin, Instructor)
+    
     Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
         Route::post('courses/{course:slug}/units/{unit:slug}/lessons', [LessonController::class, 'store'])
             ->name('courses.units.lessons.store');
@@ -146,7 +146,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.units.lessons.unpublish');
     });
 
-    // Authenticated lesson block routes
+    
     Route::middleware(['auth:api'])->group(function () {
         Route::get('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/blocks', [LessonBlockController::class, 'index'])
             ->name('courses.units.lessons.blocks.index');
@@ -154,7 +154,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
             ->name('courses.units.lessons.blocks.show');
     });
 
-    // Lesson block management routes (Admin, Instructor)
+    
     Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
         Route::post('courses/{course:slug}/units/{unit:slug}/lessons/{lesson:slug}/blocks', [LessonBlockController::class, 'store'])
             ->name('courses.units.lessons.blocks.store');

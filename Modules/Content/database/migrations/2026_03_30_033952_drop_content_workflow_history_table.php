@@ -5,21 +5,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
-        // Drop content_workflow_history table (redundant with content_revisions)
+        
         Schema::dropIfExists('content_workflow_history');
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
-        // Recreate content_workflow_history table
+        
         Schema::create('content_workflow_history', function ($table) {
             $table->id();
             $table->string('content_type');

@@ -91,7 +91,7 @@ class ReplyRepository extends BaseRepository implements ReplyRepositoryInterface
     {
         $model->update($attributes);
 
-        /** @var Reply */
+        
         return $model->fresh();
     }
 

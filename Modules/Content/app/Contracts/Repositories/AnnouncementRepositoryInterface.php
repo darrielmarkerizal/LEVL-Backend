@@ -25,8 +25,6 @@ interface AnnouncementRepositoryInterface
 
     public function getUnreadCount(User $user): int;
 
-    /**
-     * Find announcement by ID
-     */
+    
     public function findById(int $id): ?Announcement;
 }

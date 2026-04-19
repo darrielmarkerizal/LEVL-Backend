@@ -16,9 +16,7 @@ class ContentRejected
 
     public User $user;
 
-    /**
-     * Create a new event instance.
-     */
+    
     public function __construct(Model $content, User $user)
     {
         $this->content = $content;

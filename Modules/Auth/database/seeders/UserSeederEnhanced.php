@@ -260,7 +260,7 @@ class UserSeederEnhanced extends Seeder
                     continue;
                 }
 
-                // Remove null specialization_id to avoid PostgreSQL foreign key issues
+                
                 if (isset($attributes['specialization_id']) && $attributes['specialization_id'] === null) {
                     unset($attributes['specialization_id']);
                 }
@@ -323,17 +323,13 @@ class UserSeederEnhanced extends Seeder
         return $user;
     }
 
-    /**
-     * Generate avatar lokal menggunakan multiavatar/multiavatar-php.
-     * Tidak butuh koneksi internet — SVG di-generate 100% di sisi server.
-     * Seed menggunakan username agar avatar konsisten tiap re-seed.
-     */
+    
     private function attachAvatar(User $user): void
     {
         try {
             $multiavatar = new \Multiavatar;
 
-            // ✅ dipanggil sebagai fungsi (__invoke), bukan ->generate()
+            
             $svgContent = $multiavatar($user->username, null, null);
 
             if (empty($svgContent)) {
@@ -349,8 +345,8 @@ class UserSeederEnhanced extends Seeder
                 ->toMediaCollection('avatar');
 
         } catch (\Throwable $e) {
-            // Silently skip avatar errors - not critical for seeding
-            // Common errors: media table issues, file system issues, etc.
+            
+            
         }
     }
 
@@ -437,9 +433,7 @@ class UserSeederEnhanced extends Seeder
         }
     }
 
-    /**
-     * Verifikasi jumlah user yang berhasil mendapat avatar.
-     */
+    
     private function verifyAvatars(): void
     {
         $totalUsers = User::withTrashed()->count();

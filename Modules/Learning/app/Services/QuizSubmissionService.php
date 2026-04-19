@@ -72,14 +72,14 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
     public function saveAnswer(QuizSubmission $submission, int $questionId, array $data): QuizAnswer
     {
-        // Validate submission is in draft status
+        
         if ($submission->status !== QuizSubmissionStatus::Draft) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'submission' => [__('messages.quiz_submissions.not_draft')],
             ]);
         }
 
-        // Validate quiz is not locked
+        
         $accessCheck = $this->prerequisiteService->checkQuizAccess($submission->quiz, $submission->user_id);
         if (! $accessCheck['accessible']) {
             throw \Illuminate\Validation\ValidationException::withMessages([
@@ -113,14 +113,14 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
     public function submit(QuizSubmission $submission, int $actorId): QuizSubmission
     {
-        // Validate submission is in draft status
+        
         if ($submission->status !== QuizSubmissionStatus::Draft) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'submission' => [__('messages.quiz_submissions.not_draft')],
             ]);
         }
 
-        // Validate quiz is not locked
+        
         $accessCheck = $this->prerequisiteService->checkQuizAccess($submission->quiz, $submission->user_id);
         if (! $accessCheck['accessible']) {
             throw \Illuminate\Validation\ValidationException::withMessages([
@@ -128,7 +128,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             ]);
         }
 
-        // Validate all questions are answered
+        
         $questions = $this->listQuestions($submission, $submission->user_id);
         $answeredCount = QuizAnswer::where('quiz_submission_id', $submission->id)->count();
 
@@ -177,7 +177,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         $user = \Modules\Auth\Models\User::find($userId);
         $submissions = $this->repository->findForStudent($quizId, $userId);
 
-        // Load includes for each submission using authorizer
+        
         $submissions->each(function ($submission) use ($user, $includes) {
             $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $submission);
             $includesToLoad = array_intersect($includes, $allowedIncludes);
@@ -373,7 +373,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         $user = \Modules\Auth\Models\User::find($userId);
         $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $submission);
 
-        // Use Spatie Query Builder to handle nested includes properly
+        
         return \Spatie\QueryBuilder\QueryBuilder::for(QuizSubmission::class)
             ->where('id', $submission->id)
             ->allowedIncludes($allowedIncludes)
@@ -391,7 +391,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
         $question = $questions->get($page - 1);
 
-        // Load existing answer for this question
+        
         $answer = \Modules\Learning\Models\QuizAnswer::where('quiz_submission_id', $submission->id)
             ->where('quiz_question_id', $question->id)
             ->first();

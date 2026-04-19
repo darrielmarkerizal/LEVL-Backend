@@ -21,11 +21,11 @@ class CourseResource extends JsonResource
         $isStudent = $user && $user->hasRole('Student');
 
         if ($isStudent) {
-            // Check if enrollments relation is loaded
+            
             if ($this->relationLoaded('enrollments')) {
                 $enrollment = $this->enrollments->where('user_id', $user->id)->first();
             } else {
-                // Fallback: load enrollment directly if not eager loaded
+                
                 $enrollment = $this->enrollments()->where('user_id', $user->id)->first();
             }
         }
@@ -74,12 +74,12 @@ class CourseResource extends JsonResource
             $data['enrollments_count'] = $this->when(array_key_exists('enrollments_count', $this->getAttributes()), $this->enrollments_count);
             $data['enrollments'] = $this->when(request()->has('include') && str_contains(request('include'), 'enrollments'), $this->whenLoaded('enrollments'));
 
-            // Add decrypted enrollment key for authorized users (Superadmin, Admin, Instructor)
+            
             if ($this->enrollment_type?->value === 'key_based') {
                 $decryptedKey = $this->getDecryptedEnrollmentKey();
                 $data['enrollment_key'] = $decryptedKey;
                 
-                // If encrypted key is not available but hash exists, indicate key needs regeneration
+                
                 if ($decryptedKey === null && !empty($this->enrollment_key_hash)) {
                     $data['enrollment_key_status'] = 'needs_regeneration';
                 }
@@ -106,7 +106,7 @@ class CourseResource extends JsonResource
             $data['assignments'] = $this->whenLoaded('assignments');
         }
 
-        // Add overall course progress for students
+        
         if ($isStudent && $enrollment) {
             $data['progress'] = $this->getProgressInfo($enrollment);
         }
@@ -116,12 +116,12 @@ class CourseResource extends JsonResource
 
     private function getProgressInfo($enrollment): array
     {
-        // Get course progress
+        
         $courseProgress = \Modules\Enrollments\Models\CourseProgress::where('enrollment_id', $enrollment->id)->first();
 
         $courseId = $this->id;
 
-        // Count total content items (lessons + quizzes + assignments)
+        
         $totalLessons = \Modules\Schemes\Models\Lesson::whereHas('unit', function ($query) use ($courseId) {
             $query->where('course_id', $courseId);
         })->where('status', 'published')->count();
@@ -146,12 +146,12 @@ class CourseResource extends JsonResource
             ];
         }
 
-        // Count completed lessons
+        
         $completedLessons = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
             ->where('status', \Modules\Enrollments\Enums\ProgressStatus::Completed)
             ->count();
 
-        // Count completed quizzes (passed with score >= passing_grade)
+        
         $completedQuizzes = \Modules\Learning\Models\QuizSubmission::where('user_id', $enrollment->user_id)
             ->whereHas('quiz', function ($q) use ($courseId) {
                 $q->whereHas('unit', function ($unitQuery) use ($courseId) {
@@ -163,7 +163,7 @@ class CourseResource extends JsonResource
             ->distinct('quiz_id')
             ->count('quiz_id');
 
-        // Count completed assignments (graded with score >= 60% of max_score)
+        
         $completedAssignments = \Modules\Learning\Models\Submission::where('user_id', $enrollment->user_id)
             ->where('status', \Modules\Learning\Enums\SubmissionStatus::Graded)
             ->whereHas('assignment', function ($q) use ($courseId) {
@@ -179,7 +179,7 @@ class CourseResource extends JsonResource
         $completedItems = $completedLessons + $completedQuizzes + $completedAssignments;
         $percentage = $totalContent > 0 ? round(($completedItems / $totalContent) * 100, 2) : 0;
 
-        // Get last accessed lesson from lesson_progress
+        
         $lastLessonProgress = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
             ->orderBy('updated_at', 'desc')
             ->first();
@@ -227,7 +227,7 @@ class CourseResource extends JsonResource
             'status' => $user->status,
         ];
 
-        // Include specialization if loaded
+        
         if ($user->relationLoaded('specialization')) {
             $data['specialization'] = $user->specialization ? [
                 'id' => $user->specialization->id,
@@ -260,7 +260,7 @@ class CourseResource extends JsonResource
         }
 
         if ($user->hasRole('Admin')) {
-            return true; // Admins have global access to all courses
+            return true; 
         }
 
         if ($user->hasRole('Instructor')) {

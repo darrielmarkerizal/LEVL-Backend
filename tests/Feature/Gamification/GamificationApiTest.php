@@ -52,13 +52,13 @@ class GamificationApiTest extends TestCase
                 ],
             ]);
 
-        // Assert it is NOT wrapped in 'badges' key inside data
+        
         $this->assertArrayNotHasKey('badges', $response->json('data'));
     }
 
     public function test_leaderboard_includes_my_rank_meta()
     {
-        // Create stats for user
+        
         UserGamificationStat::create([
             'user_id' => $this->user->id,
             'total_xp' => 1000,

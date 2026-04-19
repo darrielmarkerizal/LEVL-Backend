@@ -28,9 +28,7 @@ class Certificate extends Model implements HasMedia
 
     protected $appends = ['file_url'];
 
-    /**
-     * Register media collections for this model.
-     */
+    
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('certificate')

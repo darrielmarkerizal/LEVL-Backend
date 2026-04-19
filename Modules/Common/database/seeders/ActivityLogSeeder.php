@@ -10,7 +10,7 @@ class ActivityLogSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::first(); // Assuming seeders run after user seeders
+        $admin = User::first(); 
         if (! $admin) {
             return;
         }

@@ -142,12 +142,12 @@ class SequentialProgressSeeder extends Seeder
 
     private function processLessonCompletion(int $studentId, Lesson $lesson, string $studentType): bool
     {
-        // Skip prerequisite check in seeder for performance
-        // $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
-        // $accessCheck = $prerequisiteService->checkLessonAccess($lesson, $studentId);
-        // if (! $accessCheck['accessible']) {
-        //     return false;
-        // }
+        
+        
+        
+        
+        
+        
 
         $completionChance = match ($studentType) {
             'complete' => 100,
@@ -160,7 +160,7 @@ class SequentialProgressSeeder extends Seeder
             return false;
         }
 
-        // Get enrollment_id for this student and lesson's course
+        
         $enrollment = \DB::table('enrollments')
             ->join('units', 'enrollments.course_id', '=', 'units.course_id')
             ->join('lessons', 'units.id', '=', 'lessons.unit_id')
@@ -173,7 +173,7 @@ class SequentialProgressSeeder extends Seeder
             return false;
         }
 
-        // Lesson completions are now tracked via lesson_progress table
+        
         \DB::table('lesson_progress')->insertOrIgnore([
             'enrollment_id' => $enrollment->enrollment_id,
             'lesson_id' => $lesson->id,
@@ -189,12 +189,12 @@ class SequentialProgressSeeder extends Seeder
 
     private function processAssignmentProgress(int $studentId, Assignment $assignment, int $enrollmentId, string $studentType): bool
     {
-        // Skip prerequisite check in seeder for performance
-        // $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
-        // $accessCheck = $prerequisiteService->checkAssignmentAccess($assignment, $studentId);
-        // if (! $accessCheck['accessible']) {
-        //     return false;
-        // }
+        
+        
+        
+        
+        
+        
 
         if (! $enrollmentId) {
             return false;
@@ -281,9 +281,7 @@ class SequentialProgressSeeder extends Seeder
 
         $stateValue = match ($status) {
             'draft' => SubmissionState::InProgress->value,
-            'submitted' => rand(0, 1) === 0
-                ? SubmissionState::Submitted->value
-                : SubmissionState::PendingManualGrading->value,
+            'submitted' => SubmissionState::PendingManualGrading->value,
             default => rand(1, 100) <= 85
                 ? SubmissionState::Graded->value
                 : SubmissionState::Released->value,
@@ -301,7 +299,7 @@ class SequentialProgressSeeder extends Seeder
             'attempt_number' => 1,
         ]);
 
-        // Handle file attachment based on submission type
+        
         if ($submissionType === \Modules\Learning\Enums\SubmissionType::File) {
             $this->attachFileToSubmission($submission);
         } elseif ($submissionType === \Modules\Learning\Enums\SubmissionType::Mixed) {
@@ -323,12 +321,12 @@ class SequentialProgressSeeder extends Seeder
 
     private function processQuizProgress(int $studentId, Quiz $quiz, int $enrollmentId, string $studentType): bool
     {
-        // Skip prerequisite check in seeder for performance
-        // $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
-        // $accessCheck = $prerequisiteService->checkQuizAccess($quiz, $studentId);
-        // if (! $accessCheck['accessible']) {
-        //     return false;
-        // }
+        
+        
+        
+        
+        
+        
 
         if (! $enrollmentId) {
             return false;
@@ -358,7 +356,7 @@ class SequentialProgressSeeder extends Seeder
         $submittedAt = now()->subDays($daysAgo)->toDateTimeString();
         $startedAt = now()->subDays($daysAgo)->subMinutes(rand(10, 120))->toDateTimeString();
 
-        // Match QuizSubmissionService lifecycle: draft/submitted/graded
+        
         $scenarioRoll = rand(1, 100);
         $scenario = match (true) {
             $scenarioRoll <= 25 => 'draft',
@@ -374,7 +372,7 @@ class SequentialProgressSeeder extends Seeder
 
         $gradingStatus = match ($scenario) {
             'draft' => \Modules\Learning\Enums\QuizGradingStatus::Pending->value,
-            // With essays present, autoGrade produces partially_graded and keeps status=submitted.
+            
             'submitted' => \Modules\Learning\Enums\QuizGradingStatus::PartiallyGraded->value,
             default => \Modules\Learning\Enums\QuizGradingStatus::Graded->value,
         };
@@ -458,7 +456,7 @@ class SequentialProgressSeeder extends Seeder
                     }
                     $essayScore = (float) $answerData['score'];
                 } else {
-                    // draft/submitted: essay not graded yet
+                    
                     $answerData['score'] = null;
                     $answerData['feedback'] = null;
                 }
@@ -527,7 +525,7 @@ class SequentialProgressSeeder extends Seeder
         }
 
         try {
-            // Attach file directly to submission model using Spatie Media Library
+            
             $media = $submission->addMedia($dummyFilePath)
                 ->preservingOriginal()
                 ->usingName('submission-'.$submission->id)
@@ -593,8 +591,8 @@ class SequentialProgressSeeder extends Seeder
         \DB::table('quiz_answers')->delete();
         echo "  ✓ Cleaned quiz answers\n";
 
-        // submission_files table was dropped in Phase 1 optimization
-        // Files are now stored directly in submissions table as JSON
+        
+        
 
         \DB::table('submissions')->delete();
         echo "  ✓ Cleaned submissions\n";

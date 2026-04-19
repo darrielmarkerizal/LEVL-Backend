@@ -6,9 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         Schema::create('audits', function (Blueprint $table) {
@@ -50,9 +48,7 @@ return new class extends Migration
         Schema::dropIfExists('system_audits');
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         Schema::create('audit_logs', function (Blueprint $table) {

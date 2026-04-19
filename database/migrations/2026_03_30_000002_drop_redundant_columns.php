@@ -6,13 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Drop redundant columns from existing tables.
-     *
-     * - courses.tags_json: Redundant with course_tag_pivot table
-     * - courses.prereq_json: Never used in active code
-     * - user_gamification_stats.completed_challenges: Challenge feature was removed
-     */
+    
     public function up(): void
     {
         Schema::table('courses', function (Blueprint $table) {

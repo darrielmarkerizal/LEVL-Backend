@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('badge_id')->constrained('badges')->cascadeOnDelete();
             $table->integer('version')->default(1);
             $table->integer('threshold');
-            $table->json('rules'); // snapshot of rules at this version
+            $table->json('rules'); 
             $table->timestamp('effective_from');
             $table->timestamp('effective_until')->nullable();
             $table->boolean('is_active')->default(true);
@@ -23,8 +23,8 @@ return new class extends Migration
             $table->index(['badge_id', 'is_active'], 'badge_active_idx');
         });
 
-        // Note: user_badge_progress table will be created in future upgrade
-        // This is part of Phase 1 of DUOLINGO_LEVEL_UPGRADE_PLAN.md
+        
+        
     }
 
     public function down(): void

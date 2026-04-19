@@ -17,21 +17,21 @@ class RolePermissionSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
-            // User management
+            
             'users.create', 'users.read', 'users.update', 'users.delete', 'users.assign-admin',
-            // Course management
+            
             'courses.create', 'courses.read', 'courses.update', 'courses.delete', 'courses.publish',
             'courses.assign-admin', 'courses.assign-instructor',
-            // Content management
+            
             'units.create', 'units.read', 'units.update', 'units.delete',
             'lessons.create', 'lessons.read', 'lessons.update', 'lessons.delete',
             'lesson-blocks.create', 'lesson-blocks.read', 'lesson-blocks.update', 'lesson-blocks.delete',
-            // Enrollment management
+            
             'enrollments.create', 'enrollments.read', 'enrollments.update', 'enrollments.delete',
-            // Grading management
+            
             'grades.create', 'grades.read', 'grades.update', 'grades.delete',
             'grades.approve', 'grades.review',
-            // Assignment management
+            
             'assignments.create', 'assignments.read', 'assignments.update', 'assignments.delete',
             'submissions.create', 'submissions.read', 'submissions.update', 'submissions.delete',
         ];

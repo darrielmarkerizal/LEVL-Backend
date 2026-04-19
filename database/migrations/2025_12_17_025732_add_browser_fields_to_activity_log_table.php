@@ -6,9 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         Schema::connection(config('activitylog.database_connection'))->table(
@@ -19,7 +17,7 @@ return new class extends Migration
                 $table->string('browser_version')->nullable()->after('browser');
                 $table->string('platform')->nullable()->after('browser_version');
                 $table->string('device')->nullable()->after('platform');
-                $table->string('device_type')->nullable()->after('device'); // mobile, tablet, desktop
+                $table->string('device_type')->nullable()->after('device'); 
 
                 $table->index('ip_address');
                 $table->index('device_type');
@@ -27,9 +25,7 @@ return new class extends Migration
         );
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         Schema::connection(config('activitylog.database_connection'))->table(

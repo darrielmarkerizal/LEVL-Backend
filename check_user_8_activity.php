@@ -10,7 +10,7 @@ $userId = 8;
 
 echo "=== CHECKING USER ID: {$userId} ===\n\n";
 
-// 1. Check if user exists
+
 $user = User::find($userId);
 if (! $user) {
     echo "❌ User with ID {$userId} NOT FOUND!\n";
@@ -20,7 +20,7 @@ if (! $user) {
 echo "✅ User found: {$user->name} ({$user->email})\n";
 echo '   Role: '.$user->roles->pluck('name')->implode(', ')."\n\n";
 
-// 2. Check enrollments
+
 echo "--- ENROLLMENTS ---\n";
 $enrollments = Enrollment::where('user_id', $userId)->get();
 echo 'Total enrollments: '.$enrollments->count()."\n";
@@ -37,7 +37,7 @@ if ($enrollments->count() > 0) {
     echo "  ❌ No enrollments found\n\n";
 }
 
-// 3. Check lesson completions
+
 echo "--- LESSON COMPLETIONS ---\n";
 $lessonCompletions = LessonProgress::query()
     ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
@@ -62,7 +62,7 @@ if ($lessonCompletions->count() > 0) {
     echo "  ❌ No lesson completions found\n\n";
 }
 
-// 4. Check assignment submissions
+
 echo "--- ASSIGNMENT SUBMISSIONS ---\n";
 $submissions = Submission::where('user_id', $userId)->get();
 echo 'Total submissions: '.$submissions->count()."\n";
@@ -80,7 +80,7 @@ if ($submissions->count() > 0) {
     echo "  ❌ No assignment submissions found\n\n";
 }
 
-// 5. Check quiz submissions
+
 echo "--- QUIZ SUBMISSIONS ---\n";
 $quizSubmissions = QuizSubmission::where('user_id', $userId)->get();
 echo 'Total quiz submissions: '.$quizSubmissions->count()."\n";
@@ -99,7 +99,7 @@ if ($quizSubmissions->count() > 0) {
     echo "  ❌ No quiz submissions found\n\n";
 }
 
-// 6. Summary
+
 echo "=== SUMMARY ===\n";
 echo 'Enrollments: '.$enrollments->count()."\n";
 echo 'Lesson Completions: '.$lessonCompletions->count()."\n";

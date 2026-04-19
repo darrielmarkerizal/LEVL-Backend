@@ -47,12 +47,12 @@ class LessonBlockPolicy
             return false;
         }
 
-        // Admin can update all lesson blocks
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Instructor can update lesson blocks in their courses
+        
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -67,12 +67,12 @@ class LessonBlockPolicy
             return false;
         }
 
-        // Admin can delete all lesson blocks
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Instructor can delete lesson blocks in their courses
+        
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 }

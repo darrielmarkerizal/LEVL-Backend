@@ -27,11 +27,11 @@ class ProgressionService
 
     public function getProgressForUser(Course $course, int $userId): array
     {
-        // This was in Finder, but since it mutates state via getCourseProgressData,
-        // effectively we can assume the user wants the calculated state.
-        // We can delegate lookup to Finder then process in StateProcessor if needed.
-        // But `ProgressionStateProcessor` has `getCourseProgressData` which calculates.
-        // Let's implement it here by coordinating.
+        
+        
+        
+        
+        
 
         $enrollment = $this->finder->getEnrollmentForCourse($course->id, $userId);
         if (! $enrollment) {
@@ -43,8 +43,8 @@ class ProgressionService
 
     public function validateAndGetProgress(Course $course, int $targetUserId, int $requestingUserId): array
     {
-        // Similar coordination
-        // Original Finder method was just lookup + getCourseProgressData
+        
+        
 
         $targetUser = \Modules\Auth\Models\User::find($targetUserId);
         if (! $targetUser) {

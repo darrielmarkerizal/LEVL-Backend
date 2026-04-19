@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Enrollments\Http\Controllers\EnrollmentsController;
 
 Route::middleware(['auth:api'])->prefix('v1')->group(function () {
-    // Enrollment state change endpoints with enrollment rate limiting (5 requests per minute)
+    
     Route::middleware(['throttle:enrollment'])->group(function () {
         Route::post('courses/{course:slug}/enroll', [EnrollmentsController::class, 'store'])
             ->name('courses.enrollments.store')
@@ -45,7 +45,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->name('me.enrollments.invitations.decline');
     });
 
-    // Read-only enrollment endpoints with default API rate limiting
+    
     Route::middleware(['throttle:api'])->group(function () {
         Route::get('courses/{course:slug}/enrollment-status', [EnrollmentsController::class, 'status'])
             ->name('courses.enrollments.status')
@@ -73,7 +73,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->name('me.enrollments.invitations.show');
     });
 
-    // Admin Reporting & Analytics with default API rate limiting
+    
     Route::middleware(['role:Superadmin|Admin|Instructor', 'throttle:api'])->group(function () {
         Route::get('courses/{course:slug}/reports/completion-rate', [\Modules\Enrollments\Http\Controllers\ReportController::class, 'courseCompletionRate'])->name('courses.reports.completion-rate');
         Route::get('reports/enrollment-funnel', [\Modules\Enrollments\Http\Controllers\ReportController::class, 'enrollmentFunnel'])->name('reports.enrollment-funnel');

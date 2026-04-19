@@ -27,11 +27,11 @@ class BadgeSeeder extends Seeder
                     $badgeData
                 );
 
-                // Only add media if badge was just created and has no media
+                
                 if ($badge->wasRecentlyCreated || $badge->getMedia('icon')->isEmpty()) {
                     $badge->clearMediaCollection('icon');
 
-                    // DiceBear API shapes style for Gamification
+                    
                     $seed = \Illuminate\Support\Str::slug($badge->name);
                     $url = "https://api.dicebear.com/7.x/shapes/svg?seed={$seed}&backgroundColor=000000,ffffff&shape1Color=0a5b83,1c799f,69d2e7,f1f4dc,f88c49";
 
@@ -46,7 +46,7 @@ class BadgeSeeder extends Seeder
                     }
                 }
 
-                // Sync Rules - delete old rules and create new ones
+                
                 \Modules\Gamification\Models\BadgeRule::where('badge_id', $badge->id)->delete();
                 foreach ($rules as $rule) {
                     \Modules\Gamification\Models\BadgeRule::create([
@@ -72,7 +72,7 @@ class BadgeSeeder extends Seeder
     {
         $badges = [];
 
-        // 0. MILESTONE BADGES (Level Achievement Badges)
+        
         $badges[] = ['code' => 'level_10_milestone', 'name' => 'Novice Achiever', 'description' => 'Mencapai level 10 - Menyelesaikan tier Beginner', 'type' => BadgeType::Milestone, 'rarity' => 'common', 'xp_reward' => 50, 'threshold' => 10, 'rules' => [['event_trigger' => 'level_reached', 'conditions' => ['level' => 10]]]];
         $badges[] = ['code' => 'level_20_milestone', 'name' => 'Competent Learner', 'description' => 'Mencapai level 20 - Menyelesaikan tier Novice', 'type' => BadgeType::Milestone, 'rarity' => 'common', 'xp_reward' => 100, 'threshold' => 20, 'rules' => [['event_trigger' => 'level_reached', 'conditions' => ['level' => 20]]]];
         $badges[] = ['code' => 'level_30_milestone', 'name' => 'Intermediate Master', 'description' => 'Mencapai level 30 - Menyelesaikan tier Competent', 'type' => BadgeType::Milestone, 'rarity' => 'uncommon', 'xp_reward' => 150, 'threshold' => 30, 'rules' => [['event_trigger' => 'level_reached', 'conditions' => ['level' => 30]]]];
@@ -84,11 +84,11 @@ class BadgeSeeder extends Seeder
         $badges[] = ['code' => 'level_90_milestone', 'name' => 'Legendary Scholar', 'description' => 'Mencapai level 90 - Menyelesaikan tier Grand Master', 'type' => BadgeType::Milestone, 'rarity' => 'legendary', 'xp_reward' => 1000, 'threshold' => 90, 'rules' => [['event_trigger' => 'level_reached', 'conditions' => ['level' => 90]]]];
         $badges[] = ['code' => 'level_100_milestone', 'name' => 'Ultimate Legend', 'description' => 'Mencapai level 100 - Menguasai semua tier!', 'type' => BadgeType::Milestone, 'rarity' => 'legendary', 'xp_reward' => 2000, 'threshold' => 100, 'rules' => [['event_trigger' => 'level_reached', 'conditions' => ['level' => 100]]]];
 
-        // 1. ONBOARDING BADGES (Added for StudentBadgesSeeder compatibility)
+        
         $badges[] = ['code' => 'first_step', 'name' => 'Langkah Pertama', 'description' => 'Bagian dari permulaan perjalanan LMS Anda.', 'type' => BadgeType::Completion, 'rarity' => 'common', 'xp_reward' => 10, 'threshold' => 1, 'rules' => [['event_trigger' => 'account_created']]];
         $badges[] = ['code' => 'rookie', 'name' => 'Pendatang Baru', 'description' => 'Mengeksplorasi LMS untuk pertama kali.', 'type' => BadgeType::Completion, 'rarity' => 'common', 'xp_reward' => 10, 'threshold' => 1, 'rules' => [['event_trigger' => 'profile_updated']]];
 
-        // 1. COMPLETION BADGES (20 Badges)
+        
         $badges[] = ['code' => 'uiux_master', 'name' => 'UI/UX Design Master', 'description' => 'Menyelesaikan Skema UI/UX Design.', 'type' => BadgeType::Completion, 'rarity' => 'rare', 'xp_reward' => 100, 'threshold' => 1, 'rules' => [['event_trigger' => 'course_completed', 'conditions' => ['course_slug' => 'ui-ux-design']]]];
         $badges[] = ['code' => 'webdev_master', 'name' => 'Web Dev Master', 'description' => 'Menyelesaikan Skema Backend Web Development.', 'type' => BadgeType::Completion, 'rarity' => 'rare', 'xp_reward' => 100, 'threshold' => 1, 'rules' => [['event_trigger' => 'course_completed', 'conditions' => ['course_slug' => 'web-development']]]];
 
@@ -105,7 +105,7 @@ class BadgeSeeder extends Seeder
             ];
         }
 
-        // 2. QUALITY BADGES (20 Badges)
+        
         $badges[] = ['code' => 'perfect_assignment', 'name' => 'Nilai Sempurna', 'description' => 'Mendapatkan nilai 100 pada penugasan.', 'type' => BadgeType::Quality, 'rarity' => 'uncommon', 'xp_reward' => 50, 'threshold' => 1, 'rules' => [['event_trigger' => 'assignment_graded', 'conditions' => ['min_score' => 100]]]];
         $badges[] = ['code' => 'perfect_quiz', 'name' => 'Kuis Akurat', 'description' => 'Mendapatkan nilai 100 pada kuis.', 'type' => BadgeType::Quality, 'rarity' => 'uncommon', 'xp_reward' => 50, 'threshold' => 1, 'rules' => [['event_trigger' => 'quiz_passed', 'conditions' => ['min_score' => 100]]]];
         $badges[] = ['code' => 'one_shot_kill', 'name' => 'Satu Tembakan', 'description' => 'Lulus kuis tanpa perbaikan', 'type' => BadgeType::Quality, 'rarity' => 'rare', 'xp_reward' => 75, 'threshold' => 1, 'rules' => [['event_trigger' => 'quiz_passed', 'conditions' => ['max_attempts' => 1, 'is_passed' => true]]]];
@@ -123,7 +123,7 @@ class BadgeSeeder extends Seeder
             ];
         }
 
-        // 3. SPEED BADGES (22 Badges)
+        
         $badges[] = ['code' => 'speed_runner', 'name' => 'Flash Learner', 'description' => 'Finish a course < 3 days.', 'type' => BadgeType::Speed, 'rarity' => 'epic', 'xp_reward' => 150, 'threshold' => 1, 'rules' => [['event_trigger' => 'course_completed', 'conditions' => ['max_duration_days' => 3]]]];
         $badges[] = ['code' => 'first_blood', 'name' => 'Pertama Mengumpul', 'description' => 'Menjadi orang pertama yang mengumpulkan assignment.', 'type' => BadgeType::Speed, 'rarity' => 'rare', 'xp_reward' => 100, 'threshold' => 1, 'rules' => [['event_trigger' => 'assignment_submitted', 'conditions' => ['is_first' => true]]]];
 
@@ -140,7 +140,7 @@ class BadgeSeeder extends Seeder
             ];
         }
 
-        // 4. HABIT BADGES (22 Badges)
+        
         $badges[] = ['code' => 'login_streak_7', 'name' => 'Konsisten 7 Hari', 'description' => 'Login 7 hari berturut-turut.', 'type' => BadgeType::Habit, 'rarity' => 'uncommon', 'xp_reward' => 50, 'threshold' => 1, 'rules' => [['event_trigger' => 'daily_login', 'conditions' => ['min_streak_days' => 7]]]];
         $badges[] = ['code' => 'login_streak_30', 'name' => 'Dedikasi Bulanan', 'description' => 'Login 30 hari berturut-turut.', 'type' => BadgeType::Habit, 'rarity' => 'epic', 'xp_reward' => 200, 'threshold' => 1, 'rules' => [['event_trigger' => 'daily_login', 'conditions' => ['min_streak_days' => 30]]]];
         $badges[] = ['code' => 'morning_bird', 'name' => 'Burung Pagi', 'description' => 'Login sebelum jam 6:00 AM.', 'type' => BadgeType::Habit, 'rarity' => 'uncommon', 'xp_reward' => 25, 'threshold' => 5, 'rules' => [['event_trigger' => 'daily_login', 'conditions' => ['time_before' => '06:00:00']]]];
@@ -160,7 +160,7 @@ class BadgeSeeder extends Seeder
             ];
         }
 
-        // 5. SOCIAL BADGES (12 Badges)
+        
         $badges[] = ['code' => 'forum_popular', 'name' => 'Sangat Disukai', 'description' => 'Mendapatkan 10 likes di Forum.', 'type' => BadgeType::Social, 'rarity' => 'uncommon', 'xp_reward' => 50, 'threshold' => 10, 'rules' => [['event_trigger' => 'reaction_received']]];
         $badges[] = ['code' => 'forum_active', 'name' => 'Banyak Bicara', 'description' => 'Membuat 20 postingan forum.', 'type' => BadgeType::Social, 'rarity' => 'uncommon', 'xp_reward' => 75, 'threshold' => 20, 'rules' => [['event_trigger' => 'thread_created']]];
         $badges[] = ['code' => 'forum_helper', 'name' => 'Pahlawan Forum', 'description' => 'Membalas 5 pertanyaan di forum.', 'type' => BadgeType::Social, 'rarity' => 'rare', 'xp_reward' => 100, 'threshold' => 5, 'rules' => [['event_trigger' => 'reply_created']]];
@@ -178,7 +178,7 @@ class BadgeSeeder extends Seeder
             ];
         }
 
-        // 6. HIDDEN BADGES (2 Badges)
+        
         $badges[] = ['code' => 'night_owl', 'name' => 'Kelelawar Malam', 'description' => 'Mengumpulkan tugas di atas jam 12 Malam.', 'type' => BadgeType::Hidden, 'rarity' => 'rare', 'xp_reward' => 50, 'threshold' => 5, 'rules' => [['event_trigger' => 'assignment_submitted', 'conditions' => ['time_after' => '00:00:00', 'time_before' => '04:00:00']]]];
         $badges[] = ['code' => 'bug_hunter', 'name' => 'Pemburu Kutu', 'description' => 'Melaporkan bug pada sistem LMS.', 'type' => BadgeType::Hidden, 'rarity' => 'legendary', 'xp_reward' => 500, 'threshold' => 1, 'rules' => [['event_trigger' => 'bug_reported']]];
 

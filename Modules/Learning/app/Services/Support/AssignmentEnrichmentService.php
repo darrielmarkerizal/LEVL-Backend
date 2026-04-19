@@ -24,7 +24,7 @@ class AssignmentEnrichmentService
         $assignmentIds = $paginator->pluck('id')->toArray();
         $submissions = $this->getLatestSubmissions($assignmentIds, $userId);
 
-        // Get XP rewards
+        
         $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
             'assignment_submitted',
             'perfect_score',

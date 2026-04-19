@@ -8,9 +8,7 @@ use PHPStan\Node\InClassNode;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
-/**
- * @implements Rule<InClassNode>
- */
+
 class ServiceMustImplementInterfaceRule implements Rule
 {
     public function getNodeType(): string
@@ -23,22 +21,22 @@ class ServiceMustImplementInterfaceRule implements Rule
         $classReflection = $node->getClassReflection();
         $className = $classReflection->getName();
 
-        // Only check classes in Services directories
+        
         if (! str_contains($className, '\\Services\\')) {
             return [];
         }
 
-        // Skip if class name doesn't end with 'Service'
+        
         if (! str_ends_with($className, 'Service')) {
             return [];
         }
 
-        // Skip abstract classes
+        
         if ($classReflection->isAbstract()) {
             return [];
         }
 
-        // Check if class implements any interface
+        
         $interfaces = $classReflection->getInterfaces();
 
         if (empty($interfaces)) {
@@ -53,7 +51,7 @@ class ServiceMustImplementInterfaceRule implements Rule
             ];
         }
 
-        // Check if implements a corresponding interface (e.g., FooService implements FooServiceInterface)
+        
         $expectedInterfaceName = $className.'Interface';
         $hasCorrespondingInterface = false;
 

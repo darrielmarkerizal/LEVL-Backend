@@ -12,30 +12,20 @@ use Modules\Learning\Models\Assignment;
 
 class PublishScheduledAssignments extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+    
     protected $signature = 'assignments:publish-scheduled
                             {--test : Run in test mode (show what would be published without saving)}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+    
     protected $description = 'Publish assignments that have reached their available_from date/time';
 
-    /**
-     * Execute the console command.
-     */
+    
     public function handle(): int
     {
         $testMode = $this->option('test');
 
         try {
-            // Find all draft assignments where available_from <= now()
+            
             $assignmentsToPublish = Assignment::query()
                 ->where('status', AssignmentStatus::Draft->value)
                 ->where('available_from', '<=', now())
@@ -58,7 +48,7 @@ class PublishScheduledAssignments extends Command
                 return self::SUCCESS;
             }
 
-            // Publish each assignment in transaction
+            
             DB::transaction(function () use ($assignmentsToPublish) {
                 foreach ($assignmentsToPublish as $assignment) {
                     $assignment->update([

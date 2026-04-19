@@ -168,8 +168,8 @@ class TagService
         try {
             return $this->repository->create($payload);
         } catch (\Illuminate\Database\QueryException $e) {
-            // If we hit a unique constraint violation, try to find the tag again
-            // This handles race conditions where another process created the tag
+            
+            
             if ($this->isUniqueConstraintViolation($e)) {
                 $existing = Tag::query()
                     ->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])
@@ -271,7 +271,7 @@ class TagService
                     continue;
                 }
 
-                // Use firstOrCreateByName which handles race conditions
+                
                 $tag = $this->firstOrCreateByName($value);
                 $resolved[] = $tag->getKey();
             } catch (\Throwable $e) {

@@ -39,7 +39,7 @@ class GradingEntryService
             );
         }
 
-        // Delegate answer processing
+        
         $this->actionProcessor->processAnswers($submission, $data->answers);
 
         if ($globalScoreOverride === null) {
@@ -57,7 +57,7 @@ class GradingEntryService
 
         $submission->update(['score' => $score]);
 
-        // Delegate grade persistence
+        
         $grade = $this->actionProcessor->persistGrade(
             $submission,
             $score,

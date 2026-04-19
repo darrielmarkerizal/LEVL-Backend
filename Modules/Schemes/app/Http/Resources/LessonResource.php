@@ -28,13 +28,13 @@ class LessonResource extends JsonResource
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
 
-        // Add XP reward information
+        
         $xpSource = \Modules\Gamification\Models\XpSource::where('code', 'lesson_completed')
             ->active()
             ->first();
         $data['xp_reward'] = $xpSource ? $xpSource->xp_amount : 50;
 
-        // Add progress information for enrolled students
+        
         if ($isEnrolledStudent) {
             $progressInfo = $this->getStudentProgressInfo($user);
             $data['is_completed'] = $progressInfo['is_completed'];
@@ -45,7 +45,7 @@ class LessonResource extends JsonResource
             $data['blocks'] = LessonBlockResource::collection($this->whenLoaded('blocks'));
         }
 
-        // Add unit and course info when included via Spatie Query Builder
+        
         if ($this->relationLoaded('unit')) {
             $unit = $this->unit;
             $data['unit'] = [
@@ -56,7 +56,7 @@ class LessonResource extends JsonResource
                 'course_slug' => $unit->course_slug,
             ];
 
-            // Add course info if loaded
+            
             if ($unit->relationLoaded('course')) {
                 $course = $unit->course;
                 $data['unit']['course'] = [
@@ -67,7 +67,7 @@ class LessonResource extends JsonResource
                 ];
             }
 
-            // Add sequence (format: unit_order.lesson_order)
+            
             $data['sequence'] = $unit->order . '.' . $this->order;
         }
 
@@ -92,7 +92,7 @@ class LessonResource extends JsonResource
         }
 
         if ($user->hasRole('Admin')) {
-            return true; // Admins have global access to all courses
+            return true; 
         }
 
         if ($user->hasRole('Instructor')) {
@@ -134,7 +134,7 @@ class LessonResource extends JsonResource
             return ['is_completed' => false, 'is_locked' => false];
         }
 
-        // Get enrollment
+        
         $enrollment = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
             ->where('course_id', $course->id)
             ->whereIn('status', [\Modules\Enrollments\Enums\EnrollmentStatus::Active, \Modules\Enrollments\Enums\EnrollmentStatus::Completed])
@@ -144,14 +144,14 @@ class LessonResource extends JsonResource
             return ['is_completed' => false, 'is_locked' => true];
         }
 
-        // Check if this lesson is completed
+        
         $lessonProgress = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
             ->where('lesson_id', $this->id)
             ->first();
 
         $isCompleted = $lessonProgress && $lessonProgress->status === \Modules\Enrollments\Enums\ProgressStatus::Completed;
 
-        // Check if lesson is locked (previous lessons not completed)
+        
         $previousLessons = \Modules\Schemes\Models\Lesson::where('unit_id', $this->unit_id)
             ->where('order', '<', $this->order)
             ->where('status', 'published')

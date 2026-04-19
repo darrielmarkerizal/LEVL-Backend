@@ -11,17 +11,13 @@ class UploadImageRequest extends FormRequest
 {
     use HasApiValidation;
 
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    
     public function authorize(): bool
     {
         return auth('api')->check() && auth('api')->user()->hasRole('Admin');
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
+    
     public function rules(): array
     {
         return [
@@ -29,7 +25,7 @@ class UploadImageRequest extends FormRequest
                 'required',
                 'image',
                 'mimes:jpeg,png,gif,webp',
-                'max:5120', // 5MB in kilobytes
+                'max:5120', 
             ],
             'post_uuid' => [
                 'nullable',
@@ -39,9 +35,7 @@ class UploadImageRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom validation messages.
-     */
+    
     public function messages(): array
     {
         return [

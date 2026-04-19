@@ -6,23 +6,13 @@ use Illuminate\Console\Command;
 
 class CleanupDeletedAccounts extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+    
     protected $signature = 'auth:cleanup-deleted-accounts';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+    
     protected $description = 'Permanently delete accounts that have been soft-deleted for more than 30 days.';
 
-    /**
-     * Execute the console command.
-     */
+    
     public function handle()
     {
         $days = (int) ((\Modules\Common\Models\SystemSetting::get('auth_account_retention_days', 30)) ?? 30);

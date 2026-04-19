@@ -8,20 +8,16 @@ abstract class TestCase extends BaseTestCase
 {
     use CreatesApplication;
 
-    /**
-     * Setup the test environment.
-     */
+    
     protected function setUp(): void
     {
         parent::setUp();
     }
 
-    /**
-     * Clean up the test environment.
-     */
+    
     protected function tearDown(): void
     {
-        // Clean up any test artifacts
+        
         parent::tearDown();
     }
 }

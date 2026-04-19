@@ -10,10 +10,7 @@ use Modules\Gamification\Models\GamificationEventLog;
 
 class EventLoggerService
 {
-    /**
-     * Important events that should always be logged
-     * This prevents event log table from growing to 86M rows/day
-     */
+    
     private const IMPORTANT_EVENTS = [
         'badge_awarded',
         'level_up',
@@ -34,12 +31,12 @@ class EventLoggerService
         ?int $sourceId = null,
         array $payload = []
     ): ?GamificationEventLog {
-        // Selective logging: only log important events
+        
         if (! $this->shouldLog($eventType)) {
             return null;
         }
 
-        // Limit payload size to prevent bloat
+        
         $limitedPayload = $this->limitPayload($payload);
 
         return $this->repository->create([
@@ -52,10 +49,7 @@ class EventLoggerService
         ]);
     }
 
-    /**
-     * Determine if event should be logged
-     * Only important events are logged to prevent table bloat
-     */
+    
     private function shouldLog(string $eventType): bool
     {
         return in_array($eventType, self::IMPORTANT_EVENTS, true);
@@ -63,7 +57,7 @@ class EventLoggerService
 
     private function limitPayload(array $payload): array
     {
-        // Only keep essential fields (max 10 fields)
+        
         $allowedFields = [
             'id',
             'score',

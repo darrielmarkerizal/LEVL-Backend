@@ -10,7 +10,7 @@ class ActivityLogResource extends JsonResource
     {
         $properties = $this->properties ?? [];
 
-        // Ensure ip_address exists in properties if ip exists
+        
         if (isset($properties['ip']) && ! isset($properties['ip_address'])) {
             $properties['ip_address'] = $properties['ip'];
         }

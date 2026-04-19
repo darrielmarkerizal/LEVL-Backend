@@ -42,12 +42,12 @@ class LessonPolicy
             return false;
         }
 
-        // Admin can create lessons in all courses
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Instructor can create lessons in their courses
+        
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -62,12 +62,12 @@ class LessonPolicy
             return false;
         }
 
-        // Admin can update all lessons
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Instructor can update lessons in their courses
+        
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 
@@ -82,12 +82,12 @@ class LessonPolicy
             return false;
         }
 
-        // Admin can delete all lessons
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Instructor can delete lessons in their courses
+        
         return $user->hasRole('Instructor') && $course->instructor_id === $user->id;
     }
 

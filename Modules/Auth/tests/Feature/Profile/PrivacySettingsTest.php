@@ -29,7 +29,7 @@ test('user can update privacy settings', function () {
         ]);
 
     $response->assertStatus(200);
-    // expect($user->fresh()->privacySettings->profile_visibility)->toBe('private');
+    
 });
 
 test('privacy settings validate input', function () {

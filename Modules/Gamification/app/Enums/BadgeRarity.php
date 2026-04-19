@@ -34,11 +34,11 @@ enum BadgeRarity: string
     public function color(): string
     {
         return match ($this) {
-            self::Common => '#9CA3AF',      // Gray
-            self::Uncommon => '#10B981',    // Green
-            self::Rare => '#3B82F6',        // Blue
-            self::Epic => '#8B5CF6',        // Purple
-            self::Legendary => '#F59E0B',   // Gold
+            self::Common => '#9CA3AF',      
+            self::Uncommon => '#10B981',    
+            self::Rare => '#3B82F6',        
+            self::Epic => '#8B5CF6',        
+            self::Legendary => '#F59E0B',   
         };
     }
 }

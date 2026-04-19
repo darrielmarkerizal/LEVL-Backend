@@ -35,19 +35,19 @@ final class UATMediaFixtures
             File::put($txt, "LEVL UAT fixture placeholder\n");
         }
 
-        // Create a minimal video file (actually a valid MP4 header)
+        
         $mp4 = $dir.'/sample-video.mp4';
         if (! File::exists($mp4)) {
             File::put($mp4, self::minimalMp4());
         }
 
-        // Create a minimal Excel file (CSV format with .xls extension)
+        
         $xls = $dir.'/sample-data.xls';
         if (! File::exists($xls)) {
             File::put($xls, "Name,Value\nSample,Data\n");
         }
 
-        // Create a minimal DOC file (RTF format)
+        
         $doc = $dir.'/sample-document.doc';
         if (! File::exists($doc)) {
             File::put($doc, self::minimalDoc());
@@ -75,13 +75,13 @@ final class UATMediaFixtures
 
     private static function minimalMp4(): string
     {
-        // Minimal valid MP4 file header (ftyp + mdat boxes)
+        
         return hex2bin('000000186674797069736f6d0000020069736f6d69736f32617663310000000c6d6461740000');
     }
 
     private static function minimalDoc(): string
     {
-        // Minimal RTF document
+        
         return "{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\n\\f0\\fs24 LEVL Sample Document\n}";
     }
 }

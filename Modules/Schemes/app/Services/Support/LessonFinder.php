@@ -69,7 +69,7 @@ class LessonFinder
                 throw new \App\Exceptions\BusinessException(__('messages.enrollments.not_enrolled'), [], 403);
             }
 
-            // Check if previous lessons are completed
+            
             $previousLessons = \Modules\Schemes\Models\Lesson::where('unit_id', $lesson->unit_id)
                 ->where('order', '<', $lesson->order)
                 ->where('status', 'published')

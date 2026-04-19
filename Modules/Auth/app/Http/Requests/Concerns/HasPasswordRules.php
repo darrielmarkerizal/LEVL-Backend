@@ -8,10 +8,7 @@ use Illuminate\Validation\Rules\Password as PasswordRule;
 
 trait HasPasswordRules
 {
-    /**
-     * Global password rules - used for all password validations.
-     * Includes uncompromised check for maximum security.
-     */
+    
     protected function passwordRules(): array
     {
         return [
@@ -27,9 +24,7 @@ trait HasPasswordRules
         ];
     }
 
-    /**
-     * Password rules without confirmation - for change password.
-     */
+    
     protected function passwordRulesWithoutConfirmation(): array
     {
         return [
@@ -44,25 +39,19 @@ trait HasPasswordRules
         ];
     }
 
-    /**
-     * Alias for backward compatibility.
-     */
+    
     protected function passwordRulesStrong(): array
     {
         return $this->passwordRules();
     }
 
-    /**
-     * Alias for backward compatibility.
-     */
+    
     protected function passwordRulesRegistration(): array
     {
         return $this->passwordRules();
     }
 
-    /**
-     * Standard password validation messages.
-     */
+    
     protected function passwordMessages(): array
     {
         return [
@@ -73,9 +62,7 @@ trait HasPasswordRules
         ];
     }
 
-    /**
-     * Password validation messages for new_password field.
-     */
+    
     protected function newPasswordMessages(): array
     {
         return [

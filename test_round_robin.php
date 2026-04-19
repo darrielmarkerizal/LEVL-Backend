@@ -1,10 +1,6 @@
 <?php
 
-/**
- * Quick test untuk memverifikasi round-robin distribution
- * 
- * Usage: php test_round_robin.php
- */
+
 
 echo "\n";
 echo "═══════════════════════════════════════════════════════════════\n";
@@ -15,7 +11,7 @@ $blockTypes = ['text', 'video', 'file', 'image', 'embed'];
 
 echo "Testing round-robin formula: \$blockTypes[\$i % count(\$blockTypes)]\n\n";
 
-// Test 1: Simple case - 5 blocks
+
 echo "Test 1: 5 blocks (should be 1 of each type)\n";
 echo "───────────────────────────────────────────────────────────────\n";
 $distribution1 = [];
@@ -29,7 +25,7 @@ $allPresent1 = count($distribution1) === 5;
 echo $allPresent1 ? "✅ PASS - All types present\n" : "❌ FAIL - Missing types\n";
 echo "\n";
 
-// Test 2: 4 blocks (typical case)
+
 echo "Test 2: 4 blocks (should have text, video, file, image)\n";
 echo "───────────────────────────────────────────────────────────────\n";
 $distribution2 = [];
@@ -43,7 +39,7 @@ $hasMedia2 = isset($distribution2['video']) || isset($distribution2['file']) || 
 echo $hasMedia2 ? "✅ PASS - Has media types\n" : "❌ FAIL - No media types\n";
 echo "\n";
 
-// Test 3: 3 blocks (minimum case)
+
 echo "Test 3: 3 blocks (should have text, video, file)\n";
 echo "───────────────────────────────────────────────────────────────\n";
 $distribution3 = [];
@@ -57,7 +53,7 @@ $hasMedia3 = isset($distribution3['video']) || isset($distribution3['file']) || 
 echo $hasMedia3 ? "✅ PASS - Has media types\n" : "❌ FAIL - No media types\n";
 echo "\n";
 
-// Test 4: 10 blocks (cycle test)
+
 echo "Test 4: 10 blocks (should cycle through all types twice)\n";
 echo "───────────────────────────────────────────────────────────────\n";
 $distribution4 = [];
@@ -73,7 +69,7 @@ $evenDistribution4 = count(array_unique($distribution4)) === 1 && $distribution4
 echo $evenDistribution4 ? "✅ PASS - Even distribution (2 of each)\n" : "❌ FAIL - Uneven distribution\n";
 echo "\n";
 
-// Test 5: Simulate 2680 blocks (actual seeder case)
+
 echo "Test 5: 2680 blocks (actual seeder scenario)\n";
 echo "───────────────────────────────────────────────────────────────\n";
 $distribution5 = [];
@@ -96,7 +92,7 @@ echo $isEven5 ? "✅ PASS - Even distribution\n" : "❌ FAIL - Uneven distributi
 echo $mediaCount >= 1600 ? "✅ PASS - Sufficient media blocks ($mediaCount >= 1600)\n" : "❌ FAIL - Insufficient media blocks\n";
 echo "\n";
 
-// Summary
+
 echo "═══════════════════════════════════════════════════════════════\n";
 echo "  SUMMARY\n";
 echo "═══════════════════════════════════════════════════════════════\n\n";

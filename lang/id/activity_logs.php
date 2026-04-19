@@ -1,7 +1,7 @@
 <?php
 
 return [
-    // Sort field labels
+    
     'created_at' => 'Dibuat Pada',
     'log_name' => 'Nama Log',
     'event' => 'Event',

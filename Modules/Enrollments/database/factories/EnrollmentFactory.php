@@ -8,27 +8,35 @@ use Modules\Enrollments\Enums\EnrollmentStatus;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Models\Course;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Enrollments\Models\Enrollment>
- */
+
 class EnrollmentFactory extends Factory
 {
     protected $model = Enrollment::class;
 
     public function definition(): array
     {
+        $statusRoll = fake()->numberBetween(1, 100);
+        $status = match (true) {
+            $statusRoll <= 20 => EnrollmentStatus::Pending->value,
+            $statusRoll <= 75 => EnrollmentStatus::Active->value,
+            $statusRoll <= 90 => EnrollmentStatus::Completed->value,
+            default => EnrollmentStatus::Cancelled->value,
+        };
+        $enrolledAt = fake()->dateTimeBetween('-6 months', 'now');
+        $completedAt = $status === EnrollmentStatus::Completed->value
+            ? now()->subDays(rand(1, 30))
+            : null;
+
         return [
             'user_id' => User::factory(),
             'course_id' => Course::factory(),
-            'status' => fake()->randomElement(['pending', 'active', 'completed', 'cancelled']),
-            'enrolled_at' => fake()->dateTimeBetween('-6 months', 'now'),
-            'completed_at' => fake()->boolean(30) ? now()->subDays(rand(1, 30)) : null,
+            'status' => $status,
+            'enrolled_at' => $enrolledAt,
+            'completed_at' => $completedAt,
         ];
     }
 
-    /**
-     * Enrollment for user.
-     */
+    
     public function forUser(User $user): static
     {
         return $this->state(fn (array $attributes) => [
@@ -36,9 +44,7 @@ class EnrollmentFactory extends Factory
         ]);
     }
 
-    /**
-     * Enrollment for course.
-     */
+    
     public function forCourse(Course $course): static
     {
         return $this->state(fn (array $attributes) => [
@@ -46,9 +52,7 @@ class EnrollmentFactory extends Factory
         ]);
     }
 
-    /**
-     * Active enrollment.
-     */
+    
     public function active(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -57,9 +61,7 @@ class EnrollmentFactory extends Factory
         ]);
     }
 
-    /**
-     * Pending enrollment.
-     */
+    
     public function pending(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -68,9 +70,7 @@ class EnrollmentFactory extends Factory
         ]);
     }
 
-    /**
-     * Completed enrollment.
-     */
+    
     public function completed(): static
     {
         return $this->state(fn (array $attributes) => [

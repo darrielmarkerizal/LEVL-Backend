@@ -312,19 +312,17 @@ class Course extends Model implements HasMedia
             $this->attributes['enrollment_key_hash'] = null;
             $this->attributes['enrollment_key_encrypted'] = null;
         } else {
-            // Keep hash for backward compatibility and verification
+            
             $hasher = app(\App\Contracts\EnrollmentKeyHasherInterface::class);
             $this->attributes['enrollment_key_hash'] = $hasher->hash($value);
 
-            // Add encryption for decryption capability
+            
             $encrypter = app(\App\Contracts\EnrollmentKeyEncrypterInterface::class);
             $this->attributes['enrollment_key_encrypted'] = $encrypter->encrypt($value);
         }
     }
 
-    /**
-     * Get the decrypted enrollment key (only for authorized users)
-     */
+    
     public function getDecryptedEnrollmentKey(): ?string
     {
         if (empty($this->enrollment_key_encrypted)) {

@@ -11,7 +11,7 @@ class EnsureEmailVerified
 {
     public function handle(Request $request, Closure $next)
     {
-        /** @var \Modules\Auth\Models\User|null $user */
+        
         $user = auth('api')->user();
 
         if ($user && $user->email_verified_at) {

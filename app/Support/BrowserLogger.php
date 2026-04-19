@@ -7,16 +7,14 @@ use Illuminate\Support\Facades\Request;
 
 class BrowserLogger
 {
-    /**
-     * Get browser and device information from request
-     */
+    
     public static function getDeviceInfo(): array
     {
         try {
             $userAgent = self::getUserAgent();
             $ipAddress = self::getClientIp();
 
-            // If no user agent (CLI/console), return minimal info
+            
             if (empty($userAgent)) {
                 return [
                     'ip_address' => $ipAddress,
@@ -28,10 +26,10 @@ class BrowserLogger
                 ];
             }
 
-            // Parse user agent
+            
             $result = Browser::parse($userAgent);
 
-            // Get Location
+            
             $location = \Stevebauman\Location\Facades\Location::get($ipAddress);
 
             return [
@@ -46,7 +44,7 @@ class BrowserLogger
                 'country' => $location ? $location->countryName : null,
             ];
         } catch (\Exception $e) {
-            // Fallback if browser-detect fails
+            
             return [
                 'ip_address' => self::getClientIp(),
                 'browser' => 'Unknown',
@@ -61,20 +59,18 @@ class BrowserLogger
         }
     }
 
-    /**
-     * Get User-Agent from various possible headers (handles proxy scenarios)
-     */
+    
     private static function getUserAgent(): string
     {
         $request = Request::instance();
 
-        // Try standard User-Agent header first
+        
         $userAgent = $request->header('User-Agent');
         if (! empty($userAgent)) {
             return $userAgent;
         }
 
-        // Try alternative headers that proxies might use
+        
         $alternativeHeaders = [
             'X-Original-User-Agent',
             'X-Device-User-Agent',
@@ -89,7 +85,7 @@ class BrowserLogger
             }
         }
 
-        // Try server variables
+        
         $serverVars = ['HTTP_USER_AGENT', 'HTTP_X_ORIGINAL_USER_AGENT'];
         foreach ($serverVars as $var) {
             $value = $request->server($var);
@@ -101,26 +97,24 @@ class BrowserLogger
         return '';
     }
 
-    /**
-     * Get real client IP (handles proxy scenarios)
-     */
+    
     private static function getClientIp(): string
     {
         $request = Request::instance();
 
-        // Check for forwarded IP headers (in order of preference)
+        
         $forwardedHeaders = [
             'X-Forwarded-For',
             'X-Real-IP',
-            'CF-Connecting-IP', // Cloudflare
-            'True-Client-IP', // Akamai
+            'CF-Connecting-IP', 
+            'True-Client-IP', 
             'X-Client-IP',
         ];
 
         foreach ($forwardedHeaders as $header) {
             $value = $request->header($header);
             if (! empty($value)) {
-                // X-Forwarded-For can contain multiple IPs, get the first one (original client)
+                
                 $ips = array_map('trim', explode(',', $value));
                 $clientIp = $ips[0];
                 if (filter_var($clientIp, FILTER_VALIDATE_IP)) {
@@ -132,9 +126,7 @@ class BrowserLogger
         return $request->ip() ?? '127.0.0.1';
     }
 
-    /**
-     * Determine device type
-     */
+    
     private static function getDeviceType($result): string
     {
         if ($result->isMobile()) {

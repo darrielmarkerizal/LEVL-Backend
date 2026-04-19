@@ -126,9 +126,7 @@ class AnnouncementService implements AnnouncementServiceInterface
         return $result;
     }
 
-    /**
-     * @throws BusinessException
-     */
+    
     public function publish(Announcement $announcement): Announcement
     {
         if ($announcement->status === 'published') {
@@ -150,9 +148,7 @@ class AnnouncementService implements AnnouncementServiceInterface
         });
     }
 
-    /**
-     * @throws BusinessException
-     */
+    
     public function schedule(Announcement $announcement, \Carbon\Carbon $publishAt): Announcement
     {
         if ($publishAt->isPast()) {

@@ -216,9 +216,7 @@ class GradingRepository implements GradingRepositoryInterface
             ->get();
     }
 
-    /**
-     * Invalidate all relevant caches for a grade.
-     */
+    
     protected function invalidateCache(Grade $grade): void
     {
         $cache = \Illuminate\Support\Facades\Cache::tags(['grades']);
@@ -234,11 +232,11 @@ class GradingRepository implements GradingRepositoryInterface
         if ($grade->user_id) {
             $cache->forget("grades:user:{$grade->user_id}");
         } elseif ($grade->submission) {
-            // Try to load relation if not set on model
+            
             $cache->forget("grades:user:{$grade->submission->user_id}");
         }
 
-        // Flush grading queue cache
+        
         \Illuminate\Support\Facades\Cache::tags(['grading', 'queue'])->flush();
     }
 }

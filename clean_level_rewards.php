@@ -15,8 +15,8 @@ $levels = LevelConfig::all();
 $cleaned = 0;
 
 foreach ($levels as $level) {
-    // Clear the rewards column since we now use dedicated columns
-    // (bonus_xp column and milestone_badge_id relation)
+    
+    
     if (! empty($level->rewards)) {
         $level->rewards = [];
         $level->save();

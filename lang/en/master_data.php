@@ -1,7 +1,7 @@
 <?php
 
 return [
-    // Sort field labels
+    
     'label' => 'Label',
     'value' => 'Value',
     'created_at' => 'Created At',

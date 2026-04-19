@@ -24,7 +24,7 @@ class EventCounterService
     ): UserEventCounter {
         $bounds = $this->getWindowBounds($window);
 
-        // PostgreSQL UPSERT syntax
+        
         DB::statement('
             INSERT INTO user_event_counters 
                 (user_id, event_type, scope_type, scope_id, "window", counter, 
@@ -59,7 +59,7 @@ class EventCounterService
             $bounds['end'],
         ]);
 
-        // Return the updated counter
+        
         return $this->repository->findByUserAndEvent(
             $userId,
             $eventType,

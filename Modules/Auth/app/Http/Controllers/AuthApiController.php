@@ -57,7 +57,7 @@ class AuthApiController extends Controller
 
     public function logout(LogoutRequest $request): JsonResponse
     {
-        /** @var User $user */
+        
         $user = $request->user();
 
         $this->authenticationService->logout(
@@ -82,7 +82,7 @@ class AuthApiController extends Controller
 
     public function me(): JsonResponse
     {
-        /** @var User $user */
+        
         $user = auth()->user();
 
         $data = \Illuminate\Support\Facades\Cache::tags(['user_profile'])->remember('user_profile:'.$user->id, 3600, function () use ($user) {
@@ -101,7 +101,7 @@ class AuthApiController extends Controller
 
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
-        /** @var User $user */
+        
         $user = $request->user();
 
         $updatedUser = $this->authService->updateProfile($user, $request->validated());
@@ -117,7 +117,7 @@ class AuthApiController extends Controller
             return $this->error(__('messages.auth.verification_'.$result['status']), [], 422);
         }
 
-        // Generate tokens for the verified user (like login response)
+        
         $user = $result['user'];
         $tokens = $this->authenticationService->generateTokens($user, $request->ip(), $request->userAgent());
 
@@ -129,7 +129,7 @@ class AuthApiController extends Controller
 
     public function sendEmailVerification(Request $request): JsonResponse
     {
-        /** @var User $user */
+        
         $user = $request->user();
 
         $uuid = $this->authService->sendEmailVerificationLink($user);
@@ -176,7 +176,7 @@ class AuthApiController extends Controller
 
     public function setUsername(SetUsernameRequest $request): JsonResponse
     {
-        /** @var User $user */
+        
         $user = $request->user();
 
         $result = $this->authService->setUsername($user, $request->input('username'));
@@ -186,7 +186,7 @@ class AuthApiController extends Controller
 
     public function setPassword(\Modules\Auth\Http\Requests\SetPasswordRequest $request): JsonResponse
     {
-        /** @var User $user */
+        
         $user = $request->user();
 
         if ($user->is_password_set) {

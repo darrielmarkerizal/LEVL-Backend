@@ -46,7 +46,7 @@ class CourseIndexResource extends JsonResource
             'enrollments_count' => $this->when(array_key_exists('enrollments_count', $this->getAttributes()), $this->enrollments_count),
         ];
 
-        // Add progress information for students
+        
         if ($isStudent && $enrollment) {
             $data['progress'] = $this->getProgressInfo($enrollment);
         }
@@ -102,7 +102,7 @@ class CourseIndexResource extends JsonResource
         }
 
         if ($user->hasRole('Admin')) {
-            return true; // Admins have global access to all courses
+            return true; 
         }
 
         if ($user->hasRole('Instructor')) {
@@ -114,12 +114,12 @@ class CourseIndexResource extends JsonResource
 
     private function getProgressInfo($enrollment): array
     {
-        // Get course progress
+        
         $courseProgress = \Modules\Enrollments\Models\CourseProgress::where('enrollment_id', $enrollment->id)->first();
 
         $courseId = $this->id;
 
-        // Count total content items (lessons + quizzes + assignments)
+        
         $totalLessons = \Modules\Schemes\Models\Lesson::whereHas('unit', function ($query) use ($courseId) {
             $query->where('course_id', $courseId);
         })->where('status', 'published')->count();
@@ -144,12 +144,12 @@ class CourseIndexResource extends JsonResource
             ];
         }
 
-        // Count completed lessons
+        
         $completedLessons = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
             ->where('status', \Modules\Enrollments\Enums\ProgressStatus::Completed)
             ->count();
 
-        // Count completed quizzes (passed with score >= passing_grade)
+        
         $completedQuizzes = \Modules\Learning\Models\QuizSubmission::where('user_id', $enrollment->user_id)
             ->whereHas('quiz', function ($q) use ($courseId) {
                 $q->whereHas('unit', function ($unitQuery) use ($courseId) {
@@ -161,7 +161,7 @@ class CourseIndexResource extends JsonResource
             ->distinct('quiz_id')
             ->count('quiz_id');
 
-        // Count completed assignments (graded with score >= 60% of max_score)
+        
         $completedAssignments = \Modules\Learning\Models\Submission::where('user_id', $enrollment->user_id)
             ->where('status', \Modules\Learning\Enums\SubmissionStatus::Graded)
             ->whereHas('assignment', function ($q) use ($courseId) {
@@ -177,7 +177,7 @@ class CourseIndexResource extends JsonResource
         $completedItems = $completedLessons + $completedQuizzes + $completedAssignments;
         $percentage = $totalContent > 0 ? round(($completedItems / $totalContent) * 100, 2) : 0;
 
-        // Get last accessed lesson from lesson_progress
+        
         $lastLessonProgress = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
             ->orderBy('updated_at', 'desc')
             ->first();

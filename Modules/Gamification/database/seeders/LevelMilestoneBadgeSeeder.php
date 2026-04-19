@@ -8,9 +8,7 @@ use Modules\Gamification\Models\Badge;
 
 class LevelMilestoneBadgeSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+    
     public function run(): void
     {
         $this->command->info('Creating milestone badges for every 10 levels...');
@@ -92,7 +90,7 @@ class LevelMilestoneBadgeSeeder extends Seeder
         $updated = 0;
 
         foreach ($milestoneBadges as $level => $badgeData) {
-            // Create or update badge
+            
             $badge = Badge::updateOrCreate(
                 ['code' => $badgeData['code']],
                 [
@@ -116,7 +114,7 @@ class LevelMilestoneBadgeSeeder extends Seeder
                 $this->command->info("✓ Updated badge: {$badge->name} (Level {$level})");
             }
 
-            // Link badge to level config
+            
             $levelConfig = LevelConfig::where('level', $level)->first();
             if ($levelConfig) {
                 $levelConfig->milestone_badge_id = $badge->id;

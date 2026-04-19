@@ -227,16 +227,16 @@ it('corrects invalid per page values', function () {
     expect($perPage)->toBeGreaterThanOrEqual(1);
 });
 
-// ==================== NEGATIVE TEST CASES ====================
 
-// Filtering Negative Cases
+
+
 it('rejects invalid status filter value', function () {
     $response = $this->getJson(api('/courses?filter[status]=invalid_status'));
 
     $response->assertStatus(200);
-    // Should return empty or ignore invalid filter
+    
     $items = $response->json('data');
-    // Invalid status should not match any course
+    
     foreach ($items as $item) {
         expect($item['status'])->not->toEqual('invalid_status');
     }
@@ -247,7 +247,7 @@ it('rejects invalid level filter value', function () {
 
     $response->assertStatus(200);
     $items = $response->json('data');
-    // Invalid level should not match any course
+    
     foreach ($items as $item) {
         expect($item['level_tag'])->not->toEqual('invalid_level');
     }
@@ -257,7 +257,7 @@ it('handles SQL injection attempt in filter', function () {
     $response = $this->getJson(api('/courses?filter[status]=published\'; DROP TABLE courses; --'));
 
     $response->assertStatus(200);
-    // Should not execute SQL injection, just treat as invalid filter
+    
     expect($response->json('data'))->toBeArray();
 });
 
@@ -265,7 +265,7 @@ it('handles XSS attempt in filter', function () {
     $response = $this->getJson(api('/courses?filter[status]=<script>alert("xss")</script>'));
 
     $response->assertStatus(200);
-    // Should sanitize and not execute script
+    
     $json = $response->json();
     expect(json_encode($json))->not->toContain('<script>');
 });
@@ -275,7 +275,7 @@ it('handles very long filter values', function () {
     $response = $this->getJson(api("/courses?filter[status]={$longValue}"));
 
     $response->assertStatus(200);
-    // Should handle gracefully without error
+    
     expect($response->json('data'))->toBeArray();
 });
 
@@ -285,7 +285,7 @@ it('handles special characters in filter', function () {
     );
 
     $response->assertStatus(200);
-    // Should ignore unknown parameters
+    
     expect($response->json('data'))->toBeArray();
 });
 
@@ -293,19 +293,19 @@ it('handles null filter values', function () {
     $response = $this->getJson(api('/courses?filter[status]=null'));
 
     $response->assertStatus(200);
-    // Should treat as string "null", not actual null
+    
     $items = $response->json('data');
     foreach ($items as $item) {
         expect($item['status'])->not->toBeNull();
     }
 });
 
-// Sorting Negative Cases
+
 it('rejects SQL injection in sort parameter', function () {
     $response = $this->getJson(api('/courses?sort=title; DROP TABLE courses; --'));
 
     $response->assertStatus(200);
-    // Should not execute SQL injection
+    
     expect($response->json('data'))->toBeArray();
 });
 
@@ -313,7 +313,7 @@ it('handles multiple sort fields when not supported', function () {
     $response = $this->getJson(api('/courses?sort=title,created_at'));
 
     $response->assertStatus(200);
-    // Should use first field or default
+    
     expect($response->json('data'))->toBeArray();
 });
 
@@ -321,7 +321,7 @@ it('handles empty sort parameter', function () {
     $response = $this->getJson(api('/courses?sort='));
 
     $response->assertStatus(200);
-    // Should use default sort
+    
     expect($response->json('data'))->toBeArray();
     expect($response->json('meta'))->toBeArray();
 });
@@ -330,7 +330,7 @@ it('handles sort with only minus sign', function () {
     $response = $this->getJson(api('/courses?sort=-'));
 
     $response->assertStatus(200);
-    // Should use default sort
+    
     expect($response->json('data'))->toBeArray();
 });
 
@@ -338,17 +338,17 @@ it('handles sort with XSS attempt', function () {
     $response = $this->getJson(api('/courses?sort=<script>alert("xss")</script>'));
 
     $response->assertStatus(200);
-    // Should sanitize
+    
     $json = $response->json();
     expect(json_encode($json))->not->toContain('<script>');
 });
 
-// Pagination Negative Cases
+
 it('rejects negative page number', function () {
     $response = $this->getJson(api('/courses?page=-1'));
 
     $response->assertStatus(200);
-    // Should correct to page 1
+    
     expect($response->json('meta.pagination.current_page'))->toBeGreaterThanOrEqual(1);
 });
 
@@ -356,7 +356,7 @@ it('rejects zero per page value', function () {
     $response = $this->getJson(api('/courses?per_page=0'));
 
     $response->assertStatus(200);
-    // Should correct to minimum 1
+    
     $perPage = $response->json('meta.pagination.per_page');
     expect($perPage)->toBeGreaterThanOrEqual(1);
 });
@@ -365,7 +365,7 @@ it('rejects very large per page value', function () {
     $response = $this->getJson(api('/courses?per_page=999999'));
 
     $response->assertStatus(200);
-    // Should cap at max per page (100)
+    
     $perPage = $response->json('meta.pagination.per_page');
     expect($perPage)->toBeLessThanOrEqual(100);
 });
@@ -374,7 +374,7 @@ it('handles non-numeric page value', function () {
     $response = $this->getJson(api('/courses?page=abc'));
 
     $response->assertStatus(200);
-    // Should default to page 1
+    
     expect($response->json('meta.pagination.current_page'))->toEqual(1);
 });
 
@@ -382,7 +382,7 @@ it('handles non-numeric per page value', function () {
     $response = $this->getJson(api('/courses?per_page=abc'));
 
     $response->assertStatus(200);
-    // Should use default per page
+    
     $perPage = $response->json('meta.pagination.per_page');
     expect($perPage)->toBeGreaterThanOrEqual(1);
 });
@@ -391,7 +391,7 @@ it('handles float page number', function () {
     $response = $this->getJson(api('/courses?page=1.5'));
 
     $response->assertStatus(200);
-    // Should truncate to integer
+    
     expect($response->json('meta.pagination.current_page'))->toBeInt();
 });
 
@@ -399,7 +399,7 @@ it('handles float per page value', function () {
     $response = $this->getJson(api('/courses?per_page=10.5'));
 
     $response->assertStatus(200);
-    // Should truncate to integer
+    
     $perPage = $response->json('meta.pagination.per_page');
     expect($perPage)->toBeInt();
 });
@@ -408,18 +408,18 @@ it('handles SQL injection in pagination', function () {
     $response = $this->getJson(api('/courses?page=1; DROP TABLE courses; --'));
 
     $response->assertStatus(200);
-    // Should not execute SQL injection
+    
     expect($response->json('data'))->toBeArray();
 });
 
-// Combined Negative Cases
+
 it('handles all invalid parameters together', function () {
     $response = $this->getJson(
         api('/courses?filter[status]=invalid&sort=invalid_field&page=-1&per_page=-5'),
     );
 
     $response->assertStatus(200);
-    // Should handle gracefully
+    
     expect($response->json('data'))->toBeArray();
     expect($response->json('meta.pagination.current_page'))->toBeGreaterThanOrEqual(1);
     expect($response->json('meta.pagination.per_page'))->toBeGreaterThanOrEqual(1);
@@ -429,7 +429,7 @@ it('handles malformed query parameters', function () {
     $response = $this->getJson(api('/courses?filter[status]=published&sort=&page=&per_page='));
 
     $response->assertStatus(200);
-    // Should use defaults for empty values
+    
     expect($response->json('data'))->toBeArray();
     expect($response->json('meta.pagination.current_page'))->toBeGreaterThanOrEqual(1);
 });
@@ -438,16 +438,16 @@ it('handles duplicate query parameters', function () {
     $response = $this->getJson(api('/courses?page=1&page=2&per_page=5&per_page=10'));
 
     $response->assertStatus(200);
-    // Should use last value or handle gracefully
+    
     expect($response->json('data'))->toBeArray();
 });
 
-// Edge Cases
+
 it('handles request with no query parameters', function () {
     $response = $this->getJson(api('/courses'));
 
     $response->assertStatus(200)->assertJsonStructure(['data', 'meta' => ['pagination']]);
-    // Should return default pagination
+    
     expect($response->json('meta.pagination.current_page'))->toEqual(1);
 });
 
@@ -455,7 +455,7 @@ it('handles request with only empty query parameters', function () {
     $response = $this->getJson(api('/courses?filter=&sort=&page=&per_page='));
 
     $response->assertStatus(200);
-    // Should use defaults
+    
     expect($response->json('data'))->toBeArray();
 });
 
@@ -463,7 +463,7 @@ it('handles very large page number', function () {
     $response = $this->getJson(api('/courses?page=999999999'));
 
     $response->assertStatus(200);
-    // Should return empty results or last page
+    
     $items = $response->json('data');
     expect($items)->toBeArray();
 });
@@ -472,7 +472,7 @@ it('handles filter with array syntax', function () {
     $response = $this->getJson(api('/courses?filter[status][]=published&filter[status][]=draft'));
 
     $response->assertStatus(200);
-    // Should handle array filter if supported, or ignore
+    
     expect($response->json('data'))->toBeArray();
 });
 
@@ -480,6 +480,6 @@ it('handles URL encoded special characters', function () {
     $response = $this->getJson(api('/courses?filter[status]='.urlencode('published&test=value')));
 
     $response->assertStatus(200);
-    // Should decode and handle properly
+    
     expect($response->json('data'))->toBeArray();
 });

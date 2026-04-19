@@ -29,7 +29,7 @@ class Handler extends ExceptionHandler
     public function register(): void
     {
         $this->reportable(function (Throwable $e) {
-            //
+            
         });
 
         $this->renderable(function (AccessDeniedHttpException $e, Request $request) {
@@ -61,13 +61,10 @@ class Handler extends ExceptionHandler
         return parent::render($request, $e);
     }
 
-    /**
-     * Determine if the exception handler should return JSON.
-     * Override parent to prioritize URL path over Accept header.
-     */
+    
     protected function shouldReturnJson($request, Throwable $e): bool
     {
-        // Always return JSON for API routes
+        
         if ($request->is('api/*') || $request->is('v1/*')) {
             return true;
         }
@@ -77,11 +74,11 @@ class Handler extends ExceptionHandler
 
     protected function handleApiException(Request $request, Throwable $e): JsonResponse
     {
-        // Laravel's ValidationException - use localized validation messages
+        
         if ($e instanceof \Illuminate\Validation\ValidationException) {
             $errors = $e->errors();
 
-            // Use first error message as main message if available
+            
             $message = 'messages.validation_failed';
             if (! empty($errors)) {
                 $firstError = reset($errors);
@@ -93,38 +90,38 @@ class Handler extends ExceptionHandler
             return $this->validationError($errors, $message);
         }
 
-        // Custom ValidationException
+        
         if ($e instanceof \App\Exceptions\ValidationException) {
             $message = $e->getMessage() ?: 'messages.validation_failed';
 
             return $this->validationError([], $message);
         }
 
-        // ModelNotFoundException - Laravel's Eloquent model not found
+        
         if ($e instanceof ModelNotFoundException) {
             $messageKey = $this->getExceptionMessageKey($e);
 
             return $this->notFound($messageKey);
         }
 
-        // AuthenticationException - user not authenticated
+        
         if ($e instanceof AuthenticationException) {
             $messageKey = $this->getExceptionMessageKey($e);
 
             return $this->unauthorized($messageKey);
         }
 
-        // AuthorizationException - user not authorized
+        
         if ($e instanceof AuthorizationException) {
-            // Try to get message from exception first, then from response, then fallback to translation key
+            
             $message = $e->getMessage();
 
-            // If getMessage() is empty but response has message, use that
+            
             if (empty($message) && method_exists($e, 'response') && $e->response() && $e->response()->message()) {
                 $message = $e->response()->message();
             }
 
-            // Final fallback to translation key
+            
             if (empty($message)) {
                 $message = $this->getExceptionMessageKey($e);
             }
@@ -139,7 +136,7 @@ class Handler extends ExceptionHandler
             return $this->forbidden($message);
         }
 
-        // Custom application exceptions
+        
         if ($e instanceof \Modules\Schemes\Exceptions\LessonCompletionException) {
             $message = $e->getMessage();
             $statusCode = $e->getCode() ?: 422;
@@ -148,7 +145,7 @@ class Handler extends ExceptionHandler
         }
 
         if ($e instanceof InvalidFilterException) {
-            // Use custom message if provided, otherwise use translation key
+            
             $message = $e->getMessage() ?: 'messages.invalid_request';
 
             return $this->error(
@@ -160,7 +157,7 @@ class Handler extends ExceptionHandler
         }
 
         if ($e instanceof InvalidSortException) {
-            // Use custom message if provided, otherwise use translation key
+            
             $message = $e->getMessage() ?: 'messages.invalid_request';
 
             return $this->error(
@@ -180,42 +177,42 @@ class Handler extends ExceptionHandler
         }
 
         if ($e instanceof ResourceNotFoundException) {
-            // Use custom message if provided, otherwise use translation key
+            
             $message = $e->getMessage() ?: 'messages.not_found';
 
             return $this->notFound($message);
         }
 
         if ($e instanceof UnauthorizedException) {
-            // Use custom message if provided, otherwise use translation key
+            
             $message = $e->getMessage() ?: 'messages.unauthorized';
 
             return $this->unauthorized($message);
         }
 
         if ($e instanceof ForbiddenException) {
-            // Use custom message if provided, otherwise use translation key
+            
             $message = $e->getMessage() ?: 'messages.forbidden';
 
             return $this->forbidden($message);
         }
 
         if ($e instanceof DuplicateResourceException) {
-            // Use custom message if provided, otherwise use translation key
+            
             $message = $e->getMessage() ?: 'messages.duplicate_entry';
 
             return $this->error($message, [], 409);
         }
 
-        // Generic BusinessException - must come after specific exceptions that extend it
+        
         if ($e instanceof BusinessException) {
-            // Use custom message if provided, otherwise use translation key
+            
             $message = $e->getMessage() ?: 'messages.error';
 
             return $this->error($message, [], 422);
         }
 
-        // Symfony HTTP exceptions
+        
         if ($e instanceof NotFoundHttpException) {
             $messageKey = $this->getExceptionMessageKey($e);
 
@@ -234,7 +231,7 @@ class Handler extends ExceptionHandler
             return $this->forbidden($messageKey);
         }
 
-        // Generic HTTP exceptions
+        
         if ($e instanceof HttpExceptionInterface || $e instanceof HttpException) {
             $statusCode = $e->getStatusCode();
             $messageKey = $this->getExceptionMessageKey($e);
@@ -251,7 +248,7 @@ class Handler extends ExceptionHandler
             return $this->error($messageKey, [], $statusCode);
         }
 
-        // Fallback for unmapped exceptions
+        
         $messageKey = $this->getExceptionMessageKey($e);
 
         if (config('app.debug')) {
@@ -266,14 +263,10 @@ class Handler extends ExceptionHandler
         return $this->error($messageKey, [], 500);
     }
 
-    /**
-     * Map exception to translation key
-     *
-     * @return string Translation key for the exception
-     */
+    
     protected function getExceptionMessageKey(Throwable $e): string
     {
-        // Map specific exception types to translation keys
+        
         return match (true) {
             $e instanceof ModelNotFoundException => 'messages.not_found',
             $e instanceof AuthenticationException => 'messages.unauthenticated',

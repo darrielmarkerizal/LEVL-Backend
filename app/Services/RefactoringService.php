@@ -14,14 +14,12 @@ class RefactoringService
         private RepositoryGenerator $repositoryGenerator
     ) {}
 
-    /**
-     * Analyze a module for architectural violations
-     */
+    
     public function analyzeModule(string $moduleName): array
     {
         $report = $this->validator->generateReport();
 
-        // Filter violations by module
+        
         $moduleViolations = [];
         foreach ($report as $category => $violations) {
             $filtered = array_filter($violations, function ($violation) use ($moduleName) {
@@ -41,9 +39,7 @@ class RefactoringService
         ];
     }
 
-    /**
-     * Generate comprehensive report for all modules
-     */
+    
     public function generateReport(): array
     {
         $report = $this->validator->generateReport();
@@ -65,11 +61,11 @@ class RefactoringService
             $summary['by_category'][$category] = count($violations);
 
             foreach ($violations as $violation) {
-                // Count by severity
+                
                 $severity = $violation['severity'] ?? 'medium';
                 $summary['by_severity'][$severity]++;
 
-                // Count by module
+                
                 if (preg_match('/Modules\/([^\/]+)\//', $violation['file'], $matches)) {
                     $module = $matches[1];
                     if (! isset($summary['by_module'][$module])) {
@@ -87,9 +83,7 @@ class RefactoringService
         ];
     }
 
-    /**
-     * Suggest refactoring for a specific file
-     */
+    
     public function suggestRefactoring(string $file): array
     {
         $report = $this->validator->generateReport();
@@ -116,9 +110,7 @@ class RefactoringService
         ];
     }
 
-    /**
-     * Validate that refactoring was successful
-     */
+    
     public function validateRefactoring(string $file): bool
     {
         $suggestions = $this->suggestRefactoring($file);
@@ -126,15 +118,13 @@ class RefactoringService
         return $suggestions['total_issues'] === 0;
     }
 
-    /**
-     * Generate missing interface for a service
-     */
+    
     public function generateServiceInterface(string $serviceClass): array
     {
         try {
             $interfaceContent = $this->interfaceGenerator->generateServiceInterface($serviceClass);
 
-            // Determine interface path
+            
             $reflection = new \ReflectionClass($serviceClass);
             $filePath = $reflection->getFileName();
             $interfacePath = str_replace('/Services/', '/Contracts/Services/', $filePath);
@@ -153,16 +143,14 @@ class RefactoringService
         }
     }
 
-    /**
-     * Generate missing repository for a model
-     */
+    
     public function generateRepository(string $modelClass): array
     {
         try {
             $repositoryContent = $this->repositoryGenerator->generateRepository($modelClass);
             $interfaceContent = $this->repositoryGenerator->generateRepositoryInterface($modelClass);
 
-            // Determine paths
+            
             $reflection = new \ReflectionClass($modelClass);
             $filePath = $reflection->getFileName();
 
@@ -187,9 +175,7 @@ class RefactoringService
         }
     }
 
-    /**
-     * Calculate severity breakdown
-     */
+    
     private function calculateSeverityBreakdown(array $violations): array
     {
         $breakdown = [

@@ -96,7 +96,7 @@ class AuthSessionProcessor
 
         $this->throttle->clearAttempts($login, $ip);
 
-        // Capture device info for async logging
+        
         $deviceInfo = \App\Support\BrowserLogger::getDeviceInfo();
 
         dispatch(new LogActivityJob([
@@ -119,7 +119,7 @@ class AuthSessionProcessor
 
         $response = ['user' => $userArray] + $pair->toArray();
 
-        // Evaluate Dynamic Badge Rules (Habit Validation)
+        
         $this->badgeEvaluator->evaluate($user, 'login', [
             'time' => now()->format('H:i:s'),
         ]);
@@ -220,7 +220,7 @@ class AuthSessionProcessor
 
     public function logout(User $user, string $currentJwt, ?string $refreshToken = null): void
     {
-        // Capture device info for async logging
+        
         $deviceInfo = \App\Support\BrowserLogger::getDeviceInfo();
 
         dispatch(new LogActivityJob([

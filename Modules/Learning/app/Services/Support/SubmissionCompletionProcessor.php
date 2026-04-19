@@ -126,18 +126,14 @@ class SubmissionCompletionProcessor
                 'submitted_at' => Carbon::now(),
             ]);
 
-            $submission->transitionTo(SubmissionState::Submitted, $studentId);
-
             return $submission->fresh(['assignment', 'user', 'answers']);
         });
 
-        if ($submission->state === SubmissionState::Submitted || $submission->state === SubmissionState::PendingManualGrading) {
-            try {
-                $this->gradingEntryService->autoGrade($submission->id);
-                $submission->refresh();
-            } catch (\Exception $e) {
-                report($e);
-            }
+        try {
+            $this->gradingEntryService->autoGrade($submission->id);
+            $submission->refresh();
+        } catch (\Exception $e) {
+            report($e);
         }
 
         return $submission->fresh(['assignment', 'user', 'answers']);

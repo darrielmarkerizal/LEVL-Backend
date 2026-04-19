@@ -8,7 +8,7 @@ $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 echo "Testing Media Upload to DigitalOcean Spaces\n";
 echo "==========================================\n\n";
 
-// Test 1: Check DO credentials
+
 echo "1. Checking DO credentials...\n";
 $doKey = env('DO_ACCESS_KEY_ID');
 $doSecret = env('DO_SECRET_ACCESS_KEY');
@@ -20,7 +20,7 @@ echo "   DO_SECRET_ACCESS_KEY: " . ($doSecret ? '✓ Set' : '✗ Not set') . "\n
 echo "   DO_BUCKET: " . ($doBucket ?: '✗ Not set') . "\n";
 echo "   DO_ENDPOINT: " . ($doEndpoint ?: '✗ Not set') . "\n\n";
 
-// Test 2: Test Storage connection
+
 echo "2. Testing Storage connection...\n";
 try {
     $disk = \Storage::disk('do');
@@ -38,7 +38,7 @@ try {
     exit(1);
 }
 
-// Test 3: Check UAT fixtures
+
 echo "3. Checking UAT fixture files...\n";
 \App\Support\UATMediaFixtures::ensureFilesExist();
 $paths = \App\Support\UATMediaFixtures::paths();
@@ -50,10 +50,10 @@ foreach ($paths as $type => $path) {
 }
 echo "\n";
 
-// Test 4: Test media upload with Spatie Media Library
+
 echo "4. Testing Spatie Media Library upload...\n";
 try {
-    // Create a test lesson block
+    
     $lesson = \Modules\Schemes\Models\Lesson::first();
     if (!$lesson) {
         echo "   ✗ No lesson found. Please run seeders first.\n";
@@ -70,7 +70,7 @@ try {
     
     echo "   ✓ Created test lesson block (ID: {$block->id})\n";
     
-    // Upload media
+    
     $imagePath = $paths['image'];
     if (!file_exists($imagePath)) {
         echo "   ✗ Image file not found: {$imagePath}\n";
@@ -84,7 +84,7 @@ try {
     echo "   ✓ Media uploaded (ID: {$media->id})\n";
     echo "   ✓ Media URL: {$media->getUrl()}\n";
     
-    // Cleanup
+    
     $block->delete();
     echo "   ✓ Test block deleted\n\n";
     

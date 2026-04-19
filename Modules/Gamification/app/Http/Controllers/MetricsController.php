@@ -11,36 +11,33 @@ use Illuminate\Support\Facades\DB;
 
 class MetricsController extends Controller
 {
-    /**
-     * Get gamification system metrics for monitoring
-     * Useful for Prometheus/Grafana integration
-     */
+    
     public function index(): JsonResponse
     {
         $metrics = Cache::remember('gamification.metrics', 60, function () {
             return [
-                // Badge metrics
+                
                 'badge_evaluations_total' => $this->getBadgeEvaluationsTotal(),
                 'badge_awarded_total' => $this->getBadgeAwardedTotal(),
                 'badge_awarded_last_hour' => $this->getBadgeAwardedLastHour(),
 
-                // Counter metrics
+                
                 'counter_increment_total' => $this->getCounterIncrementTotal(),
                 'active_counters' => $this->getActiveCounters(),
 
-                // Event log metrics
+                
                 'event_logs_total' => $this->getEventLogsTotal(),
                 'event_logs_last_hour' => $this->getEventLogsLastHour(),
 
-                // Performance metrics
+                
                 'rule_eval_duration_ms' => $this->getRuleEvalDuration(),
                 'cache_hit_rate' => $this->getCacheHitRate(),
 
-                // System health
+                
                 'cooldowns_active' => $this->getActiveCooldowns(),
                 'badge_versions_active' => $this->getActiveBadgeVersions(),
 
-                // Timestamp
+                
                 'collected_at' => now()->toIso8601String(),
             ];
         });
@@ -50,8 +47,8 @@ class MetricsController extends Controller
 
     private function getBadgeEvaluationsTotal(): int
     {
-        // This would be tracked via Redis counter in production
-        // For now, estimate from event logs
+        
+        
         return DB::table('gamification_event_logs')
             ->whereIn('event_type', ['lesson_completed', 'assignment_submitted', 'login'])
             ->count();
@@ -95,16 +92,16 @@ class MetricsController extends Controller
 
     private function getRuleEvalDuration(): float
     {
-        // This would be tracked via APM in production
-        // For now, return cached value or 0
+        
+        
         return Cache::get('gamification.rule_eval_duration_ms', 0.0);
     }
 
     private function getCacheHitRate(): float
     {
-        // This would be tracked via Redis stats in production
-        // For now, return estimated value
-        return 0.95; // 95% cache hit rate (estimated)
+        
+        
+        return 0.95; 
     }
 
     private function getActiveCooldowns(): int

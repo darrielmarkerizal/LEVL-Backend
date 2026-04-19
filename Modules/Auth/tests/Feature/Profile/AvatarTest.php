@@ -59,13 +59,13 @@ test('upload avatar accepts specific types', function () {
     $user = User::factory()->create();
     $token = auth()->login($user);
 
-    // PNG
+    
     $file = UploadedFile::fake()->image('avatar.png');
     $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->postJson('/api/v1/profile/avatar', ['avatar' => $file])
         ->assertStatus(200);
 
-    // GIF
+    
     $file = UploadedFile::fake()->image('avatar.gif');
     $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->postJson('/api/v1/profile/avatar', ['avatar' => $file])

@@ -13,7 +13,7 @@ class AuditLogMiddleware
     {
         $response = $next($request);
 
-        // Only log successful state-changing operations
+        
         if ($response->isSuccessful() && in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
             $this->logAudit($request, $response);
         }
@@ -40,7 +40,7 @@ class AuditLogMiddleware
             ];
 
             if (isset($auditableRoutes[$routeName])) {
-                /** @var \Modules\Auth\Models\User|null $user */
+                
                 $user = auth('api')->user();
 
                 AuditLog::logAction(
@@ -57,7 +57,7 @@ class AuditLogMiddleware
                 );
             }
         } catch (\Exception $e) {
-            // Silently fail - don't break the request
+            
             Log::error('Audit logging failed: '.$e->getMessage());
         }
     }

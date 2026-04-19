@@ -29,7 +29,7 @@ class GradingQueueItemResource extends JsonResource
             'assignment_id' => $this->assignment_id,
             'assignment_title' => $this->assignment?->title,
             'submitted_at' => $this->submitted_at,
-            'state' => $this->state instanceof \BackedEnum ? $this->state->value : $this->state,
+            'workflow_state' => $this->state instanceof \BackedEnum ? $this->state->value : $this->state,
             'score' => $this->score,
         ];
     }

@@ -171,7 +171,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
     {
         $stats = ['assignments' => 0, 'submissions' => 0, 'grades' => 0];
 
-        // Randomly choose submission type with distribution: 60% file, 25% text, 15% mixed
+        
         $rand = rand(1, 100);
         if ($rand <= 60) {
             $submissionType = 'file';
@@ -307,7 +307,6 @@ class ComprehensiveAssessmentSeeder extends Seeder
         $roll = rand(1, 100);
         $state = match (true) {
             $roll <= 12 => SubmissionState::InProgress,
-            $roll <= 35 => SubmissionState::Submitted,
             $roll <= 58 => SubmissionState::PendingManualGrading,
             $roll <= 72 => SubmissionState::AutoGraded,
             $roll <= 88 => SubmissionState::Graded,
@@ -316,7 +315,6 @@ class ComprehensiveAssessmentSeeder extends Seeder
 
         $status = match ($state) {
             SubmissionState::InProgress => SubmissionStatus::Draft,
-            SubmissionState::Submitted,
             SubmissionState::PendingManualGrading => SubmissionStatus::Submitted,
             SubmissionState::AutoGraded,
             SubmissionState::Graded,
@@ -403,7 +401,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             }
         }
 
-        if (in_array($state, [SubmissionState::Submitted, SubmissionState::PendingManualGrading], true)) {
+        if ($state === SubmissionState::PendingManualGrading) {
             DB::table('grades')->insertOrIgnore([
                 'submission_id' => $submission->id,
                 'source_type' => 'assignment',
@@ -468,7 +466,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
                 ->usingFileName('submission-'.$submission->id.'.pdf')
                 ->toMediaCollection('submission_files', 'do');
         } catch (\Throwable) {
-            // Disk or storage may be unavailable in some environments; submission row still valid.
+            
         }
     }
 
@@ -594,10 +592,10 @@ class ComprehensiveAssessmentSeeder extends Seeder
         $startedAt = now()->subDays($daysAgo)->subMinutes(rand(10, 120))->toDateTimeString();
         $submittedAt = now()->subDays($daysAgo)->toDateTimeString();
 
-        // Match QuizSubmissionService lifecycle:
-        // - draft: status=draft, grading_status=pending, submitted_at null
-        // - submitted: status=submitted, grading_status=partially_graded (we include essay), final_score null
-        // - graded: status=graded, grading_status=graded, final_score not null
+        
+        
+        
+        
         $scenario = match (true) {
             rand(1, 100) <= 20 => 'draft',
             rand(1, 100) <= 55 => 'submitted',
@@ -642,7 +640,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             $stats['answers']++;
 
             if ($isEssay) {
-                // Draft/submitted can have ungraded essay; graded implies manual grading completed.
+                
                 if ($scenario === 'graded') {
                     $essayScore = $score;
                 }
@@ -658,13 +656,13 @@ class ComprehensiveAssessmentSeeder extends Seeder
             : 0.0;
 
         if ($scenario === 'draft') {
-            // No scoring yet for draft
+            
             return $stats;
         }
 
         if ($scenario === 'submitted') {
-            // Mirrors QuizSubmissionService::autoGrade behavior for quizzes with essay questions:
-            // grading_status=partially_graded, status=submitted, score=objectiveScore, final_score null
+            
+            
             DB::table('quiz_submissions')->where('id', $submissionId)->update([
                 'score' => $objectiveScore,
                 'final_score' => null,
@@ -674,7 +672,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             return $stats;
         }
 
-        // graded: manual grading done -> final_score set
+        
         $finalScore = max((float) $passingGrade, min((float) $maxScore, round($objectiveScore + $essayScore, 2)));
 
         DB::table('quiz_submissions')->where('id', $submissionId)->update([

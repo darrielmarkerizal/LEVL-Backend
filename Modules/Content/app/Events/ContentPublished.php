@@ -13,9 +13,7 @@ class ContentPublished
 
     public Model $content;
 
-    /**
-     * Create a new event instance.
-     */
+    
     public function __construct(Model $content)
     {
         $this->content = $content;

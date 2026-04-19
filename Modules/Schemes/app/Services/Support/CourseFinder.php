@@ -145,10 +145,10 @@ class CourseFinder
         $includeParam = $request->get('include', '');
         $user = auth('api')->user();
 
-        // Build base query
+        
         $baseQuery = Course::where('slug', $slug);
 
-        // If no includes requested, just load enrollments and return
+        
         if (empty($includeParam)) {
             if ($user) {
                 $baseQuery->with(['enrollments' => function ($q) use ($user) {
@@ -159,7 +159,7 @@ class CourseFinder
             return $baseQuery->first();
         }
 
-        // Check if course exists first
+        
         $course = Course::where('slug', $slug)->first();
         if (! $course) {
             return null;
@@ -174,14 +174,14 @@ class CourseFinder
             $request->merge(['include' => implode(',', $requestedIncludes)]);
         }
 
-        // Build QueryBuilder with includes
+        
         $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $course);
 
         $queryBuilder = QueryBuilder::for(Course::class, $request)
             ->where('slug', $slug)
             ->allowedIncludes($allowedIncludes);
 
-        // Always load enrollments for authenticated users
+        
         if ($user) {
             $queryBuilder->with(['enrollments' => function ($q) use ($user) {
                 $q->where('user_id', $user->id);
@@ -325,7 +325,7 @@ class CourseFinder
             ->allowedSorts(['title', 'created_at', 'updated_at'])
             ->defaultSort('-updated_at');
 
-        // Apply search if provided
+        
         if ($searchQuery && trim((string) $searchQuery) !== '') {
             $builder->search($searchQuery);
         }
@@ -337,15 +337,15 @@ class CourseFinder
     {
         $user = auth('api')->user();
 
-        // Build base query
+        
         $query = Course::where('slug', $slug);
 
-        // Load filtered includes
+        
         if (!empty($includes)) {
             $query->with($includes);
         }
 
-        // Always load enrollments for authenticated users
+        
         if ($user) {
             $query->with(['enrollments' => function ($q) use ($user) {
                 $q->where('user_id', $user->id);

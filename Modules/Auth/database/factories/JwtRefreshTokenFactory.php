@@ -7,18 +7,12 @@ use Illuminate\Support\Str;
 use Modules\Auth\Models\JwtRefreshToken;
 use Modules\Auth\Models\User;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Auth\Models\JwtRefreshToken>
- */
+
 class JwtRefreshTokenFactory extends Factory
 {
     protected $model = JwtRefreshToken::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function definition(): array
     {
         return [
@@ -36,9 +30,7 @@ class JwtRefreshTokenFactory extends Factory
         ];
     }
 
-    /**
-     * Indicate that the token is revoked.
-     */
+    
     public function revoked(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -46,9 +38,7 @@ class JwtRefreshTokenFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the token is expired.
-     */
+    
     public function expired(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -56,9 +46,7 @@ class JwtRefreshTokenFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the token is replaced.
-     */
+    
     public function replaced(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -66,9 +54,7 @@ class JwtRefreshTokenFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the token is valid.
-     */
+    
     public function valid(): static
     {
         return $this->state(fn (array $attributes) => [

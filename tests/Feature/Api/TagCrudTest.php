@@ -13,9 +13,9 @@ beforeEach(function () {
     $this->student->assignRole('Student');
 });
 
-// ==================== POSITIVE TEST CASES ====================
 
-// POST - Create Tag
+
+
 it('admin can create tag', function () {
     $response = $this->actingAs($this->admin, 'api')
         ->postJson(api('/master-data/tags'), [
@@ -45,7 +45,7 @@ it('admin can create multiple tags at once', function () {
     assertDatabaseHas('tags', ['name' => 'Python']);
 });
 
-// PUT - Update Tag
+
 it('admin can update tag', function () {
     $tag = Tag::factory()->create(['name' => 'Old Name']);
 
@@ -63,7 +63,7 @@ it('admin can update tag', function () {
     ]);
 });
 
-// DELETE - Delete Tag
+
 it('admin can delete tag', function () {
     $tag = Tag::factory()->create();
 
@@ -74,9 +74,9 @@ it('admin can delete tag', function () {
     assertDatabaseMissing('tags', ['id' => $tag->id]);
 });
 
-// ==================== NEGATIVE TEST CASES ====================
 
-// POST - Create Tag Negative
+
+
 it('student cannot create tag', function () {
     $response = $this->actingAs($this->student, 'api')
         ->postJson(api('/master-data/tags'), [
@@ -94,7 +94,7 @@ it('cannot create tag with duplicate name', function () {
             'name' => 'Duplicate Tag',
         ]);
 
-    // Should return validation error for duplicate name
+    
     $response->assertStatus(422)
         ->assertJsonValidationErrors(['name']);
 });
@@ -114,7 +114,7 @@ it('unauthenticated user cannot create tag', function () {
     $response->assertStatus(401);
 });
 
-// PUT - Update Tag Negative
+
 it('student cannot update tag', function () {
     $tag = Tag::factory()->create();
 
@@ -148,7 +148,7 @@ it('cannot update tag with duplicate name', function () {
         ->assertJsonValidationErrors(['name']);
 });
 
-// DELETE - Delete Tag Negative
+
 it('student cannot delete tag', function () {
     $tag = Tag::factory()->create();
 

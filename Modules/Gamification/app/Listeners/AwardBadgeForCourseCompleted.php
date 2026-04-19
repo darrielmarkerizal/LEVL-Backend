@@ -14,7 +14,7 @@ class AwardBadgeForCourseCompleted
 
     public function handle(CourseCompleted $event): void
     {
-        // FIX: Remove unnecessary fresh() calls - use event data directly
+        
         $enrollment = $event->enrollment;
         $course = $event->course;
 
@@ -48,7 +48,7 @@ class AwardBadgeForCourseCompleted
             );
         }
 
-        // Evaluate Dynamic Badge Rules
+        
         $payload = [
             'course_id' => $course->id,
             'course_slug' => $course->slug,

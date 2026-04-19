@@ -22,7 +22,7 @@ class ProgressController extends Controller
 
     public function show(Request $request, Course $course)
     {
-        // Require enrollment for students
+        
         if ($error = $this->requireEnrollment($course)) {
             return $error;
         }
@@ -40,7 +40,7 @@ class ProgressController extends Controller
 
     public function completeLesson(Request $request, Course $course, Unit $unit, Lesson $lesson)
     {
-        // Require enrollment for students
+        
         if ($error = $this->requireEnrollment($course)) {
             return $error;
         }
@@ -56,7 +56,7 @@ class ProgressController extends Controller
 
     public function uncompleteLesson(Request $request, Course $course, Unit $unit, Lesson $lesson)
     {
-        // Require enrollment for students
+        
         if ($error = $this->requireEnrollment($course)) {
             return $error;
         }

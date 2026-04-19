@@ -6,9 +6,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Unit;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Schemes\Models\Unit>
- */
+
 class UnitFactory extends Factory
 {
     protected $model = Unit::class;
@@ -25,9 +23,7 @@ class UnitFactory extends Factory
         ];
     }
 
-    /**
-     * Unit belongs to course.
-     */
+    
     public function forCourse(Course $course): static
     {
         return $this->state(fn (array $attributes) => [

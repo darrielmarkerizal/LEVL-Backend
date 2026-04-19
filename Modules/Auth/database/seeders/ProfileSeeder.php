@@ -9,14 +9,7 @@ use Modules\Auth\Models\UserActivity;
 
 class ProfileSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * Ensures all users have complete profile data:
-     * - Privacy settings
-     * - User activities based on role and enrollments
-     * - Activity tracking for learning progress
-     */
+    
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
@@ -93,9 +86,7 @@ class ProfileSeeder extends Seeder
         \DB::connection()->enableQueryLog();
     }
 
-    /**
-     * Batch create user activities for active users
-     */
+    
     private function createUserActivitiesBatch(array $userIds): int
     {
         if (! \Illuminate\Support\Facades\Schema::hasTable('user_activities')) {

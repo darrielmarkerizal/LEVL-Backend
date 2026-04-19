@@ -7,9 +7,7 @@ use Modules\Content\Models\ContentRevision;
 
 trait HasContentRevisions
 {
-    /**
-     * Save content revision.
-     */
+    
     public function saveRevision(User $editor, ?string $note = null): void
     {
         ContentRevision::create([

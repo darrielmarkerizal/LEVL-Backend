@@ -47,7 +47,7 @@ class AssignmentFinder
         $unitSlug = data_get($filters, 'unit_slug');
         $lessonSlug = data_get($filters, 'lesson_slug');
 
-        // Cache based on inputs
+        
         return cache()->tags(['learning', 'assignments'])->remember(
             "learning:assignments:index:{$course->id}:".md5(json_encode($filters)),
             300,

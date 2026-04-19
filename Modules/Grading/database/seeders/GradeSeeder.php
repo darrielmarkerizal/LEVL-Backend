@@ -7,15 +7,7 @@ use Illuminate\Database\Seeder;
 
 class GradeSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * Creates comprehensive grading data:
-     * - Create grades for submitted assignments
-     * - 70-80% of submitted assignments are graded
-     * - 5-10% of graded assignments have appeals
-     * - Appeals with different statuses
-     */
+    
     public function run(): void
     {
         \DB::connection()->disableQueryLog();

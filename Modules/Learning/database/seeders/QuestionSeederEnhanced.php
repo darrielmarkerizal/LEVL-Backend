@@ -241,7 +241,7 @@ class QuestionSeederEnhanced extends Seeder
             'type' => $type,
             'order' => $order,
             'weight' => round(fake()->randomFloat(2, 1, 5), 2),
-            'max_score' => fake()->randomElement([10, 20, 25, 50, 100]),
+            'max_score' => $this->resolveMaxScoreByType($type),
             'created_at' => now(),
             'updated_at' => now(),
         ];
@@ -394,15 +394,65 @@ class QuestionSeederEnhanced extends Seeder
     {
         $this->command->info("\n🔄 Updating submission states for grading queue...");
 
-        $updated = DB::table('submissions')
-            ->join('answers', 'submissions.id', '=', 'answers.submission_id')
-            ->where('submissions.status', 'submitted')
-            ->whereNull('submissions.state')
-            ->whereNull('answers.score')
-            ->distinct('submissions.id')
-            ->limit(100)
-            ->update(['submissions.state' => 'pending_manual_grading']);
+        $allSubmissions = DB::table('submissions')
+            ->select('id', 'status')
+            ->get();
 
-        $this->command->info("  ✅ Updated {$updated} submissions to pending_manual_grading state");
+        $updated = 0;
+        foreach ($allSubmissions as $submission) {
+            $newState = $this->resolveSubmissionState((int) $submission->id, (string) $submission->status);
+            if (! $newState) {
+                continue;
+            }
+
+            DB::table('submissions')
+                ->where('id', $submission->id)
+                ->update(['state' => $newState]);
+
+            $updated++;
+        }
+
+        $this->command->info("  ✅ Updated {$updated} submissions with business-logic states");
+    }
+
+    private function resolveMaxScoreByType(string $type): int
+    {
+        return match ($type) {
+            QuestionType::MultipleChoice->value => 10,
+            QuestionType::Checkbox->value => 20,
+            QuestionType::Essay->value => 50,
+            QuestionType::FileUpload->value => 25,
+            default => 10,
+        };
+    }
+
+    private function resolveSubmissionState(int $submissionId, string $status): ?string
+    {
+        if ($status === 'draft') {
+            return 'in_progress';
+        }
+
+        if ($status === 'submitted') {
+            $hasManualQuestions = DB::table('answers')
+                ->join('assignment_questions', 'answers.question_id', '=', 'assignment_questions.id')
+                ->where('answers.submission_id', $submissionId)
+                ->whereIn('assignment_questions.type', [
+                    QuestionType::Essay->value,
+                    QuestionType::FileUpload->value,
+                ])
+                ->exists();
+
+            return $hasManualQuestions ? 'pending_manual_grading' : 'auto_graded';
+        }
+
+        if ($status === 'graded') {
+            return match ($submissionId % 3) {
+                0 => 'auto_graded',
+                1 => 'graded',
+                default => 'released',
+            };
+        }
+
+        return null;
     }
 }

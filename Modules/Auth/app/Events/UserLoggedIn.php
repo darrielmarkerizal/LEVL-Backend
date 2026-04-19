@@ -17,6 +17,6 @@ class UserLoggedIn
         public User $user,
         public string $ip,
         public ?string $userAgent,
-        public string $loginType // 'email' or 'username'
+        public string $loginType 
     ) {}
 }

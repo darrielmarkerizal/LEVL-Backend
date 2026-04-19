@@ -282,24 +282,24 @@ class CourseService implements CourseServiceInterface
 
     public function filterIncludesByEnrollment(?int $userId, Course $course, array $requestedIncludes): array
     {
-        // Define include categories
-        $publicIncludes = ['category', 'tags', 'instructors', 'learning_outcomes', 'outcomes', 'units']; // units is public for preview
+        
+        $publicIncludes = ['category', 'tags', 'instructors', 'learning_outcomes', 'outcomes', 'units']; 
         $enrollmentRequiredIncludes = ['elements', 'lessons', 'quizzes', 'assignments', 'progress', 'enrollments'];
 
-        // Check if user can access enrollment-required content
+        
         $canAccessEnrollmentContent = false;
         
         if ($userId) {
             $user = \Modules\Auth\Models\User::find($userId);
             
             if ($user) {
-                // Managers (Superadmin, Admin, Instructor) can access all
+                
                 if ($user->hasRole('Superadmin') || $user->hasRole('Admin')) {
                     $canAccessEnrollmentContent = true;
                 } elseif ($user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists()) {
                     $canAccessEnrollmentContent = true;
                 } elseif ($user->hasRole('Student')) {
-                    // Students can only access enrollment-required content if enrolled
+                    
                     $canAccessEnrollmentContent = \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
                         ->where('course_id', $course->id)
                         ->whereIn('status', ['active', 'completed'])
@@ -308,21 +308,21 @@ class CourseService implements CourseServiceInterface
             }
         }
 
-        // Filter requested includes
+        
         $allowedIncludes = [];
         foreach ($requestedIncludes as $include) {
             $include = trim($include);
             
-            // Extract base relation (before first dot for nested includes)
+            
             $baseRelation = explode('.', $include)[0];
             
-            // Always allow public includes and their nested relations
+            
             if (in_array($baseRelation, $publicIncludes)) {
                 $allowedIncludes[] = $include;
                 continue;
             }
             
-            // Only allow enrollment-required includes if user has access
+            
             if (in_array($baseRelation, $enrollmentRequiredIncludes) && $canAccessEnrollmentContent) {
                 $allowedIncludes[] = $include;
             }

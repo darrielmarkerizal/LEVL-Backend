@@ -9,11 +9,7 @@ class NewsResource extends BaseResource
 {
     protected array $defaultRelations = ['author', 'categories', 'tags'];
 
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function toArray(Request $request): array
     {
         return [
@@ -30,7 +26,7 @@ class NewsResource extends BaseResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
-            // Relationships
+            
             'author' => $this->whenLoaded('author', function () {
                 return [
                     'id' => $this->author->id,

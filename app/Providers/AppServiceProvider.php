@@ -12,9 +12,7 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
+    
     public function register(): void
     {
         $this->app->bind(EnrollmentKeyHasherInterface::class, EnrollmentKeyHasher::class);
@@ -23,35 +21,33 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\EnrollmentKeyEncrypter::class
         );
 
-        // Bind app-level interfaces to module implementations
+        
         $this->app->bind(
             \App\Contracts\Services\ForumServiceInterface::class,
             \Modules\Forums\Services\ForumService::class
         );
 
-        // Optimize service resolution in Octane
+        
         if ($this->app->runningInConsole()) {
-            // Only register heavy services in console mode
+            
             $this->app->singleton('heavy.service', function ($app) {
-                // Heavy service initialization
+                
             });
         }
     }
 
-    /**
-     * Bootstrap any application services.
-     */
+    
     public function boot(): void
     {
         $this->configureRateLimiting();
         $this->configureOctaneCompatibility();
 
-        // Register observers efficiently
+        
         \App\Models\ActivityLog::observe(\App\Observers\ActivityLogObserver::class);
 
-        // Optimize query monitoring for Octane - only enable in development
+        
         if ($this->app->environment('local') && ! app()->bound(\Laravel\Octane\Octane::class)) {
-            // Only enable slow query logging outside of Octane workers
+            
             \Illuminate\Support\Facades\DB::listen(function ($query) {
                 if ($query->time > 50) {
                     \Illuminate\Support\Facades\Log::warning('Slow query detected in Auth module', [
@@ -68,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
             Mail::alwaysTo(config('mail.development_to', 'dev@local.test'));
         }
 
-        // Optimize view caching
+        
         if (! $this->app->environment('local')) {
             $this->app['view']->getFinder()->setPaths(array_map(function ($path) {
                 return $path;
@@ -76,24 +72,21 @@ class AppServiceProvider extends ServiceProvider
         }
     }
 
-    /**
-     * Configure Laravel Octane compatibility
-     * FIX: Prevent memory leaks and security issues in Octane/Swoole
-     */
+    
     protected function configureOctaneCompatibility(): void
     {
         if (! class_exists(\Laravel\Octane\Events\RequestTerminated::class)) {
             return;
         }
 
-        // Clear state between requests in Octane
+        
         \Illuminate\Support\Facades\Event::listen(
             \Laravel\Octane\Events\RequestTerminated::class,
             function ($event) {
-                // Clear auth guards to prevent user data bleeding
+                
                 auth()->forgetGuards();
 
-                // Clear resolved service instances that might hold state
+                
                 $services = [
                     \Modules\Gamification\Services\GamificationService::class,
                     \Modules\Gamification\Services\BadgeService::class,
@@ -109,7 +102,7 @@ class AppServiceProvider extends ServiceProvider
                     }
                 }
 
-                // Clear model booted state
+                
                 $models = [
                     \Modules\Gamification\Models\Badge::class,
                     \Modules\Gamification\Models\UserGamificationStat::class,
@@ -126,24 +119,19 @@ class AppServiceProvider extends ServiceProvider
         );
     }
 
-    /**
-     * Configure the rate limiters for the application.
-     *
-     * ⚠️ CURRENTLY SET TO UNLIMITED - FOR STRESS TEST ONLY ⚠️
-     * Re-enable limits before production deployment!
-     */
+    
     protected function configureRateLimiting(): void
     {
-        // Use optimized rate limiting for Octane
+        
         RateLimiter::for('api', function (Request $request) {
-            // Use a more efficient rate limiter in Octane
+            
             if ($this->app->environment('testing')) {
                 return Limit::none();
             }
 
             $key = $request->user()?->id ?: $request->ip();
 
-            return Limit::perMinutes(1, 60)->by($key); // 60 requests per minute
+            return Limit::perMinutes(1, 60)->by($key); 
         });
 
         RateLimiter::for('auth', function (Request $request) {
@@ -151,7 +139,7 @@ class AppServiceProvider extends ServiceProvider
                 return Limit::none();
             }
 
-            return Limit::perMinutes(1, 10)->by($request->ip()); // 10 auth attempts per minute
+            return Limit::perMinutes(1, 10)->by($request->ip()); 
         });
 
         RateLimiter::for('enrollment', function (Request $request) {
@@ -161,7 +149,7 @@ class AppServiceProvider extends ServiceProvider
 
             $key = $request->user()?->id ?: $request->ip();
 
-            return Limit::perMinutes(1, 5)->by($key); // 5 enrollment attempts per minute
+            return Limit::perMinutes(1, 5)->by($key); 
         });
     }
 }

@@ -8,9 +8,7 @@ use Modules\Grading\Models\Grade;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Grading\Models\Grade>
- */
+
 class GradeFactory extends Factory
 {
     protected $model = Grade::class;
@@ -38,9 +36,7 @@ class GradeFactory extends Factory
         ];
     }
 
-    /**
-     * Associate with a submission.
-     */
+    
     public function forSubmission(?Submission $submission = null): static
     {
         return $this->state(fn (array $attributes) => [
@@ -48,9 +44,7 @@ class GradeFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the grade is pending.
-     */
+    
     public function pending(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -59,9 +53,7 @@ class GradeFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the grade is graded.
-     */
+    
     public function graded(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -70,9 +62,7 @@ class GradeFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the grade is a perfect score.
-     */
+    
     public function perfect(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -80,9 +70,7 @@ class GradeFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the grade is a draft.
-     */
+    
     public function draft(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -90,9 +78,7 @@ class GradeFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the grade has been released.
-     */
+    
     public function released(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -100,9 +86,7 @@ class GradeFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the grade is an override.
-     */
+    
     public function override(float $originalScore, string $reason): static
     {
         return $this->state(fn (array $attributes) => [

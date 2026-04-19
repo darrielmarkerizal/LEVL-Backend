@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/test-browser-detect', function () {
     $deviceInfo = BrowserLogger::getDeviceInfo();
 
-    // Add debug info to see what headers are received
+    
     $debugInfo = [
         'device_info' => $deviceInfo,
         'debug' => [

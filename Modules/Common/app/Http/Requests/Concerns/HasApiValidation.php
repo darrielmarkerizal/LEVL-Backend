@@ -9,19 +9,12 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 trait HasApiValidation
 {
-    /**
-     * Handle a failed validation attempt.
-     *
-     * @param  \Illuminate\Contracts\Validation\Validator  $validator
-     * @return void
-     *
-     * @throws \Illuminate\Http\Exceptions\HttpResponseException
-     */
+    
     protected function failedValidation(Validator $validator)
     {
         $errors = $validator->errors()->toArray();
         
-        // Get first error message as main message
+        
         $firstError = '';
         if (! empty($errors)) {
             $firstErrorArray = reset($errors);

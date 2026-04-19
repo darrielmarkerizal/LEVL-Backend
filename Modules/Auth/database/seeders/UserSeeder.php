@@ -14,42 +14,27 @@ use Modules\Auth\Models\UserActivity;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * Creates comprehensive user data with:
-     * - 50 Superadmin users
-     * - 100 Admin users
-     * - 200 Instructor users
-     * - 650 Student users
-     * Total: 1000 users
-     *
-     * With distribution of statuses:
-     * - 70% Active
-     * - 15% Pending
-     * - 10% Inactive
-     * - 5% Banned
-     */
+    
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
 
-        // Create demo users for testing
+        
         $this->createDemoUsers();
 
-        // Create Superadmin users (50)
+        
         echo "Creating 50 Superadmin users...\n";
         $this->createUsersByRole('Superadmin', 50);
 
-        // Create Admin users (100)
+        
         echo "Creating 100 Admin users...\n";
         $this->createUsersByRole('Admin', 100);
 
-        // Create Instructor users (200)
+        
         echo "Creating 200 Instructor users...\n";
         $this->createUsersByRole('Instructor', 200);
 
-        // Create Student users (650)
+        
         echo "Creating 650 Student users...\n";
         $this->createUsersByRole('Student', 650);
 
@@ -60,9 +45,7 @@ class UserSeeder extends Seeder
         \DB::connection()->enableQueryLog();
     }
 
-    /**
-     * Create demo users for quick testing
-     */
+    
     private function createDemoUsers(): void
     {
         echo "Creating demo users for testing...\n";
@@ -122,7 +105,7 @@ class UserSeeder extends Seeder
         $createdUsers = collect();
 
         foreach ($demoUsers as $demoUser) {
-            // Check if user already exists by email or username
+            
             $existingUser = User::where('email', $demoUser['email'])
                 ->orWhere('username', $demoUser['username'])
                 ->first();
@@ -163,12 +146,12 @@ class UserSeeder extends Seeder
             $createdUsers->push($user);
         }
 
-        // ✅ Batch insert privacy settings
+        
         if (! empty($privacySettings)) {
             \Illuminate\Support\Facades\DB::table('profile_privacy_settings')->insertOrIgnore($privacySettings);
         }
 
-        // ✅ Batch create activities for demo users
+        
         if ($createdUsers->isNotEmpty()) {
             $this->createUserActivitiesBatch($createdUsers, UserStatus::Active);
         }
@@ -176,27 +159,25 @@ class UserSeeder extends Seeder
         echo "✅ Demo users created\n";
     }
 
-    /**
-     * Create users for a specific role
-     */
+    
     private function createUsersByRole(string $role, int $count): void
     {
-        // Calculate status distribution
+        
         $activeCount = (int) ($count * 0.7);
         $pendingCount = (int) ($count * 0.15);
         $inactiveCount = (int) ($count * 0.1);
         $bannedCount = $count - $activeCount - $pendingCount - $inactiveCount;
 
-        // Create active users
+        
         $this->createUsersWithStatus($role, $activeCount, UserStatus::Active, true);
 
-        // Create pending users
+        
         $this->createUsersWithStatus($role, $pendingCount, UserStatus::Pending, false);
 
-        // Create inactive users
+        
         $this->createUsersWithStatus($role, $inactiveCount, UserStatus::Inactive, true);
 
-        // Create banned users
+        
         $this->createUsersWithStatus($role, $bannedCount, UserStatus::Banned, true);
 
         echo "✅ $count $role users created\n";
@@ -278,9 +259,7 @@ class UserSeeder extends Seeder
         $this->createUserActivitiesBatch($users, $status);
     }
 
-    /**
-     * Batch create user activities for multiple users
-     */
+    
     private function createUserActivitiesBatch($users, UserStatus $status): void
     {
         if (! \Illuminate\Support\Facades\Schema::hasTable('user_activities')) {

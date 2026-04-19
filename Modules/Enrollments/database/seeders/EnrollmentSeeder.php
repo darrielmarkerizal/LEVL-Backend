@@ -15,7 +15,7 @@ class EnrollmentSeeder extends Seeder
 
         $this->command->info('Seeding enrollments and progress...');
 
-        // ✅ Use raw SQL for minimal memory footprint
+        
         $studentIds = \DB::table('users')
             ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
             ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
@@ -37,7 +37,7 @@ class EnrollmentSeeder extends Seeder
 
         $this->command->info('Creating enrollments for '.count($studentIds).' students...');
 
-        // Pre-fetch existing enrollments
+        
         $existingPairs = \DB::table('enrollments')
             ->get(['user_id', 'course_id'])
             ->map(fn ($r) => $r->user_id.':'.$r->course_id)
@@ -100,7 +100,7 @@ class EnrollmentSeeder extends Seeder
         $this->command->info("✅ Created $totalEnrollments enrollments");
         gc_collect_cycles();
 
-        // ✅ Create progress records using chunked processing
+        
         $this->command->info('Creating progress records...');
         $this->createProgressRecordsChunked();
 
@@ -112,7 +112,7 @@ class EnrollmentSeeder extends Seeder
 
     private function createProgressRecordsChunked(): void
     {
-        $chunkSize = 50; // Small chunks to avoid memory issues
+        $chunkSize = 50; 
         $totalProcessed = 0;
 
         \DB::table('enrollments')
@@ -123,7 +123,7 @@ class EnrollmentSeeder extends Seeder
                 $lessonProgress = [];
 
                 foreach ($enrollmentChunk as $enrollment) {
-                    // Course Progress
+                    
                     $courseProgress[] = [
                         'enrollment_id' => $enrollment->id,
                         'status' => $this->mapStatus($enrollment->status),
@@ -132,7 +132,7 @@ class EnrollmentSeeder extends Seeder
                         'updated_at' => now(),
                     ];
 
-                    // Unit Progress (raw SQL to avoid loading models)
+                    
                     if (\Schema::hasTable('unit_progress')) {
                         $unitIds = \DB::table('units')
                             ->where('course_id', $enrollment->course_id)
@@ -152,7 +152,7 @@ class EnrollmentSeeder extends Seeder
                         unset($unitIds);
                     }
 
-                    // Lesson Progress (limit to 30 per enrollment to save memory)
+                    
                     if (\Schema::hasTable('lesson_progress')) {
                         $lessonIds = \DB::table('lessons')
                             ->join('units', 'lessons.unit_id', '=', 'units.id')
@@ -176,7 +176,7 @@ class EnrollmentSeeder extends Seeder
                     }
                 }
 
-                // Insert in batches
+                
                 if (! empty($courseProgress)) {
                     foreach (array_chunk($courseProgress, 300) as $chunk) {
                         \DB::table('course_progress')->insertOrIgnore($chunk);

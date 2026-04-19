@@ -19,9 +19,9 @@ beforeEach(function () {
     $this->lesson = Lesson::factory()->create(['unit_id' => $this->unit->id]);
 });
 
-// ==================== POSITIVE TEST CASES ====================
 
-// POST - Create Assignment
+
+
 it('admin can create assignment', function () {
     $response = $this->actingAs($this->admin, 'api')
         ->postJson(api("/courses/{$this->course->slug}/units/{$this->unit->slug}/lessons/{$this->lesson->slug}/assignments"), [
@@ -41,7 +41,7 @@ it('admin can create assignment', function () {
     ]);
 });
 
-// PUT - Update Assignment
+
 it('admin can update assignment', function () {
     $assignment = Assignment::create([
         'lesson_id' => $this->lesson->id,
@@ -66,7 +66,7 @@ it('admin can update assignment', function () {
     ]);
 });
 
-// DELETE - Delete Assignment
+
 it('admin can delete assignment', function () {
     $assignment = Assignment::create([
         'lesson_id' => $this->lesson->id,
@@ -82,7 +82,7 @@ it('admin can delete assignment', function () {
     assertDatabaseMissing('assignments', ['id' => $assignment->id]);
 });
 
-// Publish/Unpublish
+
 it('admin can publish assignment', function () {
     $assignment = Assignment::create([
         'lesson_id' => $this->lesson->id,
@@ -99,9 +99,9 @@ it('admin can publish assignment', function () {
         ->assertJsonPath('data.assignment.status', 'published');
 });
 
-// ==================== NEGATIVE TEST CASES ====================
 
-// POST - Create Assignment Negative
+
+
 it('student cannot create assignment', function () {
     $response = $this->actingAs($this->student, 'api')
         ->postJson(api("/courses/{$this->course->slug}/units/{$this->unit->slug}/lessons/{$this->lesson->slug}/assignments"), [
@@ -145,7 +145,7 @@ it('admin cannot create assignment in course they dont manage', function () {
     $response->assertStatus(403);
 });
 
-// PUT - Update Assignment Negative
+
 it('student cannot update assignment', function () {
     $assignment = Assignment::create([
         'lesson_id' => $this->lesson->id,
@@ -192,7 +192,7 @@ it('admin cannot update assignment they dont manage', function () {
     $response->assertStatus(403);
 });
 
-// DELETE - Delete Assignment Negative
+
 it('student cannot delete assignment', function () {
     $assignment = Assignment::create([
         'lesson_id' => $this->lesson->id,
@@ -233,7 +233,7 @@ it('admin cannot delete assignment they dont manage', function () {
     $response->assertStatus(403);
 });
 
-// Publish/Unpublish Negative
+
 it('student cannot publish assignment', function () {
     $assignment = Assignment::create([
         'lesson_id' => $this->lesson->id,

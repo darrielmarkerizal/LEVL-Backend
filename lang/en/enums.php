@@ -49,7 +49,14 @@ return [
         'submitted' => 'Submitted',
         'graded' => 'Graded',
         'late' => 'Late',
-        'missing' => 'Missing',
+    ],
+
+    'submission_state' => [
+        'in_progress' => 'In Progress',
+        'auto_graded' => 'Auto Graded',
+        'pending_manual_grading' => 'Pending Manual Grading',
+        'graded' => 'Graded',
+        'released' => 'Released',
     ],
 
     'review_mode' => [

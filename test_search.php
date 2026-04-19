@@ -20,8 +20,8 @@ $service->saveSearchHistory($user, 'Lara');
 sleep(1);
 $service->saveSearchHistory($user, 'Laravel');
 
-// Wait 65 seconds (simulate a new typing session)
-// Since sleep(65) takes too long, let's just update the created_at of the last search to -65s
+
+
 $lastSearch = \Modules\Search\Models\SearchHistory::where('user_id', $user->id)->orderBy('created_at', 'desc')->first();
 $lastSearch->created_at = now()->subSeconds(65);
 $lastSearch->save();

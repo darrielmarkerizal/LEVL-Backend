@@ -59,7 +59,7 @@ class QuizPolicy
             return true;
         }
 
-        // Admin can create quizzes in all courses
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
@@ -78,7 +78,7 @@ class QuizPolicy
             return false;
         }
 
-        // Admin can update all quizzes
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
@@ -102,7 +102,7 @@ class QuizPolicy
             return false;
         }
 
-        // Admin can view all quiz submissions
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
@@ -125,7 +125,7 @@ class QuizPolicy
             return true;
         }
 
-        // Students must be enrolled with active status to take quiz
+        
         if ($user->hasRole('Student')) {
             $enrollment = $this->getActiveEnrollment($course);
 

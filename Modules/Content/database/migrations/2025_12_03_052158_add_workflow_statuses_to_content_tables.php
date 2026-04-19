@@ -7,12 +7,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
-        // Add workflow statuses to news table
+        
         Schema::table('news', function (Blueprint $table) {
             if (DB::getDriverName() === 'pgsql') {
                 DB::statement('ALTER TABLE news DROP CONSTRAINT IF EXISTS news_status_check');
@@ -22,7 +20,7 @@ return new class extends Migration
             }
         });
 
-        // Add workflow statuses to announcements table
+        
         Schema::table('announcements', function (Blueprint $table) {
             if (DB::getDriverName() === 'pgsql') {
                 DB::statement('ALTER TABLE announcements DROP CONSTRAINT IF EXISTS announcements_status_check');
@@ -33,12 +31,10 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
-        // Revert to original statuses
+        
         Schema::table('news', function (Blueprint $table) {
             if (DB::getDriverName() === 'pgsql') {
                 DB::statement('ALTER TABLE news DROP CONSTRAINT IF EXISTS news_status_check');

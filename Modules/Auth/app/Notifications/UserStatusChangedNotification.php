@@ -10,16 +10,12 @@ use Illuminate\Notifications\Notification;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\User;
 
-/**
- * Notification sent to users when their account status changes.
- */
+
 class UserStatusChangedNotification extends Notification
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     */
+    
     public function __construct(
         public UserStatus $oldStatus,
         public UserStatus $newStatus,
@@ -27,26 +23,20 @@ class UserStatusChangedNotification extends Notification
         public ?string $reason = null
     ) {}
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
+    
     public function via(object $notifiable): array
     {
         return ['mail'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
+    
     public function toMail(object $notifiable): MailMessage
     {
         $message = (new MailMessage)
             ->subject(__('auth::notifications.user_status_changed.subject'))
             ->greeting(__('auth::notifications.user_status_changed.greeting', ['name' => $notifiable->name]));
 
-        // Customize message based on new status
+        
         $message = match ($this->newStatus) {
             UserStatus::Active => $message
                 ->line(__('auth::notifications.user_status_changed.activated'))
@@ -69,11 +59,7 @@ class UserStatusChangedNotification extends Notification
         return $message->line(__('auth::notifications.user_status_changed.thank_you'));
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function toArray(object $notifiable): array
     {
         return [

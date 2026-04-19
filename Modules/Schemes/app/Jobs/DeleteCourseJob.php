@@ -50,10 +50,10 @@ class DeleteCourseJob implements ShouldQueue
 
         $title = (string) $course->title;
 
-        // Set deleted_by before deleting so TrashBin can capture it
+        
         if ($this->actorId) {
             $course->deleted_by = $this->actorId;
-            $course->saveQuietly(); // Save without triggering events
+            $course->saveQuietly(); 
         }
 
         try {

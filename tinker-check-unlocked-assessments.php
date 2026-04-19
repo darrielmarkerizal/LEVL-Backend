@@ -4,7 +4,7 @@ use Modules\Auth\app\Models\User;
 use Modules\Schemes\app\Models\Enrollment;
 use Modules\Schemes\app\Services\PrerequisiteService;
 
-// Get all students
+
 $students = User::role('Student')->get();
 
 echo "=== CHECKING UNLOCKED ASSESSMENTS FOR ALL STUDENTS ===\n\n";
@@ -15,7 +15,7 @@ foreach ($students as $student) {
     echo "Student: {$student->name} (ID: {$student->id})\n";
     echo str_repeat('-', 60)."\n";
 
-    // Get student's enrollments
+    
     $enrollments = Enrollment::where('user_id', $student->id)
         ->where('status', 'active')
         ->with('course.units.assignments', 'course.units.quizzes')
@@ -31,9 +31,9 @@ foreach ($students as $student) {
         $course = $enrollment->course;
         echo "  Course: {$course->title}\n";
 
-        // Check all units
+        
         foreach ($course->units as $unit) {
-            // Check assignments
+            
             foreach ($unit->assignments()->where('status', 'published')->get() as $assignment) {
                 $isLocked = $prerequisiteService->checkUnitAccess($unit, $student);
 
@@ -44,7 +44,7 @@ foreach ($students as $student) {
                 }
             }
 
-            // Check quizzes
+            
             foreach ($unit->quizzes()->where('status', 'published')->get() as $quiz) {
                 $isLocked = $prerequisiteService->checkUnitAccess($unit, $student);
 
@@ -61,7 +61,7 @@ foreach ($students as $student) {
 
 echo "\n=== SUMMARY: STUDENTS WITH UNLOCKED ASSESSMENTS ===\n\n";
 
-// Create summary
+
 $summary = [];
 
 foreach ($students as $student) {
@@ -80,7 +80,7 @@ foreach ($students as $student) {
             $isLocked = $prerequisiteService->checkUnitAccess($unit, $student);
 
             if (! $isLocked) {
-                // Get published assignments
+                
                 foreach ($unit->assignments()->where('status', 'published')->get() as $assignment) {
                     $unlockedAssignments[] = [
                         'course' => $course->title,
@@ -90,7 +90,7 @@ foreach ($students as $student) {
                     ];
                 }
 
-                // Get published quizzes
+                
                 foreach ($unit->quizzes()->where('status', 'published')->get() as $quiz) {
                     $unlockedQuizzes[] = [
                         'course' => $course->title,
@@ -112,7 +112,7 @@ foreach ($students as $student) {
     }
 }
 
-// Display summary
+
 foreach ($summary as $data) {
     $student = $data['student'];
     echo "Student: {$student->name} (ID: {$student->id}, Email: {$student->email})\n";

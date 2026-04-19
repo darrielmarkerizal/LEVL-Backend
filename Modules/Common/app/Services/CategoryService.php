@@ -26,7 +26,7 @@ class CategoryService implements CategoryServiceInterface
 
         return cache()->tags(['common', 'categories'])->remember(
             "common:categories:paginate:{$perPage}:{$page}:{$search}",
-            300, // 5 minutes
+            300, 
             function () use ($perPage) {
                 $eloquentQuery = Category::query();
                 if (request()->has('search') && request('search')) {

@@ -43,7 +43,7 @@ class LessonIncludeAuthorizer
         }
 
         if ($user->hasRole('Admin')) {
-            return true; // Admins have global access to all courses
+            return true; 
         }
 
         if ($user->hasRole('Instructor')) {

@@ -6,9 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         if (! Schema::hasTable('sessions')) {
@@ -47,12 +45,10 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
-        // Aman: hapus tabel jika ada
+        
         Schema::dropIfExists('sessions');
     }
 };

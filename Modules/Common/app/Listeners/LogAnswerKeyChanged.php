@@ -24,9 +24,7 @@ class LogAnswerKeyChanged implements ShouldQueue
         private readonly AuditServiceInterface $auditService
     ) {}
 
-    /**
-     * Handle the event.
-     */
+    
     public function handle(AnswerKeyChanged $event): void
     {
         $this->auditService->logAnswerKeyChange(

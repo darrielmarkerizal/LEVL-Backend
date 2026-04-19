@@ -35,9 +35,7 @@ class LevelConfig extends Model
         'bonus_xp' => 'integer',
     ];
 
-    /**
-     * Get the milestone badge for this level
-     */
+    
     public function milestoneBadge(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\Modules\Gamification\Models\Badge::class, 'milestone_badge_id');

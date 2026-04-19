@@ -1,11 +1,6 @@
 <?php
 
-/**
- * Script to update all level configs with dynamic bonus XP
- * Formula: bonus_xp = round(10 × level^1.3)
- *
- * This follows the same progressive pattern as xp_required but with smaller values
- */
+
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -22,10 +17,10 @@ $updated = 0;
 foreach ($levels as $levelConfig) {
     $level = $levelConfig->level;
 
-    // Calculate bonus XP using formula: 10 × level^1.3
+    
     $bonusXp = (int) round(10 * pow($level, 1.3));
 
-    // Update the level config
+    
     $levelConfig->bonus_xp = $bonusXp;
     $levelConfig->save();
 

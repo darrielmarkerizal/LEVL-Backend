@@ -27,7 +27,7 @@ class ActivityLogController extends Controller
         $result = $this->service->paginate($params);
         $paginator = $result['paginator'];
 
-        // Transform using Resource
+        
         $paginator->getCollection()->transform(fn ($item) => new \Modules\Common\Transformers\ActivityLogResource($item));
 
         return $this->paginateResponse(
@@ -38,11 +38,7 @@ class ActivityLogController extends Controller
         );
     }
 
-    /**
-     * Detail Log Aktivitas
-     *
-     * @authenticated
-     */
+    
     public function show(int $id): JsonResponse
     {
         $activity = $this->service->find($id);

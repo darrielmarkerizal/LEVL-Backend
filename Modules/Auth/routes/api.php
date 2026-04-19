@@ -16,7 +16,7 @@ use Modules\Auth\Http\Controllers\UserManagementController;
 Route::prefix('v1')
     ->as('auth.')
     ->group(function () {
-        // Auth endpoints with rate limiting (10 requests per minute)
+        
         Route::middleware(['throttle:auth'])->group(function () {
             Route::post('/auth/register', [AuthApiController::class, 'register'])->name('register');
             Route::post('/auth/login', [AuthApiController::class, 'login'])->name('login');
@@ -55,7 +55,7 @@ Route::prefix('v1')
                 'email.change.verify',
             );
 
-            // Profile Management Routes
+            
             Route::prefix('profile')
                 ->as('profile.')
                 ->group(function () {
@@ -66,23 +66,23 @@ Route::prefix('v1')
                         'avatar.delete',
                     );
 
-                    // Privacy Settings
+                    
                     Route::get('/privacy', [ProfilePrivacyController::class, 'index'])->name('privacy.index');
                     Route::put('/privacy', [ProfilePrivacyController::class, 'update'])->name(
                         'privacy.update',
                     );
 
-                    // Activity History
+                    
                     Route::get('/activities', [ProfileActivityController::class, 'index'])->name(
                         'activities.index',
                     );
 
-                    // Password Management
+                    
                     Route::put('/password', [ProfilePasswordController::class, 'update'])->name(
                         'password.update',
                     );
 
-                    // Account Management
+                    
                     Route::post('/account/delete/request', [
                         ProfileAccountController::class,
                         'deleteRequest',
@@ -93,7 +93,7 @@ Route::prefix('v1')
                     ])->name('account.delete.confirm');
                 });
 
-            // Account Restoration (Slightly different to allow finding soft-deleted users)
+            
             Route::post('/profile/account/restore', [ProfileAccountController::class, 'restore'])
                 ->name('profile.account.restore');
 
@@ -105,7 +105,7 @@ Route::prefix('v1')
                 'users.mentions.search',
             );
 
-            // User Management read-only (Admin, Superadmin, Instructor)
+            
             Route::middleware(['role:Admin,Superadmin,Instructor'])->group(function () {
                 Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
                 Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
@@ -113,35 +113,35 @@ Route::prefix('v1')
                 Route::get('/users/{user}/assigned-schemes', [UserManagementController::class, 'assignedSchemes'])->name('users.assigned-schemes');
             });
 
-            // Latest activities endpoint (Admin, Superadmin)
+            
             Route::middleware(['role:Admin,Superadmin'])->group(function () {
                 Route::get('/user/{user}/latest-activity', [UserManagementController::class, 'latestActivity'])->name('users.latest-activity');
             });
 
-            // User Management write actions (Admin, Superadmin)
+            
             Route::middleware(['role:Admin,Superadmin'])->group(function () {
                 Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
                 Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
                 Route::put('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
 
-                // Superadmin only: Delete
+                
                 Route::middleware(['role:Superadmin'])->group(function () {
                     Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
                 });
 
-                // Bulk operations
+                
                 Route::post('/users/bulk/export', [UserBulkController::class, 'export'])->name('users.bulk.export');
                 Route::post('/users/bulk/activate', [UserBulkController::class, 'activate'])->name('users.bulk.activate');
                 Route::post('/users/bulk/deactivate', [UserBulkController::class, 'deactivate'])->name('users.bulk.deactivate');
 
-                // Superadmin only: Bulk delete
+                
                 Route::middleware(['role:Superadmin'])->group(function () {
                     Route::delete('/users/bulk/delete', [UserBulkController::class, 'delete'])->name('users.bulk.delete');
                 });
             });
         });
 
-        // Password reset endpoints with auth rate limiting
+        
         Route::middleware(['throttle:auth'])->group(function () {
             Route::post('/auth/password/forgot', [PasswordResetController::class, 'forgot'])->name(
                 'password.forgot',
@@ -155,16 +155,16 @@ Route::prefix('v1')
             ])->name('password.forgot.confirm');
         });
 
-        // Change password (requires authentication)
+        
         Route::middleware(['auth:api', 'throttle:api'])
             ->post('/auth/password/change', [PasswordResetController::class, 'changePassword'])
             ->name('password.change');
 
-        // Development Only: Token Generator for Testing (REMOVE BEFORE PRODUCTION!)
+        
         Route::get('/dev/tokens', [AuthApiController::class, 'generateDevTokens'])
             ->name('dev.tokens');
 
-        // Benchmark Routes (No middleware - No throttling, No auth for performance testing)
+        
         Route::prefix('benchmark')
             ->withoutMiddleware(['throttle:api', 'throttle:auth'])
             ->group(function () {

@@ -7,7 +7,7 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 class EventServiceProvider extends ServiceProvider
 {
     protected $listen = [
-        // Schemes Module Integration
+        
         \Modules\Schemes\Events\LessonCompleted::class => [
             \Modules\Gamification\Listeners\AwardXpForLessonCompleted::class,
         ],
@@ -18,7 +18,7 @@ class EventServiceProvider extends ServiceProvider
             \Modules\Gamification\Listeners\AwardBadgeForCourseCompleted::class,
         ],
 
-        // Learning Module Integration
+        
         \Modules\Learning\Events\SubmissionStateChanged::class => [
             \Modules\Gamification\Listeners\AwardXpForAssignmentSubmitted::class,
         ],
@@ -29,13 +29,13 @@ class EventServiceProvider extends ServiceProvider
             \Modules\Gamification\Listeners\AwardXpForQuizPassed::class,
         ],
 
-        // Grading Module Integration
+        
         \Modules\Grading\Events\GradesReleased::class => [
             \Modules\Gamification\Listeners\AwardXpForGradeReleased::class,
             \Modules\Gamification\Listeners\AwardXpForPerfectScore::class,
         ],
 
-        // Forums Module Integration
+        
         \Modules\Forums\Events\ThreadCreated::class => [
             \Modules\Gamification\Listeners\AwardXpForThreadCreated::class,
         ],
@@ -46,7 +46,7 @@ class EventServiceProvider extends ServiceProvider
             \Modules\Gamification\Listeners\AwardXpForReactionReceived::class,
         ],
 
-        // Gamification Events
+        
         \Modules\Gamification\Events\UserLeveledUp::class => [
             \Modules\Gamification\Listeners\HandleLevelUp::class,
         ],

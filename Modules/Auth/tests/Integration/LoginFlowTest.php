@@ -3,7 +3,7 @@
 use Modules\Auth\app\Models\User;
 
 test('full registration to verified login flow', function () {
-    // 1. Register
+    
     $response = $this->postJson('/api/v1/auth/register', [
         'name' => 'Flow User',
         'username' => 'flowuser',
@@ -13,11 +13,11 @@ test('full registration to verified login flow', function () {
     ]);
     $response->assertStatus(201);
 
-    // 2. Verify email (simulate)
+    
     $user = User::where('email', 'flow@example.com')->first();
     $user->forceFill(['email_verified_at' => now(), 'status' => 'active'])->save();
 
-    // 3. Login
+    
     $response = $this->postJson('/api/v1/auth/login', [
         'login' => 'flow@example.com',
         'password' => 'Password123!',

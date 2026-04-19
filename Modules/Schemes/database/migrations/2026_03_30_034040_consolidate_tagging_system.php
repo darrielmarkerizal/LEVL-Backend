@@ -7,12 +7,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
-        // Migrate data from course_tag_pivot to taggables (polymorphic)
+        
         if (Schema::hasTable('course_tag_pivot')) {
             DB::statement("
                 INSERT INTO taggables (tag_id, taggable_type, taggable_id, created_at, updated_at)
@@ -31,17 +29,15 @@ return new class extends Migration
                 )
             ");
 
-            // Drop course_tag_pivot table
+            
             Schema::dropIfExists('course_tag_pivot');
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
-        // Recreate course_tag_pivot table
+        
         Schema::create('course_tag_pivot', function (Blueprint $table) {
             $table->id();
             $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
@@ -51,7 +47,7 @@ return new class extends Migration
             $table->unique(['course_id', 'tag_id']);
         });
 
-        // Migrate data back from taggables
+        
         DB::statement("
             INSERT INTO course_tag_pivot (course_id, tag_id, created_at, updated_at)
             SELECT 

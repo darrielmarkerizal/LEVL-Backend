@@ -50,7 +50,7 @@ class SubmissionCreationProcessor
                 throw SubmissionException::notAllowed(__('messages.submissions.assignment_unavailable'));
             }
 
-            // Check if there's already a pending submission (status = submitted, not graded yet)
+            
             $pendingSubmission = Submission::where('assignment_id', $assignment->id)
                 ->where('user_id', $userId)
                 ->where('status', SubmissionStatus::Submitted->value)
@@ -62,7 +62,7 @@ class SubmissionCreationProcessor
 
             $attemptNumber = $this->repository->countAttempts($userId, $assignment->id) + 1;
 
-            // Only generate question set for quizzes, not for regular assignments
+            
             $questionSet = $assignment->isQuiz() ? $this->generateQuestionSet($assignment->id) : null;
 
             $submission = $this->repository->create([
@@ -71,13 +71,13 @@ class SubmissionCreationProcessor
                 'enrollment_id' => $enrollment->id,
                 'answer_text' => $data['answer_text'] ?? null,
                 'status' => SubmissionStatus::Submitted->value,
-                'state' => SubmissionState::Submitted->value,
+                'state' => SubmissionState::PendingManualGrading->value,
                 'submitted_at' => Carbon::now(),
                 'attempt_number' => $attemptNumber,
                 'question_set' => $questionSet,
             ]);
 
-            // Handle file uploads using Spatie Media Library
+            
             if (isset($data['files']) && is_array($data['files'])) {
                 foreach ($data['files'] as $file) {
                     if ($file instanceof \Illuminate\Http\UploadedFile) {
@@ -119,7 +119,7 @@ class SubmissionCreationProcessor
             throw SubmissionException::notAllowed(__('messages.submissions.pending_grading'));
         }
 
-        // Only generate question set for quizzes, not for regular assignments
+        
         $questionSet = $assignment->isQuiz() ? $this->generateQuestionSet($assignmentId) : null;
         $attemptNumber = $this->repository->countAttempts($studentId, $assignmentId) + 1;
 

@@ -15,9 +15,9 @@ beforeEach(function () {
     $this->course = Course::factory()->create(['instructor_id' => $this->admin->id]);
 });
 
-// ==================== POSITIVE TEST CASES ====================
 
-// POST - Create Unit
+
+
 it('admin can create unit for their course', function () {
     $response = $this->actingAs($this->admin, 'api')
         ->postJson(api("/courses/{$this->course->slug}/units"), [
@@ -52,7 +52,7 @@ it('superadmin can create unit for any course', function () {
     $response->assertStatus(201);
 });
 
-// PUT - Update Unit
+
 it('admin can update unit in their course', function () {
     $unit = Unit::factory()->create(['course_id' => $this->course->id]);
 
@@ -72,7 +72,7 @@ it('admin can update unit in their course', function () {
     ]);
 });
 
-// DELETE - Delete Unit
+
 it('admin can delete unit from their course', function () {
     $unit = Unit::factory()->create(['course_id' => $this->course->id]);
 
@@ -83,7 +83,7 @@ it('admin can delete unit from their course', function () {
     assertDatabaseMissing('units', ['id' => $unit->id]);
 });
 
-// Publish/Unpublish
+
 it('admin can publish unit', function () {
     $unit = Unit::factory()->create([
         'course_id' => $this->course->id,
@@ -97,9 +97,9 @@ it('admin can publish unit', function () {
         ->assertJsonPath('data.unit.status', 'published');
 });
 
-// ==================== NEGATIVE TEST CASES ====================
 
-// POST - Create Unit Negative
+
+
 it('student cannot create unit', function () {
     $response = $this->actingAs($this->student, 'api')
         ->postJson(api("/courses/{$this->course->slug}/units"), [
@@ -150,7 +150,7 @@ it('cannot create unit with missing required fields', function () {
         ->assertJsonValidationErrors(['code']);
 });
 
-// PUT - Update Unit Negative
+
 it('student cannot update unit', function () {
     $unit = Unit::factory()->create(['course_id' => $this->course->id]);
 
@@ -202,7 +202,7 @@ it('cannot update unit with duplicate code', function () {
         ->assertJsonValidationErrors(['code']);
 });
 
-// DELETE - Delete Unit Negative
+
 it('student cannot delete unit', function () {
     $unit = Unit::factory()->create(['course_id' => $this->course->id]);
 
@@ -231,7 +231,7 @@ it('cannot delete non-existent unit', function () {
     $response->assertStatus(404);
 });
 
-// Publish/Unpublish Negative
+
 it('student cannot publish unit', function () {
     $unit = Unit::factory()->create([
         'course_id' => $this->course->id,

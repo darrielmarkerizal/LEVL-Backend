@@ -32,12 +32,12 @@ class UserGamificationSeeder extends Seeder
         }
 
         foreach ($users as $user) {
-            // 1. Create or Update Gamification Stats
-            // Randomize activity level: 0=Inactive, 1=Beginner, 2=Active, 3=Power User
+            
+            
             $activityLevel = rand(0, 3);
 
             if ($activityLevel === 0) {
-                // Inactive user, maybe just initialized stats
+                
                 UserGamificationStat::firstOrCreate(
                     ['user_id' => $user->id],
                     [
@@ -53,9 +53,9 @@ class UserGamificationSeeder extends Seeder
                 continue;
             }
 
-            // Active users
+            
             $xp = rand(100, 5000) * $activityLevel;
-            $level = max(1, (int) ($xp / 500)); // Rough estimation
+            $level = max(1, (int) ($xp / 500)); 
             $streak = rand(0, 10 * $activityLevel);
 
             UserGamificationStat::updateOrCreate(
@@ -70,8 +70,8 @@ class UserGamificationSeeder extends Seeder
                 ]
             );
 
-            // 2. Generate Point History (Last 5-10 entries to simulate history)
-            // Keep seed data aligned with DB enum/check constraint on points.source_type.
+            
+            
             $validSourceTypes = [
                 PointSourceType::Lesson,
                 PointSourceType::Assignment,
@@ -95,7 +95,7 @@ class UserGamificationSeeder extends Seeder
                 ]);
             }
 
-            // 3. Assign Badges Based on Level/XP (Logical)
+            
             if ($badges->isNotEmpty()) {
                 foreach ($badges as $badge) {
                     $shouldAward = false;

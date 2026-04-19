@@ -32,7 +32,7 @@ class TrashBinService
         'news' => 1,
     ];
 
-    /** @var array<string, string> */
+    
     private const RESOURCE_TYPES = [
         \Modules\Schemes\Models\Course::class => 'course',
         \Modules\Schemes\Models\Unit::class => 'unit',
@@ -44,7 +44,7 @@ class TrashBinService
         \Modules\Content\Models\News::class => 'news',
     ];
 
-    /** @var array<string, string> */
+    
     private const TRASHED_STATUS_MAP = [
         \Modules\Auth\Models\User::class => 'inactive',
         \Modules\Schemes\Models\Course::class => 'archived',
@@ -150,13 +150,13 @@ class TrashBinService
             ->first();
 
         if ($bin) {
-            // Restore original status
+            
             if ($this->hasStatusColumn($model) && ! empty($bin->original_status)) {
                 $model->forceFill(['status' => $bin->original_status]);
                 $model->saveQuietly();
             }
 
-            // Restore original order for lessons, quizzes, and assignments
+            
             if ($this->hasOrderColumn($model) && isset($bin->metadata['original_order'])) {
                 $this->restoreOriginalOrder($model, (int) $bin->metadata['original_order']);
             }
@@ -182,8 +182,8 @@ class TrashBinService
         DB::transaction(function () use ($model, $originalOrder, $unitId) {
             $currentOrder = $model->order;
 
-            // Make space for the restored element at its original position
-            // Increment order of all elements >= original order
+            
+            
             Lesson::where('unit_id', $unitId)
                 ->where('order', '>=', $originalOrder)
                 ->where('id', '!=', $model->getKey())
@@ -199,7 +199,7 @@ class TrashBinService
                 ->where('id', '!=', $model->getKey())
                 ->increment('order');
 
-            // Set the restored element to its original order
+            
             $model->forceFill(['order' => $originalOrder]);
             $model->saveQuietly();
         });
@@ -387,9 +387,7 @@ class TrashBinService
         return $count;
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     public function getSupportedResourceTypes(): array
     {
         $types = array_values(array_unique(array_values(self::RESOURCE_TYPES)));
@@ -398,9 +396,7 @@ class TrashBinService
         return $types;
     }
 
-    /**
-     * @return array<int, array{value: string, label: string}>
-     */
+    
     public function getSupportedResourceTypeOptions(): array
     {
         return $this->toSourceTypeOptions($this->getSupportedResourceTypes());
@@ -411,10 +407,7 @@ class TrashBinService
         return $this->isRootBin($bin) && $groupCount > 1;
     }
 
-    /**
-     * @param  array<int, string>  $types
-     * @return array<int, array{value: string, label: string}>
-     */
+    
     public function toSourceTypeOptions(array $types): array
     {
         $normalized = array_values(array_unique(array_filter($types, fn ($value): bool => is_string($value) && $value !== '')));
@@ -706,9 +699,7 @@ class TrashBinService
         }
     }
 
-    /**
-     * @param  array{type: string, id: int}  $rootInfo
-     */
+    
     private function buildBulkTrashRecord(
         Model $model,
         string $resourceType,

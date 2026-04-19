@@ -47,7 +47,7 @@ test('it can access dashboard as admin', function () {
 
 test('it scopes dashboard data for instructor', function () {
     $course1 = Course::factory()->create(['instructor_id' => $this->instructor->id]);
-    $course2 = Course::factory()->create(); // Another instructor
+    $course2 = Course::factory()->create(); 
 
     Enrollment::factory()->create(['course_id' => $course1->id, 'status' => EnrollmentStatus::Pending]);
     Enrollment::factory()->create(['course_id' => $course2->id, 'status' => EnrollmentStatus::Pending]);

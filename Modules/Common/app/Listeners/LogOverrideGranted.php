@@ -24,9 +24,7 @@ class LogOverrideGranted implements ShouldQueue
         private readonly AuditServiceInterface $auditService
     ) {}
 
-    /**
-     * Handle the event.
-     */
+    
     public function handle(OverrideGranted $event): void
     {
         $override = $event->override;

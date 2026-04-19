@@ -13,10 +13,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->date('date');
             $table->integer('total_xp_earned')->default(0);
-            $table->integer('global_daily_cap')->default(10000); // Default 10k XP per day
+            $table->integer('global_daily_cap')->default(10000); 
             $table->boolean('cap_reached')->default(false);
             $table->timestamp('cap_reached_at')->nullable();
-            $table->json('xp_by_source')->nullable(); // Track XP per source
+            $table->json('xp_by_source')->nullable(); 
             $table->timestamps();
 
             $table->unique(['user_id', 'date'], 'user_daily_cap_unique');

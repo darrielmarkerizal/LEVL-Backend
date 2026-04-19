@@ -27,7 +27,7 @@ class PublishScheduledPostsCommand extends Command
         $this->info('Checking for scheduled posts to publish...');
         Log::info('PublishScheduledPostsCommand: Starting scheduled post publication check');
 
-        // Get all posts that are scheduled and ready to publish
+        
         $pendingPosts = $this->repository->getPendingScheduledPosts();
 
         if ($pendingPosts->isEmpty()) {

@@ -47,7 +47,7 @@ class UnitResource extends JsonResource
         if ($isManager || $isEnrolledStudent) {
             $data['lessons'] = LessonResource::collection($this->whenLoaded('lessons'));
             
-            // Add quizzes and assignments for managers and enrolled students
+            
             $data['quizzes'] = $this->whenLoaded('quizzes', function () {
                 return $this->quizzes->map(function ($quiz) {
                     return [
@@ -84,12 +84,12 @@ class UnitResource extends JsonResource
                 });
             });
             
-            // Add combined 'elements' array if all three are loaded
+            
             if ($this->relationLoaded('lessons') && $this->relationLoaded('quizzes') && $this->relationLoaded('assignments')) {
                 $elements = collect();
                 $unitOrder = $this->order;
                 
-                // Add lessons
+                
                 foreach ($this->lessons as $lesson) {
                     $elements->push([
                         'id' => $lesson->id,
@@ -106,7 +106,7 @@ class UnitResource extends JsonResource
                     ]);
                 }
                 
-                // Add quizzes
+                
                 foreach ($this->quizzes as $quiz) {
                     $elements->push([
                         'id' => $quiz->id,
@@ -126,7 +126,7 @@ class UnitResource extends JsonResource
                     ]);
                 }
                 
-                // Add assignments
+                
                 foreach ($this->assignments as $assignment) {
                     $elements->push([
                         'id' => $assignment->id,
@@ -144,12 +144,12 @@ class UnitResource extends JsonResource
                     ]);
                 }
                 
-                // Sort by order
+                
                 $data['elements'] = $elements->sortBy('order')->values()->all();
             }
         }
 
-        // Add progress info for students
+        
         if ($isEnrolledStudent && $this->enrollment) {
             $data['progress'] = $this->getUnitProgress($this->enrollment);
         }
@@ -163,12 +163,12 @@ class UnitResource extends JsonResource
 
     private function getUnitProgress($enrollment): array
     {
-        // Get unit progress
+        
         $unitProgress = \Modules\Enrollments\Models\UnitProgress::where('enrollment_id', $enrollment->id)
             ->where('unit_id', $this->id)
             ->first();
 
-        // Count total content items (lessons + quizzes + assignments)
+        
         $totalLessons = $this->lessons()->where('status', 'published')->count();
         $totalQuizzes = \Modules\Learning\Models\Quiz::where('unit_id', $this->id)
             ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
@@ -189,7 +189,7 @@ class UnitResource extends JsonResource
             ];
         }
 
-        // Count completed items
+        
         $lessonIds = $this->lessons()->where('status', 'published')->pluck('id');
         $completedLessons = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
             ->whereIn('lesson_id', $lessonIds)
@@ -233,19 +233,19 @@ class UnitResource extends JsonResource
 
     private function isUnitLocked($enrollment): bool
     {
-        // First unit is never locked
+        
         if ($this->order === 1) {
             return false;
         }
 
-        // Get the course to access all units
+        
         $course = $this->relationLoaded('course') ? $this->course : $this->course()->first();
 
         if (! $course) {
             return false;
         }
 
-        // Get previous unit (order - 1)
+        
         $previousUnit = \Modules\Schemes\Models\Unit::where('course_id', $course->id)
             ->where('order', $this->order - 1)
             ->first();
@@ -254,12 +254,12 @@ class UnitResource extends JsonResource
             return false;
         }
 
-        // Check if previous unit is completed
+        
         $previousUnitProgress = \Modules\Enrollments\Models\UnitProgress::where('enrollment_id', $enrollment->id)
             ->where('unit_id', $previousUnit->id)
             ->first();
 
-        // Unit is locked if previous unit is not completed
+        
         if (! $previousUnitProgress) {
             return true;
         }
@@ -284,7 +284,7 @@ class UnitResource extends JsonResource
         }
 
         if ($user->hasRole('Admin')) {
-            return true; // Admins have global access to all courses
+            return true; 
         }
 
         if ($user->hasRole('Instructor')) {

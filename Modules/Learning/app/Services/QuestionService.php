@@ -25,7 +25,7 @@ class QuestionService implements QuestionServiceInterface
         return DB::transaction(function () use ($assignmentId, $data) {
             $this->validateQuestionData($data);
 
-            // Soft-validate weight against assignment max_score (warn only; enforce on publish)
+            
             $this->validateQuestionWeight($assignmentId, $data['weight'] ?? 0);
 
             $data['assignment_id'] = $assignmentId;
@@ -35,13 +35,13 @@ class QuestionService implements QuestionServiceInterface
                 $data['order'] = $maxOrder + 1;
             }
 
-            // Temporarily unset options to process images after creation if needed
-            // But since Spatie needs a model, we create first.
-            // We can just pass $data to create(), but options won't have image URLs yet if files are passed.
-            // So we unset options from creation data if they contain files, or we update them after.
-            // Easier approach: Create with data (options might have UploadedFile objects which will likely fail JSON encoding or be ignored/error),
-            // So we should unset options if we plan to process them.
-            // Let's copy options and unset from data passed to create.
+            
+            
+            
+            
+            
+            
+            
 
             $options = $data['options'] ?? null;
             if ($options) {
@@ -224,11 +224,7 @@ class QuestionService implements QuestionServiceInterface
         }
     }
 
-    /**
-     * Validate that adding a new question with given weight won't exceed assignment's max_score
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
+    
     private function validateQuestionWeight(int $assignmentId, float $newWeight): void
     {
         $assignment = Assignment::findOrFail($assignmentId);

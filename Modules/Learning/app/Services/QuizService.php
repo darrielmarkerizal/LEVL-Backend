@@ -115,7 +115,7 @@ class QuizService implements QuizServiceInterface
             $deleted = $this->repository->delete($quiz);
 
             if ($deleted) {
-                // Reorder remaining elements in the unit
+                
                 \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)
                     ->where('order', '>', $deletedOrder)
                     ->decrement('order');

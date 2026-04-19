@@ -27,8 +27,8 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
 
         echo "Seeding questions, options, answers, and submissions...\n";
 
-        // This seeder targets legacy assignment-question schema.
-        // Skip gracefully when running on newer schema variants.
+        
+        
         if (! Schema::hasTable('assignment_questions')) {
             echo "⚠️  Table assignment_questions not found. Skipping QuestionOptionAnswerSubmissionSeeder.\n";
 
@@ -68,7 +68,6 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
 
         $submissionStates = [
             SubmissionState::InProgress->value,
-            SubmissionState::Submitted->value,
             SubmissionState::AutoGraded->value,
             SubmissionState::PendingManualGrading->value,
             SubmissionState::Graded->value,
@@ -168,7 +167,6 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
 
                 $status = match ($state) {
                     SubmissionState::InProgress->value => SubmissionStatus::Draft->value,
-                    SubmissionState::Submitted->value,
                     SubmissionState::PendingManualGrading->value => SubmissionStatus::Submitted->value,
                     SubmissionState::AutoGraded->value,
                     SubmissionState::Graded->value,

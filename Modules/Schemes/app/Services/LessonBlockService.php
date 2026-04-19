@@ -74,14 +74,14 @@ class LessonBlockService
                 'order' => $nextOrder,
             ];
 
-            // Add external URL if provided
+            
             if (isset($data['external_url'])) {
                 $blockData['external_url'] = $data['external_url'];
             }
 
             $block = $this->repository->create($blockData);
 
-            // Only handle media file if not external link
+            
             if ($mediaFile && !in_array($data['type'], ['link', 'youtube', 'drive', 'embed'])) {
                 $media = $block
                     ->addMedia($mediaFile)
@@ -107,7 +107,7 @@ class LessonBlockService
                 throw new \Illuminate\Database\Eloquent\ModelNotFoundException;
             }
 
-            // Type cannot be changed during update
+            
             $update = [
                 'content' => data_get($data, 'content', $block->content),
             ];
@@ -156,7 +156,7 @@ class LessonBlockService
                     ->addMedia($mediaFile)
                     ->toMediaCollection('media');
 
-                // Use existing block type for video metadata
+                
                 if ($block->block_type === 'video') {
                     $this->storeVideoMetadata($media);
                 }

@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('badge_rules', function (Blueprint $table) {
-            $table->integer('priority')->default(0)->after('conditions'); // higher = more important
-            $table->integer('cooldown_seconds')->nullable()->after('priority'); // prevent spam
-            $table->string('progress_window', 20)->nullable()->after('cooldown_seconds'); // daily, weekly, monthly, lifetime
+            $table->integer('priority')->default(0)->after('conditions'); 
+            $table->integer('cooldown_seconds')->nullable()->after('priority'); 
+            $table->string('progress_window', 20)->nullable()->after('cooldown_seconds'); 
 
             $table->index('priority', 'priority_idx');
         });

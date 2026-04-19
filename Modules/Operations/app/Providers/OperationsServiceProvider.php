@@ -15,9 +15,7 @@ class OperationsServiceProvider extends ServiceProvider
 
     protected string $nameLower = 'operations';
 
-    /**
-     * Boot the application events.
-     */
+    
     public function boot(): void
     {
         $this->registerCommands();
@@ -28,37 +26,29 @@ class OperationsServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
     }
 
-    /**
-     * Register the service provider.
-     */
+    
     public function register(): void
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
     }
 
-    /**
-     * Register commands in the format of Command::class
-     */
+    
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        
     }
 
-    /**
-     * Register command Schedules.
-     */
+    
     protected function registerCommandSchedules(): void
     {
-        // $this->app->booted(function () {
-        //     $schedule = $this->app->make(Schedule::class);
-        //     $schedule->command('inspire')->hourly();
-        // });
+        
+        
+        
+        
     }
 
-    /**
-     * Register translations.
-     */
+    
     public function registerTranslations(): void
     {
         $langPath = resource_path('lang/modules/'.$this->nameLower);
@@ -72,17 +62,13 @@ class OperationsServiceProvider extends ServiceProvider
         }
     }
 
-    /**
-     * Register config.
-     */
+    
     protected function registerConfig(): void
     {
         $this->registerModuleConfig();
     }
 
-    /**
-     * Register views.
-     */
+    
     public function registerViews(): void
     {
         $viewPath = resource_path('views/modules/'.$this->nameLower);
@@ -95,9 +81,7 @@ class OperationsServiceProvider extends ServiceProvider
         Blade::componentNamespace(config('modules.namespace').'\\'.$this->name.'\\View\\Components', $this->nameLower);
     }
 
-    /**
-     * Get the services provided by the provider.
-     */
+    
     public function provides(): array
     {
         return [];

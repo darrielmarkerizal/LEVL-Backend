@@ -1,6 +1,6 @@
 <?php
 
-// Script to find students with unlocked quizzes that haven't been attempted yet
+
 
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Models\Enrollment;
@@ -10,7 +10,7 @@ use Modules\Schemes\Services\PrerequisiteService;
 
 echo "=== Finding Students with Unlocked Quizzes ===\n\n";
 
-// Get all active students
+
 $students = User::whereHas('roles', function ($q) {
     $q->where('name', 'Student');
 })->where('status', 'active')->get();
@@ -23,7 +23,7 @@ $results = [];
 foreach ($students as $student) {
     echo "Checking student: {$student->name} (ID: {$student->id})\n";
 
-    // Get student's enrollments
+    
     $enrollments = Enrollment::where('user_id', $student->id)
         ->where('status', 'active')
         ->with('course')
@@ -32,7 +32,7 @@ foreach ($students as $student) {
     foreach ($enrollments as $enrollment) {
         $course = $enrollment->course;
 
-        // Get all published quizzes in this course
+        
         $quizzes = Quiz::whereHas('lesson.unit', function ($q) use ($course) {
             $q->where('course_id', $course->id);
         })
@@ -41,13 +41,13 @@ foreach ($students as $student) {
             ->get();
 
         foreach ($quizzes as $quiz) {
-            // Check if student has attempted this quiz
+            
             $hasAttempt = QuizSubmission::where('quiz_id', $quiz->id)
                 ->where('user_id', $student->id)
                 ->exists();
 
             if (! $hasAttempt) {
-                // Check if quiz is unlocked
+                
                 $accessCheck = $prerequisiteService->checkQuizAccess($quiz, $student->id);
 
                 if ($accessCheck['accessible']) {
@@ -93,7 +93,7 @@ if (count($results) > 0) {
 
     echo str_repeat('-', 100)."\n\n";
 
-    // Show first result details for testing
+    
     if (count($results) > 0) {
         $first = $results[0];
         echo "\n=== FIRST RESULT (For Testing) ===\n";

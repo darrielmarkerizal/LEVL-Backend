@@ -351,7 +351,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
 
         return cache()->tags(['forums', 'threads', 'trending'])->remember(
             'forums:trending:all:'.$userId.':'.md5(json_encode([$filters, $search, $perPage])),
-            120, // 2 minutes
+            120, 
             function () use ($filters, $search, $perPage) {
                 $query = Thread::query()
                     ->withIsMentioned()
@@ -393,7 +393,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
 
         return cache()->tags(['forums', 'threads', 'trending', "instructor:{$instructorId}"])->remember(
             'forums:trending:instructor:'.$instructorId.':'.$userId.':'.md5(json_encode([$filters, $search, $perPage])),
-            120, // 2 minutes
+            120, 
             function () use ($instructorId, $filters, $search, $perPage) {
                 $courseIds = \Modules\Schemes\Models\Course::where('instructor_id', $instructorId)
                     ->pluck('id')

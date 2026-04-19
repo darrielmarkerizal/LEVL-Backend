@@ -25,12 +25,12 @@ class EnsureCleanDatabaseSession
     private function sanitizeConnection(string $connectionName, string $phase): void
     {
         try {
-            /** @var ConnectionInterface $connection */
+            
             $connection = DB::connection($connectionName);
 
             $rolledBack = 0;
 
-            // Roll back any open transaction levels
+            
             while ($connection->transactionLevel() > 0) {
                 try {
                     $connection->rollBack();
@@ -49,7 +49,7 @@ class EnsureCleanDatabaseSession
                 ]);
             }
         } catch (\Throwable $e) {
-            // Hard reset only when sanitation fails, so we don't disrupt healthy request flows.
+            
             DB::disconnect($connectionName);
             DB::purge($connectionName);
 

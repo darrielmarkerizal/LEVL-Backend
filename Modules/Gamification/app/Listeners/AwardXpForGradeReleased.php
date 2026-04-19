@@ -59,8 +59,8 @@ class AwardXpForGradeReleased implements ShouldQueue
                 ]
             );
 
-            // Evaluate Dynamic Badge Rules
-            // FIX: Use cached user lookup
+            
+            
             $user = $this->getCachedUser($submission->user_id);
             if ($user && $this->evaluator) {
                 $payload = [
@@ -69,7 +69,7 @@ class AwardXpForGradeReleased implements ShouldQueue
                     'score' => $grade->effective_score,
                     'attempts' => $submission->attempt,
                     'is_first_submission' => $submission->attempt === 1,
-                    // Assume time formatting for rule condition checking (e.g. "23:00:00")
+                    
                     'time' => $submission->created_at->format('H:i:s'),
                 ];
                 $this->evaluator->evaluate($user, 'assignment_graded', $payload);

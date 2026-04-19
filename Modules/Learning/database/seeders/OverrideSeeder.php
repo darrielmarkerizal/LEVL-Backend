@@ -10,21 +10,14 @@ use Modules\Learning\Models\Override;
 
 class OverrideSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * Creates comprehensive override data:
-     * - Deadline overrides (extended deadlines)
-     * - Attempts overrides (additional attempts)
-     * - Prerequisite overrides (bypass prerequisites)
-     */
+    
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
 
         echo "Seeding overrides...\n";
 
-        // Check if we have users and assignments to link to
+        
         $instructorIds = User::whereHas('roles', function ($q) {
             $q->whereIn('name', ['Instructor', 'Admin']);
         })->pluck('id');
@@ -52,27 +45,27 @@ class OverrideSeeder extends Seeder
 
         $overrideCount = 0;
 
-        // Convert collections to arrays for easier random selection
+        
         $instructorIds = $instructorIds->toArray();
         $assignmentIds = $assignmentIds->toArray();
         $studentIds = $studentIds->toArray();
 
-        // Prepare overrides to be inserted
+        
         $overridesToInsert = [];
 
-        // Select a subset of assignments for overrides
+        
         $assignmentsForOverride = array_slice($assignmentIds, 0, min(20, count($assignmentIds)));
 
-        // Create overrides for selected assignments
+        
         foreach ($assignmentsForOverride as $assignmentId) {
-            // Create 1-3 overrides per assignment
+            
             $numOverrides = rand(1, 3);
 
             for ($i = 0; $i < $numOverrides; $i++) {
                 $studentId = $studentIds[array_rand($studentIds)];
                 $instructorId = $instructorIds[array_rand($instructorIds)];
 
-                // Randomly select override type
+                
                 $overrideTypes = [
                     OverrideType::Deadline,
                     OverrideType::Attempts,
@@ -81,7 +74,7 @@ class OverrideSeeder extends Seeder
 
                 $type = $overrideTypes[array_rand($overrideTypes)];
 
-                // Prepare override data based on type
+                
                 $overrideData = [
                     'assignment_id' => $assignmentId,
                     'student_id' => $studentId,
@@ -89,12 +82,12 @@ class OverrideSeeder extends Seeder
                     'type' => $type,
                     'reason' => fake()->sentence(),
                     'granted_at' => now(),
-                    'expires_at' => null, // Will be set based on type below
+                    'expires_at' => null, 
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
 
-                // Add type-specific values
+                
                 switch ($type) {
                     case OverrideType::Deadline:
                         $overrideData['value'] = json_encode([
@@ -112,7 +105,7 @@ class OverrideSeeder extends Seeder
 
                     case OverrideType::Prerequisite:
                         $overrideData['value'] = json_encode([
-                            'bypassed_prerequisites' => [], // Will be filled later if needed
+                            'bypassed_prerequisites' => [], 
                         ], JSON_UNESCAPED_SLASHES);
                         $overrideData['expires_at'] = now()->addDays(rand(7, 21));
                         break;
@@ -123,7 +116,7 @@ class OverrideSeeder extends Seeder
             }
         }
 
-        // Batch insert all overrides
+        
         if (! empty($overridesToInsert)) {
             foreach (array_chunk($overridesToInsert, 1000) as $chunk) {
                 \DB::table('overrides')->insertOrIgnore($chunk);

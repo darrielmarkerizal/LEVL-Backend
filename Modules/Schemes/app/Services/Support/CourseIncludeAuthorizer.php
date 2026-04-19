@@ -59,7 +59,7 @@ class CourseIncludeAuthorizer
         }
 
         if ($user->hasRole('Admin')) {
-            return true; // Admins have global access to all courses
+            return true; 
         }
 
         if ($user->hasRole('Instructor')) {
@@ -88,7 +88,7 @@ class CourseIncludeAuthorizer
 
         if ($user) {
             if ($this->isManager($user, $course)) {
-                // Add enrolled student includes
+                
                 $allowed = array_merge($allowed, [
                     'lessons',
                     'quizzes',
@@ -96,7 +96,7 @@ class CourseIncludeAuthorizer
                     'units.lessons',
                 ]);
 
-                // Add manager includes with proper nested relationship registration
+                
                 $allowed[] = 'enrollments';
                 $allowed[] = 'enrollments.user';
                 $allowed[] = 'instructors';

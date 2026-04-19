@@ -38,7 +38,7 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
     Route::get('assignments/{assignment}/submissions/{submission}', [SubmissionController::class, 'showForAssignment'])
         ->name('assignments.submissions.detail');
 
-    // Assignment management routes (Admin, Instructor, Superadmin only)
+    
     Route::middleware(['role:Superadmin|Admin|Instructor'])->group(function () {
         Route::post('assignments', [AssignmentController::class, 'store'])
             ->name('assignments.store');
@@ -71,7 +71,7 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
             ->name('submissions.search');
     });
 
-    // Submission routes - students and authorized users (with XP info)
+    
     Route::post('assignments/{assignment}/submissions', [SubmissionController::class, 'store'])
         ->middleware('xp.info')
         ->name('assignments.submissions.store');
@@ -88,9 +88,9 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         ->middleware(['can:submit,submission', 'xp.info'])
         ->name('submissions.submit');
 
-    // Grading is handled centrally in Modules/Grading via /submissions/{submission}/grades
+    
 
-    // ─── Quiz Routes ────────────────────────────────────────────────────────────
+    
 
     Route::get('courses/{course:slug}/quizzes', [QuizController::class, 'index'])
         ->middleware('can:viewAny,'.Modules\Learning\Models\Quiz::class)

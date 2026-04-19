@@ -21,14 +21,14 @@ class AwardXpForPerfectScore
     public function handle(GradesReleased $event): void
     {
         foreach ($event->grades as $grade) {
-            // Only award for perfect scores (100%)
+            
             if ($grade->score >= 100) {
                 $userId = $grade->user_id;
 
-                // Award XP for perfect score (50 XP from xp_sources)
+                
                 $this->gamification->awardXp(
                     $userId,
-                    0, // Will use xp_sources config (perfect_score = 50 XP)
+                    0, 
                     'perfect_score',
                     'grade',
                     $grade->id,
@@ -42,7 +42,7 @@ class AwardXpForPerfectScore
                     ]
                 );
 
-                // Log event
+                
                 $this->loggerService->log(
                     $userId,
                     'perfect_score',
@@ -56,11 +56,11 @@ class AwardXpForPerfectScore
                     ]
                 );
 
-                // Increment counters
+                
                 $this->counterService->increment($userId, 'perfect_score', 'global', null, 'lifetime');
                 $this->counterService->increment($userId, 'perfect_score', 'global', null, 'daily');
 
-                // Evaluate Dynamic Badge Rules
+                
                 $user = \Modules\Auth\Models\User::find($userId);
                 if ($user) {
                     $payload = [

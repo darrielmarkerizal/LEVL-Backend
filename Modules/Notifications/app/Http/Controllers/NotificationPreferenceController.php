@@ -9,9 +9,7 @@ use Illuminate\Http\Request;
 use Modules\Notifications\Contracts\Services\NotificationPreferenceServiceInterface;
 use Modules\Notifications\Models\NotificationPreference;
 
-/**
- * @tags Notifikasi
- */
+
 class NotificationPreferenceController extends Controller
 {
     use ApiResponse;
@@ -23,18 +21,7 @@ class NotificationPreferenceController extends Controller
         $this->preferenceService = $preferenceService;
     }
 
-    /**
-     * Mengambil preferensi notifikasi user
-     *
-     * Mengambil semua preferensi notifikasi user beserta metadata kategori, channel, dan frekuensi yang tersedia.
-     *
-     *
-     * @summary Mengambil preferensi notifikasi user
-     *
-     * @response 200 scenario="Success" {"success": true, "data": [{"category": "course", "channel": "email", "enabled": true, "frequency": "instant"}], "meta": {"categories": ["course", "assignment", "forum", "system"], "channels": ["email", "push", "in_app"], "frequencies": ["instant", "daily", "weekly"]}}
-     *
-     * @authenticated
-     */
+    
     public function index(Request $request): JsonResponse
     {
         $preferences = $this->preferenceService->getPreferences(auth()->user());
@@ -49,20 +36,7 @@ class NotificationPreferenceController extends Controller
         );
     }
 
-    /**
-     * Memperbarui preferensi notifikasi user
-     *
-     * Memperbarui preferensi notifikasi user. Setiap preferensi harus menyertakan category, channel, enabled, dan frequency.
-     *
-     *
-     * @summary Memperbarui preferensi notifikasi user
-     *
-     * @response 200 scenario="Success" {"success": true, "message": "Preferensi notifikasi berhasil diperbarui", "data": [{"category": "course", "channel": "email", "enabled": true, "frequency": "instant"}]}
-     * @response 422 scenario="Validation Error" {"success": false, "message": "Validation error", "errors": {"preferences.0.category": ["The selected preferences.0.category is invalid."]}}
-     * @response 500 scenario="Server Error" {"success":false,"message":"Gagal memperbarui preferensi notifikasi"}
-     *
-     * @authenticated
-     */
+    
     public function update(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -93,19 +67,7 @@ class NotificationPreferenceController extends Controller
         );
     }
 
-    /**
-     * Reset preferensi notifikasi ke default
-     *
-     * Mengembalikan semua preferensi notifikasi user ke pengaturan default sistem.
-     *
-     *
-     * @summary Reset preferensi notifikasi ke default
-     *
-     * @response 200 scenario="Success" {"success": true, "message": "Preferensi notifikasi berhasil direset ke default", "data": [{"category": "course", "channel": "email", "enabled": true, "frequency": "instant"}]}
-     * @response 500 scenario="Server Error" {"success":false,"message":"Gagal mereset preferensi notifikasi"}
-     *
-     * @authenticated
-     */
+    
     public function reset(Request $request): JsonResponse
     {
         $success = $this->preferenceService->resetToDefaults(auth()->user());

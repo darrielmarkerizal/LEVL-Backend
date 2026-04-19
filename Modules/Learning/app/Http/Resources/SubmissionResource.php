@@ -56,7 +56,7 @@ class SubmissionResource extends JsonResource
             'enrollment_id' => $this->enrollment_id,
             'attempt_number' => $this->attempt_number,
             'status' => $this->status,
-            'state' => $this->state?->value,
+            'workflow_state' => $this->state?->value,
             'score' => $this->score,
             'answer_text' => $this->answer_text,
             'question_set' => $this->question_set,

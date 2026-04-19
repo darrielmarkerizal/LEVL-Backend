@@ -8,9 +8,7 @@ use Modules\Common\Models\MasterDataItem;
 
 class MasterDataSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+    
     public function run(): void
     {
         $this->seedCategories();

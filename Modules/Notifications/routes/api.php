@@ -55,7 +55,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->middleware('throttle:60,1')
             ->name('destroy');
 
-        // Publishing operations
+        
         Route::post('/{uuid}/publish', [PostController::class, 'publish'])
             ->middleware('throttle:60,1')
             ->name('publish');
@@ -64,7 +64,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->middleware('throttle:60,1')
             ->name('unpublish');
 
-        // Scheduling operations
+        
         Route::post('/{uuid}/schedule', [PostController::class, 'schedule'])
             ->middleware('throttle:60,1')
             ->name('schedule');
@@ -73,12 +73,12 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->middleware('throttle:60,1')
             ->name('cancel-schedule');
 
-        // Pin operations
+        
         Route::post('/{uuid}/toggle-pin', [PostController::class, 'togglePin'])
             ->middleware('throttle:60,1')
             ->name('toggle-pin');
 
-        // Bulk operations
+        
         Route::post('/bulk-delete', [PostController::class, 'bulkDelete'])
             ->middleware('throttle:10,1')
             ->name('bulk-delete');
@@ -87,7 +87,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->middleware('throttle:10,1')
             ->name('bulk-publish');
 
-        // Trash management
+        
         Route::get('/trash', [PostController::class, 'trash'])
             ->middleware('throttle:60,1')
             ->name('trash');
@@ -100,7 +100,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->middleware('throttle:60,1')
             ->name('force');
 
-        // Image upload for rich text editor
+        
         Route::post('/upload-image', [PostMediaController::class, 'uploadImage'])
             ->middleware('throttle:10,1')
             ->name('upload-image');

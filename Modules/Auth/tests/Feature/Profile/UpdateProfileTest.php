@@ -40,7 +40,7 @@ test('user can update phone', function () {
         ]);
 
     $response->assertStatus(200);
-    // expect($user->fresh()->phone)->toBe('08123456789');
+    
 });
 
 test('user can update bio', function () {
@@ -65,7 +65,7 @@ test('update profile triggers event', function () {
     $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->putJson('/api/v1/profile', ['name' => 'Name']);
 
-    // Event::assertDispatched('ProfileUpdated');
+    
     expect(true)->toBeTrue();
 });
 

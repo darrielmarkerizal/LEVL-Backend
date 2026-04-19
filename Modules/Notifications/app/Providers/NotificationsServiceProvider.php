@@ -16,9 +16,7 @@ class NotificationsServiceProvider extends ServiceProvider
 
     protected string $nameLower = 'notifications';
 
-    /**
-     * Boot the application events.
-     */
+    
     public function boot(): void
     {
         $this->registerCommands();
@@ -35,15 +33,13 @@ class NotificationsServiceProvider extends ServiceProvider
         Gate::policy(\Modules\Notifications\Models\Post::class, \Modules\Notifications\Policies\PostPolicy::class);
     }
 
-    /**
-     * Register the service provider.
-     */
+    
     public function register(): void
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
 
-        // Register service bindings
+        
         $this->app->bind(
             \Modules\Notifications\Contracts\Services\NotificationPreferenceServiceInterface::class,
             \Modules\Notifications\Services\NotificationPreferenceService::class
@@ -55,9 +51,7 @@ class NotificationsServiceProvider extends ServiceProvider
         );
     }
 
-    /**
-     * Register commands in the format of Command::class
-     */
+    
     protected function registerCommands(): void
     {
         $this->commands([
@@ -66,20 +60,16 @@ class NotificationsServiceProvider extends ServiceProvider
         ]);
     }
 
-    /**
-     * Register command Schedules.
-     */
+    
     protected function registerCommandSchedules(): void
     {
-        // $this->app->booted(function () {
-        //     $schedule = $this->app->make(Schedule::class);
-        //     $schedule->command('inspire')->hourly();
-        // });
+        
+        
+        
+        
     }
 
-    /**
-     * Register translations.
-     */
+    
     public function registerTranslations(): void
     {
         $langPath = resource_path('lang/modules/'.$this->nameLower);
@@ -93,17 +83,13 @@ class NotificationsServiceProvider extends ServiceProvider
         }
     }
 
-    /**
-     * Register config.
-     */
+    
     protected function registerConfig(): void
     {
         $this->registerModuleConfig();
     }
 
-    /**
-     * Register views.
-     */
+    
     public function registerViews(): void
     {
         $viewPath = resource_path('views/modules/'.$this->nameLower);
@@ -116,9 +102,7 @@ class NotificationsServiceProvider extends ServiceProvider
         Blade::componentNamespace(config('modules.namespace').'\\'.$this->name.'\\View\\Components', $this->nameLower);
     }
 
-    /**
-     * Get the services provided by the provider.
-     */
+    
     public function provides(): array
     {
         return [];

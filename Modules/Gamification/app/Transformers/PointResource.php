@@ -53,7 +53,7 @@ class PointResource extends JsonResource
                     $context['course'] = ['id' => $lesson->unit?->course_id, 'title' => $lesson->unit?->course?->title];
                 }
                 break;
-                // Handle assignment if needed, usually mapped to lesson or unit
+                
             case 'assignment':
                 $assignment = \Modules\Learning\Models\Assignment::with(['unit.course'])->find($sourceId);
                 if ($assignment) {

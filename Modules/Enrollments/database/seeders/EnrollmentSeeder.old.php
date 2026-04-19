@@ -37,7 +37,7 @@ class EnrollmentSeeder extends Seeder
         $unitProgressData = [];
         $lessonProgressData = [];
 
-        // Pre-fetch existing enrollments to avoid N+1 checks
+        
         $existingPairs = \Illuminate\Support\Facades\DB::table('enrollments')
             ->select(['user_id', 'course_id'])
             ->get()
@@ -55,7 +55,7 @@ class EnrollmentSeeder extends Seeder
 
             $enrollmentCount = rand(3, 8);
             $randomCourses = $courses->random(min($enrollmentCount, $courses->count()));
-            // ... (rest of loop)
+            
 
             foreach ($randomCourses as $course) {
                 $pairKey = $student->id.':'.$course->id;
@@ -161,7 +161,7 @@ class EnrollmentSeeder extends Seeder
                 }
             }
 
-            // Insert Course Progress
+            
             if (! empty($courseProgressData) && \Illuminate\Support\Facades\Schema::hasTable('course_progress')) {
                 $courseBatch = [];
                 foreach ($courseProgressData as $idx => $data) {
@@ -177,7 +177,7 @@ class EnrollmentSeeder extends Seeder
                 }
             }
 
-            // Insert Unit Progress
+            
             if (! empty($unitProgressData) && \Illuminate\Support\Facades\Schema::hasTable('unit_progress')) {
                 $unitBatch = [];
                 foreach ($unitProgressData as $data) {
@@ -195,7 +195,7 @@ class EnrollmentSeeder extends Seeder
                 }
             }
 
-            // Insert Lesson Progress
+            
             if (! empty($lessonProgressData) && \Illuminate\Support\Facades\Schema::hasTable('lesson_progress')) {
                 $lessonBatch = [];
                 foreach ($lessonProgressData as $data) {

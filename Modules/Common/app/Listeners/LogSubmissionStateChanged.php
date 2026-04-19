@@ -24,9 +24,7 @@ class LogSubmissionStateChanged implements ShouldQueue
         private readonly AuditServiceInterface $auditService
     ) {}
 
-    /**
-     * Handle the event.
-     */
+    
     public function handle(SubmissionStateChanged $event): void
     {
         $oldState = $event->oldState !== null ? $event->oldState->value : 'none';

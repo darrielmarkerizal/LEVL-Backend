@@ -26,9 +26,7 @@ class PostController extends Controller
         private readonly PostService $service
     ) {}
 
-    /**
-     * List posts with pagination and filters (status, category, search, role)
-     */
+    
     public function index(Request $request): JsonResponse
     {
         $perPage = min((int) $request->get('per_page', 15), 100);
@@ -41,9 +39,7 @@ class PostController extends Controller
         return $this->paginateResponse($paginator, __('messages.posts.retrieved'));
     }
 
-    /**
-     * Create new post (admin only)
-     */
+    
     public function store(StorePostRequest $request): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -72,7 +68,7 @@ class PostController extends Controller
             return $this->error(__('messages.posts.not_found'), [], 404);
         }
 
-        // Check if user can view this post
+        
         $user = auth('api')->user();
         $user->loadMissing('roles');
         $userRole = $user->roles->first()?->name;
@@ -87,9 +83,7 @@ class PostController extends Controller
         return $this->success(new PostResource($post));
     }
 
-    /**
-     * Update post (admin only)
-     */
+    
     public function update(UpdatePostRequest $request, string $uuid): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -108,9 +102,7 @@ class PostController extends Controller
         return $this->success(new PostResource($updated), __('messages.posts.updated'));
     }
 
-    /**
-     * Soft delete post (admin only)
-     */
+    
     public function destroy(string $uuid): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -128,9 +120,7 @@ class PostController extends Controller
         return $this->success([], __('messages.posts.deleted'));
     }
 
-    /**
-     * Publish a post (admin only)
-     */
+    
     public function publish(string $uuid): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -148,9 +138,7 @@ class PostController extends Controller
         return $this->success(new PostResource($published), __('messages.posts.published'));
     }
 
-    /**
-     * Unpublish a post (admin only)
-     */
+    
     public function unpublish(string $uuid): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -168,9 +156,7 @@ class PostController extends Controller
         return $this->success(new PostResource($unpublished), __('messages.posts.unpublished'));
     }
 
-    /**
-     * Schedule a post (admin only, validate scheduled_at)
-     */
+    
     public function schedule(Request $request, string $uuid): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -192,9 +178,7 @@ class PostController extends Controller
         return $this->success(new PostResource($scheduled), __('messages.posts.scheduled'));
     }
 
-    /**
-     * Cancel scheduling (admin only)
-     */
+    
     public function cancelSchedule(string $uuid): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -212,9 +196,7 @@ class PostController extends Controller
         return $this->success(new PostResource($cancelled), __('messages.posts.schedule_cancelled'));
     }
 
-    /**
-     * Toggle pin status (admin only)
-     */
+    
     public function togglePin(string $uuid): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -232,9 +214,7 @@ class PostController extends Controller
         return $this->success(new PostResource($toggled), __('messages.posts.pin_toggled'));
     }
 
-    /**
-     * Bulk delete posts (admin only, max 50 posts, validate limit)
-     */
+    
     public function bulkDelete(Request $request): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -260,9 +240,7 @@ class PostController extends Controller
         return $this->success([], __('messages.posts.bulk_delete_queued'));
     }
 
-    /**
-     * Bulk publish posts (admin only, max 50 posts, validate limit)
-     */
+    
     public function bulkPublish(Request $request): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -288,9 +266,7 @@ class PostController extends Controller
         return $this->success([], __('messages.posts.bulk_publish_queued'));
     }
 
-    /**
-     * List trashed posts (admin only)
-     */
+    
     public function trash(Request $request): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -304,9 +280,7 @@ class PostController extends Controller
         return $this->paginateResponse($paginator, __('messages.posts.trash_retrieved'));
     }
 
-    /**
-     * Restore from trash (admin only)
-     */
+    
     public function restore(string $uuid): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -324,9 +298,7 @@ class PostController extends Controller
         return $this->success([], __('messages.posts.restored'));
     }
 
-    /**
-     * Permanently delete (admin only)
-     */
+    
     public function forceDelete(string $uuid): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -344,9 +316,7 @@ class PostController extends Controller
         return $this->success([], __('messages.posts.permanently_deleted'));
     }
 
-    /**
-     * Mark post as viewed (authenticated users)
-     */
+    
     public function markAsViewed(string $uuid): JsonResponse
     {
         $post = $this->service->repository->findByUuid($uuid);

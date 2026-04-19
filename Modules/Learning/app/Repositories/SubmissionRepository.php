@@ -93,7 +93,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             "learning:submissions:search:{$query}:{$perPage}:{$sortBy}:{$sortDirection}:".md5(json_encode($filters)),
             300,
             function () use ($filters, $query, $perPage, $sortBy, $sortDirection) {
-                // 1. Use Spatie Query Builder on Eloquent model constrained by search
+                
                 return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, new \Illuminate\Http\Request($filters))
                     ->search($query)
                     ->allowedFilters([
@@ -251,7 +251,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
                     ->where('state', SubmissionState::PendingManualGrading->value)
                     ->allowedFilters([
                         \Spatie\QueryBuilder\AllowedFilter::exact('assignment_id'),
-                        \Spatie\QueryBuilder\AllowedFilter::exact('user_id', 'student_id'), // Map student_id filter to user_id column
+                        \Spatie\QueryBuilder\AllowedFilter::exact('user_id', 'student_id'), 
                         \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', Carbon::parse($v)->startOfDay())),
                         \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', Carbon::parse($v)->endOfDay())),
                     ])

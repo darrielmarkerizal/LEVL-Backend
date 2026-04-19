@@ -6,9 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         Schema::create('course_admins', function (Blueprint $table) {
@@ -17,15 +15,13 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
 
-            // Ensure one user can only be admin once per course
+            
             $table->unique(['course_id', 'user_id']);
             $table->index(['course_id', 'user_id']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         Schema::dropIfExists('course_admins');

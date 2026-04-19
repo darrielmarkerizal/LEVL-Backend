@@ -20,23 +20,23 @@ class DiagnoseStorageBucket extends Command
         $this->info('=== Storage Bucket Diagnostics ===');
         $this->newLine();
 
-        // 1. Check Environment Configuration
+        
         $this->checkEnvironmentConfig();
         $this->newLine();
 
-        // 2. Check Database Media Records
+        
         $this->checkDatabaseMedia();
         $this->newLine();
 
-        // 3. Test Bucket Connectivity
+        
         $this->testBucketConnectivity();
         $this->newLine();
 
-        // 4. Check Sample Media URLs
+        
         $this->checkSampleMediaUrls();
         $this->newLine();
 
-        // 5. Test Upload (optional)
+        
         if ($this->option('test-upload')) {
             $this->testFileUpload();
             $this->newLine();
@@ -66,7 +66,7 @@ class DiagnoseStorageBucket extends Command
             $this->line("<fg={$color}>{$status}</> {$key}: " . ($value ?: '<not set>'));
         }
 
-        // Check if credentials are set (without showing them)
+        
         $hasAccessKey = !empty(env('DO_ACCESS_KEY_ID'));
         $hasSecretKey = !empty(env('DO_SECRET_ACCESS_KEY'));
         
@@ -80,11 +80,11 @@ class DiagnoseStorageBucket extends Command
         $this->line('─────────────────────────────');
 
         try {
-            // Count total media
+            
             $totalMedia = DB::table('media')->count();
             $this->line("Total media records: {$totalMedia}");
 
-            // Count by disk
+            
             $byDisk = DB::table('media')
                 ->select('disk', DB::raw('count(*) as count'))
                 ->groupBy('disk')
@@ -95,7 +95,7 @@ class DiagnoseStorageBucket extends Command
                 $this->line("  - {$disk->disk}: {$disk->count} files");
             }
 
-            // Check for bucket references in URLs
+            
             $buckets = ['levl-assets', 'prep-lsp'];
             $this->line("\nBucket references in custom_properties:");
             
@@ -109,7 +109,7 @@ class DiagnoseStorageBucket extends Command
                 }
             }
 
-            // Sample media records
+            
             $samples = DB::table('media')
                 ->select('id', 'model_type', 'collection_name', 'file_name', 'disk')
                 ->limit(3)
@@ -138,7 +138,7 @@ class DiagnoseStorageBucket extends Command
         $cdnUrl = env('DO_CDN_URL');
 
         try {
-            // Test 1: Check if disk is configured
+            
             $this->line("Testing disk: {$disk}");
             
             if (!config("filesystems.disks.{$disk}")) {
@@ -147,7 +147,7 @@ class DiagnoseStorageBucket extends Command
             }
             $this->line("<fg=green>✓</> Disk configuration found");
 
-            // Test 2: Try to list files (this will test credentials)
+            
             $this->line("\nTesting bucket access...");
             try {
                 $files = Storage::disk($disk)->files('/', false);
@@ -161,7 +161,7 @@ class DiagnoseStorageBucket extends Command
                 $this->line("  - Wrong region/endpoint");
             }
 
-            // Test 3: Test CDN URL accessibility
+            
             if ($cdnUrl) {
                 $this->line("\nTesting CDN URL accessibility...");
                 try {
@@ -176,13 +176,13 @@ class DiagnoseStorageBucket extends Command
                 }
             }
 
-            // Test 4: Check alternative buckets
+            
             $this->line("\nChecking alternative buckets...");
             $bucketsToCheck = ['levl-assets', 'prep-lsp'];
             
             foreach ($bucketsToCheck as $testBucket) {
                 if ($testBucket === $bucket) {
-                    continue; // Skip current bucket
+                    continue; 
                 }
                 
                 $testUrl = str_replace($bucket, $testBucket, $cdnUrl ?: $endpoint);
@@ -226,7 +226,7 @@ class DiagnoseStorageBucket extends Command
                         $this->line("\nFile: {$sample->file_name}");
                         $this->line("URL: {$url}");
                         
-                        // Test URL accessibility
+                        
                         try {
                             $response = Http::timeout(5)->head($url);
                             if ($response->successful()) {
@@ -263,7 +263,7 @@ class DiagnoseStorageBucket extends Command
             Storage::disk($disk)->put($testFileName, $testContent);
             $this->line("<fg=green>✓</> File uploaded successfully");
 
-            // Try to read it back
+            
             $content = Storage::disk($disk)->get($testFileName);
             if ($content === $testContent) {
                 $this->line("<fg=green>✓</> File content verified");
@@ -271,11 +271,11 @@ class DiagnoseStorageBucket extends Command
                 $this->warn("⚠ File content mismatch");
             }
 
-            // Get URL
+            
             $url = Storage::disk($disk)->url($testFileName);
             $this->line("File URL: {$url}");
 
-            // Test URL accessibility
+            
             try {
                 $response = Http::timeout(5)->get($url);
                 if ($response->successful()) {
@@ -287,7 +287,7 @@ class DiagnoseStorageBucket extends Command
                 $this->error("✗ Cannot access file via URL: " . $e->getMessage());
             }
 
-            // Clean up
+            
             if ($this->confirm('Delete test file?', true)) {
                 Storage::disk($disk)->delete($testFileName);
                 $this->line("<fg=green>✓</> Test file deleted");

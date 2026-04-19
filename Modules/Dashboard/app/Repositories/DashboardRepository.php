@@ -142,17 +142,17 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
             ->pluck('total', 'block_type')
             ->toArray();
 
-        // Calculate total blocks and percentages
+        
         $totalBlocks = array_sum($blockStats);
         $blockPercentages = [];
         foreach ($blockStats as $type => $count) {
             $blockPercentages[$type] = $totalBlocks > 0 ? round(($count / $totalBlocks) * 100, 2) : 0;
         }
 
-        // Get quiz IDs based on role filtering
+        
         $quizIds = $quizQuestionQuery->distinct()->pluck('quiz_id')->toArray();
 
-        // Get quiz question types breakdown using raw query for proper grouping
+        
         $quizQuestionTypes = [];
         if (! empty($quizIds)) {
             $quizQuestionTypes = DB::table('quiz_questions')
@@ -165,8 +165,8 @@ class DashboardRepository extends BaseRepository implements DashboardRepositoryI
 
         $totalQuestions = array_sum($quizQuestionTypes);
 
-        // Map question types to standard format
-        // Quiz questions use: multiple_choice, checkbox, true_false, essay
+        
+        
         $questionByType = [
             'multiple_choice' => $quizQuestionTypes['multiple_choice'] ?? 0,
             'checkbox' => $quizQuestionTypes['checkbox'] ?? 0,

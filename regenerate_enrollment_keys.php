@@ -1,16 +1,6 @@
 <?php
 
-/**
- * Script to regenerate enrollment keys for existing courses
- *
- * This script will:
- * 1. Find all courses with key_based enrollment that have hash but no encrypted key
- * 2. Generate new enrollment keys
- * 3. Encrypt them so they can be viewed by authorized users
- *
- * IMPORTANT: This will generate NEW keys. The old keys cannot be recovered from hashes.
- * Make sure to communicate the new keys to course instructors.
- */
+
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -24,7 +14,7 @@ echo "=================================================\n";
 echo "Enrollment Key Regeneration Script\n";
 echo "=================================================\n\n";
 
-// Find courses with key_based enrollment
+
 $courses = Course::where('enrollment_type', 'key_based')
     ->whereNotNull('enrollment_key_hash')
     ->get();
@@ -49,7 +39,7 @@ foreach ($courses as $course) {
     echo '  Has Encrypted: '.($hasEncrypted ? 'Yes' : 'No')."\n";
 
     if ($hasEncrypted) {
-        // Already has encrypted key, try to decrypt and show it
+        
         try {
             $decrypted = $course->getDecryptedEnrollmentKey();
             echo "  Current Key: {$decrypted}\n";
@@ -64,10 +54,10 @@ foreach ($courses as $course) {
             echo "  Error: {$e->getMessage()}\n";
         }
     } else {
-        // Generate new key
+        
         echo "  Status: Generating new key...\n";
 
-        // Ask for confirmation
+        
         echo "  ⚠ WARNING: This will generate a NEW key. Old key cannot be recovered.\n";
         echo '  Continue? (y/n): ';
 
@@ -83,10 +73,10 @@ foreach ($courses as $course) {
                 'reason' => 'Skipped by user',
             ];
         } else {
-            // Generate new key
+            
             $newKey = strtoupper(Str::random(12));
 
-            // Update course (this will automatically encrypt)
+            
             $course->enrollment_key = $newKey;
             $course->save();
 
@@ -105,7 +95,7 @@ foreach ($courses as $course) {
     echo "\n";
 }
 
-// Summary
+
 echo "=================================================\n";
 echo "Summary\n";
 echo "=================================================\n\n";

@@ -73,7 +73,7 @@ class UserFinder
                 }
 
                 if ($authUser->hasRole('Admin') && ! $authUser->hasRole('Superadmin')) {
-                    // Admin can see all users including other Admins, but NOT Superadmins
+                    
                     $query->whereDoesntHave('roles', function (Builder $roleQuery) {
                         $roleQuery->where('name', 'Superadmin');
                     });
@@ -124,23 +124,23 @@ class UserFinder
                     }),
                 ])
                     ->allowedIncludes([
-                        // Auth Module
+                        
                         'roles',
                         'privacySettings',
                         'enrollments',
                         'managedCourses',
-                        // Gamification Module (milestones table has no user_id - global catalog only)
+                        
                         'gamificationStats',
                         'badges',
                         'points',
                         'levels',
                         'learningStreaks',
-                        // Learning Module
+                        
                         'submissions',
                         'assignments',
                         'receivedOverrides',
                         'grantedOverrides',
-                        // Forums Module (Post model doesn't exist - only Thread and Reply exist)
+                        
                         'threads',
                     ])
                     ->allowedSorts(['name', 'email', 'username', 'status', 'created_at'])
@@ -154,7 +154,7 @@ class UserFinder
     {
         $target = $this->cacheService->getUser($userId);
 
-        // Old cached entries may not contain specialization_id (before cache schema update).
+        
         if ($target && ! array_key_exists('specialization_id', $target->getAttributes())) {
             $this->cacheService->invalidateUser($userId);
             $target = null;
@@ -164,49 +164,49 @@ class UserFinder
             $query = QueryBuilder::for(User::class, $request ?? new Request)
                 ->with(['roles:id,name,guard_name', 'specialization:id,name,value'])
                 ->allowedIncludes([
-                    // Auth Module
+                    
                     'roles',
                     'privacySettings',
                     'enrollments',
                     'managedCourses',
-                    // Gamification Module (milestones table has no user_id - global catalog only)
+                    
                     'gamificationStats',
                     'badges',
                     'points',
                     'levels',
                     'learningStreaks',
-                    // Learning Module
+                    
                     'submissions',
                     'assignments',
                     'receivedOverrides',
                     'grantedOverrides',
-                    // Forums Module (Post model doesn't exist - only Thread and Reply exist)
+                    
                     'threads',
                 ])
                 ->where('id', $userId);
 
             $target = $query->firstOrFail();
 
-            // Always load course when enrollments is loaded (either via include or already loaded)
+            
             if ($target->relationLoaded('enrollments')) {
                 $target->loadMissing('enrollments.course');
             }
         } else {
-            // If cached, load roles if not already loaded
+            
             if (! $target->relationLoaded('roles')) {
                 $target->load('roles:id,name,guard_name');
             }
 
-            // Load specialization if not already loaded
+            
             if (! $target->relationLoaded('specialization')) {
                 $target->load('specialization:id,name,value');
             }
 
-            // Load other requested includes if specified
+            
             if ($request && $request->has('include')) {
                 $includes = explode(',', $request->get('include'));
                 $includes = array_map('trim', $includes);
-                $includes = array_filter($includes); // Remove empty strings
+                $includes = array_filter($includes); 
 
                 $allowedIncludes = [
                     'roles', 'privacySettings', 'enrollments', 'managedCourses',
@@ -216,7 +216,7 @@ class UserFinder
                     'threads',
                 ];
 
-                // Validate includes - throw error if any invalid includes are requested
+                
                 $invalidIncludes = array_diff($includes, $allowedIncludes);
                 if (! empty($invalidIncludes)) {
                     throw new InvalidIncludeQuery(
@@ -225,11 +225,11 @@ class UserFinder
                     );
                 }
 
-                // Load valid includes
+                
                 if (! empty($includes)) {
                     $target->load($includes);
 
-                    // Always load course when enrollments is loaded
+                    
                     if (in_array('enrollments', $includes) && $target->relationLoaded('enrollments')) {
                         $target->loadMissing('enrollments.course');
                     }
@@ -442,18 +442,18 @@ class UserFinder
         $target->setAttribute('rank', $rank);
         $target->setAttribute('total_xp', $target->gamificationStats?->total_xp ?? 0);
 
-        // Reset dirty attributes to prevent these non-database fields from being saved
+        
         $target->syncChanges();
     }
 
     private function hydrateInstructorDetail(User $target): void
     {
-        // Count courses taught (as instructor)
+        
         $coursesTaught = \Modules\Schemes\Models\Course::query()
             ->where('instructor_id', $target->id)
             ->count();
 
-        // Count total students across all courses
+        
         $totalStudents = \Modules\Enrollments\Models\Enrollment::query()
             ->whereHas('course', function ($query) use ($target) {
                 $query->where('instructor_id', $target->id);
@@ -465,7 +465,7 @@ class UserFinder
             ->distinct('user_id')
             ->count('user_id');
 
-        // Count assignments graded by this instructor
+        
         $assignmentsGraded = Submission::query()
             ->whereHas('assignment.unit.course', function ($query) use ($target) {
                 $query->where('instructor_id', $target->id);
@@ -501,13 +501,11 @@ class UserFinder
         ]);
         $target->setAttribute('last_login_at', $lastLoginAt);
 
-        // Reset dirty attributes to prevent these non-database fields from being saved
+        
         $target->syncChanges();
     }
 
-    /**
-     * Search users globally for search module
-     */
+    
     public function searchGlobal(string $query, int $limit = 5): Collection
     {
         if (empty(trim($query))) {

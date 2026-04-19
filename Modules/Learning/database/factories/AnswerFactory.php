@@ -7,9 +7,7 @@ use Modules\Learning\Models\Answer;
 use Modules\Learning\Models\Question;
 use Modules\Learning\Models\Submission;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Learning\Models\Answer>
- */
+
 class AnswerFactory extends Factory
 {
     protected $model = Answer::class;
@@ -30,9 +28,7 @@ class AnswerFactory extends Factory
         ];
     }
 
-    /**
-     * Answer with text content.
-     */
+    
     public function textContent(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -42,9 +38,7 @@ class AnswerFactory extends Factory
         ]);
     }
 
-    /**
-     * Answer with multiple choice selection.
-     */
+    
     public function multipleChoice(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -56,9 +50,7 @@ class AnswerFactory extends Factory
         ]);
     }
 
-    /**
-     * Answer with file attachments.
-     */
+    
     public function withFiles(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -73,9 +65,7 @@ class AnswerFactory extends Factory
         ]);
     }
 
-    /**
-     * Answer for a specific submission.
-     */
+    
     public function forSubmission(Submission $submission): static
     {
         return $this->state(fn (array $attributes) => [
@@ -83,9 +73,7 @@ class AnswerFactory extends Factory
         ]);
     }
 
-    /**
-     * Answer for a specific question.
-     */
+    
     public function forQuestion(Question $question): static
     {
         return $this->state(fn (array $attributes) => [

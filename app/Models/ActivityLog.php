@@ -16,9 +16,7 @@ class ActivityLog extends SpatieActivity
 
     protected $appends = ['device_info'];
 
-    /**
-     * Get formatted device info
-     */
+    
     public function getDeviceInfoAttribute(): string
     {
         $parts = array_filter([$this->browser, $this->browser_version, $this->platform]);
@@ -26,9 +24,7 @@ class ActivityLog extends SpatieActivity
         return $parts ? implode(' / ', $parts) : '-';
     }
 
-    /**
-     * Get icon name for device type
-     */
+    
     public function getDeviceIconAttribute(): string
     {
         return match ($this->device_type) {
@@ -39,20 +35,15 @@ class ActivityLog extends SpatieActivity
         };
     }
 
-    /**
-     * Scope query for created_at between dates
-     */
-    /**
-     * Scope query for created_at between dates.
-     * Spatie Query Builder passes values as spread arguments: $query, ...$values
-     */
+    
+    
     public function scopeCreatedAtBetween($query, ...$dates)
     {
-        // If passed as a single string "start,end" via API
+        
         if (count($dates) === 1 && is_string($dates[0]) && str_contains($dates[0], ',')) {
             $dates = explode(',', $dates[0]);
         }
-        // If passed as array or multiple args
+        
         if (count($dates) === 1 && is_array($dates[0])) {
             $dates = $dates[0];
         }

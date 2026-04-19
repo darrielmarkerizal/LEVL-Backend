@@ -22,9 +22,7 @@ class UserLeveledUp implements ShouldBroadcast
         public array $rewards = []
     ) {}
 
-    /**
-     * Get the channels the event should broadcast on.
-     */
+    
     public function broadcastOn(): array
     {
         return [
@@ -32,17 +30,13 @@ class UserLeveledUp implements ShouldBroadcast
         ];
     }
 
-    /**
-     * The event's broadcast name.
-     */
+    
     public function broadcastAs(): string
     {
         return 'level.up';
     }
 
-    /**
-     * Get the data to broadcast.
-     */
+    
     public function broadcastWith(): array
     {
         return [

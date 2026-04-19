@@ -22,18 +22,7 @@ class LeaderboardController extends Controller
         private readonly GamificationServiceInterface $gamificationService
     ) {}
 
-    /**
-     * Get Leaderboard
-     *
-     * Retrieves the global leaderboard with optional pagination and period filtering.
-     *
-     * @unauthenticated
-     *
-     * @queryParam filter.period string The time period to filter by. Example: today, this_week, this_month, this_year, all_time
-     * @queryParam filter.month string Filter by specific month (YYYY-MM). Example: 2026-01, 2026-02
-     * @queryParam per_page int Number of items per page. Example: 15
-     * @queryParam page int The page number. Example: 1
-     */
+    
     public function index(Request $request): JsonResponse
     {
         $perPage = (int) ($request->input('per_page', 15));
@@ -97,7 +86,7 @@ class LeaderboardController extends Controller
 
         $response = $this->gamificationService->exportUserGamificationLog($userId, $type, $request);
         
-        // Ensure binary response is not wrapped
+        
         if ($type === 'excel') {
             $response->headers->set('X-Vapor-Base64-Encode', 'False');
         }

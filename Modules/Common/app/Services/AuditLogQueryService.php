@@ -29,12 +29,12 @@ class AuditLogQueryService
         $query = AuditLog::query();
         $search = $validated['search'] ?? null;
 
-        // Use PgSearchable trait for search
+        
         if ($search && trim($search) !== '') {
             $query->search($search);
         }
 
-        // Also search in properties JSON if search term provided
+        
         if ($search && trim($search) !== '') {
             $query->orWhereRaw('properties::text ILIKE ?', ["%{$search}%"]);
         }
@@ -44,7 +44,7 @@ class AuditLogQueryService
             300,
             function () use ($query, $perPage) {
                 return QueryBuilder::for($query)
-                    ->with('causer') // Changed from 'actor' to 'causer' (Spatie's relationship name)
+                    ->with('causer') 
                     ->allowedFilters([
                         AllowedFilter::callback('action', fn ($q, $v) => $q->where('description', $v)),
                         AllowedFilter::scope('actions', 'action_in'),
@@ -67,7 +67,7 @@ class AuditLogQueryService
 
     public function findById(int $id): ?AuditLog
     {
-        return AuditLog::with('causer')->find($id); // Changed from 'actor' to 'causer'
+        return AuditLog::with('causer')->find($id); 
     }
 
     public function getAvailableActions(): array

@@ -18,9 +18,9 @@ beforeEach(function () {
     ]);
 });
 
-// ==================== POSITIVE TEST CASES ====================
 
-// POST - Enroll
+
+
 it('student can enroll in auto_accept course', function () {
     $response = $this->actingAs($this->student, 'api')
         ->postJson(api("/courses/{$this->course->slug}/enrollments"));
@@ -62,7 +62,7 @@ it('student can enroll in approval course', function () {
         ->assertJsonPath('data.enrollment.status', 'pending');
 });
 
-// POST - Cancel Enrollment
+
 it('student can cancel their enrollment', function () {
     $enrollment = Enrollment::factory()->create([
         'user_id' => $this->student->id,
@@ -80,7 +80,7 @@ it('student can cancel their enrollment', function () {
     ]);
 });
 
-// POST - Approve Enrollment
+
 it('admin can approve pending enrollment', function () {
     $student = User::factory()->create();
     $student->assignRole('Student');
@@ -97,7 +97,7 @@ it('admin can approve pending enrollment', function () {
         ->assertJsonPath('data.enrollment.status', 'active');
 });
 
-// POST - Decline Enrollment
+
 it('admin can decline pending enrollment', function () {
     $student = User::factory()->create();
     $student->assignRole('Student');
@@ -114,9 +114,9 @@ it('admin can decline pending enrollment', function () {
         ->assertJsonPath('data.enrollment.status', 'cancelled');
 });
 
-// ==================== NEGATIVE TEST CASES ====================
 
-// POST - Enroll Negative
+
+
 it('cannot enroll in key_based course without key', function () {
     $course = Course::factory()->create([
         'enrollment_type' => 'key_based',
@@ -163,13 +163,13 @@ it('unauthenticated user cannot enroll', function () {
     $response->assertStatus(401);
 });
 
-// POST - Cancel Negative
+
 it('cannot cancel non-existent enrollment', function () {
-    // Student has no enrollment in this course
+    
     $response = $this->actingAs($this->student, 'api')
         ->postJson(api("/courses/{$this->course->slug}/cancel"));
 
-    // Should return 404 or 422 depending on implementation
+    
     expect($response->status())->toBeIn([404, 422]);
 });
 
@@ -181,14 +181,14 @@ it('cannot cancel enrollment of other user', function () {
         'course_id' => $this->course->id,
     ]);
 
-    // Current student has no enrollment, so should return 404 or 422
+    
     $response = $this->actingAs($this->student, 'api')
         ->postJson(api("/courses/{$this->course->slug}/cancel"));
 
     expect($response->status())->toBeIn([404, 422]);
 });
 
-// POST - Approve/Decline Negative
+
 it('student cannot approve enrollment', function () {
     $otherStudent = User::factory()->create();
     $otherStudent->assignRole('Student');

@@ -22,10 +22,7 @@ class PostMediaController extends Controller
         private readonly PostService $service
     ) {}
 
-    /**
-     * Upload image for rich text editor
-     * Rate limit: 10 per minute (applied in routes)
-     */
+    
     public function uploadImage(UploadImageRequest $request): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -35,7 +32,7 @@ class PostMediaController extends Controller
         $postUuid = $request->input('post_uuid');
         $file = $request->file('image');
 
-        // If post_uuid provided, find existing post
+        
         if ($postUuid) {
             $post = $this->service->repository->findByUuid($postUuid);
 
@@ -43,7 +40,7 @@ class PostMediaController extends Controller
                 return $this->error(__('messages.posts.not_found'), [], 404);
             }
         } else {
-            // Create temporary post
+            
             $dto = new CreatePostDTO(
                 title: 'temp_upload',
                 content: '',
@@ -58,7 +55,7 @@ class PostMediaController extends Controller
             $post = $this->service->createPost($dto, auth('api')->id());
         }
 
-        // Upload image
+        
         $imageUrl = $this->service->uploadImage($post, $file);
 
         return $this->success([

@@ -10,9 +10,7 @@ use Modules\Schemes\Models\Course;
 
 trait ValidatesEnrollment
 {
-    /**
-     * Get active enrollment for the authenticated student
-     */
+    
     protected function getActiveEnrollment(Course $course): ?Enrollment
     {
         $user = auth('api')->user();
@@ -27,27 +25,23 @@ trait ValidatesEnrollment
             ->first();
     }
 
-    /**
-     * Check if student is enrolled in the course
-     */
+    
     protected function isEnrolled(Course $course): bool
     {
         return $this->getActiveEnrollment($course) !== null;
     }
 
-    /**
-     * Require enrollment for students, return error response if not enrolled
-     */
+    
     protected function requireEnrollment(Course $course): ?object
     {
         $user = auth('api')->user();
 
-        // Non-students can access (admin, instructor, etc)
+        
         if (! $user || ! $user->hasRole('Student')) {
             return null;
         }
 
-        // Check enrollment
+        
         if (! $this->isEnrolled($course)) {
             return $this->forbidden(__('messages.enrollments.not_enrolled'));
         }

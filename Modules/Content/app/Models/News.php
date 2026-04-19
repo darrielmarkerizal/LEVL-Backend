@@ -42,9 +42,7 @@ class News extends Model implements HasMedia
         return \Modules\Content\Database\Factories\NewsFactory::new();
     }
 
-    /**
-     * Register media collections for this model.
-     */
+    
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('featured_image')
@@ -57,19 +55,17 @@ class News extends Model implements HasMedia
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
     }
 
-    /**
-     * Register media conversions for this model.
-     */
+    
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')->width(400)->height(300)->sharpen(10);
 
         $this->addMediaConversion('og_image')
             ->width(1200)
-            ->height(630) // Open Graph ratio for social sharing
+            ->height(630) 
             ->performOnCollections('featured_image');
 
-        // Mobile-optimized sizes
+        
         $this->addMediaConversion('mobile')
             ->width(320)
             ->height(240)
@@ -81,9 +77,7 @@ class News extends Model implements HasMedia
             ->performOnCollections('featured_image', 'gallery');
     }
 
-    /**
-     * Get the options for generating the slug.
-     */
+    
     public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()
@@ -92,9 +86,7 @@ class News extends Model implements HasMedia
             ->doNotGenerateSlugsOnUpdate();
     }
 
-    /**
-     * Get activity log options for this model.
-     */
+    
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

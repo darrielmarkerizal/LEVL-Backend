@@ -8,11 +8,7 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 
 class EventServiceProvider extends ServiceProvider
 {
-    /**
-     * The event handler mappings for the application.
-     *
-     * @var array<string, array<int, string>>
-     */
+    
     protected $listen = [
         \Modules\Auth\Events\UserStatusChanged::class => [
             \Modules\Auth\Listeners\LogUserStatusChange::class,
@@ -35,15 +31,9 @@ class EventServiceProvider extends ServiceProvider
         ],
     ];
 
-    /**
-     * Indicates if events should be discovered.
-     *
-     * @var bool
-     */
+    
     protected static $shouldDiscoverEvents = false;
 
-    /**
-     * Configure the proper event listeners for email verification.
-     */
+    
     protected function configureEmailVerification(): void {}
 }

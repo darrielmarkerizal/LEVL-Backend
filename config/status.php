@@ -1,15 +1,7 @@
 <?php
 
 return [
-    /*
-    |--------------------------------------------------------------------------
-    | Status Enums Registry
-    |--------------------------------------------------------------------------
-    |
-    | Central registry for all status enums used across the application.
-    | This ensures consistency and makes it easier to maintain and test.
-    |
-    */
+    
 
     'enrollment' => [
         'pending' => 'pending',
@@ -79,14 +71,5 @@ return [
         'read' => 'read',
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Helper Functions
-    |--------------------------------------------------------------------------
-    |
-    | Use these helper functions to get status values:
-    | config('status.enrollment.active')
-    | config('status.progress.completed')
-    |
-    */
+    
 ];

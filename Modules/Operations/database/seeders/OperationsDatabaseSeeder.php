@@ -37,8 +37,8 @@ class OperationsDatabaseSeeder extends Seeder
             );
         }
 
-        // Note: Reports table was dropped in cleanup migration (2026_03_30_000001_drop_unused_tables.php)
-        // Reports functionality may have been moved to a different system or removed
+        
+        
 
         $this->command->info('Operations seeding done.');
     }

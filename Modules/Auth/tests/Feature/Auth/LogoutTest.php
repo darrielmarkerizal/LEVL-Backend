@@ -20,7 +20,7 @@ test('logout invalidates token', function () {
     $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->postJson('/api/v1/auth/logout');
 
-    // Try accessing profile
+    
     $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->getJson('/api/v1/profile');
 

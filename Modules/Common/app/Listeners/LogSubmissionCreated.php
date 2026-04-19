@@ -24,9 +24,7 @@ class LogSubmissionCreated implements ShouldQueue
         private readonly AuditServiceInterface $auditService
     ) {}
 
-    /**
-     * Handle the event.
-     */
+    
     public function handle(SubmissionCreated $event): void
     {
         $this->auditService->logSubmissionCreated($event->submission);

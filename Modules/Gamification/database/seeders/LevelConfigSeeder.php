@@ -17,7 +17,7 @@ class LevelConfigSeeder extends Seeder
 
         $this->command->info("✓ Successfully synced {$synced} level configurations");
 
-        // Show some examples
+        
         $this->command->newLine();
         $this->command->info('Examples:');
         $examples = [1, 10, 25, 50, 75, 100];

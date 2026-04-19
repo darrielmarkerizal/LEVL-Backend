@@ -1,22 +1,13 @@
 <?php
 
-/**
- * Script untuk mencari student yang paling banyak memiliki badge
- *
- * Usage:
- * php artisan tinker < find_top_badge_students.php
- *
- * Or run directly in tinker:
- * php artisan tinker
- * > include 'find_top_badge_students.php';
- */
+
 
 use Modules\Auth\Models\User;
 use Modules\Gamification\Models\UserBadge;
 
 echo "\n=== TOP STUDENTS BY BADGE COUNT ===\n\n";
 
-// Method 1: Using withCount (Recommended - Most Efficient)
+
 echo "Method 1: Using withCount (Recommended)\n";
 echo str_repeat('-', 50)."\n";
 
@@ -38,7 +29,7 @@ foreach ($topStudents as $index => $student) {
 
 echo "\n".str_repeat('=', 50)."\n\n";
 
-// Method 2: Using Query Builder with JOIN
+
 echo "Method 2: Using Query Builder with JOIN\n";
 echo str_repeat('-', 50)."\n";
 
@@ -72,7 +63,7 @@ foreach ($topStudentsQuery as $index => $student) {
 
 echo "\n".str_repeat('=', 50)."\n\n";
 
-// Method 3: Get detailed badge information for top student
+
 echo "Method 3: Detailed Badge Information for Top Student\n";
 echo str_repeat('-', 50)."\n";
 
@@ -89,7 +80,7 @@ if ($topStudent) {
     );
     echo sprintf("Total Badges: %d\n\n", $topStudent->badges_count);
 
-    // Get all badges with details
+    
     $badges = UserBadge::where('user_id', $topStudent->id)
         ->with(['badge' => function ($query) {
             $query->select('id', 'name', 'code', 'category', 'rarity', 'type');
@@ -114,7 +105,7 @@ if ($topStudent) {
 
 echo "\n".str_repeat('=', 50)."\n\n";
 
-// Method 4: Badge Statistics by Category
+
 echo "Method 4: Badge Statistics by Category for Top Student\n";
 echo str_repeat('-', 50)."\n";
 
@@ -137,7 +128,7 @@ if ($topStudent) {
 
     echo "\n";
 
-    // Badge by rarity
+    
     $badgesByRarity = UserBadge::where('user_id', $topStudent->id)
         ->join('badges', 'user_badges.badge_id', '=', 'badges.id')
         ->select('badges.rarity', DB::raw('COUNT(*) as count'))
@@ -157,7 +148,7 @@ if ($topStudent) {
 
 echo "\n".str_repeat('=', 50)."\n\n";
 
-// Method 5: Compare Top 5 Students
+
 echo "Method 5: Comparison of Top 5 Students\n";
 echo str_repeat('-', 50)."\n";
 
@@ -193,7 +184,7 @@ foreach ($top5Students as $index => $student) {
 
 echo "\n".str_repeat('=', 50)."\n\n";
 
-// Summary Statistics
+
 echo "Summary Statistics\n";
 echo str_repeat('-', 50)."\n";
 

@@ -25,10 +25,10 @@ class AuditLogSeeder extends Seeder
         for ($i = 0; $i < 50; $i++) {
             $action = $actions[array_rand($actions)];
 
-            // Use Spatie Activity Log instead of deprecated AuditLog
+            
             activity()
                 ->causedBy($admin)
-                ->performedOn($admin) // Subject
+                ->performedOn($admin) 
                 ->withProperties([
                     'assignment_id' => rand(1, 10),
                     'student_id' => rand(1, 5),

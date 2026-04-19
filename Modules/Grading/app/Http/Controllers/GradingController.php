@@ -38,11 +38,11 @@ class GradingController extends Controller
     public function manualGrade(ManualGradeRequest $request, Submission $submission): JsonResponse
     {
         try {
-            // Check if this is quiz grading (with grades array) or assignment grading (with score)
+            
             $hasGrades = !empty($request->validated('grades'));
 
             if ($hasGrades) {
-                // Quiz grading: grade individual questions
+                
                 $dto = new SubmissionGradeDTO(
                     submissionId: $submission->id,
                     answers: $request->validated('grades'),
@@ -58,7 +58,7 @@ class GradingController extends Controller
                     __('messages.grading.manual_graded')
                 );
             } else {
-                // Assignment grading: overall score with create-or-update behavior.
+                
                 $dto = new SubmissionGradeDTO(
                     submissionId: $submission->id,
                     answers: [],
@@ -131,7 +131,7 @@ class GradingController extends Controller
             $this->entryService->returnToQueue($submission->id);
 
             return $this->success(
-                ['submission_id' => $submission->id, 'state' => $submission->refresh()->state?->value],
+                ['submission_id' => $submission->id, 'workflow_state' => $submission->refresh()->state?->value],
                 __('messages.grading.returned_to_queue')
             );
         } catch (InvalidArgumentException $e) {
@@ -195,7 +195,7 @@ class GradingController extends Controller
             return $this->success(
                 [
                     'submission_id' => $submission->id,
-                    'state' => $submission->refresh()->state?->value,
+                    'workflow_state' => $submission->refresh()->state?->value,
                     'grade' => $submission->grade ? GradeResource::make($submission->grade) : null,
                 ],
                 __('messages.grading.grade_released')
@@ -214,21 +214,21 @@ class GradingController extends Controller
                 async: $request->boolean('async')
             );
 
-            // Service expects DTO now? GradingBulkService::handleBulkRelease(BulkOperationDTO $data)
+            
             $this->bulkService->handleBulkRelease($dto);
 
-            // GradingBulkService void return for DTO arg? Let's check signature.
-            // `handleBulkRelease(BulkOperationDTO $data): void` in implementation I wrote.
-            // But controller was returning a result array.
-            // I should update controller response to assume void success or I should have returned something.
-            // The service queues jobs or executes.
-            // Let's construct response manually based on async flag.
+            
+            
+            
+            
+            
+            
 
             $isAsync = $request->boolean('async');
             $response = [
                 'async' => $isAsync,
-                // 'count' => ... service doesn't return count.
-                // This is fine for now. Simplify response.
+                
+                
             ];
 
             return $this->success($response, $isAsync ? __('messages.grading.bulk_release_queued') : __('messages.grading.bulk_released'));

@@ -10,19 +10,19 @@ class TrashDeleteContext
 
     public ?string $activeGroupUuid = null;
 
-    /** @var array<string, string> */
+    
     public array $groupByModel = [];
 
-    /** @var array<string, array{type: string, id: int}> */
+    
     public array $rootByModel = [];
 
-    /** @var array<string, string|null> */
+    
     public array $originalStatusByModel = [];
 
-    /** @var array<string, string|null> */
+    
     public array $trashedStatusByModel = [];
 
-    /** @var array<string, bool> */
+    
     public array $processedDeleteModels = [];
 
     public function reset(): void

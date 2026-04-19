@@ -50,7 +50,7 @@ class TrashBinRepository implements TrashBinRepositoryInterface
         }
 
         if ($search) {
-            // Optimized search: use ILIKE for basic matching, similarity for ordering
+            
             $query->where(function ($subQuery) use ($search): void {
                 $subQuery->whereRaw("COALESCE(metadata->>'title', '') ILIKE ?", ["%{$search}%"])
                     ->orWhereHas('deletedByUser', function ($userQuery) use ($search) {
@@ -59,7 +59,7 @@ class TrashBinRepository implements TrashBinRepositoryInterface
                     });
             });
 
-            // Add similarity-based ordering for better relevance
+            
             $query->orderByRaw("similarity(COALESCE(metadata->>'title', ''), ?) DESC", [$search]);
         }
 
@@ -101,7 +101,7 @@ class TrashBinRepository implements TrashBinRepositoryInterface
 
     public function getSourceTypesForAccess(int $actorId, array $accessibleCourseIds): array
     {
-        // Don't cache user-specific data
+        
         return TrashBin::query()
             ->where(function ($sub) use ($actorId, $accessibleCourseIds): void {
                 $sub->where('deleted_by', $actorId);

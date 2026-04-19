@@ -1,7 +1,7 @@
 <?php
 
 return [
-    // HTTP status messages
+    
     'success' => 'Permintaan berhasil diproses.',
     'created' => 'Berhasil dibuat.',
     'updated' => 'Berhasil diperbarui.',
@@ -33,7 +33,7 @@ return [
     'validation_failed' => 'Data yang dikirim tidak valid. Silakan periksa kembali isian Anda.',
     'server_error' => 'Terjadi kesalahan pada server. Silakan coba beberapa saat lagi.',
     
-    // Validation messages (nested structure)
+    
     'validation' => [
         'failed' => 'Data yang dikirim tidak valid. Silakan periksa kembali isian Anda.',
     ],
@@ -47,14 +47,14 @@ return [
     'user_data_not_found' => 'Data pengguna tidak ditemukan.',
     'invalid_credentials' => 'Email/username atau password salah. Silakan periksa kembali.',
 
-    // Common messages
+    
     'common' => [
         'unauthorized' => 'Anda tidak memiliki izin untuk melakukan tindakan ini.',
         'master_data_retrieved' => 'Master data berhasil diambil.',
         'not_found' => 'Data yang diminta tidak ditemukan.',
     ],
 
-    // Pluralization / count messages
+    
     'resource_created' => ':resource berhasil dibuat.',
     'items_count' => '{0} Tidak ada item|{1} 1 item|[2,*] :count item',
     'users_count' => '{0} Tidak ada pengguna|{1} 1 pengguna|[2,*] :count pengguna',
@@ -64,7 +64,7 @@ return [
     'records_found' => '{0} Tidak ada data ditemukan|{1} 1 data ditemukan|[2,*] :count data ditemukan',
     'and_n_more_errors' => 'dan :count error lagi|dan :count error lagi',
 
-    // Categories
+    
     'categories' => [
         'list_retrieved' => 'Daftar kategori berhasil diambil.',
         'created' => 'Kategori berhasil dibuat.',
@@ -73,12 +73,12 @@ return [
         'not_found' => 'Kategori yang diminta tidak ditemukan.',
     ],
 
-    // Media
+    
     'media' => [
         'uploaded' => 'Media berhasil diunggah.',
     ],
 
-    // Badges
+    
     'badges' => [
         'retrieved' => 'Daftar lencana berhasil diambil.',
         'created' => 'Lencana berhasil dibuat.',
@@ -87,7 +87,7 @@ return [
         'not_found' => 'Lencana yang diminta tidak ditemukan.',
     ],
 
-    // Level Configs
+    
     'level_configs' => [
         'created' => 'Konfigurasi level berhasil dibuat.',
         'updated' => 'Konfigurasi level berhasil diperbarui.',
@@ -95,7 +95,7 @@ return [
         'not_found' => 'Konfigurasi level yang diminta tidak ditemukan.',
     ],
 
-    // Achievements
+    
     'achievements' => [
         'created' => 'Pencapaian berhasil dibuat.',
         'updated' => 'Pencapaian berhasil diperbarui.',
@@ -103,7 +103,7 @@ return [
         'not_found' => 'Pencapaian yang diminta tidak ditemukan.',
     ],
 
-    // Tags
+    
     'tags' => [
         'created' => 'Tag berhasil dibuat.',
         'updated' => 'Tag berhasil diperbarui.',
@@ -112,7 +112,7 @@ return [
         'list_retrieved' => 'Daftar tag berhasil diambil.',
     ],
 
-    // Units
+    
     'units' => [
         'created' => 'Unit berhasil dibuat.',
         'updated' => 'Unit berhasil diperbarui.',
@@ -145,7 +145,7 @@ return [
         'content_reordered' => 'Urutan konten unit berhasil diperbarui.',
     ],
 
-    // Content
+    
     'content' => [
         'created' => 'Konten berhasil dibuat.',
         'updated' => 'Konten berhasil diperbarui.',
@@ -154,7 +154,7 @@ return [
         'metadata_retrieved' => 'Metadata konten berhasil diambil.',
     ],
 
-    // Lessons
+    
     'lessons' => [
         'created' => 'Pelajaran berhasil dibuat.',
         'updated' => 'Pelajaran berhasil diperbarui.',
@@ -182,7 +182,7 @@ return [
         'timer_expired' => 'Batas waktu untuk pelajaran ini telah habis.',
     ],
 
-    // Questions
+    
     'questions' => [
         'created' => 'Pertanyaan berhasil dibuat.',
         'updated' => 'Pertanyaan berhasil diperbarui.',
@@ -197,7 +197,7 @@ return [
         'reordered' => 'Urutan pertanyaan berhasil diperbarui.',
     ],
 
-    // Lesson Blocks
+    
     'lesson_blocks' => [
         'created' => 'Blok pelajaran berhasil dibuat.',
         'updated' => 'Blok pelajaran berhasil diperbarui.',
@@ -213,19 +213,19 @@ return [
         'no_delete_access' => 'Anda tidak memiliki izin untuk menghapus blok pelajaran ini.',
     ],
 
-    // Dashboard
+    
     'dashboard' => [
         'retrieved' => 'Data dashboard berhasil diambil.',
     ],
 
-    // Activity Logs
+    
     'activity_logs' => [
         'retrieved' => 'Log aktivitas berhasil diambil.',
         'item_retrieved' => 'Detail log aktivitas berhasil diambil.',
         'not_found' => 'Log aktivitas yang diminta tidak ditemukan.',
     ],
 
-    // Master Data
+    
     'master_data' => [
         'retrieved' => 'Master data berhasil diambil.',
         'not_found' => 'Master data yang diminta tidak ditemukan.',
@@ -268,7 +268,7 @@ return [
         'students_retrieved' => 'Daftar peserta berhasil diambil.',
     ],
 
-    // Courses
+    
     'courses' => [
         'created' => 'Kursus berhasil dibuat.',
         'updated' => 'Kursus berhasil diperbarui.',
@@ -310,7 +310,7 @@ return [
         'slug_generated' => 'Slug berhasil dibuat.',
     ],
 
-    // Auth Module
+    
     'auth' => [
         'login_success' => 'Selamat datang kembali! Anda berhasil masuk.',
         'logout_success' => 'Anda telah berhasil keluar.',
@@ -387,7 +387,7 @@ return [
         'multiple_choice_single_answer' => 'Soal pilihan ganda hanya boleh memiliki satu jawaban benar.',
     ],
 
-    // Account
+    
     'account' => [
         'restore_success' => 'Akun Anda berhasil dipulihkan.',
         'deletion_in_progress' => 'Akun Anda sudah dijadwalkan untuk dihapus.',
@@ -397,7 +397,7 @@ return [
         'cleanup_success' => 'Berhasil menghapus :count akun secara permanen.',
     ],
 
-    // User
+    
     'user' => [
         'not_found' => 'Pengguna yang diminta tidak ditemukan.',
     ],
@@ -408,7 +408,7 @@ return [
         'bulk_deleted' => '{0} Tidak ada pengguna yang dihapus|{1} 1 pengguna dihapus|[2,*] :count pengguna dihapus',
     ],
 
-    // Password Module
+    
     'password' => [
         'reset_sent' => 'Jika akun dengan email tersebut terdaftar, kami telah mengirimkan link reset password. Silakan periksa kotak masuk Anda.',
         'reset_success' => 'Password Anda berhasil direset. Silakan masuk dengan password baru Anda.',
@@ -427,7 +427,7 @@ return [
         'token_expired' => 'Link reset password telah kedaluwarsa. Silakan ajukan permintaan baru.',
     ],
 
-    // Profile
+    
     'profile' => [
         'updated' => 'Profil berhasil diperbarui.',
         'achievement_retrieved' => 'Pencapaian berhasil diambil.',
@@ -443,13 +443,13 @@ return [
         'no_permission' => 'Anda tidak memiliki izin untuk melihat profil ini.',
     ],
 
-    // Achievement
+    
     'achievement' => [
         'badge_not_owned' => 'Anda tidak memiliki lencana ini.',
         'badge_not_pinned' => 'Lencana ini sedang tidak disematkan.',
     ],
 
-    // Announcements
+    
     'announcements' => [
         'created' => 'Pengumuman berhasil dibuat.',
         'updated' => 'Pengumuman berhasil diperbarui.',
@@ -461,7 +461,7 @@ return [
         'marked_read' => 'Pengumuman ditandai sudah dibaca.',
     ],
 
-    // News
+    
     'news' => [
         'created' => 'Artikel berita berhasil dibuat.',
         'updated' => 'Artikel berita berhasil diperbarui.',
@@ -472,7 +472,7 @@ return [
         'list_retrieved' => 'Daftar berita berhasil diambil.',
     ],
 
-    // Enrollments
+    
     'enrollments' => [
         'enrolled' => 'Anda berhasil mendaftar ke kursus ini.',
         'unenrolled' => 'Anda berhasil keluar dari kursus ini.',
@@ -530,7 +530,7 @@ return [
         'activities_retrieved' => 'Aktivitas pendaftaran berhasil diambil.',
     ],
 
-    // Assignments
+    
     'assignments' => [
         'submitted' => 'Tugas berhasil dikumpulkan.',
         'not_found' => 'Tugas yang diminta tidak ditemukan.',
@@ -563,22 +563,22 @@ return [
         'invalid_scope_hierarchy' => 'Cakupan yang diberikan tidak sesuai dengan konteks induknya (contoh: Pelajaran tidak berada di Kursus tersebut).',
     ],
 
-    // Overrides
+    
     'overrides' => [
         'granted' => 'Override berhasil diberikan.',
     ],
 
-    // Prerequisites
+    
     'prerequisites' => [
         'incomplete_count' => 'Anda harus menyelesaikan :count item prasyarat sebelum dapat mengakses konten ini.',
     ],
 
-    // Answers
+    
     'answers' => [
         'saved' => 'Jawaban Anda berhasil disimpan.',
     ],
 
-    // Submissions
+    
     'submissions' => [
         'list_retrieved' => 'Daftar pengumpulan berhasil diambil.',
         'submitted' => 'Pengumpulan berhasil dikirim.',
@@ -607,7 +607,7 @@ return [
         'pending_grading_exists' => 'Anda masih memiliki pengumpulan yang sedang menunggu penilaian. Harap tunggu hingga instruktur menilai pengumpulan sebelumnya sebelum mengumpulkan kembali.',
     ],
 
-    // Quizzes
+    
     'quizzes' => [
         'submitted' => 'Kuis berhasil dikumpulkan.',
         'not_found' => 'Kuis yang diminta tidak ditemukan.',
@@ -628,7 +628,7 @@ return [
         'scope_not_found' => 'Cakupan kuis tidak ditemukan.',
     ],
 
-    // Quiz Submissions
+    
     'quiz_submissions' => [
         'draft_exists' => 'Anda memiliki percobaan kuis yang belum selesai. Harap selesaikan atau batalkan terlebih dahulu sebelum memulai yang baru.',
         'pending_grading' => 'Pengumpulan kuis sebelumnya masih menunggu penilaian.',
@@ -644,12 +644,12 @@ return [
         'unanswered_questions' => '{1} Anda harus menjawab :count pertanyaan sebelum mengumpulkan.|[2,*] Anda harus menjawab semua :count pertanyaan sebelum mengumpulkan.',
     ],
 
-    // Learning
+    
     'learning' => [
         'progress_saved' => 'Progres belajar Anda berhasil disimpan.',
     ],
 
-    // Files
+    
     'files' => [
         'expired' => 'File yang diminta telah kedaluwarsa dan tidak lagi tersedia.',
         'multiple_not_allowed' => 'Hanya satu file yang dapat diunggah untuk pertanyaan ini.',
@@ -657,7 +657,7 @@ return [
         'type_not_allowed' => "Tipe file ':extension' tidak diizinkan. Tipe yang diterima: :types.",
     ],
 
-    // Grading
+    
     'grading' => [
         'no_access' => 'Anda tidak memiliki izin untuk melakukan operasi penilaian ini.',
         'auto_graded' => 'Pengumpulan berhasil dinilai secara otomatis.',
@@ -682,7 +682,7 @@ return [
         'bulk_validation_failed' => 'Validasi massal gagal: :errors',
     ],
 
-    // Appeals
+    
     'appeals' => [
         'submitted' => 'Banding Anda berhasil diajukan.',
         'approved' => 'Banding berhasil disetujui.',
@@ -697,14 +697,14 @@ return [
         'denial_reason_required' => 'Alasan wajib diisi saat menolak banding.',
     ],
 
-    // Audit Logs
+    
     'audit_logs' => [
         'no_access' => 'Anda tidak memiliki izin untuk melihat log audit.',
         'not_found' => 'Log audit yang diminta tidak ditemukan.',
         'retrieved' => 'Log audit berhasil diambil.',
     ],
 
-    // Progress
+    
     'progress' => [
         'locked_prerequisite' => 'Pelajaran ini terkunci. Selesaikan pelajaran prasyarat untuk membukanya.',
         'lesson_not_in_unit' => 'Pelajaran ini tidak termasuk dalam unit yang dimaksud.',
@@ -712,14 +712,14 @@ return [
         'updated' => 'Progres berhasil diperbarui.',
     ],
 
-    // Gamification
+    
     'gamification' => [
         'points_awarded' => 'Poin berhasil diberikan.',
         'leaderboard_updated' => 'Peringkat papan pemimpin berhasil diperbarui.',
         'updating_leaderboard' => 'Memperbarui papan pemimpin...',
     ],
 
-    // Forums
+    
     'forums' => [
         'thread_created' => 'Diskusi berhasil dibuat.',
         'thread_retrieved' => 'Diskusi berhasil diambil.',
@@ -748,7 +748,7 @@ return [
         'unauthorized_access' => 'Anda tidak memiliki izin untuk mengakses resource ini.',
     ],
 
-    // Notifications
+    
     'notifications' => [
         'list_retrieved' => 'Notifikasi berhasil diambil.',
         'marked_read' => 'Notifikasi ditandai sudah dibaca.',
@@ -758,13 +758,13 @@ return [
         'failed_reset_preferences' => 'Gagal mereset preferensi notifikasi. Silakan coba lagi.',
     ],
 
-    // Search
+    
     'search' => [
         'history_cleared' => 'Riwayat pencarian berhasil dihapus.',
         'history_deleted' => 'Entri riwayat pencarian berhasil dihapus.',
     ],
 
-    // Trash
+    
     'trash_bins' => [
         'list_retrieved' => 'Daftar item di tempat sampah berhasil diambil.',
         'source_types_retrieved' => 'Tipe sumber tempat sampah berhasil diambil.',
@@ -794,12 +794,12 @@ return [
         'purge_success' => 'Berhasil membersihkan :count item yang telah kedaluwarsa.',
     ],
 
-    // Permissions
+    
     'permission_denied' => 'Anda tidak memiliki izin untuk melakukan tindakan ini.',
     'insufficient_permissions' => 'Anda tidak memiliki izin yang cukup untuk operasi ini.',
     'role_required' => 'Tindakan ini memerlukan peran :role.',
 
-    // Validation
+    
     'invalid_input' => 'Input yang diberikan tidak valid.',
     'missing_required_field' => 'Terdapat isian wajib yang belum diisi.',
 
@@ -830,13 +830,13 @@ return [
         'search_string' => 'Kata kunci pencarian harus berupa string.',
     ],
 
-    // Dashboard
+    
     'dashboard_retrieved' => 'Data dashboard berhasil diambil.',
     'recent_learning_retrieved' => 'Aktivitas pembelajaran terkini berhasil diambil.',
     'recent_achievements_retrieved' => 'Pencapaian terkini berhasil diambil.',
     'recommended_courses_retrieved' => 'Kursus rekomendasi berhasil diambil.',
 
-    // Dashboard Activity Types
+    
     'activity' => [
         'default' => 'Aktivitas pembelajaran',
         'lesson_completion' => 'Menyelesaikan lesson: :title',

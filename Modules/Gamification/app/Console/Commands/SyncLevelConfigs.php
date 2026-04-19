@@ -25,7 +25,7 @@ class SyncLevelConfigs extends Command
         $this->info('Formula: XP(level) = 100 × level^1.6');
         $this->newLine();
 
-        // Show preview
+        
         $this->table(
             ['Level', 'XP Required', 'Total XP', 'Name'],
             collect(range($startLevel, min($startLevel + 9, $endLevel)))->map(function ($level) use ($levelService) {
@@ -64,7 +64,7 @@ class SyncLevelConfigs extends Command
 
         $this->info("✓ Successfully synced {$synced} level configurations");
 
-        // Show some examples
+        
         $this->newLine();
         $this->info('Examples:');
         $examples = [1, 10, 25, 50, 75, 100];

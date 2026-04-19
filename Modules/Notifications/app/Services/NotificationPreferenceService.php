@@ -12,14 +12,12 @@ use Modules\Notifications\Models\NotificationPreference;
 
 class NotificationPreferenceService implements NotificationPreferenceServiceInterface
 {
-    /**
-     * Get user's notification preferences.
-     */
+    
     public function getPreferences(User $user): Collection
     {
         $preferences = NotificationPreference::where('user_id', $user->id)->get();
 
-        // If user has no preferences, create defaults
+        
         if ($preferences->isEmpty()) {
             $this->createDefaultPreferences($user);
             $preferences = NotificationPreference::where('user_id', $user->id)->get();
@@ -28,12 +26,10 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
         return $preferences;
     }
 
-    /**
-     * Update user's notification preferences from DTO or array.
-     */
+    
     public function updatePreferences(User $user, UpdateNotificationPreferencesDTO|array $preferences): bool
     {
-        // Convert array to DTO if needed
+        
         if (is_array($preferences)) {
             $preferences = UpdateNotificationPreferencesDTO::from(['preferences' => $preferences]);
         }
@@ -57,12 +53,10 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
         });
     }
 
-    /**
-     * Check if notification should be sent based on user preferences.
-     */
+    
     public function shouldSendNotification(User $user, string $category, string $channel): bool
     {
-        // Critical system notifications should always be sent
+        
         if ($this->isCriticalNotification($category)) {
             return true;
         }
@@ -74,7 +68,7 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
             ->orderByRaw("CASE WHEN category = ? THEN 0 ELSE 1 END", [$category])
             ->first();
 
-        // If no preference exists, check defaults
+        
         if (! $preference) {
             return $this->shouldSendByDefault($categories[0] ?? $category, $channel);
         }
@@ -82,18 +76,16 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
         return $preference->enabled;
     }
 
-    /**
-     * Reset user preferences to defaults.
-     */
+    
     public function resetToDefaults(User $user): bool
     {
         try {
             DB::beginTransaction();
 
-            // Delete existing preferences
+            
             NotificationPreference::where('user_id', $user->id)->delete();
 
-            // Create default preferences
+            
             $this->createDefaultPreferences($user);
 
             DB::commit();
@@ -106,9 +98,7 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
         }
     }
 
-    /**
-     * Get default preferences for a new user.
-     */
+    
     public function getDefaultPreferences(): array
     {
         $categories = NotificationPreference::getCategories();
@@ -125,9 +115,7 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
             ->all();
     }
 
-    /**
-     * Create default preferences for a user.
-     */
+    
     protected function createDefaultPreferences(User $user): void
     {
         $defaults = $this->getDefaultPreferences();
@@ -143,9 +131,7 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
         }
     }
 
-    /**
-     * Check if a notification is critical.
-     */
+    
     protected function isCriticalNotification(string $category): bool
     {
         $criticalCategories = [
@@ -155,12 +141,10 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
         return collect($criticalCategories)->contains($category);
     }
 
-    /**
-     * Get default enabled state for a category and channel.
-     */
+    
     protected function getDefaultEnabledState(string $category, string $channel): bool
     {
-        // Email enabled by default for important categories
+        
         if ($channel === NotificationPreference::CHANNEL_EMAIL) {
             return collect([
                 NotificationType::Assignment->value,
@@ -170,7 +154,7 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
             ])->contains($category);
         }
 
-        // In-app notifications enabled for all categories
+        
         if ($channel === NotificationPreference::CHANNEL_IN_APP) {
             return true;
         }
@@ -182,17 +166,15 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
         return true;
     }
 
-    /**
-     * Get default frequency for a category and channel.
-     */
+    
     protected function getDefaultFrequency(string $category, string $channel): string
     {
-        // Critical notifications should be immediate
+        
         if ($this->isCriticalNotification($category)) {
             return NotificationPreference::FREQUENCY_IMMEDIATE;
         }
 
-        // Forum notifications can be daily digest
+        
         if ($category === NotificationType::Forum->value) {
             return NotificationPreference::FREQUENCY_DAILY;
         }
@@ -200,9 +182,7 @@ class NotificationPreferenceService implements NotificationPreferenceServiceInte
         return NotificationPreference::FREQUENCY_IMMEDIATE;
     }
 
-    /**
-     * Check if notification should be sent by default.
-     */
+    
     protected function shouldSendByDefault(string $category, string $channel): bool
     {
         return $this->getDefaultEnabledState($category, $channel);

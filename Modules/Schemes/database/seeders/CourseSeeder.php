@@ -10,15 +10,7 @@ use Modules\Schemes\Models\Unit;
 
 class CourseSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * Creates comprehensive course data:
-     * - 50 courses with multiple units and lessons
-     * - Assign 200 instructors to courses (Admin & Instructor roles)
-     * - Create units (5-8 per course)
-     * - Create lessons (10-15 per unit)
-     */
+    
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
@@ -35,7 +27,7 @@ class CourseSeeder extends Seeder
             return;
         }
 
-        // Create 20 courses
+        
         echo "Creating 20 courses...\n";
         $courses = Course::factory()
             ->count(20)
@@ -43,11 +35,11 @@ class CourseSeeder extends Seeder
             ->openEnrollment()
             ->create();
 
-        // ✅ Batch assign instructors to courses (instead of per-instructor updateOrCreate)
+        
         echo "Assigning instructors to courses...\n";
         $this->assignInstructorsToCourses($courses, $instructors);
 
-        // ✅ Batch create units and lessons
+        
         echo "Creating units and lessons...\n";
         $this->createUnitsAndLessons($courses);
 
@@ -58,9 +50,7 @@ class CourseSeeder extends Seeder
         \DB::connection()->enableQueryLog();
     }
 
-    /**
-     * Batch assign instructors to courses
-     */
+    
     private function assignInstructorsToCourses($courses, $instructors): void
     {
         $courseUpdates = [];
@@ -73,7 +63,7 @@ class CourseSeeder extends Seeder
                 'instructor_id' => $mainInstructor->id,
             ];
 
-            // Additional instructors are now managed via course_instructors pivot table
+            
             $additionalAdminsCount = rand(0, 2);
             if ($additionalAdminsCount > 0) {
                 $availableInstructors = $instructors->where('id', '!=', $mainInstructor->id);
@@ -91,9 +81,7 @@ class CourseSeeder extends Seeder
         }
     }
 
-    /**
-     * Batch create units and lessons for all courses
-     */
+    
     private function createUnitsAndLessons($courses): void
     {
         $counter = 0;

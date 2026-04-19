@@ -6,14 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         if (Schema::hasTable('enrollments') && Schema::hasColumn('enrollments', 'progress_percent')) {
             Schema::table('enrollments', function (Blueprint $table) {
-                // Drop index first to avoid issues if column drop cascades
+                
                 $table->dropIndex(['status', 'progress_percent']);
                 $table->dropColumn('progress_percent');
             });
@@ -24,9 +22,7 @@ return new class extends Migration
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         if (Schema::hasTable('enrollments') && ! Schema::hasColumn('enrollments', 'progress_percent')) {

@@ -17,7 +17,7 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
             ->with(['author', 'course'])
             ->withCount('reads');
 
-        // Handle search
+        
         if (isset($filters['search']) && trim($filters['search']) !== '') {
             $query->search($filters['search']);
         }
@@ -54,7 +54,7 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
             ->with(['author'])
             ->withCount('reads');
 
-        // Handle search
+        
         if (isset($filters['search']) && trim($filters['search']) !== '') {
             $query->search($filters['search']);
         }

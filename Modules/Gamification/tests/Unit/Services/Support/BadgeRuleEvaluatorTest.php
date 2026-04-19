@@ -59,7 +59,7 @@ class BadgeRuleEvaluatorTest extends TestCase
             \Mockery::any()
         );
 
-        // Correct slug
+        
         $this->evaluator->evaluate($this->user, 'course_completed', ['course_slug' => 'laravel-101']);
     }
 
@@ -75,7 +75,7 @@ class BadgeRuleEvaluatorTest extends TestCase
 
         $this->badgeManagerMock->shouldReceive('awardBadge')->never();
 
-        // Incorrect slug
+        
         $this->evaluator->evaluate($this->user, 'course_completed', ['course_slug' => 'php-101']);
     }
 

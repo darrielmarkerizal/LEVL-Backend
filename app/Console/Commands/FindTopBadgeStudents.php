@@ -23,7 +23,7 @@ class FindTopBadgeStudents extends Command
         $this->info('=== TOP STUDENTS BY BADGE COUNT ===');
         $this->newLine();
 
-        // Get top students
+        
         $topStudents = User::role('Student')
             ->withCount('badges')
             ->with(['gamificationStats' => function ($query) {
@@ -39,7 +39,7 @@ class FindTopBadgeStudents extends Command
             return 0;
         }
 
-        // Display table
+        
         $headers = ['Rank', 'Name', 'Email', 'Badges', 'Level', 'Total XP'];
         $rows = [];
 
@@ -56,12 +56,12 @@ class FindTopBadgeStudents extends Command
 
         $this->table($headers, $rows);
 
-        // Show detailed information if requested
+        
         if ($detailed && $topStudents->isNotEmpty()) {
             $this->showDetailedInfo($topStudents->first());
         }
 
-        // Show summary statistics
+        
         $this->showSummaryStatistics();
 
         return 0;
@@ -75,7 +75,7 @@ class FindTopBadgeStudents extends Command
         $this->line("Total Badges: {$student->badges_count}");
         $this->newLine();
 
-        // Get badges with details
+        
         $badges = UserBadge::where('user_id', $student->id)
             ->with(['badge' => function ($query) {
                 $query->select('id', 'name', 'code', 'category', 'rarity', 'type');
@@ -98,7 +98,7 @@ class FindTopBadgeStudents extends Command
             $badgeRows
         );
 
-        // Show statistics by category
+        
         $this->showBadgeBreakdown($student->id);
     }
 

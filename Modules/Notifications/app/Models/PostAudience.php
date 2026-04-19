@@ -26,7 +26,7 @@ class PostAudience extends Model
         'created_at',
     ];
 
-    // Relationships
+    
 
     public function post(): BelongsTo
     {

@@ -27,7 +27,7 @@ class PostView extends Model
         'viewed_at',
     ];
 
-    // Relationships
+    
 
     public function post(): BelongsTo
     {

@@ -26,7 +26,7 @@ class NotificationPreference extends Model
         'enabled' => 'boolean',
     ];
 
-    // Categories (kept for backward compatibility)
+    
     const CATEGORY_COURSE_UPDATES = 'course_updates';
 
     const CATEGORY_ASSIGNMENTS = 'assignments';
@@ -37,47 +37,39 @@ class NotificationPreference extends Model
 
     const CATEGORY_SYSTEM = 'system';
 
-    // Channels (kept for backward compatibility)
+    
     const CHANNEL_EMAIL = 'email';
 
     const CHANNEL_IN_APP = 'in_app';
 
     const CHANNEL_PUSH = 'push';
 
-    // Frequency (kept for backward compatibility)
+    
     const FREQUENCY_IMMEDIATE = 'immediate';
 
     const FREQUENCY_DAILY = 'daily';
 
     const FREQUENCY_WEEKLY = 'weekly';
 
-    /**
-     * Get all available categories.
-     */
+    
     public static function getCategories(): array
     {
         return NotificationType::values();
     }
 
-    /**
-     * Get all available channels.
-     */
+    
     public static function getChannels(): array
     {
         return NotificationChannel::values();
     }
 
-    /**
-     * Get all available frequencies.
-     */
+    
     public static function getFrequencies(): array
     {
         return NotificationFrequency::values();
     }
 
-    /**
-     * Get the user that owns the preference.
-     */
+    
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

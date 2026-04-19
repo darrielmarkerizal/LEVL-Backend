@@ -5,13 +5,10 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    /**
-     * Convert varchar columns with CHECK constraints to native PostgreSQL enum types.
-     * This improves storage efficiency, query performance, and data integrity.
-     */
+    
     public function up(): void
     {
-        // ─── Content Module ─────────────────────────────────────────────
+        
         $this->createEnumAndConvert('content_status', [
             'draft', 'submitted', 'in_review', 'approved', 'rejected', 'scheduled', 'published', 'archived',
         ], [
@@ -32,7 +29,7 @@ return new class extends Migration
             ['table' => 'announcements', 'column' => 'target_type', 'default' => 'all', 'check' => 'announcements_target_type_check'],
         ]);
 
-        // ─── Schemes Module ─────────────────────────────────────────────
+        
         $this->createEnumAndConvert('publish_status', [
             'draft', 'published',
         ], [
@@ -52,7 +49,7 @@ return new class extends Migration
             ['table' => 'lesson_blocks', 'column' => 'block_type', 'default' => 'text', 'check' => 'lesson_blocks_block_type_check'],
         ]);
 
-        // ─── Enrollments Module ─────────────────────────────────────────
+        
         $this->createEnumAndConvert('progress_status', [
             'not_started', 'in_progress', 'completed',
         ], [
@@ -61,9 +58,9 @@ return new class extends Migration
             ['table' => 'unit_progress', 'column' => 'status', 'default' => 'not_started', 'check' => 'unit_progress_status_check'],
         ]);
 
-        // ─── Learning Module ────────────────────────────────────────────
+        
         $this->createEnumAndConvert('submission_status', [
-            'draft', 'submitted', 'graded', 'late', 'missing',
+            'draft', 'submitted', 'graded', 'late',
         ], [
             ['table' => 'submissions', 'column' => 'status', 'default' => 'draft', 'check' => 'submissions_status_check'],
         ]);
@@ -98,7 +95,7 @@ return new class extends Migration
             ['table' => 'assignments', 'column' => 'submission_type', 'default' => 'text', 'check' => 'assignments_submission_type_check'],
         ]);
 
-        // ─── Gamification Module ────────────────────────────────────────
+        
         $this->createEnumAndConvert('badge_type', [
             'completion', 'quality', 'speed', 'habit', 'social', 'milestone', 'hidden',
         ], [
@@ -111,7 +108,7 @@ return new class extends Migration
             ['table' => 'badges', 'column' => 'rarity', 'default' => 'common', 'check' => 'badges_rarity_check'],
         ]);
 
-        // ─── Grading Module ─────────────────────────────────────────────
+        
         $this->createEnumAndConvert('grade_status', [
             'pending', 'graded', 'reviewed',
         ], [
@@ -136,7 +133,7 @@ return new class extends Migration
             ['table' => 'grading_rubrics', 'column' => 'scope_type', 'default' => null, 'check' => 'grading_rubrics_scope_type_check'],
         ]);
 
-        // ─── Notifications Module ───────────────────────────────────────
+        
         $this->createEnumAndConvert('notification_type', [
             'system', 'assignment', 'assessment', 'grading', 'gamification', 'news', 'custom',
             'course_completed', 'course_updates', 'assignments', 'forum', 'achievements', 'enrollment',
@@ -190,7 +187,7 @@ return new class extends Migration
             ['table' => 'post_audiences', 'column' => 'role', 'default' => null, 'check' => 'post_audiences_role_check'],
         ]);
 
-        // ─── Auth Module ────────────────────────────────────────────────
+        
         $this->createEnumAndConvert('active_status', [
             'active', 'inactive',
         ], [
@@ -209,7 +206,7 @@ return new class extends Migration
             ['table' => 'profile_privacy_settings', 'column' => 'profile_visibility', 'default' => 'public', 'check' => 'profile_privacy_settings_profile_visibility_check'],
         ]);
 
-        // ─── Other ──────────────────────────────────────────────────────
+        
         $this->createEnumAndConvert('setting_type', [
             'string', 'number', 'boolean', 'json',
         ], [
@@ -219,7 +216,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        // List of all enum types created in this migration
+        
         $enumTypes = [
             'content_status', 'priority', 'target_type', 'publish_status', 'content_type',
             'block_type', 'progress_status', 'submission_status', 'quiz_submission_status',
@@ -231,21 +228,19 @@ return new class extends Migration
             'profile_visibility', 'setting_type',
         ];
 
-        // Converting back to varchar would require knowing original CHECK constraints
-        // which is complex. Instead, we just note that rollback is not automatically supported.
-        // In practice, enum types are backward-compatible with varchar comparisons.
+        
+        
+        
 
         foreach ($enumTypes as $type) {
             DB::statement("DROP TYPE IF EXISTS public.{$type} CASCADE");
         }
     }
 
-    /**
-     * Create a PostgreSQL enum type and convert column(s) to use it.
-     */
+    
     private function createEnumAndConvert(string $enumName, array $values, array $columns): void
     {
-        // Check if enum type already exists
+        
         $exists = DB::selectOne("SELECT 1 FROM pg_type WHERE typname = ?", [$enumName]);
 
         if (! $exists) {
@@ -260,7 +255,7 @@ return new class extends Migration
             $check = $col['check'] ?? null;
             $skipIfNotExists = $col['skip_if_not_exists'] ?? false;
 
-            // Skip if table doesn't exist (e.g., dropped in previous migration)
+            
             $tableExists = DB::selectOne(
                 "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ?",
                 [$table]
@@ -270,11 +265,11 @@ return new class extends Migration
                 if ($skipIfNotExists) {
                     continue;
                 }
-                // Table should exist, skip silently
+                
                 continue;
             }
 
-            // Check if column is already the enum type
+            
             $colInfo = DB::selectOne(
                 "SELECT udt_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = ? AND column_name = ?",
                 [$table, $column]
@@ -284,22 +279,22 @@ return new class extends Migration
                 continue;
             }
 
-            // Skip if already converted to this enum type
+            
             if ($colInfo->udt_name === $enumName) {
                 continue;
             }
 
-            // Drop the CHECK constraint if it exists
+            
             if ($check) {
                 DB::statement("ALTER TABLE public.{$table} DROP CONSTRAINT IF EXISTS {$check}");
             }
 
-            // Find and drop partial indexes that reference this column in their WHERE clause
+            
             $partialIndexes = DB::select(
                 "SELECT indexname, indexdef FROM pg_indexes WHERE tablename = ? AND indexdef LIKE ?",
                 [$table, "%{$column}%WHERE%"]
             );
-            // Also catch indexes where WHERE comes before the column reference
+            
             $partialIndexes2 = DB::select(
                 "SELECT indexname, indexdef FROM pg_indexes WHERE tablename = ? AND indexdef LIKE ?",
                 [$table, "%WHERE%{$column}%"]
@@ -313,27 +308,27 @@ return new class extends Migration
                 DB::statement("DROP INDEX IF EXISTS public.{$idx->indexname}");
             }
 
-            // Drop default before type change (Postgres can't auto-cast varchar default to enum)
+            
             DB::statement("ALTER TABLE public.{$table} ALTER COLUMN {$column} DROP DEFAULT");
 
-            // Convert column type
+            
             DB::statement("ALTER TABLE public.{$table} ALTER COLUMN {$column} TYPE public.{$enumName} USING {$column}::text::public.{$enumName}");
 
-            // Re-set default with the enum type
+            
             if ($default !== null) {
                 DB::statement("ALTER TABLE public.{$table} ALTER COLUMN {$column} SET DEFAULT '{$default}'::public.{$enumName}");
             }
 
-            // Recreate partial indexes with enum-compatible predicates
+            
             foreach ($allPartialIndexes as $idx) {
-                // Remove ::text cast from WHERE clause to avoid IMMUTABLE function requirement
-                // Enum types can be compared directly without casting
+                
+                
                 $newDef = preg_replace(
                     "/\({$column}\)::text\s*=\s*'([^']+)'::text/",
                     "{$column} = '$1'::{$enumName}",
                     $idx->indexdef
                 );
-                // Also handle cases where column is not wrapped in parentheses
+                
                 $newDef = preg_replace(
                     "/{$column}::text\s*=\s*'([^']+)'::text/",
                     "{$column} = '$1'::{$enumName}",

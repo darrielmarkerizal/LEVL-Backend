@@ -41,11 +41,11 @@ class UserResource extends JsonResource
             'created_at' => $this->formatDate($this['created_at'] ?? (is_object($this->resource) ? $this->created_at : null)),
             'email_verified_at' => $this->formatDate($this['email_verified_at'] ?? (is_object($this->resource) ? $this->email_verified_at : null)),
 
-            // Always include roles (empty array if not present/loaded)
+            
             'roles' => $this->getRoles(),
         ];
 
-        // Add specialization only for Instructor role
+        
         if ($isInstructor) {
             if ($this->resource instanceof \Illuminate\Database\Eloquent\Model) {
                 if ($this->resource->relationLoaded('specialization') && $this->resource->specialization) {
@@ -62,8 +62,8 @@ class UserResource extends JsonResource
             }
         }
 
-        // For endpoints that pass an array into the resource (e.g. login),
-        // we cannot use whenLoaded() because relationLoaded() doesn't exist on arrays.
+        
+        
         if ($this->resource instanceof \Illuminate\Database\Eloquent\Model) {
             $data['privacySettings'] = $this->resource->relationLoaded('privacySettings')
                 ? new ProfilePrivacyResource($this->resource->privacySettings)
@@ -107,7 +107,7 @@ class UserResource extends JsonResource
                 ? ThreadResource::collection($this->resource->threads)
                 : null;
 
-            // Add learning statistics for Student and Instructor
+            
             if ($isStudent || $isInstructor) {
                 $lastLoginAt = $this->formatDate($this->resource->getAttribute('last_login_at'));
                 $data['last_login_at'] = $lastLoginAt;
@@ -129,7 +129,7 @@ class UserResource extends JsonResource
 
             if ($isStudent) {
                 $data['rank'] = $this->resource->getAttribute('rank');
-                $data['global_rank'] = $this->resource->getAttribute('rank'); // Alias for clarity
+                $data['global_rank'] = $this->resource->getAttribute('rank'); 
                 $data['total_xp'] = (int) ($this->resource->getAttribute('total_xp') ?? 0);
 
                 $recentBadges = collect($this->resource->badges ?? [])->take(3)->map(function ($userBadge) {
@@ -154,7 +154,7 @@ class UserResource extends JsonResource
                 $data['recent_badges'] = $recentBadges;
             }
         } elseif (is_array($this->resource)) {
-            // If the resource is an array, only include keys that exist.
+            
             foreach ([
                 'privacySettings',
                 'enrollments',
@@ -189,7 +189,7 @@ class UserResource extends JsonResource
             'global_rank',
         ];
 
-        // Remove null keys (but keep empty arrays/false/0), except preserved keys.
+        
         $filtered = array_filter(
             $data,
             static fn ($v, $key) => $v !== null || in_array($key, $preserveNullKeys, true),
@@ -272,12 +272,12 @@ class UserResource extends JsonResource
             }
         }
 
-        // If resource is a User model object
+        
         if ($this->resource instanceof \Modules\Auth\Models\User) {
             return $this->resource->roles->toArray();
         }
 
-        // Fallback for generic object with roles relation
+        
         if (is_object($this->resource) && isset($this->resource->roles)) {
             return $this->resource->roles->toArray();
         }

@@ -6,14 +6,10 @@ namespace Modules\Auth\Listeners;
 
 use Modules\Auth\Events\UserStatusChanged;
 
-/**
- * Listener to log user status changes to activity log.
- */
+
 class LogUserStatusChange
 {
-    /**
-     * Handle the event.
-     */
+    
     public function handle(UserStatusChanged $event): void
     {
         $properties = [

@@ -15,18 +15,12 @@ use Modules\Gamification\Models\XpSource;
 
 class GamificationDataSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * This seeder can be used for:
-     * 1. Fresh migration (php artisan migrate:fresh --seed)
-     * 2. Populate existing students with random gamification data
-     */
+    
     public function run(): void
     {
         $this->command->info('🎮 Starting Gamification Data Seeder...');
 
-        // Get all users (not just students)
+        
         $users = User::all();
 
         if ($users->isEmpty()) {
@@ -37,7 +31,7 @@ class GamificationDataSeeder extends Seeder
 
         $this->command->info("Found {$users->count()} users to process.");
 
-        // Separate students and non-students
+        
         $students = $users->filter(function ($user) {
             return $user->hasRole('Student');
         });
@@ -46,7 +40,7 @@ class GamificationDataSeeder extends Seeder
             return $user->hasRole('Student');
         });
 
-        // Get available badges and XP sources
+        
         $badges = Badge::where('active', true)->get();
         $xpSources = XpSource::where('is_active', true)->get();
         $levelConfigs = LevelConfig::orderBy('level')->get();
@@ -62,13 +56,13 @@ class GamificationDataSeeder extends Seeder
         $progressBar = $this->command->getOutput()->createProgressBar($users->count());
         $progressBar->start();
 
-        // Seed students with random data
+        
         foreach ($students as $student) {
             $this->seedStudentGamification($student, $badges, $xpSources, $levelConfigs);
             $progressBar->advance();
         }
 
-        // Create empty stats for non-students (admins, instructors, etc.)
+        
         foreach ($nonStudents as $user) {
             $this->seedNonStudentGamification($user);
             $progressBar->advance();
@@ -81,17 +75,15 @@ class GamificationDataSeeder extends Seeder
         $this->command->info("   - Non-students with empty stats: {$nonStudents->count()}");
     }
 
-    /**
-     * Create empty gamification stats for non-students
-     */
+    
     private function seedNonStudentGamification(User $user): void
     {
-        // Skip if user already has gamification data
+        
         if (UserGamificationStat::where('user_id', $user->id)->exists()) {
             return;
         }
 
-        // Create empty stats
+        
         UserGamificationStat::create([
             'user_id' => $user->id,
             'total_xp' => 0,
@@ -103,32 +95,30 @@ class GamificationDataSeeder extends Seeder
         ]);
     }
 
-    /**
-     * Seed gamification data for a single student
-     */
+    
     private function seedStudentGamification(
         User $student,
         $badges,
         $xpSources,
         $levelConfigs
     ): void {
-        // Skip if student already has gamification data
-        // Remove this check if you want to re-seed existing data
+        
+        
         if (UserGamificationStat::where('user_id', $student->id)->exists()) {
             return;
         }
 
-        // Generate random XP (0 to 50000)
+        
         $totalXp = rand(0, 50000);
 
-        // Calculate level based on XP
+        
         $level = $this->calculateLevel($totalXp, $levelConfigs);
 
-        // Generate random streak data
+        
         $currentStreak = rand(0, 30);
         $longestStreak = max($currentStreak, rand($currentStreak, 60));
 
-        // Create or update gamification stats
+        
         $stat = UserGamificationStat::updateOrCreate(
             ['user_id' => $student->id],
             [
@@ -141,24 +131,22 @@ class GamificationDataSeeder extends Seeder
             ]
         );
 
-        // Generate XP transaction history
+        
         if (! $xpSources->isEmpty() && $totalXp > 0) {
             $this->generateXpHistory($student, $totalXp, $xpSources, $level);
         }
 
-        // Award random badges
+        
         if (! $badges->isEmpty()) {
             $this->awardRandomBadges($student, $badges, $level);
         }
     }
 
-    /**
-     * Calculate level based on total XP
-     */
+    
     private function calculateLevel(int $totalXp, $levelConfigs): int
     {
         if ($levelConfigs->isEmpty()) {
-            // Fallback calculation if no level configs
+            
             $level = 1;
             $xpForNextLevel = 100;
             $accumulatedXp = 0;
@@ -172,7 +160,7 @@ class GamificationDataSeeder extends Seeder
             return $level;
         }
 
-        // Use level configs
+        
         $level = 1;
         foreach ($levelConfigs as $config) {
             if ($totalXp >= $config->xp_required) {
@@ -185,30 +173,28 @@ class GamificationDataSeeder extends Seeder
         return $level;
     }
 
-    /**
-     * Generate XP transaction history
-     */
+    
     private function generateXpHistory(User $student, int $totalXp, $xpSources, int $finalLevel): void
     {
         $remainingXp = $totalXp;
         $currentLevel = 1;
 
-        // Generate 5-20 random transactions
+        
         $transactionCount = rand(5, min(20, (int) ($totalXp / 10)));
 
-        // Use timestamp-based source_id to ensure uniqueness
+        
         $baseTimestamp = now()->timestamp;
 
-        // Valid source types for seeding
+        
         $sourceTypes = ['lesson', 'assignment', 'system'];
 
-        // Generate timestamps spread over last 3 months (90 days)
+        
         $timestamps = $this->generateSpreadTimestamps($transactionCount, 90);
 
         for ($i = 0; $i < $transactionCount && $remainingXp > 0; $i++) {
             $xpSource = $xpSources->random();
 
-            // Random XP amount (between source amount and 3x source amount)
+            
             $xpAmount = rand(
                 max(1, (int) ($xpSource->xp_amount * 0.5)),
                 min($remainingXp, (int) ($xpSource->xp_amount * 3))
@@ -222,13 +208,13 @@ class GamificationDataSeeder extends Seeder
                 $currentLevel = $newLevel;
             }
 
-            // Use unique source_id: base timestamp + student id + iteration
+            
             $uniqueSourceId = $baseTimestamp + ($student->id * 1000) + $i;
 
-            // Map XP source code to appropriate reason
+            
             $reason = $this->mapXpSourceToReason($xpSource->code);
 
-            // Determine source type based on XP source
+            
             $sourceType = $this->determineSourceType($xpSource->code);
 
             try {
@@ -254,21 +240,19 @@ class GamificationDataSeeder extends Seeder
 
                 $remainingXp -= $xpAmount;
             } catch (\Exception $e) {
-                // Skip if duplicate (shouldn't happen with unique source_id)
+                
                 continue;
             }
         }
     }
 
-    /**
-     * Generate timestamps spread over specified number of days
-     */
+    
     private function generateSpreadTimestamps(int $count, int $days): array
     {
         $timestamps = [];
         $now = now();
 
-        // Generate random timestamps and sort them chronologically
+        
         for ($i = 0; $i < $count; $i++) {
             $daysAgo = rand(0, $days);
             $hoursAgo = rand(0, 23);
@@ -280,7 +264,7 @@ class GamificationDataSeeder extends Seeder
                 ->subMinutes($minutesAgo);
         }
 
-        // Sort chronologically (oldest first)
+        
         usort($timestamps, function ($a, $b) {
             return $a->timestamp <=> $b->timestamp;
         });
@@ -288,9 +272,7 @@ class GamificationDataSeeder extends Seeder
         return $timestamps;
     }
 
-    /**
-     * Determine source type based on XP source code
-     */
+    
     private function determineSourceType(string $xpSourceCode): string
     {
         return match ($xpSourceCode) {
@@ -301,9 +283,7 @@ class GamificationDataSeeder extends Seeder
         };
     }
 
-    /**
-     * Get activity type for metadata
-     */
+    
     private function getActivityType(string $xpSourceCode): string
     {
         return match ($xpSourceCode) {
@@ -317,9 +297,7 @@ class GamificationDataSeeder extends Seeder
         };
     }
 
-    /**
-     * Map XP source code to valid PointReason enum value
-     */
+    
     private function mapXpSourceToReason(string $xpSourceCode): string
     {
         return match ($xpSourceCode) {
@@ -337,9 +315,7 @@ class GamificationDataSeeder extends Seeder
         };
     }
 
-    /**
-     * Calculate level from accumulated XP
-     */
+    
     private function calculateLevelFromXp(int $xp): int
     {
         $level = 1;
@@ -355,12 +331,10 @@ class GamificationDataSeeder extends Seeder
         return $level;
     }
 
-    /**
-     * Award random badges to student
-     */
+    
     private function awardRandomBadges(User $student, $badges, int $level): void
     {
-        // Award 0-10 random badges based on level
+        
         $maxBadges = min(10, (int) ($level / 2) + rand(0, 5));
 
         if ($maxBadges === 0) {
@@ -369,13 +343,13 @@ class GamificationDataSeeder extends Seeder
 
         $badgesToAward = $badges->random(min($maxBadges, $badges->count()));
 
-        // Generate timestamps spread over last 3 months
+        
         $timestamps = $this->generateSpreadTimestamps($badgesToAward->count(), 90);
         $userBadges = [];
         $index = 0;
 
         foreach ($badgesToAward as $badge) {
-            // Skip if already awarded
+            
             if (UserBadge::where('user_id', $student->id)
                 ->where('badge_id', $badge->id)
                 ->exists()) {
@@ -395,7 +369,7 @@ class GamificationDataSeeder extends Seeder
             $index++;
         }
 
-        // Insert all badges at once
+        
         if (! empty($userBadges)) {
             UserBadge::insert($userBadges);
         }

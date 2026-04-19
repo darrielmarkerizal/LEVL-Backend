@@ -7,12 +7,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
-        // Migrate data from lesson_completions to lesson_progress
+        
         if (Schema::hasTable('lesson_completions')) {
             DB::statement("
                 INSERT INTO lesson_progress (enrollment_id, lesson_id, status, progress_percent, completed_at, created_at, updated_at)
@@ -36,17 +34,15 @@ return new class extends Migration
                 ON CONFLICT (enrollment_id, lesson_id) DO NOTHING
             ");
 
-            // Drop the lesson_completions table
+            
             Schema::dropIfExists('lesson_completions');
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
-        // Recreate lesson_completions table
+        
         Schema::create('lesson_completions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('lesson_id')->constrained('lessons')->onDelete('cascade');
@@ -57,7 +53,7 @@ return new class extends Migration
             $table->unique(['lesson_id', 'user_id']);
         });
 
-        // Migrate data back from lesson_progress
+        
         DB::statement("
             INSERT INTO lesson_completions (lesson_id, user_id, completed_at, created_at, updated_at)
             SELECT 

@@ -28,7 +28,7 @@ class CourseController extends Controller
 
     public function index(Request $request)
     {
-        // Check if 'all' parameter is true
+        
         if ($request->query('all') === 'true' || $request->query('all') === true) {
             $courses = $this->service->listAll($request->all());
             $courses = $courses->map(fn ($course) => new \Modules\Schemes\Http\Resources\CourseIndexResource($course));
@@ -71,21 +71,21 @@ class CourseController extends Controller
         $includes = $request->query('include', '');
         $requestedIncludes = array_filter(explode(',', $includes));
 
-        // Filter includes based on enrollment status
+        
         $allowedIncludes = $this->service->filterIncludesByEnrollment($userId, $course, $requestedIncludes);
 
-        // Check if elements is requested before removing it
+        
         $hasElementsInclude = in_array('elements', $allowedIncludes);
         
-        // Remove 'elements' from includes as it's not a real relation
+        
         $filteredIncludes = array_diff($allowedIncludes, ['elements']);
         
-        // If elements was requested, ensure units is loaded
+        
         if ($hasElementsInclude && !in_array('units', $filteredIncludes)) {
             $filteredIncludes[] = 'units';
         }
 
-        // Load course with filtered includes
+        
         $courseWithIncludes = $this->service->findBySlugWithFilteredIncludes($course->slug, $filteredIncludes);
 
         if (!$courseWithIncludes) {

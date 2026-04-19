@@ -24,7 +24,7 @@ class LessonCompletionController extends Controller
             $user = auth('api')->user();
             $course = $lesson->unit->course;
 
-            // Require enrollment for students
+            
             if ($error = $this->requireEnrollment($course)) {
                 return $error;
             }
@@ -43,7 +43,7 @@ class LessonCompletionController extends Controller
             $user = auth('api')->user();
             $course = $lesson->unit->course;
 
-            // Require enrollment for students
+            
             if ($error = $this->requireEnrollment($course)) {
                 return $error;
             }

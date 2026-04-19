@@ -10,12 +10,10 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class MediaResource extends JsonResource
 {
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function toArray(Request $request): array
     {
-        /** @var Media $this */
+        
         return [
             'id' => $this->uuid ?? $this->id,
             'name' => $this->name,

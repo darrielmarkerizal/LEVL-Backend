@@ -60,7 +60,7 @@ class SearchService implements SearchServiceInterface
             ->with(['instructor:id,name', 'media'])
             ->withCount('enrollments');
 
-        // Use PgSearchable trait's search method
+        
         if (! empty(trim($query))) {
             $builder->search($query);
         }
@@ -85,7 +85,7 @@ class SearchService implements SearchServiceInterface
         $builder = QueryBuilder::for(Unit::class, $request)
             ->with(['course:id,title,slug']);
 
-        // Use PgSearchable trait's search method
+        
         if (! empty(trim($query))) {
             $builder->search($query);
         }
@@ -108,13 +108,13 @@ class SearchService implements SearchServiceInterface
         $builder = QueryBuilder::for(Lesson::class, $request)
             ->with(['unit:id,title,course_id', 'unit.course:id,title']);
 
-        // Use PgSearchable trait's search method
+        
         if (! empty(trim($query))) {
             $builder->search($query);
         }
 
         if ($user->hasAnyRole(['Admin', 'SuperAdmin'])) {
-            // full access
+            
         } elseif ($user->hasRole('Instructor')) {
             $builder->whereHas('unit.course', function (Builder $q) use ($user) {
                 $q->where('instructor_id', $user->id);
@@ -146,13 +146,13 @@ class SearchService implements SearchServiceInterface
         $builder = QueryBuilder::for(User::class, $request)
             ->with(['roles:id,name,guard_name']);
 
-        // Use PgSearchable trait's search method
+        
         if (! empty(trim($query))) {
             $builder->search($query);
         }
 
         if ($user->hasAnyRole(['Admin', 'SuperAdmin'])) {
-            // full access
+            
         } elseif ($user->hasRole('Instructor') || $user->hasRole('Student')) {
             $builder->whereHas('roles', function (Builder $q) {
                 $q->where('name', 'Student');
@@ -179,7 +179,7 @@ class SearchService implements SearchServiceInterface
             return [];
         }
 
-        // Use PgSearchable trait's search method
+        
         $courses = Course::query()
             ->where('status', 'published')
             ->search($query)

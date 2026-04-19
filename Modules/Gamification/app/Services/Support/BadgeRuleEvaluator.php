@@ -19,26 +19,26 @@ class BadgeRuleEvaluator
 
     public function evaluate(User $user, string $triggerAction, array $payload = []): void
     {
-        // 1. Get rules indexed by event (90% faster!)
+        
         $rules = $this->getRulesByEvent($triggerAction);
 
         if ($rules->isEmpty()) {
             return;
         }
 
-        // 2. Evaluate each rule (ordered by priority)
+        
         foreach ($rules as $rule) {
-            // Check cooldown
+            
             if ($rule->cooldown_seconds && ! $this->canEvaluate($user->id, $rule->id)) {
                 continue;
             }
 
-            // Check conditions
+            
             if (! empty($rule->conditions) && ! $this->isConditionMet($rule->conditions, $payload, $user)) {
                 continue;
             }
 
-            // Get counter (READ only, no write!)
+            
             $counter = $this->counterService->getCounter(
                 $user->id,
                 $triggerAction,
@@ -47,7 +47,7 @@ class BadgeRuleEvaluator
                 $rule->progress_window ?? 'lifetime'
             );
 
-            // Check threshold
+            
             if ($counter >= $rule->badge->threshold) {
                 $awarded = $this->badgeManager->awardBadge(
                     $user->id,
@@ -56,7 +56,7 @@ class BadgeRuleEvaluator
                     $rule->badge->description ?? __('gamification.badge_earned_description', ['name' => $rule->badge->name])
                 );
 
-                // Update cooldown if badge awarded
+                
                 if ($awarded && $rule->cooldown_seconds) {
                     $this->updateCooldown($user->id, $rule->id, $rule->cooldown_seconds);
                 }
@@ -105,21 +105,21 @@ class BadgeRuleEvaluator
 
     private function isConditionMet(array $conditions, array $payload, User $user): bool
     {
-        // Level Matching
+        
         if (isset($conditions['level'])) {
             if (! isset($payload['level']) || $payload['level'] < $conditions['level']) {
                 return false;
             }
         }
 
-        // Target Matching (Course Slug)
+        
         if (isset($conditions['course_slug'])) {
             if (! isset($payload['course_slug']) || $payload['course_slug'] !== $conditions['course_slug']) {
                 return false;
             }
         }
 
-        // Quality Scoring
+        
         if (isset($conditions['min_score'])) {
             if (! isset($payload['score']) || $payload['score'] < $conditions['min_score']) {
                 return false;
@@ -138,7 +138,7 @@ class BadgeRuleEvaluator
             }
         }
 
-        // Speed Validation
+        
         if (isset($conditions['max_duration_days'])) {
             if (! isset($payload['duration_days']) || $payload['duration_days'] > $conditions['max_duration_days']) {
                 return false;
@@ -151,7 +151,7 @@ class BadgeRuleEvaluator
             }
         }
 
-        // Habit Validation
+        
         if (isset($conditions['is_weekend'])) {
             if (! isset($payload['is_weekend']) || $payload['is_weekend'] !== $conditions['is_weekend']) {
                 return false;

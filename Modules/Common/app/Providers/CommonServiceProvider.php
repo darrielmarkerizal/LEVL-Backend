@@ -100,8 +100,8 @@ class CommonServiceProvider extends ServiceProvider
     protected function registerPolicies(): void
     {
         Gate::policy(Category::class, CategoryPolicy::class);
-        // Badge policy is registered in GamificationServiceProvider
-        // Gate::policy(Badge::class, BadgePolicy::class);
+        
+        
         Gate::policy(LevelConfig::class, LevelConfigPolicy::class);
     }
 
@@ -117,9 +117,7 @@ class CommonServiceProvider extends ServiceProvider
         Blade::componentNamespace(config('modules.namespace').'\\'.$this->name.'\\View\\Components', $this->nameLower);
     }
 
-    /**
-     * Get the services provided by the provider.
-     */
+    
     public function provides(): array
     {
         return [];

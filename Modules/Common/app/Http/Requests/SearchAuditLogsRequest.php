@@ -7,26 +7,16 @@ namespace Modules\Common\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Modules\Common\Services\AssessmentAuditService;
 
-/**
- * Request validation for audit log search and filtering.
- *
- * Requirement: 20.7
- */
+
 class SearchAuditLogsRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    
     public function authorize(): bool
     {
-        return true; // Authorization handled by controller
+        return true; 
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+    
     public function rules(): array
     {
         $validActions = [
@@ -40,19 +30,19 @@ class SearchAuditLogsRequest extends FormRequest
         ];
 
         return [
-            // Spatie Query Builder Filters
+            
             'filter.action' => ['nullable', 'string', 'in:'.implode(',', $validActions)],
-            'filter.actions' => ['nullable', 'string'], // Comma separated for scope
+            'filter.actions' => ['nullable', 'string'], 
             'filter.actor_id' => ['nullable', 'integer', 'exists:users,id'],
             'filter.actor_type' => ['nullable', 'string'],
             'filter.subject_id' => ['nullable', 'integer'],
             'filter.subject_type' => ['nullable', 'string'],
-            'filter.created_between' => ['nullable', 'string'], // Comma separated YYYY-MM-DD
+            'filter.created_between' => ['nullable', 'string'], 
             'filter.context_contains' => ['nullable', 'string', 'max:255'],
             'filter.assignment_id' => ['nullable', 'integer', 'exists:assignments,id'],
             'filter.student_id' => ['nullable', 'integer', 'exists:users,id'],
 
-            // Pagination & Sorting
+            
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string'],
@@ -60,11 +50,7 @@ class SearchAuditLogsRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom attributes for validator errors.
-     *
-     * @return array<string, string>
-     */
+    
     public function attributes(): array
     {
         return [
@@ -82,11 +68,7 @@ class SearchAuditLogsRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
+    
     public function messages(): array
     {
         return [

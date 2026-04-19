@@ -61,13 +61,13 @@ class CourseLifecycleProcessor
                     $tags = [(string) $tags];
                 }
 
-                // Extract instructor_ids before removing from attributes
+                
                 $instructorIds = $attributes['instructor_ids'] ?? null;
                 if (! is_array($instructorIds) && $instructorIds !== null) {
                     $instructorIds = [(int) $instructorIds];
                 }
 
-                // Extract outcomes before removing from attributes
+                
                 $outcomes = $attributes['outcomes'] ?? null;
                 if (! is_array($outcomes) && $outcomes !== null) {
                     $outcomes = [$outcomes];
@@ -81,12 +81,12 @@ class CourseLifecycleProcessor
                     $this->tagService->syncCourseTags($course, $tags);
                 }
 
-                // Sync instructors
+                
                 if (is_array($instructorIds) && ! empty($instructorIds)) {
                     $course->instructors()->sync($instructorIds);
                 }
 
-                // Sync outcomes
+                
                 if (is_array($outcomes)) {
                     $this->syncOutcomes($course, $outcomes);
                 }
@@ -152,13 +152,13 @@ class CourseLifecycleProcessor
                     $tags = [(string) $tags];
                 }
 
-                // Extract instructor_ids before removing from attributes
+                
                 $instructorIds = $attributes['instructor_ids'] ?? null;
                 if (! is_array($instructorIds) && $instructorIds !== null) {
                     $instructorIds = [(int) $instructorIds];
                 }
 
-                // Extract outcomes before removing from attributes
+                
                 $outcomes = $attributes['outcomes'] ?? null;
                 if (! is_array($outcomes) && $outcomes !== null) {
                     $outcomes = [$outcomes];
@@ -171,7 +171,7 @@ class CourseLifecycleProcessor
                     );
                 }
 
-                // Allow slug to be updated
+                
                 $attributes = Arr::except($attributes, ['tags', 'tags_list', 'instructor_ids', 'outcomes']);
 
                 $this->runUpdateStep('course.update', function () use ($course, $attributes) {
@@ -186,7 +186,7 @@ class CourseLifecycleProcessor
                     $this->assertHealthyTransaction('course.sync_tags', $course->id);
                 }
 
-                // Sync instructors if provided
+                
                 if (is_array($instructorIds)) {
                     $this->runUpdateStep('course.sync_instructors', function () use ($course, $instructorIds) {
                         $course->instructors()->sync($instructorIds);
@@ -194,7 +194,7 @@ class CourseLifecycleProcessor
                     $this->assertHealthyTransaction('course.sync_instructors', $course->id);
                 }
 
-                // Sync outcomes if provided
+                
                 if (is_array($outcomes)) {
                     $this->runUpdateStep('course.sync_outcomes', function () use ($course, $outcomes) {
                         $this->syncOutcomes($course, $outcomes);
@@ -495,38 +495,38 @@ class CourseLifecycleProcessor
                 try {
                     $pdo->rollBack();
                 } catch (\Throwable) {
-                    // fall through to purge
+                    
                 }
             }
         } catch (\Throwable) {
-            // ignore
+            
         }
 
-        // Fully dispose the Connection so the next query gets a brand-new PDO.
-        // Under Octane a prior request can leave the PG session in aborted
-        // state (SQLSTATE 25P02); reconnect() alone does not always clear it
-        // because Laravel's transaction counter resets while the underlying
-        // session stays aborted.
+        
+        
+        
+        
+        
         try {
             DB::purge($connectionName);
         } catch (\Throwable) {
-            // ignore
+            
         }
 
         try {
             DB::reconnect($connectionName);
         } catch (\Throwable) {
-            // ignore
+            
         }
     }
 
     private function runUpdateStep(string $step, callable $callback, int $courseId): void
     {
         try {
-            // Bungkus setiap step dalam savepoint (nested transaction).
-            // Jika step gagal, hanya savepoint ini yang di-rollback,
-            // bukan seluruh outer transaction — kritis untuk PostgreSQL
-            // yang menandai seluruh transaksi sebagai aborted saat ada query error.
+            
+            
+            
+            
             DB::connection()->transaction(function () use ($callback) {
                 $callback();
             });
@@ -636,10 +636,10 @@ class CourseLifecycleProcessor
 
     private function syncOutcomes(Course $course, array $outcomes): void
     {
-        // Delete existing outcomes
+        
         $course->outcomes()->delete();
 
-        // Create new outcomes
+        
         $order = 1;
         foreach ($outcomes as $outcomeText) {
             if (is_string($outcomeText) && trim($outcomeText) !== '') {

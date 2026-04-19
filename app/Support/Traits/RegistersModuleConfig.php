@@ -28,7 +28,7 @@ trait RegistersModuleConfig
             $configKey = str_replace([DIRECTORY_SEPARATOR, '.php'], ['.', ''], $config);
             $segments = explode('.', $this->nameLower.'.'.$configKey);
 
-            // Remove duplicated adjacent segments
+            
             $normalized = $this->removeDuplicateSegments($segments);
 
             $key = ($config === 'config.php') ? $this->nameLower : implode('.', $normalized);
@@ -38,13 +38,7 @@ trait RegistersModuleConfig
         }
     }
 
-    /**
-     * Merge config from the given path recursively.
-     *
-     * @param  string  $path  Path to the config file
-     * @param  string  $key  Config key to merge into
-     * @return void
-     */
+    
     protected function mergeConfigFrom($path, $key)
     {
         $existing = config($key, []);

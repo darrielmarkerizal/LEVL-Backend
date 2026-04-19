@@ -12,9 +12,7 @@ class ArchitectureValidator
 {
     private array $violations = [];
 
-    /**
-     * Scan for services that don't implement their interfaces
-     */
+    
     public function scanForServiceInterfaces(): array
     {
         $violations = [];
@@ -29,20 +27,20 @@ class ArchitectureValidator
             try {
                 $reflection = new ReflectionClass($className);
 
-                // Skip interfaces and abstract classes
+                
                 if ($reflection->isInterface() || $reflection->isAbstract()) {
                     continue;
                 }
 
-                // Check if it's a service class
+                
                 if (! str_ends_with($className, 'Service')) {
                     continue;
                 }
 
-                // Expected interface name
+                
                 $interfaceName = $className.'Interface';
 
-                // Check if interface exists
+                
                 if (! interface_exists($interfaceName)) {
                     $violations[] = [
                         'type' => 'missing_service_interface',
@@ -56,7 +54,7 @@ class ArchitectureValidator
                     continue;
                 }
 
-                // Check if service implements the interface
+                
                 if (! $reflection->implementsInterface($interfaceName)) {
                     $violations[] = [
                         'type' => 'service_not_implementing_interface',
@@ -69,7 +67,7 @@ class ArchitectureValidator
                     ];
                 }
             } catch (ReflectionException $e) {
-                // Skip classes that can't be reflected
+                
                 continue;
             }
         }
@@ -77,9 +75,7 @@ class ArchitectureValidator
         return $violations;
     }
 
-    /**
-     * Scan for direct model queries in controllers
-     */
+    
     public function scanForDirectModelQueries(): array
     {
         $violations = [];
@@ -107,7 +103,7 @@ class ArchitectureValidator
             foreach ($lines as $lineNumber => $line) {
                 foreach ($patterns as $pattern) {
                     if (preg_match($pattern, $line)) {
-                        // Check if it's not in a comment
+                        
                         $trimmedLine = trim($line);
                         if (str_starts_with($trimmedLine, '//') || str_starts_with($trimmedLine, '*')) {
                             continue;
@@ -122,7 +118,7 @@ class ArchitectureValidator
                             'suggestion' => 'Move query logic to service or repository',
                             'severity' => 'high',
                         ];
-                        break; // Only report once per line
+                        break; 
                     }
                 }
             }
@@ -131,9 +127,7 @@ class ArchitectureValidator
         return $violations;
     }
 
-    /**
-     * Scan for manual authorization checks (Gate::forUser, etc.)
-     */
+    
     public function scanForManualAuthorization(): array
     {
         $violations = [];
@@ -155,7 +149,7 @@ class ArchitectureValidator
             foreach ($lines as $lineNumber => $line) {
                 foreach ($patterns as $pattern) {
                     if (preg_match($pattern, $line)) {
-                        // Check if it's not in a comment
+                        
                         $trimmedLine = trim($line);
                         if (str_starts_with($trimmedLine, '//') || str_starts_with($trimmedLine, '*')) {
                             continue;
@@ -179,9 +173,7 @@ class ArchitectureValidator
         return $violations;
     }
 
-    /**
-     * Scan for missing repositories
-     */
+    
     public function scanForMissingRepositories(): array
     {
         $violations = [];
@@ -193,15 +185,15 @@ class ArchitectureValidator
                 continue;
             }
 
-            // Extract model name
+            
             $parts = explode('\\', $className);
             $modelName = end($parts);
 
-            // Expected repository name
+            
             $repositoryName = str_replace('\\Models\\', '\\Repositories\\', $className).'Repository';
             $repositoryInterfaceName = str_replace('\\Models\\', '\\Contracts\\Repositories\\', $className).'RepositoryInterface';
 
-            // Check if repository exists
+            
             if (! class_exists($repositoryName)) {
                 $violations[] = [
                     'type' => 'missing_repository',
@@ -213,7 +205,7 @@ class ArchitectureValidator
                 ];
             }
 
-            // Check if repository interface exists
+            
             if (! interface_exists($repositoryInterfaceName)) {
                 $violations[] = [
                     'type' => 'missing_repository_interface',
@@ -229,16 +221,14 @@ class ArchitectureValidator
         return $violations;
     }
 
-    /**
-     * Scan for direct env() calls outside config files
-     */
+    
     public function scanForDirectEnvCalls(): array
     {
         $violations = [];
         $phpFiles = $this->getAllPhpFiles();
 
         foreach ($phpFiles as $filePath) {
-            // Skip config files
+            
             if (str_contains($filePath, '/config/')) {
                 continue;
             }
@@ -248,7 +238,7 @@ class ArchitectureValidator
 
             foreach ($lines as $lineNumber => $line) {
                 if (preg_match('/env\([\'"]/', $line)) {
-                    // Check if it's not in a comment
+                    
                     $trimmedLine = trim($line);
                     if (str_starts_with($trimmedLine, '//') || str_starts_with($trimmedLine, '*')) {
                         continue;
@@ -270,9 +260,7 @@ class ArchitectureValidator
         return $violations;
     }
 
-    /**
-     * Generate comprehensive report
-     */
+    
     public function generateReport(): array
     {
         return [
@@ -284,41 +272,31 @@ class ArchitectureValidator
         ];
     }
 
-    /**
-     * Get all service file paths
-     */
+    
     private function getServicePaths(): array
     {
         return $this->getFilesByPattern(base_path(), '/Services\/.*Service\.php$/');
     }
 
-    /**
-     * Get all controller file paths
-     */
+    
     private function getControllerPaths(): array
     {
         return $this->getFilesByPattern(base_path(), '/Controllers\/.*Controller\.php$/');
     }
 
-    /**
-     * Get all model file paths
-     */
+    
     private function getModelPaths(): array
     {
         return $this->getFilesByPattern(base_path(), '/Models\/.*\.php$/');
     }
 
-    /**
-     * Get all PHP files
-     */
+    
     private function getAllPhpFiles(): array
     {
         return $this->getFilesByPattern(base_path(), '/\.php$/');
     }
 
-    /**
-     * Get files matching a pattern
-     */
+    
     private function getFilesByPattern(string $directory, string $pattern): array
     {
         $files = [];
@@ -334,11 +312,11 @@ class ArchitectureValidator
         $phpFiles = new RegexIterator($iterator, $pattern, RegexIterator::MATCH);
 
         foreach ($phpFiles as $file) {
-            // Skip vendor directory
+            
             if (str_contains($file->getPathname(), '/vendor/')) {
                 continue;
             }
-            // Skip node_modules
+            
             if (str_contains($file->getPathname(), '/node_modules/')) {
                 continue;
             }
@@ -349,20 +327,18 @@ class ArchitectureValidator
         return $files;
     }
 
-    /**
-     * Extract class name from file
-     */
+    
     private function getClassNameFromFile(string $filePath): ?string
     {
         $content = file_get_contents($filePath);
 
-        // Extract namespace
+        
         if (! preg_match('/namespace\s+([^;]+);/', $content, $namespaceMatches)) {
             return null;
         }
         $namespace = $namespaceMatches[1];
 
-        // Extract class name
+        
         if (! preg_match('/class\s+(\w+)/', $content, $classMatches)) {
             return null;
         }

@@ -22,19 +22,17 @@ class LevelConfigResource extends JsonResource
         ];
     }
 
-    /**
-     * Build rewards object with bonus_xp and milestone_badge
-     */
+    
     private function buildRewards(): array
     {
         $rewards = [];
 
-        // Add bonus XP if exists
+        
         if ($this->bonus_xp > 0) {
             $rewards['bonus_xp'] = $this->bonus_xp;
         }
 
-        // Add milestone badge if exists
+        
         $milestoneBadge = $this->whenLoaded('milestoneBadge', function () {
             return $this->milestoneBadge ? [
                 'id' => $this->milestoneBadge->id,
@@ -50,7 +48,7 @@ class LevelConfigResource extends JsonResource
             $rewards['milestone_badge'] = $milestoneBadge;
         }
 
-        // Add any additional rewards from the rewards column
+        
         if (! empty($this->rewards) && is_array($this->rewards)) {
             $rewards = array_merge($rewards, $this->rewards);
         }

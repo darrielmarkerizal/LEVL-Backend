@@ -85,12 +85,12 @@ class UserBulkService implements UserBulkServiceInterface
     {
         $changedByUser = User::find($changedBy);
 
-        // Get users before update to capture old status
+        
         $users = User::whereIn('id', $userIds)->get();
 
         $updated = $this->repository->bulkUpdateStatus($userIds, UserStatus::Active->value);
 
-        // Dispatch events for each user
+        
         foreach ($users as $user) {
             $oldStatus = $user->status;
             if ($oldStatus !== UserStatus::Active) {
@@ -120,12 +120,12 @@ class UserBulkService implements UserBulkServiceInterface
 
         $changedByUser = User::find($changedBy);
 
-        // Get users before update to capture old status
+        
         $users = User::whereIn('id', $userIds)->get();
 
         $updated = $this->repository->bulkUpdateStatus($userIds, UserStatus::Inactive->value);
 
-        // Dispatch events for each user
+        
         foreach ($users as $user) {
             $oldStatus = $user->status;
             if ($oldStatus !== UserStatus::Inactive) {

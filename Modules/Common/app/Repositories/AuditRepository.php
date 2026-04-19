@@ -27,7 +27,7 @@ class AuditRepository implements AuditRepositoryInterface
                 $request = new Request(['filter' => $filters]);
 
                 return QueryBuilder::for(AuditLog::class, $request)
-                    ->with(['causer', 'subject']) // Changed 'actor' to 'causer'
+                    ->with(['causer', 'subject']) 
                     ->allowedFilters([
                         AllowedFilter::callback('action', fn ($q, $v) => $q->where('description', $v)),
                         AllowedFilter::callback('actor_id', fn ($q, $v) => $q->where('causer_id', $v)),
@@ -45,51 +45,34 @@ class AuditRepository implements AuditRepositoryInterface
         );
     }
 
-    /**
-     * Find audit logs for a specific subject.
-     *
-     * @param  string  $subjectType  The subject type (model class)
-     * @param  int  $subjectId  The subject ID
-     * @return Collection<int, AuditLog> Collection of audit logs for the subject
-     */
+    
     public function findBySubject(string $subjectType, int $subjectId): Collection
     {
         return AuditLog::query()
-            ->with(['causer', 'subject']) // Changed 'actor' to 'causer'
+            ->with(['causer', 'subject']) 
             ->where('subject_type', $subjectType)
             ->where('subject_id', $subjectId)
             ->orderBy('created_at', 'desc')
             ->get();
     }
 
-    /**
-     * Find audit logs by actor.
-     *
-     * @param  string  $actorType  The actor type (model class)
-     * @param  int  $actorId  The actor ID
-     * @return Collection<int, AuditLog> Collection of audit logs by the actor
-     */
+    
     public function findByActor(string $actorType, int $actorId): Collection
     {
         return AuditLog::query()
-            ->with(['causer', 'subject']) // Changed 'actor' to 'causer'
-            ->where('causer_type', $actorType) // Changed 'actor_type' to 'causer_type'
-            ->where('causer_id', $actorId) // Changed 'actor_id' to 'causer_id'
+            ->with(['causer', 'subject']) 
+            ->where('causer_type', $actorType) 
+            ->where('causer_id', $actorId) 
             ->orderBy('created_at', 'desc')
             ->get();
     }
 
-    /**
-     * Find audit logs by action type.
-     *
-     * @param  string  $action  The action type
-     * @return Collection<int, AuditLog> Collection of audit logs for the action
-     */
+    
     public function findByAction(string $action): Collection
     {
         return AuditLog::query()
-            ->with(['causer', 'subject']) // Changed 'actor' to 'causer'
-            ->where('description', $action) // Changed 'action' to 'description'
+            ->with(['causer', 'subject']) 
+            ->where('description', $action) 
             ->orderBy('created_at', 'desc')
             ->get();
     }

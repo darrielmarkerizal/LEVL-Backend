@@ -10,14 +10,7 @@ use Modules\Learning\Models\Submission;
 
 class QuestionAndAnswerSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * Creates comprehensive question and answer data:
-     * - Adds questions to existing assignments
-     * - Creates answers for existing submissions
-     * - Ensures some submissions have ungraded answers for the grading queue
-     */
+    
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
@@ -25,7 +18,7 @@ class QuestionAndAnswerSeeder extends Seeder
 
         echo "Seeding questions and answers...\n";
 
-        // Cleanup invalid question types from previous failed runs
+        
         \Illuminate\Support\Facades\DB::table('assignment_questions')
             ->where('type', 'short_answer')
             ->delete();
@@ -208,14 +201,14 @@ class QuestionAndAnswerSeeder extends Seeder
     {
         echo "Updating submission states for grading queue...\n";
 
-        // Update submissions that have answers but are not yet in the correct state for grading
+        
         $updated = \DB::table('submissions')
             ->join('answers', 'submissions.id', '=', 'answers.submission_id')
             ->where('submissions.status', 'submitted')
             ->whereNull('submissions.state')
-            ->whereNull('answers.score') // Answers without scores need grading
+            ->whereNull('answers.score') 
             ->distinct('submissions.id')
-            ->limit(100) // Update only 100 to avoid overloading
+            ->limit(100) 
             ->update(['submissions.state' => 'pending_manual_grading']);
 
         echo "✅ Updated $updated submissions to pending_manual_grading state\n";

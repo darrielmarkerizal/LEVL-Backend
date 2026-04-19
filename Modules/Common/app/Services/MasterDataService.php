@@ -188,7 +188,7 @@ class MasterDataService
     private function buildDatabaseTypesList(): Collection
     {
         return $this->repository->getTypes()->map(function ($item) {
-            // $item comes as object from DB query now
+            
             return $this->transformTypeItem($item);
         });
     }
@@ -197,7 +197,7 @@ class MasterDataService
     {
         $labelMap = ['categories' => 'Kategori', 'tags' => 'Tags'];
 
-        // Handle object or array access safely
+        
         $type = is_object($item) ? $item->type : $item['type'];
         $count = is_object($item) ? $item->count : $item['count'];
         $last_updated = is_object($item) ? $item->last_updated : $item['last_updated'];

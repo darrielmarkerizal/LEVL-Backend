@@ -6,9 +6,7 @@ use ReflectionClass;
 
 class RepositoryGenerator
 {
-    /**
-     * Generate repository class for a model
-     */
+    
     public function generateRepository(string $modelClass): string
     {
         $reflection = new ReflectionClass($modelClass);
@@ -29,7 +27,7 @@ class RepositoryGenerator
         $content .= "class {$repositoryName} implements {$interfaceName}\n";
         $content .= "{\n";
 
-        // findById method
+        
         $content .= "    /**\n";
         $content .= "     * Find {$modelName} by ID\n";
         $content .= "     */\n";
@@ -38,7 +36,7 @@ class RepositoryGenerator
         $content .= "        return {$modelName}::find(\$id);\n";
         $content .= "    }\n\n";
 
-        // findByIdOrFail method
+        
         $content .= "    /**\n";
         $content .= "     * Find {$modelName} by ID or fail\n";
         $content .= "     */\n";
@@ -47,7 +45,7 @@ class RepositoryGenerator
         $content .= "        return {$modelName}::findOrFail(\$id);\n";
         $content .= "    }\n\n";
 
-        // create method
+        
         $content .= "    /**\n";
         $content .= "     * Create a new {$modelName}\n";
         $content .= "     */\n";
@@ -56,7 +54,7 @@ class RepositoryGenerator
         $content .= "        return {$modelName}::create(\$data);\n";
         $content .= "    }\n\n";
 
-        // update method
+        
         $content .= "    /**\n";
         $content .= "     * Update {$modelName}\n";
         $content .= "     */\n";
@@ -66,7 +64,7 @@ class RepositoryGenerator
         $content .= "        return \${$this->camelCase($modelName)}->fresh();\n";
         $content .= "    }\n\n";
 
-        // delete method
+        
         $content .= "    /**\n";
         $content .= "     * Delete {$modelName}\n";
         $content .= "     */\n";
@@ -75,7 +73,7 @@ class RepositoryGenerator
         $content .= "        return \${$this->camelCase($modelName)}->delete();\n";
         $content .= "    }\n\n";
 
-        // paginate method
+        
         $content .= "    /**\n";
         $content .= "     * Paginate {$modelName} records\n";
         $content .= "     */\n";
@@ -89,9 +87,7 @@ class RepositoryGenerator
         return $content;
     }
 
-    /**
-     * Generate repository interface for a model
-     */
+    
     public function generateRepositoryInterface(string $modelClass): string
     {
         $reflection = new ReflectionClass($modelClass);
@@ -110,37 +106,37 @@ class RepositoryGenerator
         $content .= "interface {$interfaceName}\n";
         $content .= "{\n";
 
-        // findById method
+        
         $content .= "    /**\n";
         $content .= "     * Find {$modelName} by ID\n";
         $content .= "     */\n";
         $content .= "    public function findById(int \$id): ?{$modelName};\n\n";
 
-        // findByIdOrFail method
+        
         $content .= "    /**\n";
         $content .= "     * Find {$modelName} by ID or fail\n";
         $content .= "     */\n";
         $content .= "    public function findByIdOrFail(int \$id): {$modelName};\n\n";
 
-        // create method
+        
         $content .= "    /**\n";
         $content .= "     * Create a new {$modelName}\n";
         $content .= "     */\n";
         $content .= "    public function create(array \$data): {$modelName};\n\n";
 
-        // update method
+        
         $content .= "    /**\n";
         $content .= "     * Update {$modelName}\n";
         $content .= "     */\n";
         $content .= "    public function update({$modelName} \${$this->camelCase($modelName)}, array \$data): {$modelName};\n\n";
 
-        // delete method
+        
         $content .= "    /**\n";
         $content .= "     * Delete {$modelName}\n";
         $content .= "     */\n";
         $content .= "    public function delete({$modelName} \${$this->camelCase($modelName)}): bool;\n\n";
 
-        // paginate method
+        
         $content .= "    /**\n";
         $content .= "     * Paginate {$modelName} records\n";
         $content .= "     */\n";
@@ -151,9 +147,7 @@ class RepositoryGenerator
         return $content;
     }
 
-    /**
-     * Write repository to file
-     */
+    
     public function writeRepository(string $path, string $content): void
     {
         $directory = dirname($path);
@@ -165,9 +159,7 @@ class RepositoryGenerator
         file_put_contents($path, $content);
     }
 
-    /**
-     * Convert string to camelCase
-     */
+    
     private function camelCase(string $string): string
     {
         return lcfirst($string);

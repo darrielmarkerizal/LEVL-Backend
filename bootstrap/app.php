@@ -18,7 +18,7 @@ use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Exceptions\UserNotDefinedException;
 
-// Naikkan memory limit untuk debugging di Telescope
+
 ini_set('memory_limit', env('PHP_MEMORY_LIMIT', '2048M'));
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -31,7 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn () => null);
         
-        // Set middleware priority - auth MUST run before validation
+        
         $middleware->priority([
             \Illuminate\Session\Middleware\StartSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
@@ -54,7 +54,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure.user.active' => \Modules\Auth\Http\Middleware\EnsureUserActive::class,
         ]);
 
-        // Trust all proxies (for AWS/load balancers) - allows proper IP and header detection
+        
         $middleware->trustProxies(
             at: '*',
             headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |
@@ -63,29 +63,29 @@ return Application::configure(basePath: dirname(__DIR__))
               \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO,
         );
 
-        // Set locale before processing API requests
+        
         $middleware->api(prepend: [
             \App\Http\Middleware\SetLocale::class,
             EnsureCleanDatabaseSession::class,
         ]);
 
-        // Ensure user is active on all authenticated API requests
+        
         $middleware->appendToGroup('api', \Modules\Auth\Http\Middleware\EnsureUserActive::class);
 
         $middleware->api(prepend: [\Illuminate\Routing\Middleware\ThrottleRequests::class.':api']);
 
-        // Enable CORS for API routes
+        
         $middleware->api(prepend: [\Illuminate\Http\Middleware\HandleCors::class]);
 
-        // Inject Query Detector status in all API responses - handled internally by middleware
+        
         $middleware->api(append: [\App\Http\Middleware\InjectQueryDetectorStatus::class]);
 
         $middleware->append(\App\Http\Middleware\LogApiAction::class);
-        // Temporarily commented out for maximum performance testing
-        // $middleware->append(\App\Http\Middleware\PerformanceMonitor::class);
+        
+        
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Handle specific BusinessException subclasses first
+        
         $exceptions->render(function (\App\Exceptions\ResourceNotFoundException $e, \Illuminate\Http\Request $request) {
             $message = $e->getMessage() ?: __('messages.not_found');
 
@@ -162,7 +162,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ], 400);
         });
 
-        // Handle generic BusinessException for business rule violations
+        
         $exceptions->render(function (BusinessException $e, \Illuminate\Http\Request $request) {
             $message = $e->getMessage() ?: __('messages.error');
 
@@ -243,7 +243,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (TokenBlacklistedException $e, \Illuminate\Http\Request $request) {
-            // Jangan tangani untuk route login/register
+            
             $isAuthRoute =
               $request->is('api/v1/auth/login') ||
               $request->is('api/v1/auth/register') ||
@@ -265,7 +265,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (JWTException $e, \Illuminate\Http\Request $request) {
-            // Jangan tangani JWTException untuk route login/register karena mereka tidak memerlukan autentikasi
+            
             $isAuthRoute =
               $request->is('api/v1/auth/login') ||
               $request->is('api/v1/auth/register') ||
@@ -275,7 +275,7 @@ return Application::configure(basePath: dirname(__DIR__))
               str_contains($request->path(), 'auth/register');
 
             if ($isAuthRoute) {
-                return null; // Biarkan exception ditangani oleh handler default atau dilempar kembali
+                return null; 
             }
 
             return response()->json(
@@ -289,7 +289,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (UserNotDefinedException $e, \Illuminate\Http\Request $request) {
-            // Jangan tangani untuk route login/register
+            
             $isAuthRoute =
               $request->is('api/v1/auth/login') ||
               $request->is('api/v1/auth/register') ||
@@ -383,7 +383,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 $model = $e->getModel();
                 $message = __('messages.not_found');
 
-                // Provide specific messages based on model type
+                
                 if ($model) {
                     $modelName = class_basename($model);
                     $message = match ($modelName) {
@@ -469,14 +469,14 @@ return Application::configure(basePath: dirname(__DIR__))
                     $pdo->rollBack();
                 }
             } catch (\Throwable) {
-                // ignore and continue with purge/reconnect
+                
             }
 
             try {
                 DB::purge($connectionName);
                 DB::reconnect($connectionName);
             } catch (\Throwable) {
-                // ignore reconnection issues in exception renderer
+                
             }
 
             Log::warning('Recovered aborted PostgreSQL transaction session (25P02).', [

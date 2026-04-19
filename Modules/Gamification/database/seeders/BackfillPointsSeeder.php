@@ -11,15 +11,12 @@ use Modules\Gamification\Models\UserGamificationStat;
 
 class BackfillPointsSeeder extends Seeder
 {
-    /**
-     * Backfill points table for users who have XP but no point history
-     * This creates historical point records based on existing XP
-     */
+    
     public function run(): void
     {
         $this->command->info('Backfilling points for users with XP but no point history...');
 
-        // Get users with XP but no points using subquery
+        
         $usersWithXp = UserGamificationStat::where('total_xp', '>', 0)
             ->whereNotExists(function ($query) {
                 $query->select(\DB::raw(1))
@@ -54,11 +51,11 @@ class BackfillPointsSeeder extends Seeder
         $totalXp = $stat->total_xp;
         $currentLevel = $stat->global_level;
 
-        // Create a single historical point entry representing accumulated XP
+        
         Point::create([
             'user_id' => $userId,
             'points' => $totalXp,
-            'reason' => 'bonus', // Using existing enum value
+            'reason' => 'bonus', 
             'source_type' => 'system',
             'source_id' => null,
             'description' => 'Historical XP backfill - accumulated points from before point tracking',

@@ -139,10 +139,10 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
 
     public function findWithDetails(int $id): ?Assignment
     {
-        // Not cached currently in original code, but could be.
-        // Leaving as is to minimize scope creep unless requested,
-        // but adding cache here is consistent.
-        // Let's cache it as it seems heavy.
+        
+        
+        
+        
         $cacheKey = "assignment:{$id}:details";
 
         return Cache::tags(['assignments', "assignment:{$id}"])
@@ -184,15 +184,15 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
             ->where('id', $id)
             ->firstOrFail();
 
-        // Create new assignment
+        
         $newAssignment = $original->replicate(['id', 'created_at', 'updated_at']);
         $newAssignment->title = $original->title.' (Copy)';
         $newAssignment->save();
 
-        // Note: Questions are no longer part of assignments
-        // Questions have been removed from the system
+        
+        
 
-        // Invalidate lists where this new assignment might appear
+        
         if ($newAssignment->assignable_type && $newAssignment->assignable_id) {
             $this->invalidateListCache('scope', $newAssignment->assignable_id, $newAssignment->assignable_type);
         }
@@ -202,8 +202,8 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
 
     public function findWithPendingSubmissions(): Collection
     {
-        // Dynamic list based on submission state, harder to cache efficiently without aggressive invalidation.
-        // Leaving uncached for now.
+        
+        
         return Assignment::query()
             ->whereHas('submissions', function ($query) {
                 $query->where('state', 'pending_manual_grading');
@@ -244,25 +244,25 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
         if ($type === 'scope' && $scopeType) {
             Cache::tags(['assignments', "scope:{$scopeType}:{$id}"])->flush();
         } elseif ($type === 'lesson') {
-            // Assuming lesson mapping uses scope approach or we need a specific tag for lessons if different
-            // In findByScope, we use scopeType and scopeId.
-            // If type is 'lesson', it implies scopeType might be subclass of Lesson or mapped.
-            // But checking create/update, it passes 'lesson' and $id.
-            // And also 'scope' and assignable_id/type.
+            
+            
+            
+            
+            
 
-            // If lesson strategy is distinct, we should tag it.
-            // Currently findByScope is generic.
-            // Let's assume lesson lists are also accessed via findByScope or similar.
-            // But wait, findByScope uses assignable_type.
+            
+            
+            
+            
 
-            // Safest:
-            Cache::tags(['assignments', "scope:lesson:{$id}"])->flush(); // misuse of type as scope?
-            // Actually, the original code had confusion on 'lesson' vs 'scope'.
-            // Let's just flush generic tag if unsure, or specific if known.
-            // Given the context of `create`: invalidateListCache('lesson', $id)
-            // It seems 'lesson' is treated as a scope type alias?
-            // But findAllByLesson is not here.
-            // Let's assume 'lesson' acts as a scope.
+            
+            Cache::tags(['assignments', "scope:lesson:{$id}"])->flush(); 
+            
+            
+            
+            
+            
+            
         }
     }
 

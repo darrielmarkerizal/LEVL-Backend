@@ -6,9 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         Schema::create('content_categories', function (Blueprint $table) {
@@ -19,7 +17,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Pivot table for news-category relationship
+        
         Schema::create('news_category', function (Blueprint $table) {
             $table->foreignId('news_id')->constrained('news')->onDelete('cascade');
             $table->foreignId('category_id')->constrained('content_categories')->onDelete('cascade');
@@ -28,9 +26,7 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         Schema::dropIfExists('news_category');

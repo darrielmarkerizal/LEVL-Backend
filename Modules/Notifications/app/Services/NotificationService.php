@@ -26,12 +26,10 @@ class NotificationService
         $this->firebasePushService = $firebasePushService;
     }
 
-    /**
-     * Create notification from DTO or array.
-     */
+    
     public function create(CreateNotificationDTO|array $data): Notification
     {
-        // Convert array to DTO if needed
+        
         if (is_array($data)) {
             $data = CreateNotificationDTO::from($data);
         }
@@ -140,12 +138,10 @@ class NotificationService
         ];
     }
 
-    /**
-     * Send notification from DTO or parameters.
-     */
+    
     public function send(SendNotificationDTO|int $userIdOrDto, ?string $type = null, ?string $title = null, ?string $message = null, ?array $data = null): Notification
     {
-        // Handle DTO or individual parameters
+        
         if ($userIdOrDto instanceof SendNotificationDTO) {
             $dto = $userIdOrDto;
 
@@ -158,7 +154,7 @@ class NotificationService
             ]);
         }
 
-        // Legacy parameter support
+        
         return $this->create([
             'user_id' => $userIdOrDto,
             'type' => $type,
@@ -168,9 +164,7 @@ class NotificationService
         ]);
     }
 
-    /**
-     * Send notification respecting user preferences.
-     */
+    
     public function sendWithPreferences(
         User $user,
         string $category,
@@ -180,12 +174,12 @@ class NotificationService
         ?array $data = null,
         bool $isCritical = false
     ): ?Notification {
-        // Always send critical notifications
+        
         if ($isCritical) {
             return $this->sendToChannel($user, $channel, $category, $title, $message, $data);
         }
 
-        // Check if user wants to receive this notification
+        
         if (! $this->preferenceService->shouldSendNotification($user, $category, $channel)) {
             return null;
         }
@@ -221,9 +215,7 @@ class NotificationService
         return NotificationPreference::getChannels();
     }
 
-    /**
-     * Send notification to specific channel.
-     */
+    
     protected function sendToChannel(
         User $user,
         string $channel,
@@ -241,7 +233,7 @@ class NotificationService
             'channel' => $channel,
         ];
 
-        // Handle different channels
+        
         switch ($channel) {
             case NotificationPreference::CHANNEL_EMAIL:
                 $this->sendEmailNotification($user, $title, $message, $data);
@@ -251,16 +243,14 @@ class NotificationService
                 break;
             case NotificationPreference::CHANNEL_IN_APP:
             default:
-                // In-app notifications are always created
+                
                 break;
         }
 
         return $this->create($notificationData);
     }
 
-    /**
-     * Send email notification.
-     */
+    
     protected function sendEmailNotification(User $user, string $title, string $message, ?array $data = null): void
     {
         if (! $user->email) {
@@ -274,9 +264,7 @@ class NotificationService
         });
     }
 
-    /**
-     * Send push notification.
-     */
+    
     protected function sendPushNotification(User $user, string $title, string $message, ?array $data = null): void
     {
         $token = (string) ($user->fcm_token ?? '');

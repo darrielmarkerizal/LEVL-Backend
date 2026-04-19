@@ -64,7 +64,7 @@ class ProfileController extends Controller
 
     public function requestEmailChange(\Modules\Auth\Http\Requests\RequestEmailChangeRequest $request): JsonResponse
     {
-        /** @var User $user */
+        
         $user = $request->user();
 
         $uuid = $this->profileService->requestEmailChange(
@@ -79,7 +79,7 @@ class ProfileController extends Controller
 
     public function verifyEmailChange(\Modules\Auth\Http\Requests\VerifyEmailChangeRequest $request): JsonResponse
     {
-        /** @var User $user */
+        
         $user = $request->user();
 
         $result = $this->profileService->verifyEmailChange(

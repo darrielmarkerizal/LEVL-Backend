@@ -33,7 +33,7 @@ test('user can confirm account deletion', function () {
             'uuid' => $uuid,
         ]);
 
-    // Expect assertions
+    
     expect(true)->toBeTrue();
 });
 

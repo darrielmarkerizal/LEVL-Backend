@@ -26,16 +26,14 @@ class TrashServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
 
-        // Register cache invalidation for Octane
+        
         $this->registerOctaneCacheInvalidation();
     }
 
-    /**
-     * Register cache invalidation when trash bins are modified
-     */
+    
     protected function registerOctaneCacheInvalidation(): void
     {
-        // Listen to trash bin events to invalidate cache
+        
         \Illuminate\Support\Facades\Event::listen(
             [\Modules\Trash\Models\TrashBin::class.'::created', \Modules\Trash\Models\TrashBin::class.'::deleted'],
             function () {

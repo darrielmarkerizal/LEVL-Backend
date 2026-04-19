@@ -34,7 +34,7 @@ class AwardXpForAssignmentSubmitted implements ShouldQueue
 
     public function handle(SubmissionStateChanged $event): void
     {
-        // Only award XP when submission is graded (not when submitted)
+        
         if ($event->newState !== SubmissionState::Graded) {
             return;
         }
@@ -47,16 +47,16 @@ class AwardXpForAssignmentSubmitted implements ShouldQueue
             return;
         }
 
-        // Check if submission passed (score >= passing_grade)
+        
         $passingGrade = $submission->assignment->passing_grade;
         $score = $submission->score ?? 0;
 
         if ($score < $passingGrade) {
-            // Don't award XP if didn't pass
+            
             return;
         }
 
-        // Check if user already received XP for this assignment (prevent duplicate XP on resubmit)
+        
         $existingXp = \Modules\Gamification\Models\Point::where('user_id', $userId)
             ->where('reason', 'assignment_submitted')
             ->where('source_type', 'assignment')
@@ -64,16 +64,16 @@ class AwardXpForAssignmentSubmitted implements ShouldQueue
             ->exists();
 
         if ($existingXp) {
-            // User already got XP for this assignment, don't award again
+            
             \Log::info("User {$userId} already received XP for assignment {$assignmentId}, skipping XP award");
 
             return;
         }
 
-        // 1. Award XP for assignment submission (100 XP from xp_sources)
+        
         $this->gamification->awardXp(
             $userId,
-            0, // Will use xp_sources config (assignment_submitted = 100 XP)
+            0, 
             'assignment_submitted',
             'assignment',
             $assignmentId,
@@ -82,12 +82,12 @@ class AwardXpForAssignmentSubmitted implements ShouldQueue
             ]
         );
 
-        // 2. Check if first submission (First Blood badge)
+        
         $isFirst = $this->checkIfFirstSubmission($assignmentId, $userId);
         if ($isFirst) {
             $this->gamification->awardXp(
                 $userId,
-                0, // Will use xp_sources config (first_submission = 30 XP)
+                0, 
                 'first_submission',
                 'assignment',
                 $assignmentId,
@@ -97,7 +97,7 @@ class AwardXpForAssignmentSubmitted implements ShouldQueue
             );
         }
 
-        // 3. Log event
+        
         $this->loggerService->log(
             $userId,
             'assignment_submitted',
@@ -112,12 +112,12 @@ class AwardXpForAssignmentSubmitted implements ShouldQueue
             ]
         );
 
-        // 4. Increment counters (only once per assignment)
+        
         $this->counterService->increment($userId, 'assignment_submitted', 'global', null, 'lifetime');
         $this->counterService->increment($userId, 'assignment_submitted', 'global', null, 'daily');
         $this->counterService->increment($userId, 'assignment_submitted', 'global', null, 'weekly');
 
-        // 5. Evaluate Dynamic Badge Rules
+        
         $user = \Modules\Auth\Models\User::find($userId);
         if ($user) {
             $payload = [

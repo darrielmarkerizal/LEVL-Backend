@@ -7,7 +7,6 @@ namespace Modules\Learning\Enums;
 enum SubmissionState: string
 {
     case InProgress = 'in_progress';
-    case Submitted = 'submitted';
     case AutoGraded = 'auto_graded';
     case PendingManualGrading = 'pending_manual_grading';
     case Graded = 'graded';
@@ -27,7 +26,6 @@ enum SubmissionState: string
     {
         return match ($this) {
             self::InProgress => __('enums.submission_state.in_progress'),
-            self::Submitted => __('enums.submission_state.submitted'),
             self::AutoGraded => __('enums.submission_state.auto_graded'),
             self::PendingManualGrading => __('enums.submission_state.pending_manual_grading'),
             self::Graded => __('enums.submission_state.graded'),
@@ -38,8 +36,7 @@ enum SubmissionState: string
     public function validTransitions(): array
     {
         return match ($this) {
-            self::InProgress => [self::Submitted],
-            self::Submitted => [self::AutoGraded, self::PendingManualGrading],
+            self::InProgress => [self::AutoGraded, self::PendingManualGrading],
             self::AutoGraded => [self::Released],
             self::PendingManualGrading => [self::Graded],
             self::Graded => [self::Released],

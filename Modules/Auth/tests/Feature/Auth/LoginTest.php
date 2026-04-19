@@ -53,8 +53,8 @@ test('user cannot login with invalid credentials', function () {
         'password' => 'WrongPassword',
     ]);
 
-    $response->assertStatus(401) // Or 422 depending on implementation
-        ->assertJsonValidationErrors(['login']); // If validation error
+    $response->assertStatus(401) 
+        ->assertJsonValidationErrors(['login']); 
 });
 
 test('pending user cannot login', function () {
@@ -69,7 +69,7 @@ test('pending user cannot login', function () {
         'password' => 'Password123!',
     ]);
 
-    $response->assertStatus(403) // Or 401 with specific message
+    $response->assertStatus(403) 
         ->assertJson(['message' => 'Email not verified']);
 });
 
@@ -96,8 +96,8 @@ test('login requires fields', function () {
 });
 
 test('login is rate limited', function () {
-    // Mock throttling or multiple requests
-    // Using standard Laravel throttling: 5 attempts
+    
+    
     $user = User::factory()->create(['email' => 'limit@example.com', 'password' => Hash::make('pass')]);
 
     for ($i = 0; $i < 6; $i++) {

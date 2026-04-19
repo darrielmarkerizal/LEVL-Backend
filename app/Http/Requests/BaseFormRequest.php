@@ -6,19 +6,10 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-/**
- * Base Form Request class with standardized error handling.
- *
- * All Form Request classes should extend this base class to ensure
- * consistent validation error responses across the application.
- */
+
 abstract class BaseFormRequest extends FormRequest
 {
-    /**
-     * Handle a failed validation attempt.
-     *
-     * @throws HttpResponseException
-     */
+    
     protected function failedValidation(Validator $validator): void
     {
         throw new HttpResponseException(
@@ -30,11 +21,7 @@ abstract class BaseFormRequest extends FormRequest
         );
     }
 
-    /**
-     * Get custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
+    
     public function messages(): array
     {
         return [

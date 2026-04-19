@@ -114,7 +114,7 @@ class VerificationValidator
             ])->save();
         }
 
-        // Load relationships for complete user data
+        
         $user->load(['roles', 'media']);
 
         return ['status' => 'ok', 'user_id' => $user->id, 'user' => $user];

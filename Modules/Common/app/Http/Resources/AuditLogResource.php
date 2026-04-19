@@ -8,25 +8,13 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Common\Models\AuditLog;
 
-/**
- * Resource for audit log entries.
- *
- * Transforms AuditLog model data for API responses.
- *
- * Requirement: 20.7
- *
- * @mixin AuditLog
- */
+
 class AuditLogResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function toArray(Request $request): array
     {
-        /** @var AuditLog $auditLog */
+        
         $auditLog = $this->resource;
 
         return [
@@ -47,7 +35,7 @@ class AuditLogResource extends JsonResource
             'context' => $auditLog->context,
             'created_at' => $auditLog->created_at->toIso8601String(),
 
-            // Legacy fields for backward compatibility
+            
             'event' => $this->when($auditLog->event !== null, $auditLog->event),
             'target' => $this->when($auditLog->target_type !== null, [
                 'id' => $auditLog->target_id,

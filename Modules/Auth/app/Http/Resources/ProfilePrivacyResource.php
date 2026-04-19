@@ -10,14 +10,10 @@ use Modules\Auth\Models\ProfilePrivacySetting;
 
 class ProfilePrivacyResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function toArray(Request $request): array
     {
-        /** @var ProfilePrivacySetting $settings */
+        
         $settings = $this->resource;
 
         return [

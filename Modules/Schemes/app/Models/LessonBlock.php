@@ -23,16 +23,14 @@ class LessonBlock extends Model implements HasMedia
 
     protected $appends = ['media_url', 'media_thumb_url', 'embed_url'];
 
-    /**
-     * Register media collections for this model.
-     */
+    
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('media')
             ->singleFile()
             ->useDisk('do')
             ->acceptsMimeTypes([
-                // Images
+                
                 'image/jpeg',
                 'image/jpg',
                 'image/png',
@@ -40,35 +38,35 @@ class LessonBlock extends Model implements HasMedia
                 'image/webp',
                 'image/svg+xml',
                 'image/bmp',
-                // Videos
+                
                 'video/mp4',
                 'video/webm',
                 'video/ogg',
                 'video/quicktime',
-                'video/x-msvideo', // .avi
-                'video/x-matroska', // .mkv
-                // Audio
+                'video/x-msvideo', 
+                'video/x-matroska', 
+                
                 'audio/mpeg',
                 'audio/wav',
                 'audio/ogg',
                 'audio/mp3',
                 'audio/mp4',
                 'audio/aac',
-                // Documents
+                
                 'application/pdf',
-                'text/plain', // .txt
+                'text/plain', 
                 'text/csv',
                 'text/html',
                 'application/rtf',
-                'text/rtf', // RTF documents (alternative mime type)
-                // Microsoft Office
-                'application/msword', // .doc
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-                'application/vnd.ms-excel', // .xls
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-                'application/vnd.ms-powerpoint', // .ppt
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
-                // Archives
+                'text/rtf', 
+                
+                'application/msword', 
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                'application/vnd.ms-excel', 
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+                'application/vnd.ms-powerpoint', 
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation', 
+                
                 'application/zip',
                 'application/x-zip-compressed',
                 'application/x-rar-compressed',
@@ -77,29 +75,27 @@ class LessonBlock extends Model implements HasMedia
                 'application/x-tar',
                 'application/gzip',
                 'application/x-gzip',
-                // Other common formats
+                
                 'application/json',
                 'application/xml',
                 'text/xml',
-                'application/octet-stream', // Generic binary
+                'application/octet-stream', 
             ]);
     }
 
-    /**
-     * Register media conversions for this model.
-     */
+    
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
             ->width(320)
-            ->height(180) // 16:9 ratio for video thumbnails
+            ->height(180) 
             ->sharpen(10)
             ->performOnCollections('media');
 
-        // Mobile-optimized thumbnail
+        
         $this->addMediaConversion('mobile')->width(160)->height(90)->performOnCollections('media');
 
-        // Large preview
+        
         $this->addMediaConversion('preview')->width(640)->height(360)->performOnCollections('media');
     }
 
@@ -144,17 +140,13 @@ class LessonBlock extends Model implements HasMedia
         return 'slug';
     }
 
-    /**
-     * Check if this block uses external URL
-     */
+    
     public function isExternalLink(): bool
     {
         return $this->block_type->isExternalLink();
     }
 
-    /**
-     * Get embed URL for external links (converts YouTube watch URLs to embed)
-     */
+    
     public function getEmbedUrlAttribute(): ?string
     {
         if (!$this->external_url) {
@@ -172,17 +164,15 @@ class LessonBlock extends Model implements HasMedia
         return $this->external_url;
     }
 
-    /**
-     * Convert YouTube watch URL to embed URL
-     */
+    
     private function convertYouTubeToEmbed(string $url): string
     {
-        // Handle youtube.com/watch?v=xxx
+        
         if (preg_match('/[?&]v=([^&]+)/', $url, $matches)) {
             return "https://www.youtube.com/embed/{$matches[1]}";
         }
 
-        // Handle youtu.be/xxx
+        
         if (preg_match('/youtu\.be\/([^?]+)/', $url, $matches)) {
             return "https://www.youtube.com/embed/{$matches[1]}";
         }
@@ -190,12 +180,10 @@ class LessonBlock extends Model implements HasMedia
         return $url;
     }
 
-    /**
-     * Convert Google Drive URL to preview URL
-     */
+    
     private function convertDriveToPreview(string $url): string
     {
-        // Extract file ID from various Drive URL formats
+        
         if (preg_match('/\/d\/([^\/]+)/', $url, $matches)) {
             return "https://drive.google.com/file/d/{$matches[1]}/preview";
         }

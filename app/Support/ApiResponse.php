@@ -143,13 +143,7 @@ trait ApiResponse
         );
     }
 
-    /**
-     * Format validation errors into a readable summary.
-     *
-     * @param  array  $errors  Validation errors array
-     * @param  int  $maxFields  Maximum number of fields to include in summary
-     * @return string Formatted error summary
-     */
+    
     protected function formatValidationSummary(array $errors, int $maxFields = 3): string
     {
         $fieldCount = count($errors);
@@ -181,14 +175,7 @@ trait ApiResponse
         return $summary;
     }
 
-    /**
-     * Enhanced validation error response with formatted summary.
-     *
-     * @param  array  $errors  Validation errors array
-     * @param  string|null  $customMessage  Custom message (optional)
-     * @param  array  $params  Translation parameters
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
     protected function validationErrorEnhanced(
         array $errors,
         ?string $customMessage = null,

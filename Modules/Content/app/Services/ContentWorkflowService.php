@@ -44,9 +44,7 @@ class ContentWorkflowService implements ContentWorkflowServiceInterface
         self::STATE_ARCHIVED => [self::STATE_DRAFT],
     ];
 
-    /**
-     * @throws InvalidTransitionException
-     */
+    
     public function transition(Model $content, string $newState, User $user, ?string $note = null): bool
     {
         $currentStatus = $content->status instanceof ContentStatus
@@ -91,33 +89,25 @@ class ContentWorkflowService implements ContentWorkflowServiceInterface
         return $this->transitions[$currentState] ?? [];
     }
 
-    /**
-     * @throws InvalidTransitionException
-     */
+    
     public function submitForReview(Model $content, User $user): bool
     {
         return $this->transition($content, self::STATE_SUBMITTED, $user);
     }
 
-    /**
-     * @throws InvalidTransitionException
-     */
+    
     public function approve(Model $content, User $user, ?string $note = null): bool
     {
         return $this->transition($content, self::STATE_APPROVED, $user, $note);
     }
 
-    /**
-     * @throws InvalidTransitionException
-     */
+    
     public function reject(Model $content, User $user, string $reason): bool
     {
         return $this->transition($content, self::STATE_REJECTED, $user, $reason);
     }
 
-    /**
-     * @throws InvalidTransitionException
-     */
+    
     public function schedule(Model $content, User $user, \DateTime $publishDate): bool
     {
         $content->update(['scheduled_at' => $publishDate]);
@@ -125,9 +115,7 @@ class ContentWorkflowService implements ContentWorkflowServiceInterface
         return $this->transition($content, self::STATE_SCHEDULED, $user);
     }
 
-    /**
-     * @throws InvalidTransitionException
-     */
+    
     public function publish(Model $content, User $user): bool
     {
         $content->update(['published_at' => now()]);

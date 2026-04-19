@@ -19,7 +19,7 @@ class UpdateProfileRequest extends FormRequest
 
         return [
             'name' => 'sometimes|string|max:100',
-            // Email tidak bisa diubah melalui endpoint ini, harus melalui /profile/email/request
+            
             'phone' => 'sometimes|nullable|string|max:20|regex:/^[0-9+\-\s()]+$/',
             'bio' => 'sometimes|nullable|string|max:1000',
             'location' => 'sometimes|nullable|string|max:255',
@@ -38,7 +38,7 @@ class UpdateProfileRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        // Remove email from request if present
+        
         if ($this->has('email')) {
             $this->request->remove('email');
         }

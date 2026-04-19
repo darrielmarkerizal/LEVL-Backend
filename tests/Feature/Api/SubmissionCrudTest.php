@@ -33,9 +33,9 @@ beforeEach(function () {
     ]);
 });
 
-// ==================== POSITIVE TEST CASES ====================
 
-// POST - Create Submission
+
+
 it('student can create submission for published assignment', function () {
     $response = $this->actingAs($this->student, 'api')
         ->postJson(api("/assignments/{$this->assignment->id}/submissions"), [
@@ -53,7 +53,7 @@ it('student can create submission for published assignment', function () {
     ]);
 });
 
-// PUT - Update Submission
+
 it('student can update their own draft submission', function () {
     $submission = Submission::create([
         'assignment_id' => $this->assignment->id,
@@ -72,7 +72,7 @@ it('student can update their own draft submission', function () {
         ->assertJsonPath('data.submission.answer_text', 'Updated answer');
 });
 
-// POST - Grade Submission
+
 it('admin can grade submission', function () {
     $submission = Submission::create([
         'assignment_id' => $this->assignment->id,
@@ -106,9 +106,9 @@ it('admin can grade submission', function () {
     ]);
 });
 
-// ==================== NEGATIVE TEST CASES ====================
 
-// POST - Create Submission Negative
+
+
 it('cannot create submission for draft assignment', function () {
     $draftAssignment = Assignment::create([
         'lesson_id' => $this->lesson->id,
@@ -154,7 +154,7 @@ it('unauthenticated user cannot create submission', function () {
     $response->assertStatus(401);
 });
 
-// PUT - Update Submission Negative
+
 it('cannot update graded submission', function () {
     $submission = Submission::create([
         'assignment_id' => $this->assignment->id,
@@ -226,7 +226,7 @@ it('cannot update submitted submission', function () {
     $response->assertStatus(422);
 });
 
-// POST - Grade Submission Negative
+
 it('student cannot grade submission', function () {
     $submission = Submission::create([
         'assignment_id' => $this->assignment->id,
@@ -256,7 +256,7 @@ it('cannot grade with invalid score', function () {
 
     $response = $this->actingAs($this->admin, 'api')
         ->postJson(api("/submissions/{$submission->id}/grade"), [
-            'score' => 150, // Exceeds max_score
+            'score' => 150, 
             'feedback' => 'Too high',
         ]);
 

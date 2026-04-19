@@ -85,7 +85,7 @@ class ActiveUsersSeeder extends Seeder
                     continue;
                 }
             } catch (\Throwable $e) {
-                // Skip media check if table doesn't exist
+                
                 continue;
             }
             

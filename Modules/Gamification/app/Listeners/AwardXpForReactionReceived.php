@@ -34,7 +34,7 @@ class AwardXpForReactionReceived implements ShouldQueue
     {
         $reaction = $event->reaction;
 
-        // Award XP to the CONTENT OWNER, not the reactor
+        
         $contentOwnerId = $reaction->reactable->user_id ?? null;
 
         if (! $contentOwnerId) {
@@ -43,7 +43,7 @@ class AwardXpForReactionReceived implements ShouldQueue
 
         $xp = (int) SystemSetting::get('gamification.points.reaction_received', 1);
 
-        // 1. Award XP to content owner
+        
         $this->gamification->awardXp(
             $contentOwnerId,
             $xp,
@@ -56,11 +56,11 @@ class AwardXpForReactionReceived implements ShouldQueue
             ]
         );
 
-        // 2. Increment counters
+        
         $this->counterService->increment($contentOwnerId, 'reaction_received', 'global', null, 'lifetime');
         $this->counterService->increment($contentOwnerId, 'reaction_received', 'global', null, 'daily');
 
-        // 3. Evaluate badge rules
+        
         $user = \Modules\Auth\Models\User::find($contentOwnerId);
         if ($user) {
             $payload = [

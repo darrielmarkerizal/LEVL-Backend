@@ -88,7 +88,7 @@ class Badge extends Model implements HasMedia
         }
 
         if (str_contains($media->mime_type, 'svg')) {
-            return $media->getUrl(); // SVG is vector, no thumb generation needed
+            return $media->getUrl(); 
         }
 
         return $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : $media->getUrl();

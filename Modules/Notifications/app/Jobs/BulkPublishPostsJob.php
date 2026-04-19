@@ -45,7 +45,7 @@ class BulkPublishPostsJob implements ShouldQueue
             'batch_size' => self::BATCH_SIZE,
         ]);
 
-        // Process posts in batches
+        
         $batches = array_chunk($this->postUuids, self::BATCH_SIZE);
 
         foreach ($batches as $batchIndex => $batch) {
@@ -60,7 +60,7 @@ class BulkPublishPostsJob implements ShouldQueue
                         continue;
                     }
 
-                    // Only publish if not already published
+                    
                     if ($post->status === PostStatus::PUBLISHED) {
                         Log::debug('BulkPublishPostsJob: Post already published', [
                             'uuid' => $uuid,
@@ -84,7 +84,7 @@ class BulkPublishPostsJob implements ShouldQueue
                         'uuid' => $uuid,
                         'error' => $e->getMessage(),
                     ]);
-                    // Continue processing remaining posts
+                    
                 }
             }
 

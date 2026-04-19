@@ -27,7 +27,7 @@ class LessonCompletionService
             );
         }
 
-        // Get enrollment for this user and course
+        
         $enrollment = Enrollment::where('user_id', $userId)
             ->where('course_id', $lesson->unit->course_id)
             ->whereIn('status', [EnrollmentStatus::Active, EnrollmentStatus::Completed])
@@ -39,7 +39,7 @@ class LessonCompletionService
             );
         }
 
-        // Check if already completed
+        
         $existing = LessonProgress::where('enrollment_id', $enrollment->id)
             ->where('lesson_id', $lesson->id)
             ->where('status', 'completed')
@@ -51,7 +51,7 @@ class LessonCompletionService
             );
         }
 
-        // Mark as completed in lesson_progress
+        
         $progress = LessonProgress::updateOrCreate(
             [
                 'enrollment_id' => $enrollment->id,
@@ -64,7 +64,7 @@ class LessonCompletionService
             ]
         );
 
-        // Update progression
+        
         $this->progressionService->markLessonCompleted($lesson, $enrollment);
 
         return $progress;
@@ -80,7 +80,7 @@ class LessonCompletionService
             );
         }
 
-        // Get enrollment for this user and course
+        
         $enrollment = Enrollment::where('user_id', $userId)
             ->where('course_id', $lesson->unit->course_id)
             ->whereIn('status', [EnrollmentStatus::Active, EnrollmentStatus::Completed])
@@ -90,7 +90,7 @@ class LessonCompletionService
             return false;
         }
 
-        // Update lesson_progress to not_started
+        
         $updated = LessonProgress::where('enrollment_id', $enrollment->id)
             ->where('lesson_id', $lesson->id)
             ->update([
@@ -105,7 +105,7 @@ class LessonCompletionService
             );
         }
 
-        // Update progression
+        
         $this->progressionService->markLessonUncompleted($lesson, $enrollment);
 
         return true;
@@ -118,17 +118,17 @@ class LessonCompletionService
 
     public function getUserCompletions(int $userId, int $unitId): array
     {
-        // Get all lessons in the unit
+        
         $lessons = Lesson::where('unit_id', $unitId)->get();
         
         if ($lessons->isEmpty()) {
             return [];
         }
 
-        // Get course_id from first lesson
+        
         $courseId = $lessons->first()->unit->course_id;
 
-        // Get enrollment
+        
         $enrollment = Enrollment::where('user_id', $userId)
             ->where('course_id', $courseId)
             ->first();
@@ -137,7 +137,7 @@ class LessonCompletionService
             return [];
         }
 
-        // Get completed lessons from lesson_progress
+        
         return LessonProgress::where('enrollment_id', $enrollment->id)
             ->whereIn('lesson_id', $lessons->pluck('id'))
             ->where('status', 'completed')

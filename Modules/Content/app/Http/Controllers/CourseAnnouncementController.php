@@ -13,9 +13,7 @@ use Modules\Content\Models\Announcement;
 use Modules\Content\Repositories\AnnouncementRepository;
 use Modules\Schemes\Models\Course;
 
-/**
- * @tags Konten & Berita
- */
+
 class CourseAnnouncementController extends Controller
 {
     use ApiResponse;
@@ -33,17 +31,7 @@ class CourseAnnouncementController extends Controller
         $this->announcementRepository = $announcementRepository;
     }
 
-    /**
-     * Daftar Pengumuman Kursus
-     *
-     *
-     * @summary Daftar Pengumuman Kursus
-     *
-     * @response 200 scenario="Success" {"success":true,"message":"Success","data":[{"id":1,"name":"Example CourseAnnouncement"}],"meta":{"current_page":1,"last_page":5,"per_page":15,"total":75},"links":{"first":"...","last":"...","prev":null,"next":"..."}}
-     * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-     *
-     * @authenticated
-     */
+    
     public function index(Request $request, int $courseId): JsonResponse
     {
         $course = Course::findOrFail($courseId);
@@ -55,18 +43,7 @@ class CourseAnnouncementController extends Controller
         return $this->success($announcements);
     }
 
-    /**
-     * Buat Pengumuman Kursus Baru
-     *
-     *
-     * @summary Buat Pengumuman Kursus Baru
-     *
-     * @response 201 scenario="Success" {"success":true,"message":"CourseAnnouncement berhasil dibuat.","data":{"id":1,"name":"New CourseAnnouncement"}}
-     * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-     * @response 422 scenario="Validation Error" {"success":false,"message":"Validasi gagal.","errors":{"field":["Field wajib diisi."]}}
-     *
-     * @authenticated
-     */
+    
     public function store(CreateAnnouncementRequest $request, int $courseId): JsonResponse
     {
         $course = Course::findOrFail($courseId);
@@ -79,12 +56,12 @@ class CourseAnnouncementController extends Controller
 
         $announcement = $this->contentService->createAnnouncement($data, auth()->user());
 
-        // Auto-publish if status is published
+        
         if ($request->input('status') === 'published') {
             $this->contentService->publishContent($announcement);
         }
 
-        // Auto-schedule if scheduled_at is provided
+        
         if ($request->filled('scheduled_at')) {
             $this->contentService->scheduleContent(
                 $announcement,

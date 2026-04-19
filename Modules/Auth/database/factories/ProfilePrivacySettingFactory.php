@@ -6,18 +6,12 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\Models\ProfilePrivacySetting;
 use Modules\Auth\Models\User;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Auth\Models\ProfilePrivacySetting>
- */
+
 class ProfilePrivacySettingFactory extends Factory
 {
     protected $model = ProfilePrivacySetting::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function definition(): array
     {
         return [
@@ -31,9 +25,7 @@ class ProfilePrivacySettingFactory extends Factory
         ];
     }
 
-    /**
-     * Indicate that the profile is public.
-     */
+    
     public function public(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -46,9 +38,7 @@ class ProfilePrivacySettingFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the profile is private.
-     */
+    
     public function private(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -61,9 +51,7 @@ class ProfilePrivacySettingFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the profile is friends only.
-     */
+    
     public function friendsOnly(): static
     {
         return $this->state(fn (array $attributes) => [

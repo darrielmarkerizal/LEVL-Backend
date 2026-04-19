@@ -17,9 +17,9 @@ beforeEach(function () {
     $this->unit = Unit::factory()->create(['course_id' => $this->course->id]);
 });
 
-// ==================== POSITIVE TEST CASES ====================
 
-// POST - Create Lesson
+
+
 it('admin can create lesson in their course unit', function () {
     $response = $this->actingAs($this->admin, 'api')
         ->postJson(api("/courses/{$this->course->slug}/units/{$this->unit->slug}/lessons"), [
@@ -37,7 +37,7 @@ it('admin can create lesson in their course unit', function () {
     ]);
 });
 
-// PUT - Update Lesson
+
 it('admin can update lesson in their course', function () {
     $lesson = Lesson::factory()->create(['unit_id' => $this->unit->id]);
 
@@ -56,7 +56,7 @@ it('admin can update lesson in their course', function () {
     ]);
 });
 
-// DELETE - Delete Lesson
+
 it('admin can delete lesson from their course', function () {
     $lesson = Lesson::factory()->create(['unit_id' => $this->unit->id]);
 
@@ -67,7 +67,7 @@ it('admin can delete lesson from their course', function () {
     assertDatabaseMissing('lessons', ['id' => $lesson->id]);
 });
 
-// Publish/Unpublish
+
 it('admin can publish lesson', function () {
     $lesson = Lesson::factory()->create([
         'unit_id' => $this->unit->id,
@@ -81,9 +81,9 @@ it('admin can publish lesson', function () {
         ->assertJsonPath('data.lesson.status', 'published');
 });
 
-// ==================== NEGATIVE TEST CASES ====================
 
-// POST - Create Lesson Negative
+
+
 it('student cannot create lesson', function () {
     $response = $this->actingAs($this->student, 'api')
         ->postJson(api("/courses/{$this->course->slug}/units/{$this->unit->slug}/lessons"), [
@@ -123,7 +123,7 @@ it('unauthenticated user cannot create lesson', function () {
     $response->assertStatus(401);
 });
 
-// PUT - Update Lesson Negative
+
 it('student cannot update lesson', function () {
     $lesson = Lesson::factory()->create(['unit_id' => $this->unit->id]);
 
@@ -159,7 +159,7 @@ it('cannot update non-existent lesson', function () {
     $response->assertStatus(404);
 });
 
-// DELETE - Delete Lesson Negative
+
 it('student cannot delete lesson', function () {
     $lesson = Lesson::factory()->create(['unit_id' => $this->unit->id]);
 
@@ -189,7 +189,7 @@ it('cannot delete non-existent lesson', function () {
     $response->assertStatus(404);
 });
 
-// Publish/Unpublish Negative
+
 it('student cannot publish lesson', function () {
     $lesson = Lesson::factory()->create([
         'unit_id' => $this->unit->id,

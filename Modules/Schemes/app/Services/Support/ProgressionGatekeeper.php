@@ -33,7 +33,7 @@ class ProgressionGatekeeper
         if ($user && ($user->hasRole(['Superadmin', 'Admin', 'Instructor']))) {
             $enrollment = $this->finder->getEnrollmentForCourse($course->id, $userId);
             if (! $enrollment) {
-                // Auto-enroll staff
+                
                 $enrollment = Enrollment::create([
                     'user_id' => $userId,
                     'course_id' => $course->id,

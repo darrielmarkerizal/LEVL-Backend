@@ -32,7 +32,7 @@ class ContentService
 
     private function createLesson(Unit $unit, array $data): array
     {
-        // Set default status if not provided
+        
         if (!isset($data['status'])) {
             $data['status'] = 'draft';
         }
@@ -52,7 +52,7 @@ class ContentService
 
     private function createAssignment(Unit $unit, array $data, int $creatorId): array
     {
-        // Set default status if not provided
+        
         if (!isset($data['status'])) {
             $data['status'] = 'draft';
         }
@@ -73,7 +73,7 @@ class ContentService
 
     private function createQuiz(Unit $unit, array $data, int $creatorId): array
     {
-        // Set default status if not provided
+        
         if (!isset($data['status'])) {
             $data['status'] = 'draft';
         }

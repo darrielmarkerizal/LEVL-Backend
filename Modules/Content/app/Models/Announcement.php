@@ -87,9 +87,7 @@ class Announcement extends Model
             ->where('content_type', self::class);
     }
 
-    /**
-     * Get the options for generating the slug.
-     */
+    
     public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()

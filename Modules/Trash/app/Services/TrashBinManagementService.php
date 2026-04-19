@@ -45,7 +45,7 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
         [$isFullAccess, $courseIds] = $this->resolveAccessContext($actor);
 
-        // Get all bins based on access
+        
         $bins = $this->repository->getAllForAccess(
             $isFullAccess ? null : $actor->id,
             $isFullAccess,
@@ -53,7 +53,7 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
             $resourceType
         );
 
-        // Process directly without queue
+        
         foreach ($bins as $bin) {
             $this->trashService->restoreFromTrashBin($bin);
         }
@@ -73,7 +73,7 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
             $this->assertCanAccessBin($actor, $bin);
         }
 
-        // Process directly without queue
+        
         foreach ($bins as $bin) {
             $this->trashService->restoreFromTrashBin($bin);
         }
@@ -117,7 +117,7 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
         [$isFullAccess, $courseIds] = $this->resolveAccessContext($actor);
 
-        // Get all bins based on access
+        
         $bins = $this->repository->getAllForAccess(
             $isFullAccess ? null : $actor->id,
             $isFullAccess,
@@ -125,7 +125,7 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
             $resourceType
         );
 
-        // Process directly without queue
+        
         foreach ($bins as $bin) {
             $this->trashService->forceDeleteFromTrashBin($bin);
         }
@@ -145,7 +145,7 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
             $this->assertCanAccessBin($actor, $bin);
         }
 
-        // Process directly without queue
+        
         foreach ($bins as $bin) {
             $this->trashService->forceDeleteFromTrashBin($bin);
         }
@@ -188,12 +188,12 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
             throw new AuthorizationException(__('messages.forbidden'));
         }
 
-        // Superadmin and Admin have full access
+        
         if ($actor->hasRole('Superadmin') || $actor->hasRole('Admin')) {
             return;
         }
 
-        // Instructor can access if they deleted it or manage the course
+        
         if (
             (int) $bin->deleted_by === (int) $actor->id
             || $this->canManageBinCourse($actor, $bin)
@@ -213,7 +213,7 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
     private function canManageBinCourse(User $actor, TrashBin $bin): bool
     {
-        // Only Instructor needs course-based filtering
+        
         if (! $actor->hasRole('Instructor')) {
             return false;
         }
@@ -234,12 +234,12 @@ class TrashBinManagementService implements TrashBinManagementServiceInterface
 
     private function resolveAccessContext(User $actor): array
     {
-        // Superadmin and Admin have full access to all trash items
+        
         if ($actor->hasRole('Superadmin') || $actor->hasRole('Admin')) {
             return [true, []];
         }
 
-        // Instructor only sees trash from courses they manage
+        
         $managedCourseIds = $actor->managedCourses()->pluck('courses.id')->toArray();
         $instructorCourseIds = Course::query()->where('instructor_id', $actor->id)->pluck('id')->toArray();
         $courseIds = array_values(array_unique(array_map('intval', array_merge($managedCourseIds, $instructorCourseIds))));

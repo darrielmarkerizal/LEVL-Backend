@@ -36,14 +36,14 @@ class QuizController extends Controller
     {
         $user = auth('api')->user();
 
-        // For students, check enrollment first
+        
         if ($user && $user->hasRole('Student')) {
-            // Use trait method for enrollment validation
+            
             if ($error = $this->requireEnrollment($course)) {
                 return $error;
             }
 
-            // Force published status filter for students
+            
             $filters = array_merge($request->all(), [
                 'filter' => array_merge($request->input('filter', []), [
                     'status' => 'published',
@@ -74,14 +74,14 @@ class QuizController extends Controller
         $enrichmentService = app(\Modules\Learning\Services\Support\QuizEnrichmentService::class);
 
         if ($user && $user->hasRole('Student')) {
-            // Get course from quiz scope
+            
             $course = $quiz->getCourse();
 
             if (! $course) {
                 return $this->error(__('messages.quizzes.scope_not_found'), [], 404);
             }
 
-            // Use trait method for enrollment validation
+            
             if ($error = $this->requireEnrollment($course)) {
                 return $error;
             }

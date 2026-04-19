@@ -22,7 +22,7 @@ test('superadmin cannot delete self', function () {
     $response = $this->withHeaders(['Authorization' => 'Bearer '.auth()->login($superadmin)])
         ->deleteJson("/api/v1/users/{$superadmin->id}");
 
-    $response->assertStatus(422); // Or 403
+    $response->assertStatus(422); 
 });
 
 test('admin cannot delete user', function () {

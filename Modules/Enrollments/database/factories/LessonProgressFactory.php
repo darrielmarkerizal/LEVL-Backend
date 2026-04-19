@@ -3,38 +3,50 @@
 namespace Modules\Enrollments\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Enrollments\Enums\ProgressStatus;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Enrollments\Models\LessonProgress;
 use Modules\Schemes\Models\Lesson;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Enrollments\Models\LessonProgress>
- */
+
 class LessonProgressFactory extends Factory
 {
     protected $model = LessonProgress::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function definition(): array
     {
+        $statusRoll = fake()->numberBetween(1, 100);
+        $status = match (true) {
+            $statusRoll <= 30 => ProgressStatus::NotStarted->value,
+            $statusRoll <= 80 => ProgressStatus::InProgress->value,
+            default => ProgressStatus::Completed->value,
+        };
+        $startedAt = $status === ProgressStatus::NotStarted->value ? null : now()->subDays(rand(1, 7));
+        $completedAt = $status === ProgressStatus::Completed->value ? now() : null;
+        $progress = match ($status) {
+            ProgressStatus::NotStarted->value => 0,
+            ProgressStatus::InProgress->value => fake()->randomFloat(2, 1, 99),
+            ProgressStatus::Completed->value => 100,
+            default => 0,
+        };
+        $attemptCount = match ($status) {
+            ProgressStatus::NotStarted->value => 0,
+            default => fake()->numberBetween(1, 5),
+        };
+
         return [
             'enrollment_id' => Enrollment::factory(),
             'lesson_id' => Lesson::factory(),
-            'status' => fake()->randomElement(['not_started', 'in_progress', 'completed']),
-            'progress_percent' => fake()->randomFloat(2, 0, 100),
-            'attempt_count' => fake()->numberBetween(0, 5),
-            'started_at' => now(),
-            'completed_at' => null,
+            'status' => $status,
+            'progress_percent' => $progress,
+            'attempt_count' => $attemptCount,
+            'started_at' => $startedAt,
+            'completed_at' => $completedAt,
         ];
     }
 
-    /**
-     * Indicate that the lesson progress is not started.
-     */
+    
     public function notStarted(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -46,9 +58,7 @@ class LessonProgressFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the lesson progress is in progress.
-     */
+    
     public function inProgress(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -59,9 +69,7 @@ class LessonProgressFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the lesson progress is completed.
-     */
+    
     public function completed(): static
     {
         return $this->state(fn (array $attributes) => [

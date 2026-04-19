@@ -14,17 +14,13 @@ class StorePostRequest extends FormRequest
 {
     use HasApiValidation;
 
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    
     public function authorize(): bool
     {
         return auth('api')->check() && auth('api')->user()->hasRole('Admin');
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
+    
     public function rules(): array
     {
         return [
@@ -46,9 +42,7 @@ class StorePostRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom validation messages.
-     */
+    
     public function messages(): array
     {
         return [

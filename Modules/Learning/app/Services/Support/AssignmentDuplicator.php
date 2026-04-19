@@ -65,16 +65,16 @@ class AssignmentDuplicator
                 'weight' => $question->weight,
                 'order' => $question->order,
             ]);
-            // Note: Media duplication for questions might be needed if they have embedded media,
-            // but for now relying on basic duplication logic.
+            
+            
         }
     }
 
     private function duplicatePrerequisites(Assignment $original, Assignment $newAssignment): void
     {
-        // Prerequisites are many-to-many.
-        // Logic: Should the new assignment have the same prerequisites as the old one?
-        // Usually yes.
+        
+        
+        
         $prereqIds = $original->prerequisites->pluck('id')->toArray();
         if (! empty($prereqIds)) {
             $newAssignment->prerequisites()->attach($prereqIds);

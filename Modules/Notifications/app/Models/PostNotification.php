@@ -27,7 +27,7 @@ class PostNotification extends Model
         'sent_at',
     ];
 
-    // Relationships
+    
 
     public function post(): BelongsTo
     {

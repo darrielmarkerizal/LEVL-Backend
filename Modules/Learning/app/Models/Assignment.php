@@ -139,41 +139,31 @@ class Assignment extends Model implements HasMedia
         return $this->unit?->course;
     }
 
-    /**
-     * Check if this is an assignment (file upload type)
-     */
+    
     public function isAssignment(): bool
     {
         return $this->type === AssignmentType::Assignment;
     }
 
-    /**
-     * Check if this is a quiz (questions type)
-     */
+    
     public function isQuiz(): bool
     {
         return $this->type === AssignmentType::Quiz;
     }
 
-    /**
-     * Scope to filter by assignment type
-     */
+    
     public function scopeOfType($query, AssignmentType $type)
     {
         return $query->where('type', $type);
     }
 
-    /**
-     * Scope to get only assignments (file upload)
-     */
+    
     public function scopeAssignments($query)
     {
         return $query->where('type', AssignmentType::Assignment);
     }
 
-    /**
-     * Scope to get only quizzes (questions)
-     */
+    
     public function scopeQuizzes($query)
     {
         return $query->where('type', AssignmentType::Quiz);

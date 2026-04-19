@@ -23,9 +23,7 @@ class Tag extends Model
         'description',
     ];
 
-    /**
-     * Get the options for generating the slug.
-     */
+    
     public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()
@@ -33,9 +31,7 @@ class Tag extends Model
             ->saveSlugsTo('slug');
     }
 
-    /**
-     * Get activity log options for this model.
-     */
+    
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -89,13 +85,9 @@ class Tag extends Model
         return 'slug';
     }
 
-    /**
-     * Get the indexable data array for the model.
-     */
+    
 
-    /**
-     * Create a new factory instance for the model.
-     */
+    
     protected static function newFactory()
     {
         return \Database\Factories\TagFactory::new();

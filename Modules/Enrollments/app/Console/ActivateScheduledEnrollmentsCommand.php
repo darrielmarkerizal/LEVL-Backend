@@ -28,7 +28,7 @@ class ActivateScheduledEnrollmentsCommand extends Command
 
         $now = Carbon::now();
 
-        // Find all pending enrollments where enrolled_at is today or in the past
+        
         $enrollments = Enrollment::query()
             ->useWritePdo()
             ->where('status', EnrollmentStatus::Pending)
@@ -63,7 +63,7 @@ class ActivateScheduledEnrollmentsCommand extends Command
                     continue;
                 }
 
-                // Keep side effects outside the transaction to avoid cascading failures.
+                
                 EnrollmentActivated::dispatch($enrollment);
 
                 if ($enrollment->user?->email && $enrollment->course?->slug) {
@@ -107,7 +107,7 @@ class ActivateScheduledEnrollmentsCommand extends Command
                 DB::rollBack();
             }
         } catch (Throwable) {
-            // Best effort cleanup before continuing.
+            
         }
 
         try {

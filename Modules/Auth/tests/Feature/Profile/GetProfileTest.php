@@ -28,6 +28,6 @@ test('get profile fails without auth', function () {
 });
 
 test('get profile logic cached', function () {
-    // Verify cache logic
+    
     expect(true)->toBeTrue();
 });

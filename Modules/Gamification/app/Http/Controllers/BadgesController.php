@@ -98,9 +98,7 @@ class BadgesController extends Controller
         return $this->success([], __('messages.badges.deleted'));
     }
 
-    /**
-     * Get available badges for student (with earned status and progress)
-     */
+    
     public function available(Request $request): JsonResponse
     {
         $userId = auth('api')->user()->id;

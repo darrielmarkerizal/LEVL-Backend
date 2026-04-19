@@ -1,15 +1,6 @@
 <?php
 
-/**
- * Script to view enrollment keys for existing courses
- *
- * This script will display:
- * 1. All courses with key_based enrollment
- * 2. Their current encryption status
- * 3. Decrypted keys (if available)
- *
- * Note: Keys that are only hashed (not encrypted) cannot be viewed.
- */
+
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -22,7 +13,7 @@ echo "=================================================\n";
 echo "Enrollment Keys Viewer\n";
 echo "=================================================\n\n";
 
-// Find courses with key_based enrollment
+
 $courses = Course::where('enrollment_type', 'key_based')
     ->with(['instructors'])
     ->get();
@@ -48,7 +39,7 @@ foreach ($courses as $course) {
     echo "Slug: {$course->slug}\n";
     echo "Status: {$course->status->value}\n";
 
-    // Show instructors
+    
     if ($course->instructors->isNotEmpty()) {
         echo "Instructors:\n";
         foreach ($course->instructors as $instructor) {
@@ -110,7 +101,7 @@ foreach ($courses as $course) {
     echo "\n";
 }
 
-// Summary
+
 echo str_repeat('=', 80)."\n";
 echo "SUMMARY\n";
 echo str_repeat('=', 80)."\n\n";

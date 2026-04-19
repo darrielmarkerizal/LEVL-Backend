@@ -6,21 +6,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Drop tables that are proven unused in the codebase.
-     *
-     * - audits: SystemAudit model exists but is never called from any service/controller
-     * - social_accounts: No social login implementation exists
-     * - login_activities: Login data already tracked via activity_log (Spatie)
-     * - notification_templates: Not used by any service
-     * - reports: No active controller/service references
-     * - submission_files: Empty shell, files managed via Spatie Media Library
-     * - levels: Redundant with user_gamification_stats + user_scope_stats
-     * - telescope_*: Development-only debugging tables
-     */
+    
     public function up(): void
     {
-        // Drop foreign key constraints first where needed
+        
         Schema::dropIfExists('submission_files');
         Schema::dropIfExists('levels');
         Schema::dropIfExists('social_accounts');
@@ -35,7 +24,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Recreate audits table
+        
         Schema::create('audits', function (Blueprint $table) {
             $table->id();
             $table->string('action')->default('system');
@@ -56,7 +45,7 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
         });
 
-        // Recreate social_accounts table
+        
         Schema::create('social_accounts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -68,7 +57,7 @@ return new class extends Migration
             $table->unique(['provider_name', 'provider_id']);
         });
 
-        // Recreate login_activities table
+        
         Schema::create('login_activities', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -80,7 +69,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Recreate notification_templates table
+        
         Schema::create('notification_templates', function (Blueprint $table) {
             $table->id();
             $table->string('code', 100)->unique();
@@ -90,7 +79,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Recreate reports table
+        
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->string('type')->default('activity');
@@ -101,14 +90,14 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Recreate submission_files table
+        
         Schema::create('submission_files', function (Blueprint $table) {
             $table->id();
             $table->foreignId('submission_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
 
-        // Recreate levels table
+        
         Schema::create('levels', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -118,7 +107,7 @@ return new class extends Migration
             $table->foreign('course_id')->references('id')->on('courses')->onDelete('cascade');
         });
 
-        // Recreate telescope tables
+        
         Schema::create('telescope_entries', function (Blueprint $table) {
             $table->bigIncrements('sequence');
             $table->uuid('uuid');

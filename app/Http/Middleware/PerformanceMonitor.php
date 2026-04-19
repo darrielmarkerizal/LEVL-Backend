@@ -11,7 +11,7 @@ class PerformanceMonitor
     public function handle(Request $request, Closure $next)
     {
         if (! app()->bound(\Laravel\Octane\Octane::class)) {
-            // Only run performance monitoring outside of Octane
+            
             return $next($request);
         }
 
@@ -23,10 +23,10 @@ class PerformanceMonitor
         $endTime = microtime(true);
         $endMemory = memory_get_usage();
 
-        $executionTime = ($endTime - $startTime) * 1000; // Convert to ms
+        $executionTime = ($endTime - $startTime) * 1000; 
         $memoryUsed = $endMemory - $startMemory;
 
-        // Log performance metrics for requests taking longer than 100ms
+        
         if ($executionTime > 100) {
             Log::warning('Slow request detected in Octane', [
                 'url' => $request->fullUrl(),

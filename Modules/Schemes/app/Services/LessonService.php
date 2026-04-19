@@ -57,7 +57,7 @@ class LessonService implements LessonServiceInterface
 
         $updated = $this->orderingProcessor->update($lesson, $data);
 
-        // Handle blocks reordering if provided
+        
         if (isset($data['blocks']) && is_array($data['blocks'])) {
             $this->reorderBlocks($id, $data['blocks']);
         }

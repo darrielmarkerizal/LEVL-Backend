@@ -27,26 +27,18 @@ use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Unit;
 use Spatie\Permission\Models\Role;
 
-/**
- * Creates one deterministic "complete" Student user with non-empty data
- * for all includes used by /users/:userId?include=...
- *
- * Idempotent: safe to run multiple times (no duplicates / no refresh needed).
- *
- * Usage:
- *   php artisan db:seed --class="Modules\Auth\Database\Seeders\CompleteStudentIncludesSeeder"
- */
+
 class CompleteStudentIncludesSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ensure roles exist (without touching permission cache store like Redis)
+        
         Role::firstOrCreate(['name' => 'Superadmin', 'guard_name' => 'api']);
         Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'api']);
         Role::firstOrCreate(['name' => 'Instructor', 'guard_name' => 'api']);
         Role::firstOrCreate(['name' => 'Student', 'guard_name' => 'api']);
 
-        // Deterministic identifiers so we can update-or-create safely.
+        
         $studentEmail = RealisticSeederContent::demoEmail('student.full.includes');
         $studentUsername = 'student_full_includes';
 
@@ -111,7 +103,7 @@ class CompleteStudentIncludesSeeder extends Seeder
         );
         $otherStudent->syncRoles(['Student']);
 
-        // Privacy settings
+        
         ProfilePrivacySetting::updateOrCreate(
             ['user_id' => $student->id],
             $this->onlyExistingColumns('profile_privacy_settings', [
@@ -124,7 +116,7 @@ class CompleteStudentIncludesSeeder extends Seeder
             ]),
         );
 
-        // Course + Unit + Lesson (deterministic to avoid duplicates)
+        
         $course = Course::updateOrCreate(
             ['slug' => 'seed-complete-student-course'],
             $this->onlyExistingColumns('courses', [
@@ -164,7 +156,7 @@ class CompleteStudentIncludesSeeder extends Seeder
             ]),
         );
 
-        // Enrollment (unique user_id + course_id)
+        
         $enrollment = Enrollment::firstOrCreate(
             [
                 'user_id' => $student->id,
@@ -177,10 +169,10 @@ class CompleteStudentIncludesSeeder extends Seeder
             ]),
         );
 
-        // managedCourses (pivot)
+        
         $student->managedCourses()->syncWithoutDetaching([$course->id]);
 
-        // Gamification: stats
+        
         UserGamificationStat::updateOrCreate(
             ['user_id' => $student->id],
             $this->onlyExistingColumns('user_gamification_stats', [
@@ -193,7 +185,7 @@ class CompleteStudentIncludesSeeder extends Seeder
             ]),
         );
 
-        // Gamification: badge + user_badge
+        
         $badge = Badge::firstOrCreate(
             ['code' => 'BADGE-SEED-FULL-001'],
             $this->onlyExistingColumns('badges', [
@@ -221,7 +213,7 @@ class CompleteStudentIncludesSeeder extends Seeder
             ]),
         );
 
-        // Gamification: levels (unique user_id + course_id)
+        
         Level::updateOrCreate(
             ['user_id' => $student->id, 'course_id' => null],
             $this->onlyExistingColumns('levels', ['current_level' => 3]),
@@ -231,7 +223,7 @@ class CompleteStudentIncludesSeeder extends Seeder
             $this->onlyExistingColumns('levels', ['current_level' => 2]),
         );
 
-        // Gamification: learning streaks (unique user_id + activity_date)
+        
         LearningStreak::updateOrCreate(
             ['user_id' => $student->id, 'activity_date' => now()->toDateString()],
             $this->onlyExistingColumns('learning_streaks', ['xp_earned' => 120]),
@@ -241,7 +233,7 @@ class CompleteStudentIncludesSeeder extends Seeder
             $this->onlyExistingColumns('learning_streaks', ['xp_earned' => 80]),
         );
 
-        // Learning: assignment (for submission) + submission
+        
         $assignmentForSubmission = Assignment::updateOrCreate(
             [
                 'lesson_id' => $lesson->id,
@@ -273,7 +265,7 @@ class CompleteStudentIncludesSeeder extends Seeder
             ]),
         );
 
-        // Learning: assignments created by student (to make `assignments` include non-empty)
+        
         Assignment::updateOrCreate(
             [
                 'lesson_id' => $lesson->id,
@@ -289,7 +281,7 @@ class CompleteStudentIncludesSeeder extends Seeder
             ]),
         );
 
-        // Learning: overrides (received + granted)
+        
         Override::firstOrCreate(
             [
                 'assignment_id' => $assignmentForSubmission->id,
@@ -320,7 +312,7 @@ class CompleteStudentIncludesSeeder extends Seeder
             ]),
         );
 
-        // Forums: thread authored by student
+        
         Thread::firstOrCreate(
             [
                 'course_id' => $course->id,
@@ -344,12 +336,7 @@ class CompleteStudentIncludesSeeder extends Seeder
         $this->command?->info('   Try: GET /api/v1/users/'.$student->id.'?include=roles,privacySettings,enrollments,managedCourses,gamificationStats,badges,points,levels,learningStreaks,submissions,assignments,receivedOverrides,grantedOverrides,threads');
     }
 
-    /**
-     * Filter attributes so we only set columns that actually exist
-     * in the current database schema. This prevents "undefined column"
-     * errors when schema has evolved (columns added/removed/renamed)
-     * but seeders are ahead.
-     */
+    
     private function onlyExistingColumns(string $table, array $attributes): array
     {
         static $columnsCache = [];

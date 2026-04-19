@@ -157,7 +157,7 @@ class MasterDataRepository extends \App\Repositories\BaseRepository implements \
         string $search,
         ?bool $normalizedIsCrud
     ): SupportCollection {
-        // Transform to standard structure first (key, label, is_crud)
+        
         $types = $types->map(function ($item) {
             $key = $item['type'] ?? $item->type ?? '';
 
@@ -183,10 +183,10 @@ class MasterDataRepository extends \App\Repositories\BaseRepository implements \
         return $types;
     }
 
-    // Helper to determine is_crud (recreating logic that must exist somewhere or default)
+    
     private function determineIsCrud(string $type): bool
     {
-        // List of non-CRUD types based on valid values or business logic
+        
         $nonCrudTypes = ['roles', 'priorities', 'permissions'];
 
         return ! in_array($type, $nonCrudTypes);

@@ -32,7 +32,7 @@ class QuizSubmissionController extends Controller
             $includes = request()->query('include', '');
             $includesArray = $includes ? explode(',', $includes) : [];
 
-            // Use Spatie Query Builder for proper include validation
+            
             $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, new QuizSubmission(['quiz_id' => $quiz->id, 'user_id' => $user->id]));
 
             $query = QuizSubmission::where('quiz_id', $quiz->id)
@@ -97,7 +97,7 @@ class QuizSubmissionController extends Controller
                 'meta' => $result['meta'],
             ];
 
-            // Include answer if exists
+            
             if (isset($result['answer']) && $result['answer']) {
                 $response['answer'] = [
                     'id' => $result['answer']->id,

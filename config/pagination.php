@@ -1,14 +1,7 @@
 <?php
 
 return [
-    /*
-    |--------------------------------------------------------------------------
-    | Default Pagination Settings
-    |--------------------------------------------------------------------------
-    |
-    | Default pagination values used throughout the application
-    |
-    */
+    
 
     'default' => env('PAGINATION_DEFAULT', 15),
     'max_per_page' => env('PAGINATION_MAX_PER_PAGE', 100),

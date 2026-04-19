@@ -26,11 +26,11 @@ beforeEach(function () {
     $this->course = Course::factory()->create(['instructor_id' => $this->instructor->id]);
 });
 
-// ==================== USERS PAGINATION & FILTERING ====================
+
 
 describe('Users List Pagination & Filtering', function () {
     beforeEach(function () {
-        // Create multiple users with different statuses and roles
+        
         User::factory()
             ->count(5)
             ->create(['status' => 'active'])
@@ -136,7 +136,7 @@ describe('Users List Pagination & Filtering', function () {
     });
 });
 
-// ==================== COURSES PAGINATION & FILTERING ====================
+
 
 describe('Courses List Pagination & Filtering', function () {
     beforeEach(function () {
@@ -219,7 +219,7 @@ describe('Courses List Pagination & Filtering', function () {
     });
 });
 
-// ==================== CATEGORIES PAGINATION & FILTERING ====================
+
 
 describe('Categories List Pagination & Filtering', function () {
     beforeEach(function () {
@@ -277,7 +277,7 @@ describe('Categories List Pagination & Filtering', function () {
     });
 });
 
-// ==================== TAGS PAGINATION & FILTERING ====================
+
 
 describe('Tags List Pagination & Filtering', function () {
     beforeEach(function () {

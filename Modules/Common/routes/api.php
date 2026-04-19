@@ -31,7 +31,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/', [TagController::class, 'index'])->name('index');
         Route::get('/{tag:slug}', [TagController::class, 'show'])->name('show');
 
-        // Allowed for Superadmin, Admin, and Instructor
+        
         Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
             Route::post('/', [TagController::class, 'store'])->name('store');
             Route::put('/{tag:slug}', [TagController::class, 'update'])->name('update');
@@ -40,23 +40,23 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::prefix('master-data')->name('master-data.')->group(function () {
-        // Types List
+        
         Route::get('types', [MasterDataController::class, 'types'])->name('types.index');
 
-        // Courses (static - with search, no pagination)
+        
         Route::get('courses', [MasterDataController::class, 'courses'])->name('courses');
 
-        // Students (static - with search, no pagination)
+        
         Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])
             ->get('students', [MasterDataController::class, 'students'])
             ->name('students');
 
-        // Data Items (Paginated)
+        
         Route::get('{type}', [MasterDataController::class, 'index'])->name('index');
-        // Data Items (All - helpers)
+        
         Route::get('{type}/all', [MasterDataController::class, 'get'])->name('all');
 
-        // CRUD Items
+        
         Route::get('{type}/{id}', [MasterDataController::class, 'show'])->name('show');
 
         Route::middleware(['auth:api', 'role:Superadmin'])->group(function () {

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('slug')->nullable()->after('lesson_id');
         });
 
-        // Backfill slug with UUIDs for existing rows
+        
         $blocks = DB::table('lesson_blocks')->select('id')->get();
         foreach ($blocks as $b) {
             DB::table('lesson_blocks')->where('id', $b->id)->update(['slug' => (string) \Illuminate\Support\Str::uuid()]);

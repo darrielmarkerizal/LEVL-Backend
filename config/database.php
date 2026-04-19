@@ -77,17 +77,17 @@ return [
             'sslmode' => 'disable',
             'options' => [
                 PDO::ATTR_PERSISTENT => filter_var(env('DB_PERSISTENT', false), FILTER_VALIDATE_BOOL),
-                PDO::ATTR_EMULATE_PREPARES => false, // Disabled for proper PostgreSQL type handling
+                PDO::ATTR_EMULATE_PREPARES => false, 
                 PDO::ATTR_STRINGIFY_FETCHES => false,
             ],
         ],
 
-        // Koneksi khusus migration — bypass PgBouncer langsung ke PostgreSQL
+        
         'pgsql_migrate' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_MIGRATION_PORT', '5432'), // langsung ke Postgres, bukan PgBouncer
+            'port' => env('DB_MIGRATION_PORT', '5432'), 
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
@@ -96,7 +96,7 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => 'disable',
-            // Tidak ada EMULATE_PREPARES — pakai native prepared statements PostgreSQL
+            
         ],
 
         'sqlsrv' => [

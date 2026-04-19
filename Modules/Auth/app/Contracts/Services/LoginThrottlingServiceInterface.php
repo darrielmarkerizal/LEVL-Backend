@@ -18,15 +18,11 @@ interface LoginThrottlingServiceInterface
 
     public function getRetryAfterSeconds(string $login, string $ip): int;
 
-    /**
-     * @return array{max:int,decay:int}
-     */
+    
     public function getRateLimitConfig(): array;
 
     public function getLockRemainingSeconds(string $login): int;
 
-    /**
-     * @return array{threshold:int,window:int,duration:int}
-     */
+    
     public function getLockConfig(): array;
 }

@@ -16,7 +16,7 @@ class ActivityLogService
     {
         $perPage = max(1, min((int) ($params['per_page'] ?? 15), 100));
 
-        // Convert array filters to QueryBuilder format
+        
         $filters = data_get($params, 'filter', []);
         $search = $params['search'] ?? null;
 
@@ -54,7 +54,7 @@ class ActivityLogService
 
         $filterOptions = $this->getFilterOptions();
 
-        // Rebuild metadata logic or keep existing but adapted
+        
         $metadata = $this->buildMetadata(
             allowedSorts: ['id', 'created_at', 'log_name', 'event'],
             filters: [
@@ -62,13 +62,13 @@ class ActivityLogService
                     'type' => 'select',
                     'options' => $filterOptions['log_names']->map(fn ($name) => ['value' => $name, 'label' => $name])->values()->all(),
                 ],
-                // ... (rest of filter options logic)
-                // For brevity preserving existing structure but mapped
+                
+                
             ],
             translationPrefix: 'activity_logs',
         );
 
-        // Add dynamic filter options
+        
         $metadata['filter_options'] = [
             'browsers' => $filterOptions['browsers']->unique()->values()->all(),
             'platforms' => $filterOptions['platforms']->unique()->values()->all(),
@@ -81,17 +81,13 @@ class ActivityLogService
         ];
     }
 
-    /**
-     * Get single activity log by ID.
-     */
+    
     public function find(int $id): ?ActivityLog
     {
         return $this->repository->find($id);
     }
 
-    /**
-     * Get distinct filter options for activity logs.
-     */
+    
     public function getFilterOptions(): array
     {
         return [

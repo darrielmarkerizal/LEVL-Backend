@@ -21,7 +21,7 @@ class EnrollmentPolicy
             return true;
         }
 
-        // Admin can manage all courses
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
@@ -44,7 +44,7 @@ class EnrollmentPolicy
         }
 
         if ($enrollment->course) {
-            // Admin can view all enrollments
+            
             if ($user->hasRole('Admin')) {
                 return true;
             }
@@ -113,7 +113,7 @@ class EnrollmentPolicy
             return false;
         }
 
-        // Admin can manage all enrollments
+        
         if ($user->hasRole('Admin')) {
             return true;
         }

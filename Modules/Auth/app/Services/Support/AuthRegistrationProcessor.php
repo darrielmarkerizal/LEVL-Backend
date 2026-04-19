@@ -98,10 +98,10 @@ class AuthRegistrationProcessor
             $email = strtolower($role).'@example.com';
             $username = strtolower($role);
 
-            // Try to find by email first
+            
             $user = User::where('email', $email)->first();
 
-            // If not found by email, try by username
+            
             if (! $user) {
                 $user = User::where('username', $username)->first();
             }
@@ -119,7 +119,7 @@ class AuthRegistrationProcessor
 
                     $user->assignRole($role);
                 } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
-                    // If duplicate key error, try to find the user one more time
+                    
                     $user = User::where('email', $email)->first();
 
                     if (! $user) {
@@ -127,7 +127,7 @@ class AuthRegistrationProcessor
                     }
 
                     if (! $user) {
-                        // If still not found, skip this role
+                        
                         continue;
                     }
                 }

@@ -138,7 +138,7 @@ class UATPersonaSeeder extends Seeder
                 'user_id' => $user->id,
                 'enrollment_id' => $enrollment->id,
                 'status' => SubmissionStatus::Submitted->value,
-                'state' => SubmissionState::Submitted->value,
+                'state' => SubmissionState::PendingManualGrading->value,
                 'score' => null,
                 'submitted_at' => $subAt,
                 'attempt_number' => 1,

@@ -7,13 +7,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Consolidate redundant logging tables
-     * Keep activity_log (Spatie), drop audit_logs, user_activities, profile_audit_logs
-     */
+    
     public function up(): void
     {
-        // Migrate profile_audit_logs to activity_log
+        
         if (Schema::hasTable('profile_audit_logs')) {
             DB::statement("
                 INSERT INTO activity_log (
@@ -46,7 +43,7 @@ return new class extends Migration
             Schema::dropIfExists('profile_audit_logs');
         }
 
-        // Migrate user_activities to activity_log (if exists)
+        
         if (Schema::hasTable('user_activities')) {
             DB::statement("
                 INSERT INTO activity_log (
@@ -74,16 +71,14 @@ return new class extends Migration
             Schema::dropIfExists('user_activities');
         }
 
-        // Drop audit_logs (too similar to activity_log)
+        
         Schema::dropIfExists('audit_logs');
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
-        // Recreate profile_audit_logs
+        
         Schema::create('profile_audit_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
@@ -94,7 +89,7 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent();
         });
 
-        // Recreate user_activities
+        
         Schema::create('user_activities', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
@@ -107,7 +102,7 @@ return new class extends Migration
             $table->index(['user_id', 'activity_type']);
         });
 
-        // Recreate audit_logs
+        
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id();
             $table->string('event');

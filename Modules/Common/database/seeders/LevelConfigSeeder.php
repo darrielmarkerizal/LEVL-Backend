@@ -11,14 +11,14 @@ class LevelConfigSeeder extends Seeder
     {
         $this->command->info('Seeding level configurations...');
 
-        // Define levels 1 to 100
+        
         $levels = [];
 
         for ($i = 1; $i <= 100; $i++) {
-            // XP Required Formula: 100 × level^1.6
+            
             $xpRequired = (int) round(100 * pow($i, 1.6));
 
-            // Bonus XP Formula: 10 × level^1.3 (smaller exponent for balanced rewards)
+            
             $bonusXp = (int) round(10 * pow($i, 1.3));
 
             $levels[] = [
@@ -26,7 +26,7 @@ class LevelConfigSeeder extends Seeder
                 'name' => $this->getLevelName($i),
                 'xp_required' => $xpRequired,
                 'bonus_xp' => $bonusXp,
-                'rewards' => [], // Empty array, rewards managed via bonus_xp and milestone_badge_id
+                'rewards' => [], 
             ];
         }
 
@@ -40,9 +40,7 @@ class LevelConfigSeeder extends Seeder
         $this->command->info('✅ Successfully seeded 100 level configurations with dynamic bonus XP');
     }
 
-    /**
-     * Get tier-based level name
-     */
+    
     private function getLevelName(int $level): string
     {
         $tiers = [

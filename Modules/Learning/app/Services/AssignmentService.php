@@ -209,7 +209,7 @@ class AssignmentService implements AssignmentServiceInterface
             $deleted = $this->repository->delete($assignment);
 
             if ($deleted) {
-                // Reorder remaining elements in the unit
+                
                 \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)
                     ->where('order', '>', $deletedOrder)
                     ->decrement('order');

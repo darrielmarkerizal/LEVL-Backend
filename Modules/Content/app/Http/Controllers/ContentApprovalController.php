@@ -14,9 +14,7 @@ use Modules\Content\Exceptions\InvalidTransitionException;
 use Modules\Content\Models\Announcement;
 use Modules\Content\Models\News;
 
-/**
- * @tags Konten & Berita
- */
+
 class ContentApprovalController extends Controller
 {
     use ApiResponse;
@@ -27,17 +25,7 @@ class ContentApprovalController extends Controller
         private AnnouncementRepositoryInterface $announcementRepository
     ) {}
 
-    /**
-     * Ajukan konten untuk review
-     *
-     *
-     * @summary Ajukan konten untuk review
-     *
-     * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example ContentApproval"}}
-     * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-     *
-     * @authenticated
-     */
+    
     public function submit(Request $request, string $type, int $id): JsonResponse
     {
         $content = $this->findContent($type, $id);
@@ -57,17 +45,7 @@ class ContentApprovalController extends Controller
         }
     }
 
-    /**
-     * Setujui konten
-     *
-     *
-     * @summary Setujui konten
-     *
-     * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example ContentApproval"}}
-     * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-     *
-     * @authenticated
-     */
+    
     public function approve(Request $request, string $type, int $id): JsonResponse
     {
         $request->validate([
@@ -95,17 +73,7 @@ class ContentApprovalController extends Controller
         }
     }
 
-    /**
-     * Tolak konten
-     *
-     *
-     * @summary Tolak konten
-     *
-     * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example ContentApproval"}}
-     * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-     *
-     * @authenticated
-     */
+    
     public function reject(Request $request, string $type, int $id): JsonResponse
     {
         $request->validate([
@@ -133,17 +101,7 @@ class ContentApprovalController extends Controller
         }
     }
 
-    /**
-     * Mengambil konten yang menunggu review
-     *
-     *
-     * @summary Mengambil konten yang menunggu review
-     *
-     * @response 200 scenario="Success" {"success":true,"message":"Success","data":{"id":1,"name":"Example ContentApproval"}}
-     * @response 401 scenario="Unauthorized" {"success":false,"message":"Tidak terotorisasi."}
-     *
-     * @authenticated
-     */
+    
     public function pendingReview(Request $request): JsonResponse
     {
         $type = $request->query('type', 'all');
@@ -196,9 +154,7 @@ class ContentApprovalController extends Controller
         ], __('content.pending_review_retrieved'));
     }
 
-    /**
-     * Find content by type and ID.
-     */
+    
     private function findContent(string $type, int $id)
     {
         return match ($type) {

@@ -28,8 +28,6 @@ interface NewsRepositoryInterface
 
     public function getScheduledForPublishing(): Collection;
 
-    /**
-     * Find news by slug or fail
-     */
+    
     public function findBySlugOrFail(string $slug): News;
 }

@@ -2,42 +2,11 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Default Queue Connection Name
-    |--------------------------------------------------------------------------
-    |
-    | Laravel's queue supports a variety of backends via a single, unified
-    | API, giving you convenient access to each backend using identical
-    | syntax for each. The default queue connection is defined below.
-    |
-    */
+    
 
     'default' => env('QUEUE_CONNECTION', 'database'),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Queue Names
-    |--------------------------------------------------------------------------
-    |
-    | Define the queue names used by the application. These queues can be
-    | processed by separate workers for better resource management.
-    |
-    | Queue Priority (high to low):
-    | 1. emails-critical - Critical auth emails (password reset, verification)
-    | 2. emails-transactional - Transactional emails (enrollment, notifications)
-    | 3. grading - Grade recalculation and bulk operations (user-facing)
-    | 4. notifications - In-app notification delivery, gamification XP
-    | 5. file-processing - File validation and storage
-    | 6. trash - Trash bin operations (delete, restore)
-    | 7. logging - Activity logging and audit trail
-    | 8. audit - Grading and submission audit logs
-    | 9. default - General background tasks
-    |
-    | Worker command (processes all queues in priority order):
-    | php artisan queue:work --queue=emails-critical,emails-transactional,grading,notifications,file-processing,trash,logging,audit,default
-    |
-    */
+    
 
     'queues' => [
         'emails-critical' => env('QUEUE_EMAILS_CRITICAL', 'emails-critical'),
@@ -51,19 +20,7 @@ return [
         'default' => env('QUEUE_DEFAULT', 'default'),
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Queue Connections
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure the connection options for every queue backend
-    | used by your application. An example configuration is provided for
-    | each backend supported by Laravel. You're also free to add more.
-    |
-    | Drivers: "sync", "database", "beanstalkd", "sqs", "redis",
-    |          "deferred", "failover", "null"
-    |
-    */
+    
 
     'connections' => [
 
@@ -123,34 +80,14 @@ return [
 
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Job Batching
-    |--------------------------------------------------------------------------
-    |
-    | The following options configure the database and table that store job
-    | batching information. These options can be updated to any database
-    | connection and table which has been defined by your application.
-    |
-    */
+    
 
     'batching' => [
         'database' => env('DB_CONNECTION', 'sqlite'),
         'table' => 'job_batches',
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Failed Queue Jobs
-    |--------------------------------------------------------------------------
-    |
-    | These options configure the behavior of failed queue job logging so you
-    | can control how and where failed jobs are stored. Laravel ships with
-    | support for storing failed jobs in a simple file or in a database.
-    |
-    | Supported drivers: "database-uuids", "dynamodb", "file", "null"
-    |
-    */
+    
 
     'failed' => [
         'driver' => env('QUEUE_FAILED_DRIVER', 'database-uuids'),

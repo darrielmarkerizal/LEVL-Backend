@@ -44,7 +44,7 @@ class Post extends Model implements HasMedia
         'deleted_at' => 'datetime',
     ];
 
-    // Relationships
+    
 
     public function author(): BelongsTo
     {
@@ -71,7 +71,7 @@ class Post extends Model implements HasMedia
         return $this->hasMany(PostView::class);
     }
 
-    // Scopes
+    
 
     public function scopePublished($query)
     {
@@ -106,7 +106,7 @@ class Post extends Model implements HasMedia
         });
     }
 
-    // Media Collections
+    
 
     public function registerMediaCollections(): void
     {

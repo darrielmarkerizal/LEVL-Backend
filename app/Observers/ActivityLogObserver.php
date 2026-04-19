@@ -7,12 +7,10 @@ use App\Support\BrowserLogger;
 
 class ActivityLogObserver
 {
-    /**
-     * Handle the ActivityLog "creating" event.
-     */
+    
     public function creating(ActivityLog $activity): void
     {
-        // Auto-add browser info to all activity logs
+        
         $deviceInfo = BrowserLogger::getDeviceInfo();
 
         $activity->ip_address = $deviceInfo['ip_address'];

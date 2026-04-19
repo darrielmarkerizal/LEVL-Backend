@@ -6,9 +6,7 @@ class SearchFilterBuilder
 {
     protected array $filters = [];
 
-    /**
-     * Add category filter.
-     */
+    
     public function addCategoryFilter(array $categoryIds): self
     {
         $this->filters['category_id'] = $categoryIds;
@@ -16,9 +14,7 @@ class SearchFilterBuilder
         return $this;
     }
 
-    /**
-     * Add level filter.
-     */
+    
     public function addLevelFilter(array $levels): self
     {
         $this->filters['level_tag'] = $levels;
@@ -26,9 +22,7 @@ class SearchFilterBuilder
         return $this;
     }
 
-    /**
-     * Add instructor filter.
-     */
+    
     public function addInstructorFilter(array $instructorIds): self
     {
         $this->filters['instructor_id'] = $instructorIds;
@@ -36,9 +30,7 @@ class SearchFilterBuilder
         return $this;
     }
 
-    /**
-     * Add duration filter.
-     */
+    
     public function addDurationFilter(int $minDuration, int $maxDuration): self
     {
         $this->filters['duration_estimate'] = [
@@ -49,9 +41,7 @@ class SearchFilterBuilder
         return $this;
     }
 
-    /**
-     * Add status filter.
-     */
+    
     public function addStatusFilter(array $statuses): self
     {
         $this->filters['status'] = $statuses;
@@ -59,9 +49,7 @@ class SearchFilterBuilder
         return $this;
     }
 
-    /**
-     * Build and return the filters array.
-     */
+    
     public function build(): array
     {
         return $this->filters;

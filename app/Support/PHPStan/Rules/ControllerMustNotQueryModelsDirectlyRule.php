@@ -8,9 +8,7 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
-/**
- * @implements Rule<StaticCall>
- */
+
 class ControllerMustNotQueryModelsDirectlyRule implements Rule
 {
     public function getNodeType(): string
@@ -20,25 +18,25 @@ class ControllerMustNotQueryModelsDirectlyRule implements Rule
 
     public function processNode(Node $node, Scope $scope): array
     {
-        // Only check code in Controllers
+        
         $namespace = $scope->getNamespace();
         if ($namespace === null || ! str_contains($namespace, '\\Controllers\\')) {
             return [];
         }
 
-        // Check if this is a static call on a Model class
+        
         if (! $node->class instanceof Node\Name) {
             return [];
         }
 
         $className = $scope->resolveName($node->class);
 
-        // Check if the class is a Model (ends with common model patterns or in Models namespace)
+        
         if (! $this->isModelClass($className)) {
             return [];
         }
 
-        // Check if the method is a query method
+        
         if (! $node->name instanceof Node\Identifier) {
             return [];
         }
@@ -68,12 +66,12 @@ class ControllerMustNotQueryModelsDirectlyRule implements Rule
 
     private function isModelClass(string $className): bool
     {
-        // Check if class is in Models namespace
+        
         if (str_contains($className, '\\Models\\')) {
             return true;
         }
 
-        // Check common model base classes
+        
         $modelBaseClasses = [
             'Illuminate\\Database\\Eloquent\\Model',
             'Illuminate\\Foundation\\Auth\\User',

@@ -6,9 +6,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\Models\User;
 use Modules\Content\Models\News;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Content\Models\News>
- */
+
 class NewsFactory extends Factory
 {
     protected $model = News::class;

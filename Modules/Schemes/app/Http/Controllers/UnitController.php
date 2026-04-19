@@ -23,7 +23,7 @@ class UnitController extends Controller
 
     public function index(Request $request, Course $course)
     {
-        // Allow public access for published courses
+        
         if ($course->status !== \Modules\Schemes\Enums\CourseStatus::Published) {
             $this->authorize('viewUnits', $course);
         }
@@ -34,10 +34,10 @@ class UnitController extends Controller
             (int) $request->query('per_page', 15)
         );
 
-        // Get enrollment using trait method
+        
         $enrollment = $this->getActiveEnrollment($course);
 
-        // Transform units with enrollment context
+        
         $paginator->getCollection()->transform(fn ($unit) => new UnitResource($unit, $enrollment));
 
         return $this->paginateResponse($paginator, 'messages.units.list_retrieved');
@@ -121,7 +121,7 @@ class UnitController extends Controller
     {
         $this->service->validateHierarchy($course->id, $unit->id);
 
-        // Require enrollment for students
+        
         if ($error = $this->requireEnrollment($course)) {
             return $error;
         }
@@ -197,7 +197,7 @@ class UnitController extends Controller
 
         $unit = $this->service->create($course->id, $validated);
 
-        // Return minimal response for create operation (avoid loading unnecessary relations)
+        
         return $this->created([
             'unit' => [
                 'id' => $unit->id,
@@ -234,14 +234,14 @@ class UnitController extends Controller
         $metadataService = app(\Modules\Schemes\Services\ContentMetadataService::class);
         
         try {
-            // Check if type parameter is provided
+            
             $type = $request->query('type');
             
             if ($type && in_array($type, ['lesson', 'assignment', 'quiz'])) {
-                // Use specific type lookup for better accuracy
+                
                 $metadata = $metadataService->getContentMetadata($contentId, $type);
             } else {
-                // Auto-detect type
+                
                 $metadata = $metadataService->getContentMetadataByIdOnly($contentId);
             }
             

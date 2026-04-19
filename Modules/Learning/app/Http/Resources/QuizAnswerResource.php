@@ -22,12 +22,12 @@ class QuizAnswerResource extends JsonResource
             'feedback' => $this->feedback,
         ];
 
-        // Include is_auto_graded for instructors
+        
         if ($isInstructor) {
             $data['is_auto_graded'] = $this->is_auto_graded;
         }
 
-        // Include question details if relation is loaded
+        
         if ($this->relationLoaded('question')) {
             $data['question'] = new QuizQuestionResource($this->question);
         }

@@ -98,9 +98,7 @@ class SendPostNotificationJob implements ShouldQueue
         }
     }
 
-    /**
-     * Send email notifications to users
-     */
+    
     private function sendEmailNotifications($users): void
     {
         $notificationService = app(NotificationService::class);
@@ -127,9 +125,7 @@ class SendPostNotificationJob implements ShouldQueue
         ]);
     }
 
-    /**
-     * Send in-app notifications to users
-     */
+    
     private function sendInAppNotifications($users): void
     {
         $notificationService = app(NotificationService::class);
@@ -154,9 +150,7 @@ class SendPostNotificationJob implements ShouldQueue
         ]);
     }
 
-    /**
-     * Send push notifications to users
-     */
+    
     private function sendPushNotifications($users): void
     {
         $notificationService = app(NotificationService::class);

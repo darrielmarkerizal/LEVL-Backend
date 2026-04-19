@@ -24,7 +24,7 @@ test('user cannot set username if already set', function () {
             'username' => 'newusername',
         ]);
 
-    $response->assertStatus(403); // Forbidden
+    $response->assertStatus(403); 
 });
 
 test('set username validates unique', function () {

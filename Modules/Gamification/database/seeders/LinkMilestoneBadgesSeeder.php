@@ -10,14 +10,12 @@ use Modules\Gamification\Models\Badge;
 
 class LinkMilestoneBadgesSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+    
     public function run(): void
     {
         $this->command->info('Linking milestone badges to level configs...');
 
-        // Milestone badge mapping: level => badge_code
+        
         $milestones = [
             10 => 'level_10_milestone',
             20 => 'level_20_milestone',
@@ -36,7 +34,7 @@ class LinkMilestoneBadgesSeeder extends Seeder
 
         foreach ($milestones as $level => $badgeCode) {
             try {
-                // Find the badge
+                
                 $badge = Badge::where('code', $badgeCode)->first();
 
                 if (! $badge) {
@@ -46,7 +44,7 @@ class LinkMilestoneBadgesSeeder extends Seeder
                     continue;
                 }
 
-                // Find the level config
+                
                 $levelConfig = LevelConfig::where('level', $level)->first();
 
                 if (! $levelConfig) {
@@ -56,7 +54,7 @@ class LinkMilestoneBadgesSeeder extends Seeder
                     continue;
                 }
 
-                // Link the badge to the level
+                
                 $levelConfig->milestone_badge_id = $badge->id;
                 $levelConfig->save();
 

@@ -19,8 +19,8 @@ return new class extends Migration
             UPDATE submissions 
             SET state = CASE 
                 WHEN status = 'draft' THEN 'in_progress'
-                WHEN status = 'submitted' THEN 'submitted'
-                WHEN status = 'late' THEN 'submitted'
+                WHEN status = 'submitted' THEN 'pending_manual_grading'
+                WHEN status = 'late' THEN 'pending_manual_grading'
                 WHEN status = 'graded' THEN 'graded'
                 ELSE 'in_progress'
             END

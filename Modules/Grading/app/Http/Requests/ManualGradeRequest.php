@@ -16,24 +16,22 @@ class ManualGradeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // For quiz: grades array is required
-            // For assignment: grades array is optional, but score is required
+            
+            
             'grades' => ['nullable', 'array', 'min:1'],
             'grades.*.question_id' => ['required_with:grades', 'integer', 'exists:questions,id'],
             'grades.*.score' => ['required_with:grades', 'numeric', 'min:0'],
             'grades.*.feedback' => ['nullable', 'string'],
-            'score' => ['nullable', 'numeric', 'min:0'], // For assignment without questions
+            'score' => ['nullable', 'numeric', 'min:0'], 
             'feedback' => ['nullable', 'string'],
         ];
     }
 
-    /**
-     * Configure the validator instance.
-     */
+    
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            // Either grades array OR score must be provided, not both
+            
             $hasGrades = !empty($this->input('grades'));
             $hasScore = $this->has('score') && $this->input('score') !== null;
 

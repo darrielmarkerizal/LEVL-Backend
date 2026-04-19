@@ -12,7 +12,7 @@ class QuestionResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        /** @var Question $question */
+        
         $question = $this->resource;
 
         $user = $request->user();

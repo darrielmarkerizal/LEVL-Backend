@@ -16,7 +16,7 @@ trait HandlesFiltering
             'search' => $request->input('search'),
         ];
 
-        // Remove null values to avoid passing unnecessary parameters
+        
         return array_filter($params, fn ($value) => ! is_null($value));
     }
 }

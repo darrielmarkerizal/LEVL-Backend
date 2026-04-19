@@ -50,10 +50,10 @@ class CourseSeederEnhanced extends Seeder
         $this->command->info('  📊 Creating '.self::TOTAL_COURSES.' courses across all scenarios...');
 
         $distribution = [
-            'published_auto' => 25,       // Published + Auto-accept enrollment
-            'published_approval' => 10,    // Published + Approval required
-            'published_key' => 10,         // Published + Key-based enrollment
-            'draft' => 5,                 // Draft courses
+            'published_auto' => 25,       
+            'published_approval' => 10,    
+            'published_key' => 10,         
+            'draft' => 5,                 
         ];
 
         $created = 0;
@@ -123,7 +123,7 @@ class CourseSeederEnhanced extends Seeder
             $numInstructors = 1 + ($course->id % 3);
             $selectedInstructors = $instructors->take(min($numInstructors, $instructors->count()));
 
-            // Use the instructors() relationship to attach instructors
+            
             $instructorIds = $selectedInstructors->pluck('id')->toArray();
             $course->instructors()->syncWithoutDetaching($instructorIds);
         }
@@ -143,7 +143,7 @@ class CourseSeederEnhanced extends Seeder
                 $selectedTags = collect([$selectedTags]);
             }
 
-            // Use polymorphic relationship to attach tags
+            
             $tagIds = $selectedTags->pluck('id')->toArray();
             $course->tags()->syncWithoutDetaching($tagIds);
         }
@@ -246,8 +246,8 @@ class CourseSeederEnhanced extends Seeder
                 $course->addMediaFromUrl("https://picsum.photos/seed/{$course->id}/800/600")
                     ->toMediaCollection('banner');
             } catch (\Throwable $e) {
-                // Silently skip media attachment errors - not critical for seeding
-                // The error is usually network-related or media library issues
+                
+                
                 continue;
             }
         }

@@ -13,6 +13,14 @@ use Modules\Schemes\Models\Lesson;
 
 class AssignmentSeederEnhanced extends Seeder
 {
+    private array $assignmentScenarios = [
+        ['submission_type' => 'file', 'review_mode' => 'manual', 'randomization_type' => 'static'],
+        ['submission_type' => 'mixed', 'review_mode' => 'manual', 'randomization_type' => 'random_order'],
+        ['submission_type' => 'file', 'review_mode' => 'deferred', 'randomization_type' => 'bank'],
+        ['submission_type' => 'mixed', 'review_mode' => 'hidden', 'randomization_type' => 'static'],
+        ['submission_type' => 'text', 'review_mode' => 'immediate', 'randomization_type' => 'random_order'],
+    ];
+
     private array $assignmentTitles = [
         'Complete Your First Project',
         'Weekly Quiz Assessment',
@@ -75,6 +83,7 @@ class AssignmentSeederEnhanced extends Seeder
             $numAssignments = rand(5, 8);
 
             for ($i = 0; $i < $numAssignments; $i++) {
+                $scenario = $this->assignmentScenarios[$assignmentCount % count($this->assignmentScenarios)];
                 $daysFromNow = rand(-30, 60);
                 $availableFrom = $daysFromNow > 0
                     ? Carbon::now()->subDays(rand(1, 7))
@@ -89,11 +98,11 @@ class AssignmentSeederEnhanced extends Seeder
                     'lesson_id' => $lesson->id,
                     'title' => $titleVariation,
                     'description' => $this->generateAssignmentDescription(),
-                    'submission_type' => fake()->randomElement(['text', 'file', 'mixed']),
+                    'submission_type' => $scenario['submission_type'],
                     'max_score' => $this->getRandomMaxScore(),
                     'available_from' => $availableFrom,
-                    'review_mode' => fake()->randomElement(['immediate', 'deferred', 'hidden']),
-                    'randomization_type' => fake()->randomElement(['static', 'random_order', 'bank']),
+                    'review_mode' => $scenario['review_mode'],
+                    'randomization_type' => $scenario['randomization_type'],
                     'status' => 'published',
                     'created_by' => $instructorIds[array_rand($instructorIds)],
                     'created_at' => now(),
@@ -164,6 +173,17 @@ class AssignmentSeederEnhanced extends Seeder
                         default => 'draft',
                     };
 
+                    $state = match ($status) {
+                        'draft' => 'in_progress',
+                        'submitted' => 'pending_manual_grading',
+                        'graded' => match ($submissionCount % 3) {
+                            0 => 'auto_graded',
+                            1 => 'graded',
+                            default => 'released',
+                        },
+                        default => 'in_progress',
+                    };
+
                     $submittedAt = in_array($status, ['submitted', 'graded'])
                         ? Carbon::now()->subDays(rand(1, 30))
                         : null;
@@ -172,6 +192,7 @@ class AssignmentSeederEnhanced extends Seeder
                         'assignment_id' => $assignment->id,
                         'user_id' => $enrollment->user_id,
                         'status' => $status,
+                        'state' => $state,
                         'submitted_at' => $submittedAt,
                         'started_at' => $submittedAt ? $submittedAt->subMinutes(rand(5, 120)) : null,
                         'score' => $status === 'graded' ? rand(0, (int) $assignment->max_score) : null,

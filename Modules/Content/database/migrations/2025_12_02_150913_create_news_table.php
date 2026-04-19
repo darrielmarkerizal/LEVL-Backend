@@ -6,9 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         Schema::create('news', function (Blueprint $table) {
@@ -28,16 +26,14 @@ return new class extends Migration
             $table->foreignId('deleted_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
 
-            // Indexes
+            
             $table->index(['status', 'published_at']);
             $table->index(['is_featured', 'published_at']);
             $table->fullText(['title', 'excerpt', 'content']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         Schema::dropIfExists('news');

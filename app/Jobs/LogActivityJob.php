@@ -12,34 +12,26 @@ class LogActivityJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * The number of times the job may be attempted.
-     */
+    
     public int $tries = 3;
 
-    /**
-     * The number of seconds the job can run before timing out.
-     */
+    
     public int $timeout = 30;
 
-    /**
-     * Create a new job instance.
-     */
+    
     public function __construct(
         public array $activityData
     ) {
         $this->onQueue('logging');
     }
 
-    /**
-     * Execute the job.
-     */
+    
     public function handle(): void
     {
         $activityLogger = activity($this->activityData['log_name'] ?? 'default')
             ->causedBy($this->activityData['causer_id'] ?? null);
         
-        // Only call performedOn if subject is not null
+        
         if (isset($this->activityData['subject']) && $this->activityData['subject'] !== null) {
             $activityLogger->performedOn($this->activityData['subject']);
         }
@@ -67,9 +59,7 @@ class LogActivityJob implements ShouldQueue
             ->log($this->activityData['description'] ?? '');
     }
 
-    /**
-     * Handle a job failure.
-     */
+    
     public function failed(\Throwable $exception): void
     {
         \Log::error('Failed to log activity', [

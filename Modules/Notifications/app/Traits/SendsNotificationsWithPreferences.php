@@ -8,9 +8,7 @@ use Modules\Notifications\Services\NotificationService;
 
 trait SendsNotificationsWithPreferences
 {
-    /**
-     * Send notification to user respecting their preferences.
-     */
+    
     protected function notifyUser(
         User $user,
         string $category,
@@ -35,9 +33,7 @@ trait SendsNotificationsWithPreferences
         }
     }
 
-    /**
-     * Send critical notification that bypasses preferences.
-     */
+    
     protected function notifyUserCritical(
         User $user,
         string $category,

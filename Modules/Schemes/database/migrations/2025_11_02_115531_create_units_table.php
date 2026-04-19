@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title', 255);
             $table->text('description')->nullable();
             $table->integer('order')->default(1);
-            // $table->integer('estimated_duration')->default(0); (Sama menggunakan logic dari jumlah lesson yang ada)
+            
             $table->timestamps();
 
             $table->index(['course_id', 'order']);

@@ -29,19 +29,19 @@ class EnrollmentDetailTest extends TestCase
     {
         parent::setUp();
 
-        // Create users
+        
         $this->student = User::factory()->create();
         $this->student->assignRole('Student');
 
         $this->instructor = User::factory()->create();
         $this->instructor->assignRole('Instructor');
 
-        // Create course
+        
         $this->course = Course::factory()->create([
             'status' => 'published',
         ]);
 
-        // Create enrollment
+        
         $this->enrollment = Enrollment::factory()->create([
             'user_id' => $this->student->id,
             'course_id' => $this->course->id,
@@ -49,10 +49,10 @@ class EnrollmentDetailTest extends TestCase
         ]);
     }
 
-    /** @test */
+    
     public function it_can_get_enrollment_detail_with_all_statistics()
     {
-        // Create some progress data
+        
         $this->enrollment->unitProgress()->create([
             'unit_id' => 1,
             'status' => 'completed',
@@ -65,7 +65,7 @@ class EnrollmentDetailTest extends TestCase
             'progress_percent' => 50,
         ]);
 
-        // Create assignment submissions
+        
         $assignment = Assignment::factory()->create(['course_id' => $this->course->id]);
         Submission::factory()->create([
             'assignment_id' => $assignment->id,
@@ -82,7 +82,7 @@ class EnrollmentDetailTest extends TestCase
             'score' => 85,
         ]);
 
-        // Create quiz submissions
+        
         $quiz = Quiz::factory()->create(['course_id' => $this->course->id]);
         QuizSubmission::factory()->create([
             'quiz_id' => $quiz->id,
@@ -130,10 +130,10 @@ class EnrollmentDetailTest extends TestCase
             ]);
     }
 
-    /** @test */
+    
     public function it_can_get_enrollment_activities_with_pagination()
     {
-        // Create activities
+        
         EnrollmentActivity::factory()->count(25)->create([
             'enrollment_id' => $this->enrollment->id,
             'user_id' => $this->student->id,
@@ -176,10 +176,10 @@ class EnrollmentDetailTest extends TestCase
             ->assertJsonCount(10, 'data');
     }
 
-    /** @test */
+    
     public function it_can_sort_activities_by_occurred_at()
     {
-        // Create activities with different dates
+        
         $activity1 = EnrollmentActivity::factory()->create([
             'enrollment_id' => $this->enrollment->id,
             'user_id' => $this->student->id,
@@ -194,7 +194,7 @@ class EnrollmentDetailTest extends TestCase
             'occurred_at' => now()->subDays(1),
         ]);
 
-        // Test descending (default)
+        
         $response = $this->actingAs($this->student, 'api')
             ->getJson("/api/v1/enrollments/{$this->enrollment->id}/activities?sort=-occurred_at");
 
@@ -202,7 +202,7 @@ class EnrollmentDetailTest extends TestCase
             ->assertJsonPath('data.0.id', $activity2->id)
             ->assertJsonPath('data.1.id', $activity1->id);
 
-        // Test ascending
+        
         $response = $this->actingAs($this->student, 'api')
             ->getJson("/api/v1/enrollments/{$this->enrollment->id}/activities?sort=occurred_at");
 
@@ -211,10 +211,10 @@ class EnrollmentDetailTest extends TestCase
             ->assertJsonPath('data.1.id', $activity2->id);
     }
 
-    /** @test */
+    
     public function it_can_filter_activities_by_event_type()
     {
-        // Create activities with different event types
+        
         EnrollmentActivity::factory()->create([
             'enrollment_id' => $this->enrollment->id,
             'user_id' => $this->student->id,
@@ -245,7 +245,7 @@ class EnrollmentDetailTest extends TestCase
             ->assertJsonPath('data.1.event_type', 'lesson_completed');
     }
 
-    /** @test */
+    
     public function it_prevents_unauthorized_access_to_enrollment_detail()
     {
         $otherStudent = User::factory()->create();
@@ -257,7 +257,7 @@ class EnrollmentDetailTest extends TestCase
         $response->assertForbidden();
     }
 
-    /** @test */
+    
     public function it_prevents_unauthorized_access_to_enrollment_activities()
     {
         $otherStudent = User::factory()->create();
@@ -269,10 +269,10 @@ class EnrollmentDetailTest extends TestCase
         $response->assertForbidden();
     }
 
-    /** @test */
+    
     public function instructor_can_view_student_enrollment_detail()
     {
-        // Assuming instructor has permission to view enrollments in their courses
+        
         $this->course->update(['instructor_id' => $this->instructor->id]);
 
         $response = $this->actingAs($this->instructor, 'api')
@@ -281,7 +281,7 @@ class EnrollmentDetailTest extends TestCase
         $response->assertOk();
     }
 
-    /** @test */
+    
     public function it_limits_activities_per_page_to_maximum_100()
     {
         EnrollmentActivity::factory()->count(150)->create([

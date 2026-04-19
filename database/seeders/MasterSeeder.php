@@ -16,18 +16,18 @@ class MasterSeeder extends Seeder
 
         $startTime = microtime(true);
 
-        // Auth + Users
+        
         $this->call(\Modules\Auth\Database\Seeders\AuthComprehensiveDataSeeder::class);
 
-        // Categories & Tags
+        
         $this->call(\Modules\Common\Database\Seeders\CategorySeederEnhanced::class);
         $this->call(\Modules\Schemes\Database\Seeders\TagSeederEnhanced::class);
 
-        // Courses & Content
+        
         $this->call(\Modules\Schemes\Database\Seeders\CourseSeederEnhanced::class);
         $this->call(\Modules\Schemes\Database\Seeders\LearningContentSeeder::class);
 
-        // Assignments, Questions, Enrollments, Grading
+        
         $this->call(\Modules\Learning\Database\Seeders\AssignmentSeederEnhanced::class);
         $this->call(\Modules\Learning\Database\Seeders\QuestionSeederEnhanced::class);
         $this->call(\Modules\Enrollments\Database\Seeders\EnrollmentSeeder::class);

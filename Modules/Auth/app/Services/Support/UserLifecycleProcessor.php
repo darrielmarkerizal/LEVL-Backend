@@ -48,7 +48,7 @@ class UserLifecycleProcessor
 
             $user->status = $newStatus;
 
-            // Remove computed attributes that should not be persisted to database
+            
             unset($user['learning_statistics']);
             unset($user['last_login_at']);
             unset($user['rank']);
@@ -56,7 +56,7 @@ class UserLifecycleProcessor
 
             $user->save();
 
-            // Dispatch event for status change
+            
             event(new UserStatusChanged($user, $oldStatus, $newStatus, $authUser));
 
             $this->cacheService->invalidateUser($user->id);
@@ -73,13 +73,13 @@ class UserLifecycleProcessor
         return DB::transaction(function () use ($authUser, $user, $data) {
             $updated = false;
 
-            // Update username if provided
+            
             if (! empty($data['username'] ?? null)) {
                 $user->username = $data['username'];
                 $updated = true;
             }
 
-            // Update status if provided
+            
             if (! empty($data['status'] ?? null)) {
                 if ($data['status'] === UserStatus::Pending->value) {
                     throw ValidationException::withMessages([
@@ -99,16 +99,16 @@ class UserLifecycleProcessor
                 $user->status = $newStatus;
                 $updated = true;
 
-                // Dispatch event for status change
+                
                 event(new UserStatusChanged($user, $oldStatus, $newStatus, $authUser));
             }
 
-            // Update role if provided.
+            
             if (! empty($data['role'] ?? null)) {
                 $targetRole = $data['role'];
 
                 if ($authUser->hasRole('Admin') && ! $authUser->hasRole('Superadmin')) {
-                    // Admin can assign Student, Instructor, and Admin roles, but NOT Superadmin
+                    
                     if (! in_array($targetRole, ['Student', 'Instructor', 'Admin'], true)) {
                         throw new AuthorizationException(__('messages.forbidden'));
                     }
@@ -126,7 +126,7 @@ class UserLifecycleProcessor
                 }
             }
 
-            // Update password if provided
+            
             if (! empty($data['password'] ?? null)) {
                 if (! $authUser->can('resetPassword', $user)) {
                     throw new AuthorizationException(__('messages.forbidden'));
@@ -137,14 +137,14 @@ class UserLifecycleProcessor
                 $updated = true;
             }
 
-            // Update specialization if provided (nullable for non-instructor users)
+            
             if (array_key_exists('specialization_id', $data)) {
                 $user->specialization_id = $data['specialization_id'];
                 $updated = true;
             }
 
             if ($updated) {
-                // Remove computed attributes that should not be persisted to database
+                
                 unset($user['learning_statistics']);
                 unset($user['last_login_at']);
                 unset($user['rank']);
@@ -163,7 +163,7 @@ class UserLifecycleProcessor
     {
         $user = $this->finder->showUser($authUser, $userId);
 
-        // Authorize via policy
+        
         if (! auth()->user()->can('resetPassword', $user)) {
             throw new AuthorizationException(__('messages.forbidden'));
         }
@@ -173,7 +173,7 @@ class UserLifecycleProcessor
             $user->is_password_set = true;
             $user->save();
 
-            // Revoke all active tokens for this user
+            
             $this->revokeAllUserTokens($user);
 
             $this->cacheService->invalidateUser($user->id);
@@ -182,19 +182,17 @@ class UserLifecycleProcessor
         });
     }
 
-    /**
-     * Revoke all active JWT tokens and refresh tokens for a user.
-     */
+    
     private function revokeAllUserTokens(User $user): void
     {
         try {
-            // Delete all refresh tokens for this user
+            
             DB::table('refresh_tokens')
                 ->where('user_id', $user->id)
                 ->delete();
 
         } catch (\Exception $e) {
-            // Log error but don't fail the password change
+            
             \Illuminate\Support\Facades\Log::warning('Failed to revoke tokens for user '.$user->id.': '.$e->getMessage());
         }
     }

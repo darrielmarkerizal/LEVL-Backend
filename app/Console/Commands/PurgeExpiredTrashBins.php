@@ -7,18 +7,10 @@ use Modules\Trash\Services\TrashBinService;
 
 class PurgeExpiredTrashBins extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+    
     protected $signature = 'trash:purge-expired';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+    
     protected $description = 'Purge expired trash bins';
 
     public function __construct()
@@ -33,9 +25,7 @@ class PurgeExpiredTrashBins extends Command
         return __('messages.trash_bins.purge_description');
     }
 
-    /**
-     * Execute the console command.
-     */
+    
     public function handle(TrashBinService $service): int
     {
         $count = $service->purgeExpired();

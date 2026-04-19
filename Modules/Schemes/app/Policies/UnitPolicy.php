@@ -33,17 +33,17 @@ class UnitPolicy
             return true;
         }
 
-        // Admin can view all units
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Instructor can view units in their assigned courses
+        
         if ($user->hasRole('Instructor')) {
             return $course->instructors()->where('user_id', $user->id)->exists();
         }
 
-        // Student can view if enrolled
+        
         if ($user->hasRole('Student')) {
             return \Modules\Enrollments\Models\Enrollment::where('user_id', $user->id)
                 ->where('course_id', $course->id)
@@ -60,12 +60,12 @@ class UnitPolicy
             return true;
         }
 
-        // Admin can create units in all courses
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Instructor can create units in their assigned courses
+        
         return $user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists();
     }
 
@@ -80,12 +80,12 @@ class UnitPolicy
             return false;
         }
 
-        // Admin can update all units
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Instructor can update units in their assigned courses
+        
         return $user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists();
     }
 
@@ -100,12 +100,12 @@ class UnitPolicy
             return false;
         }
 
-        // Admin can delete all units
+        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        // Instructor can delete units in their assigned courses
+        
         return $user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists();
     }
 

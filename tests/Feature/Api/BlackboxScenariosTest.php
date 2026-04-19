@@ -46,9 +46,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         ]);
     }
 
-    // ============================================================
-    // BLACKBOX #1-2: POST /auth/register
-    // ============================================================
+    
+    
+    
 
     public function test_bb01_register_success_returns_201(): void
     {
@@ -81,9 +81,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $response->assertStatus(422);
     }
 
-    // ============================================================
-    // BLACKBOX #3-4: POST /auth/login
-    // ============================================================
+    
+    
+    
 
     public function test_bb03_login_success_returns_200(): void
     {
@@ -117,9 +117,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $response->assertStatus(401);
     }
 
-    // ============================================================
-    // BLACKBOX #5-6: GET /courses
-    // ============================================================
+    
+    
+    
 
     public function test_bb05_list_courses_returns_200(): void
     {
@@ -137,9 +137,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $response->assertStatus(404);
     }
 
-    // ============================================================
-    // BLACKBOX #7-8: GET /courses/{slug}
-    // ============================================================
+    
+    
+    
 
     public function test_bb07_get_course_detail_returns_200(): void
     {
@@ -157,9 +157,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $response->assertStatus(404);
     }
 
-    // ============================================================
-    // BLACKBOX #9-10: POST /courses/{slug}/enroll
-    // ============================================================
+    
+    
+    
 
     public function test_bb09_enroll_course_success_returns_201(): void
     {
@@ -182,9 +182,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $this->assertContains($response->status(), [409, 422], 'Duplicate enrollment should return 409/422');
     }
 
-    // ============================================================
-    // BLACKBOX #11-12: GET /enrollments
-    // ============================================================
+    
+    
+    
 
     public function test_bb11_list_enrollments_returns_200(): void
     {
@@ -202,9 +202,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $response->assertStatus(401);
     }
 
-    // ============================================================
-    // BLACKBOX #13-14: POST /lessons/{slug}/complete
-    // ============================================================
+    
+    
+    
 
     public function test_bb13_complete_lesson_returns_200(): void
     {
@@ -227,9 +227,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $this->assertContains($response->status(), [403, 422], 'Non-enrolled should be blocked (403/422)');
     }
 
-    // ============================================================
-    // BLACKBOX #15-16: POST /assignments/{id}/submissions
-    // ============================================================
+    
+    
+    
 
     public function test_bb15_submit_assignment_success(): void
     {
@@ -271,9 +271,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $response->assertStatus(422);
     }
 
-    // ============================================================
-    // BLACKBOX #17-18: POST /submissions/{id}/grade
-    // ============================================================
+    
+    
+    
 
     public function test_bb17_grade_submission_as_admin_returns_200(): void
     {
@@ -334,9 +334,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $this->assertContains($response->status(), [403], 'Student forbidden from grading');
     }
 
-    // ============================================================
-    // BLACKBOX #19-20: GET /grading
-    // ============================================================
+    
+    
+    
 
     public function test_bb19_grading_queue_admin_returns_200(): void
     {
@@ -356,9 +356,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $response->assertStatus(403);
     }
 
-    // ============================================================
-    // BLACKBOX #21-22: GET /user/gamification-summary
-    // ============================================================
+    
+    
+    
 
     public function test_bb21_gamification_summary_returns_200(): void
     {
@@ -376,9 +376,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $response->assertStatus(401);
     }
 
-    // ============================================================
-    // BLACKBOX #23-24: GET /leaderboards
-    // ============================================================
+    
+    
+    
 
     public function test_bb23_leaderboards_returns_200(): void
     {
@@ -396,9 +396,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $response->assertStatus(401);
     }
 
-    // ============================================================
-    // BLACKBOX #25-26: POST /courses/{slug}/forum/threads
-    // ============================================================
+    
+    
+    
 
     public function test_bb25_create_forum_thread_success(): void
     {
@@ -433,9 +433,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $this->assertContains($response->status(), [403, 404], 'Non-enrolled blocked');
     }
 
-    // ============================================================
-    // BLACKBOX #27-28: GET /notifications
-    // ============================================================
+    
+    
+    
 
     public function test_bb27_list_notifications_returns_200(): void
     {
@@ -453,9 +453,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $response->assertStatus(401);
     }
 
-    // ============================================================
-    // BLACKBOX #29-30: PUT /notifications/{id}
-    // ============================================================
+    
+    
+    
 
     public function test_bb29_mark_notification_as_read_returns_200(): void
     {
@@ -481,9 +481,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $response->assertStatus(404);
     }
 
-    // ============================================================
-    // BLACKBOX #31-32: GET /announcements (posts)
-    // ============================================================
+    
+    
+    
 
     public function test_bb31_list_announcements_returns_200(): void
     {
@@ -501,9 +501,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $response->assertStatus(401);
     }
 
-    // ============================================================
-    // BLACKBOX #33-34: GET /search
-    // ============================================================
+    
+    
+    
 
     public function test_bb33_search_with_query_returns_200(): void
     {
@@ -523,9 +523,9 @@ final class BlackboxScenariosTest extends ApiTestCase
         $this->assertContains($response->status(), [422], 'Empty query returns 422');
     }
 
-    // ============================================================
-    // BLACKBOX #35-36: GET /dashboard
-    // ============================================================
+    
+    
+    
 
     public function test_bb35_dashboard_returns_200(): void
     {

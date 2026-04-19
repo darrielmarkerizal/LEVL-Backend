@@ -8,28 +8,28 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Schedule Content Publishing
+
 Schedule::job(new \Modules\Content\Jobs\PublishScheduledContent)->everyFiveMinutes();
 
-// Schedule Account Cleanup (Daily)
+
 Schedule::command('auth:cleanup-deleted-accounts')->daily();
 
-// Schedule Trash Bin Purge (Daily)
+
 Schedule::command('trash:purge-expired')->daily();
 
-// Schedule Post Publishing (Every Minute)
+
 Schedule::command('posts:publish-scheduled')
     ->everyMinute()
     ->withoutOverlapping()
     ->runInBackground();
 
-// Schedule Enrollment Activation (Every Minute)
+
 Schedule::command('enrollments:activate-scheduled')
     ->everyMinute()
     ->withoutOverlapping()
     ->runInBackground();
 
-// Schedule Orphaned Media Cleanup (Daily at 2 AM)
+
 Schedule::command('posts:cleanup-orphaned-media')
     ->dailyAt('02:00')
     ->withoutOverlapping()

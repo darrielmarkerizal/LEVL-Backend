@@ -13,9 +13,9 @@ beforeEach(function () {
     $this->admin->assignRole('Admin');
 });
 
-// ==================== POSITIVE TEST CASES ====================
 
-// POST - Create Category
+
+
 it('superadmin can create category', function () {
     $response = $this->actingAs($this->superadmin, 'api')
         ->postJson(api('/master-data/categories'), [
@@ -36,7 +36,7 @@ it('superadmin can create category', function () {
     ]);
 });
 
-// PUT - Update Category
+
 it('superadmin can update category', function () {
     $category = Category::create([
         'name' => 'Old Name',
@@ -61,7 +61,7 @@ it('superadmin can update category', function () {
     ]);
 });
 
-// DELETE - Delete Category
+
 it('superadmin can delete category', function () {
     $category = Category::create([
         'name' => 'To Delete',
@@ -73,14 +73,14 @@ it('superadmin can delete category', function () {
         ->deleteJson(api("/master-data/categories/{$category->id}"));
 
     $response->assertStatus(200);
-    // Category uses SoftDeletes, so check deleted_at
+    
     $category->refresh();
     expect($category->trashed())->toBeTrue();
 });
 
-// ==================== NEGATIVE TEST CASES ====================
 
-// POST - Create Category Negative
+
+
 it('admin cannot create category', function () {
     $response = $this->actingAs($this->admin, 'api')
         ->postJson(api('/master-data/categories'), [
@@ -128,7 +128,7 @@ it('unauthenticated user cannot create category', function () {
     $response->assertStatus(401);
 });
 
-// PUT - Update Category Negative
+
 it('admin cannot update category', function () {
     $category = Category::create([
         'name' => 'Category',
@@ -178,7 +178,7 @@ it('cannot update category with duplicate value', function () {
         ->assertJsonValidationErrors(['value']);
 });
 
-// DELETE - Delete Category Negative
+
 it('admin cannot delete category', function () {
     $category = Category::create([
         'name' => 'To Delete',

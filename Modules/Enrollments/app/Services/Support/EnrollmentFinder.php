@@ -98,7 +98,7 @@ class EnrollmentFinder
                     QueryBuilder::for(Enrollment::class, $this->makeRequest($filters))->where('user_id', $userId),
                     $filters,
                     $perPage,
-                    false // use default sort for user
+                    false 
                 );
             }
         );
@@ -214,7 +214,7 @@ class EnrollmentFinder
             return $this->paginateAll($perPage, $filters);
         }
 
-        // Admin can see all enrollments
+        
         if ($user->hasRole('Admin')) {
             if ($courseSlug) {
                 $course = Course::where('slug', $courseSlug)->first();
@@ -228,7 +228,7 @@ class EnrollmentFinder
             return $this->paginateAll($perPage, $filters);
         }
 
-        // Instructor can only see enrollments in their managed courses
+        
         if ($user->hasRole('Instructor')) {
             $result = $this->getManagedEnrollments($user, $perPage, $courseSlug, $filters);
 
@@ -250,7 +250,7 @@ class EnrollmentFinder
             return $this->paginateAllForIndex($perPage, $filters);
         }
 
-        // Admin can see all enrollments
+        
         if ($user->hasRole('Admin')) {
             if ($courseSlug) {
                 $course = Course::where('slug', $courseSlug)->first();
@@ -264,7 +264,7 @@ class EnrollmentFinder
             return $this->paginateAllForIndex($perPage, $filters);
         }
 
-        // Instructor can only see enrollments in their managed courses
+        
         if ($user->hasRole('Instructor')) {
             $result = $this->getManagedEnrollmentsForIndex($user, $perPage, $courseSlug, $filters);
 

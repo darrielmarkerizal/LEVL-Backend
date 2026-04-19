@@ -32,7 +32,7 @@ class RecordAssignmentActivity
         $assignment = $submission->assignment;
         $activityKey = 'submission:'.$submission->id;
 
-        if ($event->newState === SubmissionState::Submitted) {
+        if ($event->newState === SubmissionState::PendingManualGrading) {
             EnrollmentActivity::query()->firstOrCreate(
                 [
                     'enrollment_id' => $enrollment->id,

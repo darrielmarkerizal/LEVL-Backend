@@ -10,9 +10,9 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            // ===============================
-            // Teknologi & Digital
-            // ===============================
+            
+            
+            
             ['name' => 'Teknologi Informasi', 'value' => 'information-technology'],
             ['name' => 'Pengembangan Perangkat Lunak', 'value' => 'software-development'],
             ['name' => 'Pengembangan Web', 'value' => 'web-development'],
@@ -30,9 +30,9 @@ class CategorySeeder extends Seeder
             ['name' => 'Blockchain', 'value' => 'blockchain'],
             ['name' => 'Game Development', 'value' => 'game-development'],
 
-            // ===============================
-            // Manajemen & Bisnis
-            // ===============================
+            
+            
+            
             ['name' => 'Manajemen Proyek', 'value' => 'project-management'],
             ['name' => 'Manajemen Operasional', 'value' => 'operations-management'],
             ['name' => 'Manajemen Risiko', 'value' => 'risk-management'],
@@ -47,9 +47,9 @@ class CategorySeeder extends Seeder
             ['name' => 'Perpajakan', 'value' => 'taxation'],
             ['name' => 'Pengadaan Barang dan Jasa', 'value' => 'procurement'],
 
-            // ===============================
-            // SDM & Profesional
-            // ===============================
+            
+            
+            
             ['name' => 'Sumber Daya Manusia', 'value' => 'human-resources'],
             ['name' => 'Administrasi Perkantoran', 'value' => 'office-administration'],
             ['name' => 'Layanan Pelanggan', 'value' => 'customer-service'],
@@ -60,9 +60,9 @@ class CategorySeeder extends Seeder
             ['name' => 'Etika Profesi', 'value' => 'professional-ethics'],
             ['name' => 'Produktivitas Kerja', 'value' => 'work-productivity'],
 
-            // ===============================
-            // Bahasa & Literasi
-            // ===============================
+            
+            
+            
             ['name' => 'Bahasa Inggris', 'value' => 'english-language'],
             ['name' => 'Bahasa Jepang', 'value' => 'japanese-language'],
             ['name' => 'Bahasa Mandarin', 'value' => 'mandarin-language'],
@@ -71,9 +71,9 @@ class CategorySeeder extends Seeder
             ['name' => 'Literasi Digital', 'value' => 'digital-literacy'],
             ['name' => 'Literasi Informasi', 'value' => 'information-literacy'],
 
-            // ===============================
-            // Desain & Kreatif
-            // ===============================
+            
+            
+            
             ['name' => 'Desain', 'value' => 'design'],
             ['name' => 'Desain Grafis', 'value' => 'graphic-design'],
             ['name' => 'UI UX Design', 'value' => 'ui-ux-design'],
@@ -83,9 +83,9 @@ class CategorySeeder extends Seeder
             ['name' => 'Produksi Multimedia', 'value' => 'multimedia-production'],
             ['name' => 'Animasi', 'value' => 'animation'],
 
-            // ===============================
-            // Industri & Teknikal
-            // ===============================
+            
+            
+            
             ['name' => 'Manufaktur', 'value' => 'manufacturing'],
             ['name' => 'Industri Otomotif', 'value' => 'automotive'],
             ['name' => 'Logistik dan Rantai Pasok', 'value' => 'supply-chain'],
@@ -98,26 +98,26 @@ class CategorySeeder extends Seeder
             ['name' => 'Keselamatan dan Kesehatan Kerja', 'value' => 'occupational-health-safety'],
             ['name' => 'Lingkungan Hidup', 'value' => 'environmental-management'],
 
-            // ===============================
-            // Pariwisata & Jasa
-            // ===============================
+            
+            
+            
             ['name' => 'Pariwisata', 'value' => 'tourism'],
             ['name' => 'Perhotelan', 'value' => 'hospitality'],
             ['name' => 'Kuliner dan Tata Boga', 'value' => 'culinary'],
             ['name' => 'Event Management', 'value' => 'event-management'],
 
-            // ===============================
-            // Pendidikan & Sertifikasi
-            // ===============================
+            
+            
+            
             ['name' => 'Pendidikan dan Pelatihan', 'value' => 'education-training'],
             ['name' => 'Asesmen Kompetensi', 'value' => 'competency-assessment'],
             ['name' => 'Metodologi Pelatihan', 'value' => 'training-methodology'],
             ['name' => 'Penyusunan Soal Uji Kompetensi', 'value' => 'assessment-instrument'],
             ['name' => 'Validasi dan Verifikasi Asesmen', 'value' => 'assessment-validation'],
 
-            // ===============================
-            // Kepatuhan & Mutu
-            // ===============================
+            
+            
+            
             ['name' => 'Standar dan Mutu', 'value' => 'quality-management'],
             ['name' => 'Audit dan Kepatuhan', 'value' => 'audit-compliance'],
             ['name' => 'Manajemen Mutu ISO', 'value' => 'iso-quality'],

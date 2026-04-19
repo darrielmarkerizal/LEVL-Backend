@@ -1,7 +1,7 @@
 <?php
 
 return [
-    // Auth Emails
+    
     'credentials' => [
         'subject' => 'Kredensial Akun Anda',
         'title' => 'Akun Anda Telah Dibuat',
@@ -65,7 +65,7 @@ return [
         'footer' => 'Email ini dikirim secara otomatis. Mohon tidak membalas email ini.',
     ],
 
-    // Enrollment Emails
+    
     'enrollment_active' => [
         'subject' => 'Enrollment Berhasil',
         'title' => 'Selamat! Enrollment Berhasil',
@@ -143,7 +143,7 @@ return [
         'footer' => 'Email ini dikirim secara otomatis dari sistem :app_name.',
     ],
 
-    // Learning Emails
+    
     'assignment_published' => [
         'subject' => 'Assignment Baru Tersedia',
         'subject_with_details' => 'Assignment baru: :assignment — :course',
@@ -160,7 +160,7 @@ return [
         'footer' => 'Email ini dikirim secara otomatis. Mohon tidak membalas email ini.',
     ],
 
-    // Schemes Emails
+    
     'course_completed' => [
         'subject' => 'Selamat! Course Selesai',
         'title' => 'Selamat!',
@@ -177,7 +177,7 @@ return [
         'footer' => 'Email ini dikirim secara otomatis. Mohon tidak membalas email ini.',
     ],
 
-    // Notifications Emails
+    
     'post_published' => [
         'subject' => 'Pengumuman Baru Dipublikasikan',
         'title' => 'Pengumuman Baru Dipublikasikan',
@@ -191,7 +191,7 @@ return [
         'footer' => 'Email ini dikirim secara otomatis. Mohon tidak membalas email ini.',
     ],
 
-    // Common
+    
     'common' => [
         'fallback_url_text' => 'Jika tombol di atas tidak berfungsi, salin dan tempel URL berikut ke browser Anda:',
         'thanks' => 'Terima kasih',

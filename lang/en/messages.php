@@ -1,7 +1,7 @@
 <?php
 
 return [
-    // HTTP status messages
+    
     'success' => 'Request completed successfully.',
     'created' => 'Created successfully.',
     'updated' => 'Updated successfully.',
@@ -33,7 +33,7 @@ return [
     'validation_failed' => 'The provided data is invalid. Please check your input.',
     'server_error' => 'An unexpected server error occurred. Please try again later.',
     
-    // Validation messages (nested structure)
+    
     'validation' => [
         'failed' => 'The provided data is invalid. Please check your input.',
     ],
@@ -47,14 +47,14 @@ return [
     'user_data_not_found' => 'User data could not be found.',
     'invalid_credentials' => 'Incorrect email/username or password. Please try again.',
 
-    // Common messages
+    
     'common' => [
         'unauthorized' => 'You do not have permission to perform this action.',
         'master_data_retrieved' => 'Master data retrieved successfully.',
         'not_found' => 'The requested data could not be found.',
     ],
 
-    // Pluralization / count messages
+    
     'resource_created' => ':resource created successfully.',
     'items_count' => '{0} No items found|{1} 1 item found|[2,*] :count items found',
     'users_count' => '{0} No users found|{1} 1 user found|[2,*] :count users found',
@@ -64,7 +64,7 @@ return [
     'records_found' => '{0} No records found|{1} 1 record found|[2,*] :count records found',
     'and_n_more_errors' => 'and :count more error|and :count more errors',
 
-    // Categories
+    
     'categories' => [
         'list_retrieved' => 'Category list retrieved successfully.',
         'created' => 'Category created successfully.',
@@ -73,12 +73,12 @@ return [
         'not_found' => 'The requested category could not be found.',
     ],
 
-    // Media
+    
     'media' => [
         'uploaded' => 'Media uploaded successfully.',
     ],
 
-    // Badges
+    
     'badges' => [
         'retrieved' => 'Badges retrieved successfully.',
         'created' => 'Badge created successfully.',
@@ -87,7 +87,7 @@ return [
         'not_found' => 'The requested badge could not be found.',
     ],
 
-    // Level Configs
+    
     'level_configs' => [
         'created' => 'Level configuration created successfully.',
         'updated' => 'Level configuration updated successfully.',
@@ -95,7 +95,7 @@ return [
         'not_found' => 'The requested level configuration could not be found.',
     ],
 
-    // Achievements
+    
     'achievements' => [
         'created' => 'Achievement created successfully.',
         'updated' => 'Achievement updated successfully.',
@@ -103,7 +103,7 @@ return [
         'not_found' => 'The requested achievement could not be found.',
     ],
 
-    // Tags
+    
     'tags' => [
         'created' => 'Tag created successfully.',
         'updated' => 'Tag updated successfully.',
@@ -112,7 +112,7 @@ return [
         'list_retrieved' => 'Tag list retrieved successfully.',
     ],
 
-    // Units
+    
     'units' => [
         'created' => 'Unit created successfully.',
         'updated' => 'Unit updated successfully.',
@@ -145,7 +145,7 @@ return [
         'content_reordered' => 'Unit content reordered successfully.',
     ],
 
-    // Content
+    
     'content' => [
         'created' => 'Content created successfully.',
         'updated' => 'Content updated successfully.',
@@ -154,7 +154,7 @@ return [
         'metadata_retrieved' => 'Content metadata retrieved successfully.',
     ],
 
-    // Lessons
+    
     'lessons' => [
         'created' => 'Lesson created successfully.',
         'updated' => 'Lesson updated successfully.',
@@ -182,7 +182,7 @@ return [
         'timer_expired' => 'Your time limit for this lesson has expired.',
     ],
 
-    // Questions
+    
     'questions' => [
         'created' => 'Question created successfully.',
         'updated' => 'Question updated successfully.',
@@ -197,7 +197,7 @@ return [
         'reordered' => 'Questions reordered successfully.',
     ],
 
-    // Lesson Blocks
+    
     'lesson_blocks' => [
         'created' => 'Lesson block created successfully.',
         'updated' => 'Lesson block updated successfully.',
@@ -213,19 +213,19 @@ return [
         'no_delete_access' => 'You do not have permission to delete this lesson block.',
     ],
 
-    // Dashboard
+    
     'dashboard' => [
         'retrieved' => 'Dashboard data retrieved successfully.',
     ],
 
-    // Activity Logs
+    
     'activity_logs' => [
         'retrieved' => 'Activity logs retrieved successfully.',
         'item_retrieved' => 'Activity log retrieved successfully.',
         'not_found' => 'The requested activity log could not be found.',
     ],
 
-    // Master Data
+    
     'master_data' => [
         'retrieved' => 'Master data retrieved successfully.',
         'not_found' => 'The requested master data could not be found.',
@@ -265,7 +265,7 @@ return [
         'students_retrieved' => 'Students retrieved successfully.',
     ],
 
-    // Courses
+    
     'courses' => [
         'created' => 'Course created successfully.',
         'updated' => 'Course updated successfully.',
@@ -306,7 +306,7 @@ return [
         'must_have_enrollment_key' => 'An enrollment key is required for key-based enrollment courses.',
     ],
 
-    // Auth Module
+    
     'auth' => [
         'login_success' => 'Welcome back! You have signed in successfully.',
         'logout_success' => 'You have been signed out successfully.',
@@ -383,7 +383,7 @@ return [
         'multiple_choice_single_answer' => 'Multiple choice questions can only have one correct answer.',
     ],
 
-    // Account
+    
     'account' => [
         'restore_success' => 'Your account has been restored successfully.',
         'deletion_in_progress' => 'Your account is already scheduled for deletion.',
@@ -393,7 +393,7 @@ return [
         'cleanup_success' => 'Successfully permanently deleted :count account(s).',
     ],
 
-    // User
+    
     'user' => [
         'not_found' => 'The requested user could not be found.',
     ],
@@ -404,7 +404,7 @@ return [
         'bulk_deleted' => '{0} No users deleted|{1} 1 user deleted|[2,*] :count users deleted',
     ],
 
-    // Password Module
+    
     'password' => [
         'reset_sent' => 'If an account with that email exists, we\'ve sent a password reset link. Please check your inbox.',
         'reset_success' => 'Your password has been reset successfully. You can now sign in with your new password.',
@@ -423,7 +423,7 @@ return [
         'token_expired' => 'The password reset link has expired. Please request a new one.',
     ],
 
-    // Profile
+    
     'profile' => [
         'updated' => 'Profile updated successfully.',
         'achievement_retrieved' => 'Achievements retrieved successfully.',
@@ -439,13 +439,13 @@ return [
         'no_permission' => 'You do not have permission to view this profile.',
     ],
 
-    // Achievement
+    
     'achievement' => [
         'badge_not_owned' => 'You do not own this badge.',
         'badge_not_pinned' => 'This badge is not currently pinned.',
     ],
 
-    // Announcements
+    
     'announcements' => [
         'created' => 'Announcement created successfully.',
         'updated' => 'Announcement updated successfully.',
@@ -457,7 +457,7 @@ return [
         'marked_read' => 'Announcement marked as read.',
     ],
 
-    // News
+    
     'news' => [
         'created' => 'News article created successfully.',
         'updated' => 'News article updated successfully.',
@@ -468,7 +468,7 @@ return [
         'list_retrieved' => 'News list retrieved successfully.',
     ],
 
-    // Enrollments
+    
     'enrollments' => [
         'enrolled' => 'You have successfully enrolled in this course.',
         'unenrolled' => 'You have been unenrolled from this course.',
@@ -526,7 +526,7 @@ return [
         'activities_retrieved' => 'Enrollment activities retrieved successfully.',
     ],
 
-    // Assignments
+    
     'assignments' => [
         'submitted' => 'Assignment submitted successfully.',
         'not_found' => 'The requested assignment could not be found.',
@@ -559,22 +559,22 @@ return [
         'invalid_scope_hierarchy' => 'The provided scope does not belong to the expected parent context (e.g., the Lesson is not part of the Course).',
     ],
 
-    // Overrides
+    
     'overrides' => [
         'granted' => 'Override granted successfully.',
     ],
 
-    // Prerequisites
+    
     'prerequisites' => [
         'incomplete_count' => 'You must complete :count prerequisite item(s) before accessing this content.',
     ],
 
-    // Answers
+    
     'answers' => [
         'saved' => 'Your answer has been saved.',
     ],
 
-    // Submissions
+    
     'submissions' => [
         'list_retrieved' => 'Submission list retrieved successfully.',
         'submitted' => 'Submission submitted successfully.',
@@ -603,7 +603,7 @@ return [
         'pending_grading_exists' => 'You have a pending submission awaiting grading. Please wait for the instructor to grade your previous submission before resubmitting.',
     ],
 
-    // Quizzes
+    
     'quizzes' => [
         'submitted' => 'Quiz submitted successfully.',
         'not_found' => 'The requested quiz could not be found.',
@@ -624,7 +624,7 @@ return [
         'scope_not_found' => 'The quiz scope could not be found.',
     ],
 
-    // Quiz Submissions
+    
     'quiz_submissions' => [
         'draft_exists' => 'You have an unfinished quiz attempt. Please complete or abandon it before starting a new one.',
         'pending_grading' => 'Your previous quiz submission is awaiting grading.',
@@ -640,12 +640,12 @@ return [
         'unanswered_questions' => '{1} You must answer :count question before submitting.|[2,*] You must answer all :count questions before submitting.',
     ],
 
-    // Learning
+    
     'learning' => [
         'progress_saved' => 'Your learning progress has been saved.',
     ],
 
-    // Files
+    
     'files' => [
         'expired' => 'The requested file has expired and is no longer available.',
         'multiple_not_allowed' => 'Only one file can be uploaded for this question.',
@@ -653,7 +653,7 @@ return [
         'type_not_allowed' => "File type ':extension' is not allowed. Accepted types: :types.",
     ],
 
-    // Grading
+    
     'grading' => [
         'no_access' => 'You do not have permission to perform this grading operation.',
         'auto_graded' => 'Submission graded automatically.',
@@ -678,7 +678,7 @@ return [
         'bulk_validation_failed' => 'Bulk validation failed: :errors',
     ],
 
-    // Appeals
+    
     'appeals' => [
         'submitted' => 'Your appeal has been submitted successfully.',
         'approved' => 'Appeal approved successfully.',
@@ -693,14 +693,14 @@ return [
         'denial_reason_required' => 'A reason is required when denying an appeal.',
     ],
 
-    // Audit Logs
+    
     'audit_logs' => [
         'no_access' => 'You do not have permission to view audit logs.',
         'not_found' => 'The requested audit log could not be found.',
         'retrieved' => 'Audit logs retrieved successfully.',
     ],
 
-    // Progress
+    
     'progress' => [
         'locked_prerequisite' => 'This lesson is locked. Complete the prerequisite lessons to unlock it.',
         'lesson_not_in_unit' => 'This lesson does not belong to the specified unit.',
@@ -708,14 +708,14 @@ return [
         'updated' => 'Progress updated successfully.',
     ],
 
-    // Gamification
+    
     'gamification' => [
         'points_awarded' => 'Points awarded successfully.',
         'leaderboard_updated' => 'Leaderboard rankings updated successfully.',
         'updating_leaderboard' => 'Updating leaderboard...',
     ],
 
-    // Forums
+    
     'forums' => [
         'thread_created' => 'Thread created successfully.',
         'thread_retrieved' => 'Thread retrieved successfully.',
@@ -744,7 +744,7 @@ return [
         'unauthorized_access' => 'You do not have permission to access this resource.',
     ],
 
-    // Notifications
+    
     'notifications' => [
         'list_retrieved' => 'Notifications retrieved successfully.',
         'marked_read' => 'Notification marked as read.',
@@ -754,13 +754,13 @@ return [
         'failed_reset_preferences' => 'Failed to reset notification preferences. Please try again.',
     ],
 
-    // Search
+    
     'search' => [
         'history_cleared' => 'Search history cleared.',
         'history_deleted' => 'Search history entry removed.',
     ],
 
-    // Trash
+    
     'trash_bins' => [
         'list_retrieved' => 'Trash items retrieved successfully.',
         'source_types_retrieved' => 'Trash source types retrieved successfully.',
@@ -790,12 +790,12 @@ return [
         'purge_success' => 'Purged :count expired trash item(s) successfully.',
     ],
 
-    // Permissions
+    
     'permission_denied' => 'You do not have permission to perform this action.',
     'insufficient_permissions' => 'You do not have sufficient permissions for this operation.',
     'role_required' => 'This action requires the :role role.',
 
-    // Validation
+    
     'invalid_input' => 'The provided input is invalid.',
     'missing_required_field' => 'A required field is missing.',
 
@@ -826,13 +826,13 @@ return [
         'search_string' => 'Search query must be a string.',
     ],
 
-    // Dashboard
+    
     'dashboard_retrieved' => 'Dashboard data retrieved successfully.',
     'recent_learning_retrieved' => 'Recent learning activities retrieved successfully.',
     'recent_achievements_retrieved' => 'Recent achievements retrieved successfully.',
     'recommended_courses_retrieved' => 'Recommended courses retrieved successfully.',
 
-    // Dashboard Activity Types
+    
     'activity' => [
         'default' => 'Learning activity',
         'lesson_completion' => 'Completed lesson: :title',

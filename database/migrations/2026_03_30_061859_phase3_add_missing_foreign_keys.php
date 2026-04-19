@@ -7,14 +7,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Add missing foreign key constraints
-     */
+    
     public function up(): void
     {
-        // Add FK for news_category.category_id -> categories.id
+        
         Schema::table('news_category', function (Blueprint $table) {
-            // Check if FK already exists using raw SQL
+            
             $exists = DB::selectOne("
                 SELECT COUNT(*) as count
                 FROM information_schema.table_constraints 
@@ -32,9 +30,7 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         Schema::table('news_category', function (Blueprint $table) {

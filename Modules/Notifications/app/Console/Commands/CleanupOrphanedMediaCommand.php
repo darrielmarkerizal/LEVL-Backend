@@ -19,7 +19,7 @@ class CleanupOrphanedMediaCommand extends Command
         $this->info('Checking for orphaned media to cleanup...');
         Log::info('CleanupOrphanedMediaCommand: Starting orphaned media cleanup');
 
-        // Find temporary posts older than 24 hours
+        
         $temporaryPosts = Post::where('title', 'temp_upload')
             ->where('created_at', '<', now()->subHours(24))
             ->withTrashed()
@@ -37,13 +37,13 @@ class CleanupOrphanedMediaCommand extends Command
 
         foreach ($temporaryPosts as $post) {
             try {
-                // Count media files before deletion
+                
                 $mediaCount = $post->getMedia('images')->count();
 
-                // Delete all media files using Spatie Media Library
+                
                 $post->clearMediaCollection('images');
 
-                // Force delete the temporary post
+                
                 $post->forceDelete();
 
                 $deletedPosts++;

@@ -28,9 +28,7 @@ class ContentSchedulingService
         $this->notificationService = $notificationService;
     }
 
-    /**
-     * @throws \Exception
-     */
+    
     public function schedulePublication($content, Carbon $publishAt): bool
     {
         if ($publishAt->isPast()) {
@@ -55,7 +53,7 @@ class ContentSchedulingService
     {
         $publishedCount = 0;
 
-        // Get scheduled announcements
+        
         $scheduledAnnouncements = $this->announcementRepository->getScheduledForPublishing();
 
         foreach ($scheduledAnnouncements as $announcement) {
@@ -65,7 +63,7 @@ class ContentSchedulingService
             }
         }
 
-        // Get scheduled news
+        
         $scheduledNews = $this->newsRepository->getScheduledForPublishing();
 
         foreach ($scheduledNews as $news) {

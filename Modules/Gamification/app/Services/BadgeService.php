@@ -30,7 +30,7 @@ class BadgeService implements BadgeServiceInterface
             "common:badges:paginate:{$perPage}:{$page}:{$search}:{$sort}",
             300,
             function () use ($perPage, $search) {
-                // FIX: Eager load rules and users count
+                
                 $query = Badge::with('rules')->withCount('users');
 
                 if ($search && trim($search) !== '') {
@@ -173,7 +173,7 @@ class BadgeService implements BadgeServiceInterface
     {
         $perPage = max(1, min($perPage, 100));
 
-        // Get user's earned badges
+        
         $earnedBadges = \Modules\Gamification\Models\UserBadge::where('user_id', $userId)
             ->get()
             ->keyBy('badge_id');
@@ -204,14 +204,14 @@ class BadgeService implements BadgeServiceInterface
             ->defaultSort('name')
             ->paginate($perPage);
 
-        // Transform to include earned status and progress
+        
         $badges->getCollection()->transform(function ($badge) use ($earnedBadges) {
             $userBadge = $earnedBadges->get($badge->id);
 
             $badge->is_earned = $userBadge !== null;
             $badge->earned_at = $userBadge?->earned_at;
 
-            // Calculate progress
+            
             if ($userBadge) {
                 $badge->progress = [
                     'current' => $userBadge->progress ?? $badge->threshold ?? 1,
@@ -221,7 +221,7 @@ class BadgeService implements BadgeServiceInterface
                         : 100,
                 ];
             } else {
-                // For not earned badges, try to get current progress from badge rules
+                
                 $currentProgress = $this->calculateBadgeProgress($badge, auth('api')->user()->id);
                 $badge->progress = [
                     'current' => $currentProgress,

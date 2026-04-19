@@ -128,7 +128,7 @@ class SubmissionPolicy
             return false;
         }
 
-        // Admin can grade all submissions
+        
         if ($user->hasRole('Admin')) {
             return true;
         }

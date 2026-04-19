@@ -4,7 +4,7 @@ use Laravel\Socialite\Facades\Socialite;
 
 test('user can redirect to google', function () {
     $response = $this->getJson('/api/v1/auth/google/redirect');
-    $response->assertStatus(200) // Or 302
+    $response->assertStatus(200) 
         ->assertJsonStructure(['url']);
 });
 

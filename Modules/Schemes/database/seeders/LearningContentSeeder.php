@@ -28,7 +28,7 @@ class LearningContentSeeder extends Seeder
         $this->command->info("\n📖 Creating learning content hierarchy with media...");
         $this->command->info('   Course → Unit → Lesson → Lesson Block (with files)');
 
-        // Test DigitalOcean Spaces connection
+        
         try {
             $disk = \Storage::disk('do');
             $testFile = 'test-connection-' . time() . '.txt';
@@ -100,12 +100,12 @@ class LearningContentSeeder extends Seeder
 
     private function checkDummyFiles(): void
     {
-        // Ensure UAT fixture files exist (will create them if missing)
+        
         UATMediaFixtures::ensureFilesExist();
         
         $this->dummyFiles = UATMediaFixtures::paths();
 
-        // Debug: Show all file paths
+        
         $this->command->info('  📁 Checking dummy file paths:');
         foreach ($this->dummyFiles as $type => $path) {
             $exists = File::exists($path) ? '✓' : '✗';
@@ -206,8 +206,8 @@ class LearningContentSeeder extends Seeder
     {
         $count = self::BLOCKS_PER_LESSON[0] + ($lesson->id % (self::BLOCKS_PER_LESSON[1] - self::BLOCKS_PER_LESSON[0] + 1));
         
-        // Use round-robin distribution to ensure all types are created
-        // This guarantees media files will be uploaded
+        
+        
         $blockTypes = ['text', 'video', 'file', 'image', 'embed'];
 
         $blocksCreated = 0;
@@ -215,11 +215,11 @@ class LearningContentSeeder extends Seeder
         $blockTypeCount = [];
 
         for ($i = 0; $i < $count; $i++) {
-            // Round-robin: cycle through all block types
-            // Use simple modulo to ensure even distribution
+            
+            
             $blockType = $blockTypes[$i % count($blockTypes)];
             
-            // Track block types
+            
             if (!isset($blockTypeCount[$blockType])) {
                 $blockTypeCount[$blockType] = 0;
             }
@@ -229,13 +229,13 @@ class LearningContentSeeder extends Seeder
                 'lesson_id' => $lesson->id,
                 'block_type' => $blockType,
                 'content' => $this->generateBlockContent($blockType, $lesson->id * 50 + $i),
-                'order' => $i + 1, // Order starts from 1
+                'order' => $i + 1, 
                 'slug' => \Illuminate\Support\Str::slug($lesson->title.'-block-'.($i + 1)),
             ]);
 
             $blocksCreated++;
 
-            // Only try to attach media for types that support it
+            
             if (in_array($blockType, ['video', 'file', 'image'])) {
                 if ($this->attachMediaToBlock($block, $blockType)) {
                     $mediaUploaded++;
@@ -243,7 +243,7 @@ class LearningContentSeeder extends Seeder
             }
         }
 
-        // Debug: Log block types for first 3 lessons only
+        
         if ($lesson->id <= 3) {
             $this->command->info("    📊 Block types for lesson {$lesson->id}: " . json_encode($blockTypeCount));
         }
@@ -253,7 +253,7 @@ class LearningContentSeeder extends Seeder
 
     private function attachMediaToBlock(LessonBlock $block, string $blockType): bool
     {
-        // Debug: Log every attempt
+        
         static $attemptCount = 0;
         $attemptCount++;
         
@@ -326,7 +326,7 @@ class LearningContentSeeder extends Seeder
                     return true;
             }
         } catch (\Throwable $e) {
-            // Catch all errors including fatal errors from media library
+            
             $this->command->error("    ❌ Failed to attach media to block {$block->id} ({$blockType}): {$e->getMessage()}");
             if ($attemptCount <= 3) {
                 $this->command->error("    Error type: " . get_class($e));

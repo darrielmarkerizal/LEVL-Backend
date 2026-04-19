@@ -173,7 +173,7 @@ class ForumService implements \App\Contracts\Services\ForumServiceInterface, Mod
 
         $this->processMentions($reply, $data['content']);
 
-        cache()->tags(['forums', 'threads'])->flush(); // Update reply count
+        cache()->tags(['forums', 'threads'])->flush(); 
         cache()->tags(['forums', 'replies', "thread:{$thread->id}"])->flush();
 
         return $reply;
@@ -210,7 +210,7 @@ class ForumService implements \App\Contracts\Services\ForumServiceInterface, Mod
 
             if ($result) {
                 $thread->decrement('replies_count');
-                cache()->tags(['forums', 'threads'])->flush(); // Update reply count
+                cache()->tags(['forums', 'threads'])->flush(); 
                 cache()->tags(['forums', 'replies', "thread:{$thread->id}"])->flush();
             }
 
@@ -278,8 +278,8 @@ class ForumService implements \App\Contracts\Services\ForumServiceInterface, Mod
             $reaction = null;
 
             if ($added) {
-                // We need to fetch the fresh reaction model to dispatch the event
-                // This ensures we have the ID and relations loaded
+                
+                
                 $reaction = $this->reactionRepository->findByUserAndReactable(
                     $user->id,
                     Thread::class,

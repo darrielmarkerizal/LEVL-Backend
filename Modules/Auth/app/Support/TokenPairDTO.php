@@ -13,7 +13,7 @@ class TokenPairDTO
         public readonly ?string $refreshToken = null,
     ) {}
 
-    /** @return array<string,mixed> */
+    
     public function toArray(): array
     {
         return [

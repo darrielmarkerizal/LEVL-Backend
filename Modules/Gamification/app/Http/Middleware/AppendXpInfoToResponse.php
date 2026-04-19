@@ -12,14 +12,12 @@ use Modules\Gamification\Models\UserGamificationStat;
 
 class AppendXpInfoToResponse
 {
-    /**
-     * Handle an incoming request and append XP info to response
-     */
+    
     public function handle(Request $request, Closure $next)
     {
         $response = $next($request);
 
-        // Only process JSON responses for authenticated users
+        
         if (! $response instanceof JsonResponse || ! auth()->check()) {
             return $response;
         }
@@ -27,25 +25,25 @@ class AppendXpInfoToResponse
         $userId = auth()->id();
         $data = $response->getData(true);
 
-        // Check if response already has xp_info
+        
         if (isset($data['xp_info'])) {
             return $response;
         }
 
-        // Get user's gamification stats
+        
         $stats = UserGamificationStat::where('user_id', $userId)->first();
 
         if (! $stats) {
             return $response;
         }
 
-        // Get latest XP award (if any in last 5 seconds)
+        
         $latestXpAward = Point::where('user_id', $userId)
             ->where('created_at', '>=', now()->subSeconds(5))
             ->latest()
             ->first();
 
-        // Append XP info to response
+        
         $xpInfo = [
             'current_xp' => $stats->total_xp,
             'current_level' => $stats->global_level,

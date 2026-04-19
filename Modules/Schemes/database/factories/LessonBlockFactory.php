@@ -3,35 +3,53 @@
 namespace Modules\Schemes\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Schemes\Enums\BlockType;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\LessonBlock;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Schemes\Models\LessonBlock>
- */
+
 class LessonBlockFactory extends Factory
 {
     protected $model = LessonBlock::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function definition(): array
     {
+        $typeRoll = fake()->numberBetween(1, 8);
+        $blockType = match (true) {
+            $typeRoll === 1 => BlockType::Text->value,
+            $typeRoll === 2 => BlockType::Image->value,
+            $typeRoll === 3 => BlockType::Video->value,
+            $typeRoll === 4 => BlockType::File->value,
+            $typeRoll === 5 => BlockType::Link->value,
+            $typeRoll === 6 => BlockType::YouTube->value,
+            $typeRoll === 7 => BlockType::Drive->value,
+            default => BlockType::Embed->value,
+        };
+
+        $content = $blockType === BlockType::Text->value
+            ? fake()->paragraphs(2, true)
+            : fake()->sentence();
+
+        $mediaUrl = in_array($blockType, [BlockType::Image->value, BlockType::Video->value, BlockType::File->value], true)
+            ? fake()->url()
+            : null;
+
+        $externalUrl = in_array($blockType, [BlockType::Link->value, BlockType::YouTube->value, BlockType::Drive->value, BlockType::Embed->value], true)
+            ? fake()->url()
+            : null;
+
         return [
             'lesson_id' => Lesson::factory(),
-            'block_type' => fake()->randomElement(['text', 'image', 'file', 'embed']),
-            'content' => fake()->paragraphs(2, true),
-            'media_url' => fake()->optional(0.3)->url(),
+            'block_type' => $blockType,
+            'content' => $content,
+            'media_url' => $mediaUrl,
+            'external_url' => $externalUrl,
             'order' => fake()->numberBetween(1, 10),
         ];
     }
 
-    /**
-     * Indicate that the block is a text block.
-     */
+    
     public function text(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -40,9 +58,7 @@ class LessonBlockFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the block is an image block.
-     */
+    
     public function image(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -54,9 +70,7 @@ class LessonBlockFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the block is a video block.
-     */
+    
     public function video(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -68,23 +82,19 @@ class LessonBlockFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the block is a code block.
-     */
+    
     public function code(): static
     {
         return $this->state(fn (array $attributes) => [
-            'block_type' => 'code',
+            'block_type' => BlockType::Text->value,
             'content' => json_encode([
-                'language' => fake()->randomElement(['php', 'javascript', 'python', 'java']),
+                'language' => 'php',
                 'code' => fake()->text(200),
             ]),
         ]);
     }
 
-    /**
-     * Indicate that the block is a quiz block.
-     */
+    
     public function quiz(): static
     {
         return $this->state(fn (array $attributes) => [

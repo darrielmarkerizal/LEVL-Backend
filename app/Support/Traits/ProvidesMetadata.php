@@ -4,19 +4,13 @@ namespace App\Support\Traits;
 
 trait ProvidesMetadata
 {
-    /**
-     * Build metadata for list endpoints
-     *
-     * @param  array  $allowedSorts  Array of allowed sort field names
-     * @param  array  $filters  Array of filter configurations
-     * @param  string|null  $translationPrefix  Translation key prefix for auto-translating sorts/filters
-     */
+    
     protected function buildMetadata(
         array $allowedSorts = [],
         array $filters = [],
         ?string $translationPrefix = null,
     ): array {
-        // Convert sorts to objects with field and label
+        
         $sortsWithLabels = array_map(function ($sort) use ($translationPrefix) {
             return [
                 'field' => $sort,
@@ -30,12 +24,7 @@ trait ProvidesMetadata
         ];
     }
 
-    /**
-     * Build metadata from QueryBuilder instance
-     *
-     * @param  array  $filterConfig  Additional filter configuration (labels, enums, etc.)
-     * @param  string|null  $translationPrefix  Translation key prefix (e.g. 'activity_logs', 'master_data')
-     */
+    
     protected function buildMetadataFromQuery(
         \Spatie\QueryBuilder\QueryBuilder $query,
         array $filterConfig = [],
@@ -44,7 +33,7 @@ trait ProvidesMetadata
         $extractor = app(\App\Services\QueryBuilderMetadataExtractor::class);
         $extracted = $extractor->extractMetadata($query, $translationPrefix);
 
-        // Build filter metadata with additional config
+        
         $filtersMetadata = [];
         foreach ($extracted['filters'] as $filterKey => $filterData) {
             $config = $filterConfig[$filterKey] ?? [];
@@ -62,11 +51,7 @@ trait ProvidesMetadata
         ];
     }
 
-    /**
-     * Build filters metadata with options
-     *
-     * @param  string|null  $translationPrefix  Translation key prefix
-     */
+    
     protected function buildFiltersMetadata(array $filters, ?string $translationPrefix = null): array
     {
         $metadata = [];
@@ -86,36 +71,32 @@ trait ProvidesMetadata
         return $metadata;
     }
 
-    /**
-     * Get translated label for sort field or filter
-     */
+    
     private function getTranslatedSortLabel(string $field, ?string $translationPrefix = null): string
     {
         if ($translationPrefix) {
             $translationKey = $translationPrefix.'.'.$field;
             $translated = __($translationKey);
 
-            // If translation exists, use it
+            
             if ($translated !== $translationKey) {
                 return $translated;
             }
         }
 
-        // Fallback to humanized field name
+        
         return ucfirst(str_replace('_', ' ', $field));
     }
 
-    /**
-     * Resolve filter display type (select, boolean, date_range, etc.)
-     */
+    
     private function resolveFilterDisplayType(array $filterData, array $config): string
     {
-        // Explicit type from config
+        
         if (isset($config['type'])) {
             return $config['type'];
         }
 
-        // Detect boolean filters
+        
         if (
             str_contains($filterData['name'], 'is_') ||
             in_array($filterData['name'], ['active', 'published', 'enabled'])
@@ -123,21 +104,19 @@ trait ProvidesMetadata
             return 'boolean';
         }
 
-        // Detect date filters
+        
         if (str_contains($filterData['name'], 'date') || str_contains($filterData['name'], '_at')) {
             return 'date_range';
         }
 
-        // Default to select
+        
         return 'select';
     }
 
-    /**
-     * Resolve filter options from configuration
-     */
+    
     private function resolveFilterOptions(array $config): array
     {
-        // No options if not configured
+        
         if (
             ! isset($config['enum']) &&
             ! isset($config['options']) &&
@@ -147,22 +126,22 @@ trait ProvidesMetadata
             return [];
         }
 
-        // Explicit options array
+        
         if (isset($config['options'])) {
             return is_array($config['options']) ? $config['options'] : [];
         }
 
-        // Enum class
+        
         if (isset($config['enum'])) {
             return $this->resolveEnumOptions($config['enum']);
         }
 
-        // Database query
+        
         if (isset($config['query']) && is_callable($config['query'])) {
             return $config['query']();
         }
 
-        // Boolean type
+        
         if (isset($config['type']) && $config['type'] === 'boolean') {
             return $this->buildBooleanOptions(
                 $config['true_label'] ?? __('master_data.filter_options.active'),
@@ -173,9 +152,7 @@ trait ProvidesMetadata
         return [];
     }
 
-    /**
-     * Resolve options from enum class
-     */
+    
     private function resolveEnumOptions(string $enumClass): array
     {
         if (! enum_exists($enumClass)) {
@@ -191,19 +168,13 @@ trait ProvidesMetadata
         );
     }
 
-    /**
-     * Build boolean filter options
-     */
+    
     protected function buildBooleanOptions(string $trueLabel, string $falseLabel): array
     {
         return [['value' => true, 'label' => $trueLabel], ['value' => false, 'label' => $falseLabel]];
     }
 
-    /**
-     * Build select filter options from array
-     *
-     * @param  array  $options  Array of value => label pairs
-     */
+    
     protected function buildSelectOptions(array $options): array
     {
         $result = [];

@@ -85,7 +85,7 @@ class ProfileService implements ProfileServiceInterface
         $roleNames = $user->getRoleNames()->values();
         $primaryRole = Str::lower((string) ($roleNames->first() ?? 'student'));
 
-        // Base data that's always visible
+        
         $data = [
             'id' => $user->id,
             'name' => $user->name,
@@ -100,12 +100,12 @@ class ProfileService implements ProfileServiceInterface
             'updated_at' => $user->updated_at,
         ];
 
-        // Check if viewing own profile or if viewer is admin
+        
         $isOwnProfile = $viewer->id === $user->id;
         $isAdmin = $viewer->hasRole('Admin') || $viewer->hasRole('Superadmin');
 
         if ($isOwnProfile || $isAdmin) {
-            // Show all data for own profile or admin
+            
             $data['email'] = $user->email;
             $data['phone'] = $user->phone;
             $data['email_verified_at'] = $user->email_verified_at;
@@ -115,40 +115,38 @@ class ProfileService implements ProfileServiceInterface
                 $data['statistics'] = $this->getStudentStatistics($user);
             }
         } else {
-            // Filter data based on privacy settings for other viewers
+            
             $privacySettings = $user->privacySettings ?? $this->privacyService->getPrivacySettings($user);
 
-            // Add email if allowed
+            
             if ($privacySettings->show_email) {
                 $data['email'] = $user->email;
             }
 
-            // Add phone if allowed
+            
             if ($privacySettings->show_phone) {
                 $data['phone'] = $user->phone;
             }
 
-            // Add statistics if allowed and user is student
+            
             if ($primaryRole === 'student' && $privacySettings->show_statistics) {
                 $data['statistics'] = $this->getStudentStatistics($user);
             }
 
-            // Note: activity_history and achievements will be handled by separate endpoints
-            // that also check privacy settings
+            
+            
         }
 
         return $data;
     }
 
-    /**
-     * Get statistics for student profile
-     */
+    
     private function getStudentStatistics(User $user): array
     {
-        // Get enrollment statistics
+        
         $enrollmentStats = $this->statisticsService->getEnrollmentStats($user);
 
-        // Get gamification statistics
+        
         $gamificationStats = $user->gamificationStats;
 
         return [
@@ -174,8 +172,8 @@ class ProfileService implements ProfileServiceInterface
 
     public function changePassword(User $user, string $currentPassword, string $newPassword): bool
     {
-        // Current password validation is handled by ChangePasswordRequest
-        // No need to check again here
+        
+        
 
         $user->password = Hash::make($newPassword);
         $user->save();

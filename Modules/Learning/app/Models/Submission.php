@@ -138,10 +138,9 @@ class Submission extends Model implements HasMedia
 
         return match ($this->status->value) {
             'draft' => SubmissionState::InProgress,
-            'submitted' => SubmissionState::Submitted,
+            'submitted' => SubmissionState::PendingManualGrading,
             'graded' => SubmissionState::Graded,
-            'late' => SubmissionState::Submitted,
-            'missing' => SubmissionState::Submitted,
+            'late' => SubmissionState::PendingManualGrading,
             default => null,
         };
     }
@@ -165,7 +164,6 @@ class Submission extends Model implements HasMedia
 
         $statusValue = match ($newState) {
             SubmissionState::InProgress => 'draft',
-            SubmissionState::Submitted => ($this->status?->value === 'missing') ? 'missing' : 'submitted',
             SubmissionState::AutoGraded => 'graded',
             SubmissionState::PendingManualGrading => 'submitted',
             SubmissionState::Graded => 'graded',

@@ -27,16 +27,16 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Convert to varchar first
+        
         DB::statement('ALTER TABLE post_audiences ALTER COLUMN role TYPE varchar(32) USING role::text');
         DB::statement('DROP TYPE IF EXISTS post_audience_role CASCADE');
 
-        // Revert the role values
+        
         DB::statement("UPDATE post_audiences SET role = 'Admin' WHERE role = 'admin'");
         DB::statement("UPDATE post_audiences SET role = 'Student' WHERE role = 'student'");
         DB::statement("UPDATE post_audiences SET role = 'Instructor' WHERE role = 'instructor'");
 
-        // Recreate old enum type and convert column
+        
         DB::statement("CREATE TYPE post_audience_role AS ENUM ('Student', 'Instructor', 'Admin', 'Superadmin')");
         DB::statement('ALTER TABLE post_audiences ALTER COLUMN role TYPE post_audience_role USING role::post_audience_role');
     }

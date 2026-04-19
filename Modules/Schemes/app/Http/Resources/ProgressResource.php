@@ -10,8 +10,8 @@ class ProgressResource extends JsonResource
 {
     public function toArray($request): array
     {
-        // The resource receives an array with 'course' and 'units' keys
-        // from ProgressionStateProcessor::getCourseProgressData
+        
+        
         return $this->resource;
     }
 }

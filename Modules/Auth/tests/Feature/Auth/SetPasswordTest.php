@@ -4,11 +4,11 @@ use Illuminate\Support\Facades\Hash;
 use Modules\Auth\app\Models\User;
 
 test('user can set password first time', function () {
-    // Assuming 'is_password_set' column exists or is inferred
+    
     $user = User::factory()->create(['password' => null]);
-    // Usually password null means not set.
+    
 
-    $token = auth()->login($user); // Assuming authenticated user can set password
+    $token = auth()->login($user); 
 
     $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
         ->postJson('/api/v1/auth/set-password', [

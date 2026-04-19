@@ -44,7 +44,7 @@ class BulkDeletePostsJob implements ShouldQueue
             'batch_size' => self::BATCH_SIZE,
         ]);
 
-        // Process posts in batches
+        
         $batches = array_chunk($this->postUuids, self::BATCH_SIZE);
 
         foreach ($batches as $batchIndex => $batch) {
@@ -72,7 +72,7 @@ class BulkDeletePostsJob implements ShouldQueue
                         'uuid' => $uuid,
                         'error' => $e->getMessage(),
                     ]);
-                    // Continue processing remaining posts
+                    
                 }
             }
 

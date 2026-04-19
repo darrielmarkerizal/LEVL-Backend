@@ -85,7 +85,7 @@ class EnrollmentLifecycleProcessor
         $initialStatus = EnrollmentStatus::from($data['initial_status']);
         $notifyStudent = (bool) ($data['is_notify_student'] ?? false);
 
-        // Force future enrollment to pending
+        
         if ($enrollmentDate->isFuture() && $initialStatus === EnrollmentStatus::Active) {
             $initialStatus = EnrollmentStatus::Pending;
         }
@@ -174,9 +174,7 @@ class EnrollmentLifecycleProcessor
         return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email', 'user.media']);
     }
 
-    /* ===========================
-       ======== PRIVATE METHODS ===
-       =========================== */
+    
 
     private function validateUserAndCourse(User $user, Course $course): void
     {

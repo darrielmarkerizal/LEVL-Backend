@@ -20,7 +20,7 @@ class CheckUnlockedQuizzes extends Command
         $this->info('=== Finding Students with Unlocked Quizzes ===');
         $this->newLine();
 
-        // Get all active students
+        
         $students = User::whereHas('roles', function ($q) {
             $q->where('name', 'Student');
         })
@@ -37,7 +37,7 @@ class CheckUnlockedQuizzes extends Command
         $progressBar->start();
 
         foreach ($students as $student) {
-            // Get student's enrollments
+            
             $enrollments = Enrollment::where('user_id', $student->id)
                 ->where('status', 'active')
                 ->with('course')
@@ -46,7 +46,7 @@ class CheckUnlockedQuizzes extends Command
             foreach ($enrollments as $enrollment) {
                 $course = $enrollment->course;
 
-                // Get all published quizzes in this course
+                
                 $quizzes = Quiz::whereHas('unit', function ($q) use ($course) {
                     $q->where('course_id', $course->id);
                 })
@@ -55,13 +55,13 @@ class CheckUnlockedQuizzes extends Command
                     ->get();
 
                 foreach ($quizzes as $quiz) {
-                    // Check if student has attempted this quiz
+                    
                     $hasAttempt = QuizSubmission::where('quiz_id', $quiz->id)
                         ->where('user_id', $student->id)
                         ->exists();
 
                     if (! $hasAttempt) {
-                        // Check if quiz is unlocked
+                        
                         $accessCheck = $prerequisiteService->checkQuizAccess($quiz, $student->id);
 
                         if ($accessCheck['accessible']) {
@@ -104,7 +104,7 @@ class CheckUnlockedQuizzes extends Command
                 })
             );
 
-            // Show first result details for testing
+            
             $first = $results[0];
             $this->newLine();
             $this->info('=== FIRST RESULT (For Testing) ===');

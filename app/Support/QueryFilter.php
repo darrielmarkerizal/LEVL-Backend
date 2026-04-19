@@ -135,12 +135,12 @@ class QueryFilter
 
         $sort = trim((string) $sort);
 
-        // Extract direction from sort parameter
+        
         $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
 
-        // Validate direction is either 'asc' or 'desc'
-        // Since we only accept '-' prefix or no prefix, this is already validated
-        // But we normalize to ensure it's always 'asc' or 'desc'
+        
+        
+        
         return in_array($direction, ['asc', 'desc'], true) ? $direction : 'asc';
     }
 
@@ -255,14 +255,14 @@ class QueryFilter
     {
         $model = $query->getModel();
 
-        // Use PgSearchable if model has the trait
+        
         if (in_array(\Modules\Common\Traits\PgSearchable::class, class_uses_recursive($model))) {
             $query->search($search);
 
             return;
         }
 
-        // Fallback to SQL LIKE for models without Searchable trait
+        
         if (property_exists($model, 'searchable')) {
             $searchables = $model->searchable ?? [];
             if (! empty($searchables)) {

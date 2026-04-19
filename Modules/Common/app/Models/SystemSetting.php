@@ -37,9 +37,7 @@ class SystemSetting extends Model
         'type' => SettingType::class,
     ];
 
-    /**
-     * Get the typed value based on the type field.
-     */
+    
     public function getTypedValueAttribute()
     {
         $type = $this->type instanceof SettingType ? $this->type->value : $this->type;
@@ -102,9 +100,7 @@ class SystemSetting extends Model
         };
     }
 
-    /**
-     * The "booted" method of the model.
-     */
+    
     protected static function booted(): void
     {
         static::saved(function (SystemSetting $setting) {
@@ -125,9 +121,7 @@ class SystemSetting extends Model
         }
     }
 
-    /**
-     * Get a setting by key.
-     */
+    
     public static function get(string $key, $default = null): mixed
     {
         return \Illuminate\Support\Facades\Cache::rememberForever('system_setting:'.$key, function () use ($key, $default) {
@@ -137,9 +131,7 @@ class SystemSetting extends Model
         });
     }
 
-    /**
-     * Set a setting by key.
-     */
+    
     public static function set(string $key, $value): void
     {
         $setting = static::updateOrCreate(
@@ -150,7 +142,7 @@ class SystemSetting extends Model
         if ($setting) {
             $setting->setValue($value);
             $setting->save();
-            // Cache is cleared by the saved event observer
+            
         }
     }
 }

@@ -53,7 +53,7 @@ class LessonPolicy
             return $this->deny(__('messages.course_not_found'));
         }
 
-        // Check if user is instructor or course admin
+        
         if ((int) $course->instructor_id === (int) $user->id) {
             return Response::allow();
         }
@@ -81,7 +81,7 @@ class LessonPolicy
             return $this->deny(__('messages.course_not_found'));
         }
 
-        // Check if user is instructor or course admin
+        
         if ((int) $course->instructor_id === (int) $user->id) {
             return Response::allow();
         }

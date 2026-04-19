@@ -80,7 +80,7 @@ class Lesson extends Model
 
     public function isCompletedBy(int $userId): bool
     {
-        // Check via lesson_progress table using enrollment_id
+        
         return \DB::table('lesson_progress')
             ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
             ->where('lesson_progress.lesson_id', $this->id)

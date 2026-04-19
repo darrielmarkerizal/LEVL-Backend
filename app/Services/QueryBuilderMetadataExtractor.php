@@ -8,11 +8,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class QueryBuilderMetadataExtractor
 {
-    /**
-     * Extract metadata from QueryBuilder instance
-     *
-     * @param  string|null  $translationPrefix  Translation key prefix (e.g. 'activity_logs.sorts' or 'master_data.filters')
-     */
+    
     public function extractMetadata(QueryBuilder $query, ?string $translationPrefix = null): array
     {
         return [
@@ -21,11 +17,7 @@ class QueryBuilderMetadataExtractor
         ];
     }
 
-    /**
-     * Extract allowed sorts from QueryBuilder
-     *
-     * @param  string|null  $translationPrefix  Translation key prefix for sort labels
-     */
+    
     private function extractAllowedSorts(
         QueryBuilder $query,
         ?string $translationPrefix = null,
@@ -41,7 +33,7 @@ class QueryBuilderMetadataExtractor
                 return [];
             }
 
-            // Convert AllowedSort objects to objects with field and label
+            
             $sorts = [];
             foreach ($allowedSorts as $sort) {
                 $sortField = null;
@@ -65,9 +57,7 @@ class QueryBuilderMetadataExtractor
         }
     }
 
-    /**
-     * Extract sort name from AllowedSort object
-     */
+    
     private function extractSortName(AllowedSort $sort): string
     {
         try {
@@ -81,11 +71,7 @@ class QueryBuilderMetadataExtractor
         }
     }
 
-    /**
-     * Extract allowed filters from QueryBuilder
-     *
-     * @param  string|null  $translationPrefix  Translation key prefix for filter labels
-     */
+    
     private function extractAllowedFilters(
         QueryBuilder $query,
         ?string $translationPrefix = null,
@@ -123,11 +109,7 @@ class QueryBuilderMetadataExtractor
         }
     }
 
-    /**
-     * Extract filter data from AllowedFilter object
-     *
-     * @param  string|null  $translationPrefix  Translation key prefix
-     */
+    
     private function extractFilterData(
         AllowedFilter $filter,
         ?string $translationPrefix = null,
@@ -135,12 +117,12 @@ class QueryBuilderMetadataExtractor
         try {
             $reflection = new \ReflectionClass($filter);
 
-            // Get filter name
+            
             $nameProperty = $reflection->getProperty('name');
             $nameProperty->setAccessible(true);
             $name = $nameProperty->getValue($filter);
 
-            // Detect filter type based on filter class name
+            
             $filterClassName = get_class($filter);
             $type = $this->detectFilterType($filterClassName, $filter);
 
@@ -154,36 +136,29 @@ class QueryBuilderMetadataExtractor
         }
     }
 
-    /**
-     * Get translated label for a field
-     *
-     * @param  string  $field  Field name
-     * @param  string|null  $translationPrefix  Translation key prefix
-     */
+    
     private function getTranslatedLabel(string $field, ?string $translationPrefix = null): string
     {
         if ($translationPrefix) {
             $translationKey = $translationPrefix.'.'.$field;
 
-            // Try to translate
+            
             $translated = __($translationKey);
 
-            // If translation exists and is different from key, use it
+            
             if ($translated !== $translationKey) {
                 return $translated;
             }
         }
 
-        // Fallback to humanized field name
+        
         return ucfirst(str_replace('_', ' ', $field));
     }
 
-    /**
-     * Detect filter type from AllowedFilter
-     */
+    
     private function detectFilterType(string $className, AllowedFilter $filter): string
     {
-        // Check if it's an exact filter
+        
         try {
             $reflection = new \ReflectionClass($filter);
             if ($reflection->hasProperty('filterClass')) {
@@ -191,7 +166,7 @@ class QueryBuilderMetadataExtractor
                 $property->setAccessible(true);
                 $filterClass = $property->getValue($filter);
 
-                // Make sure filterClass is a string
+                
                 if (is_string($filterClass)) {
                     if (str_contains($filterClass, 'FiltersExact')) {
                         return 'exact';
@@ -204,7 +179,7 @@ class QueryBuilderMetadataExtractor
                     }
                 }
 
-                // If filterClass is an object, get its class name
+                
                 if (is_object($filterClass)) {
                     $filterClassName = get_class($filterClass);
                     if (str_contains($filterClassName, 'FiltersExact')) {
@@ -219,9 +194,9 @@ class QueryBuilderMetadataExtractor
                 }
             }
         } catch (\ReflectionException $e) {
-            // Continue to default
+            
         }
 
-        return 'partial'; // Default to partial
+        return 'partial'; 
     }
 }

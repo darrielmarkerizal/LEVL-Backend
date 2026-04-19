@@ -23,7 +23,7 @@ class StudentBadgesSeeder extends Seeder
         }
 
         foreach ($students as $student) {
-            // First step is given to everyone as a common standard
+            
             $firstStep = $badges->where('code', 'first_step')->first();
             if ($firstStep && ! $this->badgeManager->hasBadge($student->id, 'first_step')) {
                 $this->badgeManager->awardBadge(
@@ -34,7 +34,7 @@ class StudentBadgesSeeder extends Seeder
                 );
             }
 
-            // Assign a random 5-15 badges to each student to simulate varied gamification profiles
+            
             $randomBadges = $badges->where('code', '!=', 'first_step')->random(rand(5, 15));
             foreach ($randomBadges as $badge) {
                 if (! $this->badgeManager->hasBadge($student->id, $badge->code)) {

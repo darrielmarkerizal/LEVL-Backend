@@ -35,7 +35,7 @@ class AuthServiceProvider extends ServiceProvider
             return null;
         });
 
-        // Gamification management - Superadmin and Admin only
+        
         Gate::define('manage-gamification', function (User $user) {
             return $user->hasRole('Superadmin') || $user->hasRole('Admin');
         });

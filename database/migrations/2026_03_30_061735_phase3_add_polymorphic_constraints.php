@@ -5,19 +5,17 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    /**
-     * Add CHECK constraints to polymorphic relations for data integrity
-     */
+    
     public function up(): void
     {
-        // Add CHECK constraint for grades.source_type
+        
         DB::statement("
             ALTER TABLE grades 
             ADD CONSTRAINT grades_source_type_valid 
             CHECK (source_type IN ('assignment', 'attempt'))
         ");
 
-        // Add CHECK constraint for trash_bins.trashable_type
+        
         $trashableTypes = [
             'Modules\\Schemes\\Models\\Course',
             'Modules\\Schemes\\Models\\Unit',
@@ -36,7 +34,7 @@ return new class extends Migration
             CHECK (trashable_type IN ('{$typesList}'))
         ");
 
-        // Add CHECK constraint for taggables.taggable_type
+        
         $allowedTypes = [
             'Modules\\Schemes\\Models\\Course',
             'Modules\\Schemes\\Models\\Unit',
@@ -51,7 +49,7 @@ return new class extends Migration
             CHECK (taggable_type IN ('{$taggableTypesList}'))
         ");
 
-        // Add CHECK constraint for content_reads.readable_type
+        
         DB::statement("
             ALTER TABLE content_reads 
             ADD CONSTRAINT content_reads_readable_type_valid 
@@ -63,9 +61,7 @@ return new class extends Migration
         ");
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         DB::statement('ALTER TABLE grades DROP CONSTRAINT IF EXISTS grades_source_type_valid');

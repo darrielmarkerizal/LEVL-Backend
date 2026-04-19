@@ -16,8 +16,8 @@ class Enrollment extends Model
     use HasFactory, LogsActivity, PgSearchable;
 
     protected array $searchable_columns = [
-        // No local text columns suitable for fuzzy search.
-        // Add columns here if needed.
+        
+        
     ];
 
     public function getActivitylogOptions(): LogOptions

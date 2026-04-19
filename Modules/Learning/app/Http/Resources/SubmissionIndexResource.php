@@ -16,7 +16,7 @@ class SubmissionIndexResource extends JsonResource
             'assignment_id' => $this->assignment_id,
             'user_id' => $this->user_id,
             'status' => $this->status,
-            'state' => $this->state?->value,
+            'workflow_state' => $this->state?->value,
             'score' => $this->score,
             'attempt_number' => $this->attempt_number,
             'is_late' => $this->is_late,
@@ -25,7 +25,7 @@ class SubmissionIndexResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
-            // Optimized relationships with limited fields
+            
             'user' => $this->whenLoaded('user', function () {
                 return [
                     'id' => $this->user->id,

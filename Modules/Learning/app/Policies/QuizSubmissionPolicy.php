@@ -22,12 +22,12 @@ class QuizSubmissionPolicy
             return true;
         }
 
-        // Check if user owns the submission
+        
         if ($submission->user_id !== $user->id) {
             return false;
         }
 
-        // Check enrollment status for students
+        
         if ($user->hasRole('Student')) {
             $submission->loadMissing('quiz.unit.course');
             $course = $submission->quiz?->unit?->course;
@@ -56,7 +56,7 @@ class QuizSubmissionPolicy
             return false;
         }
 
-        // Check enrollment status for students
+        
         if ($user->hasRole('Student')) {
             $submission->loadMissing('quiz.unit.course');
             $course = $submission->quiz?->unit?->course;

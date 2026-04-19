@@ -10,7 +10,7 @@ class EnhancedBadgeSeeder extends Seeder
     public function run(): void
     {
         $badges = [
-            // Learning Badges (Common)
+            
             [
                 'code' => 'first_lesson',
                 'name' => 'First Lesson',
@@ -35,7 +35,7 @@ class EnhancedBadgeSeeder extends Seeder
                 'max_awards_per_user' => 10,
             ],
 
-            // Assessment Badges (Uncommon-Rare)
+            
             [
                 'code' => 'perfect_score',
                 'name' => 'Perfect Score',
@@ -60,7 +60,7 @@ class EnhancedBadgeSeeder extends Seeder
                 'is_repeatable' => false,
             ],
 
-            // Course Completion (Rare-Epic)
+            
             [
                 'code' => 'course_complete',
                 'name' => 'Course Completed',
@@ -85,7 +85,7 @@ class EnhancedBadgeSeeder extends Seeder
                 'is_repeatable' => false,
             ],
 
-            // Speed Badges (Rare)
+            
             [
                 'code' => 'speed_runner',
                 'name' => 'Speed Runner',
@@ -111,7 +111,7 @@ class EnhancedBadgeSeeder extends Seeder
                 'max_awards_per_user' => 50,
             ],
 
-            // Social Badges (Uncommon-Rare)
+            
             [
                 'code' => 'helpful_member',
                 'name' => 'Helpful Member',
@@ -135,7 +135,7 @@ class EnhancedBadgeSeeder extends Seeder
                 'is_repeatable' => false,
             ],
 
-            // Habit Badges (Uncommon-Epic)
+            
             [
                 'code' => 'early_bird',
                 'name' => 'Early Bird',
@@ -182,7 +182,7 @@ class EnhancedBadgeSeeder extends Seeder
                 'max_awards_per_user' => 5,
             ],
 
-            // Legendary Badges
+            
             [
                 'code' => 'legendary_learner',
                 'name' => 'Legendary Learner',

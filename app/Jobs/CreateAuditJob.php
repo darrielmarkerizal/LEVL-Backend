@@ -13,33 +13,23 @@ class CreateAuditJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * The number of times the job may be attempted.
-     */
+    
     public int $tries = 3;
 
-    /**
-     * The number of seconds to wait before retrying the job.
-     */
+    
     public int $backoff = 5;
 
-    /**
-     * The number of seconds the job can run before timing out.
-     */
+    
     public int $timeout = 30;
 
-    /**
-     * Create a new job instance.
-     */
+    
     public function __construct(
         public array $auditData
     ) {
         $this->onQueue('logging');
     }
 
-    /**
-     * Execute the job.
-     */
+    
     public function handle(): void
     {
         $payload = $this->normalizeAuditData($this->auditData);
@@ -72,9 +62,7 @@ class CreateAuditJob implements ShouldQueue
         $activity->save();
     }
 
-    /**
-     * Handle a job failure.
-     */
+    
     public function failed(\Throwable $exception): void
     {
         \Log::error('Failed to create audit log', [
@@ -83,17 +71,7 @@ class CreateAuditJob implements ShouldQueue
         ]);
     }
 
-    /**
-     * @return array{
-     *     log_name: string,
-     *     description: string,
-     *     subject_type: class-string<\Illuminate\Database\Eloquent\Model>|null,
-     *     subject_id: int|string|null,
-     *     causer_type: class-string<\Illuminate\Database\Eloquent\Model>|null,
-     *     causer_id: int|string|null,
-     *     properties: array<string, mixed>
-     * }
-     */
+    
     private function normalizeAuditData(array $data): array
     {
         $context = $data['context'] ?? [];

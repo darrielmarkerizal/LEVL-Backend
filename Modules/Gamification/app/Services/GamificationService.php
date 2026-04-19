@@ -241,10 +241,10 @@ class GamificationService implements GamificationServiceInterface
         $stats = $this->pointManager->getOrCreateStats($userId);
         $rankData = $this->leaderboardService->getUserRank($userId, $period, $month);
 
-        // Get XP for the specified period/month
+        
         $periodXp = $this->getPeriodXp($userId, $period, $month);
 
-        // Get badges count for the specified period/month
+        
         $badgesCount = $this->getBadgesCountForPeriod($userId, $period, $month);
 
         return [
@@ -253,7 +253,7 @@ class GamificationService implements GamificationServiceInterface
                 'today' => $this->getPeriodXp($userId, 'today'),
                 'this_week' => $this->getPeriodXp($userId, 'this_week'),
                 'this_month' => $this->getPeriodXp($userId, 'this_month'),
-                'period' => $periodXp, // XP for requested period/month
+                'period' => $periodXp, 
             ],
             'level' => [
                 'current' => $stats->global_level,
@@ -263,7 +263,7 @@ class GamificationService implements GamificationServiceInterface
             ],
             'badges' => [
                 'total_earned' => $this->badgeManager->countUserBadges($userId),
-                'period_earned' => $badgesCount, // Badges earned in requested period/month
+                'period_earned' => $badgesCount, 
             ],
             'leaderboard' => [
                 'global_rank' => $rankData['rank'],
@@ -280,14 +280,14 @@ class GamificationService implements GamificationServiceInterface
     {
         $query = \Modules\Gamification\Models\Point::where('user_id', $userId);
 
-        // If month filter is present, use it
+        
         if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
             try {
                 $date = \Carbon\Carbon::createFromFormat('Y-m', $month);
                 $query->whereYear('created_at', $date->year)
                     ->whereMonth('created_at', $date->month);
             } catch (\Exception $e) {
-                // Invalid date, fallback to period
+                
                 $this->applyPeriodFilterToQuery($query, $period);
             }
         } else {
@@ -315,14 +315,14 @@ class GamificationService implements GamificationServiceInterface
     {
         $query = \Modules\Gamification\Models\UserBadge::where('user_id', $userId);
 
-        // If month filter is present, use it
+        
         if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
             try {
                 $date = \Carbon\Carbon::createFromFormat('Y-m', $month);
                 $query->whereYear('earned_at', $date->year)
                     ->whereMonth('earned_at', $date->month);
             } catch (\Exception $e) {
-                // Invalid date, fallback to period
+                
                 $this->applyPeriodFilterToBadges($query, $period);
             }
         } else {

@@ -13,7 +13,7 @@ class ContentSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create categories for news (using consolidated categories system)
+        
         $categories = [
             ['name' => 'Teknologi', 'value' => 'teknologi', 'scope' => 'news', 'status' => 'active'],
             ['name' => 'Pendidikan', 'value' => 'pendidikan', 'scope' => 'news', 'status' => 'active'],
@@ -28,7 +28,7 @@ class ContentSeeder extends Seeder
             );
         }
 
-        // Get admin user
+        
         $admin = User::whereHas('roles', function ($q) {
             $q->where('name', 'Admin');
         })->first();
@@ -39,7 +39,7 @@ class ContentSeeder extends Seeder
             return;
         }
 
-        // Create sample announcements
+        
         $announcements = [
             [
                 'title' => 'Selamat Datang di Platform LMS',
@@ -78,7 +78,7 @@ class ContentSeeder extends Seeder
             );
         }
 
-        // Create sample news
+        
         $newsArticles = [
             [
                 'title' => 'Platform LMS Meluncurkan Fitur Baru',
@@ -117,14 +117,14 @@ class ContentSeeder extends Seeder
                 array_merge($newsData, ['author_id' => $admin->id])
             );
 
-            // Attach random categories
+            
             if ($news->wasRecentlyCreated && !empty($categoryIds)) {
                 $randomCategories = array_rand(array_flip($categoryIds), min(2, count($categoryIds)));
                 $news->categories()->sync(is_array($randomCategories) ? $randomCategories : [$randomCategories]);
             }
         }
 
-        // Create course-specific announcement if courses exist
+        
         $course = Course::first();
         if ($course) {
             Announcement::firstOrCreate(

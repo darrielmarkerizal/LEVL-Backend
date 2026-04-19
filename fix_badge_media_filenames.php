@@ -1,9 +1,6 @@
 <?php
 
-/**
- * Script to fix badge media filenames that have incorrect extensions
- * Run: php fix_badge_media_filenames.php
- */
+
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -29,12 +26,12 @@ foreach ($badges as $badge) {
         continue;
     }
 
-    // Check if filename has incorrect pattern like "svg.svg+xml"
+    
     if (str_contains($media->file_name, 'svg.svg+xml') || str_contains($media->file_name, '.svg+xml')) {
         $oldFileName = $media->file_name;
         $newFileName = $badge->code.'.svg';
 
-        // Update the media record
+        
         $media->file_name = $newFileName;
         $media->name = $badge->name;
         $media->mime_type = 'image/svg+xml';

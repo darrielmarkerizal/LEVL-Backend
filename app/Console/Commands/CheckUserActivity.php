@@ -21,7 +21,7 @@ class CheckUserActivity extends Command
 
         $this->info("=== CHECKING USER ID: {$userId} ===\n");
 
-        // 1. Check if user exists
+        
         $user = User::find($userId);
         if (! $user) {
             $this->error("❌ User with ID {$userId} NOT FOUND!");
@@ -32,7 +32,7 @@ class CheckUserActivity extends Command
         $this->info("✅ User found: {$user->name} ({$user->email})");
         $this->info('   Role: '.$user->roles->pluck('name')->implode(', ')."\n");
 
-        // 2. Check enrollments
+        
         $this->line('--- ENROLLMENTS ---');
         $enrollments = Enrollment::where('user_id', $userId)->get();
         $this->info('Total enrollments: '.$enrollments->count());
@@ -49,7 +49,7 @@ class CheckUserActivity extends Command
             $this->warn("  ❌ No enrollments found\n");
         }
 
-        // 3. Check lesson completions
+        
         $this->line('--- LESSON COMPLETIONS ---');
         $lessonCompletions = LessonProgress::query()
             ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
@@ -80,7 +80,7 @@ class CheckUserActivity extends Command
             $this->warn("  ❌ No lesson completions found\n");
         }
 
-        // 4. Check assignment submissions
+        
         $this->line('--- ASSIGNMENT SUBMISSIONS ---');
         $submissions = Submission::where('user_id', $userId)->get();
         $this->info('Total submissions: '.$submissions->count());
@@ -98,7 +98,7 @@ class CheckUserActivity extends Command
             $this->warn("  ❌ No assignment submissions found\n");
         }
 
-        // 5. Check quiz submissions
+        
         $this->line('--- QUIZ SUBMISSIONS ---');
         $quizSubmissions = QuizSubmission::where('user_id', $userId)->get();
         $this->info('Total quiz submissions: '.$quizSubmissions->count());
@@ -117,7 +117,7 @@ class CheckUserActivity extends Command
             $this->warn("  ❌ No quiz submissions found\n");
         }
 
-        // 6. Summary
+        
         $this->info('=== SUMMARY ===');
         $this->table(
             ['Metric', 'Count'],

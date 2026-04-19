@@ -8,9 +8,7 @@ use PHPStan\Node\InClassNode;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
-/**
- * @implements Rule<InClassNode>
- */
+
 class RepositoryMustImplementInterfaceRule implements Rule
 {
     public function getNodeType(): string
@@ -23,22 +21,22 @@ class RepositoryMustImplementInterfaceRule implements Rule
         $classReflection = $node->getClassReflection();
         $className = $classReflection->getName();
 
-        // Only check classes in Repositories directories
+        
         if (! str_contains($className, '\\Repositories\\')) {
             return [];
         }
 
-        // Skip if class name doesn't end with 'Repository'
+        
         if (! str_ends_with($className, 'Repository')) {
             return [];
         }
 
-        // Skip abstract classes
+        
         if ($classReflection->isAbstract()) {
             return [];
         }
 
-        // Check if class implements any interface
+        
         $interfaces = $classReflection->getInterfaces();
 
         if (empty($interfaces)) {
@@ -53,7 +51,7 @@ class RepositoryMustImplementInterfaceRule implements Rule
             ];
         }
 
-        // Check if implements a corresponding interface (e.g., FooRepository implements FooRepositoryInterface)
+        
         $expectedInterfaceName = $className.'Interface';
         $hasCorrespondingInterface = false;
 
@@ -76,7 +74,7 @@ class RepositoryMustImplementInterfaceRule implements Rule
             ];
         }
 
-        // Check method naming conventions
+        
         $errors = [];
         foreach ($classReflection->getNativeMethods() as $method) {
             if ($method->isPrivate() || $method->isProtected()) {
@@ -85,12 +83,12 @@ class RepositoryMustImplementInterfaceRule implements Rule
 
             $methodName = $method->getName();
 
-            // Skip magic methods and constructor
+            
             if (str_starts_with($methodName, '__')) {
                 continue;
             }
 
-            // Check for common repository method patterns
+            
             $validPrefixes = ['find', 'get', 'create', 'update', 'delete', 'save', 'paginate', 'count', 'exists', 'sum'];
             $hasValidPrefix = false;
 

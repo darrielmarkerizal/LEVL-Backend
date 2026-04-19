@@ -13,9 +13,7 @@ class NotifyAuthorOnContentRejected
         private readonly NotificationService $notificationService
     ) {}
 
-    /**
-     * Handle the event.
-     */
+    
     public function handle(ContentRejected $event): void
     {
         $author = $event->content->author;
@@ -28,7 +26,7 @@ class NotifyAuthorOnContentRejected
         $contentTitle = $event->content->title ?? __('notifications.content.untitled');
         $reviewerName = $event->user->name;
 
-        // Get rejection reason from workflow history
+        
         $reason = ContentWorkflowHistory::where('content_type', get_class($event->content))
             ->where('content_id', $event->content->id)
             ->where('to_state', 'rejected')

@@ -1,13 +1,6 @@
 <?php
 
-/**
- * Script to update all level names with tier system
- * Format: "Tier Name X" where X is 1-10 within each tier
- *
- * Example:
- * - Level 1-10: Beginner 1, Beginner 2, ..., Beginner 10
- * - Level 11-20: Novice 1, Novice 2, ..., Novice 10
- */
+
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -18,18 +11,18 @@ use Modules\Common\Models\LevelConfig;
 
 echo "Updating level names with tier system...\n\n";
 
-// Define tier names for each 10-level range
+
 $tiers = [
-    1 => 'Beginner',      // Level 1-10
-    11 => 'Novice',       // Level 11-20
-    21 => 'Competent',    // Level 21-30
-    31 => 'Intermediate', // Level 31-40
-    41 => 'Proficient',   // Level 41-50
-    51 => 'Advanced',     // Level 51-60
-    61 => 'Expert',       // Level 61-70
-    71 => 'Master',       // Level 71-80
-    81 => 'Grand Master', // Level 81-90
-    91 => 'Legendary',    // Level 91-100
+    1 => 'Beginner',      
+    11 => 'Novice',       
+    21 => 'Competent',    
+    31 => 'Intermediate', 
+    41 => 'Proficient',   
+    51 => 'Advanced',     
+    61 => 'Expert',       
+    71 => 'Master',       
+    81 => 'Grand Master', 
+    91 => 'Legendary',    
 ];
 
 function getTierName(int $level): string

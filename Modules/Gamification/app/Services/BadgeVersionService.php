@@ -22,13 +22,13 @@ class BadgeVersionService
         array $rules
     ): BadgeVersion {
         return DB::transaction(function () use ($badgeId, $threshold, $rules) {
-            // Deactivate old versions
+            
             $this->repository->deactivateOldVersions($badgeId);
 
-            // Get next version number
+            
             $lastVersion = $this->repository->getMaxVersion($badgeId);
 
-            // Create new version
+            
             return $this->repository->create([
                 'badge_id' => $badgeId,
                 'version' => $lastVersion + 1,

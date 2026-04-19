@@ -12,15 +12,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('event_type', 50);
-            $table->string('source_type', 50)->nullable(); // lesson, assignment, course
+            $table->string('source_type', 50)->nullable(); 
             $table->unsignedBigInteger('source_id')->nullable();
-            $table->json('payload')->nullable(); // limited detail event
+            $table->json('payload')->nullable(); 
             $table->timestamp('created_at')->useCurrent();
 
-            // Indexes
+            
             $table->index(['user_id', 'event_type', 'created_at'], 'user_event_created_idx');
             $table->index(['source_type', 'source_id'], 'source_idx');
-            $table->index('created_at', 'created_at_idx'); // untuk cleanup old logs
+            $table->index('created_at', 'created_at_idx'); 
         });
     }
 

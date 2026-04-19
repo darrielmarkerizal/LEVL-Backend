@@ -15,7 +15,7 @@ class UploadMediaRequest extends FormRequest
                 'required',
                 'file',
                 'mimes:jpeg,jpg,png,gif,svg,webp,pdf,mp4',
-                'max:51200', // 50MB
+                'max:51200', 
             ],
         ];
     }

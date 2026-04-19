@@ -12,7 +12,7 @@ use Modules\Gamification\Models\Badge;
 
 echo "🔗 Linking Milestone Badges to Level Configs...\n\n";
 
-// Milestone badge mapping: level => badge_code
+
 $milestones = [
     10 => 'level_10_milestone',
     20 => 'level_20_milestone',
@@ -31,7 +31,7 @@ $errors = 0;
 
 foreach ($milestones as $level => $badgeCode) {
     try {
-        // Find the badge
+        
         $badge = Badge::where('code', $badgeCode)->first();
 
         if (! $badge) {
@@ -41,7 +41,7 @@ foreach ($milestones as $level => $badgeCode) {
             continue;
         }
 
-        // Find the level config
+        
         $levelConfig = LevelConfig::where('level', $level)->first();
 
         if (! $levelConfig) {
@@ -51,7 +51,7 @@ foreach ($milestones as $level => $badgeCode) {
             continue;
         }
 
-        // Link the badge to the level
+        
         $levelConfig->milestone_badge_id = $badge->id;
         $levelConfig->save();
 

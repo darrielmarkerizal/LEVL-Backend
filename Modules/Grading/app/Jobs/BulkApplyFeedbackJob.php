@@ -51,7 +51,7 @@ class BulkApplyFeedbackJob implements ShouldQueue
             $result = $gradingService->bulkApplyFeedback($this->submissionIds, $this->feedback, $this->instructorId);
 
             Log::info('BulkApplyFeedbackJob: Completed bulk feedback application', [
-                // 'result' => $result, // Simplified logging as return is int count
+                
                 'count' => $result,
                 'instructor_id' => $this->instructorId,
             ]);

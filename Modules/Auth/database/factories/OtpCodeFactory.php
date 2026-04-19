@@ -7,26 +7,20 @@ use Illuminate\Support\Str;
 use Modules\Auth\Models\OtpCode;
 use Modules\Auth\Models\User;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Auth\Models\OtpCode>
- */
+
 class OtpCodeFactory extends Factory
 {
     protected $model = OtpCode::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function definition(): array
     {
         return [
             'uuid' => Str::uuid()->toString(),
             'user_id' => User::factory(),
-            'channel' => fake()->randomElement(['email', 'sms']),
-            'provider' => fake()->randomElement(['twilio', 'sendgrid', 'mailgun']),
-            'purpose' => fake()->randomElement(['login', 'password_reset', 'email_verification']),
+            'channel' => 'email',
+            'provider' => 'smtp',
+            'purpose' => 'register_verification',
             'code' => str_pad((string) fake()->numberBetween(100000, 999999), 6, '0', STR_PAD_LEFT),
             'meta' => [],
             'expires_at' => now()->addMinutes(10),
@@ -34,20 +28,16 @@ class OtpCodeFactory extends Factory
         ];
     }
 
-    /**
-     * Indicate that the OTP code is for email verification.
-     */
+    
     public function forEmailVerification(): static
     {
         return $this->state(fn (array $attributes) => [
-            'purpose' => 'email_verification',
+            'purpose' => 'register_verification',
             'channel' => 'email',
         ]);
     }
 
-    /**
-     * Indicate that the OTP code is for password reset.
-     */
+    
     public function forPasswordReset(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -56,19 +46,15 @@ class OtpCodeFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the OTP code is for login.
-     */
+    
     public function forLogin(): static
     {
         return $this->state(fn (array $attributes) => [
-            'purpose' => 'login',
+            'purpose' => 'two_factor_auth',
         ]);
     }
 
-    /**
-     * Indicate that the OTP code is expired.
-     */
+    
     public function expired(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -76,9 +62,7 @@ class OtpCodeFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the OTP code is consumed.
-     */
+    
     public function consumed(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -86,9 +70,7 @@ class OtpCodeFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the OTP code is valid (not consumed and not expired).
-     */
+    
     public function valid(): static
     {
         return $this->state(fn (array $attributes) => [

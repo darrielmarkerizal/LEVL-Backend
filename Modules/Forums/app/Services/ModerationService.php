@@ -189,9 +189,7 @@ class ModerationService implements ModerationServiceInterface
         Log::channel('daily')->info('Forum moderation action', $logData);
     }
 
-    /**
-     * Clear all thread-related cache
-     */
+    
     protected function clearThreadCache(Thread $thread): void
     {
         cache()->tags(['forums', 'threads'])->flush();

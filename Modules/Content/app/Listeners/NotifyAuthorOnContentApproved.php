@@ -12,9 +12,7 @@ class NotifyAuthorOnContentApproved
         private readonly NotificationService $notificationService
     ) {}
 
-    /**
-     * Handle the event.
-     */
+    
     public function handle(ContentApproved $event): void
     {
         $author = $event->content->author;

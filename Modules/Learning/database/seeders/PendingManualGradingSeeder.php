@@ -8,23 +8,17 @@ use Modules\Learning\Models\Submission;
 
 class PendingManualGradingSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * Updates submissions to have state 'PendingManualGrading'
-     * to ensure the /grading endpoint has data to display.
-     * Uses optimized raw SQL with chunking - no N+1 queries.
-     */
+    
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
 
         echo "\n📋 Seeding submissions with PendingManualGrading state...\n";
 
-        // Count submissions that need updating (using raw SQL for speed)
+        
         $totalToUpdate = \DB::table('submissions as s')
             ->leftJoin('grades', 's.id', '=', 'grades.submission_id')
-            ->where('s.state', 'submitted')
+            ->where('s.state', SubmissionState::InProgress->value)
             ->whereNull('grades.id')
             ->count();
 
@@ -36,17 +30,17 @@ class PendingManualGradingSeeder extends Seeder
 
         echo "   📝 Processing $totalToUpdate submissions...\n\n";
 
-        // ✅ Use raw SQL with chunking to update efficiently (no N+1)
+        
         $chunkSize = 2000;
         $offset = 0;
         $chunkNum = 0;
         $totalUpdated = 0;
 
         while (true) {
-            // Get submission IDs that need updating using raw SQL
+            
             $submissionIds = \DB::table('submissions as s')
                 ->leftJoin('grades', 's.id', '=', 'grades.submission_id')
-                ->where('s.state', 'submitted')
+                ->where('s.state', SubmissionState::InProgress->value)
                 ->whereNull('grades.id')
                 ->select('s.id')
                 ->limit($chunkSize)
@@ -62,7 +56,7 @@ class PendingManualGradingSeeder extends Seeder
             $chunkNum++;
             $count = count($submissionIds);
 
-            // ✅ Batch update (no N+1)
+            
             \DB::table('submissions')
                 ->whereIn('id', $submissionIds)
                 ->update([
