@@ -10,6 +10,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Modules\Grading\Models\Grade;
 use Modules\Learning\Enums\QuizGradingStatus;
+use Modules\Learning\Enums\QuizQuestionType;
 use Modules\Learning\Models\QuizSubmission;
 use Modules\Learning\Models\Submission;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -41,7 +42,11 @@ class GradingQueueService
         $hasAssignmentOnlyFilter = ! empty(array_intersect(array_keys($filterData), self::ASSIGNMENT_ONLY_FILTERS));
 
         $assignmentSubmissions = $hasQuizOnlyFilter ? collect() : $this->buildAssignmentQuery($filterData, $actorId, $isInstructor)->get();
-        $quizSubmissions = $hasAssignmentOnlyFilter ? collect() : $this->buildQuizQuery($filterData, $actorId, $isInstructor)->get();
+        $quizSubmissions = $hasAssignmentOnlyFilter
+            ? collect()
+            : $this->buildQuizQuery($filterData, $actorId, $isInstructor)
+                ->get()
+                ->flatMap(fn (QuizSubmission $submission) => $this->expandQuizToEssayRows($submission));
 
         $all = $assignmentSubmissions->concat($quizSubmissions)
             ->sortByDesc('submitted_at')
@@ -51,6 +56,18 @@ class GradingQueueService
             'path' => request()->url(),
             'query' => request()->query(),
         ]);
+    }
+
+    private function expandQuizToEssayRows(QuizSubmission $submission): Collection
+    {
+        return $submission->answers
+            ->filter(fn ($answer) => $answer->question?->type?->value === QuizQuestionType::Essay->value)
+            ->map(fn ($answer) => [
+                'quiz_submission' => $submission,
+                'essay_answer' => $answer,
+                'submitted_at' => $submission->submitted_at,
+            ])
+            ->values();
     }
 
     public function getGradingStatusDetails(int $submissionId): array
@@ -100,7 +117,7 @@ class GradingQueueService
         $query = QueryBuilder::for(Submission::class, $request)
             ->with([
                 'user:id,name,email',
-                'assignment:id,title,max_score,unit_id,order',
+                'assignment:id,title,max_score,submission_type,unit_id,order',
                 'assignment.unit:id,order,course_id',
                 'assignment.unit.course:id,slug,title,code',
             ])
