@@ -39,6 +39,7 @@ class QueryCatchWithDbCallRule implements Rule
         return Catch_::class;
     }
 
+    /** @return list<\PHPStan\Rules\IdentifierRuleError> */
     public function processNode(Node $node, Scope $scope): array
     {
         if (! $node instanceof Catch_) {
@@ -59,7 +60,9 @@ class QueryCatchWithDbCallRule implements Rule
                 .'In PostgreSQL, after a query fails inside a transaction the connection enters '
                 .'aborted state (25P02) and all subsequent queries will fail. '
                 .'Use INSERT ... ON CONFLICT (upsert/insertOrIgnore) or move the logic outside the transaction instead.'
-            )->build(),
+            )
+                ->identifier('query.catch.dbcall')
+                ->build(),
         ];
     }
 
