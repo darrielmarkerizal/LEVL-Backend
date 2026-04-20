@@ -41,6 +41,7 @@ return [
     'submission_type' => [
         'file' => 'File',
         'text' => 'Teks',
+        'mixed' => 'File dan Teks',
         'both' => 'File dan Teks',
     ],
 

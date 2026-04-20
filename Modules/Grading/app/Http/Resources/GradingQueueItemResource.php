@@ -6,7 +6,6 @@ namespace Modules\Grading\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Learning\Enums\QuizQuestionType;
 use Modules\Learning\Models\QuizSubmission;
 
 class GradingQueueItemResource extends JsonResource
@@ -28,6 +27,7 @@ class GradingQueueItemResource extends JsonResource
     {
         $statusValue = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
         $workflowValue = $this->state instanceof \BackedEnum ? $this->state->value : $this->state;
+        $submissionType = $this->assignment?->submission_type?->value ?? $this->assignment?->submission_type;
         $course = $this->assignment?->unit?->course;
 
         return [
@@ -37,8 +37,11 @@ class GradingQueueItemResource extends JsonResource
             'student_email' => $this->user?->email,
             'assignment_id' => $this->assignment_id,
             'assignment_title' => $this->assignment?->title,
-            'submission_type' => $this->assignment?->submission_type?->value ?? $this->assignment?->submission_type,
+            'submission_type' => $submissionType,
             'submission_type_label' => $this->enumLabel($this->assignment?->submission_type),
+            'files' => in_array($submissionType, ['file', 'mixed'], true)
+                ? $this->getSubmissionFiles()
+                : [],
             'course' => $course ? [
                 'id' => $course->id,
                 'slug' => $course->slug,
@@ -90,10 +93,6 @@ class GradingQueueItemResource extends JsonResource
             'workflow_state_label' => $this->enumLabel($this->grading_status),
             'score' => $this->score,
             'final_score' => $this->final_score,
-            'total_questions' => $this->relationLoaded('answers') ? $this->answers->count() : 0,
-            'graded_questions' => $this->relationLoaded('answers') ? $this->answers->filter(fn ($a) => $a->score !== null)->count() : 0,
-            'essay_questions' => $this->getEssayQuestions(),
-            'questions_requiring_grading' => $this->getQuestionsRequiringGrading(),
         ];
     }
 
@@ -131,48 +130,22 @@ class GradingQueueItemResource extends JsonResource
             'workflow_state_label' => $this->enumLabel($submission->grading_status),
             'score' => $submission->score,
             'final_score' => $submission->final_score,
-            'total_questions' => $submission->relationLoaded('answers') ? $submission->answers->count() : 0,
-            'graded_questions' => $submission->relationLoaded('answers') ? $submission->answers->filter(fn ($a) => $a->score !== null)->count() : 0,
-            'question_id' => $essayAnswer->quiz_question_id,
-            'question_order' => $essayAnswer->question?->order,
-            'question_type' => $essayAnswer->question?->type?->value,
-            'question_type_label' => $this->enumLabel($essayAnswer->question?->type),
-            'question_content' => $essayAnswer->question?->content,
-            'question_max_score' => $essayAnswer->question?->max_score,
             'student_answer' => $essayAnswer->content,
-            'question_score' => $essayAnswer->score,
+            'answer_score' => $essayAnswer->score,
             'is_graded' => $essayAnswer->score !== null,
         ];
     }
 
-    private function getEssayQuestions(): array
+    private function getSubmissionFiles(): array
     {
-        if (! $this->relationLoaded('answers')) {
-            return [];
-        }
-
-        return $this->answers
-            ->filter(fn ($answer) => $answer->question?->type?->value === QuizQuestionType::Essay->value)
-            ->map(fn ($answer) => [
-                'answer_id' => $answer->id,
-                'question_id' => $answer->quiz_question_id,
-                'question_order' => $answer->question?->order,
-                'question_type' => $answer->question?->type?->value,
-                'question_type_label' => $this->enumLabel($answer->question?->type),
-                'question_content' => $answer->question?->content,
-                'question_max_score' => $answer->question?->max_score,
-                'student_answer' => $answer->content,
-                'score' => $answer->score,
-                'is_graded' => $answer->score !== null,
+        return $this->getMedia('submission_files')
+            ->map(fn ($media) => [
+                'id' => $media->id,
+                'name' => $media->file_name,
+                'url' => $media->getUrl(),
+                'size' => $media->size,
+                'mime_type' => $media->mime_type,
             ])
-            ->values()
-            ->toArray();
-    }
-
-    private function getQuestionsRequiringGrading(): array
-    {
-        return collect($this->getEssayQuestions())
-            ->filter(fn (array $question) => ($question['is_graded'] ?? false) === false)
             ->values()
             ->toArray();
     }

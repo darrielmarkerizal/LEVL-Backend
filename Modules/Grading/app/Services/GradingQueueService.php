@@ -120,6 +120,7 @@ class GradingQueueService
                 'assignment:id,title,max_score,submission_type,unit_id,order',
                 'assignment.unit:id,order,course_id',
                 'assignment.unit.course:id,slug,title,code',
+                'media',
             ])
             ->allowedFilters([
                 AllowedFilter::exact('status'),
