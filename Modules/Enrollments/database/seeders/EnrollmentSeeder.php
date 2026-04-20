@@ -66,12 +66,24 @@ class EnrollmentSeeder extends Seeder
                     default => 'completed'
                 };
 
+                $enrolledAt = now()->subDays(rand(1, 180));
+                $autoActivateOnEnrolledAt = false;
+
+                if ($status === 'active') {
+                    $isScheduled = rand(1, 100) <= 30; 
+                    if ($isScheduled) {
+                        $enrolledAt = now()->addDays(rand(1, 60)); 
+                        $autoActivateOnEnrolledAt = true; 
+                    }
+                }
+
                 $enrollments[] = [
                     'user_id' => $studentId,
                     'course_id' => $courseId,
                     'status' => $status,
-                    'enrolled_at' => now()->subDays(rand(1, 180)),
+                    'enrolled_at' => $enrolledAt,
                     'completed_at' => $status === 'completed' ? now()->subDays(rand(1, 30)) : null,
+                    'auto_activate_on_enrolled_at' => $autoActivateOnEnrolledAt,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
