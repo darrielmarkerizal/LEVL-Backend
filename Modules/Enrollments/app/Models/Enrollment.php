@@ -42,12 +42,13 @@ class Enrollment extends Model
 
     protected $fillable = [
         'user_id', 'course_id', 'status',
-        'enrolled_at', 'completed_at',
+        'enrolled_at', 'auto_activate_on_enrolled_at', 'completed_at',
     ];
 
     protected $casts = [
         'status' => EnrollmentStatus::class,
         'enrolled_at' => 'datetime',
+        'auto_activate_on_enrolled_at' => 'boolean',
         'completed_at' => 'datetime',
     ];
 

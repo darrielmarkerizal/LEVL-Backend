@@ -59,7 +59,7 @@ class EnrollmentLifecycleProcessor
             $initialStatus = $this->determineInitialStatus($course->enrollment_type);
             $enrolledAt = Carbon::now();
 
-            $enrollment = $this->saveEnrollment($existingEnrollment, $user->id, $course->id, $initialStatus, $enrolledAt);
+            $enrollment = $this->saveEnrollment($existingEnrollment, $user->id, $course->id, $initialStatus, $enrolledAt, false);
 
             if (! $existingEnrollment) {
                 \Modules\Enrollments\Events\EnrollmentCreated::dispatch($enrollment);
@@ -81,14 +81,19 @@ class EnrollmentLifecycleProcessor
     {
         $studentId = (int) $data['student_id'];
         $student = User::findOrFail($studentId);
-        $enrollmentDate = isset($data['enrollment_date']) ? Carbon::parse($data['enrollment_date']) : Carbon::now();
-        $initialStatus = EnrollmentStatus::from($data['initial_status']);
-        $notifyStudent = (bool) ($data['is_notify_student'] ?? false);
+        $requestedStatus = EnrollmentStatus::from($data['initial_status']);
 
-        
-        if ($enrollmentDate->isFuture() && $initialStatus === EnrollmentStatus::Active) {
+        if ($requestedStatus === EnrollmentStatus::Pending) {
+            $enrollmentDate = Carbon::now();
+            $autoActivateOnEnrolledAt = false;
             $initialStatus = EnrollmentStatus::Pending;
+        } else {
+            $enrollmentDate = isset($data['enrollment_date']) ? Carbon::parse($data['enrollment_date']) : Carbon::now();
+            $autoActivateOnEnrolledAt = $enrollmentDate->isFuture();
+            $initialStatus = $autoActivateOnEnrolledAt ? EnrollmentStatus::Pending : EnrollmentStatus::Active;
         }
+
+        $notifyStudent = (bool) ($data['is_notify_student'] ?? false);
 
         $existingEnrollment = $this->repository->findByCourseAndUser($course->id, $student->id);
 
@@ -96,8 +101,15 @@ class EnrollmentLifecycleProcessor
             throw new BusinessException(__('messages.enrollments.already_enrolled'));
         }
 
-        return DB::transaction(function () use ($student, $course, $existingEnrollment, $initialStatus, $enrollmentDate, $notifyStudent) {
-            $enrollment = $this->saveEnrollment($existingEnrollment, $student->id, $course->id, $initialStatus, $enrollmentDate);
+        return DB::transaction(function () use ($student, $course, $existingEnrollment, $initialStatus, $enrollmentDate, $autoActivateOnEnrolledAt, $notifyStudent) {
+            $enrollment = $this->saveEnrollment(
+                $existingEnrollment,
+                $student->id,
+                $course->id,
+                $initialStatus,
+                $enrollmentDate,
+                $autoActivateOnEnrolledAt
+            );
             $isNew = ! $existingEnrollment;
 
             if ($isNew) {
@@ -108,7 +120,7 @@ class EnrollmentLifecycleProcessor
                 $this->sendManualEnrollmentEmail($enrollment, $course, $student, $enrollmentDate);
             }
 
-            $message = $enrollmentDate->isFuture()
+            $message = $autoActivateOnEnrolledAt
                 ? __('messages.enrollments.scheduled_successfully', ['date' => $enrollmentDate->format('d M Y')])
                 : __('messages.enrollments.enrolled_successfully');
 
@@ -222,11 +234,12 @@ class EnrollmentLifecycleProcessor
         };
     }
 
-    private function saveEnrollment(?Enrollment $existing, int $userId, int $courseId, EnrollmentStatus $status, Carbon $enrolledAt): Enrollment
+    private function saveEnrollment(?Enrollment $existing, int $userId, int $courseId, EnrollmentStatus $status, Carbon $enrolledAt, bool $autoActivateOnEnrolledAt): Enrollment
     {
         if ($existing) {
             $existing->status = $status;
             $existing->enrolled_at = $enrolledAt;
+            $existing->auto_activate_on_enrolled_at = $autoActivateOnEnrolledAt;
             $existing->completed_at = null;
             $existing->save();
 
@@ -238,6 +251,7 @@ class EnrollmentLifecycleProcessor
         $enrollment->course_id = $courseId;
         $enrollment->status = $status;
         $enrollment->enrolled_at = $enrolledAt;
+        $enrollment->auto_activate_on_enrolled_at = $autoActivateOnEnrolledAt;
         $enrollment->save();
 
         return $enrollment;
