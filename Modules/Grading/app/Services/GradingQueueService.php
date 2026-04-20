@@ -17,11 +17,11 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class GradingQueueService
 {
-    private const ALLOWED_FILTERS = ['status', 'user_id', 'assignment_id', 'quiz_id', 'grading_status', 'date_from', 'date_to'];
+    private const ALLOWED_FILTERS = ['status', 'workflow_state', 'user_id', 'course_slug', 'assignment_id', 'quiz_id', 'grading_status', 'date_from', 'date_to'];
 
-    private const ASSIGNMENT_FILTERS = ['status', 'user_id', 'assignment_id', 'date_from', 'date_to'];
+    private const ASSIGNMENT_FILTERS = ['status', 'workflow_state', 'user_id', 'course_slug', 'assignment_id', 'date_from', 'date_to'];
 
-    private const QUIZ_FILTERS = ['status', 'user_id', 'quiz_id', 'grading_status', 'date_from', 'date_to'];
+    private const QUIZ_FILTERS = ['status', 'workflow_state', 'user_id', 'course_slug', 'quiz_id', 'grading_status', 'date_from', 'date_to'];
 
     private const QUIZ_ONLY_FILTERS = ['quiz_id', 'grading_status'];
 
@@ -104,8 +104,12 @@ class GradingQueueService
                 'assignment.unit.course:id,slug,title,code',
             ])
             ->allowedFilters([
-                AllowedFilter::callback('status', fn ($q, $v) => $q->where('state', $v)),
+                AllowedFilter::exact('status'),
+                AllowedFilter::callback('workflow_state', fn ($q, $v) => $q->where('state', $v)),
                 AllowedFilter::exact('user_id'),
+                AllowedFilter::callback('course_slug', function ($q, $v) {
+                    $q->whereHas('assignment.unit.course', fn ($courseQuery) => $courseQuery->where('slug', $v));
+                }),
                 AllowedFilter::exact('assignment_id'),
                 AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
                 AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
@@ -133,7 +137,11 @@ class GradingQueueService
             ])
             ->allowedFilters([
                 AllowedFilter::exact('status'),
+                AllowedFilter::callback('workflow_state', fn ($q, $v) => $q->where('grading_status', $v)),
                 AllowedFilter::exact('user_id'),
+                AllowedFilter::callback('course_slug', function ($q, $v) {
+                    $q->whereHas('quiz.unit.course', fn ($courseQuery) => $courseQuery->where('slug', $v));
+                }),
                 AllowedFilter::exact('quiz_id'),
                 AllowedFilter::exact('grading_status'),
                 AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
