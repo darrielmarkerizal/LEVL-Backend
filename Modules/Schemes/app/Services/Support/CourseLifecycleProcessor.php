@@ -7,11 +7,9 @@ namespace Modules\Schemes\Services\Support;
 use App\Exceptions\DuplicateResourceException;
 use App\Support\CodeGenerator;
 use Illuminate\Database\QueryException;
-use RuntimeException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Auth\Models\User;
 use Modules\Schemes\Contracts\Repositories\CourseRepositoryInterface;
@@ -30,12 +28,11 @@ class CourseLifecycleProcessor
 
     public function create(CreateCourseDTO|array $data, ?User $actor = null, array $files = []): Course
     {
-        $loggingGuard = new Course();
+        $loggingGuard = new Course;
         $loggingGuard->disableLogging();
         $eventDispatcher = Course::getEventDispatcher();
         Course::unsetEventDispatcher();
         activity()->disableLogging();
-        $this->resetFailedTransactionState();
 
         try {
             return DB::transaction(function () use ($data, $actor, $files) {
@@ -61,13 +58,11 @@ class CourseLifecycleProcessor
                     $tags = [(string) $tags];
                 }
 
-                
                 $instructorIds = $attributes['instructor_ids'] ?? null;
                 if (! is_array($instructorIds) && $instructorIds !== null) {
                     $instructorIds = [(int) $instructorIds];
                 }
 
-                
                 $outcomes = $attributes['outcomes'] ?? null;
                 if (! is_array($outcomes) && $outcomes !== null) {
                     $outcomes = [$outcomes];
@@ -81,12 +76,10 @@ class CourseLifecycleProcessor
                     $this->tagService->syncCourseTags($course, $tags);
                 }
 
-                
                 if (is_array($instructorIds) && ! empty($instructorIds)) {
                     $course->instructors()->sync($instructorIds);
                 }
 
-                
                 if (is_array($outcomes)) {
                     $this->syncOutcomes($course, $outcomes);
                 }
@@ -111,17 +104,6 @@ class CourseLifecycleProcessor
                 throw new DuplicateResourceException($this->parseCourseDuplicates($e));
             }
 
-            if ($this->isFailedTransactionState($e)) {
-                throw new RuntimeException(
-                    sprintf(
-                        'Course update failed because the transaction is already aborted (SQLSTATE 25P02). Root cause: %s',
-                        $e->getPrevious()?->getMessage() ?? $e->getMessage()
-                    ),
-                    0,
-                    $e
-                );
-            }
-
             throw $e;
         } finally {
             activity()->enableLogging();
@@ -136,80 +118,62 @@ class CourseLifecycleProcessor
         $eventDispatcher = Course::getEventDispatcher();
         Course::unsetEventDispatcher();
         activity()->disableLogging();
-        $this->resetFailedTransactionState();
 
         try {
-            return DB::transaction(function () use ($course, $data, $files) {
-                $this->assertHealthyTransaction('transaction.start', $course->id);
+            $attributes = $data instanceof UpdateCourseDTO ? $data->toArrayWithoutNull() : $data;
 
-                $attributes = $data instanceof UpdateCourseDTO ? $data->toArrayWithoutNull() : $data;
+            $hasTagsInput = array_key_exists('tags', $attributes)
+                || array_key_exists('tags_list', $attributes);
 
-                $hasTagsInput = array_key_exists('tags', $attributes)
-                    || array_key_exists('tags_list', $attributes);
+            $tags = $attributes['tags'] ?? $attributes['tags_list'] ?? null;
+            if (! is_array($tags) && $tags !== null) {
+                $tags = [(string) $tags];
+            }
 
-                $tags = $attributes['tags'] ?? $attributes['tags_list'] ?? null;
-                if (! is_array($tags) && $tags !== null) {
-                    $tags = [(string) $tags];
+            $instructorIds = $attributes['instructor_ids'] ?? null;
+            if (! is_array($instructorIds) && $instructorIds !== null) {
+                $instructorIds = [(int) $instructorIds];
+            }
+
+            $outcomes = $attributes['outcomes'] ?? null;
+            if (! is_array($outcomes) && $outcomes !== null) {
+                $outcomes = [$outcomes];
+            }
+
+            if (! isset($attributes['slug']) || trim((string) $attributes['slug']) === '') {
+                $attributes['slug'] = $this->generateUniqueSlug(
+                    (string) ($attributes['title'] ?? $course->title),
+                    $course->id,
+                );
+            }
+
+            $tagIds = ($hasTagsInput && is_array($tags))
+                ? $this->tagService->prepareTagIds($tags)
+                : null;
+
+            $attributes = Arr::except($attributes, ['tags', 'tags_list', 'instructor_ids', 'outcomes']);
+
+            return DB::transaction(function () use ($course, $attributes, $hasTagsInput, $tagIds, $instructorIds, $outcomes, $files) {
+                Course::withoutEvents(fn () => $this->repository->update($course, $attributes));
+
+                if ($hasTagsInput && $tagIds !== null) {
+                    $course->tags()->sync($tagIds);
+                    DB::afterCommit(function (): void {
+                        cache()->tags(['schemes', 'tags'])->flush();
+                        cache()->tags(['schemes', 'courses'])->flush();
+                    });
                 }
 
-                
-                $instructorIds = $attributes['instructor_ids'] ?? null;
-                if (! is_array($instructorIds) && $instructorIds !== null) {
-                    $instructorIds = [(int) $instructorIds];
-                }
-
-                
-                $outcomes = $attributes['outcomes'] ?? null;
-                if (! is_array($outcomes) && $outcomes !== null) {
-                    $outcomes = [$outcomes];
-                }
-
-                if (! isset($attributes['slug']) || trim((string) $attributes['slug']) === '') {
-                    $attributes['slug'] = $this->generateUniqueSlug(
-                        (string) ($attributes['title'] ?? $course->title),
-                        $course->id,
-                    );
-                }
-
-                
-                $attributes = Arr::except($attributes, ['tags', 'tags_list', 'instructor_ids', 'outcomes']);
-
-                $this->runUpdateStep('course.update', function () use ($course, $attributes) {
-                    Course::withoutEvents(fn () => $this->repository->update($course, $attributes));
-                }, $course->id);
-                $this->assertHealthyTransaction('course.update', $course->id);
-
-                if ($hasTagsInput && is_array($tags)) {
-                    $this->runUpdateStep('course.sync_tags', function () use ($course, $tags) {
-                        $this->tagService->syncCourseTags($course, $tags);
-                    }, $course->id);
-                    $this->assertHealthyTransaction('course.sync_tags', $course->id);
-                }
-
-                
                 if (is_array($instructorIds)) {
-                    $this->runUpdateStep('course.sync_instructors', function () use ($course, $instructorIds) {
-                        $course->instructors()->sync($instructorIds);
-                    }, $course->id);
-                    $this->assertHealthyTransaction('course.sync_instructors', $course->id);
+                    $course->instructors()->sync($instructorIds);
                 }
 
-                
                 if (is_array($outcomes)) {
-                    $this->runUpdateStep('course.sync_outcomes', function () use ($course, $outcomes) {
-                        $this->syncOutcomes($course, $outcomes);
-                    }, $course->id);
-                    $this->assertHealthyTransaction('course.sync_outcomes', $course->id);
+                    $this->syncOutcomes($course, $outcomes);
                 }
 
-                $this->runUpdateStep('course.handle_media', function () use ($course, $files) {
-                    $this->handleMedia($course, $files);
-                }, $course->id);
-                $this->assertHealthyTransaction('course.handle_media', $course->id);
-                $this->runUpdateStep('course.invalidate_cache', function () use ($course) {
-                    $this->cacheService->invalidateCourse($course->id, $course->slug);
-                }, $course->id);
-                $this->assertHealthyTransaction('course.invalidate_cache', $course->id);
+                $this->handleMedia($course, $files);
+                $this->cacheService->invalidateCourse($course->id, $course->slug);
 
                 $updatedCourse = $course->fresh(['tags', 'instructors', 'outcomes']);
 
@@ -476,135 +440,6 @@ class CourseLifecycleProcessor
             || str_contains($source, 'duplicate entry');
     }
 
-    private function resetFailedTransactionState(): void
-    {
-        $connectionName = DB::getDefaultConnection();
-        $connection = DB::connection($connectionName);
-
-        while ($connection->transactionLevel() > 0) {
-            try {
-                $connection->rollBack();
-            } catch (\Throwable) {
-                break;
-            }
-        }
-
-        try {
-            $pdo = $connection->getRawPdo();
-            if ($pdo instanceof \PDO && $pdo->inTransaction()) {
-                try {
-                    $pdo->rollBack();
-                } catch (\Throwable) {
-                    
-                }
-            }
-        } catch (\Throwable) {
-            
-        }
-
-        
-        
-        
-        
-        
-        try {
-            DB::purge($connectionName);
-        } catch (\Throwable) {
-            
-        }
-
-        try {
-            DB::reconnect($connectionName);
-        } catch (\Throwable) {
-            
-        }
-    }
-
-    private function runUpdateStep(string $step, callable $callback, int $courseId): void
-    {
-        try {
-            
-            
-            
-            
-            DB::connection()->transaction(function () use ($callback) {
-                $callback();
-            });
-        } catch (\Throwable $exception) {
-            $rootCause = $this->resolveRootCauseMessage($exception);
-
-            Log::error('Course update step failed', [
-                'step' => $step,
-                'course_id' => $courseId,
-                'message' => $exception->getMessage(),
-                'root_cause' => $rootCause,
-                'transaction_level' => DB::connection()->transactionLevel(),
-                'exception' => get_class($exception),
-            ]);
-
-            throw new RuntimeException(
-                sprintf('Course update failed at step [%s]. Root cause: %s', $step, $rootCause),
-                0,
-                $exception
-            );
-        }
-    }
-
-    private function isFailedTransactionState(QueryException $e): bool
-    {
-        $sqlState = is_array($e->errorInfo) ? ($e->errorInfo[0] ?? null) : null;
-
-        return $sqlState === '25P02';
-    }
-
-    private function resolveRootCauseMessage(\Throwable $exception): string
-    {
-        $current = $exception;
-        $fallback = $exception->getMessage();
-
-        while ($current !== null) {
-            if ($current instanceof QueryException && ! $this->isFailedTransactionState($current)) {
-                return $current->getMessage();
-            }
-
-            if (trim($current->getMessage()) !== '') {
-                $fallback = $current->getMessage();
-            }
-
-            $current = $current->getPrevious();
-        }
-
-        if ($exception instanceof QueryException && $this->isFailedTransactionState($exception)) {
-            return 'Transaction already aborted (25P02) and no earlier query exception is available in the chain; likely failed state leaked from reused worker connection.';
-        }
-
-        return $fallback;
-    }
-
-    private function assertHealthyTransaction(string $step, int $courseId): void
-    {
-        try {
-            DB::select('select 1');
-        } catch (QueryException $e) {
-            if ($this->isFailedTransactionState($e)) {
-                Log::error('Course update transaction became aborted after step', [
-                    'step' => $step,
-                    'course_id' => $courseId,
-                    'message' => $e->getMessage(),
-                    'transaction_level' => DB::connection()->transactionLevel(),
-                ]);
-
-                throw new RuntimeException(
-                    sprintf('Course update transaction aborted after step [%s]. Root cause likely happened inside this step and was swallowed before bubbling up.', $step),
-                    0,
-                    $e
-                );
-            }
-
-            throw $e;
-        }
-    }
-
     private function generateCourseCode(): string
     {
         return CodeGenerator::generate('CRS-', 6, Course::class);
@@ -636,10 +471,8 @@ class CourseLifecycleProcessor
 
     private function syncOutcomes(Course $course, array $outcomes): void
     {
-        
         $course->outcomes()->delete();
 
-        
         $order = 1;
         foreach ($outcomes as $outcomeText) {
             if (is_string($outcomeText) && trim($outcomeText) !== '') {

@@ -13,3 +13,8 @@ services:
         class: App\Support\PHPStan\Rules\RepositoryMustImplementInterfaceRule
         tags:
             - phpstan.rules.rule
+
+    -
+        class: App\Support\PHPStan\Rules\QueryCatchWithDbCallRule
+        tags:
+            - phpstan.rules.rule

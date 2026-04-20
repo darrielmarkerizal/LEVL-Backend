@@ -7,6 +7,8 @@ namespace Modules\Schemes\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as BaseCollection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Schemes\Contracts\Repositories\TagRepositoryInterface;
 use Modules\Schemes\Models\Course;
@@ -66,7 +68,7 @@ class TagService
     {
         $name = trim((string) ($data['name'] ?? ''));
 
-        $tag = $this->firstOrCreateByName($name);
+        $tag = $this->findOrCreateTag($name);
         cache()->tags(['schemes', 'tags'])->flush();
 
         return $tag;
@@ -92,7 +94,7 @@ class TagService
         return BaseCollection::make($names)
             ->map(fn ($name) => trim((string) $name))
             ->filter(fn ($name) => $name !== '')
-            ->map(fn ($name) => $this->firstOrCreateByName($name))
+            ->map(fn ($name) => $this->findOrCreateTag($name))
             ->values();
     }
 
@@ -132,91 +134,17 @@ class TagService
 
     public function syncCourseTags(Course $course, array $tags): void
     {
-        $tagIds = $this->resolveTagIds($tags);
+        $tagIds = $this->prepareTagIds($tags);
 
         $course->tags()->sync($tagIds);
 
-        \Illuminate\Support\Facades\DB::afterCommit(function (): void {
+        DB::afterCommit(function (): void {
             cache()->tags(['schemes', 'tags'])->flush();
             cache()->tags(['schemes', 'courses'])->flush();
         });
     }
 
-    private function preparePayload(array $data, ?int $ignoreId = null, ?string $currentSlug = null, ?string $currentName = null): array
-    {
-        $name = trim((string) ($data['name'] ?? ''));
-        $slug = $this->ensureUniqueSlug((string) ($data['slug'] ?? Str::slug($name) ?: 'tag'), $ignoreId);
-
-        return [
-            'name' => $name,
-            'slug' => $slug,
-        ];
-    }
-
-    private function firstOrCreateByName(string $name): Tag
-    {
-        $existing = Tag::query()
-            ->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])
-            ->first();
-
-        if ($existing) {
-            return $existing;
-        }
-
-    $payload = $this->preparePayload(['name' => $name]);
-
-        try {
-            return $this->repository->create($payload);
-        } catch (\Illuminate\Database\QueryException $e) {
-            
-            
-            if ($this->isUniqueConstraintViolation($e)) {
-                $existing = Tag::query()
-                    ->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])
-                    ->first();
-
-                if ($existing) {
-                    return $existing;
-                }
-            }
-
-            throw $e;
-        }
-    }
-
-    private function isUniqueConstraintViolation(\Illuminate\Database\QueryException $e): bool
-    {
-        $sqlState = is_array($e->errorInfo) ? ($e->errorInfo[0] ?? null) : null;
-        $message = strtolower($e->getMessage());
-
-        return $sqlState === '23505'
-            || $sqlState === '23000'
-            || str_contains($message, 'duplicate key')
-            || str_contains($message, 'unique constraint')
-            || str_contains($message, 'already exists')
-            || str_contains($message, 'duplicate entry');
-    }
-
-    private function ensureUniqueSlug(string $slug, ?int $ignoreId = null): string
-    {
-        return $this->findUniqueSlug($slug, $slug, 1, $ignoreId);
-    }
-
-    private function findUniqueSlug(string $base, string $slug, int $counter, ?int $ignoreId): string
-    {
-        $exists = Tag::query()
-            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
-            ->where('slug', $slug)
-            ->exists();
-
-        if (! $exists) {
-            return $slug;
-        }
-
-        return $this->findUniqueSlug($base, "{$base}-{$counter}", $counter + 1, $ignoreId);
-    }
-
-    private function resolveTagIds(array $tags): array
+    public function prepareTagIds(array $tags): array
     {
         $numericIds = [];
         $textValues = [];
@@ -239,51 +167,95 @@ class TagService
         $resolved = [];
 
         if (! empty($numericIds)) {
-            try {
-                $resolved = Tag::query()
-                    ->whereIn('id', array_unique($numericIds))
-                    ->pluck('id')
-                    ->all();
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('Failed to resolve numeric tag IDs', [
-                    'ids' => $numericIds,
-                    'error' => $e->getMessage(),
-                ]);
-                throw $e;
-            }
+            $resolved = Tag::query()
+                ->whereIn('id', array_unique($numericIds))
+                ->pluck('id')
+                ->all();
         }
 
         foreach ($textValues as $lower => $value) {
-            $slug = Str::slug($value);
-
-            try {
-                $existing = Tag::query()
-                    ->where(function ($q) use ($slug, $lower) {
-                        $q->whereRaw('LOWER(slug) = ?', [$slug])
-                            ->orWhereRaw('LOWER(slug) = ?', [$lower])
-                            ->orWhereRaw('LOWER(name) = ?', [$lower]);
-                    })
-                    ->value('id');
-
-                if ($existing !== null) {
-                    $resolved[] = $existing;
-
-                    continue;
-                }
-
-                
-                $tag = $this->firstOrCreateByName($value);
-                $resolved[] = $tag->getKey();
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('Failed to resolve or create tag', [
-                    'value' => $value,
-                    'slug' => $slug,
-                    'error' => $e->getMessage(),
-                ]);
-                throw $e;
+            $id = $this->findOrCreateTagId($value);
+            if ($id !== null) {
+                $resolved[] = $id;
             }
         }
 
         return array_values(array_unique(array_filter($resolved)));
+    }
+
+    private function preparePayload(array $data, ?int $ignoreId = null, ?string $currentSlug = null, ?string $currentName = null): array
+    {
+        $name = trim((string) ($data['name'] ?? ''));
+        $slug = $this->ensureUniqueSlug((string) ($data['slug'] ?? Str::slug($name) ?: 'tag'), $ignoreId);
+
+        return [
+            'name' => $name,
+            'slug' => $slug,
+        ];
+    }
+
+    private function findOrCreateTag(string $name): Tag
+    {
+        $id = $this->findOrCreateTagId($name);
+
+        if ($id === null) {
+            throw new \RuntimeException("Failed to find or create tag for name: {$name}");
+        }
+
+        return Tag::query()->findOrFail($id);
+    }
+
+    private function findOrCreateTagId(string $name): ?int
+    {
+        $lower = mb_strtolower($name);
+
+        $existing = Tag::query()
+            ->whereRaw('LOWER(name) = ?', [$lower])
+            ->value('id');
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        $slug = $this->ensureUniqueSlug(Str::slug($name) ?: 'tag');
+
+        DB::table('tags')->insertOrIgnore([
+            'name' => $name,
+            'slug' => $slug,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $id = Tag::query()
+            ->whereRaw('LOWER(name) = ?', [$lower])
+            ->value('id');
+
+        if ($id === null) {
+            Log::error('Tag find-or-create returned null after insertOrIgnore', [
+                'name' => $name,
+                'slug' => $slug,
+            ]);
+        }
+
+        return $id;
+    }
+
+    private function ensureUniqueSlug(string $slug, ?int $ignoreId = null): string
+    {
+        return $this->findUniqueSlug($slug, $slug, 1, $ignoreId);
+    }
+
+    private function findUniqueSlug(string $base, string $slug, int $counter, ?int $ignoreId): string
+    {
+        $exists = Tag::query()
+            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+            ->where('slug', $slug)
+            ->exists();
+
+        if (! $exists) {
+            return $slug;
+        }
+
+        return $this->findUniqueSlug($base, "{$base}-{$counter}", $counter + 1, $ignoreId);
     }
 }

@@ -1,18 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
 use App\Contracts\EnrollmentKeyHasherInterface;
 use App\Support\EnrollmentKeyHasher;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    
     public function register(): void
     {
         $this->app->bind(EnrollmentKeyHasherInterface::class, EnrollmentKeyHasher::class);
@@ -21,36 +24,29 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\EnrollmentKeyEncrypter::class
         );
 
-        
         $this->app->bind(
             \App\Contracts\Services\ForumServiceInterface::class,
             \Modules\Forums\Services\ForumService::class
         );
 
-        
         if ($this->app->runningInConsole()) {
-            
-            $this->app->singleton('heavy.service', function ($app) {
-                
-            });
+
+            $this->app->singleton('heavy.service', function ($app) {});
         }
     }
 
-    
     public function boot(): void
     {
         $this->configureRateLimiting();
         $this->configureOctaneCompatibility();
+        $this->configureQueryFailureLogging();
 
-        
         \App\Models\ActivityLog::observe(\App\Observers\ActivityLogObserver::class);
 
-        
         if ($this->app->environment('local') && ! app()->bound(\Laravel\Octane\Octane::class)) {
-            
-            \Illuminate\Support\Facades\DB::listen(function ($query) {
+            DB::listen(function ($query) {
                 if ($query->time > 50) {
-                    \Illuminate\Support\Facades\Log::warning('Slow query detected in Auth module', [
+                    Log::warning('Slow query detected', [
                         'sql' => $query->sql,
                         'bindings' => $query->bindings,
                         'time' => $query->time.'ms',
@@ -64,7 +60,6 @@ class AppServiceProvider extends ServiceProvider
             Mail::alwaysTo(config('mail.development_to', 'dev@local.test'));
         }
 
-        
         if (! $this->app->environment('local')) {
             $this->app['view']->getFinder()->setPaths(array_map(function ($path) {
                 return $path;
@@ -72,21 +67,32 @@ class AppServiceProvider extends ServiceProvider
         }
     }
 
-    
+    protected function configureQueryFailureLogging(): void
+    {
+        DB::listen(function ($query): void {
+            if ($query->time > 1000) {
+                Log::warning('Very slow query detected (>1s).', [
+                    'sql' => $query->sql,
+                    'time' => $query->time.'ms',
+                    'path' => request()->path(),
+                    'method' => request()->method(),
+                ]);
+            }
+        });
+    }
+
     protected function configureOctaneCompatibility(): void
     {
         if (! class_exists(\Laravel\Octane\Events\RequestTerminated::class)) {
             return;
         }
 
-        
         \Illuminate\Support\Facades\Event::listen(
             \Laravel\Octane\Events\RequestTerminated::class,
             function ($event) {
-                
+
                 auth()->forgetGuards();
 
-                
                 $services = [
                     \Modules\Gamification\Services\GamificationService::class,
                     \Modules\Gamification\Services\BadgeService::class,
@@ -102,7 +108,6 @@ class AppServiceProvider extends ServiceProvider
                     }
                 }
 
-                
                 $models = [
                     \Modules\Gamification\Models\Badge::class,
                     \Modules\Gamification\Models\UserGamificationStat::class,
@@ -119,19 +124,18 @@ class AppServiceProvider extends ServiceProvider
         );
     }
 
-    
     protected function configureRateLimiting(): void
     {
-        
+
         RateLimiter::for('api', function (Request $request) {
-            
+
             if ($this->app->environment('testing')) {
                 return Limit::none();
             }
 
             $key = $request->user()?->id ?: $request->ip();
 
-            return Limit::perMinutes(1, 60)->by($key); 
+            return Limit::perMinutes(1, 60)->by($key);
         });
 
         RateLimiter::for('auth', function (Request $request) {
@@ -139,7 +143,7 @@ class AppServiceProvider extends ServiceProvider
                 return Limit::none();
             }
 
-            return Limit::perMinutes(1, 10)->by($request->ip()); 
+            return Limit::perMinutes(1, 10)->by($request->ip());
         });
 
         RateLimiter::for('enrollment', function (Request $request) {
@@ -149,7 +153,7 @@ class AppServiceProvider extends ServiceProvider
 
             $key = $request->user()?->id ?: $request->ip();
 
-            return Limit::perMinutes(1, 5)->by($key); 
+            return Limit::perMinutes(1, 5)->by($key);
         });
     }
 }

@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Database\ConnectionInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -11,61 +12,85 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureCleanDatabaseSession
 {
+    private const MUTATION_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
+
     public function handle(Request $request, Closure $next): Response
     {
-        $this->sanitizeConnection('pgsql', 'before_request');
+        $this->sanitizeOnEntry($request);
 
         try {
             return $next($request);
         } finally {
-            $this->sanitizeConnection('pgsql', 'after_request');
+            $this->sanitizeOnExit($request);
         }
     }
 
-    private function sanitizeConnection(string $connectionName, string $phase): void
+    private function sanitizeOnEntry(Request $request): void
     {
-        try {
-            
-            $connection = DB::connection($connectionName);
+        $connectionName = DB::getDefaultConnection();
+        $connection = DB::connection($connectionName);
+        $level = $connection->transactionLevel();
 
-            $rolledBack = 0;
+        if ($level > 0) {
+            Log::warning('Stale transaction detected at request start — forcing rollback.', [
+                'path' => $request->path(),
+                'method' => $request->method(),
+                'transaction_level' => $level,
+            ]);
 
-            
+            $rolled = 0;
             while ($connection->transactionLevel() > 0) {
                 try {
                     $connection->rollBack();
-                    $rolledBack++;
+                    $rolled++;
                 } catch (\Throwable) {
                     break;
                 }
             }
 
-            if ($rolledBack > 0) {
-                Log::warning('Forced rollback to clean stale transaction state.', [
-                    'connection' => $connectionName,
-                    'phase' => $phase,
-                    'rolled_back_levels' => $rolledBack,
-                    'path' => request()->path(),
-                ]);
+            if ($rolled === 0) {
+                $this->forceReconnect($connectionName, $request, 'entry_rollback_failed');
             }
-        } catch (\Throwable $e) {
-            
-            DB::disconnect($connectionName);
+        }
+
+        if (in_array($request->method(), self::MUTATION_METHODS, true)) {
+            $this->forceReconnect($connectionName, $request, 'pre_mutation');
+        }
+    }
+
+    private function sanitizeOnExit(Request $request): void
+    {
+        $connectionName = DB::getDefaultConnection();
+        $connection = DB::connection($connectionName);
+        $level = $connection->transactionLevel();
+
+        if ($level > 0) {
+            Log::warning('Open transaction detected after request — forcing rollback.', [
+                'path' => $request->path(),
+                'method' => $request->method(),
+                'transaction_level' => $level,
+            ]);
+
+            while ($connection->transactionLevel() > 0) {
+                try {
+                    $connection->rollBack();
+                } catch (\Throwable) {
+                    break;
+                }
+            }
+        }
+    }
+
+    private function forceReconnect(string $connectionName, Request $request, string $reason): void
+    {
+        try {
             DB::purge($connectionName);
-
-            try {
-                DB::reconnect($connectionName);
-            } catch (\Throwable $reconnectError) {
-                Log::error('Failed to reconnect database after transaction sanitation failure.', [
-                    'connection' => $connectionName,
-                    'phase' => $phase,
-                    'error' => $reconnectError->getMessage(),
-                ]);
-            }
-
-            Log::warning('Database transaction sanitation failed; connection was reset.', [
+            DB::reconnect($connectionName);
+        } catch (\Throwable $e) {
+            Log::error('Failed to force-reconnect database connection.', [
                 'connection' => $connectionName,
-                'phase' => $phase,
+                'reason' => $reason,
+                'path' => $request->path(),
                 'error' => $e->getMessage(),
             ]);
         }

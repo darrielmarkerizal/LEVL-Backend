@@ -448,13 +448,26 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (QueryException $e, \Illuminate\Http\Request $request) {
-            if (! str_contains($e->getMessage(), 'SQLSTATE[25P02]')) {
+            $sqlState = is_array($e->errorInfo) ? ($e->errorInfo[0] ?? null) : null;
+
+            if ($sqlState !== '25P02') {
                 return null;
             }
 
+            $correlationId  = $request->header('X-Request-ID', (string) \Illuminate\Support\Str::uuid());
             $connectionName = DB::getDefaultConnection();
-            $connection = DB::connection($connectionName);
 
+            Log::error('PostgreSQL aborted transaction (25P02) reached exception handler — connection will be reset.', [
+                'correlation_id'   => $correlationId,
+                'path'             => $request->path(),
+                'method'           => $request->method(),
+                'sql'              => $e->getSql(),
+                'bindings'         => $e->getBindings(),
+                'transaction_level' => DB::connection($connectionName)->transactionLevel(),
+                'message'          => $e->getMessage(),
+            ]);
+
+            $connection = DB::connection($connectionName);
             while ($connection->transactionLevel() > 0) {
                 try {
                     $connection->rollBack();
@@ -469,26 +482,20 @@ return Application::configure(basePath: dirname(__DIR__))
                     $pdo->rollBack();
                 }
             } catch (\Throwable) {
-                
             }
 
             try {
                 DB::purge($connectionName);
                 DB::reconnect($connectionName);
             } catch (\Throwable) {
-                
             }
-
-            Log::warning('Recovered aborted PostgreSQL transaction session (25P02).', [
-                'path' => $request->path(),
-                'method' => $request->method(),
-            ]);
 
             if ($request->is('api/*') || $request->is('v1/*')) {
                 return response()->json([
-                    'success' => false,
-                    'message' => __('messages.error'),
-                    'errors' => null,
+                    'success'        => false,
+                    'message'        => __('messages.error'),
+                    'errors'         => null,
+                    'correlation_id' => $correlationId,
                 ], 500);
             }
 
