@@ -37,15 +37,10 @@ class DatabaseSeeder extends Seeder
             \Modules\Mail\Database\Seeders\MailDatabaseSeeder::class,
         ]);
 
-        if (config('seeding.mode') === 'uat') {
-            $this->call([
-                \Modules\Auth\Database\Seeders\UATPersonaSeeder::class,
-                UATGamificationPipelineSeeder::class,
-            ]);
-        } else {
-            $this->call([
-                \Modules\Enrollments\Database\Seeders\EnrollmentActivityTimelineSeeder::class,
-            ]);
-        }
+        $this->call([
+            \Modules\Auth\Database\Seeders\UATPersonaSeeder::class,
+            UATGamificationPipelineSeeder::class,
+            \Modules\Enrollments\Database\Seeders\EnrollmentActivityTimelineSeeder::class,
+        ]);
     }
 }
