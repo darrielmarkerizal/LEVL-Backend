@@ -136,7 +136,7 @@ class MasterDataService
             if ($user->hasRole(['Admin', 'Instructor'])) {
                 $query->where(function ($q) use ($user) {
                     $q->where('instructor_id', $user->id)
-                        ->orWhereHas('admins', fn ($subQuery) => $subQuery->where('user_id', $user->id));
+                        ->orWhereHas('instructors', fn ($subQuery) => $subQuery->where('user_id', $user->id));
                 });
             } else {
                 $query->whereRaw('1 = 0');
