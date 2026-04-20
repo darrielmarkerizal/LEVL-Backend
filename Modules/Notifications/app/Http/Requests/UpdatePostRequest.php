@@ -14,6 +14,17 @@ class UpdatePostRequest extends FormRequest
 {
     use HasApiValidation;
 
+    protected function prepareForValidation(): void
+    {
+        if (! $this->exists('is_pinned')) {
+            return;
+        }
+
+        $this->merge([
+            'is_pinned' => $this->toBooleanOrNull($this->input('is_pinned')),
+        ]);
+    }
+
     
     public function authorize(): bool
     {
@@ -64,5 +75,12 @@ class UpdatePostRequest extends FormRequest
             'resend_notification_channels.array' => __('validation.array', ['attribute' => __('attributes.resend_notification_channels')]),
             'resend_notification_channels.*.in' => __('validation.in', ['attribute' => __('attributes.resend_notification_channel')]),
         ];
+    }
+
+    private function toBooleanOrNull(mixed $value): ?bool
+    {
+        $normalized = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        return $normalized;
     }
 }

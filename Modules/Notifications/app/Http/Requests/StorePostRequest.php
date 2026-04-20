@@ -14,6 +14,17 @@ class StorePostRequest extends FormRequest
 {
     use HasApiValidation;
 
+    protected function prepareForValidation(): void
+    {
+        if (! $this->exists('is_pinned')) {
+            return;
+        }
+
+        $this->merge([
+            'is_pinned' => $this->toBooleanOrNull($this->input('is_pinned')),
+        ]);
+    }
+
     
     public function authorize(): bool
     {
@@ -71,5 +82,12 @@ class StorePostRequest extends FormRequest
                 'date' => 'now',
             ]),
         ];
+    }
+
+    private function toBooleanOrNull(mixed $value): ?bool
+    {
+        $normalized = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        return $normalized;
     }
 }
