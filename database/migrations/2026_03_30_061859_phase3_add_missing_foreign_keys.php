@@ -11,6 +11,19 @@ return new class extends Migration
     public function up(): void
     {
         
+        if (! Schema::hasTable('news_category')) {
+            return;
+        }
+
+        
+        $contentCategoriesExists = Schema::hasTable('content_categories');
+        $categoriesExists = Schema::hasTable('categories');
+        
+        if (! $categoriesExists) {
+            return;
+        }
+
+        
         Schema::table('news_category', function (Blueprint $table) {
             
             $exists = DB::selectOne("
@@ -33,8 +46,16 @@ return new class extends Migration
     
     public function down(): void
     {
-        Schema::table('news_category', function (Blueprint $table) {
-            $table->dropForeign(['category_id']);
-        });
+        if (! Schema::hasTable('news_category')) {
+            return;
+        }
+
+        try {
+            Schema::table('news_category', function (Blueprint $table) {
+                $table->dropForeign(['category_id']);
+            });
+        } catch (\Exception $e) {
+            
+        }
     }
 };
