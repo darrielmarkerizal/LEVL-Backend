@@ -66,7 +66,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'status' => 'active',
                 'email_verified_at' => $verifiedAt->toDateTimeString(),
-                'is_password_set' => true,
+                'is_password_set' => $this->pgsqlBool(true),
             ]),
         );
         $student->syncRoles(['Student']);
@@ -79,7 +79,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'status' => 'active',
                 'email_verified_at' => $verifiedAt->toDateTimeString(),
-                'is_password_set' => true,
+                'is_password_set' => $this->pgsqlBool(true),
             ]),
         );
         $admin->syncRoles(['Admin']);
@@ -92,7 +92,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'status' => 'active',
                 'email_verified_at' => $verifiedAt->toDateTimeString(),
-                'is_password_set' => true,
+                'is_password_set' => $this->pgsqlBool(true),
             ]),
         );
         $instructor->syncRoles(['Instructor']);
@@ -105,7 +105,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'status' => 'active',
                 'email_verified_at' => $verifiedAt->toDateTimeString(),
-                'is_password_set' => true,
+                'is_password_set' => $this->pgsqlBool(true),
             ]),
         );
         $otherStudent->syncRoles(['Student']);
@@ -115,11 +115,11 @@ class CompleteStudentIncludesSeeder extends Seeder
             ['user_id' => $student->id],
             $this->onlyExistingColumns('profile_privacy_settings', [
                 'profile_visibility' => ProfilePrivacySetting::VISIBILITY_PRIVATE,
-                'show_email' => false,
-                'show_phone' => true,
-                'show_activity_history' => true,
-                'show_achievements' => true,
-                'show_statistics' => true,
+                'show_email' => $this->pgsqlBool(false),
+                'show_phone' => $this->pgsqlBool(true),
+                'show_activity_history' => $this->pgsqlBool(true),
+                'show_achievements' => $this->pgsqlBool(true),
+                'show_statistics' => $this->pgsqlBool(true),
             ]),
         );
 
@@ -328,9 +328,9 @@ class CompleteStudentIncludesSeeder extends Seeder
             ],
             $this->onlyExistingColumns('threads', [
                 'content' => 'Thread created by CompleteStudentIncludesSeeder.',
-                'is_pinned' => false,
-                'is_closed' => false,
-                'is_resolved' => false,
+                'is_pinned' => $this->pgsqlBool(false),
+                'is_closed' => $this->pgsqlBool(false),
+                'is_resolved' => $this->pgsqlBool(false),
                 'views_count' => 10,
                 'replies_count' => 0,
                 'last_activity_at' => $seedBase->toDateTimeString(),
@@ -341,6 +341,11 @@ class CompleteStudentIncludesSeeder extends Seeder
         $this->command?->info("   Student email: {$studentEmail}");
         $this->command?->info("   Student id: {$student->id}");
         $this->command?->info('   Try: GET /api/v1/users/'.$student->id.'?include=roles,privacySettings,enrollments,managedCourses,gamificationStats,badges,points,levels,learningStreaks,submissions,assignments,receivedOverrides,grantedOverrides,threads');
+    }
+
+    private function pgsqlBool(mixed $value): string
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
     }
 
     

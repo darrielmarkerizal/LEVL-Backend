@@ -45,11 +45,11 @@ class ProfileSeeder extends Seeder
                 $privacySettings[] = [
                     'user_id' => $user->id,
                     'profile_visibility' => $visibility,
-                    'show_email' => rand(1, 100) <= 20,
-                    'show_phone' => rand(1, 100) <= 10,
-                    'show_activity_history' => true,
-                    'show_achievements' => true,
-                    'show_statistics' => true,
+                    'show_email' => $this->pgsqlBool(rand(1, 100) <= 20),
+                    'show_phone' => $this->pgsqlBool(rand(1, 100) <= 10),
+                    'show_activity_history' => $this->pgsqlBool(true),
+                    'show_achievements' => $this->pgsqlBool(true),
+                    'show_statistics' => $this->pgsqlBool(true),
                     'created_at' => $createdAt,
                     'updated_at' => $createdAt,
                 ];
@@ -84,6 +84,11 @@ class ProfileSeeder extends Seeder
 
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
+    }
+
+    private function pgsqlBool(mixed $value): string
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
     }
 
     private function createUserActivitiesBatch(array $userIds): int

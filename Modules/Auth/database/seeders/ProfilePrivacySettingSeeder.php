@@ -34,16 +34,21 @@ class ProfilePrivacySettingSeeder extends Seeder
             ProfilePrivacySetting::create([
                 'user_id' => $user->id,
                 'profile_visibility' => $visibility,
-                'show_email' => ($m % 3) === 0,
-                'show_phone' => ($m % 4) === 0,
-                'show_activity_history' => ($m % 10) < 7,
-                'show_achievements' => ($m % 10) < 8,
-                'show_statistics' => ($m % 10) < 6,
+                'show_email' => $this->pgsqlBool(($m % 3) === 0),
+                'show_phone' => $this->pgsqlBool(($m % 4) === 0),
+                'show_activity_history' => $this->pgsqlBool(($m % 10) < 7),
+                'show_achievements' => $this->pgsqlBool(($m % 10) < 8),
+                'show_statistics' => $this->pgsqlBool(($m % 10) < 6),
             ]);
 
             $count++;
         }
 
         echo "✅ Created $count profile privacy settings\n";
+    }
+
+    private function pgsqlBool(mixed $value): string
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
     }
 }
