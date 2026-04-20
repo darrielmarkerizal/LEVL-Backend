@@ -15,7 +15,6 @@ use Modules\Notifications\Jobs\BulkDeletePostsJob;
 use Modules\Notifications\Jobs\BulkPublishPostsJob;
 use Modules\Notifications\Jobs\SendPostNotificationJob;
 use Modules\Notifications\Models\Post;
-use Modules\Notifications\Models\PostView;
 use Modules\Notifications\Repositories\PostRepository;
 
 class PostService
@@ -242,7 +241,6 @@ class PostService
                 ]
             );
         } catch (\Exception $e) {
-            
             
             Log::debug('View already recorded', [
                 'post_id' => $post->id,

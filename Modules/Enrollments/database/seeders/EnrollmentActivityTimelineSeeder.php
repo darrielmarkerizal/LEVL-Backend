@@ -154,7 +154,10 @@ class EnrollmentActivityTimelineSeeder extends Seeder
                         ];
 
                         if ($sub->status === 'graded' && $sub->score !== null) {
-                            $gradedAt = Carbon::parse((string) $occ)->addHour()->toDateTimeString();
+                            $gradedAt = Carbon::parse((string) $occ)
+                                ->addDays(rand(1, 14))
+                                ->addMinutes(rand(0, 60 * 12))
+                                ->toDateTimeString();
                             $events[] = [
                                 'enrollment_id' => $enrollment->id,
                                 'user_id' => $enrollment->user_id,

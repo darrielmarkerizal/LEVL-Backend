@@ -7,8 +7,8 @@ namespace App\Repositories;
 use App\Contracts\BaseRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Spatie\QueryBuilder\QueryBuilder;
 
 abstract class BaseRepository implements BaseRepositoryInterface
@@ -45,7 +45,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
 
     public function query(): Builder
     {
-        return $this->model()::query()->with($this->with);
+        return $this->newModel()->newQuery()->with($this->with);
     }
 
     public function findById(int $id): ?Model
@@ -60,7 +60,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
 
     public function create(array $attributes): Model
     {
-        return $this->model()::create($attributes);
+        return $this->newModel()->newQuery()->create($attributes);
     }
 
     public function update(Model $model, array $attributes): Model
@@ -80,7 +80,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
     {
         $perPage = max(1, min($perPage, 100));
 
-        return QueryBuilder::for($this->model())
+        return QueryBuilder::for($this->query())
             ->allowedFilters($this->allowedFilters)
             ->allowedSorts($this->allowedSorts)
             ->defaultSort($this->defaultSort)
@@ -89,11 +89,26 @@ abstract class BaseRepository implements BaseRepositoryInterface
 
     public function list(array $params): Collection
     {
-        return QueryBuilder::for($this->model())
+        return QueryBuilder::for($this->query())
             ->allowedFilters($this->allowedFilters)
             ->allowedSorts($this->allowedSorts)
             ->defaultSort($this->defaultSort)
             ->get();
+    }
+
+    protected function newModel(): Model
+    {
+        $modelClass = $this->model();
+        if (! class_exists($modelClass)) {
+            throw new \RuntimeException("Model class {$modelClass} does not exist.");
+        }
+
+        $model = new $modelClass;
+        if (! $model instanceof Model) {
+            throw new \RuntimeException("Class {$modelClass} must extend Illuminate\\Database\\Eloquent\\Model.");
+        }
+
+        return $model;
     }
 
     public function getAllowedFilters(): array

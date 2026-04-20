@@ -28,20 +28,26 @@ class LearningContentSeeder extends Seeder
         $this->command->info("\n📖 Creating learning content hierarchy with media...");
         $this->command->info('   Course → Unit → Lesson → Lesson Block (with files)');
 
-        
         try {
             $disk = \Storage::disk('do');
-            $testFile = 'test-connection-' . time() . '.txt';
+            $testFile = 'test-connection-'.time().'.txt';
             $disk->put($testFile, 'test');
             $disk->delete($testFile);
             $this->command->info('  ✓ DigitalOcean Spaces connection successful');
         } catch (\Exception $e) {
-            $this->command->error('  ❌ DigitalOcean Spaces connection failed: ' . $e->getMessage());
+            $this->command->error('  ❌ DigitalOcean Spaces connection failed: '.$e->getMessage());
             $this->command->warn('  ⚠️  Media upload will be skipped. Please check DO credentials.');
+
             return;
         }
 
         $this->checkDummyFiles();
+
+        if (Course::has('units')->exists()) {
+            $this->command->info('  ℹ️  Learning content already seeded. Skipping to preserve idempotency.');
+
+            return;
+        }
 
         $courses = Course::all();
 
@@ -100,12 +106,11 @@ class LearningContentSeeder extends Seeder
 
     private function checkDummyFiles(): void
     {
-        
+
         UATMediaFixtures::ensureFilesExist();
-        
+
         $this->dummyFiles = UATMediaFixtures::paths();
 
-        
         $this->command->info('  📁 Checking dummy file paths:');
         foreach ($this->dummyFiles as $type => $path) {
             $exists = File::exists($path) ? '✓' : '✗';
@@ -205,9 +210,7 @@ class LearningContentSeeder extends Seeder
     private function createBlocksForLesson(Lesson $lesson): array
     {
         $count = self::BLOCKS_PER_LESSON[0] + ($lesson->id % (self::BLOCKS_PER_LESSON[1] - self::BLOCKS_PER_LESSON[0] + 1));
-        
-        
-        
+
         $blockTypes = ['text', 'video', 'file', 'image', 'embed'];
 
         $blocksCreated = 0;
@@ -215,12 +218,10 @@ class LearningContentSeeder extends Seeder
         $blockTypeCount = [];
 
         for ($i = 0; $i < $count; $i++) {
-            
-            
+
             $blockType = $blockTypes[$i % count($blockTypes)];
-            
-            
-            if (!isset($blockTypeCount[$blockType])) {
+
+            if (! isset($blockTypeCount[$blockType])) {
                 $blockTypeCount[$blockType] = 0;
             }
             $blockTypeCount[$blockType]++;
@@ -229,13 +230,12 @@ class LearningContentSeeder extends Seeder
                 'lesson_id' => $lesson->id,
                 'block_type' => $blockType,
                 'content' => $this->generateBlockContent($blockType, $lesson->id * 50 + $i),
-                'order' => $i + 1, 
+                'order' => $i + 1,
                 'slug' => \Illuminate\Support\Str::slug($lesson->title.'-block-'.($i + 1)),
             ]);
 
             $blocksCreated++;
 
-            
             if (in_array($blockType, ['video', 'file', 'image'])) {
                 if ($this->attachMediaToBlock($block, $blockType)) {
                     $mediaUploaded++;
@@ -243,9 +243,8 @@ class LearningContentSeeder extends Seeder
             }
         }
 
-        
         if ($lesson->id <= 3) {
-            $this->command->info("    📊 Block types for lesson {$lesson->id}: " . json_encode($blockTypeCount));
+            $this->command->info("    📊 Block types for lesson {$lesson->id}: ".json_encode($blockTypeCount));
         }
 
         return ['blocks' => $blocksCreated, 'media' => $mediaUploaded];
@@ -253,32 +252,35 @@ class LearningContentSeeder extends Seeder
 
     private function attachMediaToBlock(LessonBlock $block, string $blockType): bool
     {
-        
+
         static $attemptCount = 0;
         $attemptCount++;
-        
+
         if ($attemptCount <= 5) {
             $this->command->info("    🔍 Attempt #{$attemptCount}: Attaching {$blockType} media to block {$block->id}");
         }
-        
+
         try {
             switch ($blockType) {
                 case 'video':
-                    if (!isset($this->dummyFiles['video'])) {
-                        $this->command->warn("    ⚠️  Video file path not set in dummyFiles");
+                    if (! isset($this->dummyFiles['video'])) {
+                        $this->command->warn('    ⚠️  Video file path not set in dummyFiles');
+
                         return false;
                     }
-                    if (!File::exists($this->dummyFiles['video'])) {
+                    if (! File::exists($this->dummyFiles['video'])) {
                         $this->command->warn("    ⚠️  Video file not found: {$this->dummyFiles['video']}");
+
                         return false;
                     }
                     $block->addMedia($this->dummyFiles['video'])
                         ->preservingOriginal()
                         ->toMediaCollection('media', 'do');
-                    
+
                     if ($attemptCount <= 5) {
                         $this->command->info("    ✅ Successfully uploaded video for block {$block->id}");
                     }
+
                     return true;
 
                 case 'file':
@@ -290,47 +292,54 @@ class LearningContentSeeder extends Seeder
                         default => null,
                     };
 
-                    if (!$filePath) {
+                    if (! $filePath) {
                         $this->command->warn("    ⚠️  File path not set for type: {$fileType}");
+
                         return false;
                     }
-                    if (!File::exists($filePath)) {
+                    if (! File::exists($filePath)) {
                         $this->command->warn("    ⚠️  File not found: {$filePath}");
+
                         return false;
                     }
                     $block->addMedia($filePath)
                         ->preservingOriginal()
                         ->toMediaCollection('media', 'do');
-                    
+
                     if ($attemptCount <= 5) {
                         $this->command->info("    ✅ Successfully uploaded {$fileType} for block {$block->id}");
                     }
+
                     return true;
 
                 case 'image':
-                    if (!isset($this->dummyFiles['image'])) {
-                        $this->command->warn("    ⚠️  Image file path not set in dummyFiles");
+                    if (! isset($this->dummyFiles['image'])) {
+                        $this->command->warn('    ⚠️  Image file path not set in dummyFiles');
+
                         return false;
                     }
-                    if (!File::exists($this->dummyFiles['image'])) {
+                    if (! File::exists($this->dummyFiles['image'])) {
                         $this->command->warn("    ⚠️  Image file not found: {$this->dummyFiles['image']}");
+
                         return false;
                     }
                     $block->addMedia($this->dummyFiles['image'])
                         ->preservingOriginal()
                         ->toMediaCollection('media', 'do');
-                    
+
                     if ($attemptCount <= 5) {
                         $this->command->info("    ✅ Successfully uploaded image for block {$block->id}");
                     }
+
                     return true;
             }
         } catch (\Throwable $e) {
-            
+
             $this->command->error("    ❌ Failed to attach media to block {$block->id} ({$blockType}): {$e->getMessage()}");
             if ($attemptCount <= 3) {
-                $this->command->error("    Error type: " . get_class($e));
+                $this->command->error('    Error type: '.get_class($e));
             }
+
             return false;
         }
 

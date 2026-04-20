@@ -8,7 +8,6 @@ use Modules\Common\Models\MasterDataItem;
 
 class MasterDataSeeder extends Seeder
 {
-    
     public function run(): void
     {
         $this->seedCategories();
@@ -33,7 +32,7 @@ class MasterDataSeeder extends Seeder
                 ->where('value', $item['value'])
                 ->first();
 
-            if (!$existing) {
+            if (! $existing) {
                 DB::table('master_data')->insert([
                     'type' => 'categories',
                     'value' => $item['value'],
@@ -60,7 +59,7 @@ class MasterDataSeeder extends Seeder
                 ->where('value', $item['value'])
                 ->first();
 
-            if (!$existing) {
+            if (! $existing) {
                 DB::table('master_data')->insert([
                     'type' => 'difficulty-levels',
                     'value' => $item['value'],
@@ -80,7 +79,14 @@ class MasterDataSeeder extends Seeder
         $contentTypes = [
             ['value' => 'article', 'label' => 'Article'],
             ['value' => 'video', 'label' => 'Video'],
+            ['value' => 'pdf', 'label' => 'PDF Document'],
+            ['value' => 'audio', 'label' => 'Audio'],
+            ['value' => 'interactive', 'label' => 'Interactive Activity'],
+            ['value' => 'embed', 'label' => 'Embedded Media'],
+            ['value' => 'live_session', 'label' => 'Live Session'],
+            ['value' => 'download', 'label' => 'Downloadable File'],
             ['value' => 'quiz', 'label' => 'Quiz'],
+            ['value' => 'assignment', 'label' => 'Assignment'],
         ];
 
         foreach ($contentTypes as $index => $item) {
@@ -88,7 +94,7 @@ class MasterDataSeeder extends Seeder
                 ->where('value', $item['value'])
                 ->first();
 
-            if (!$existing) {
+            if (! $existing) {
                 DB::table('master_data')->insert([
                     'type' => 'content-types',
                     'value' => $item['value'],

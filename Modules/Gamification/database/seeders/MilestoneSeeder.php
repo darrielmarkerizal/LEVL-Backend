@@ -3,6 +3,7 @@
 namespace Modules\Gamification\Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Common\Models\LevelConfig;
 use Modules\Gamification\Models\Milestone;
 
 class MilestoneSeeder extends Seeder
@@ -68,9 +69,19 @@ class MilestoneSeeder extends Seeder
             ],
         ];
 
+        $levelXpMap = LevelConfig::query()
+            ->orderBy('level')
+            ->pluck('xp_required', 'level')
+            ->all();
+
         $count = 0;
         foreach ($milestones as $milestone) {
             try {
+                $level = (int) $milestone['level_required'];
+                if (isset($levelXpMap[$level])) {
+                    $milestone['xp_required'] = (int) $levelXpMap[$level];
+                }
+
                 Milestone::updateOrCreate(
                     ['code' => $milestone['code']],
                     $milestone

@@ -9,7 +9,6 @@ use Modules\Auth\Models\UserActivity;
 
 class ProfileSeeder extends Seeder
 {
-    
     public function run(): void
     {
         \DB::connection()->disableQueryLog();
@@ -75,18 +74,17 @@ class ProfileSeeder extends Seeder
 
         echo "✅ Created $privacyCount privacy settings\n";
         echo "✅ Created $activityCount user activities\n";
-        
+
         if ($privacyCount === 0 && $activityCount === 0) {
             echo "ℹ️  All users already have profile data (privacy settings and activities)\n";
         }
-        
+
         echo "✅ Profile seeding completed!\n";
 
         gc_collect_cycles();
         \DB::connection()->enableQueryLog();
     }
 
-    
     private function createUserActivitiesBatch(array $userIds): int
     {
         if (! \Illuminate\Support\Facades\Schema::hasTable('user_activities')) {
@@ -107,7 +105,11 @@ class ProfileSeeder extends Seeder
                 UserActivity::TYPE_CERTIFICATE_EARNED,
             ];
 
-            $relatedTypes = [null, 'Course', 'Lesson', 'Quiz', 'Assignment'];
+            $courseIds = \Illuminate\Support\Facades\DB::table('courses')->pluck('id')->all();
+            $lessonIds = \Illuminate\Support\Facades\DB::table('lessons')->pluck('id')->all();
+            $quizIds = \Illuminate\Support\Facades\DB::table('quizzes')->pluck('id')->all();
+            $assignmentIds = \Illuminate\Support\Facades\DB::table('assignments')->pluck('id')->all();
+
             $pregenTitles = ['Enrolled in course', 'Completed lesson', 'Submitted assignment', 'Earned badge', 'Achieved milestone', 'Started quiz', 'Finished module'];
             $pregenDescriptions = ['Progress made', 'New achievement', 'Course completed', 'Badge earned', 'Activity recorded', 'Learning milestone'];
             $createdAt = now()->toDateTimeString();
@@ -119,6 +121,15 @@ class ProfileSeeder extends Seeder
                 $numActivities = rand(3, 8);
 
                 for ($i = 0; $i < $numActivities; $i++) {
+                    $relatedType = [null, 'Course', 'Lesson', 'Quiz', 'Assignment'][array_rand([null, 'Course', 'Lesson', 'Quiz', 'Assignment'])];
+                    $relatedId = match ($relatedType) {
+                        'Course' => $courseIds !== [] ? $courseIds[array_rand($courseIds)] : null,
+                        'Lesson' => $lessonIds !== [] ? $lessonIds[array_rand($lessonIds)] : null,
+                        'Quiz' => $quizIds !== [] ? $quizIds[array_rand($quizIds)] : null,
+                        'Assignment' => $assignmentIds !== [] ? $assignmentIds[array_rand($assignmentIds)] : null,
+                        default => null,
+                    };
+
                     $activities[] = [
                         'user_id' => $userId,
                         'activity_type' => $activityTypes[array_rand($activityTypes)],
@@ -127,8 +138,8 @@ class ProfileSeeder extends Seeder
                             'description' => $pregenDescriptions[array_rand($pregenDescriptions)],
                             'points' => rand(10, 100),
                         ]),
-                        'related_type' => $relatedTypes[array_rand($relatedTypes)],
-                        'related_id' => rand(0, 1) ? rand(1, 100) : null,
+                        'related_type' => $relatedType,
+                        'related_id' => $relatedId,
                         'created_at' => $createdAt,
                     ];
                     $totalCount++;

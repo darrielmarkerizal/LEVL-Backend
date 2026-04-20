@@ -277,6 +277,12 @@ class SequentialProgressSeeder extends Seeder
             }
         }
 
+        if ($submissionType === \Modules\Learning\Enums\SubmissionType::Text && $answerText === null) {
+            $answerText = $this->ensureMinAnswerLength(
+                $this->pregenAnswers[array_rand($this->pregenAnswers)]
+            );
+        }
+
         $submittedAt = now()->subDays(rand(1, 14))->toDateTimeString();
 
         $stateValue = match ($status) {
@@ -488,7 +494,7 @@ class SequentialProgressSeeder extends Seeder
             return false;
         }
 
-        $finalScore = max((float) $passingGrade, min((float) $maxScore, round($objectiveScore + $essayScore, 2)));
+        $finalScore = min((float) $maxScore, round($objectiveScore + $essayScore, 2));
 
         $submission->update([
             'score' => $finalScore,

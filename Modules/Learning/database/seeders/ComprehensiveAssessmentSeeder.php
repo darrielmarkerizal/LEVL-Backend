@@ -8,6 +8,7 @@ use App\Support\RealisticSeederContent;
 use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\Learning\Enums\QuestionType;
 use Modules\Learning\Enums\QuizGradingStatus;
 use Modules\Learning\Enums\QuizQuestionType;
@@ -33,6 +34,8 @@ class ComprehensiveAssessmentSeeder extends Seeder
 
     private array $instructorIds = [];
 
+    private static bool $assignmentQuestionsSkipNotified = false;
+
     public function run(): void
     {
         DB::connection()->disableQueryLog();
@@ -40,6 +43,12 @@ class ComprehensiveAssessmentSeeder extends Seeder
 
         echo "\n🎯 Comprehensive Assessment Seeder (Refactored)\n";
         echo '='.str_repeat('=', 50)."\n";
+
+        if (DB::table('assignments')->count() > 0 || DB::table('quizzes')->count() > 0) {
+            echo "ℹ️  Assessment data already seeded. Skipping to keep idempotency.\n";
+
+            return;
+        }
 
         $this->pregenerateFakeData();
         $this->createdAt = now()->toDateTimeString();
@@ -171,7 +180,6 @@ class ComprehensiveAssessmentSeeder extends Seeder
     {
         $stats = ['assignments' => 0, 'submissions' => 0, 'grades' => 0];
 
-        
         $rand = rand(1, 100);
         if ($rand <= 60) {
             $submissionType = 'file';
@@ -196,6 +204,8 @@ class ComprehensiveAssessmentSeeder extends Seeder
         ]);
         $stats['assignments']++;
 
+        $this->createAssignmentQuestionsForType($assignmentId, $submissionType);
+
         if (rand(0, 1)) {
             $this->createAssignmentAttachments($assignmentId);
         }
@@ -209,6 +219,34 @@ class ComprehensiveAssessmentSeeder extends Seeder
         }
 
         return $stats;
+    }
+
+    private function createAssignmentQuestionsForType(int $assignmentId, string $submissionType): void
+    {
+        if (! Schema::hasTable('assignment_questions')) {
+            if (! self::$assignmentQuestionsSkipNotified) {
+                echo "   ⚠️  Table assignment_questions does not exist (removed in migration). Skipping assignment question rows; assignments and submissions are still created.\n";
+                self::$assignmentQuestionsSkipNotified = true;
+            }
+
+            return;
+        }
+
+        $typeDistribution = match ($submissionType) {
+            'text' => [QuestionType::Essay->value, QuestionType::Essay->value, QuestionType::MultipleChoice->value],
+            'file' => [QuestionType::FileUpload->value, QuestionType::Essay->value],
+            'mixed' => [
+                QuestionType::Essay->value,
+                QuestionType::MultipleChoice->value,
+                QuestionType::Checkbox->value,
+                QuestionType::FileUpload->value,
+            ],
+            default => [QuestionType::Essay->value],
+        };
+
+        foreach ($typeDistribution as $order => $type) {
+            $this->createAssignmentQuestion($assignmentId, $type, $order + 1);
+        }
     }
 
     private function createQuizWithSubmissions(int $courseId, int $unitId, int $order): array
@@ -275,7 +313,23 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'updated_at' => $this->createdAt,
         ];
 
-        if ($type === QuestionType::FileUpload->value) {
+        if ($type === QuestionType::MultipleChoice->value) {
+            $questionData['options'] = json_encode([
+                ['label' => 'A', 'text' => 'Option A - First choice'],
+                ['label' => 'B', 'text' => 'Option B - Second choice'],
+                ['label' => 'C', 'text' => 'Option C - Third choice'],
+                ['label' => 'D', 'text' => 'Option D - Fourth choice'],
+            ]);
+            $questionData['answer_key'] = json_encode(['correct_option' => 0]);
+        } elseif ($type === QuestionType::Checkbox->value) {
+            $questionData['options'] = json_encode([
+                ['label' => 'A', 'text' => 'Option A'],
+                ['label' => 'B', 'text' => 'Option B'],
+                ['label' => 'C', 'text' => 'Option C'],
+                ['label' => 'D', 'text' => 'Option D'],
+            ]);
+            $questionData['answer_key'] = json_encode(['correct_options' => [0, 2]]);
+        } elseif ($type === QuestionType::FileUpload->value) {
             $questionData['max_file_size'] = 10485760;
             $questionData['allowed_file_types'] = json_encode(['pdf', 'docx', 'xlsx', 'zip']);
             $questionData['allow_multiple_files'] = true;
@@ -466,7 +520,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
                 ->usingFileName('submission-'.$submission->id.'.pdf')
                 ->toMediaCollection('submission_files', 'do');
         } catch (\Throwable) {
-            
+
         }
     }
 
@@ -592,10 +646,6 @@ class ComprehensiveAssessmentSeeder extends Seeder
         $startedAt = now()->subDays($daysAgo)->subMinutes(rand(10, 120))->toDateTimeString();
         $submittedAt = now()->subDays($daysAgo)->toDateTimeString();
 
-        
-        
-        
-        
         $scenario = match (true) {
             rand(1, 100) <= 20 => 'draft',
             rand(1, 100) <= 55 => 'submitted',
@@ -640,7 +690,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             $stats['answers']++;
 
             if ($isEssay) {
-                
+
                 if ($scenario === 'graded') {
                     $essayScore = $score;
                 }
@@ -656,13 +706,12 @@ class ComprehensiveAssessmentSeeder extends Seeder
             : 0.0;
 
         if ($scenario === 'draft') {
-            
+
             return $stats;
         }
 
         if ($scenario === 'submitted') {
-            
-            
+
             DB::table('quiz_submissions')->where('id', $submissionId)->update([
                 'score' => $objectiveScore,
                 'final_score' => null,
@@ -672,8 +721,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             return $stats;
         }
 
-        
-        $finalScore = max((float) $passingGrade, min((float) $maxScore, round($objectiveScore + $essayScore, 2)));
+        $finalScore = min((float) $maxScore, round($objectiveScore + $essayScore, 2));
 
         DB::table('quiz_submissions')->where('id', $submissionId)->update([
             'score' => $finalScore,
@@ -773,11 +821,22 @@ class ComprehensiveAssessmentSeeder extends Seeder
                 'Explain the importance of code testing and describe different types of testing strategies.',
                 'Discuss the Model-View-Controller (MVC) pattern and its role in web applications.',
                 'Compare REST API with GraphQL and explain when to use each.',
+                'Describe the principles of SOLID and how they apply to object-oriented design.',
             ],
             QuestionType::FileUpload->value => [
                 'Upload your completed project source code as a ZIP file.',
                 'Submit your database schema diagram in PDF format.',
                 'Upload your test case results in Excel or CSV format.',
+            ],
+            QuestionType::MultipleChoice->value => [
+                'Which design pattern is used to create a single instance of a class?',
+                'What does HTTP status code 422 indicate?',
+                'Which command initializes a new Git repository?',
+            ],
+            QuestionType::Checkbox->value => [
+                'Select all SQL aggregate functions from the list below.',
+                'Which of the following are valid HTTP verbs?',
+                'Select all items that are part of the OSI model.',
             ],
         ];
 

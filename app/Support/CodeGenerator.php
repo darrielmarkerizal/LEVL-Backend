@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Support;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class CodeGenerator
 {
@@ -14,19 +18,13 @@ class CodeGenerator
         string $column = 'code',
         int $maxAttempts = 10
     ): string {
-        if (! class_exists($modelClass)) {
-            throw new \InvalidArgumentException("Model class {$modelClass} does not exist.");
-        }
-
-        if (! is_subclass_of($modelClass, Model::class)) {
-            throw new \InvalidArgumentException("Class {$modelClass} must extend Illuminate\\Database\\Eloquent\\Model.");
-        }
+        $model = self::instantiateModel($modelClass);
 
         $attempts = 0;
 
         do {
-            $code = $prefix.strtoupper(Str::random($length));
-            $exists = $modelClass::where($column, $code)->exists();
+            $code = $prefix.self::randomUpperString($length);
+            $exists = self::tableQuery($model)->where($column, $code)->exists();
             $attempts++;
 
             if ($attempts >= $maxAttempts) {
@@ -47,13 +45,7 @@ class CodeGenerator
         string $column = 'code',
         int $maxAttempts = 10
     ): string {
-        if (! class_exists($modelClass)) {
-            throw new \InvalidArgumentException("Model class {$modelClass} does not exist.");
-        }
-
-        if (! is_subclass_of($modelClass, Model::class)) {
-            throw new \InvalidArgumentException("Class {$modelClass} must extend Illuminate\\Database\\Eloquent\\Model.");
-        }
+        $model = self::instantiateModel($modelClass);
 
         $attempts = 0;
 
@@ -65,7 +57,7 @@ class CodeGenerator
                 STR_PAD_LEFT
             );
             $code = $prefix.$randomNumber;
-            $exists = $modelClass::where($column, $code)->exists();
+            $exists = self::tableQuery($model)->where($column, $code)->exists();
             $attempts++;
 
             if ($attempts >= $maxAttempts) {
@@ -85,26 +77,21 @@ class CodeGenerator
         int $padding = 6,
         string $column = 'code'
     ): string {
-        if (! class_exists($modelClass)) {
-            throw new \InvalidArgumentException("Model class {$modelClass} does not exist.");
-        }
+        $model = self::instantiateModel($modelClass);
 
-        if (! is_subclass_of($modelClass, Model::class)) {
-            throw new \InvalidArgumentException("Class {$modelClass} must extend Illuminate\\Database\\Eloquent\\Model.");
-        }
+        /** @var \Illuminate\Database\Query\Builder $query */
+        $query = self::tableQuery($model)->where($column, 'LIKE', $prefix.'%')
+            ->orderByDesc($column);
 
-        
-        $lastRecord = $modelClass::where($column, 'LIKE', $prefix.'%')
-            ->orderBy($column, 'desc')
-            ->first();
+        $lastRecord = $query->value($column);
 
-        if (! $lastRecord) {
-            
+        if ($lastRecord === null) {
             $number = 1;
         } else {
-            
-            $lastCode = $lastRecord->{$column};
-            $lastNumber = (int) str_replace($prefix, '', $lastCode);
+            if (! is_string($lastRecord)) {
+                throw new \RuntimeException("Last code value in column {$column} must be a string.");
+            }
+            $lastNumber = (int) str_replace($prefix, '', $lastRecord);
             $number = $lastNumber + 1;
         }
 
@@ -119,24 +106,17 @@ class CodeGenerator
         string $column = 'code'
     ): string {
         $datePart = date($dateFormat);
-        $randomPart = strtoupper(Str::random($length));
+        $randomPart = self::randomUpperString($length);
         $code = $prefix.$datePart.'-'.$randomPart;
 
-        
         if ($modelClass !== null) {
-            if (! class_exists($modelClass)) {
-                throw new \InvalidArgumentException("Model class {$modelClass} does not exist.");
-            }
-
-            if (! is_subclass_of($modelClass, Model::class)) {
-                throw new \InvalidArgumentException("Class {$modelClass} must extend Illuminate\\Database\\Eloquent\\Model.");
-            }
+            $model = self::instantiateModel($modelClass);
 
             $attempts = 0;
             $maxAttempts = 10;
 
-            while ($modelClass::where($column, $code)->exists()) {
-                $randomPart = strtoupper(Str::random($length));
+            while (self::tableQuery($model)->where($column, $code)->exists()) {
+                $randomPart = self::randomUpperString($length);
                 $code = $prefix.$datePart.'-'.$randomPart;
                 $attempts++;
 
@@ -147,5 +127,44 @@ class CodeGenerator
         }
 
         return $code;
+    }
+
+    private static function instantiateModel(string $modelClass): Model
+    {
+        if (! class_exists($modelClass)) {
+            throw new \InvalidArgumentException("Model class {$modelClass} does not exist.");
+        }
+
+        $model = new $modelClass;
+        if (! $model instanceof Model) {
+            throw new \InvalidArgumentException("Class {$modelClass} must extend Illuminate\\Database\\Eloquent\\Model.");
+        }
+
+        return $model;
+    }
+
+    private static function randomUpperString(int $length): string
+    {
+        $random = Str::random($length);
+        if (! is_string($random)) {
+            throw new \RuntimeException('Unable to generate random string.');
+        }
+
+        return strtoupper($random);
+    }
+
+    private static function tableQuery(Model $model): Builder
+    {
+        $table = $model->getTable();
+        if (! is_string($table) || $table === '') {
+            throw new \RuntimeException('Model table name must be a non-empty string.');
+        }
+
+        $query = DB::table($table);
+        if (! $query instanceof Builder) {
+            throw new \RuntimeException('Unable to create database query builder.');
+        }
+
+        return $query;
     }
 }

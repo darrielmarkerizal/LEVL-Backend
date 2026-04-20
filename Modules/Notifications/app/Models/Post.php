@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Notifications\Models;
 
 use App\Models\Concerns\TracksTrashBin;
@@ -64,11 +66,6 @@ class Post extends Model implements HasMedia
     public function notifications(): HasMany
     {
         return $this->hasMany(PostNotification::class);
-    }
-
-    public function views(): HasMany
-    {
-        return $this->hasMany(PostView::class);
     }
 
     

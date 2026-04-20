@@ -21,40 +21,72 @@ class NotificationsDatabaseSeeder extends Seeder
 
         $this->command->info('Seeding in-app notifications...');
 
-        $studentIds = User::query()->role('Student')->orderBy('id')->limit(80)->pluck('id')->all();
-        if ($studentIds === []) {
-            $this->command->warn('No students found for notification seeding.');
-
-            return;
-        }
-
         $now = now()->toDateTimeString();
+        $channel = NotificationChannel::InApp->value;
+        $sentAt = $channel === NotificationChannel::InApp->value ? null : $now;
+
         $templates = [
-            [NotificationType::Enrollment, 'Enrollment updated', 'Your enrollment status was refreshed.', Priority::Normal],
-            [NotificationType::Assignment, 'New assignment', 'A new assignment is available in your course.', Priority::Normal],
-            [NotificationType::Grading, 'Grade released', 'Your submission has been graded.', Priority::High],
-            [NotificationType::Gamification, 'Points earned', 'You earned XP for completing learning activity.', Priority::Low],
-            [NotificationType::System, 'Platform notice', 'Welcome to LEVL UAT dataset.', Priority::Low],
+            [
+                NotificationType::Enrollment,
+                'Enrollment activated',
+                'Your enrollment is now active. Start exploring lessons in your course.',
+                Priority::Normal,
+                fn () => $this->recipientsForEnrollment(),
+            ],
+            [
+                NotificationType::Assignment,
+                'New assignment available',
+                'A new assignment has been published in one of your enrolled courses.',
+                Priority::Normal,
+                fn () => $this->recipientsForActiveSubmission(),
+            ],
+            [
+                NotificationType::Grading,
+                'Grade released',
+                'Your submission has been graded. Open it to view feedback and score.',
+                Priority::High,
+                fn () => $this->recipientsForRecentGrading(),
+            ],
+            [
+                NotificationType::Gamification,
+                'Points earned',
+                'You earned XP for completing a learning activity.',
+                Priority::Low,
+                fn () => $this->recipientsForRecentPoints(),
+            ],
+            [
+                NotificationType::System,
+                'Platform notice',
+                'New features and improvements are now available on LEVL.',
+                Priority::Low,
+                fn () => $this->recipientsForBroadcast(),
+            ],
         ];
 
-        foreach ($templates as $index => [$type, $title, $message, $priority]) {
+        foreach ($templates as $index => [$type, $title, $message, $priority, $recipientsResolver]) {
+            $recipients = $recipientsResolver();
+            if ($recipients === []) {
+                continue;
+            }
+
+            $isBroadcast = $type === NotificationType::System;
+
             $id = DB::table('notifications')->insertGetId([
                 'type' => $type->value,
                 'title' => $title,
                 'message' => $message,
                 'data' => json_encode(['seed_index' => $index]),
                 'action_url' => null,
-                'channel' => NotificationChannel::InApp->value,
+                'channel' => $channel,
                 'priority' => $priority->value,
-                'is_broadcast' => false,
+                'is_broadcast' => $isBroadcast,
                 'scheduled_at' => null,
-                'sent_at' => $now,
+                'sent_at' => $sentAt,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
 
-            $targets = array_slice($studentIds, 0, min(12, count($studentIds)));
-            foreach ($targets as $offset => $userId) {
+            foreach ($recipients as $offset => $userId) {
                 DB::table('user_notifications')->insertOrIgnore([
                     'user_id' => $userId,
                     'notification_id' => $id,
@@ -67,5 +99,67 @@ class NotificationsDatabaseSeeder extends Seeder
         }
 
         $this->command->info('Notifications seeded.');
+    }
+
+    private function recipientsForEnrollment(): array
+    {
+        return DB::table('enrollments')
+            ->whereIn('status', ['active', 'pending'])
+            ->inRandomOrder()
+            ->limit(40)
+            ->pluck('user_id')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function recipientsForActiveSubmission(): array
+    {
+        return DB::table('submissions')
+            ->where('status', 'draft')
+            ->inRandomOrder()
+            ->limit(30)
+            ->pluck('user_id')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function recipientsForRecentGrading(): array
+    {
+        return DB::table('grades')
+            ->where('status', 'graded')
+            ->whereNotNull('released_at')
+            ->inRandomOrder()
+            ->limit(30)
+            ->pluck('user_id')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function recipientsForRecentPoints(): array
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('points')) {
+            return $this->recipientsForBroadcast();
+        }
+
+        return DB::table('points')
+            ->inRandomOrder()
+            ->limit(30)
+            ->pluck('user_id')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function recipientsForBroadcast(): array
+    {
+        return User::query()
+            ->whereNull('deleted_at')
+            ->inRandomOrder()
+            ->limit(80)
+            ->pluck('id')
+            ->all();
     }
 }

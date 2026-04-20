@@ -49,7 +49,7 @@ class SystemSettingSeeder extends Seeder
             ['key' => 'enrollment.auto_approve', 'value' => 'false', 'type' => 'boolean'],
             ['key' => 'enrollment.max_courses_per_user', 'value' => '10', 'type' => 'number'],
             ['key' => 'enrollment.allow_unenroll', 'value' => 'true', 'type' => 'boolean'],
-            ['key' => 'enrollment.require_approval', 'value' => 'false', 'type' => 'boolean'],
+            ['key' => 'enrollment.require_approval', 'value' => 'true', 'type' => 'boolean'],
             ['key' => 'enrollment.waitlist_enabled', 'value' => 'false', 'type' => 'boolean'],
 
             

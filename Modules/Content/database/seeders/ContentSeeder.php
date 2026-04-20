@@ -13,7 +13,7 @@ class ContentSeeder extends Seeder
 {
     public function run(): void
     {
-        
+
         $categories = [
             ['name' => 'Teknologi', 'value' => 'teknologi', 'scope' => 'news', 'status' => 'active'],
             ['name' => 'Pendidikan', 'value' => 'pendidikan', 'scope' => 'news', 'status' => 'active'],
@@ -28,7 +28,6 @@ class ContentSeeder extends Seeder
             );
         }
 
-        
         $admin = User::whereHas('roles', function ($q) {
             $q->where('name', 'Admin');
         })->first();
@@ -39,7 +38,6 @@ class ContentSeeder extends Seeder
             return;
         }
 
-        
         $announcements = [
             [
                 'title' => 'Selamat Datang di Platform LMS',
@@ -78,7 +76,6 @@ class ContentSeeder extends Seeder
             );
         }
 
-        
         $newsArticles = [
             [
                 'title' => 'Platform LMS Meluncurkan Fitur Baru',
@@ -117,18 +114,19 @@ class ContentSeeder extends Seeder
                 array_merge($newsData, ['author_id' => $admin->id])
             );
 
-            
-            if ($news->wasRecentlyCreated && !empty($categoryIds)) {
+            if ($news->wasRecentlyCreated && ! empty($categoryIds)) {
                 $randomCategories = array_rand(array_flip($categoryIds), min(2, count($categoryIds)));
                 $news->categories()->sync(is_array($randomCategories) ? $randomCategories : [$randomCategories]);
             }
         }
 
-        
-        $course = Course::first();
+        $course = Course::query()
+            ->where('status', 'published')
+            ->inRandomOrder()
+            ->first();
         if ($course) {
             Announcement::firstOrCreate(
-                ['slug' => 'pengumuman-kursus-' . \Illuminate\Support\Str::slug($course->title)],
+                ['slug' => 'pengumuman-kursus-'.\Illuminate\Support\Str::slug($course->title)],
                 [
                     'author_id' => $admin->id,
                     'course_id' => $course->id,

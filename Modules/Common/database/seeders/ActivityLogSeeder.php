@@ -4,44 +4,77 @@ namespace Modules\Common\Database\Seeders;
 
 use App\Models\ActivityLog;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
 
 class ActivityLogSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::first(); 
-        if (! $admin) {
+        if (DB::table('activity_log')->count() > 1000) {
             return;
         }
 
-        $actions = ['login', 'logout', 'created', 'updated', 'deleted'];
-        $logNames = ['auth', 'system', 'user', 'course'];
+        $userIds = User::query()
+            ->whereNull('deleted_at')
+            ->inRandomOrder()
+            ->limit(400)
+            ->pluck('id')
+            ->all();
+
+        if ($userIds === []) {
+            return;
+        }
+
+        $actions = [
+            'login' => 'User logged in successfully',
+            'logout' => 'User logged out of the platform',
+            'view_course' => 'User opened a course detail page',
+            'view_lesson' => 'User viewed a lesson content',
+            'submit_assignment' => 'User submitted an assignment',
+            'start_quiz' => 'User started a quiz attempt',
+            'complete_quiz' => 'User completed a quiz attempt',
+            'enroll_course' => 'User enrolled in a course',
+            'update_profile' => 'User updated profile details',
+            'download_certificate' => 'User downloaded certificate',
+        ];
+
+        $logNames = ['auth', 'system', 'user', 'course', 'assessment'];
         $browsers = ['Chrome', 'Firefox', 'Safari', 'Edge'];
         $platforms = ['Windows', 'macOS', 'Linux', 'iOS', 'Android'];
+        $devices = ['desktop', 'mobile', 'tablet'];
+        $cities = ['Jakarta', 'Bandung', 'Surabaya', 'Yogyakarta', 'Medan', 'Semarang', 'Denpasar', 'Makassar'];
 
-        for ($i = 0; $i < 50; $i++) {
-            $logName = $logNames[array_rand($logNames)];
-            $action = $actions[array_rand($actions)];
+        $actionKeys = array_keys($actions);
 
-            ActivityLog::create([
-                'log_name' => $logName,
-                'description' => "User {$action} a resource",
-                'subject_type' => User::class,
-                'subject_id' => $admin->id,
-                'causer_type' => User::class,
-                'causer_id' => $admin->id,
-                'properties' => [
-                    'browser' => $browsers[array_rand($browsers)],
-                    'platform' => $platforms[array_rand($platforms)],
-                    'device_type' => array_rand(['desktop' => 1, 'mobile' => 1]),
-                    'ip' => '127.0.0.1',
-                    'city' => array_rand(['Jakarta' => 1, 'Bandung' => 1, 'Surabaya' => 1]),
-                    'region' => 'DKI Jakarta',
-                    'country' => 'Indonesia',
-                ],
-                'created_at' => now()->subDays(rand(0, 30)),
-            ]);
+        foreach ($userIds as $userId) {
+            $count = rand(5, 30);
+
+            for ($i = 0; $i < $count; $i++) {
+                $actionKey = $actionKeys[array_rand($actionKeys)];
+                $logName = $logNames[array_rand($logNames)];
+                $city = $cities[array_rand($cities)];
+
+                ActivityLog::create([
+                    'log_name' => $logName,
+                    'description' => $actions[$actionKey],
+                    'subject_type' => User::class,
+                    'subject_id' => $userId,
+                    'causer_type' => User::class,
+                    'causer_id' => $userId,
+                    'properties' => [
+                        'event' => $actionKey,
+                        'browser' => $browsers[array_rand($browsers)],
+                        'platform' => $platforms[array_rand($platforms)],
+                        'device_type' => $devices[array_rand($devices)],
+                        'ip' => sprintf('%d.%d.%d.%d', rand(10, 223), rand(0, 255), rand(0, 255), rand(1, 254)),
+                        'city' => $city,
+                        'region' => 'Indonesia',
+                        'country' => 'Indonesia',
+                    ],
+                    'created_at' => now()->subDays(rand(0, 90))->subMinutes(rand(0, 1440)),
+                ]);
+            }
         }
     }
 }

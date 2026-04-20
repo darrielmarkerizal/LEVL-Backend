@@ -17,8 +17,6 @@ class GradeSeeder extends Seeder
 
         $pregenFeedback = [];
         $createdAt = now()->toDateTimeString();
-        $gradedAt = now()->subDays(10)->toDateTimeString();
-        $releasedAt = now()->subDays(5)->toDateTimeString();
 
         for ($i = 0; $i < 100; $i++) {
             $pregenFeedback[] = RealisticSeederContent::assignmentFeedback($i);
@@ -92,18 +90,25 @@ class GradeSeeder extends Seeder
                     default => 'reviewed',
                 };
 
+                $gradedAtRow = $gradeStatus === 'pending'
+                    ? null
+                    : now()->subDays(rand(1, 14))->toDateTimeString();
+                $releasedAtRow = $gradeStatus === 'pending'
+                    ? null
+                    : now()->subDays(rand(0, 7))->toDateTimeString();
+
                 $grades[] = [
                     'source_id' => $submission->assignment_id,
                     'source_type' => 'assignment',
                     'user_id' => $submission->user_id,
                     'submission_id' => $submission->id,
                     'graded_by' => $instructorId,
-                    'score' => $gradeStatus === 'pending' ? 0 : rand(0, $submission->max_score),
+                    'score' => $gradeStatus === 'pending' ? null : rand(0, $submission->max_score),
                     'max_score' => $submission->max_score,
                     'feedback' => $gradeStatus === 'pending' ? null : $pregenFeedback[array_rand($pregenFeedback)],
                     'status' => $gradeStatus,
-                    'graded_at' => $gradeStatus === 'pending' ? null : $gradedAt,
-                    'released_at' => $gradeStatus === 'pending' ? null : $releasedAt,
+                    'graded_at' => $gradedAtRow,
+                    'released_at' => $releasedAtRow,
                     'created_at' => $createdAt,
                     'updated_at' => $createdAt,
                 ];

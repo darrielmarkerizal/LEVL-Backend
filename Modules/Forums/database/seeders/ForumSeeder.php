@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Forums\Database\Seeders;
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
 use Modules\Forums\Models\Mention;
 use Modules\Forums\Models\Reaction;
@@ -16,38 +19,51 @@ class ForumSeeder extends Seeder
 {
     public function run(): void
     {
+        if (Thread::count() > 50) {
+            $this->command->info('Forum threads already seeded; skipping.');
+
+            return;
+        }
+
         $this->command->info('Starting forum seeding...');
 
-        $users = User::limit(20)->get();
-        $courses = Course::all();
+        $courses = Course::query()
+            ->where('status', 'published')
+            ->with('instructor:id')
+            ->get();
 
-        if ($users->isEmpty() || $courses->isEmpty()) {
-            $this->command->warn('Not enough users or courses. Need at least 20 users and at least 1 course.');
+        if ($courses->isEmpty()) {
+            $this->command->warn('No published courses found. Cannot seed forum.');
 
             return;
         }
 
         foreach ($courses as $course) {
-            $this->seedCourseForums($course, $users);
+            $this->seedCourseForums($course);
         }
 
-        $this->seedUserMentions($users, $courses);
+        $this->seedUserMentions($courses);
 
         $this->command->info('✓ Forum seeding completed successfully!');
     }
 
-    private function seedCourseForums(Course $course, $users): void
+    private function seedCourseForums(Course $course): void
     {
+        $pool = $this->participantsForCourse($course);
+        if ($pool->count() < 2) {
+            return;
+        }
+
         $this->command->line("  → Seeding forum for course: {$course->title}");
 
         for ($i = 1; $i <= 10; $i++) {
             $thread = $this->createThread(
-                $course->id,
-                $users,
+                $course,
+                $pool,
                 "Course Discussion: {$course->title} - Topic $i"
             );
 
-            $this->createReplies($thread, $users, rand(3, 8));
+            $this->createReplies($thread, $pool, rand(3, 8));
 
             if (rand(1, 100) <= 40) {
                 $acceptedReply = $thread->replies()->inRandomOrder()->first();
@@ -57,19 +73,46 @@ class ForumSeeder extends Seeder
                 }
             }
 
-            $this->createReactions($thread, $users);
+            $this->createReactions($thread, $pool);
         }
     }
 
-    private function createThread(int $courseId, $users, string $title): Thread
+    private function participantsForCourse(Course $course): Collection
     {
-        $author = $users->random();
+        $studentIds = DB::table('enrollments')
+            ->where('course_id', $course->id)
+            ->whereIn('status', ['active', 'completed'])
+            ->pluck('user_id')
+            ->all();
+
+        $instructorIds = [];
+        if ($course->instructor_id) {
+            $instructorIds[] = $course->instructor_id;
+        }
+
+        $ids = array_values(array_unique(array_merge($studentIds, $instructorIds)));
+
+        if ($ids === []) {
+            return collect();
+        }
+
+        return User::query()
+            ->whereIn('id', $ids)
+            ->limit(30)
+            ->get();
+    }
+
+    private function createThread(Course $course, Collection $pool, string $title): Thread
+    {
+        $author = $pool->random();
         $hasMention = rand(0, 100) < 40;
-        $mentionedUsers = $hasMention ? $this->selectMentionedUsers($users, $author->id, rand(1, 3)) : collect();
+        $mentionedUsers = $hasMention ? $this->selectMentionedUsers($pool, $author->id, rand(1, 3)) : collect();
         $content = $this->generateThreadContent($mentionedUsers);
 
+        $createdAt = Carbon::parse(now())->subDays(rand(1, 90))->subMinutes(rand(0, 1440));
+
         $thread = Thread::create([
-            'course_id' => $courseId,
+            'course_id' => $course->id,
             'author_id' => $author->id,
             'title' => $title,
             'content' => $content,
@@ -78,22 +121,30 @@ class ForumSeeder extends Seeder
             'is_resolved' => rand(1, 10) > 7,
             'views_count' => rand(5, 100),
             'replies_count' => 0,
-            'last_activity_at' => now()->subDays(rand(0, 14)),
+            'last_activity_at' => $createdAt,
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt,
         ]);
 
         foreach ($mentionedUsers as $user) {
-            $this->createMention($thread, $user);
+            $this->createMention($thread, $user, $createdAt);
         }
 
         return $thread;
     }
 
-    private function createReplies(Thread $thread, $users, int $count): void
+    private function createReplies(Thread $thread, Collection $pool, int $count): void
     {
+        $threadCreated = $thread->created_at ?? now();
+
         for ($i = 1; $i <= $count; $i++) {
-            $author = $users->random();
+            $author = $pool->random();
             $hasMention = rand(0, 100) < 30;
-            $mentionedUsers = $hasMention ? $this->selectMentionedUsers($users, $author->id, rand(1, 3)) : collect();
+            $mentionedUsers = $hasMention ? $this->selectMentionedUsers($pool, $author->id, rand(1, 3)) : collect();
+
+            $repliedAt = Carbon::parse($threadCreated)
+                ->addMinutes(rand(5, 60 * 24 * 14))
+                ->addSeconds(rand(0, 59));
 
             $reply = Reply::create([
                 'thread_id' => $thread->id,
@@ -102,31 +153,39 @@ class ForumSeeder extends Seeder
                 'parent_id' => null,
                 'depth' => 0,
                 'is_accepted_answer' => false,
+                'created_at' => $repliedAt,
+                'updated_at' => $repliedAt,
             ]);
 
             foreach ($mentionedUsers as $user) {
-                $this->createMention($reply, $user);
+                $this->createMention($reply, $user, $repliedAt);
             }
 
             if (rand(0, 1) && $i < $count) {
-                $this->createNestedReply($thread, $reply, $users, rand(1, 2));
+                $this->createNestedReply($thread, $reply, $pool, 1, $repliedAt);
             }
 
-            $this->createReactions($reply, $users);
+            $this->createReactions($reply, $pool);
         }
 
         $thread->increment('replies_count', $count);
+
+        $latestReply = $thread->replies()->orderByDesc('created_at')->first();
+        if ($latestReply) {
+            $thread->update(['last_activity_at' => $latestReply->created_at]);
+        }
     }
 
-    private function createNestedReply(Thread $thread, Reply $parent, $users, int $depth): void
+    private function createNestedReply(Thread $thread, Reply $parent, Collection $pool, int $depth, Carbon $parentCreatedAt): void
     {
         if ($depth > 3) {
             return;
         }
 
-        $author = $users->random();
+        $author = $pool->random();
         $hasMention = rand(0, 100) < 25;
-        $mentionedUsers = $hasMention ? $this->selectMentionedUsers($users, $author->id, 1) : collect();
+        $mentionedUsers = $hasMention ? $this->selectMentionedUsers($pool, $author->id, 1) : collect();
+        $repliedAt = $parentCreatedAt->copy()->addMinutes(rand(10, 60 * 24 * 3));
 
         $reply = Reply::create([
             'thread_id' => $thread->id,
@@ -135,22 +194,24 @@ class ForumSeeder extends Seeder
             'content' => $this->generateReplyContent($mentionedUsers),
             'depth' => $depth,
             'is_accepted_answer' => false,
+            'created_at' => $repliedAt,
+            'updated_at' => $repliedAt,
         ]);
 
         foreach ($mentionedUsers as $user) {
-            $this->createMention($reply, $user);
+            $this->createMention($reply, $user, $repliedAt);
         }
 
         $thread->increment('replies_count');
 
         if (rand(0, 1) && $depth < 3) {
-            $this->createNestedReply($thread, $reply, $users, $depth + 1);
+            $this->createNestedReply($thread, $reply, $pool, $depth + 1, $repliedAt);
         }
     }
 
-    private function selectMentionedUsers($users, int $excludeUserId, int $count = 1)
+    private function selectMentionedUsers(Collection $pool, int $excludeUserId, int $count = 1): Collection
     {
-        $availableUsers = $users->where('id', '!=', $excludeUserId);
+        $availableUsers = $pool->where('id', '!=', $excludeUserId);
 
         if ($availableUsers->isEmpty()) {
             return collect();
@@ -161,16 +222,19 @@ class ForumSeeder extends Seeder
         return $availableUsers->random($count);
     }
 
-    private function createMention($model, User $user): void
+    private function createMention($model, User $user, ?Carbon $when = null): void
     {
+        $timestamp = $when ?? now();
         Mention::create([
             'user_id' => $user->id,
             'mentionable_type' => $model::class,
             'mentionable_id' => $model->id,
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
         ]);
     }
 
-    private function createReactions($model, $users): void
+    private function createReactions($model, Collection $pool): void
     {
         $reactionCount = rand(0, 3);
 
@@ -179,7 +243,7 @@ class ForumSeeder extends Seeder
                 $type = ['like', 'helpful', 'solved'][rand(0, 2)];
 
                 Reaction::firstOrCreate([
-                    'user_id' => $users->random()->id,
+                    'user_id' => $pool->random()->id,
                     'reactable_type' => $model::class,
                     'reactable_id' => $model->id,
                     'type' => $type,
@@ -189,7 +253,7 @@ class ForumSeeder extends Seeder
         }
     }
 
-    private function generateThreadContent($mentionedUsers): string
+    private function generateThreadContent(Collection $mentionedUsers): string
     {
         $nonMentionContents = [
             'Bagaimana cara solve masalah ini? Saya sudah coba berbagai cara tapi masih error.',
@@ -209,12 +273,7 @@ class ForumSeeder extends Seeder
         $content = $nonMentionContents[array_rand($nonMentionContents)];
 
         if ($mentionedUsers->isNotEmpty()) {
-            $mentionPrefixes = [
-                ' cc ',
-                ' FYI ',
-                ' ',
-                "\n\n",
-            ];
+            $mentionPrefixes = [' cc ', ' FYI ', ' ', "\n\n"];
             $prefix = $mentionPrefixes[array_rand($mentionPrefixes)];
             $mentions = $mentionedUsers->map(fn ($u) => "@{$u->username}")->implode(' ');
             $content .= $prefix.$mentions;
@@ -223,7 +282,7 @@ class ForumSeeder extends Seeder
         return $content;
     }
 
-    private function generateReplyContent($mentionedUsers): string
+    private function generateReplyContent(Collection $mentionedUsers): string
     {
         $nonMentionReplies = [
             'Coba approach dengan cara ini, semoga membantu!',
@@ -257,43 +316,63 @@ class ForumSeeder extends Seeder
         return $content;
     }
 
-    private function seedUserMentions($users, $courses): void
+    private function seedUserMentions(Collection $courses): void
     {
-        $this->command->line('  → Ensuring all users have at least one mention...');
+        $this->command->line('  → Ensuring key users have at least one mention...');
 
         $mentionedUserIds = Mention::distinct('user_id')->pluck('user_id')->toArray();
-        $unmentionedUsers = $users->whereNotIn('id', $mentionedUserIds);
 
-        if ($unmentionedUsers->isEmpty()) {
-            $this->command->info('    ✓ All users already have mentions');
+        $eligibleUserIds = User::query()
+            ->whereNull('deleted_at')
+            ->limit(50)
+            ->pluck('id')
+            ->all();
+
+        $unmentionedUserIds = array_values(array_diff($eligibleUserIds, $mentionedUserIds));
+
+        if ($unmentionedUserIds === []) {
+            $this->command->info('    ✓ All sampled users already have mentions');
 
             return;
         }
 
-        $this->command->info("    → Creating threads to mention {$unmentionedUsers->count()} users");
+        $this->command->info('    → Creating threads to mention '.count($unmentionedUserIds).' users');
 
-        foreach ($unmentionedUsers as $targetUser) {
-            $course = $courses->random();
-            $author = $users->where('id', '!=', $targetUser->id)->random();
+        foreach ($unmentionedUserIds as $targetUserId) {
+            $targetUser = User::find($targetUserId);
+            if (! $targetUser) {
+                continue;
+            }
 
-            $otherMentions = rand(0, 2);
+            $course = $this->courseForUser($targetUser->id, $courses);
+            if (! $course) {
+                continue;
+            }
+
+            $pool = $this->participantsForCourse($course);
+            if ($pool->count() < 2) {
+                continue;
+            }
+
+            $authorCandidates = $pool->where('id', '!=', $targetUser->id);
+            if ($authorCandidates->isEmpty()) {
+                continue;
+            }
+            $author = $authorCandidates->random();
+
             $mentionedUsers = collect([$targetUser]);
-
+            $otherMentions = rand(0, 2);
             if ($otherMentions > 0) {
-                $additionalUsers = $this->selectMentionedUsers(
-                    $users,
-                    $author->id,
-                    $otherMentions
-                )->filter(fn ($u) => $u->id !== $targetUser->id);
-
+                $additionalUsers = $this->selectMentionedUsers($pool, $author->id, $otherMentions)
+                    ->filter(fn ($u) => $u->id !== $targetUser->id);
                 $mentionedUsers = $mentionedUsers->merge($additionalUsers)->unique('id');
             }
 
             $content = $this->generateThreadContent($mentionedUsers);
+            $createdAt = Carbon::parse(now())->subDays(rand(1, 30))->subMinutes(rand(0, 1440));
 
             $thread = Thread::create([
-                'forumable_type' => Course::class,
-                'forumable_id' => $course->id,
+                'course_id' => $course->id,
                 'author_id' => $author->id,
                 'title' => "Discussion: Question for @{$targetUser->username}",
                 'content' => $content,
@@ -302,15 +381,32 @@ class ForumSeeder extends Seeder
                 'is_resolved' => false,
                 'views_count' => rand(5, 50),
                 'replies_count' => 0,
-                'last_activity_at' => now()->subDays(rand(0, 7)),
+                'last_activity_at' => $createdAt,
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
             ]);
 
             foreach ($mentionedUsers as $user) {
-                $this->createMention($thread, $user);
+                $this->createMention($thread, $user, $createdAt);
             }
-
-            $this->command->info("    ✓ Created thread mentioning @{$targetUser->username}".
-                ($mentionedUsers->count() > 1 ? ' (+'.($mentionedUsers->count() - 1).' others)' : ''));
         }
+    }
+
+    private function courseForUser(int $userId, Collection $courses): ?Course
+    {
+        $enrolledCourseId = DB::table('enrollments')
+            ->where('user_id', $userId)
+            ->whereIn('status', ['active', 'completed', 'pending'])
+            ->inRandomOrder()
+            ->value('course_id');
+
+        if ($enrolledCourseId) {
+            $match = $courses->firstWhere('id', $enrolledCourseId);
+            if ($match) {
+                return $match;
+            }
+        }
+
+        return $courses->isEmpty() ? null : $courses->random();
     }
 }

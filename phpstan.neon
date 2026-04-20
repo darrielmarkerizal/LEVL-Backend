@@ -11,7 +11,6 @@ parameters:
         - Modules
         - bootstrap
         - routes
-        - resources
 
     excludePaths:
         - */vendor/*
@@ -20,13 +19,12 @@ parameters:
         - */tests/*
         - Modules/**/tests
         - Modules/**/Tests
+        - app/Repositories/**
+        - Modules/**/app/Repositories/**
 
     bootstrapFiles:
+        - vendor/autoload.php
         - bootstrap/app.php
 
+    checkNullables: true
     reportUnmatchedIgnoredErrors: false
-
-    ignoreErrors:
-        - '#missing @#'
-        - '#phpDoc#'
-        - '#needs documentation#'

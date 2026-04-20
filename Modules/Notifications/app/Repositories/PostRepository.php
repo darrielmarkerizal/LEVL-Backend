@@ -57,7 +57,7 @@ class PostRepository extends BaseRepository
     public function findByUuid(string $uuid): ?Post
     {
         return $this->model()::query()
-            ->with(['author', 'lastEditor', 'audiences', 'notifications', 'views'])
+            ->with(['author', 'lastEditor', 'audiences', 'notifications'])
             ->where('uuid', $uuid)
             ->first();
     }
@@ -73,8 +73,7 @@ class PostRepository extends BaseRepository
                 $query = $this->model()::query()
                     ->published()
                     ->pinned()
-                    ->with(['author', 'audiences'])
-                    ->withCount('views');
+                    ->with(['author', 'audiences']);
 
                 if ($role !== null) {
                     $query->forRole($role);
@@ -108,8 +107,7 @@ class PostRepository extends BaseRepository
     {
         $query = $this->model()::query()
             ->scheduled()
-            ->with(['author', 'audiences'])
-            ->withCount('views');
+            ->with(['author', 'audiences']);
 
         if ($role !== null) {
             $query->forRole($role);
@@ -172,8 +170,7 @@ class PostRepository extends BaseRepository
         ?string $role = null
     ): QueryBuilder {
         $query = $this->model()::query()
-            ->with(['author', 'lastEditor', 'audiences'])
-            ->withCount('views');
+            ->with(['author', 'lastEditor', 'audiences']);
 
         if ($search !== null) {
             $query->search($search);

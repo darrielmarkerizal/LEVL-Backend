@@ -7,8 +7,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("UPDATE submissions SET state = 'pending_manual_grading' WHERE state = 'submitted'");
-        DB::statement("UPDATE submissions SET status = 'submitted' WHERE status = 'missing'");
+        DB::statement("UPDATE submissions SET state = 'pending_manual_grading' WHERE state::text = 'submitted'");
+        DB::statement("UPDATE submissions SET status = 'submitted' WHERE status::text = 'missing'");
 
         DB::statement(<<<'SQL'
 DO $$

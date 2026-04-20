@@ -137,7 +137,9 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
                             ['id' => $this->pregenUuids[array_rand($this->pregenUuids)], 'label' => $this->pregenWords[array_rand($this->pregenWords)]],
                         ];
                         $questionData['options'] = json_encode($options);
-                        $questionData['answer_key'] = json_encode(['correct_option' => 0]);
+                        $questionData['answer_key'] = $questionType === QuestionType::Checkbox->value
+                            ? json_encode(['correct_options' => [0, 2]])
+                            : json_encode(['correct_option' => 0]);
                         break;
 
                     case QuestionType::Essay->value:

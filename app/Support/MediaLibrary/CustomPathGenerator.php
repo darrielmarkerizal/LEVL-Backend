@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Support\MediaLibrary;
 
+use RuntimeException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\MediaLibrary\Support\PathGenerator\PathGenerator;
 
@@ -25,27 +28,49 @@ class CustomPathGenerator implements PathGenerator
 
     protected function getBasePath(Media $media): string
     {
-        
-        $modelType = $this->getModelTypeName($media->model_type);
-
-        
-        $modelId = $media->model_id;
-
-        
-        $collection = $media->collection_name;
-
-        
-        $uuid = $media->uuid ?: $media->id;
+        $modelType = $this->getModelTypeName($this->toString($media->getAttributeValue('model_type')));
+        $modelId = $this->toString($media->getAttributeValue('model_id'));
+        $collection = $this->toString($media->getAttributeValue('collection_name'));
+        $uuidValue = $media->getAttributeValue('uuid');
+        $idValue = $media->getAttributeValue('id');
+        $uuid = $uuidValue !== null && $uuidValue !== '' ? $this->toString($uuidValue) : $this->toString($idValue);
 
         return "{$modelType}/{$modelId}/{$collection}/{$uuid}";
     }
 
     protected function getModelTypeName(string $modelClass): string
     {
-        
-        
         $className = class_basename($modelClass);
+        if (! is_string($className)) {
+            throw new RuntimeException('Invalid model class basename.');
+        }
 
-        return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $className)).'s';
+        $normalized = preg_replace('/(?<!^)[A-Z]/', '_$0', $className);
+        if (! is_string($normalized)) {
+            throw new RuntimeException('Failed to normalize model class name.');
+        }
+
+        return strtolower($normalized).'s';
+    }
+
+    private function toString(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value) || is_bool($value)) {
+            return (string) $value;
+        }
+
+        if ($value === null) {
+            return '';
+        }
+
+        if (is_object($value) && method_exists($value, '__toString')) {
+            return (string) $value;
+        }
+
+        throw new RuntimeException('Unable to convert media attribute to string.');
     }
 }

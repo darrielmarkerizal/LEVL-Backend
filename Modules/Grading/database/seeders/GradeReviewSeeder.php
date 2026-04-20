@@ -27,16 +27,18 @@ class GradeReviewSeeder extends Seeder
             return;
         }
 
-        
-        $totalGrades = \DB::table('grades')->count();
+        $totalGrades = \DB::table('grades')
+            ->whereIn('status', ['graded', 'reviewed'])
+            ->whereNotNull('released_at')
+            ->count();
 
         if ($totalGrades === 0) {
-            echo "⚠️  No grades found. Skipping grade review seeding.\n";
+            echo "⚠️  No released grades found. Skipping grade review seeding.\n";
 
             return;
         }
 
-        echo "   📝 Processing $totalGrades grades...\n";
+        echo "   📝 Processing $totalGrades released grades...\n";
         echo '   👥 Using '.count($instructorIds)." instructors\n\n";
 
         $reviewCount = 0;
@@ -44,10 +46,11 @@ class GradeReviewSeeder extends Seeder
         $chunkSize = 2000;
         $offset = 0;
 
-        
         while (true) {
             $grades = \DB::table('grades')
                 ->select('id', 'user_id')
+                ->whereIn('status', ['graded', 'reviewed'])
+                ->whereNotNull('released_at')
                 ->limit($chunkSize)
                 ->offset($offset)
                 ->orderBy('id')

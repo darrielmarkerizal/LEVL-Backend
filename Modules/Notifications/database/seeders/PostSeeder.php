@@ -15,20 +15,14 @@ class PostSeeder extends Seeder
 {
     public function run(): void
     {
-        $author = User::query()
-            ->role('Admin')
+        $authorPool = User::query()
+            ->role(['Admin', 'Superadmin', 'Instructor'])
             ->orderBy('id')
-            ->first()
-            ?? User::query()
-                ->role('Superadmin')
-                ->orderBy('id')
-                ->first()
-            ?? User::query()
-                ->role('Instructor')
-                ->orderBy('id')
-                ->first();
+            ->limit(10)
+            ->pluck('id')
+            ->all();
 
-        if (! $author) {
+        if ($authorPool === []) {
             $this->command?->warn('No admin, superadmin, or instructor users found for post seeding.');
 
             return;
@@ -60,6 +54,8 @@ class PostSeeder extends Seeder
             $title = $titles[($index - 1) % count($titles)].' #'.str_pad((string) $index, 3, '0', STR_PAD_LEFT);
             $category = $categories[($index - 1) % count($categories)];
             $publishedAt = now()->subDays($index);
+            $authorId = $authorPool[($index - 1) % count($authorPool)];
+            $editorId = $authorPool[$index % count($authorPool)];
 
             Post::query()->firstOrCreate(
                 ['slug' => Str::slug($title)],
@@ -70,8 +66,8 @@ class PostSeeder extends Seeder
                     'category' => $category->value,
                     'status' => PostStatus::PUBLISHED->value,
                     'is_pinned' => $index <= 3,
-                    'author_id' => $author->id,
-                    'last_editor_id' => $author->id,
+                    'author_id' => $authorId,
+                    'last_editor_id' => $editorId,
                     'published_at' => $publishedAt,
                     'scheduled_at' => null,
                     'created_at' => $publishedAt,

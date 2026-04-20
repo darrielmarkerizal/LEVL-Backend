@@ -123,11 +123,16 @@ class EnrollmentSeeder extends Seeder
                 $lessonProgress = [];
 
                 foreach ($enrollmentChunk as $enrollment) {
-                    
+                    $progressPercent = match ($enrollment->status) {
+                        'completed' => 100,
+                        'active' => rand(5, 95),
+                        default => 0,
+                    };
+
                     $courseProgress[] = [
                         'enrollment_id' => $enrollment->id,
                         'status' => $this->mapStatus($enrollment->status),
-                        'progress_percent' => $enrollment->status === 'completed' ? 100 : rand(0, 100),
+                        'progress_percent' => $progressPercent,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];

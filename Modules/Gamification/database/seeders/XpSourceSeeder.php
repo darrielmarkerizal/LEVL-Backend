@@ -34,7 +34,7 @@ class XpSourceSeeder extends Seeder
     private function getXpSources(): array
     {
         return [
-            
+
             [
                 'code' => 'lesson_completed',
                 'name' => 'Lesson Completed',
@@ -106,13 +106,12 @@ class XpSourceSeeder extends Seeder
                 'is_active' => true,
             ],
 
-            
             [
                 'code' => 'daily_login',
                 'name' => 'Daily Login',
                 'description' => 'Login to the platform',
                 'xp_amount' => 10,
-                'cooldown_seconds' => 86400, 
+                'cooldown_seconds' => 86400,
                 'daily_limit' => 1,
                 'daily_xp_cap' => 10,
                 'is_active' => true,
@@ -138,7 +137,6 @@ class XpSourceSeeder extends Seeder
                 'is_active' => true,
             ],
 
-            
             [
                 'code' => 'forum_post_created',
                 'name' => 'Forum Post Created',
@@ -170,7 +168,6 @@ class XpSourceSeeder extends Seeder
                 'is_active' => true,
             ],
 
-            
             [
                 'code' => 'perfect_score',
                 'name' => 'Perfect Score',
@@ -192,12 +189,11 @@ class XpSourceSeeder extends Seeder
                 'is_active' => true,
             ],
 
-            
             [
                 'code' => 'level_up_bonus',
                 'name' => 'Level Up Bonus',
-                'description' => 'Bonus XP for leveling up',
-                'xp_amount' => 0, 
+                'description' => 'Bonus XP awarded when the user reaches a new global level',
+                'xp_amount' => 50,
                 'cooldown_seconds' => 0,
                 'daily_limit' => null,
                 'daily_xp_cap' => null,
