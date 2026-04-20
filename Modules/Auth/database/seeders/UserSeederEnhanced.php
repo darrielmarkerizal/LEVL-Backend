@@ -244,12 +244,12 @@ class UserSeederEnhanced extends Seeder
                     ->state([
                         'status' => $status->value,
                         'email_verified_at' => $verified ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
-                        'is_password_set' => true,
+                        'is_password_set' => $this->pgsqlBool(true),
                     ])
                     ->raw();
 
                 $seed = crc32($attributes['email']);
-                $attributes['is_password_set'] = $role !== 'Student' ? ($seed % 5 !== 0) : true;
+                $attributes['is_password_set'] = $this->pgsqlBool($role !== 'Student' ? ($seed % 5 !== 0) : true);
                 if ($verified) {
                     $attributes['email_verified_at'] = SeederDate::randomPastDateTimeBetween(1, 180);
                 }
@@ -300,7 +300,7 @@ class UserSeederEnhanced extends Seeder
             'password' => Hash::make('password'),
             'status' => $data['status']->value ?? $data['status'],
             'email_verified_at' => ($data['verified'] ?? true) ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
-            'is_password_set' => $data['is_password_set'] ?? true,
+            'is_password_set' => $this->pgsqlBool($data['is_password_set'] ?? true),
             'phone' => RealisticSeederContent::phoneForIndex(abs(crc32($data['email'])) % 100000 + 1),
             'bio' => RealisticSeederContent::bioForUser(abs(crc32($data['email'])) % 10000 + 1),
         ]);
@@ -349,6 +349,11 @@ class UserSeederEnhanced extends Seeder
             
             
         }
+    }
+
+    private function pgsqlBool(mixed $value): string
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
     }
 
     private function batchCreatePrivacySettings($users, string $role): void

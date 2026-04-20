@@ -125,7 +125,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'status' => $demoUser['status'],
                 'email_verified_at' => $demoUser['verified'] ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
-                'is_password_set' => true,
+                'is_password_set' => $this->pgsqlBool(true),
                 'phone' => RealisticSeederContent::phoneForIndex($seed % 100000 + 1),
                 'bio' => RealisticSeederContent::bioForUser($seed % 10000 + 1),
             ]);
@@ -201,12 +201,12 @@ class UserSeeder extends Seeder
                 ->state([
                     'status' => $status->value,
                     'email_verified_at' => $verified ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
-                    'is_password_set' => true,
+                    'is_password_set' => $this->pgsqlBool(true),
                 ])
                 ->raw();
 
             $seed = crc32($attributes['email']);
-            $attributes['is_password_set'] = $role !== 'Student' ? ($seed % 5 !== 0) : true;
+            $attributes['is_password_set'] = $this->pgsqlBool($role !== 'Student' ? ($seed % 5 !== 0) : true);
             if ($verified) {
                 $attributes['email_verified_at'] = SeederDate::randomPastDateTimeBetween(1, 180);
             }
@@ -322,5 +322,10 @@ class UserSeeder extends Seeder
             }
         } catch (\Exception $e) {
         }
+    }
+
+    private function pgsqlBool(mixed $value): string
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
     }
 }
