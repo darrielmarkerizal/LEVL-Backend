@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Enrollments\Enums\ProgressStatus;
 use Modules\Enrollments\Models\CourseProgress;
@@ -30,11 +31,11 @@ class CourseProgressFactory extends Factory
 
         $startedAt = match ($status) {
             ProgressStatus::NotStarted->value => null,
-            default => now()->subDays(rand(1, 30)),
+            default => SeederDate::randomPastCarbonBetween(1, 180),
         };
 
         $completedAt = $status === ProgressStatus::Completed->value
-            ? now()->subDays(rand(0, 5))
+            ? SeederDate::randomPastCarbonBetween(1, 180)
             : null;
 
         return [
@@ -53,7 +54,7 @@ class CourseProgressFactory extends Factory
             fn (array $attributes) => [
                 'status' => 'completed',
                 'progress_percent' => 100,
-                'completed_at' => now(),
+                'completed_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ],
         );
     }

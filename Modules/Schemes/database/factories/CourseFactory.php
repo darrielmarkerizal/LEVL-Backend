@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Schemes\Enums\CourseStatus;
@@ -72,7 +73,7 @@ class CourseFactory extends Factory
                 EnrollmentType::Approval->value,
             ][$idx % 3],
             'status' => $statusCycle[$idx % 2],
-            'published_at' => ($idx % 5 !== 0) ? now()->subDays(($idx % 180) + 1) : null,
+            'published_at' => ($idx % 5 !== 0) ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
         ];
     }
 
@@ -83,7 +84,7 @@ class CourseFactory extends Factory
 
             return [
                 'status' => CourseStatus::Published->value,
-                'published_at' => now()->subDays(($seed % 180) + 1),
+                'published_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ];
         });
     }

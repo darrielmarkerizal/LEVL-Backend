@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
@@ -46,15 +47,15 @@ class JwtRefreshTokenSeeder extends Seeder
                     'token' => hash('sha256', \Illuminate\Support\Str::random(64)),
                     'ip' => RealisticSeederContent::ipv4ForIndex($salt),
                     'user_agent' => RealisticSeederContent::userAgentForIndex($salt),
-                    'last_used_at' => now()->subDays($salt % 8),
-                    'idle_expires_at' => now()->addDays(14),
-                    'absolute_expires_at' => now()->addDays(90),
+                    'last_used_at' => SeederDate::randomPastCarbonBetween(1, 14)->subDays($salt % 8),
+                    'idle_expires_at' => SeederDate::randomPastCarbonBetween(1, 14)->addDays(14),
+                    'absolute_expires_at' => SeederDate::randomPastCarbonBetween(1, 14)->addDays(90),
                     'revoked_at' => in_array($user->status, ['inactive', 'banned'], true)
-                        ? now()->subDays(1 + ($salt % 30))
+                        ? SeederDate::randomPastCarbonBetween(1, 30)
                         : null,
                     'replaced_by' => null,
-                    'created_at' => now()->subDays($salt % 31),
-                    'updated_at' => now()->subDays($salt % 31),
+                    'created_at' => SeederDate::randomPastCarbonBetween(1, 31),
+                    'updated_at' => SeederDate::randomPastCarbonBetween(1, 31),
                 ];
                 $count++;
             }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
 use Modules\Gamification\Enums\BadgeType;
@@ -46,7 +47,7 @@ class UserGamificationSeeder extends Seeder
                         'current_streak' => 0,
                         'longest_streak' => 0,
                         'last_activity_date' => null,
-                        'stats_updated_at' => now(),
+                        'stats_updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                     ]
                 );
 
@@ -65,8 +66,8 @@ class UserGamificationSeeder extends Seeder
                     'global_level' => $level,
                     'current_streak' => $streak,
                     'longest_streak' => max($streak, rand($streak, $streak + 5)),
-                    'last_activity_date' => now()->subDays(rand(0, 3)),
-                    'stats_updated_at' => now(),
+                    'last_activity_date' => SeederDate::randomPastCarbonBetween(1, 180)->toDateString(),
+                    'stats_updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ]
             );
 
@@ -91,7 +92,7 @@ class UserGamificationSeeder extends Seeder
                 ], [
                     'points' => rand(10, 100),
                     'description' => 'Simulated activity reward',
-                    'created_at' => now()->subDays(rand(1, 30)),
+                        'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ]);
             }
 
@@ -115,7 +116,7 @@ class UserGamificationSeeder extends Seeder
                             'user_id' => $user->id,
                             'badge_id' => $badge->id,
                         ], [
-                            'earned_at' => now()->subDays(rand(1, 60)),
+                            'earned_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                         ]);
                     }
                 }

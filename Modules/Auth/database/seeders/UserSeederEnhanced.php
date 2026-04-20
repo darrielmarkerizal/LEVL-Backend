@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Seeder;
@@ -242,7 +243,7 @@ class UserSeederEnhanced extends Seeder
                 $attributes = UserFactory::new()
                     ->state([
                         'status' => $status->value,
-                        'email_verified_at' => $verified ? now()->subDays(1) : null,
+                        'email_verified_at' => $verified ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
                         'is_password_set' => true,
                     ])
                     ->raw();
@@ -250,7 +251,7 @@ class UserSeederEnhanced extends Seeder
                 $seed = crc32($attributes['email']);
                 $attributes['is_password_set'] = $role !== 'Student' ? ($seed % 5 !== 0) : true;
                 if ($verified) {
-                    $attributes['email_verified_at'] = now()->subDays(($seed % 300) + 1);
+                    $attributes['email_verified_at'] = SeederDate::randomPastDateTimeBetween(1, 180);
                 }
 
                 if (User::where('email', $attributes['email'])
@@ -298,7 +299,7 @@ class UserSeederEnhanced extends Seeder
             'email' => $data['email'],
             'password' => Hash::make('password'),
             'status' => $data['status']->value ?? $data['status'],
-            'email_verified_at' => ($data['verified'] ?? true) ? now() : null,
+            'email_verified_at' => ($data['verified'] ?? true) ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
             'is_password_set' => $data['is_password_set'] ?? true,
             'phone' => RealisticSeederContent::phoneForIndex(abs(crc32($data['email'])) % 100000 + 1),
             'bio' => RealisticSeederContent::bioForUser(abs(crc32($data['email'])) % 10000 + 1),
@@ -314,8 +315,8 @@ class UserSeederEnhanced extends Seeder
             'show_activity_history' => true,
             'show_achievements' => true,
             'show_statistics' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+            'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
 
         $this->attachAvatar($user);
@@ -372,8 +373,8 @@ class UserSeederEnhanced extends Seeder
                 'show_activity_history' => true,
                 'show_achievements' => true,
                 'show_statistics' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ];
         })->toArray();
 
@@ -418,7 +419,7 @@ class UserSeederEnhanced extends Seeder
                         ]),
                         'related_type' => ($seed % 3 === 0) ? null : ['Course', 'Lesson', 'Assignment'][$seed % 3],
                         'related_id' => ($seed % 5 === 0) ? null : (($seed % 100) + 1),
-                        'created_at' => now()->subDays(($seed % 90) + 1),
+                        'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                     ];
                 }
             }

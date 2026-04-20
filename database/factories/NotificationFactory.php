@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Notifications\Models\Notification;
 
@@ -47,7 +48,7 @@ class NotificationFactory extends Factory
             $seed = crc32($attributes['title'] ?? 'n');
 
             return [
-                'scheduled_at' => now()->addDays(($seed % 7) + 1),
+                'scheduled_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ];
         });
     }

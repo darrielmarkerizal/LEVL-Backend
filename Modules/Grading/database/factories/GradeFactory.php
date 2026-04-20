@@ -2,6 +2,7 @@
 
 namespace Modules\Grading\Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\Models\User;
 use Modules\Grading\Models\Grade;
@@ -31,7 +32,7 @@ class GradeFactory extends Factory
             'is_draft' => false,
             'feedback' => fake()->paragraph(),
             'status' => 'graded',
-            'graded_at' => now(),
+            'graded_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             'released_at' => null,
         ];
     }
@@ -58,7 +59,16 @@ class GradeFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'graded',
-            'graded_at' => now(),
+            'graded_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+        ]);
+    }
+
+    public function reviewed(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'reviewed',
+            'graded_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+            'released_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 
@@ -82,7 +92,7 @@ class GradeFactory extends Factory
     public function released(): static
     {
         return $this->state(fn (array $attributes) => [
-            'released_at' => now(),
+            'released_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
@@ -25,7 +26,7 @@ class PasswordResetTokenSeeder extends Seeder
             $expiredTokens[] = [
                 'email' => $user->email,
                 'token' => hash('sha256', \Illuminate\Support\Str::random(32)),
-                'created_at' => now()->subHours(2),
+                'created_at' => SeederDate::randomPastCarbonBetween(0, 1)->subHours(2),
             ];
         }
 
@@ -40,7 +41,7 @@ class PasswordResetTokenSeeder extends Seeder
             $validTokens[] = [
                 'email' => $user->email,
                 'token' => hash('sha256', \Illuminate\Support\Str::random(32)),
-                'created_at' => now()->subMinutes(rand(1, 55)),
+                'created_at' => SeederDate::randomPastCarbonBetween(0, 1)->subMinutes(rand(1, 55)),
             ];
         }
 

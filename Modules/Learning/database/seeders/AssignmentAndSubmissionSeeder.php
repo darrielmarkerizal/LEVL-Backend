@@ -2,6 +2,7 @@
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
 
@@ -23,7 +24,7 @@ class AssignmentAndSubmissionSeeder extends Seeder
         echo "Seeding assignments and submissions...\n";
 
         $this->pregenerateFakeData();
-        $this->createdAt = now()->toDateTimeString();
+        $this->createdAt = SeederDate::randomPastDateTimeBetween(14, 180);
 
         $lessonCount = \DB::table('lessons')->count();
         $instructorIds = \DB::table('users')

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -41,9 +42,9 @@ class UserFactory extends Factory
             'specialization_id' => null,
             'password' => static::$password ??= Hash::make('password'),
             'status' => $status,
-            'email_verified_at' => ($idx % 5 !== 1) ? now()->subDays(($idx % 300) + 1) : null,
+            'email_verified_at' => ($idx % 5 !== 1) ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
             'is_password_set' => true,
-            'last_profile_update' => ($idx % 4 !== 0) ? now()->subDays(($idx % 60) + 1) : null,
+            'last_profile_update' => ($idx % 4 !== 0) ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
             'remember_token' => Str::random(10),
         ];
     }
@@ -68,7 +69,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => UserStatus::Active->value,
-            'email_verified_at' => now()->subDays(30),
+            'email_verified_at' => SeederDate::randomPastDateTimeBetween(30, 180),
         ]);
     }
 
@@ -76,7 +77,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => UserStatus::Inactive->value,
-            'email_verified_at' => now()->subDays(90),
+            'email_verified_at' => SeederDate::randomPastDateTimeBetween(90, 180),
         ]);
     }
 
@@ -84,7 +85,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => UserStatus::Banned->value,
-            'email_verified_at' => now()->subDays(60),
+            'email_verified_at' => SeederDate::randomPastDateTimeBetween(60, 180),
         ]);
     }
 
@@ -117,7 +118,7 @@ class UserFactory extends Factory
             return [
                 'phone' => RealisticSeederContent::phoneForIndex($idx),
                 'bio' => RealisticSeederContent::bioForUser($idx),
-                'last_profile_update' => now()->subDays(($idx % 20) + 1),
+                'last_profile_update' => SeederDate::randomPastDateTimeBetween(1, 180),
             ];
         });
     }
@@ -153,7 +154,7 @@ class UserFactory extends Factory
             return [
                 'specialization_id' => $specializationId,
                 'status' => UserStatus::Active->value,
-                'email_verified_at' => now()->subDays(($idx % 200) + 1),
+                'email_verified_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ];
         });
     }

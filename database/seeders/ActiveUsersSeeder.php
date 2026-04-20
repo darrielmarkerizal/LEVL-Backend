@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -26,7 +27,7 @@ class ActiveUsersSeeder extends Seeder
                 'name' => 'Rizky Pratama',
                 'password' => Hash::make('password'),
                 'status' => 'active',
-                'email_verified_at' => now(),
+                'email_verified_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ]
         );
         if (! $superadmin->hasRole('Superadmin')) {
@@ -40,7 +41,7 @@ class ActiveUsersSeeder extends Seeder
                 'name' => 'Dian Lestari',
                 'password' => Hash::make('password'),
                 'status' => 'active',
-                'email_verified_at' => now(),
+                'email_verified_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ]
         );
         if (! $admin->hasRole('Admin')) {
@@ -54,7 +55,7 @@ class ActiveUsersSeeder extends Seeder
                 'name' => 'Budi Santoso',
                 'password' => Hash::make('password'),
                 'status' => 'active',
-                'email_verified_at' => now(),
+                'email_verified_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ]
         );
         if (! $instructor->hasRole('Instructor')) {
@@ -68,7 +69,7 @@ class ActiveUsersSeeder extends Seeder
                 'name' => 'Citra Anggraini',
                 'password' => Hash::make('password'),
                 'status' => 'active',
-                'email_verified_at' => now(),
+                'email_verified_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ]
         );
         if (! $student->hasRole('Student')) {

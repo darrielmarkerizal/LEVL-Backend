@@ -2,6 +2,7 @@
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Modules\Learning\Models\Assignment;
 
@@ -70,8 +71,8 @@ class AssignmentPrerequisitesSeeder extends Seeder
                     $relationshipsToInsert[] = [
                         'assignment_id' => $assignmentId,
                         'prerequisite_id' => $prerequisiteId,
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                        'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                     ];
 
                     $prerequisiteCount++;

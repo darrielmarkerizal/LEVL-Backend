@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Enrollments\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Enums\ProgressStatus;
@@ -74,10 +75,10 @@ class EnrollmentSeeder extends Seeder
                     'user_id' => $student->id,
                     'course_id' => $course->id,
                     'status' => $status,
-                    'enrolled_at' => now()->subDays(rand(1, 180)),
-                    'completed_at' => $status === 'completed' ? now()->subDays(rand(1, 30)) : null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'enrolled_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                    'completed_at' => $status === 'completed' ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
+                    'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ];
 
                 $enrollments[] = $enrollmentData;
@@ -87,8 +88,8 @@ class EnrollmentSeeder extends Seeder
                     'enrollment_id' => $enrollmentIndex,
                     'status' => $this->mapStatus($status),
                     'progress_percent' => $status === 'completed' ? 100 : rand(0, 100),
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ];
 
                 if (\Illuminate\Support\Facades\Schema::hasTable('unit_progress')) {
@@ -98,8 +99,8 @@ class EnrollmentSeeder extends Seeder
                             'unit_id' => $unit->id,
                             'status' => 'not_started',
                             'progress_percent' => 0,
-                            'created_at' => now(),
-                            'updated_at' => now(),
+                            'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                            'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                         ];
 
                         if (\Illuminate\Support\Facades\Schema::hasTable('lesson_progress')) {
@@ -110,8 +111,8 @@ class EnrollmentSeeder extends Seeder
                                     'status' => 'not_started',
                                     'progress_percent' => 0,
                                     'attempt_count' => 0,
-                                    'created_at' => now(),
-                                    'updated_at' => now(),
+                                    'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                                 ];
                             }
                         }

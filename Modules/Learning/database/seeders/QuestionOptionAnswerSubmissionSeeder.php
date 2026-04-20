@@ -2,6 +2,7 @@
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
 use Modules\Learning\Enums\QuestionType;
@@ -42,7 +43,7 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
         }
 
         $this->pregenerateFakeData();
-        $this->createdAt = now()->toDateTimeString();
+        $this->createdAt = SeederDate::randomPastDateTimeBetween(14, 180);
 
         $userCount = \DB::table('users')->count();
         $assignmentCount = \DB::table('assignments')->count();

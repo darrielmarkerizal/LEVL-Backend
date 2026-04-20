@@ -2,6 +2,7 @@
 
 namespace Modules\Content\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
 use Modules\Common\Models\Category;
@@ -46,7 +47,7 @@ class ContentSeeder extends Seeder
                 'status' => 'published',
                 'target_type' => 'all',
                 'priority' => 'high',
-                'published_at' => now()->subDays(5),
+                'published_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ],
             [
                 'title' => 'Pemeliharaan Sistem Terjadwal',
@@ -55,7 +56,7 @@ class ContentSeeder extends Seeder
                 'status' => 'published',
                 'target_type' => 'all',
                 'priority' => 'normal',
-                'published_at' => now()->subDays(2),
+                'published_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ],
             [
                 'title' => 'Pengumuman untuk Instruktur',
@@ -65,7 +66,7 @@ class ContentSeeder extends Seeder
                 'target_type' => 'role',
                 'target_value' => 'instructor',
                 'priority' => 'normal',
-                'published_at' => now()->subDay(),
+                'published_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ],
         ];
 
@@ -84,7 +85,7 @@ class ContentSeeder extends Seeder
                 'content' => 'Platform LMS kami terus berkembang dengan menambahkan fitur-fitur inovatif. Fitur terbaru termasuk sistem notifikasi yang lebih baik, dashboard yang diperbarui, dan integrasi dengan berbagai tools pembelajaran.',
                 'status' => 'published',
                 'is_featured' => true,
-                'published_at' => now()->subDays(3),
+                'published_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ],
             [
                 'title' => 'Tips Belajar Efektif Online',
@@ -93,7 +94,7 @@ class ContentSeeder extends Seeder
                 'content' => 'Belajar online memerlukan disiplin dan strategi yang tepat. Berikut adalah beberapa tips untuk membantu Anda belajar lebih efektif: 1) Buat jadwal belajar yang konsisten, 2) Siapkan ruang belajar yang nyaman, 3) Aktif berpartisipasi dalam diskusi, 4) Manfaatkan semua resources yang tersedia.',
                 'status' => 'published',
                 'is_featured' => false,
-                'published_at' => now()->subDays(7),
+                'published_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ],
             [
                 'title' => 'Webinar: Masa Depan Pendidikan Digital',
@@ -102,7 +103,7 @@ class ContentSeeder extends Seeder
                 'content' => 'Kami mengundang Anda untuk mengikuti webinar eksklusif tentang masa depan pendidikan digital. Webinar ini akan membahas tren teknologi terkini, metodologi pembelajaran inovatif, dan bagaimana platform LMS dapat membantu mencapai tujuan pembelajaran Anda.',
                 'status' => 'published',
                 'is_featured' => true,
-                'published_at' => now()->subDays(1),
+                'published_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ],
         ];
 
@@ -135,7 +136,7 @@ class ContentSeeder extends Seeder
                     'status' => 'published',
                     'target_type' => 'course',
                     'priority' => 'normal',
-                    'published_at' => now()->subDays(1),
+                    'published_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ]
             );
         }

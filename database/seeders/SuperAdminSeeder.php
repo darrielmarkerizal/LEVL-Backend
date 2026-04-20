@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Modules\Auth\Models\User;
@@ -28,7 +29,7 @@ class SuperAdminSeeder extends Seeder
                 'username' => $username,
                 'password' => Hash::make($password),
                 'status' => 'active',
-                'email_verified_at' => now(),
+                'email_verified_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ]
         );
 

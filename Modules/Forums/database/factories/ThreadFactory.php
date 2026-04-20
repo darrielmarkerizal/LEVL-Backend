@@ -2,6 +2,7 @@
 
 namespace Modules\Forums\Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\Models\User;
 use Modules\Forums\Models\Thread;
@@ -23,7 +24,7 @@ class ThreadFactory extends Factory
             'is_resolved' => false,
             'views_count' => fake()->numberBetween(0, 1000),
             'replies_count' => 0,
-            'last_activity_at' => now(),
+            'last_activity_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             'edited_at' => null,
             'deleted_by' => null,
         ];

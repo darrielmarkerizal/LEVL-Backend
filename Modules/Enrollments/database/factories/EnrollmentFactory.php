@@ -2,6 +2,7 @@
 
 namespace Modules\Enrollments\Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Enums\EnrollmentStatus;
@@ -22,9 +23,9 @@ class EnrollmentFactory extends Factory
             $statusRoll <= 90 => EnrollmentStatus::Completed->value,
             default => EnrollmentStatus::Cancelled->value,
         };
-        $enrolledAt = fake()->dateTimeBetween('-6 months', 'now');
+        $enrolledAt = SeederDate::randomPastCarbonBetween(1, 180);
         $completedAt = $status === EnrollmentStatus::Completed->value
-            ? now()->subDays(rand(1, 30))
+            ? SeederDate::randomPastCarbonBetween(1, 180)
             : null;
 
         return [
@@ -57,7 +58,7 @@ class EnrollmentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => EnrollmentStatus::Active->value,
-            'approved_at' => now()->subDays(rand(5, 30)),
+            'approved_at' => SeederDate::randomPastCarbonBetween(5, 30),
         ]);
     }
 
@@ -76,8 +77,8 @@ class EnrollmentFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => EnrollmentStatus::Completed->value,
             'progress_percent' => 100,
-            'completed_at' => now()->subDays(rand(1, 30)),
-            'approved_at' => now()->subDays(rand(30, 60)),
+            'completed_at' => SeederDate::randomPastCarbonBetween(1, 180),
+            'approved_at' => SeederDate::randomPastCarbonBetween(30, 180),
         ]);
     }
 }

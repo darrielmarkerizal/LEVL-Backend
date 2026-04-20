@@ -2,6 +2,7 @@
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\User;
 use Modules\Learning\Enums\OverrideType;
@@ -81,33 +82,39 @@ class OverrideSeeder extends Seeder
                     'grantor_id' => $instructorId,
                     'type' => $type,
                     'reason' => fake()->sentence(),
-                    'granted_at' => now(),
+                    'granted_at' => SeederDate::randomPastDateTimeBetween(30, 180),
                     'expires_at' => null, 
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => SeederDate::randomPastDateTimeBetween(30, 180),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(30, 180),
                 ];
 
                 
                 switch ($type) {
                     case OverrideType::Deadline:
+                        $overrideGrantedAt = SeederDate::randomPastCarbonBetween(30, 150);
                         $overrideData['value'] = json_encode([
-                            'extended_deadline' => now()->addDays(rand(1, 14))->toISOString(),
+                            'extended_deadline' => $overrideGrantedAt->copy()->addDays(rand(1, 14))->toISOString(),
                         ], JSON_UNESCAPED_SLASHES);
-                        $overrideData['expires_at'] = now()->addDays(rand(15, 30));
+                        $overrideData['granted_at'] = $overrideGrantedAt->toDateTimeString();
+                        $overrideData['expires_at'] = $overrideGrantedAt->copy()->addDays(rand(15, 30))->toDateTimeString();
                         break;
 
                     case OverrideType::Attempts:
+                        $overrideGrantedAt = SeederDate::randomPastCarbonBetween(30, 150);
                         $overrideData['value'] = json_encode([
                             'additional_attempts' => rand(1, 3),
                         ], JSON_UNESCAPED_SLASHES);
-                        $overrideData['expires_at'] = now()->addDays(rand(30, 60));
+                        $overrideData['granted_at'] = $overrideGrantedAt->toDateTimeString();
+                        $overrideData['expires_at'] = $overrideGrantedAt->copy()->addDays(rand(30, 60))->toDateTimeString();
                         break;
 
                     case OverrideType::Prerequisite:
+                        $overrideGrantedAt = SeederDate::randomPastCarbonBetween(30, 150);
                         $overrideData['value'] = json_encode([
                             'bypassed_prerequisites' => [], 
                         ], JSON_UNESCAPED_SLASHES);
-                        $overrideData['expires_at'] = now()->addDays(rand(7, 21));
+                        $overrideData['granted_at'] = $overrideGrantedAt->toDateTimeString();
+                        $overrideData['expires_at'] = $overrideGrantedAt->copy()->addDays(rand(7, 21))->toDateTimeString();
                         break;
                 }
 

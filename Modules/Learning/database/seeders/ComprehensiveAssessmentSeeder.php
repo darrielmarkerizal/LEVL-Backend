@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
@@ -51,7 +52,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
         }
 
         $this->pregenerateFakeData();
-        $this->createdAt = now()->toDateTimeString();
+        $this->createdAt = SeederDate::randomPastDateTimeBetween(14, 180);
 
         $this->userIds = DB::table('users')
             ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
@@ -377,7 +378,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
 
         $submittedAt = $state === SubmissionState::InProgress
             ? null
-            : now()->subDays(rand(1, 14))->toDateTimeString();
+            : SeederDate::randomPastDateTimeBetween(1, 120);
 
         $nextAttempt = (int) (DB::table('submissions')
             ->where('assignment_id', $assignmentId)
@@ -487,8 +488,8 @@ class ComprehensiveAssessmentSeeder extends Seeder
                 'feedback' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
                 'status' => 'graded',
                 'is_draft' => false,
-                'graded_at' => now()->subDays(rand(0, 7))->toDateTimeString(),
-                'released_at' => $state === SubmissionState::Released ? now()->toDateTimeString() : null,
+                'graded_at' => SeederDate::randomPastDateTimeBetween(7, 180),
+                'released_at' => $state === SubmissionState::Released ? SeederDate::randomPastDateTimeBetween(1, 120) : null,
                 'created_at' => $this->createdAt,
                 'updated_at' => $this->createdAt,
             ]);
@@ -578,7 +579,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'user_id' => $userId,
             'status' => $status,
             'state' => $state,
-            'submitted_at' => now()->subDays(rand(1, 14))->toDateTimeString(),
+            'submitted_at' => SeederDate::randomPastDateTimeBetween(1, 120),
             'attempt_number' => 1,
             'is_late' => false,
             'score' => null,
@@ -607,8 +608,8 @@ class ComprehensiveAssessmentSeeder extends Seeder
                 'max_score' => 100,
                 'feedback' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
                 'is_draft' => false,
-                'graded_at' => now()->subDays(rand(0, 7))->toDateTimeString(),
-                'released_at' => $state === SubmissionState::Released->value ? now()->toDateTimeString() : null,
+                'graded_at' => SeederDate::randomPastDateTimeBetween(7, 180),
+                'released_at' => $state === SubmissionState::Released->value ? SeederDate::randomPastDateTimeBetween(1, 120) : null,
                 'created_at' => $this->createdAt,
                 'updated_at' => $this->createdAt,
             ]);
@@ -643,8 +644,8 @@ class ComprehensiveAssessmentSeeder extends Seeder
             ->max('attempt_number') ?? 0) + 1;
 
         $daysAgo = rand(1, 14);
-        $startedAt = now()->subDays($daysAgo)->subMinutes(rand(10, 120))->toDateTimeString();
-        $submittedAt = now()->subDays($daysAgo)->toDateTimeString();
+        $startedAt = SeederDate::randomPastCarbonBetween($daysAgo, $daysAgo)->subMinutes(rand(10, 120))->toDateTimeString();
+        $submittedAt = SeederDate::randomPastCarbonBetween($daysAgo, $daysAgo)->toDateTimeString();
 
         $scenario = match (true) {
             rand(1, 100) <= 20 => 'draft',

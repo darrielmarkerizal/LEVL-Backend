@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -54,7 +55,7 @@ class LedgerPointsFromLearningFactsSeeder extends Seeder
         $assignXp = (int) ($xpAmounts['assignment_submitted'] ?? 100);
         $perfectXp = (int) ($xpAmounts['perfect_score'] ?? 50);
 
-        $now = now()->toDateTimeString();
+        $now = SeederDate::randomPastDateTimeBetween(1, 180);
         $pointRows = [];
         $logRows = [];
 

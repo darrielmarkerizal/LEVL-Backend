@@ -2,6 +2,7 @@
 
 namespace Modules\Auth\Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Auth\Models\OtpCode;
@@ -23,7 +24,7 @@ class OtpCodeFactory extends Factory
             'purpose' => 'register_verification',
             'code' => str_pad((string) fake()->numberBetween(100000, 999999), 6, '0', STR_PAD_LEFT),
             'meta' => [],
-            'expires_at' => now()->addMinutes(10),
+            'expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             'consumed_at' => null,
         ];
     }
@@ -58,7 +59,7 @@ class OtpCodeFactory extends Factory
     public function expired(): static
     {
         return $this->state(fn (array $attributes) => [
-            'expires_at' => now()->subMinutes(10),
+            'expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 
@@ -66,7 +67,7 @@ class OtpCodeFactory extends Factory
     public function consumed(): static
     {
         return $this->state(fn (array $attributes) => [
-            'consumed_at' => now()->subMinutes(5),
+            'consumed_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 
@@ -74,7 +75,7 @@ class OtpCodeFactory extends Factory
     public function valid(): static
     {
         return $this->state(fn (array $attributes) => [
-            'expires_at' => now()->addMinutes(10),
+            'expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             'consumed_at' => null,
         ]);
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Notifications\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Modules\Auth\Models\User;
@@ -53,7 +54,7 @@ class PostSeeder extends Seeder
         for ($index = 1; $index <= 100; $index++) {
             $title = $titles[($index - 1) % count($titles)].' #'.str_pad((string) $index, 3, '0', STR_PAD_LEFT);
             $category = $categories[($index - 1) % count($categories)];
-            $publishedAt = now()->subDays($index);
+            $publishedAt = SeederDate::randomPastCarbonBetween(1, 180);
             $authorId = $authorPool[($index - 1) % count($authorPool)];
             $editorId = $authorPool[$index % count($authorPool)];
 

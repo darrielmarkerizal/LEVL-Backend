@@ -2,6 +2,7 @@
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Modules\Learning\Models\Answer;
 use Modules\Learning\Models\Assignment;
@@ -29,7 +30,7 @@ class QuestionAndAnswerSeeder extends Seeder
         $pregenParagraphs = [];
         $pregenUuids = [];
         $pregenFilenames = [];
-        $createdAt = now()->toDateTimeString();
+        $createdAt = SeederDate::randomPastDateTimeBetween(14, 180);
 
         for ($i = 0; $i < 200; $i++) {
             $pregenSentences[] = $faker->sentence(10);

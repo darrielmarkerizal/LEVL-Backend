@@ -72,7 +72,7 @@ class ActivityLogSeeder extends Seeder
                         'region' => 'Indonesia',
                         'country' => 'Indonesia',
                     ],
-                    'created_at' => now()->subDays(rand(0, 90))->subMinutes(rand(0, 1440)),
+                    'created_at' => SeederDate::randomPastCarbonBetween(0, 180),
                 ]);
             }
         }

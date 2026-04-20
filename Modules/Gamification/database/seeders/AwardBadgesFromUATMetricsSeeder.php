@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -28,7 +29,7 @@ class AwardBadgesFromUATMetricsSeeder extends Seeder
             ->pluck('users.id')
             ->all();
 
-        $now = now();
+        $now = SeederDate::randomPastDateTimeBetween(1, 180);
 
         foreach ($studentIds as $userId) {
             $this->awardLevelMilestones((int) $userId, $now);

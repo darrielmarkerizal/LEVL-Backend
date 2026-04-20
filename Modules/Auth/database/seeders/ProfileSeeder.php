@@ -2,6 +2,7 @@
 
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Modules\Auth\Models\ProfilePrivacySetting;
 use Modules\Auth\Models\User;
@@ -27,7 +28,7 @@ class ProfileSeeder extends Seeder
         }
 
         $privacyCount = 0;
-        $createdAt = now()->toDateTimeString();
+        $createdAt = SeederDate::randomPastDateTimeBetween(1, 180);
         $visibilities = [
             ProfilePrivacySetting::VISIBILITY_PUBLIC,
             ProfilePrivacySetting::VISIBILITY_PRIVATE,
@@ -112,7 +113,7 @@ class ProfileSeeder extends Seeder
 
             $pregenTitles = ['Enrolled in course', 'Completed lesson', 'Submitted assignment', 'Earned badge', 'Achieved milestone', 'Started quiz', 'Finished module'];
             $pregenDescriptions = ['Progress made', 'New achievement', 'Course completed', 'Badge earned', 'Activity recorded', 'Learning milestone'];
-            $createdAt = now()->toDateTimeString();
+            $createdAt = SeederDate::randomPastDateTimeBetween(1, 180);
 
             $activities = [];
             $totalCount = 0;

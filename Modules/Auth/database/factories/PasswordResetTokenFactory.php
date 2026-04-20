@@ -2,6 +2,7 @@
 
 namespace Modules\Auth\Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Auth\Models\PasswordResetToken;
@@ -17,7 +18,7 @@ class PasswordResetTokenFactory extends Factory
         return [
             'email' => fake()->unique()->safeEmail(),
             'token' => Str::random(60),
-            'created_at' => now(),
+            'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ];
     }
 
@@ -25,7 +26,7 @@ class PasswordResetTokenFactory extends Factory
     public function expired(): static
     {
         return $this->state(fn (array $attributes) => [
-            'created_at' => now()->subHours(2),
+            'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 
@@ -33,7 +34,7 @@ class PasswordResetTokenFactory extends Factory
     public function recent(): static
     {
         return $this->state(fn (array $attributes) => [
-            'created_at' => now()->subMinutes(5),
+            'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 }

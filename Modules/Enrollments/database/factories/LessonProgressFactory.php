@@ -2,6 +2,7 @@
 
 namespace Modules\Enrollments\Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Enrollments\Enums\ProgressStatus;
 use Modules\Enrollments\Models\Enrollment;
@@ -22,8 +23,8 @@ class LessonProgressFactory extends Factory
             $statusRoll <= 80 => ProgressStatus::InProgress->value,
             default => ProgressStatus::Completed->value,
         };
-        $startedAt = $status === ProgressStatus::NotStarted->value ? null : now()->subDays(rand(1, 7));
-        $completedAt = $status === ProgressStatus::Completed->value ? now() : null;
+        $startedAt = $status === ProgressStatus::NotStarted->value ? null : SeederDate::randomPastCarbonBetween(1, 180);
+        $completedAt = $status === ProgressStatus::Completed->value ? SeederDate::randomPastCarbonBetween(1, 180) : null;
         $progress = match ($status) {
             ProgressStatus::NotStarted->value => 0,
             ProgressStatus::InProgress->value => fake()->randomFloat(2, 1, 99),
@@ -64,7 +65,7 @@ class LessonProgressFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => 'in_progress',
             'progress_percent' => fake()->randomFloat(2, 1, 99),
-            'started_at' => now()->subDays(rand(1, 7)),
+            'started_at' => SeederDate::randomPastCarbonBetween(1, 180),
             'completed_at' => null,
         ]);
     }
@@ -75,8 +76,8 @@ class LessonProgressFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => 'completed',
             'progress_percent' => 100,
-            'started_at' => now()->subDays(rand(1, 7)),
-            'completed_at' => now(),
+            'started_at' => SeederDate::randomPastCarbonBetween(1, 180),
+            'completed_at' => SeederDate::randomPastCarbonBetween(1, 180),
         ]);
     }
 }

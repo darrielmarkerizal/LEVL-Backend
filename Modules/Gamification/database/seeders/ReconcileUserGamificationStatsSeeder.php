@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
@@ -41,8 +42,8 @@ class ReconcileUserGamificationStatsSeeder extends Seeder
                     'global_level' => $level,
                     'current_streak' => 0,
                     'longest_streak' => 0,
-                    'last_activity_date' => now()->toDateString(),
-                    'stats_updated_at' => now(),
+                    'last_activity_date' => SeederDate::randomPastCarbonBetween(1, 180)->toDateString(),
+                    'stats_updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ]
             );
         }
@@ -65,8 +66,8 @@ class ReconcileUserGamificationStatsSeeder extends Seeder
                             'global_level' => 1,
                             'current_streak' => 0,
                             'longest_streak' => 0,
-                            'last_activity_date' => now()->toDateString(),
-                            'stats_updated_at' => now(),
+                            'last_activity_date' => SeederDate::randomPastCarbonBetween(1, 180)->toDateString(),
+                            'stats_updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                         ]
                     );
                 }

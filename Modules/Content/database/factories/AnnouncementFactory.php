@@ -2,6 +2,7 @@
 
 namespace Modules\Content\Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\Models\User;
 use Modules\Content\Models\Announcement;
@@ -20,7 +21,7 @@ class AnnouncementFactory extends Factory
             'content' => fake()->paragraphs(3, true),
             'status' => 'published',
             'priority' => 'normal',
-            'published_at' => now(),
+            'published_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             'target_type' => 'all',
             'views_count' => fake()->numberBetween(0, 500),
         ];
@@ -38,7 +39,7 @@ class AnnouncementFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'scheduled',
-            'scheduled_at' => now()->addDay(),
+            'scheduled_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 
@@ -53,7 +54,7 @@ class AnnouncementFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'published',
-            'published_at' => now(),
+            'published_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 

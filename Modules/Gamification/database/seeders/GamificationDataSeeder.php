@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
@@ -89,8 +90,8 @@ class GamificationDataSeeder extends Seeder
             'global_level' => 1,
             'current_streak' => 0,
             'longest_streak' => 0,
-            'last_activity_date' => now(),
-            'stats_updated_at' => now(),
+            'last_activity_date' => SeederDate::randomPastCarbonBetween(1, 180)->toDateString(),
+            'stats_updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 
@@ -119,8 +120,8 @@ class GamificationDataSeeder extends Seeder
                 'global_level' => $level,
                 'current_streak' => $currentStreak,
                 'longest_streak' => $longestStreak,
-                'last_activity_date' => now()->subDays(rand(0, 7)),
-                'stats_updated_at' => now(),
+                'last_activity_date' => SeederDate::randomPastCarbonBetween(1, 180)->toDateString(),
+                'stats_updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ]
         );
 
@@ -169,7 +170,7 @@ class GamificationDataSeeder extends Seeder
 
         $transactionCount = rand(5, min(20, (int) ($totalXp / 10)));
 
-        $baseTimestamp = now()->timestamp;
+        $baseTimestamp = SeederDate::randomPastCarbonBetween(1, 180)->timestamp;
 
         $sourceTypes = ['lesson', 'assignment', 'system'];
 
@@ -229,7 +230,7 @@ class GamificationDataSeeder extends Seeder
     private function generateSpreadTimestamps(int $count, int $days): array
     {
         $timestamps = [];
-        $now = now();
+        $now = SeederDate::randomPastCarbonBetween($days, 180);
 
         for ($i = 0; $i < $count; $i++) {
             $daysAgo = rand(0, $days);

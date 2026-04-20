@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Enrollments\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Modules\Enrollments\Enums\ProgressStatus;
 
@@ -66,26 +67,18 @@ class EnrollmentSeeder extends Seeder
                     default => 'completed'
                 };
 
-                $enrolledAt = now()->subDays(rand(1, 180));
+                $enrolledAt = SeederDate::randomPastCarbonBetween(1, 180);
                 $autoActivateOnEnrolledAt = false;
-
-                if ($status === 'active') {
-                    $isScheduled = rand(1, 100) <= 30; 
-                    if ($isScheduled) {
-                        $enrolledAt = now()->addDays(rand(1, 60)); 
-                        $autoActivateOnEnrolledAt = true; 
-                    }
-                }
 
                 $enrollments[] = [
                     'user_id' => $studentId,
                     'course_id' => $courseId,
                     'status' => $status,
                     'enrolled_at' => $enrolledAt,
-                    'completed_at' => $status === 'completed' ? now()->subDays(rand(1, 30)) : null,
+                    'completed_at' => $status === 'completed' ? SeederDate::randomPastCarbonBetween(1, 180) : null,
                     'auto_activate_on_enrolled_at' => $autoActivateOnEnrolledAt,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ];
                 $totalEnrollments++;
 
@@ -135,6 +128,7 @@ class EnrollmentSeeder extends Seeder
                 $lessonProgress = [];
 
                 foreach ($enrollmentChunk as $enrollment) {
+                    $recordedAt = SeederDate::randomPastDateTimeBetween(1, 180);
                     $progressPercent = match ($enrollment->status) {
                         'completed' => 100,
                         'active' => rand(5, 95),
@@ -145,8 +139,8 @@ class EnrollmentSeeder extends Seeder
                         'enrollment_id' => $enrollment->id,
                         'status' => $this->mapStatus($enrollment->status),
                         'progress_percent' => $progressPercent,
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'created_at' => $recordedAt,
+                        'updated_at' => $recordedAt,
                     ];
 
                     
@@ -162,8 +156,8 @@ class EnrollmentSeeder extends Seeder
                                 'unit_id' => $unitId,
                                 'status' => 'not_started',
                                 'progress_percent' => 0,
-                                'created_at' => now(),
-                                'updated_at' => now(),
+                                'created_at' => $recordedAt,
+                                'updated_at' => $recordedAt,
                             ];
                         }
                         unset($unitIds);
@@ -185,8 +179,8 @@ class EnrollmentSeeder extends Seeder
                                 'status' => 'not_started',
                                 'progress_percent' => 0,
                                 'attempt_count' => 0,
-                                'created_at' => now(),
-                                'updated_at' => now(),
+                                'created_at' => $recordedAt,
+                                'updated_at' => $recordedAt,
                             ];
                         }
                         unset($lessonIds);

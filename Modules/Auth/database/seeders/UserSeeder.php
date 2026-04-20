@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Seeder;
@@ -123,7 +124,7 @@ class UserSeeder extends Seeder
                 'email' => $demoUser['email'],
                 'password' => Hash::make('password'),
                 'status' => $demoUser['status'],
-                'email_verified_at' => $demoUser['verified'] ? now() : null,
+                'email_verified_at' => $demoUser['verified'] ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
                 'is_password_set' => true,
                 'phone' => RealisticSeederContent::phoneForIndex($seed % 100000 + 1),
                 'bio' => RealisticSeederContent::bioForUser($seed % 10000 + 1),
@@ -139,8 +140,8 @@ class UserSeeder extends Seeder
                 'show_activity_history' => true,
                 'show_achievements' => true,
                 'show_statistics' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ];
 
             $createdUsers->push($user);
@@ -199,7 +200,7 @@ class UserSeeder extends Seeder
             $attributes = UserFactory::new()
                 ->state([
                     'status' => $status->value,
-                    'email_verified_at' => $verified ? now()->subDays(1) : null,
+                    'email_verified_at' => $verified ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
                     'is_password_set' => true,
                 ])
                 ->raw();
@@ -207,7 +208,7 @@ class UserSeeder extends Seeder
             $seed = crc32($attributes['email']);
             $attributes['is_password_set'] = $role !== 'Student' ? ($seed % 5 !== 0) : true;
             if ($verified) {
-                $attributes['email_verified_at'] = now()->subDays(($seed % 300) + 1);
+                $attributes['email_verified_at'] = SeederDate::randomPastDateTimeBetween(1, 180);
             }
 
             if (User::where('email', $attributes['email'])
@@ -232,7 +233,7 @@ class UserSeeder extends Seeder
             }
         }
 
-        $createdAt = now()->toDateTimeString();
+        $createdAt = SeederDate::randomPastDateTimeBetween(1, 180);
         $privacySettings = collect($users)->map(function ($user) use ($role, $createdAt) {
             $m = $user->id % 10;
             $privacyVisibility = match (true) {
@@ -281,7 +282,7 @@ class UserSeeder extends Seeder
             ];
 
             $relatedTypes = [null, 'Course', 'Lesson', 'Assignment'];
-            $createdAt = now()->toDateTimeString();
+            $createdAt = SeederDate::randomPastDateTimeBetween(1, 180);
 
             $activities = [];
             foreach ($users as $user) {

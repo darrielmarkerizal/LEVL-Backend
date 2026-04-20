@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -77,7 +78,7 @@ class ProfileAuditLogSeeder extends Seeder
                     ],
                 };
 
-                $createdAt = now()->subDays(($seed % 365) + 1);
+                $createdAt = SeederDate::randomPastCarbonBetween(1, 180);
 
                 $activityLogs[] = [
                     'log_name' => 'profile',

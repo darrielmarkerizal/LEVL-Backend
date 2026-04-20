@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -80,8 +81,8 @@ class TagSeederEnhanced extends Seeder
                 $tagData[] = [
                     'name' => $tagName,
                     'slug' => $slug,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ];
                 $created++;
             }

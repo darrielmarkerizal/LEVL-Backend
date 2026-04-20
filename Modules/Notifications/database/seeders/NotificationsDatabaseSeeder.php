@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Notifications\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
@@ -21,7 +22,7 @@ class NotificationsDatabaseSeeder extends Seeder
 
         $this->command->info('Seeding in-app notifications...');
 
-        $now = now()->toDateTimeString();
+        $now = SeederDate::randomPastDateTimeBetween(1, 180);
         $channel = NotificationChannel::InApp->value;
         $sentAt = $channel === NotificationChannel::InApp->value ? null : $now;
 
@@ -82,8 +83,8 @@ class NotificationsDatabaseSeeder extends Seeder
                 'is_broadcast' => $isBroadcast,
                 'scheduled_at' => null,
                 'sent_at' => $sentAt,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ]);
 
             foreach ($recipients as $offset => $userId) {
@@ -91,9 +92,9 @@ class NotificationsDatabaseSeeder extends Seeder
                     'user_id' => $userId,
                     'notification_id' => $id,
                     'status' => $offset % 3 === 0 ? 'read' : 'unread',
-                    'read_at' => $offset % 3 === 0 ? $now : null,
-                    'created_at' => $now,
-                    'updated_at' => $now,
+                    'read_at' => $offset % 3 === 0 ? SeederDate::randomPastDateTimeBetween(1, 180) : null,
+                    'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ]);
             }
         }

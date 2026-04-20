@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Common\Models\MasterDataItem;
@@ -39,8 +40,8 @@ class MasterDataSeeder extends Seeder
                     'label' => $item['label'],
                     'is_active' => DB::raw('true'),
                     'sort_order' => $index + 1,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ]);
             }
         }
@@ -67,8 +68,8 @@ class MasterDataSeeder extends Seeder
                     'is_active' => DB::raw('true'),
                     'sort_order' => $index + 1,
                     'metadata' => json_encode(['label_en' => $item['label']]),
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ]);
             }
         }
@@ -101,8 +102,8 @@ class MasterDataSeeder extends Seeder
                     'label' => $item['label'],
                     'is_active' => DB::raw('true'),
                     'sort_order' => $index + 1,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ]);
             }
         }

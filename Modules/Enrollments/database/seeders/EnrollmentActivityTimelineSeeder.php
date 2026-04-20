@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Enrollments\Database\Seeders;
 
+use App\Support\SeederDate;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,7 @@ class EnrollmentActivityTimelineSeeder extends Seeder
 
         DB::table('enrollment_activities')->delete();
 
-        $now = now()->toDateTimeString();
+        $now = SeederDate::randomPastDateTimeBetween(1, 180);
         $lessonTitles = DB::table('lessons')->pluck('title', 'id');
         $quizTitles = DB::table('quizzes')->pluck('title', 'id');
         $quizPassing = DB::table('quizzes')->pluck('passing_grade', 'id');

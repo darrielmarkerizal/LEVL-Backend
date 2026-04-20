@@ -2,6 +2,7 @@
 
 namespace Modules\Grading\Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 
@@ -93,8 +94,8 @@ class GradeReviewSeeder extends Seeder
                         : null,
                     'reviewed_by' => $reviewerId,
                     'status' => $reviewStatus,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ];
                 $reviewCount++;
             }

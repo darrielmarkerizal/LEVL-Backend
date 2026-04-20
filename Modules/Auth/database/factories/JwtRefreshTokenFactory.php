@@ -2,6 +2,7 @@
 
 namespace Modules\Auth\Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Auth\Models\JwtRefreshToken;
@@ -23,10 +24,10 @@ class JwtRefreshTokenFactory extends Factory
             'ip' => fake()->ipv4(),
             'user_agent' => fake()->userAgent(),
             'revoked_at' => null,
-            'last_used_at' => now(),
-            'expires_at' => now()->addDays(30),
-            'idle_expires_at' => now()->addDays(7),
-            'absolute_expires_at' => now()->addDays(90),
+            'last_used_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+            'expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+            'idle_expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+            'absolute_expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ];
     }
 
@@ -34,7 +35,7 @@ class JwtRefreshTokenFactory extends Factory
     public function revoked(): static
     {
         return $this->state(fn (array $attributes) => [
-            'revoked_at' => now()->subDays(1),
+            'revoked_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 
@@ -42,7 +43,7 @@ class JwtRefreshTokenFactory extends Factory
     public function expired(): static
     {
         return $this->state(fn (array $attributes) => [
-            'expires_at' => now()->subDays(1),
+            'expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 
@@ -60,9 +61,9 @@ class JwtRefreshTokenFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'revoked_at' => null,
             'replaced_by' => null,
-            'expires_at' => now()->addDays(30),
-            'idle_expires_at' => now()->addDays(7),
-            'absolute_expires_at' => now()->addDays(90),
+            'expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+            'idle_expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+            'absolute_expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 }

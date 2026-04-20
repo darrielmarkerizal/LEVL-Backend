@@ -2,6 +2,7 @@
 
 namespace Modules\Grading\Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 
@@ -16,7 +17,7 @@ class GradeSeeder extends Seeder
         echo "\n📋 Seeding grades...\n";
 
         $pregenFeedback = [];
-        $createdAt = now()->toDateTimeString();
+        $createdAt = SeederDate::randomPastDateTimeBetween(7, 180);
 
         for ($i = 0; $i < 100; $i++) {
             $pregenFeedback[] = RealisticSeederContent::assignmentFeedback($i);
@@ -90,12 +91,10 @@ class GradeSeeder extends Seeder
                     default => 'reviewed',
                 };
 
-                $gradedAtRow = $gradeStatus === 'pending'
+                $gradedAt = SeederDate::randomPastCarbonBetween(7, 170);
+                $releasedAt = $gradeStatus === 'pending'
                     ? null
-                    : now()->subDays(rand(1, 14))->toDateTimeString();
-                $releasedAtRow = $gradeStatus === 'pending'
-                    ? null
-                    : now()->subDays(rand(0, 7))->toDateTimeString();
+                    : $gradedAt->copy()->addDays(rand(0, 7))->toDateTimeString();
 
                 $grades[] = [
                     'source_id' => $submission->assignment_id,
@@ -107,8 +106,8 @@ class GradeSeeder extends Seeder
                     'max_score' => $submission->max_score,
                     'feedback' => $gradeStatus === 'pending' ? null : $pregenFeedback[array_rand($pregenFeedback)],
                     'status' => $gradeStatus,
-                    'graded_at' => $gradedAtRow,
-                    'released_at' => $releasedAtRow,
+                    'graded_at' => $gradeStatus === 'pending' ? null : $gradedAt->toDateTimeString(),
+                    'released_at' => $releasedAt,
                     'created_at' => $createdAt,
                     'updated_at' => $createdAt,
                 ];

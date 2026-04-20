@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Forums\Database\Seeders;
 
 use Carbon\Carbon;
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -109,7 +110,7 @@ class ForumSeeder extends Seeder
         $mentionedUsers = $hasMention ? $this->selectMentionedUsers($pool, $author->id, rand(1, 3)) : collect();
         $content = $this->generateThreadContent($mentionedUsers);
 
-        $createdAt = Carbon::parse(now())->subDays(rand(1, 90))->subMinutes(rand(0, 1440));
+        $createdAt = SeederDate::randomPastCarbonBetween(1, 180);
 
         $thread = Thread::create([
             'course_id' => $course->id,
@@ -135,7 +136,7 @@ class ForumSeeder extends Seeder
 
     private function createReplies(Thread $thread, Collection $pool, int $count): void
     {
-        $threadCreated = $thread->created_at ?? now();
+        $threadCreated = $thread->created_at ?? SeederDate::randomPastCarbonBetween(1, 180);
 
         for ($i = 1; $i <= $count; $i++) {
             $author = $pool->random();
@@ -224,7 +225,7 @@ class ForumSeeder extends Seeder
 
     private function createMention($model, User $user, ?Carbon $when = null): void
     {
-        $timestamp = $when ?? now();
+        $timestamp = $when ?? SeederDate::randomPastCarbonBetween(1, 180);
         Mention::create([
             'user_id' => $user->id,
             'mentionable_type' => $model::class,
@@ -369,7 +370,7 @@ class ForumSeeder extends Seeder
             }
 
             $content = $this->generateThreadContent($mentionedUsers);
-            $createdAt = Carbon::parse(now())->subDays(rand(1, 30))->subMinutes(rand(0, 1440));
+            $createdAt = SeederDate::randomPastCarbonBetween(1, 180);
 
             $thread = Thread::create([
                 'course_id' => $course->id,

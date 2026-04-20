@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\SeederDate;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -86,8 +87,8 @@ class AssignmentSeederEnhanced extends Seeder
                 $scenario = $this->assignmentScenarios[$assignmentCount % count($this->assignmentScenarios)];
                 $daysFromNow = rand(-30, 60);
                 $availableFrom = $daysFromNow > 0
-                    ? Carbon::now()->subDays(rand(1, 7))
-                    : Carbon::now()->subDays(rand(7, 90));
+                    ? SeederDate::randomPastCarbonBetween(1, 7)
+                    : SeederDate::randomPastCarbonBetween(7, 90);
 
                 $randomTitle = $this->assignmentTitles[array_rand($this->assignmentTitles)];
                 $titleVariation = $randomTitle.' - '.ucfirst(fake()->word());
@@ -105,8 +106,8 @@ class AssignmentSeederEnhanced extends Seeder
                     'randomization_type' => $scenario['randomization_type'],
                     'status' => 'published',
                     'created_by' => $instructorIds[array_rand($instructorIds)],
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ];
 
                 $assignmentCount++;
@@ -185,7 +186,7 @@ class AssignmentSeederEnhanced extends Seeder
                     };
 
                     $submittedAt = in_array($status, ['submitted', 'graded'])
-                        ? Carbon::now()->subDays(rand(1, 30))
+                        ? SeederDate::randomPastCarbonBetween(1, 120)
                         : null;
 
                     $submissions[] = [
@@ -197,8 +198,8 @@ class AssignmentSeederEnhanced extends Seeder
                         'started_at' => $submittedAt ? $submittedAt->subMinutes(rand(5, 120)) : null,
                         'score' => $status === 'graded' ? rand(0, (int) $assignment->max_score) : null,
                         'attempt_number' => 1,
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                        'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                     ];
 
                     $submissionCount++;

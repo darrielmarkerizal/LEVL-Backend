@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -62,14 +62,14 @@ class UATPersonaSeeder extends Seeder
                 'username' => 'artanto_t',
                 'password' => Hash::make('password'),
                 'status' => 'active',
-                'email_verified_at' => now(),
+                'email_verified_at' => SeederDate::randomPastDateTimeBetween(1, 120),
             ]
         );
         if (! $user->hasRole('Student')) {
             $user->assignRole('Student');
         }
 
-        $enrolledAt = Carbon::parse('2026-03-01 08:00:00');
+        $enrolledAt = SeederDate::randomPastCarbonBetween(45, 120);
         $enrollment = Enrollment::query()->firstOrCreate(
             [
                 'user_id' => $user->id,
@@ -82,7 +82,7 @@ class UATPersonaSeeder extends Seeder
         );
 
         if ($lessonId !== null) {
-            $lessonAt = Carbon::parse('2026-03-05 10:00:00');
+            $lessonAt = $enrolledAt->copy()->addDays(3);
             DB::table('lesson_progress')->updateOrInsert(
                 [
                     'enrollment_id' => $enrollment->id,
@@ -99,7 +99,7 @@ class UATPersonaSeeder extends Seeder
         }
 
         if ($quizId !== null) {
-            $quizAt = Carbon::parse('2026-03-08 09:15:00');
+            $quizAt = $enrolledAt->copy()->addDays(6);
             $passing = (float) (DB::table('quizzes')->where('id', $quizId)->value('passing_grade') ?? 75);
             $score = max($passing, 85);
             $row = DB::table('quiz_submissions')
@@ -164,7 +164,7 @@ class UATPersonaSeeder extends Seeder
                 'username' => 'uat_steady',
                 'password' => Hash::make('password'),
                 'status' => 'active',
-                'email_verified_at' => now(),
+                'email_verified_at' => SeederDate::randomPastDateTimeBetween(1, 120),
             ]
         );
         if (! $user->hasRole('Student')) {
@@ -178,7 +178,7 @@ class UATPersonaSeeder extends Seeder
             ],
             [
                 'status' => EnrollmentStatus::Active,
-                'enrolled_at' => now()->subDays(14),
+                'enrolled_at' => SeederDate::randomPastCarbonBetween(20, 120),
             ]
         );
 
@@ -191,9 +191,9 @@ class UATPersonaSeeder extends Seeder
                 [
                     'status' => 'completed',
                     'progress_percent' => 100,
-                    'completed_at' => now()->subDays(7),
-                    'updated_at' => now(),
-                    'created_at' => now()->subDays(7),
+                    'completed_at' => SeederDate::randomPastDateTimeBetween(7, 90),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 90),
+                    'created_at' => SeederDate::randomPastDateTimeBetween(7, 90),
                 ]
             );
         }
@@ -208,7 +208,7 @@ class UATPersonaSeeder extends Seeder
                 'username' => 'uat_struggling',
                 'password' => Hash::make('password'),
                 'status' => 'active',
-                'email_verified_at' => now(),
+                'email_verified_at' => SeederDate::randomPastDateTimeBetween(1, 120),
             ]
         );
         if (! $user->hasRole('Student')) {
@@ -222,7 +222,7 @@ class UATPersonaSeeder extends Seeder
             ],
             [
                 'status' => EnrollmentStatus::Active,
-                'enrolled_at' => now()->subDays(3),
+                'enrolled_at' => SeederDate::randomPastCarbonBetween(3, 90),
             ]
         );
     }

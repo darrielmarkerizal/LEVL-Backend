@@ -2,6 +2,7 @@
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Models\Submission;
@@ -62,7 +63,7 @@ class PendingManualGradingSeeder extends Seeder
                 ->update([
                     'state' => SubmissionState::PendingManualGrading->value,
                     'status' => 'submitted',
-                    'updated_at' => now(),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ]);
 
             $totalUpdated += $count;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Database\Seeders;
 
-use Carbon\Carbon;
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Modules\Gamification\Models\Point;
 use Modules\Gamification\Models\UserGamificationStat;
@@ -59,8 +59,8 @@ class BackfillPointsSeeder extends Seeder
             'source_type' => 'system',
             'source_id' => null,
             'description' => 'Historical XP backfill - accumulated points from before point tracking',
-            'created_at' => $stat->created_at ?? Carbon::now()->subDays(30),
-            'updated_at' => Carbon::now(),
+            'created_at' => $stat->created_at ?? SeederDate::randomPastCarbonBetween(30, 180),
+            'updated_at' => SeederDate::randomPastCarbonBetween(1, 180),
         ]);
     }
 }

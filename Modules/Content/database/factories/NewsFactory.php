@@ -2,6 +2,7 @@
 
 namespace Modules\Content\Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\Models\User;
 use Modules\Content\Models\News;
@@ -21,7 +22,7 @@ class NewsFactory extends Factory
             'content' => fake()->paragraphs(5, true),
             'status' => 'published',
             'is_featured' => false,
-            'published_at' => now(),
+            'published_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             'scheduled_at' => null,
             'views_count' => fake()->numberBetween(0, 1000),
             'deleted_by' => null,
@@ -40,7 +41,7 @@ class NewsFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'published',
-            'published_at' => now(),
+            'published_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 
@@ -48,7 +49,7 @@ class NewsFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'scheduled',
-            'scheduled_at' => now()->addDays(1),
+            'scheduled_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             'published_at' => null,
         ]);
     }

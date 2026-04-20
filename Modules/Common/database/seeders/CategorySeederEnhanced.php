@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Common\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Common\Models\Category;
@@ -64,8 +65,8 @@ class CategorySeederEnhanced extends Seeder
                     'name' => $cat['name'],
                     'value' => $cat['value'],
                     'status' => 'active',
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                    'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ];
                 $created++;
             }

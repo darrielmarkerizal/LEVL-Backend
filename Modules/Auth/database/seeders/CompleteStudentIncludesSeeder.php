@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -51,6 +52,12 @@ class CompleteStudentIncludesSeeder extends Seeder
         $otherStudentEmail = RealisticSeederContent::demoEmail('student.granted.overrides');
         $otherStudentUsername = 'student_granted_overrides';
 
+        $seedBase = SeederDate::randomPastCarbonBetween(45, 150);
+        $verifiedAt = $seedBase->copy()->subDays(2);
+        $publishedAt = $seedBase->copy()->subDays(4);
+        $enrolledAt = $seedBase->copy()->subDays(7);
+        $streakDate = $seedBase->copy()->subDay();
+
         $student = User::updateOrCreate(
             ['email' => $studentEmail],
             $this->onlyExistingColumns('users', [
@@ -58,7 +65,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'username' => $studentUsername,
                 'password' => Hash::make('password'),
                 'status' => 'active',
-                'email_verified_at' => now(),
+                'email_verified_at' => $verifiedAt->toDateTimeString(),
                 'is_password_set' => true,
             ]),
         );
@@ -71,7 +78,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'username' => $adminUsername,
                 'password' => Hash::make('password'),
                 'status' => 'active',
-                'email_verified_at' => now(),
+                'email_verified_at' => $verifiedAt->toDateTimeString(),
                 'is_password_set' => true,
             ]),
         );
@@ -84,7 +91,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'username' => $instructorUsername,
                 'password' => Hash::make('password'),
                 'status' => 'active',
-                'email_verified_at' => now(),
+                'email_verified_at' => $verifiedAt->toDateTimeString(),
                 'is_password_set' => true,
             ]),
         );
@@ -97,7 +104,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'username' => $otherStudentUsername,
                 'password' => Hash::make('password'),
                 'status' => 'active',
-                'email_verified_at' => now(),
+                'email_verified_at' => $verifiedAt->toDateTimeString(),
                 'is_password_set' => true,
             ]),
         );
@@ -127,7 +134,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'level_tag' => 'dasar',
                 'enrollment_type' => 'auto_accept',
                 'status' => 'published',
-                'published_at' => now(),
+                'published_at' => $publishedAt->toDateTimeString(),
                 'instructor_id' => $instructor->id,
             ]),
         );
@@ -164,7 +171,7 @@ class CompleteStudentIncludesSeeder extends Seeder
             ],
             $this->onlyExistingColumns('enrollments', [
                 'status' => 'active',
-                'enrolled_at' => now()->subDays(7),
+                'enrolled_at' => $enrolledAt->toDateTimeString(),
                 'completed_at' => null,
             ]),
         );
@@ -180,8 +187,8 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'global_level' => 3,
                 'current_streak' => 5,
                 'longest_streak' => 7,
-                'last_activity_date' => now()->subDay(),
-                'stats_updated_at' => now(),
+                'last_activity_date' => $streakDate->toDateString(),
+                'stats_updated_at' => $seedBase->toDateTimeString(),
             ]),
         );
 
@@ -197,7 +204,7 @@ class CompleteStudentIncludesSeeder extends Seeder
         );
         UserBadge::firstOrCreate(
             ['user_id' => $student->id, 'badge_id' => $badge->id],
-            $this->onlyExistingColumns('user_badges', ['earned_at' => now()->subDays(2)]),
+            $this->onlyExistingColumns('user_badges', ['earned_at' => $seedBase->copy()->subDays(2)->toDateTimeString()]),
         );
 
         Point::firstOrCreate(
@@ -225,11 +232,11 @@ class CompleteStudentIncludesSeeder extends Seeder
 
         
         LearningStreak::updateOrCreate(
-            ['user_id' => $student->id, 'activity_date' => now()->toDateString()],
+            ['user_id' => $student->id, 'activity_date' => $seedBase->toDateString()],
             $this->onlyExistingColumns('learning_streaks', ['xp_earned' => 120]),
         );
         LearningStreak::updateOrCreate(
-            ['user_id' => $student->id, 'activity_date' => now()->subDay()->toDateString()],
+            ['user_id' => $student->id, 'activity_date' => $streakDate->toDateString()],
             $this->onlyExistingColumns('learning_streaks', ['xp_earned' => 80]),
         );
 
@@ -244,7 +251,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'description' => 'Assignment created by CompleteStudentIncludesSeeder.',
                 'submission_type' => 'text',
                 'max_score' => 100,
-                'available_from' => now()->subDays(3),
+                'available_from' => $seedBase->copy()->subDays(3)->toDateTimeString(),
                 'status' => 'published',
             ]),
         );
@@ -260,7 +267,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'status' => 'submitted',
                 'score' => null,
                 'feedback' => null,
-                'submitted_at' => now()->subDay(),
+                'submitted_at' => $streakDate->toDateTimeString(),
                 'graded_at' => null,
             ]),
         );
@@ -276,7 +283,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'description' => 'Assignment created by the seeded student (for include coverage).',
                 'submission_type' => 'text',
                 'max_score' => 50,
-                'available_from' => now()->subDays(1),
+                'available_from' => $streakDate->toDateTimeString(),
                 'status' => 'published',
             ]),
         );
@@ -291,9 +298,9 @@ class CompleteStudentIncludesSeeder extends Seeder
             ],
             $this->onlyExistingColumns('overrides', [
                 'reason' => 'Seeded deadline extension override.',
-                'value' => ['extended_deadline' => now()->addDays(14)->toISOString()],
-                'granted_at' => now()->subHours(2),
-                'expires_at' => now()->addDays(30),
+                'value' => ['extended_deadline' => $seedBase->copy()->addDays(14)->toISOString()],
+                'granted_at' => $seedBase->copy()->subHours(2)->toDateTimeString(),
+                'expires_at' => $seedBase->copy()->addDays(30)->toDateTimeString(),
             ]),
         );
 
@@ -307,8 +314,8 @@ class CompleteStudentIncludesSeeder extends Seeder
             $this->onlyExistingColumns('overrides', [
                 'reason' => 'Seeded additional attempts override (grantor=seeded student).',
                 'value' => ['additional_attempts' => 2],
-                'granted_at' => now()->subHours(1),
-                'expires_at' => now()->addDays(30),
+                'granted_at' => $seedBase->copy()->subHour()->toDateTimeString(),
+                'expires_at' => $seedBase->copy()->addDays(30)->toDateTimeString(),
             ]),
         );
 
@@ -326,7 +333,7 @@ class CompleteStudentIncludesSeeder extends Seeder
                 'is_resolved' => false,
                 'views_count' => 10,
                 'replies_count' => 0,
-                'last_activity_at' => now(),
+                'last_activity_at' => $seedBase->toDateTimeString(),
             ]),
         );
 

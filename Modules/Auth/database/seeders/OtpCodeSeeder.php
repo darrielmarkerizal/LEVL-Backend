@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -45,10 +46,10 @@ class OtpCodeSeeder extends Seeder
                 'meta' => json_encode([
                     'token_hash' => hash('sha256', \Illuminate\Support\Str::random(16)),
                 ]),
-                'expires_at' => now()->addMinutes(60),
+                'expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 'consumed_at' => null,
-                'created_at' => now()->subMinutes(5 + ($user->id % 26)),
-                'updated_at' => now()->subMinutes(5 + ($user->id % 26)),
+                'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ];
         }
 
@@ -83,10 +84,10 @@ class OtpCodeSeeder extends Seeder
                 'meta' => json_encode([
                     'token_hash' => hash('sha256', \Illuminate\Support\Str::random(64)),
                 ]),
-                'expires_at' => now()->addHour(),
+                'expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 'consumed_at' => null,
-                'created_at' => now()->subHours(1 + ($user->id % 23)),
-                'updated_at' => now()->subHours(1 + ($user->id % 23)),
+                'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ];
         }
 
@@ -124,10 +125,10 @@ class OtpCodeSeeder extends Seeder
                     'token_hash' => hash('sha256', \Illuminate\Support\Str::random(16)),
                     'new_email' => $newEmail,
                 ]),
-                'expires_at' => now()->addHour(),
+                'expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 'consumed_at' => null,
-                'created_at' => now()->subHours(1 + ($user->id % 12)),
-                'updated_at' => now()->subHours(1 + ($user->id % 12)),
+                'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ];
         }
 
@@ -163,10 +164,10 @@ class OtpCodeSeeder extends Seeder
                     'token_hash' => hash('sha256', \Illuminate\Support\Str::random(16)),
                     'reason' => RealisticSeederContent::accountDeletionReason($user->id),
                 ]),
-                'expires_at' => now()->addHours(24),
+                'expires_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 'consumed_at' => null,
-                'created_at' => now()->subHours(1 + ($user->id % 6)),
-                'updated_at' => now()->subHours(1 + ($user->id % 6)),
+                'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+                'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ];
         }
 

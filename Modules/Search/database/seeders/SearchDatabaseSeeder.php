@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Search\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
@@ -29,7 +30,7 @@ class SearchDatabaseSeeder extends Seeder
         ];
 
         $rows = [];
-        $base = now()->subDays(14);
+        $base = SeederDate::randomPastCarbonBetween(14, 180);
         foreach ($userIds as $i => $userId) {
             $q = $queries[$i % count($queries)];
             $rows[] = [

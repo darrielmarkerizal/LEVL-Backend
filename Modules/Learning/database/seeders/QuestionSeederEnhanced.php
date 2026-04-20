@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -242,8 +243,8 @@ class QuestionSeederEnhanced extends Seeder
             'order' => $order,
             'weight' => round(fake()->randomFloat(2, 1, 5), 2),
             'max_score' => $this->resolveMaxScoreByType($type),
-            'created_at' => now(),
-            'updated_at' => now(),
+            'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+            'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ];
 
         $baseData['options'] = null;
@@ -309,8 +310,8 @@ class QuestionSeederEnhanced extends Seeder
             'question_id' => $question->id,
             'score' => null,
             'is_auto_graded' => false,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
+            'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ];
 
         return match ($question->type) {

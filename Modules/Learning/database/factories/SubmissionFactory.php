@@ -2,6 +2,7 @@
 
 namespace Modules\Learning\Database\Factories;
 
+use App\Support\SeederDate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Models\Enrollment;
@@ -16,17 +17,21 @@ class SubmissionFactory extends Factory
     
     public function definition(): array
     {
-        $submittedAt = fake()->dateTimeBetween('-3 months', 'now');
+        $submittedAt = fake()->dateTimeBetween('-6 months', 'now');
         $roll = fake()->numberBetween(1, 100);
         $status = match (true) {
-            $roll <= 25 => 'draft',
-            $roll <= 65 => 'submitted',
-            default => 'graded',
+            $roll <= 20 => 'draft',
+            $roll <= 45 => 'submitted',
+            $roll <= 60 => 'auto_graded',
+            $roll <= 80 => 'graded',
+            default => 'released',
         };
         $state = match ($status) {
             'draft' => 'in_progress',
             'submitted' => 'pending_manual_grading',
+            'auto_graded' => 'auto_graded',
             'graded' => 'graded',
+            'released' => 'released',
             default => 'in_progress',
         };
         $score = $status === 'graded'
@@ -97,7 +102,7 @@ class SubmissionFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => 'submitted',
             'state' => 'pending_manual_grading',
-            'submitted_at' => now(),
+            'submitted_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ]);
     }
 
@@ -106,7 +111,7 @@ class SubmissionFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => 'graded',
             'state' => 'auto_graded',
-            'submitted_at' => now(),
+            'submitted_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             'score' => rand(0, 100),
         ]);
     }
@@ -116,7 +121,7 @@ class SubmissionFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => 'graded',
             'state' => 'released',
-            'submitted_at' => now(),
+            'submitted_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             'score' => rand(0, 100),
         ]);
     }

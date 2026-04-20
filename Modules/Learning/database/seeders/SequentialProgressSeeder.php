@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Database\Seeders;
 
+use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
@@ -32,7 +33,7 @@ class SequentialProgressSeeder extends Seeder
         $this->cleanExistingProgress();
 
         $this->pregenerateFakeData();
-        $this->createdAt = now()->toDateTimeString();
+        $this->createdAt = SeederDate::randomPastDateTimeBetween(14, 180);
 
         $students = \DB::table('users')
             ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
@@ -283,7 +284,7 @@ class SequentialProgressSeeder extends Seeder
             );
         }
 
-        $submittedAt = now()->subDays(rand(1, 14))->toDateTimeString();
+        $submittedAt = SeederDate::randomPastDateTimeBetween(1, 120);
 
         $stateValue = match ($status) {
             'draft' => SubmissionState::InProgress->value,
@@ -359,8 +360,8 @@ class SequentialProgressSeeder extends Seeder
         }
 
         $daysAgo = rand(1, 14);
-        $submittedAt = now()->subDays($daysAgo)->toDateTimeString();
-        $startedAt = now()->subDays($daysAgo)->subMinutes(rand(10, 120))->toDateTimeString();
+        $submittedAt = SeederDate::randomPastCarbonBetween($daysAgo, $daysAgo)->toDateTimeString();
+        $startedAt = SeederDate::randomPastCarbonBetween($daysAgo, $daysAgo)->subMinutes(rand(10, 120))->toDateTimeString();
 
         
         $scenarioRoll = rand(1, 100);
@@ -561,7 +562,7 @@ class SequentialProgressSeeder extends Seeder
         }
 
         $gradeStatus = $status === 'submitted' ? 'pending' : 'graded';
-        $gradedAt = $status === 'graded' ? now()->subDays(rand(0, 7))->toDateTimeString() : null;
+        $gradedAt = $status === 'graded' ? SeederDate::randomPastDateTimeBetween(7, 180) : null;
 
         \DB::table('grades')->insertOrIgnore([
             'source_type' => 'assignment',

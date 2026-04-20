@@ -42,7 +42,7 @@ class OperationsDatabaseSeeder extends Seeder
 
             $issuedAt = $row->completed_at
                 ? Carbon::parse($row->completed_at)
-                : now();
+                : Carbon::parse(\App\Support\SeederDate::randomPastDateTimeBetween(1, 180));
 
             $lastSequence++;
             $certificateNumber = sprintf(
