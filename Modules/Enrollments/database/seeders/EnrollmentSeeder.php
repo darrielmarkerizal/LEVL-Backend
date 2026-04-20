@@ -68,7 +68,6 @@ class EnrollmentSeeder extends Seeder
                 };
 
                 $enrolledAt = SeederDate::randomPastCarbonBetween(1, 180);
-                $autoActivateOnEnrolledAt = false;
 
                 $enrollments[] = [
                     'user_id' => $studentId,
@@ -76,7 +75,7 @@ class EnrollmentSeeder extends Seeder
                     'status' => $status,
                     'enrolled_at' => $enrolledAt,
                     'completed_at' => $status === 'completed' ? SeederDate::randomPastCarbonBetween(1, 180) : null,
-                    'auto_activate_on_enrolled_at' => $autoActivateOnEnrolledAt,
+                    'auto_activate_on_enrolled_at' => \DB::raw('false'),
                     'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                     'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 ];

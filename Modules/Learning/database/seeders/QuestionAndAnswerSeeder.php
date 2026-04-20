@@ -134,7 +134,7 @@ class QuestionAndAnswerSeeder extends Seeder
                         'submission_id' => $submission->id,
                         'question_id' => $question->id,
                         'score' => null,
-                        'is_auto_graded' => false,
+                        'is_auto_graded' => \DB::raw('false'),
                         'created_at' => $createdAt,
                         'updated_at' => $createdAt,
                     ];

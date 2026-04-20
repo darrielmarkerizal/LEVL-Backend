@@ -261,7 +261,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'title' => 'Quiz: '.$this->pregenSentences[array_rand($this->pregenSentences)],
             'description' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
             'passing_grade' => rand(60, 80),
-            'auto_grading' => true,
+            'auto_grading' => \DB::raw('true'),
             'max_score' => 100,
             'time_limit_minutes' => rand(30, 90),
             'review_mode' => 'immediate',
@@ -309,7 +309,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'answer_key' => null,
             'max_file_size' => null,
             'allowed_file_types' => null,
-            'allow_multiple_files' => false,
+            'allow_multiple_files' => \DB::raw('false'),
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
         ];
@@ -333,7 +333,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
         } elseif ($type === QuestionType::FileUpload->value) {
             $questionData['max_file_size'] = 10485760;
             $questionData['allowed_file_types'] = json_encode(['pdf', 'docx', 'xlsx', 'zip']);
-            $questionData['allow_multiple_files'] = true;
+            $questionData['allow_multiple_files'] = \DB::raw('true');
         }
 
         return DB::table('assignment_questions')->insertGetId($questionData);
@@ -467,7 +467,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
                 'max_score' => $maxScore,
                 'feedback' => null,
                 'status' => 'pending',
-                'is_draft' => true,
+                'is_draft' => \DB::raw('true'),
                 'graded_at' => null,
                 'released_at' => null,
                 'created_at' => $this->createdAt,
@@ -487,7 +487,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
                 'max_score' => $maxScore,
                 'feedback' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
                 'status' => 'graded',
-                'is_draft' => false,
+                'is_draft' => \DB::raw('false'),
                 'graded_at' => SeederDate::randomPastDateTimeBetween(7, 180),
                 'released_at' => $state === SubmissionState::Released ? SeederDate::randomPastDateTimeBetween(1, 120) : null,
                 'created_at' => $this->createdAt,
@@ -581,7 +581,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'state' => $state,
             'submitted_at' => SeederDate::randomPastDateTimeBetween(1, 120),
             'attempt_number' => 1,
-            'is_late' => false,
+            'is_late' => \DB::raw('false'),
             'score' => null,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
@@ -607,7 +607,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
                 'score' => $totalScore,
                 'max_score' => 100,
                 'feedback' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
-                'is_draft' => false,
+                'is_draft' => \DB::raw('false'),
                 'graded_at' => SeederDate::randomPastDateTimeBetween(7, 180),
                 'released_at' => $state === SubmissionState::Released->value ? SeederDate::randomPastDateTimeBetween(1, 120) : null,
                 'created_at' => $this->createdAt,
@@ -742,7 +742,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'selected_options' => null,
             'file_paths' => null,
             'score' => null,
-            'is_auto_graded' => false,
+            'is_auto_graded' => \DB::raw('false'),
             'feedback' => null,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
@@ -782,7 +782,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'content' => null,
             'selected_options' => null,
             'score' => 0,
-            'is_auto_graded' => true,
+            'is_auto_graded' => \DB::raw('true'),
             'feedback' => null,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
@@ -804,7 +804,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
 
             case QuizQuestionType::Essay->value:
                 $answerData['content'] = $this->pregenParagraphs[array_rand($this->pregenParagraphs)];
-                $answerData['is_auto_graded'] = false;
+                $answerData['is_auto_graded'] = \DB::raw('false');
                 $answerData['score'] = rand((int) ($question['weight'] * 0.7), $question['weight']);
                 $answerData['feedback'] = $this->pregenSentences[array_rand($this->pregenSentences)];
                 break;

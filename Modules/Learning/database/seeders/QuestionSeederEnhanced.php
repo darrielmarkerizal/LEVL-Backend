@@ -298,7 +298,7 @@ class QuestionSeederEnhanced extends Seeder
         $baseData['content'] = $this->fileUploadQuestions[array_rand($this->fileUploadQuestions)];
         $baseData['max_file_size'] = 10000000;
         $baseData['allowed_file_types'] = json_encode(['pdf', 'docx', 'txt', 'png', 'jpg', 'zip']);
-        $baseData['allow_multiple_files'] = (bool) rand(0, 1);
+        $baseData['allow_multiple_files'] = \DB::raw(rand(0, 1) ? 'true' : 'false');
 
         return $baseData;
     }
@@ -309,7 +309,7 @@ class QuestionSeederEnhanced extends Seeder
             'submission_id' => $submissionId,
             'question_id' => $question->id,
             'score' => null,
-            'is_auto_graded' => false,
+            'is_auto_graded' => \DB::raw('false'),
             'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
         ];

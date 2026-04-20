@@ -28,11 +28,11 @@ class ProfilePrivacyService implements ProfilePrivacyServiceInterface
         return ProfilePrivacySetting::create([
             'user_id' => $user->id,
             'profile_visibility' => ProfilePrivacySetting::VISIBILITY_PUBLIC,
-            'show_email' => false,
-            'show_phone' => false,
-            'show_activity_history' => true,
-            'show_achievements' => true,
-            'show_statistics' => true,
+            'show_email' => $this->pgsqlBool(false),
+            'show_phone' => $this->pgsqlBool(false),
+            'show_activity_history' => $this->pgsqlBool(true),
+            'show_achievements' => $this->pgsqlBool(true),
+            'show_statistics' => $this->pgsqlBool(true),
         ]);
     }
 
@@ -69,5 +69,10 @@ class ProfilePrivacyService implements ProfilePrivacyServiceInterface
     public function getVisibleFields(User $user, User $viewer): array
     {
         return $user->getVisibleFieldsFor($viewer);
+    }
+
+    private function pgsqlBool(mixed $value): string
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
     }
 }
