@@ -135,11 +135,11 @@ class UserSeeder extends Seeder
             $privacySettings[] = [
                 'user_id' => $user->id,
                 'profile_visibility' => 'public',
-                'show_email' => ($seed % 2) === 0,
-                'show_phone' => ($seed % 3) === 0,
-                'show_activity_history' => true,
-                'show_achievements' => true,
-                'show_statistics' => true,
+                'show_email' => $this->pgsqlBool(($seed % 2) === 0),
+                'show_phone' => $this->pgsqlBool(($seed % 3) === 0),
+                'show_activity_history' => $this->pgsqlBool(true),
+                'show_achievements' => $this->pgsqlBool(true),
+                'show_statistics' => $this->pgsqlBool(true),
                 'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                 'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),
             ];
@@ -245,11 +245,11 @@ class UserSeeder extends Seeder
             return [
                 'user_id' => $user->id,
                 'profile_visibility' => $privacyVisibility,
-                'show_email' => ($user->id % 3) === 0,
-                'show_phone' => ($user->id % 4) === 0,
-                'show_activity_history' => true,
-                'show_achievements' => true,
-                'show_statistics' => true,
+                'show_email' => $this->pgsqlBool(($user->id % 3) === 0),
+                'show_phone' => $this->pgsqlBool(($user->id % 4) === 0),
+                'show_activity_history' => $this->pgsqlBool(true),
+                'show_achievements' => $this->pgsqlBool(true),
+                'show_statistics' => $this->pgsqlBool(true),
                 'created_at' => $createdAt,
                 'updated_at' => $createdAt,
             ];
