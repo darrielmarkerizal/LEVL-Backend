@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Notifications\Models;
 
 use App\Models\Concerns\TracksTrashBin;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -40,11 +41,22 @@ class Post extends Model implements HasMedia
     protected $casts = [
         'category' => PostCategory::class,
         'status' => PostStatus::class,
-        'is_pinned' => 'boolean',
         'scheduled_at' => 'datetime',
         'published_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
+
+    protected function isPinned(): Attribute
+    {
+        return Attribute::make(
+            get: static fn (mixed $value): bool => (bool) filter_var($value, FILTER_VALIDATE_BOOLEAN),
+            set: static function (mixed $value): string {
+                $normalized = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+                return ($normalized ?? false) ? 'true' : 'false';
+            }
+        );
+    }
 
     
 
@@ -93,7 +105,7 @@ class Post extends Model implements HasMedia
 
     public function scopePinned($query)
     {
-        return $query->where('is_pinned', true);
+        return $query->whereRaw('is_pinned = true');
     }
 
     public function scopeForRole($query, string $role)

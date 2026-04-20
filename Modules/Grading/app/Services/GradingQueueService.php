@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Modules\Grading\Models\Grade;
+use Modules\Learning\Enums\QuizGradingStatus;
 use Modules\Learning\Models\QuizSubmission;
 use Modules\Learning\Models\Submission;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -137,13 +138,47 @@ class GradingQueueService
             ])
             ->allowedFilters([
                 AllowedFilter::exact('status'),
-                AllowedFilter::callback('workflow_state', fn ($q, $v) => $q->where('grading_status', $v)),
+                AllowedFilter::callback('workflow_state', function ($q, $v) {
+                    $values = is_array($v) ? $v : [$v];
+                    $validValues = array_values(array_intersect($values, QuizGradingStatus::values()));
+
+                    if ($validValues === []) {
+                        $q->whereRaw('1 = 0');
+
+                        return;
+                    }
+
+                    if (count($validValues) === 1) {
+                        $q->where('grading_status', $validValues[0]);
+
+                        return;
+                    }
+
+                    $q->whereIn('grading_status', $validValues);
+                }),
                 AllowedFilter::exact('user_id'),
                 AllowedFilter::callback('course_slug', function ($q, $v) {
                     $q->whereHas('quiz.unit.course', fn ($courseQuery) => $courseQuery->where('slug', $v));
                 }),
                 AllowedFilter::exact('quiz_id'),
-                AllowedFilter::exact('grading_status'),
+                AllowedFilter::callback('grading_status', function ($q, $v) {
+                    $values = is_array($v) ? $v : [$v];
+                    $validValues = array_values(array_intersect($values, QuizGradingStatus::values()));
+
+                    if ($validValues === []) {
+                        $q->whereRaw('1 = 0');
+
+                        return;
+                    }
+
+                    if (count($validValues) === 1) {
+                        $q->where('grading_status', $validValues[0]);
+
+                        return;
+                    }
+
+                    $q->whereIn('grading_status', $validValues);
+                }),
                 AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
                 AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
             ]);
