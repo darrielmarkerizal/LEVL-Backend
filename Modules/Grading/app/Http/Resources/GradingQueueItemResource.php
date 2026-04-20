@@ -23,6 +23,7 @@ class GradingQueueItemResource extends JsonResource
     {
         $statusValue = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
         $workflowValue = $this->state instanceof \BackedEnum ? $this->state->value : $this->state;
+        $course = $this->assignment?->unit?->course;
 
         return [
             'type' => 'assignment',
@@ -31,6 +32,14 @@ class GradingQueueItemResource extends JsonResource
             'student_email' => $this->user?->email,
             'assignment_id' => $this->assignment_id,
             'assignment_title' => $this->assignment?->title,
+            'course' => $course ? [
+                'id' => $course->id,
+                'slug' => $course->slug,
+                'title' => $course->title,
+                'code' => $course->code,
+            ] : null,
+            'course_slug' => $course?->slug,
+            'sequence' => $this->sequence($this->assignment?->unit?->order, $this->assignment?->order),
             'submitted_at' => $this->submitted_at,
             'status' => $statusValue,
             'status_value' => $statusValue,
@@ -46,6 +55,7 @@ class GradingQueueItemResource extends JsonResource
     {
         $statusValue = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
         $workflowValue = $this->grading_status instanceof \BackedEnum ? $this->grading_status->value : $this->grading_status;
+        $course = $this->quiz?->unit?->course;
 
         return [
             'type' => 'quiz',
@@ -54,6 +64,14 @@ class GradingQueueItemResource extends JsonResource
             'student_email' => $this->user?->email,
             'quiz_id' => $this->quiz_id,
             'quiz_title' => $this->quiz?->title,
+            'course' => $course ? [
+                'id' => $course->id,
+                'slug' => $course->slug,
+                'title' => $course->title,
+                'code' => $course->code,
+            ] : null,
+            'course_slug' => $course?->slug,
+            'sequence' => $this->sequence($this->quiz?->unit?->order, $this->quiz?->order),
             'submitted_at' => $this->submitted_at,
             'status' => $statusValue,
             'status_value' => $statusValue,
@@ -98,5 +116,14 @@ class GradingQueueItemResource extends JsonResource
         }
 
         return $enum->label();
+    }
+
+    private function sequence(?int $unitOrder, ?int $elementOrder): ?string
+    {
+        if ($unitOrder === null || $elementOrder === null) {
+            return null;
+        }
+
+        return $unitOrder.'.'.$elementOrder;
     }
 }

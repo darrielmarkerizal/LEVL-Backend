@@ -97,7 +97,12 @@ class GradingQueueService
         $request = new Request(['filter' => $relevant]);
 
         $query = QueryBuilder::for(Submission::class, $request)
-            ->with(['user:id,name,email', 'assignment:id,title,max_score'])
+            ->with([
+                'user:id,name,email',
+                'assignment:id,title,max_score,unit_id,order',
+                'assignment.unit:id,order,course_id',
+                'assignment.unit.course:id,slug,title,code',
+            ])
             ->allowedFilters([
                 AllowedFilter::callback('status', fn ($q, $v) => $q->where('state', $v)),
                 AllowedFilter::exact('user_id'),
@@ -119,7 +124,13 @@ class GradingQueueService
         $request = new Request(['filter' => $relevant]);
 
         $query = QueryBuilder::for(QuizSubmission::class, $request)
-            ->with(['user:id,name,email', 'quiz:id,title', 'answers.question'])
+            ->with([
+                'user:id,name,email',
+                'quiz:id,title,unit_id,order',
+                'quiz.unit:id,order,course_id',
+                'quiz.unit.course:id,slug,title,code',
+                'answers.question',
+            ])
             ->allowedFilters([
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('user_id'),
