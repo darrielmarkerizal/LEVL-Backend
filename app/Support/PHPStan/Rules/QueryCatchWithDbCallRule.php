@@ -40,6 +40,7 @@ class QueryCatchWithDbCallRule implements Rule
     }
 
     /** @return list<\PHPStan\Rules\IdentifierRuleError> */
+    
     public function processNode(Node $node, Scope $scope): array
     {
         if (! $node instanceof Catch_) {

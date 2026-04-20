@@ -15,7 +15,8 @@ class AssignmentEnrichmentService
 {
     public function __construct(
         private readonly PrerequisiteService $prerequisiteService
-    ) {}
+    ) {
+    }
 
     public function enrichForStudent(LengthAwarePaginator $paginator, int $userId): LengthAwarePaginator
     {
@@ -24,7 +25,7 @@ class AssignmentEnrichmentService
         $assignmentIds = $paginator->pluck('id')->toArray();
         $submissions = $this->getLatestSubmissions($assignmentIds, $userId);
 
-        
+
         $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
             'assignment_submitted',
             'perfect_score',
@@ -46,7 +47,7 @@ class AssignmentEnrichmentService
                 'passing_grade' => $item->passing_grade,
                 'status' => $item->status->value,
                 'unit_slug' => $item->unit->slug ?? null,
-                'is_locked' => ! $prerequisiteCheck['accessible'],
+                'is_locked' => !$prerequisiteCheck['accessible'],
                 'submission_status' => $submissionData['submission_status'],
                 'submission_status_label' => $submissionData['submission_status_label'],
                 'score' => $submissionData['score'],
@@ -99,13 +100,13 @@ class AssignmentEnrichmentService
             ->whereIn('assignment_id', $assignmentIds)
             ->get()
             ->groupBy('assignment_id')
-            ->map(fn ($subs) => $subs->sortByDesc('submitted_at')->first())
+            ->map(fn($subs) => $subs->sortByDesc('submitted_at')->first())
             ->all();
     }
 
     private function calculateSubmissionData(Assignment $assignment, ?Submission $submission, int $userId): array
     {
-        if (! $submission) {
+        if (!$submission) {
             return [
                 'submission_status' => null,
                 'submission_status_label' => 'Belum Dikerjakan',
@@ -166,7 +167,7 @@ class AssignmentEnrichmentService
         $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
         $attachmentFiles = $assignment->getMedia('attachments')
-            ->filter(fn ($media) => Storage::disk($media->disk)->exists($media->getPath()))
+            ->filter(fn($media) => Storage::disk($media->disk)->exists($media->getPath()))
             ->map(function ($media) {
                 $url = $this->resolveMediaUrl($media);
 
@@ -211,7 +212,7 @@ class AssignmentEnrichmentService
                     'code' => $assignment->unit->course->code,
                 ] : null,
             ],
-            'is_locked' => ! $prerequisiteCheck['accessible'],
+            'is_locked' => !$prerequisiteCheck['accessible'],
             'submission_status' => $submissionData['submission_status'],
             'submission_status_label' => $submissionData['submission_status_label'],
             'score' => $submissionData['score'],

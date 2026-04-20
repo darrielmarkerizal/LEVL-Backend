@@ -21,6 +21,9 @@ class GradingQueueItemResource extends JsonResource
 
     private function toAssignmentArray(): array
     {
+        $statusValue = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
+        $workflowValue = $this->state instanceof \BackedEnum ? $this->state->value : $this->state;
+
         return [
             'type' => 'assignment',
             'submission_id' => $this->id,
@@ -29,13 +32,21 @@ class GradingQueueItemResource extends JsonResource
             'assignment_id' => $this->assignment_id,
             'assignment_title' => $this->assignment?->title,
             'submitted_at' => $this->submitted_at,
-            'workflow_state' => $this->state instanceof \BackedEnum ? $this->state->value : $this->state,
+            'status' => $statusValue,
+            'status_value' => $statusValue,
+            'status_label' => $this->enumLabel($this->status),
+            'workflow_state' => $workflowValue,
+            'workflow_state_value' => $workflowValue,
+            'workflow_state_label' => $this->enumLabel($this->state),
             'score' => $this->score,
         ];
     }
 
     private function toQuizArray(): array
     {
+        $statusValue = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
+        $workflowValue = $this->grading_status instanceof \BackedEnum ? $this->grading_status->value : $this->grading_status;
+
         return [
             'type' => 'quiz',
             'submission_id' => $this->id,
@@ -44,8 +55,14 @@ class GradingQueueItemResource extends JsonResource
             'quiz_id' => $this->quiz_id,
             'quiz_title' => $this->quiz?->title,
             'submitted_at' => $this->submitted_at,
-            'status' => $this->status?->value,
-            'grading_status' => $this->grading_status?->value,
+            'status' => $statusValue,
+            'status_value' => $statusValue,
+            'status_label' => $this->enumLabel($this->status),
+            'grading_status' => $workflowValue,
+            'grading_status_label' => $this->enumLabel($this->grading_status),
+            'workflow_state' => $workflowValue,
+            'workflow_state_value' => $workflowValue,
+            'workflow_state_label' => $this->enumLabel($this->grading_status),
             'score' => $this->score,
             'final_score' => $this->final_score,
             'total_questions' => $this->relationLoaded('answers') ? $this->answers->count() : 0,
@@ -72,5 +89,14 @@ class GradingQueueItemResource extends JsonResource
             ])
             ->values()
             ->toArray();
+    }
+
+    private function enumLabel(mixed $enum): ?string
+    {
+        if (! is_object($enum) || ! method_exists($enum, 'label')) {
+            return null;
+        }
+
+        return $enum->label();
     }
 }
