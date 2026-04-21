@@ -93,7 +93,7 @@ class GradingBulkService
         }
 
         $draftCount = \Modules\Grading\Models\Grade::whereIn('submission_id', $submissionIds)
-            ->where('is_draft', true)
+            ->whereRaw('is_draft IS TRUE')
             ->count();
 
         if ($draftCount > 0) {
