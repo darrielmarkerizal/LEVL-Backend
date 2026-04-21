@@ -33,7 +33,8 @@ class GradingController extends Controller
     public function manualGradeUnified(ManualGradeRequest $request, int $submissionId): JsonResponse
     {
         $validated = $request->validated();
-        $preferQuiz = ! empty($validated['grades']) && ! array_key_exists('score', $validated);
+        $grades = is_array($validated['grades'] ?? null) ? $validated['grades'] : [];
+        $preferQuiz = collect($grades)->contains(fn ($grade) => is_array($grade) && array_key_exists('question_id', $grade));
 
         if ($preferQuiz) {
             $quizSubmission = QuizSubmission::find($submissionId);
@@ -104,7 +105,8 @@ class GradingController extends Controller
     public function saveDraftGradeUnified(SaveDraftGradeRequest $request, int $submissionId): JsonResponse
     {
         $validated = $request->validated();
-        $preferQuiz = ! empty($validated['grades']) && ! array_key_exists('score', $validated);
+        $grades = is_array($validated['grades'] ?? null) ? $validated['grades'] : [];
+        $preferQuiz = collect($grades)->contains(fn ($grade) => is_array($grade) && array_key_exists('question_id', $grade));
 
         if ($preferQuiz) {
             $quizSubmission = QuizSubmission::find($submissionId);
