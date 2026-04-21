@@ -22,6 +22,7 @@ use Modules\Grading\Http\Resources\GradingQueueItemResource;
 use Modules\Grading\Services\GradingBulkService;
 use Modules\Grading\Services\GradingEntryService;
 use Modules\Grading\Services\GradingQueueService;
+use Modules\Learning\Models\QuizSubmission;
 use Modules\Learning\Models\Submission;
 
 class GradingController extends Controller
@@ -123,6 +124,18 @@ class GradingController extends Controller
             new GradingQueueItemResource($submission),
             __('messages.grading.submission_fetched')
         );
+    }
+
+    public function showQuizEssayQuestion(QuizSubmission $submission, int $questionId): JsonResponse
+    {
+        $this->authorize('view', $submission);
+        $row = $this->queueService->getQuizEssayRow($submission, $questionId);
+
+        if ($row === null) {
+            return $this->error('Essay question not found for this submission.', [], 404);
+        }
+
+        return $this->success(new GradingQueueItemResource($row));
     }
 
     public function returnToQueue(Submission $submission): JsonResponse

@@ -19,11 +19,11 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class GradingQueueService
 {
-    private const ALLOWED_FILTERS = ['status', 'workflow_state', 'user_id', 'course_slug', 'assignment_id', 'quiz_id', 'grading_status', 'date_from', 'date_to'];
+    private const ALLOWED_FILTERS = ['status', 'workflow_state', 'user_id', 'course_slug', 'assignment_id', 'quiz_id', 'question_id', 'grading_status', 'date_from', 'date_to'];
 
     private const ASSIGNMENT_FILTERS = ['status', 'workflow_state', 'user_id', 'course_slug', 'assignment_id', 'date_from', 'date_to'];
 
-    private const QUIZ_FILTERS = ['status', 'workflow_state', 'user_id', 'course_slug', 'quiz_id', 'grading_status', 'date_from', 'date_to'];
+    private const QUIZ_FILTERS = ['status', 'workflow_state', 'user_id', 'course_slug', 'quiz_id', 'question_id', 'grading_status', 'date_from', 'date_to'];
 
     private const QUIZ_ONLY_FILTERS = ['quiz_id', 'grading_status'];
 
@@ -40,13 +40,14 @@ class GradingQueueService
 
         $hasQuizOnlyFilter = ! empty(array_intersect(array_keys($filterData), self::QUIZ_ONLY_FILTERS));
         $hasAssignmentOnlyFilter = ! empty(array_intersect(array_keys($filterData), self::ASSIGNMENT_ONLY_FILTERS));
+        $questionId = isset($filterData['question_id']) ? (int) $filterData['question_id'] : null;
 
         $assignmentSubmissions = $hasQuizOnlyFilter ? collect() : $this->buildAssignmentQuery($filterData, $actorId, $isInstructor)->get();
         $quizSubmissions = $hasAssignmentOnlyFilter
             ? collect()
             : $this->buildQuizQuery($filterData, $actorId, $isInstructor)
                 ->get()
-                ->flatMap(fn (QuizSubmission $submission) => $this->expandQuizToEssayRows($submission));
+            ->flatMap(fn (QuizSubmission $submission) => $this->expandQuizToEssayRows($submission, $questionId));
 
         $all = $assignmentSubmissions->concat($quizSubmissions)
             ->sortByDesc('submitted_at')
@@ -58,10 +59,11 @@ class GradingQueueService
         ]);
     }
 
-    private function expandQuizToEssayRows(QuizSubmission $submission): Collection
+    private function expandQuizToEssayRows(QuizSubmission $submission, ?int $questionId = null): Collection
     {
         return $submission->answers
             ->filter(fn ($answer) => $answer->question?->type?->value === QuizQuestionType::Essay->value)
+            ->filter(fn ($answer) => $questionId === null || (int) $answer->quiz_question_id === $questionId)
             ->map(fn ($answer) => [
                 'quiz_submission' => $submission,
                 'essay_answer' => $answer,
@@ -95,6 +97,31 @@ class GradingQueueService
             ->with(['grader:id,name'])
             ->latest()
             ->first();
+    }
+
+    public function getQuizEssayRow(QuizSubmission $submission, int $questionId): ?array
+    {
+        $submission->loadMissing([
+            'user:id,name,email',
+            'quiz:id,title,unit_id,order',
+            'quiz.unit:id,order,course_id',
+            'quiz.unit.course:id,slug,title,code',
+            'answers.question',
+        ]);
+
+        $essayAnswer = $submission->answers
+            ->first(fn ($answer) => (int) $answer->quiz_question_id === $questionId
+                && $answer->question?->type?->value === QuizQuestionType::Essay->value);
+
+        if ($essayAnswer === null) {
+            return null;
+        }
+
+        return [
+            'quiz_submission' => $submission,
+            'essay_answer' => $essayAnswer,
+            'submitted_at' => $submission->submitted_at,
+        ];
     }
 
     private function validateFilters(array $filterData): void
@@ -179,6 +206,9 @@ class GradingQueueService
                     $q->whereHas('quiz.unit.course', fn ($courseQuery) => $courseQuery->where('slug', $v));
                 }),
                 AllowedFilter::exact('quiz_id'),
+                AllowedFilter::callback('question_id', function ($q, $v) {
+                    $q->whereHas('answers', fn ($answerQuery) => $answerQuery->where('quiz_question_id', (int) $v));
+                }),
                 AllowedFilter::callback('grading_status', function ($q, $v) {
                     $values = is_array($v) ? $v : [$v];
                     $validValues = array_values(array_intersect($values, QuizGradingStatus::values()));

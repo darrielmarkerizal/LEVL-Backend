@@ -7,6 +7,9 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
 
     Route::middleware(['role:Superadmin|Admin|Instructor'])->group(function () {
         Route::get('grading', [GradingController::class, 'queue'])->name('grading.index');
+        Route::get('grading/quiz-submissions/{submission}/questions/{questionId}', [GradingController::class, 'showQuizEssayQuestion'])
+            ->middleware('can:view,submission')
+            ->name('grading.quiz-essay-question.show');
         Route::get('grading/{submission}', [GradingController::class, 'show'])->name('grading.show');
         Route::post('grading/bulk-release', [GradingController::class, 'bulkReleaseGrades'])->name('grading.bulk.release');
         Route::post('grading/bulk-feedback', [GradingController::class, 'bulkApplyFeedback'])->name('grading.bulk.feedback');
