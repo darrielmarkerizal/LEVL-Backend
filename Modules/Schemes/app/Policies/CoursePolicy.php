@@ -46,7 +46,7 @@ class CoursePolicy
 
     public function create(User $user): bool
     {
-        return $user->hasRole('Superadmin') || $user->hasRole('Admin') || $user->hasRole('Instructor');
+        return $user->hasRole('Superadmin') || $user->hasRole('Admin');
     }
 
     public function update(User $user, Course $course): bool
@@ -55,14 +55,8 @@ class CoursePolicy
             return true;
         }
 
-        
         if ($user->hasRole('Admin')) {
             return true;
-        }
-
-        
-        if ($user->hasRole('Instructor')) {
-            return $course->instructors()->where('user_id', $user->id)->exists();
         }
 
         return false;
@@ -74,14 +68,8 @@ class CoursePolicy
             return true;
         }
 
-        
         if ($user->hasRole('Admin')) {
             return true;
-        }
-
-        
-        if ($user->hasRole('Instructor')) {
-            return $course->instructors()->where('user_id', $user->id)->exists();
         }
 
         return false;
@@ -91,11 +79,6 @@ class CoursePolicy
     {
         if ($user->hasRole('Superadmin') || $user->hasRole('Admin')) {
             return true;
-        }
-
-        
-        if ($user->hasRole('Instructor')) {
-            return $course->instructors()->where('user_id', $user->id)->exists();
         }
 
         return false;

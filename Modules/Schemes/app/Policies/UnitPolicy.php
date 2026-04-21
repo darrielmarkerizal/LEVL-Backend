@@ -60,13 +60,11 @@ class UnitPolicy
             return true;
         }
 
-        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        
-        return $user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists();
+        return false;
     }
 
     public function update(User $user, Unit $unit): bool
@@ -80,13 +78,11 @@ class UnitPolicy
             return false;
         }
 
-        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        
-        return $user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists();
+        return false;
     }
 
     public function delete(User $user, Unit $unit): bool
@@ -100,13 +96,11 @@ class UnitPolicy
             return false;
         }
 
-        
         if ($user->hasRole('Admin')) {
             return true;
         }
 
-        
-        return $user->hasRole('Instructor') && $course->instructors()->where('user_id', $user->id)->exists();
+        return false;
     }
 
     public function reorder(User $user, Unit $unit): bool

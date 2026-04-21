@@ -19,7 +19,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
         Route::get('my-courses', [CourseController::class, 'myEnrolledCourses'])->name('courses.my-enrolled');
     });
 
-    Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
+    Route::middleware(['auth:api', 'role:Superadmin|Admin'])->group(function () {
         Route::post('courses/generate-slug', [CourseController::class, 'generateSlug'])
             ->name('courses.generate-slug');
         Route::post('courses', [CourseController::class, 'store'])
@@ -62,7 +62,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
     });
 
     
-    Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
+    Route::middleware(['auth:api', 'role:Superadmin|Admin'])->group(function () {
         Route::post('units/generate-slug', [UnitController::class, 'generateSlug'])->name('units.generate-slug');
         Route::post('units', [UnitController::class, 'storeGlobal'])->name('units.store');
         Route::get('contents/{contentId}/metadata', [UnitController::class, 'getContentMetadata'])->name('contents.metadata');
@@ -95,7 +95,7 @@ Route::prefix('v1')->scopeBindings()->group(function () {
     });
 
     
-    Route::middleware(['auth:api', 'role:Superadmin|Admin|Instructor'])->group(function () {
+    Route::middleware(['auth:api', 'role:Superadmin|Admin'])->group(function () {
         Route::post('courses/{course:slug}/units/{unit:slug}/contents', [UnitController::class, 'storeContent'])
             ->name('courses.units.contents.store');
         Route::post('courses/{course:slug}/units', [UnitController::class, 'store'])
