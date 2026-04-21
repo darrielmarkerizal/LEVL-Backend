@@ -145,7 +145,20 @@ jobs:
             # Avoid shell glob expansion issues on zsh by restarting explicit names from supervisor status.
             QUEUE_PROCESSES=$(sudo supervisorctl status | awk '/^levl-queue-worker:/{print $1}')
             if [ -n "$QUEUE_PROCESSES" ]; then
-              echo "$QUEUE_PROCESSES" | xargs -r sudo supervisorctl restart
+              QUEUE_RESTART_FAILED=0
+              while IFS= read -r PROCESS; do
+                [ -z "$PROCESS" ] && continue
+                if ! sudo supervisorctl restart "$PROCESS"; then
+                  echo "⚠️  Failed restarting $PROCESS (possibly stale process entry), continuing..."
+                  QUEUE_RESTART_FAILED=1
+                fi
+              done <<EOF
+$QUEUE_PROCESSES
+EOF
+
+              if [ "$QUEUE_RESTART_FAILED" -eq 1 ]; then
+                echo "⚠️  Some queue workers failed to restart, but deployment will continue"
+              fi
             else
               echo "⚠️  No levl-queue-worker processes found in supervisor status"
             fi
