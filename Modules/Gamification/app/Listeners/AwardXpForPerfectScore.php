@@ -20,9 +20,10 @@ class AwardXpForPerfectScore
 
     public function handle(GradesReleased $event): void
     {
-        foreach ($event->grades as $grade) {
+        foreach ($event->submissions as $submission) {
+            $grade = $submission->grade;
             
-            if ($grade->score >= 100) {
+            if ($grade && $grade->score >= 100) {
                 $userId = $grade->user_id;
 
                 

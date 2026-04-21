@@ -151,18 +151,45 @@ class GradingController extends Controller
         return $this->orchestrator->getGrade($submission);
     }
 
-    public function overrideGrade(OverrideGradeRequest $request, Submission $submission): JsonResponse
+    public function releaseGradeUnified(int $submissionId): JsonResponse
     {
-        return $this->orchestrator->overrideGrade(
-            $submission,
-            (float) $request->validated('score'),
-            $request->validated('reason')
-        );
-    }
+        $type = request()->query('type');
+        $normalizedType = is_string($type) ? strtolower($type) : null;
+        $preferQuiz = $normalizedType === 'quiz';
 
-    public function releaseGrade(Submission $submission): JsonResponse
-    {
-        return $this->orchestrator->releaseGrade($submission);
+        if ($preferQuiz) {
+            $quizSubmission = QuizSubmission::find($submissionId);
+
+            if ($quizSubmission !== null) {
+                $this->authorize('view', $quizSubmission);
+
+                return $this->orchestrator->releaseGradeQuiz($quizSubmission);
+            }
+        }
+
+        $submission = Submission::find($submissionId);
+
+        if ($submission !== null) {
+            $this->authorize('grade', $submission);
+
+            return $this->orchestrator->releaseGrade($submission);
+        }
+
+        $quizSubmission = QuizSubmission::find($submissionId);
+
+        if ($quizSubmission !== null) {
+            $this->authorize('view', $quizSubmission);
+
+            return $this->orchestrator->releaseGradeQuiz($quizSubmission);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => __('messages.not_found'),
+            'data' => null,
+            'meta' => null,
+            'errors' => null,
+        ], 404);
     }
 
     public function bulkReleaseGrades(BulkReleaseGradesRequest $request): JsonResponse

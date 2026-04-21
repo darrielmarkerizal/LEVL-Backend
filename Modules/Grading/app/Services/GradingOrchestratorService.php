@@ -253,25 +253,6 @@ class GradingOrchestratorService
         return $this->success($grade ? GradeResource::make($grade) : null);
     }
 
-    public function overrideGrade(Submission $submission, float $score, string $reason): JsonResponse
-    {
-        try {
-            $this->entryService->overrideGrade($submission->id, $score, $reason);
-            $submission->refresh();
-
-            return $this->success(
-                [
-                    'submission_id' => $submission->id,
-                    'score' => $submission->score,
-                    'grade' => $submission->grade ? GradeResource::make($submission->grade) : null,
-                ],
-                __('messages.grading.grade_overridden')
-            );
-        } catch (InvalidArgumentException $e) {
-            return $this->error($e->getMessage(), [], 422);
-        }
-    }
-
     public function releaseGrade(Submission $submission): JsonResponse
     {
         try {
@@ -283,6 +264,20 @@ class GradingOrchestratorService
                     'workflow_state' => $submission->refresh()->state?->value,
                     'grade' => $submission->grade ? GradeResource::make($submission->grade) : null,
                 ],
+                __('messages.grading.grade_released')
+            );
+        } catch (InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), [], 422);
+        }
+    }
+
+    public function releaseGradeQuiz(QuizSubmission $quizSubmission): JsonResponse
+    {
+        try {
+            $result = $this->entryService->finalizeQuizSubmission($quizSubmission);
+
+            return $this->success(
+                new GradingQueueItemResource($result),
                 __('messages.grading.grade_released')
             );
         } catch (InvalidArgumentException $e) {

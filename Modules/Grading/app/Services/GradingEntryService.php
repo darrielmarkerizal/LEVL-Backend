@@ -103,12 +103,6 @@ class GradingEntryService
         $this->actionProcessor->saveDraft($submission, $data->answers, $data->graderId, $data->scoreOverride, $data->feedback);
     }
 
-    public function overrideGrade(int $submissionId, float $score, string $reason): void
-    {
-        $submission = Submission::findOrFail($submissionId);
-        $this->actionProcessor->overrideGrade($submission, $score, $reason, (int) auth('api')->id());
-    }
-
     public function returnToQueue(int $submissionId): void
     {
         $submission = Submission::findOrFail($submissionId);
