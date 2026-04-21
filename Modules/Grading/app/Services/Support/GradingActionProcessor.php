@@ -74,13 +74,18 @@ class GradingActionProcessor
         return $grade;
     }
 
-    public function saveDraft(Submission $submission, array $answersData, ?int $graderId): void
+    public function saveDraft(Submission $submission, array $answersData, ?int $graderId, ?float $scoreOverride = null, ?string $feedback = null): void
     {
         if ($submission->grade && ! $submission->grade->is_draft) {
             throw new \InvalidArgumentException(__('messages.grading.cannot_draft_finalized'));
         }
 
-        foreach ($answersData as $questionId => $gradeData) {
+        foreach ($answersData as $gradeData) {
+            $questionId = (int) ($gradeData['question_id'] ?? 0);
+            if ($questionId <= 0) {
+                continue;
+            }
+
             $answer = $submission->answers->where('question_id', $questionId)->first();
             if (! $answer) {
                 continue;
@@ -101,6 +106,13 @@ class GradingActionProcessor
             ]);
         }
 
+        if ($scoreOverride !== null) {
+            $maxScore = (float) ($submission->assignment?->max_score ?? 100);
+            if ($scoreOverride < 0 || $scoreOverride > $maxScore) {
+                throw new \InvalidArgumentException(__('messages.grading.invalid_score'));
+            }
+        }
+
         Grade::updateOrCreate(
             ['submission_id' => $submission->id],
             [
@@ -108,6 +120,9 @@ class GradingActionProcessor
                 'source_id' => $submission->assignment_id,
                 'user_id' => $submission->user_id,
                 'graded_by' => $graderId ?? auth('api')->id(),
+                'score' => $scoreOverride,
+                'max_score' => $submission->assignment?->max_score ?? 100,
+                'feedback' => $feedback,
                 'is_draft' => true,
             ]
         );

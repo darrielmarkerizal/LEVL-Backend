@@ -144,12 +144,15 @@ class GradingOrchestratorService
         }
     }
 
-    public function saveDraftGrade(Submission $submission, array $grades): JsonResponse
+    public function saveDraftGrade(Submission $submission, array $validated): JsonResponse
     {
         try {
+            $hasGrades = ! empty($validated['grades']);
             $dto = new SubmissionGradeDTO(
                 submissionId: $submission->id,
-                answers: $grades,
+                answers: $validated['grades'] ?? [],
+                scoreOverride: $hasGrades ? null : (float) ($validated['score'] ?? 0),
+                feedback: $validated['feedback'] ?? null,
                 graderId: auth('api')->id()
             );
 

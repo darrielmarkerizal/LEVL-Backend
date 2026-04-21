@@ -54,7 +54,7 @@ class GradingController extends Controller
 
     public function saveDraftGrade(SaveDraftGradeRequest $request, Submission $submission): JsonResponse
     {
-        return $this->orchestrator->saveDraftGrade($submission, $request->validated('grades'));
+        return $this->orchestrator->saveDraftGrade($submission, $request->validated());
     }
 
     public function getGrade(Submission $submission): JsonResponse

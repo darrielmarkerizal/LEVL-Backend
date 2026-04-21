@@ -96,8 +96,8 @@ class GradingEntryService
 
     public function saveDraftGrade(SubmissionGradeDTO $data): void
     {
-        $submission = Submission::with(['answers.question', 'grade'])->findOrFail($data->submissionId);
-        $this->actionProcessor->saveDraft($submission, $data->answers, $data->graderId);
+        $submission = Submission::with(['answers.question', 'assignment', 'grade'])->findOrFail($data->submissionId);
+        $this->actionProcessor->saveDraft($submission, $data->answers, $data->graderId, $data->scoreOverride, $data->feedback);
     }
 
     public function overrideGrade(int $submissionId, float $score, string $reason): void
