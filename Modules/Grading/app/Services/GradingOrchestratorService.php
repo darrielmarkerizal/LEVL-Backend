@@ -276,6 +276,12 @@ class GradingOrchestratorService
         try {
             $result = $this->entryService->finalizeQuizSubmission($quizSubmission);
 
+            $result->update([
+                'status' => \Modules\Learning\Enums\QuizSubmissionStatus::Released->value,
+                'grading_status' => \Modules\Learning\Enums\QuizGradingStatus::Released->value,
+            ]);
+            $result->refresh();
+
             return $this->success(
                 new GradingQueueItemResource($result),
                 __('messages.grading.grade_released')

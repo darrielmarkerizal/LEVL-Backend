@@ -9,6 +9,7 @@ enum QuizSubmissionStatus: string
     case Draft = 'draft';
     case Submitted = 'submitted';
     case Graded = 'graded';
+    case Released = 'released';
     case Missing = 'missing';
 
     public static function values(): array

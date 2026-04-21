@@ -10,6 +10,7 @@ enum QuizGradingStatus: string
     case PartiallyGraded = 'partially_graded';
     case WaitingForGrading = 'waiting_for_grading';
     case Graded = 'graded';
+    case Released = 'released';
 
     public static function values(): array
     {
@@ -28,6 +29,7 @@ enum QuizGradingStatus: string
             self::PartiallyGraded => __('enums.quiz_grading_status.partially_graded'),
             self::WaitingForGrading => __('enums.quiz_grading_status.waiting_for_grading'),
             self::Graded => __('enums.quiz_grading_status.graded'),
+            self::Released => __('enums.quiz_grading_status.released'),
         };
     }
 
