@@ -39,7 +39,7 @@ class QueryCatchWithDbCallRule implements Rule
         return Catch_::class;
     }
 
-    /** @return list<\PHPStan\Rules\IdentifierRuleError> */
+    
     
     public function processNode(Node $node, Scope $scope): array
     {
@@ -86,7 +86,7 @@ class QueryCatchWithDbCallRule implements Rule
         return false;
     }
 
-    /** @param array<Node\Stmt> $stmts */
+    
     private function hasDbCallsInBlock(array $stmts): bool
     {
         foreach ($stmts as $stmt) {

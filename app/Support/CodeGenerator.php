@@ -79,7 +79,7 @@ class CodeGenerator
     ): string {
         $model = self::instantiateModel($modelClass);
 
-        /** @var \Illuminate\Database\Query\Builder $query */
+        
         $query = self::tableQuery($model)->where($column, 'LIKE', $prefix.'%')
             ->orderByDesc($column);
 
