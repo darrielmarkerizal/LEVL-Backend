@@ -9,7 +9,10 @@ use Modules\Grading\DTOs\SubmissionGradeDTO;
 use Modules\Grading\Events\GradesReleased;
 use Modules\Grading\Models\Grade;
 use Modules\Grading\Services\Support\GradeCalculator;
+use Modules\Learning\Enums\QuizGradingStatus;
+use Modules\Learning\Enums\QuizSubmissionStatus;
 use Modules\Learning\Enums\SubmissionState;
+use Modules\Learning\Models\QuizSubmission;
 use Modules\Learning\Models\Submission;
 
 class GradingEntryService
@@ -136,5 +139,106 @@ class GradingEntryService
         );
 
         return $courseGrade;
+    }
+
+    public function manualGradeQuiz(QuizSubmission $submission, array $grades, ?int $graderId): QuizSubmission
+    {
+        $submission->load(['quiz.questions', 'answers.question']);
+
+        foreach ($grades as $gradeData) {
+            $questionId = (int) ($gradeData['question_id'] ?? 0);
+            $answer = $submission->answers->first(fn ($item) => (int) $item->quiz_question_id === $questionId);
+
+            if (! $answer || ! $answer->question) {
+                continue;
+            }
+
+            $score = (float) ($gradeData['score'] ?? 0);
+            $maxScore = (float) ($answer->question->max_score ?? $answer->question->weight ?? 100);
+
+            if ($score < 0 || $score > $maxScore) {
+                throw new InvalidArgumentException(__('messages.grading.invalid_score'));
+            }
+
+            $answer->update([
+                'score' => $score,
+                'feedback' => $gradeData['feedback'] ?? null,
+                'is_auto_graded' => false,
+            ]);
+        }
+
+        return $this->recalculateQuizSubmissionGrade($submission->refresh(), false);
+    }
+
+    public function saveDraftGradeQuiz(QuizSubmission $submission, array $grades, ?int $graderId): QuizSubmission
+    {
+        $submission->load(['quiz.questions', 'answers.question']);
+
+        foreach ($grades as $gradeData) {
+            $questionId = (int) ($gradeData['question_id'] ?? 0);
+            $answer = $submission->answers->first(fn ($item) => (int) $item->quiz_question_id === $questionId);
+
+            if (! $answer || ! $answer->question) {
+                continue;
+            }
+
+            if (array_key_exists('score', $gradeData) && $gradeData['score'] !== null) {
+                $score = (float) $gradeData['score'];
+                $maxScore = (float) ($answer->question->max_score ?? $answer->question->weight ?? 100);
+
+                if ($score < 0 || $score > $maxScore) {
+                    throw new InvalidArgumentException(__('messages.grading.invalid_score'));
+                }
+            }
+
+            $answer->update([
+                'score' => $gradeData['score'] ?? null,
+                'feedback' => $gradeData['feedback'] ?? null,
+                'is_auto_graded' => false,
+            ]);
+        }
+
+        return $this->recalculateQuizSubmissionGrade($submission->refresh(), true);
+    }
+
+    private function recalculateQuizSubmissionGrade(QuizSubmission $submission, bool $forceDraft): QuizSubmission
+    {
+        $submission->load(['quiz.questions', 'answers.question']);
+
+        $questions = $submission->quiz->questions;
+        $answers = $submission->answers;
+
+        $totalWeight = (float) $questions->sum(fn ($question) => (float) $question->weight);
+        $earnedWeight = 0.0;
+        $hasUngradedManual = false;
+
+        foreach ($questions as $question) {
+            $answer = $answers->first(fn ($item) => (int) $item->quiz_question_id === (int) $question->id);
+            $score = $answer?->score;
+
+            if (! $question->canAutoGrade() && $score === null) {
+                $hasUngradedManual = true;
+            }
+
+            $earnedWeight += (float) ($score ?? 0);
+        }
+
+        $quizMaxScore = (float) ($submission->quiz->max_score ?? 100);
+        $calculatedScore = $totalWeight > 0
+            ? round(($earnedWeight / $totalWeight) * $quizMaxScore, 2)
+            : 0.0;
+
+        $isFinal = ! $forceDraft && ! $hasUngradedManual;
+        $gradingStatus = $isFinal ? QuizGradingStatus::Graded : QuizGradingStatus::PartiallyGraded;
+        $status = $isFinal ? QuizSubmissionStatus::Graded : QuizSubmissionStatus::Submitted;
+
+        $submission->update([
+            'grading_status' => $gradingStatus->value,
+            'status' => $status->value,
+            'score' => $calculatedScore,
+            'final_score' => $isFinal ? $calculatedScore : null,
+        ]);
+
+        return $submission->fresh(['user', 'quiz.unit.course', 'answers.question']);
     }
 }

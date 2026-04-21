@@ -87,34 +87,79 @@ class GradingOrchestratorService
         return $this->paginateResponse($paginator, 'messages.grading.queue_fetched');
     }
 
-    public function showSubmission(Submission $submission, string $includeParam = ''): JsonResponse
+    public function manualGradeQuiz(QuizSubmission $quizSubmission, array $validated): JsonResponse
     {
-        if (empty($includeParam)) {
-            $submission->load([
+        try {
+            $grades = $validated['grades'] ?? [];
+
+            if ($grades === []) {
+                return $this->error(__('messages.validation_failed'), [], 422);
+            }
+
+            $result = $this->entryService->manualGradeQuiz($quizSubmission, $grades, auth('api')->id());
+
+            return $this->success(
+                new GradingQueueItemResource($result),
+                __('messages.grading.manual_graded')
+            );
+        } catch (InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), [], 422);
+        }
+    }
+
+    public function showSubmission(int $submissionId, string $includeParam = '', ?string $type = null): JsonResponse
+    {
+        $normalizedType = is_string($type) ? strtolower($type) : null;
+        $shouldResolveAssignment = $normalizedType === null || $normalizedType === 'assignment';
+        $shouldResolveQuiz = $normalizedType === null || $normalizedType === 'quiz';
+
+        $submission = $shouldResolveAssignment ? Submission::find($submissionId) : null;
+
+        if ($submission !== null) {
+            if (empty($includeParam)) {
+                $submission->load([
+                    'user:id,name,email',
+                    'assignment:id,title,max_score,description,submission_type,unit_id,order',
+                    'assignment.unit:id,course_id,order',
+                    'assignment.unit.course:id,title,slug,code',
+                    'answers.question',
+                    'media',
+                ]);
+            } else {
+                $submission = \Spatie\QueryBuilder\QueryBuilder::for(\Modules\Learning\Models\Submission::class)
+                    ->where('id', $submission->id)
+                    ->allowedIncludes(['user', 'assignment', 'assignment.unit', 'assignment.unit.course', 'answers', 'answers.question', 'grade'])
+                    ->firstOrFail();
+            }
+
+            $submission->loadMissing([
                 'user:id,name,email',
                 'assignment:id,title,max_score,description,submission_type,unit_id,order',
                 'assignment.unit:id,course_id,order',
                 'assignment.unit.course:id,title,slug,code',
-                'answers.question',
                 'media',
             ]);
-        } else {
-            $submission = \Spatie\QueryBuilder\QueryBuilder::for(\Modules\Learning\Models\Submission::class)
-                ->where('id', $submission->id)
-                ->allowedIncludes(['user', 'assignment', 'assignment.unit', 'assignment.unit.course', 'answers', 'answers.question', 'grade'])
-                ->firstOrFail();
+
+            return $this->success(
+                new GradingQueueItemResource($submission),
+                __('messages.grading.submission_fetched')
+            );
         }
 
-        $submission->loadMissing([
+        $quizSubmission = $shouldResolveQuiz ? QuizSubmission::with([
             'user:id,name,email',
-            'assignment:id,title,max_score,description,submission_type,unit_id,order',
-            'assignment.unit:id,course_id,order',
-            'assignment.unit.course:id,title,slug,code',
-            'media',
-        ]);
+            'quiz:id,title,unit_id,order',
+            'quiz.unit:id,order,course_id',
+            'quiz.unit.course:id,slug,title,code',
+            'answers.question',
+        ])->find($submissionId) : null;
+
+        if ($quizSubmission === null) {
+            return $this->error(__('messages.not_found'), [], 404);
+        }
 
         return $this->success(
-            new GradingQueueItemResource($submission),
+            new GradingQueueItemResource($quizSubmission),
             __('messages.grading.submission_fetched')
         );
     }
@@ -159,6 +204,26 @@ class GradingOrchestratorService
             $this->entryService->saveDraftGrade($dto);
 
             return $this->success(['submission_id' => $submission->id], __('messages.grading.draft_saved'));
+        } catch (InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), [], 422);
+        }
+    }
+
+    public function saveDraftGradeQuiz(QuizSubmission $quizSubmission, array $validated): JsonResponse
+    {
+        try {
+            $grades = $validated['grades'] ?? [];
+
+            if ($grades === []) {
+                return $this->error(__('messages.validation_failed'), [], 422);
+            }
+
+            $result = $this->entryService->saveDraftGradeQuiz($quizSubmission, $grades, auth('api')->id());
+
+            return $this->success(
+                new GradingQueueItemResource($result),
+                __('messages.grading.draft_saved')
+            );
         } catch (InvalidArgumentException $e) {
             return $this->error($e->getMessage(), [], 422);
         }
