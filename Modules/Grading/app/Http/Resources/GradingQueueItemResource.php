@@ -131,6 +131,7 @@ class GradingQueueItemResource extends JsonResource
             'score' => $submission->score,
             'final_score' => $submission->final_score,
             'student_answer' => $essayAnswer->content,
+            'question_id' => $essayAnswer->quiz_question_id,
             'answer_score' => $essayAnswer->score,
             'is_graded' => $essayAnswer->score !== null,
         ];
