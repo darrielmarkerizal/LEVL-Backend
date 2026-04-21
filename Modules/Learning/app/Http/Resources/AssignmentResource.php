@@ -30,6 +30,7 @@ class AssignmentResource extends JsonResource
         return [
             'id' => $this->resource->id,
             'title' => $this->resource->title,
+            'order' => $this->resource->order,
             'sequence' => $this->sequence(),
             'instructions' => $this->resource->description,
             'submission_type' => $this->resource->submission_type?->value ?? $this->resource->submission_type,
@@ -67,6 +68,7 @@ class AssignmentResource extends JsonResource
         return [
             'id' => $this->resource->id,
             'title' => $this->resource->title,
+            'order' => $this->resource->order,
             'sequence' => $this->sequence(),
             'instructions' => $this->resource->description,
             'submission_type' => $this->resource->submission_type?->value ?? $this->resource->submission_type,

@@ -42,6 +42,7 @@ class AssignmentEnrichmentService
             return [
                 'id' => $item->id,
                 'title' => $item->title,
+                'order' => $item->order,
                 'submission_type' => $item->submission_type->value,
                 'max_score' => $item->max_score,
                 'passing_grade' => $item->passing_grade,
@@ -189,6 +190,7 @@ class AssignmentEnrichmentService
         return [
             'id' => $assignment->id,
             'title' => $assignment->title,
+            'order' => $assignment->order,
             'description' => $assignment->description,
             'instructions' => $assignment->description,
             'submission_type' => $assignment->submission_type->value,

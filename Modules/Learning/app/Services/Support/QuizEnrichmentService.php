@@ -39,6 +39,7 @@ class QuizEnrichmentService
             return [
                 'id' => $item->id,
                 'title' => $item->title,
+                'order' => $item->order,
                 'passing_grade' => $item->passing_grade,
                 'max_score' => $item->max_score,
                 'auto_grading' => $item->auto_grading,
@@ -181,6 +182,7 @@ class QuizEnrichmentService
         return [
             'id' => $quiz->id,
             'title' => $quiz->title,
+            'order' => $quiz->order,
             'description' => $quiz->description,
             'passing_grade' => $quiz->passing_grade,
             'max_score' => $quiz->max_score,
@@ -225,6 +227,7 @@ class QuizEnrichmentService
             return [
                 'id' => $item->id,
                 'title' => $item->title,
+                'order' => $item->order,
                 'passing_grade' => $item->passing_grade,
                 'max_score' => $item->max_score,
                 'status' => $item->status->value,

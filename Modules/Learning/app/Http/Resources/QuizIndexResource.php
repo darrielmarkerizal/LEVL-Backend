@@ -13,6 +13,7 @@ class QuizIndexResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
+            'order' => $this->order,
             'sequence' => $this->sequence(),
             'passing_grade' => $this->passing_grade,
             'max_score' => $this->max_score,
