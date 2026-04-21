@@ -39,6 +39,8 @@ class PrerequisiteCheckResult
     {
         return [
             'passed' => $this->passed,
+            'is_locked' => ! $this->passed,
+            'is_completed' => $this->passed,
             'incomplete_prerequisites' => $this->incompletePrerequisites->map(fn ($item) => [
                 'type' => $item['type'] ?? 'assignment',
                 'id' => $item['id'] ?? $item->id,

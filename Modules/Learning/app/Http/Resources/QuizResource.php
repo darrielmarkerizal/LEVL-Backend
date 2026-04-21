@@ -38,6 +38,13 @@ class QuizResource extends JsonResource
             'status' => $this->when(isset($this->status_value), $this->status_value) ?: $this->status?->value,
             'status_label' => $this->when(isset($this->status_label), $this->status_label) ?: $this->status?->label(),
             'is_locked' => $this->when(isset($this->is_locked), $this->is_locked),
+            'prerequisites' => $this->when(
+                isset($this->is_locked),
+                fn () => [
+                    'is_locked' => (bool) $this->is_locked,
+                    'is_completed' => ! (bool) $this->is_locked,
+                ]
+            ),
             'unit_slug' => $this->unit->slug ?? null,
             'course_slug' => $this->unit->course->slug ?? null,
             'unit' => $this->when(

@@ -38,6 +38,15 @@ class AssignmentResource extends JsonResource
             'passing_grade' => $this->resource->passing_grade,
             'time_limit_minutes' => $this->resource->time_limit_minutes,
             'review_mode' => $this->resource->review_mode?->value ?? $this->resource->review_mode,
+            'is_locked' => $this->when(isset($this->resource->is_locked), $this->resource->is_locked),
+            'is_completed' => $this->when(isset($this->resource->is_completed), $this->resource->is_completed),
+            'prerequisites' => $this->when(
+                isset($this->resource->is_locked),
+                fn () => [
+                    'is_locked' => (bool) $this->resource->is_locked,
+                    'is_completed' => ! (bool) $this->resource->is_locked,
+                ]
+            ),
             'accepted_formats' => $this->acceptedFormats(),
             'max_file_size' => $this->maxFileSizeInMb(),
             'grading_scheme' => $this->gradingScheme(),

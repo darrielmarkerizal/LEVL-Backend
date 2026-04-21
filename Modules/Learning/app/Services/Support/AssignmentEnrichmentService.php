@@ -49,6 +49,10 @@ class AssignmentEnrichmentService
                 'status' => $item->status->value,
                 'unit_slug' => $item->unit->slug ?? null,
                 'is_locked' => !$prerequisiteCheck['accessible'],
+                'prerequisites' => [
+                    'is_locked' => ! $prerequisiteCheck['accessible'],
+                    'is_completed' => $prerequisiteCheck['accessible'],
+                ],
                 'submission_status' => $submissionData['submission_status'],
                 'submission_status_label' => $submissionData['submission_status_label'],
                 'score' => $submissionData['score'],
@@ -215,6 +219,10 @@ class AssignmentEnrichmentService
                 ] : null,
             ],
             'is_locked' => !$prerequisiteCheck['accessible'],
+            'prerequisites' => [
+                'is_locked' => ! $prerequisiteCheck['accessible'],
+                'is_completed' => $prerequisiteCheck['accessible'],
+            ],
             'submission_status' => $submissionData['submission_status'],
             'submission_status_label' => $submissionData['submission_status_label'],
             'score' => $submissionData['score'],
