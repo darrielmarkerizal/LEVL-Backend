@@ -101,6 +101,7 @@ class GradingQueueItemResource extends JsonResource
         $statusValue = $submission->status instanceof \BackedEnum ? $submission->status->value : $submission->status;
         $workflowValue = $submission->grading_status instanceof \BackedEnum ? $submission->grading_status->value : $submission->grading_status;
         $course = $submission->quiz?->unit?->course;
+        $question = $essayAnswer->question;
 
         return [
             'type' => 'quiz',
@@ -131,9 +132,18 @@ class GradingQueueItemResource extends JsonResource
             'score' => $submission->score,
             'final_score' => $submission->final_score,
             'student_answer' => $essayAnswer->content,
+            'answer_feedback' => $essayAnswer->feedback,
+            'answer_selected_options' => $essayAnswer->selected_options,
+            'answer_is_auto_graded' => $essayAnswer->is_auto_graded,
             'question_id' => $essayAnswer->quiz_question_id,
+            'question_type' => $question?->type?->value,
+            'question_order' => $question?->order,
+            'question_weight' => $question?->weight,
+            'question_max_score' => $question?->max_score,
             'answer_score' => $essayAnswer->score,
             'is_graded' => $essayAnswer->score !== null,
+            'answered_at' => $essayAnswer->created_at,
+            'answered_updated_at' => $essayAnswer->updated_at,
         ];
     }
 
