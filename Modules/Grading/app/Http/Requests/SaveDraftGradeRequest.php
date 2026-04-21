@@ -17,7 +17,7 @@ class SaveDraftGradeRequest extends FormRequest
     {
         return [
             'grades' => ['nullable', 'array', 'min:1'],
-            'grades.*.question_id' => ['required_with:grades', 'integer', 'exists:questions,id'],
+            'grades.*.question_id' => ['required_with:grades', 'integer', 'exists:quiz_questions,id'],
             'grades.*.score' => ['required_with:grades', 'numeric', 'min:0'],
             'grades.*.feedback' => ['nullable', 'string'],
             'score' => ['nullable', 'numeric', 'min:0'],
