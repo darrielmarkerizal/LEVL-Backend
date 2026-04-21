@@ -80,10 +80,24 @@ class AuthRegistrationProcessor
         return $user;
     }
 
-    public function generateDevTokens(string $ip, ?string $userAgent, ?int $userId = null): array
+    public function generateDevTokens(string $ip, ?string $userAgent, ?int $userId = null, ?string $login = null): array
     {
         if ($userId) {
             $user = User::find($userId);
+            if (! $user) {
+                return ['error' => 'User not found'];
+            }
+
+            return ['specific_user' => $this->formatUserToken($user, $ip, $userAgent)];
+        }
+
+        if (is_string($login) && trim($login) !== '') {
+            $normalizedLogin = strtolower(trim($login));
+            $user = User::query()
+                ->whereRaw('LOWER(email) = ?', [$normalizedLogin])
+                ->orWhereRaw('LOWER(username) = ?', [$normalizedLogin])
+                ->first();
+
             if (! $user) {
                 return ['error' => 'User not found'];
             }

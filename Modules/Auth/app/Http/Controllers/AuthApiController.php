@@ -203,7 +203,16 @@ class AuthApiController extends Controller
     public function generateDevTokens(Request $request): JsonResponse
     {
         $userId = $request->query('user_id') ? (int) $request->query('user_id') : null;
-        $tokens = $this->authService->generateDevTokens($request->ip(), $request->userAgent(), $userId);
+        $login = $request->query('login');
+        if (! is_string($login) || trim($login) === '') {
+            $email = $request->query('email');
+            $username = $request->query('username');
+            $login = is_string($email) && trim($email) !== ''
+                ? $email
+                : (is_string($username) && trim($username) !== '' ? $username : null);
+        }
+
+        $tokens = $this->authService->generateDevTokens($request->ip(), $request->userAgent(), $userId, $login);
 
         return $this->success($tokens, 'Dev tokens generated successfully.');
     }
