@@ -156,12 +156,12 @@ class GradingRepository implements GradingRepositoryInterface
         $grade = $this->model->where('submission_id', $submissionId)->first();
 
         if ($grade) {
-            $grade->update(array_merge($data, ['is_draft' => true]));
+            $grade->update(array_merge($data, ['is_draft' => \DB::raw('true')]));
             $this->invalidateCache($grade);
         } else {
             $grade = $this->model->create(array_merge($data, [
                 'submission_id' => $submissionId,
-                'is_draft' => true,
+                'is_draft' => \DB::raw('true'),
             ]));
             $this->invalidateCache($grade);
         }

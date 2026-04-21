@@ -133,7 +133,7 @@ Catatan penting filter lintas tipe:
 
 ### 1.2 GET /grading/{submission_id}
 
-Detail submission untuk dinilai (assignment submission).
+Detail submission untuk dinilai (assignment atau quiz, tergantung resolusi id dan query).
 
 URL:
 
@@ -148,6 +148,8 @@ Path params:
 Query params:
 
 - `include` (optional, comma-separated)
+- `type` (optional, `assignment|quiz`)
+- `question_id` (optional, integer; wajib jika `type=quiz` untuk mode detail essay row)
 
 Allowed include values:
 
@@ -168,6 +170,15 @@ Contoh:
 ```text
 {{url}}/api/v1/grading/1556?include=user,assignment,assignment.unit.course,answers.question,grade
 ```
+
+```text
+{{url}}/api/v1/grading/1584?type=quiz&question_id=348
+```
+
+Catatan behavior:
+
+- Jika `type=quiz` dan `question_id` dikirim, response `data` disamakan dengan endpoint dedicated quiz question detail.
+- Jika `type` tidak dikirim, backend akan mencoba resolve assignment dulu, lalu quiz.
 
 ---
 
@@ -234,7 +245,7 @@ Contoh response `data`:
 
 ### 1.4 POST /grading/bulk-release
 
-Rilis nilai massal untuk beberapa submission.
+Rilis nilai massal untuk assignment dan quiz.
 
 URL:
 
@@ -244,8 +255,14 @@ URL:
 
 Body params:
 
-- `submission_ids` (required, array, min 1)
-- `submission_ids[]` (required, integer, exists in submissions)
+- Wajib pilih salah satu: `submission_ids` (legacy) atau `targets` (direkomendasikan)
+- Tidak boleh kirim keduanya sekaligus.
+- `submission_ids` (optional legacy, array, min 1)
+- `submission_ids[]` (required_with submission_ids, integer, exists in submissions)
+- `targets` (optional, array, min 1)
+- `targets[].type` (required_with targets, enum: `assignment|quiz`)
+- `targets[].submission_id` (required_with targets, integer, min 1)
+- `targets[].question_id` (optional, integer, exists in quiz_questions)
 - `async` (optional, boolean)
 
 Sort/filter:
@@ -256,12 +273,42 @@ Raw JSON:
 
 ```json
 {
+  "targets": [
+    {
+      "type": "assignment",
+      "submission_id": 1556
+    },
+    {
+      "type": "quiz",
+      "submission_id": 1584,
+      "question_id": 348
+    }
+  ],
+  "async": true
+}
+```
+
+Raw JSON (legacy):
+
+```json
+{
   "submission_ids": [1556, 1557, 1558],
   "async": true
 }
 ```
 
 Form-data:
+
+```text
+targets[0][type]=assignment
+targets[0][submission_id]=1556
+targets[1][type]=quiz
+targets[1][submission_id]=1584
+targets[1][question_id]=348
+async=true
+```
+
+Form-data (legacy):
 
 ```text
 submission_ids[0]=1556
@@ -274,7 +321,7 @@ async=true
 
 ### 1.5 POST /grading/bulk-feedback
 
-Tambahkan feedback massal untuk beberapa submission.
+Tambahkan feedback massal untuk assignment dan quiz.
 
 URL:
 
@@ -284,8 +331,14 @@ URL:
 
 Body params:
 
-- `submission_ids` (required, array, min 1)
-- `submission_ids[]` (required, integer, exists in submissions)
+- Wajib pilih salah satu: `submission_ids` (legacy) atau `targets` (direkomendasikan)
+- Tidak boleh kirim keduanya sekaligus.
+- `submission_ids` (optional legacy, array, min 1)
+- `submission_ids[]` (required_with submission_ids, integer, exists in submissions)
+- `targets` (optional, array, min 1)
+- `targets[].type` (required_with targets, enum: `assignment|quiz`)
+- `targets[].submission_id` (required_with targets, integer, min 1)
+- `targets[].question_id` (required untuk target quiz, integer, exists in quiz_questions)
 - `feedback` (required, string, min length 1)
 - `async` (optional, boolean)
 
@@ -297,6 +350,26 @@ Raw JSON:
 
 ```json
 {
+  "targets": [
+    {
+      "type": "assignment",
+      "submission_id": 1556
+    },
+    {
+      "type": "quiz",
+      "submission_id": 1584,
+      "question_id": 348
+    }
+  ],
+  "feedback": "Mohon perbaiki struktur jawaban dan lengkapi referensi.",
+  "async": false
+}
+```
+
+Raw JSON (legacy):
+
+```json
+{
   "submission_ids": [1556, 1557],
   "feedback": "Mohon perbaiki struktur jawaban dan lengkapi referensi.",
   "async": false
@@ -304,6 +377,18 @@ Raw JSON:
 ```
 
 Form-data:
+
+```text
+targets[0][type]=assignment
+targets[0][submission_id]=1556
+targets[1][type]=quiz
+targets[1][submission_id]=1584
+targets[1][question_id]=348
+feedback=Mohon perbaiki struktur jawaban dan lengkapi referensi.
+async=false
+```
+
+Form-data (legacy):
 
 ```text
 submission_ids[0]=1556
@@ -380,7 +465,7 @@ URL:
 Body params:
 
 - `grades` (required, array, min 1)
-- `grades[].question_id` (required, integer, exists in questions)
+- `grades[].question_id` (required, integer, exists in quiz_questions)
 - `grades[].score` (optional nullable, numeric, min 0)
 - `grades[].feedback` (optional nullable, string)
 
@@ -441,7 +526,7 @@ Rule utama:
 Body params:
 
 - `grades` (array, min 1)
-- `grades[].question_id` (required_with grades, integer, exists in questions)
+- `grades[].question_id` (required_with grades, integer, exists in quiz_questions)
 - `grades[].score` (required_with grades, numeric, min 0)
 - `grades[].feedback` (optional nullable, string)
 - `feedback` (optional overall feedback)
@@ -505,6 +590,12 @@ Form-data:
 score=87
 feedback=Nilai akhir ditetapkan berdasarkan rubrik tugas.
 ```
+
+Perbedaan `score` dan `grade`:
+
+- `score` adalah angka nilai.
+- `grades` adalah array nilai per soal (question-level entries).
+- `grade` adalah entitas/record penilaian assignment (menyimpan metadata seperti grader, draft/final, feedback, release).
 
 ---
 
@@ -626,7 +717,8 @@ Hanya untuk GET `/grading/{submission_id}`:
 
 1. Ambil antrean quiz essay: `GET /grading?filter[quiz_id]=...`
 2. Ambil detail soal spesifik: `GET /grading/quiz-submissions/{quiz_submission_id}/questions/{question_id}`
-3. Simpan draft/final sesuai workflow grading internal.
+3. Alternatif detail via unified endpoint: `GET /grading/{submission_id}?type=quiz&question_id={question_id}`
+4. Simpan draft/final sesuai workflow grading internal.
 
 ### Case B - Nilai Assignment
 

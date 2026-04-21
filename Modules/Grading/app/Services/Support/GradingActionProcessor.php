@@ -62,7 +62,7 @@ class GradingActionProcessor
                 'score' => $score,
                 'max_score' => $submission->assignment->max_score ?? 100,
                 'feedback' => $feedback,
-                'is_draft' => false,
+                'is_draft' => \DB::raw('false'),
                 'graded_at' => now(),
             ]
         );
@@ -123,7 +123,7 @@ class GradingActionProcessor
                 'score' => $scoreOverride,
                 'max_score' => $submission->assignment?->max_score ?? 100,
                 'feedback' => $feedback,
-                'is_draft' => true,
+                'is_draft' => \DB::raw('true'),
             ]
         );
     }
@@ -159,7 +159,7 @@ class GradingActionProcessor
 
         $grade = Grade::where('submission_id', $submission->id)->first();
         if ($grade) {
-            $grade->update(['is_draft' => true]);
+            $grade->update(['is_draft' => \DB::raw('true')]);
         }
     }
 }

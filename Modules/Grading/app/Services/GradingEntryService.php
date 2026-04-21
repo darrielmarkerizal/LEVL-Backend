@@ -133,7 +133,7 @@ class GradingEntryService
             [
                 'score' => $courseGrade,
                 'max_score' => 100,
-                'is_draft' => false,
+                'is_draft' => \DB::raw('false'),
                 'graded_at' => now(),
             ]
         );
