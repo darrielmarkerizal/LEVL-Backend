@@ -46,15 +46,12 @@ class QuizEnrichmentService
                 'status' => $item->status?->value,
                 'unit_slug' => $item->unit->slug ?? null,
                 'is_locked' => ! $prerequisiteCheck['accessible'],
-                'prerequisites' => [
-                    'is_locked' => ! $prerequisiteCheck['accessible'],
-                    'is_completed' => $prerequisiteCheck['accessible'],
-                ],
+                'is_completed' => $prerequisiteCheck['accessible'],
                 'submission_status' => $submissionData['submission_status'],
                 'submission_status_label' => $submissionData['submission_status_label'],
                 'score' => $submissionData['score'],
                 'submitted_at' => $submissionData['submitted_at'],
-                'is_completed' => $submissionData['is_completed'],
+                'is_submission_completed' => $submissionData['is_completed'],
                 'attempts_used' => $submissionData['attempts_used'],
                 'xp_reward' => $baseXp,
                 'xp_perfect_bonus' => $perfectScoreXp,
@@ -147,11 +144,12 @@ class QuizEnrichmentService
         $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
         $quiz->is_locked = ! $prerequisiteCheck['accessible'];
+        $quiz->is_completed = $prerequisiteCheck['accessible'];
         $quiz->submission_status = $submissionData['submission_status'];
         $quiz->submission_status_label = $submissionData['submission_status_label'];
         $quiz->score = $submissionData['score'];
         $quiz->submitted_at = $submissionData['submitted_at'];
-        $quiz->is_completed = $submissionData['is_completed'];
+        $quiz->is_submission_completed = $submissionData['is_completed'];
         $quiz->attempts_used = $submissionData['attempts_used'];
         $quiz->xp_reward = $baseXp;
         $quiz->xp_perfect_bonus = $perfectScoreXp;
@@ -196,15 +194,12 @@ class QuizEnrichmentService
             'status' => $quiz->status?->value,
             'unit_slug' => $quiz->unit->slug ?? null,
             'is_locked' => ! $prerequisiteCheck['accessible'],
-            'prerequisites' => [
-                'is_locked' => ! $prerequisiteCheck['accessible'],
-                'is_completed' => $prerequisiteCheck['accessible'],
-            ],
+            'is_completed' => $prerequisiteCheck['accessible'],
             'submission_status' => $submissionData['submission_status'],
             'submission_status_label' => $submissionData['submission_status_label'],
             'score' => $submissionData['score'],
             'submitted_at' => $submissionData['submitted_at'],
-            'is_completed' => $submissionData['is_completed'],
+            'is_submission_completed' => $submissionData['is_completed'],
             'attempts_used' => $submissionData['attempts_used'],
             'xp_reward' => $baseXp,
             'xp_perfect_bonus' => $perfectScoreXp,

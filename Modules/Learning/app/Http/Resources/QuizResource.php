@@ -38,13 +38,7 @@ class QuizResource extends JsonResource
             'status' => $this->when(isset($this->status_value), $this->status_value) ?: $this->status?->value,
             'status_label' => $this->when(isset($this->status_label), $this->status_label) ?: $this->status?->label(),
             'is_locked' => $this->when(isset($this->is_locked), $this->is_locked),
-            'prerequisites' => $this->when(
-                isset($this->is_locked),
-                fn () => [
-                    'is_locked' => (bool) $this->is_locked,
-                    'is_completed' => ! (bool) $this->is_locked,
-                ]
-            ),
+            'is_completed' => $this->when(isset($this->is_completed), $this->is_completed),
             'unit_slug' => $this->unit->slug ?? null,
             'course_slug' => $this->unit->course->slug ?? null,
             'unit' => $this->when(
@@ -84,7 +78,7 @@ class QuizResource extends JsonResource
             'submission_status_label' => $this->when(isset($this->submission_status_label), $this->submission_status_label),
             'score' => $this->when(isset($this->score), $this->score),
             'submitted_at' => $this->when(isset($this->submitted_at), $this->submitted_at),
-            'is_completed' => $this->when(isset($this->is_completed), $this->is_completed),
+            'is_submission_completed' => $this->when(isset($this->is_submission_completed), $this->is_submission_completed),
             'attempts_used' => $this->when(isset($this->attempts_used), $this->attempts_used),
             'xp_reward' => $this->when(isset($this->xp_reward), $this->xp_reward),
             'xp_perfect_bonus' => $this->when(isset($this->xp_perfect_bonus), $this->xp_perfect_bonus),
