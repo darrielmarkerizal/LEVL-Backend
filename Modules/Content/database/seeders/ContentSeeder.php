@@ -110,6 +110,8 @@ class ContentSeeder extends Seeder
         $categoryIds = Category::where('scope', 'news')->pluck('id')->toArray();
 
         foreach ($newsArticles as $newsData) {
+            $newsData['is_featured'] = $this->pgsqlBool((bool) ($newsData['is_featured'] ?? false));
+
             $news = News::firstOrCreate(
                 ['slug' => $newsData['slug']],
                 array_merge($newsData, ['author_id' => $admin->id])
@@ -142,5 +144,10 @@ class ContentSeeder extends Seeder
         }
 
         $this->command->info('Content seeded successfully!');
+    }
+
+    private function pgsqlBool(bool $value): \Illuminate\Contracts\Database\Query\Expression
+    {
+        return \DB::raw($value ? 'true' : 'false');
     }
 }

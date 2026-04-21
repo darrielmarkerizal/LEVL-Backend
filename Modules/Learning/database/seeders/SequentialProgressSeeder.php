@@ -435,7 +435,7 @@ class SequentialProgressSeeder extends Seeder
                 'content' => null,
                 'selected_options' => null,
                 'score' => $scenario === 'draft' ? null : $questionScore,
-                'is_auto_graded' => $question->type !== 'essay',
+                'is_auto_graded' => \DB::raw($question->type !== 'essay' ? 'true' : 'false'),
                 'feedback' => null,
                 'created_at' => $this->createdAt,
                 'updated_at' => $this->createdAt,
@@ -451,7 +451,7 @@ class SequentialProgressSeeder extends Seeder
                 $answerData['selected_options'] = $isCorrect ? $question->answer_key : json_encode([0]);
             } elseif ($question->type === 'essay') {
                 $answerData['content'] = $this->pregenAnswers[array_rand($this->pregenAnswers)];
-                $answerData['is_auto_graded'] = false;
+                $answerData['is_auto_graded'] = \DB::raw('false');
 
                 if ($scenario === 'graded') {
                     if ($isCorrect) {
@@ -574,7 +574,7 @@ class SequentialProgressSeeder extends Seeder
             'max_score' => $assignment->max_score,
             'feedback' => $status === 'graded' ? RealisticSeederContent::assignmentFeedback($submission->id) : null,
             'status' => $gradeStatus,
-            'is_draft' => $status === 'submitted',
+            'is_draft' => \DB::raw($status === 'submitted' ? 'true' : 'false'),
             'graded_at' => $gradedAt,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,

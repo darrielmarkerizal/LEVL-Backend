@@ -6,6 +6,7 @@ namespace Modules\Auth\Database\Seeders;
 
 use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;

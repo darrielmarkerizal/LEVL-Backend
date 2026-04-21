@@ -69,8 +69,8 @@ class ForumSeeder extends Seeder
             if (rand(1, 100) <= 40) {
                 $acceptedReply = $thread->replies()->inRandomOrder()->first();
                 if ($acceptedReply) {
-                    $acceptedReply->update(['is_accepted_answer' => true]);
-                    $thread->update(['is_resolved' => true]);
+                    $acceptedReply->update(['is_accepted_answer' => $this->pgsqlBool(true)]);
+                    $thread->update(['is_resolved' => $this->pgsqlBool(true)]);
                 }
             }
 
@@ -117,9 +117,9 @@ class ForumSeeder extends Seeder
             'author_id' => $author->id,
             'title' => $title,
             'content' => $content,
-            'is_pinned' => rand(1, 10) > 8,
-            'is_closed' => rand(1, 10) > 8,
-            'is_resolved' => rand(1, 10) > 7,
+            'is_pinned' => $this->pgsqlBool(rand(1, 10) > 8),
+            'is_closed' => $this->pgsqlBool(rand(1, 10) > 8),
+            'is_resolved' => $this->pgsqlBool(rand(1, 10) > 7),
             'views_count' => rand(5, 100),
             'replies_count' => 0,
             'last_activity_at' => $createdAt,
@@ -153,7 +153,7 @@ class ForumSeeder extends Seeder
                 'content' => $this->generateReplyContent($mentionedUsers),
                 'parent_id' => null,
                 'depth' => 0,
-                'is_accepted_answer' => false,
+                'is_accepted_answer' => $this->pgsqlBool(false),
                 'created_at' => $repliedAt,
                 'updated_at' => $repliedAt,
             ]);
@@ -194,7 +194,7 @@ class ForumSeeder extends Seeder
             'author_id' => $author->id,
             'content' => $this->generateReplyContent($mentionedUsers),
             'depth' => $depth,
-            'is_accepted_answer' => false,
+            'is_accepted_answer' => $this->pgsqlBool(false),
             'created_at' => $repliedAt,
             'updated_at' => $repliedAt,
         ]);
@@ -377,9 +377,9 @@ class ForumSeeder extends Seeder
                 'author_id' => $author->id,
                 'title' => "Discussion: Question for @{$targetUser->username}",
                 'content' => $content,
-                'is_pinned' => false,
-                'is_closed' => false,
-                'is_resolved' => false,
+                'is_pinned' => $this->pgsqlBool(false),
+                'is_closed' => $this->pgsqlBool(false),
+                'is_resolved' => $this->pgsqlBool(false),
                 'views_count' => rand(5, 50),
                 'replies_count' => 0,
                 'last_activity_at' => $createdAt,
@@ -409,5 +409,10 @@ class ForumSeeder extends Seeder
         }
 
         return $courses->isEmpty() ? null : $courses->random();
+    }
+
+    private function pgsqlBool(bool $value): \Illuminate\Contracts\Database\Query\Expression
+    {
+        return DB::raw($value ? 'true' : 'false');
     }
 }

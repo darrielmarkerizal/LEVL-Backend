@@ -82,6 +82,8 @@ class MilestoneSeeder extends Seeder
                     $milestone['xp_required'] = (int) $levelXpMap[$level];
                 }
 
+                $milestone['is_active'] = $this->pgsqlBool((bool) ($milestone['is_active'] ?? true));
+
                 Milestone::updateOrCreate(
                     ['code' => $milestone['code']],
                     $milestone
@@ -93,5 +95,10 @@ class MilestoneSeeder extends Seeder
         }
 
         $this->command->info("✅ Successfully seeded {$count} milestones.");
+    }
+
+    private function pgsqlBool(bool $value): \Illuminate\Contracts\Database\Query\Expression
+    {
+        return \DB::raw($value ? 'true' : 'false');
     }
 }

@@ -122,7 +122,7 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
                     'answer_key' => null,
                     'max_file_size' => null,
                     'allowed_file_types' => null,
-                    'allow_multiple_files' => false,
+                    'allow_multiple_files' => \DB::raw('false'),
                     'created_at' => $this->createdAt,
                     'updated_at' => $this->createdAt,
                 ];
@@ -153,7 +153,7 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
                     case QuestionType::FileUpload->value:
                         $questionData['max_file_size'] = 10000000;
                         $questionData['allowed_file_types'] = json_encode(['pdf', 'docx']);
-                        $questionData['allow_multiple_files'] = rand(0, 1) === 1;
+                        $questionData['allow_multiple_files'] = \DB::raw(rand(0, 1) === 1 ? 'true' : 'false');
                         break;
                 }
 
@@ -198,7 +198,7 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
                     'state' => $state,
                     'submitted_at' => $state !== SubmissionState::InProgress->value ? $this->createdAt : null,
                     'attempt_number' => $nextAttempt,
-                    'is_late' => rand(1, 100) <= 15,
+                    'is_late' => \DB::raw(rand(1, 100) <= 15 ? 'true' : 'false'),
                     'score' => null,
                     'created_at' => $this->createdAt,
                     'updated_at' => $this->createdAt,
@@ -215,7 +215,7 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
                         'selected_options' => null,
                         'file_paths' => null,
                         'score' => null,
-                        'is_auto_graded' => false,
+                        'is_auto_graded' => \DB::raw('false'),
                         'feedback' => null,
                         'created_at' => $this->createdAt,
                         'updated_at' => $this->createdAt,
@@ -248,7 +248,7 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
                         SubmissionState::Released->value,
                     ], true)) {
                         $answerData['score'] = rand(0, $q['maxScore']);
-                        $answerData['is_auto_graded'] = rand(1, 100) <= 70;
+                        $answerData['is_auto_graded'] = \DB::raw(rand(1, 100) <= 70 ? 'true' : 'false');
                         $answerScoresSum += (float) $answerData['score'];
                     }
 

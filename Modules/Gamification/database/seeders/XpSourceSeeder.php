@@ -18,6 +18,8 @@ class XpSourceSeeder extends Seeder
 
         foreach ($sources as $source) {
             try {
+                $source['is_active'] = $this->pgsqlBool((bool) ($source['is_active'] ?? true));
+
                 XpSource::updateOrCreate(
                     ['code' => $source['code']],
                     $source
@@ -200,5 +202,10 @@ class XpSourceSeeder extends Seeder
                 'is_active' => true,
             ],
         ];
+    }
+
+    private function pgsqlBool(bool $value): \Illuminate\Contracts\Database\Query\Expression
+    {
+        return \DB::raw($value ? 'true' : 'false');
     }
 }

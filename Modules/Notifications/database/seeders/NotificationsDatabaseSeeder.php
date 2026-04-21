@@ -80,7 +80,7 @@ class NotificationsDatabaseSeeder extends Seeder
                 'action_url' => null,
                 'channel' => $channel,
                 'priority' => $priority->value,
-                'is_broadcast' => $isBroadcast,
+                'is_broadcast' => $this->pgsqlBool($isBroadcast),
                 'scheduled_at' => null,
                 'sent_at' => $sentAt,
                 'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
@@ -162,5 +162,10 @@ class NotificationsDatabaseSeeder extends Seeder
             ->limit(80)
             ->pluck('id')
             ->all();
+    }
+
+    private function pgsqlBool(bool $value): \Illuminate\Contracts\Database\Query\Expression
+    {
+        return DB::raw($value ? 'true' : 'false');
     }
 }
