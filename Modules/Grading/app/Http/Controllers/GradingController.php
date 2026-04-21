@@ -126,10 +126,10 @@ class GradingController extends Controller
         );
     }
 
-    public function showQuizEssayQuestion(QuizSubmission $submission, int $questionId): JsonResponse
+    public function showQuizEssayQuestion(QuizSubmission $quizSubmission, int $questionId): JsonResponse
     {
-        $this->authorize('view', $submission);
-        $row = $this->queueService->getQuizEssayRow($submission, $questionId);
+        $this->authorize('view', $quizSubmission);
+        $row = $this->queueService->getQuizEssayRow($quizSubmission, $questionId);
 
         if ($row === null) {
             return $this->error('Essay question not found for this submission.', [], 404);
