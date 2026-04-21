@@ -282,6 +282,8 @@ class GradingOrchestratorService
             ]);
             $result->refresh();
 
+            event(new \Modules\Learning\Events\QuizCompleted($result));
+
             return $this->success(
                 new GradingQueueItemResource($result),
                 __('messages.grading.grade_released')

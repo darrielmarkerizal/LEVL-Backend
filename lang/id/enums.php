@@ -12,6 +12,7 @@ return [
         'draft' => 'Draft',
         'submitted' => 'Dikumpulkan',
         'graded' => 'Dinilai',
+        'released' => 'Dirilis',
     ],
 
     'quiz_grading_status' => [
@@ -19,6 +20,7 @@ return [
         'waiting_for_grading' => 'Menunggu Penilaian',
         'partially_graded' => 'Dinilai Sebagian',
         'graded' => 'Dinilai',
+        'released' => 'Dirilis',
     ],
 
     'quiz_status' => [

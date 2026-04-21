@@ -12,6 +12,7 @@ return [
         'draft' => 'Draft',
         'submitted' => 'Submitted',
         'graded' => 'Graded',
+        'released' => 'Released',
     ],
 
     'quiz_grading_status' => [
@@ -19,6 +20,7 @@ return [
         'waiting_for_grading' => 'Waiting for Grading',
         'partially_graded' => 'Partially Graded',
         'graded' => 'Graded',
+        'released' => 'Released',
     ],
 
     'quiz_status' => [
