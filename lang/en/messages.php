@@ -676,6 +676,9 @@ return [
         'reason_required' => 'A reason is required when overriding a grade.',
         'feedback_required' => 'Feedback cannot be empty.',
         'bulk_validation_failed' => 'Bulk validation failed: :errors',
+        'bulk_release_invalid_state' => 'Only submissions with state graded or released can be bulk released.',
+        'bulk_release_draft_grades' => 'Bulk release cannot continue because one or more selected submissions still have draft grades.',
+        'invalid_submission_ids' => 'One or more selected submission IDs are invalid.',
     ],
 
     

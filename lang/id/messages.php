@@ -680,6 +680,9 @@ return [
         'reason_required' => 'Alasan wajib diisi saat melakukan override nilai.',
         'feedback_required' => 'Umpan balik tidak boleh kosong.',
         'bulk_validation_failed' => 'Validasi massal gagal: :errors',
+        'bulk_release_invalid_state' => 'Hanya submission dengan state graded atau released yang bisa dirilis secara massal.',
+        'bulk_release_draft_grades' => 'Rilis massal tidak dapat dilanjutkan karena ada submission terpilih yang nilainya masih draft.',
+        'invalid_submission_ids' => 'Satu atau lebih submission ID yang dipilih tidak valid.',
     ],
 
     
