@@ -28,6 +28,7 @@ enum QuizSubmissionStatus: string
             self::Draft => __('enums.quiz_submission_status.draft'),
             self::Submitted => __('enums.quiz_submission_status.submitted'),
             self::Graded => __('enums.quiz_submission_status.graded'),
+            self::Released => __('enums.quiz_submission_status.released'),
             self::Missing => __('enums.quiz_submission_status.missing'),
         };
     }
