@@ -94,10 +94,12 @@ class GradingQueueService
 
     public function getGrade(int $submissionId): ?Grade
     {
-        return Grade::where('submission_id', $submissionId)
-            ->with(['grader:id,name'])
-            ->latest()
-            ->first();
+        $submission = Submission::with([
+            'grade.grader:id,name,email',
+            'user:id,name,email',
+        ])->findOrFail($submissionId);
+
+        return $submission->grade;
     }
 
     public function getQuizEssayRow(QuizSubmission $submission, int $questionId): ?array

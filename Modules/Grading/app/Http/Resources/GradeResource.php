@@ -11,6 +11,13 @@ class GradeResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $submissionStatus = $this->submission?->status instanceof \BackedEnum
+            ? $this->submission->status->value
+            : $this->submission?->status;
+        $workflowState = $this->submission?->state instanceof \BackedEnum
+            ? $this->submission->state->value
+            : $this->submission?->state;
+
         return [
             'id' => $this->id,
             'submission_id' => $this->submission_id,
@@ -18,13 +25,20 @@ class GradeResource extends JsonResource
             'source_id' => $this->source_id,
             'user_id' => $this->user_id,
             'graded_by' => $this->graded_by,
-            'score' => $this->score,
+            'score' => $this->submission?->score ?? $this->score,
+            'grade_score' => $this->score,
             'max_score' => $this->max_score,
             'original_score' => $this->original_score,
             'is_override' => $this->is_override,
             'override_reason' => $this->override_reason,
             'feedback' => $this->feedback,
             'is_draft' => $this->is_draft,
+            'status' => $submissionStatus,
+            'status_value' => $submissionStatus,
+            'workflow_state' => $workflowState,
+            'workflow_state_value' => $workflowState,
+            'student_name' => $this->submission?->user?->name,
+            'student_email' => $this->submission?->user?->email,
             'graded_at' => $this->graded_at,
             'released_at' => $this->released_at,
             'created_at' => $this->created_at,
