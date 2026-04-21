@@ -153,7 +153,8 @@ Allowed include values:
 
 - `user`
 - `assignment`
-- `assignment.course`
+- `assignment.unit`
+- `assignment.unit.course`
 - `answers`
 - `answers.question`
 - `grade`
@@ -165,7 +166,7 @@ Sort:
 Contoh:
 
 ```text
-{{url}}/api/v1/grading/1556?include=user,assignment,answers.question,grade
+{{url}}/api/v1/grading/1556?include=user,assignment,assignment.unit.course,answers.question,grade
 ```
 
 ---
@@ -608,7 +609,8 @@ Hanya untuk GET `/grading/{submission_id}`:
 
 - `user`
 - `assignment`
-- `assignment.course`
+- `assignment.unit`
+- `assignment.unit.course`
 - `answers`
 - `answers.question`
 - `grade`

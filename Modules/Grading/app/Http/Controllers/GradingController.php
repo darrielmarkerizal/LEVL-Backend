@@ -109,14 +109,15 @@ class GradingController extends Controller
         if (empty($includeParam)) {
             $submission->load([
                 'user:id,name,email',
-                'assignment:id,title,max_score,instructions',
-                'assignment.course:id,title',
+                'assignment:id,title,max_score,description,unit_id',
+                'assignment.unit:id,course_id',
+                'assignment.unit.course:id,title,slug,code',
                 'answers.question',
             ]);
         } else {
             $submission = \Spatie\QueryBuilder\QueryBuilder::for(\Modules\Learning\Models\Submission::class)
                 ->where('id', $submission->id)
-                ->allowedIncludes(['user', 'assignment', 'assignment.course', 'answers', 'answers.question', 'grade'])
+                ->allowedIncludes(['user', 'assignment', 'assignment.unit', 'assignment.unit.course', 'answers', 'answers.question', 'grade'])
                 ->firstOrFail();
         }
 
