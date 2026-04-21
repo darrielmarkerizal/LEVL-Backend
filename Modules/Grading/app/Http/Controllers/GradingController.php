@@ -78,10 +78,13 @@ class GradingController extends Controller
 
     public function show(int $submissionId): JsonResponse
     {
+        $questionId = request()->query('question_id');
+
         return $this->orchestrator->showSubmission(
             $submissionId,
             (string) request()->get('include', ''),
-            request()->query('type')
+            request()->query('type'),
+            is_numeric($questionId) ? (int) $questionId : null
         );
     }
 
@@ -164,17 +167,23 @@ class GradingController extends Controller
 
     public function bulkReleaseGrades(BulkReleaseGradesRequest $request): JsonResponse
     {
+        $validated = $request->validated();
+
         return $this->orchestrator->bulkReleaseGrades(
-            $request->validated('submission_ids'),
+            $validated['submission_ids'] ?? [],
+            $validated['targets'] ?? [],
             $request->boolean('async')
         );
     }
 
     public function bulkApplyFeedback(BulkFeedbackRequest $request): JsonResponse
     {
+        $validated = $request->validated();
+
         return $this->orchestrator->bulkApplyFeedback(
-            $request->validated('submission_ids'),
-            $request->validated('feedback'),
+            $validated['submission_ids'] ?? [],
+            $validated['targets'] ?? [],
+            $validated['feedback'],
             $request->boolean('async')
         );
     }

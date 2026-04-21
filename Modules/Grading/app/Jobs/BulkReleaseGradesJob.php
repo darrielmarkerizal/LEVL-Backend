@@ -20,7 +20,7 @@ class BulkReleaseGradesJob implements ShouldQueue
     public int $timeout = 300;
 
     public function __construct(
-        public array $submissionIds,
+        public array $targets,
         public ?int $instructorId = null
     ) {
         $this->onQueue('grading');
@@ -28,19 +28,19 @@ class BulkReleaseGradesJob implements ShouldQueue
 
     public function handle(\Modules\Grading\Services\GradingBulkService $gradingService): void
     {
-        if (empty($this->submissionIds)) {
-            Log::info('BulkReleaseGradesJob: No submission IDs provided, skipping');
+        if (empty($this->targets)) {
+            Log::info('BulkReleaseGradesJob: No targets provided, skipping');
 
             return;
         }
 
         Log::info('BulkReleaseGradesJob: Starting bulk grade release', [
-            'submission_count' => count($this->submissionIds),
+            'target_count' => count($this->targets),
             'instructor_id' => $this->instructorId,
         ]);
 
         try {
-            $result = $gradingService->bulkReleaseGrades($this->submissionIds, $this->instructorId);
+            $result = $gradingService->bulkReleaseGrades($this->targets, $this->instructorId);
 
             Log::info('BulkReleaseGradesJob: Completed bulk grade release', [
                 'count' => $result,
@@ -48,7 +48,7 @@ class BulkReleaseGradesJob implements ShouldQueue
             ]);
         } catch (\Throwable $e) {
             Log::error('BulkReleaseGradesJob: Failed to release grades', [
-                'submission_ids' => $this->submissionIds,
+                'targets' => $this->targets,
                 'instructor_id' => $this->instructorId,
                 'error' => $e->getMessage(),
             ]);
@@ -60,7 +60,7 @@ class BulkReleaseGradesJob implements ShouldQueue
     public function failed(\Throwable $exception): void
     {
         Log::error('BulkReleaseGradesJob: Job failed after all retries', [
-            'submission_ids' => $this->submissionIds,
+            'targets' => $this->targets,
             'instructor_id' => $this->instructorId,
             'error' => $exception->getMessage(),
             'trace' => $exception->getTraceAsString(),
@@ -72,7 +72,7 @@ class BulkReleaseGradesJob implements ShouldQueue
         return [
             'bulk-release-grades',
             'instructor:'.($this->instructorId ?? 'unknown'),
-            'submissions:'.count($this->submissionIds),
+            'targets:'.count($this->targets),
         ];
     }
 }

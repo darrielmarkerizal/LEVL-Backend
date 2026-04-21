@@ -20,7 +20,7 @@ class BulkApplyFeedbackJob implements ShouldQueue
     public int $timeout = 300;
 
     public function __construct(
-        public array $submissionIds,
+        public array $targets,
         public string $feedback,
         public ?int $instructorId = null
     ) {
@@ -29,8 +29,8 @@ class BulkApplyFeedbackJob implements ShouldQueue
 
     public function handle(\Modules\Grading\Services\GradingBulkService $gradingService): void
     {
-        if (empty($this->submissionIds)) {
-            Log::info('BulkApplyFeedbackJob: No submission IDs provided, skipping');
+        if (empty($this->targets)) {
+            Log::info('BulkApplyFeedbackJob: No targets provided, skipping');
 
             return;
         }
@@ -42,13 +42,13 @@ class BulkApplyFeedbackJob implements ShouldQueue
         }
 
         Log::info('BulkApplyFeedbackJob: Starting bulk feedback application', [
-            'submission_count' => count($this->submissionIds),
+            'target_count' => count($this->targets),
             'feedback_length' => strlen($this->feedback),
             'instructor_id' => $this->instructorId,
         ]);
 
         try {
-            $result = $gradingService->bulkApplyFeedback($this->submissionIds, $this->feedback, $this->instructorId);
+            $result = $gradingService->bulkApplyFeedback($this->targets, $this->feedback, $this->instructorId);
 
             Log::info('BulkApplyFeedbackJob: Completed bulk feedback application', [
                 
@@ -57,7 +57,7 @@ class BulkApplyFeedbackJob implements ShouldQueue
             ]);
         } catch (\Throwable $e) {
             Log::error('BulkApplyFeedbackJob: Failed to apply feedback', [
-                'submission_ids' => $this->submissionIds,
+                'targets' => $this->targets,
                 'instructor_id' => $this->instructorId,
                 'error' => $e->getMessage(),
             ]);
@@ -69,7 +69,7 @@ class BulkApplyFeedbackJob implements ShouldQueue
     public function failed(\Throwable $exception): void
     {
         Log::error('BulkApplyFeedbackJob: Job failed after all retries', [
-            'submission_ids' => $this->submissionIds,
+            'targets' => $this->targets,
             'instructor_id' => $this->instructorId,
             'error' => $exception->getMessage(),
             'trace' => $exception->getTraceAsString(),
@@ -81,7 +81,7 @@ class BulkApplyFeedbackJob implements ShouldQueue
         return [
             'bulk-apply-feedback',
             'instructor:'.($this->instructorId ?? 'unknown'),
-            'submissions:'.count($this->submissionIds),
+            'targets:'.count($this->targets),
         ];
     }
 }

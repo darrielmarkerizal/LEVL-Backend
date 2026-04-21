@@ -201,6 +201,11 @@ class GradingEntryService
         return $this->recalculateQuizSubmissionGrade($submission->refresh(), true);
     }
 
+    public function finalizeQuizSubmission(QuizSubmission $submission): QuizSubmission
+    {
+        return $this->recalculateQuizSubmissionGrade($submission, false);
+    }
+
     private function recalculateQuizSubmissionGrade(QuizSubmission $submission, bool $forceDraft): QuizSubmission
     {
         $submission->load(['quiz.questions', 'answers.question']);

@@ -107,7 +107,7 @@ class GradingOrchestratorService
         }
     }
 
-    public function showSubmission(int $submissionId, string $includeParam = '', ?string $type = null): JsonResponse
+    public function showSubmission(int $submissionId, string $includeParam = '', ?string $type = null, ?int $questionId = null): JsonResponse
     {
         $normalizedType = is_string($type) ? strtolower($type) : null;
         $shouldResolveAssignment = $normalizedType === null || $normalizedType === 'assignment';
@@ -156,6 +156,23 @@ class GradingOrchestratorService
 
         if ($quizSubmission === null) {
             return $this->error(__('messages.not_found'), [], 404);
+        }
+
+        if ($normalizedType === 'quiz') {
+            if ($questionId === null) {
+                return $this->error(__('messages.validation_failed'), [], 422);
+            }
+
+            $row = $this->queueService->getQuizEssayRow($quizSubmission, $questionId);
+
+            if ($row === null) {
+                return $this->error(__('messages.not_found'), [], 404);
+            }
+
+            return $this->success(
+                new GradingQueueItemResource($row),
+                __('messages.grading.submission_fetched')
+            );
         }
 
         return $this->success(
@@ -273,11 +290,12 @@ class GradingOrchestratorService
         }
     }
 
-    public function bulkReleaseGrades(array $submissionIds, bool $isAsync): JsonResponse
+    public function bulkReleaseGrades(array $submissionIds, array $targets, bool $isAsync): JsonResponse
     {
         try {
             $dto = new BulkOperationDTO(
                 submissionIds: $submissionIds,
+                targets: $targets,
                 performerId: auth('api')->id(),
                 async: $isAsync
             );
@@ -293,11 +311,12 @@ class GradingOrchestratorService
         }
     }
 
-    public function bulkApplyFeedback(array $submissionIds, string $feedback, bool $isAsync): JsonResponse
+    public function bulkApplyFeedback(array $submissionIds, array $targets, string $feedback, bool $isAsync): JsonResponse
     {
         try {
             $dto = new BulkOperationDTO(
                 submissionIds: $submissionIds,
+                targets: $targets,
                 feedback: $feedback,
                 performerId: auth('api')->id(),
                 async: $isAsync
