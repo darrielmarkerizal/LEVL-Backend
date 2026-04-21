@@ -35,6 +35,7 @@ class GradingQueueService
 
         $perPage = max(1, min((int) ($filters['per_page'] ?? 15), 100));
         $page = max(1, (int) ($filters['page'] ?? 1));
+        $search = trim((string) ($filters['search'] ?? ''));
 
         $filterData = (array) data_get($filters, 'filter', []);
 
@@ -42,10 +43,10 @@ class GradingQueueService
         $hasAssignmentOnlyFilter = ! empty(array_intersect(array_keys($filterData), self::ASSIGNMENT_ONLY_FILTERS));
         $questionId = isset($filterData['question_id']) ? (int) $filterData['question_id'] : null;
 
-        $assignmentSubmissions = $hasQuizOnlyFilter ? collect() : $this->buildAssignmentQuery($filterData, $actorId, $isInstructor)->get();
+        $assignmentSubmissions = $hasQuizOnlyFilter ? collect() : $this->buildAssignmentQuery($filterData, $actorId, $isInstructor, $search)->get();
         $quizSubmissions = $hasAssignmentOnlyFilter
             ? collect()
-            : $this->buildQuizQuery($filterData, $actorId, $isInstructor)
+            : $this->buildQuizQuery($filterData, $actorId, $isInstructor, $search)
                 ->get()
             ->flatMap(fn (QuizSubmission $submission) => $this->expandQuizToEssayRows($submission, $questionId));
 
@@ -136,7 +137,7 @@ class GradingQueueService
         }
     }
 
-    private function buildAssignmentQuery(array $filterData, ?int $actorId = null, bool $isInstructor = false): QueryBuilder
+    private function buildAssignmentQuery(array $filterData, ?int $actorId = null, bool $isInstructor = false, string $search = ''): QueryBuilder
     {
         $relevant = array_intersect_key($filterData, array_flip(self::ASSIGNMENT_FILTERS));
         $request = new Request(['filter' => $relevant]);
@@ -165,10 +166,18 @@ class GradingQueueService
             $query->whereHas('assignment.unit.course', $this->courseInstructorScope($actorId));
         }
 
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', fn ($userQuery) => $userQuery->search($search))
+                    ->orWhereHas('assignment', fn ($assignmentQuery) => $assignmentQuery->search($search))
+                    ->orWhereHas('assignment.unit.course', fn ($courseQuery) => $courseQuery->search($search));
+            });
+        }
+
         return $query;
     }
 
-    private function buildQuizQuery(array $filterData, ?int $actorId = null, bool $isInstructor = false): QueryBuilder
+    private function buildQuizQuery(array $filterData, ?int $actorId = null, bool $isInstructor = false, string $search = ''): QueryBuilder
     {
         $relevant = array_intersect_key($filterData, array_flip(self::QUIZ_FILTERS));
         $request = new Request(['filter' => $relevant]);
@@ -233,6 +242,14 @@ class GradingQueueService
 
         if ($isInstructor && $actorId) {
             $query->whereHas('quiz.unit.course', $this->courseInstructorScope($actorId));
+        }
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', fn ($userQuery) => $userQuery->search($search))
+                    ->orWhereHas('quiz', fn ($quizQuery) => $quizQuery->search($search))
+                    ->orWhereHas('quiz.unit.course', fn ($courseQuery) => $courseQuery->search($search));
+            });
         }
 
         return $query;

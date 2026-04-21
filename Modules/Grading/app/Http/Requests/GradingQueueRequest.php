@@ -31,6 +31,7 @@ class GradingQueueRequest extends FormRequest
         )));
 
         return [
+            'search' => ['nullable', 'string', 'max:255'],
             'filter' => ['nullable', 'array'],
             'filter.status' => ['nullable', 'string', Rule::in($statusValues)],
             'filter.workflow_state' => ['nullable', 'string', Rule::in($workflowValues)],
@@ -50,6 +51,7 @@ class GradingQueueRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'search' => __('validation.attributes.search'),
             'filter.status' => __('validation.attributes.status'),
             'filter.workflow_state' => __('validation.attributes.workflow_state'),
             'filter.user_id' => __('validation.attributes.student'),
