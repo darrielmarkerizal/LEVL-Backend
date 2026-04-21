@@ -671,6 +671,7 @@ return [
         'submission_fetched' => 'Submission details retrieved successfully.',
         'not_found' => 'Grade not found.',
         'already_graded' => 'This submission has already been graded.',
+        'cannot_draft_finalized' => 'Cannot save draft because this submission already has a finalized grade.',
         'incomplete_grading' => 'Not all questions have been graded yet.',
         'invalid_score' => 'Score must be between 0 and the maximum allowed score.',
         'reason_required' => 'A reason is required when overriding a grade.',

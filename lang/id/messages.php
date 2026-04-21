@@ -675,6 +675,7 @@ return [
         'submission_fetched' => 'Detail pengumpulan berhasil diambil.',
         'not_found' => 'Nilai tidak ditemukan.',
         'already_graded' => 'Pengumpulan ini sudah dinilai sebelumnya.',
+        'cannot_draft_finalized' => 'Tidak dapat menyimpan draf karena pengumpulan ini sudah memiliki nilai final.',
         'incomplete_grading' => 'Masih ada pertanyaan yang belum dinilai.',
         'invalid_score' => 'Nilai harus berada di antara 0 dan nilai maksimum yang diizinkan.',
         'reason_required' => 'Alasan wajib diisi saat melakukan override nilai.',
