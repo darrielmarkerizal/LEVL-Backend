@@ -27,7 +27,7 @@ trait HasSchemesRequestRules
 
         return [
             'code' => [Rule::requiredIf(fn () => $courseId === 0), 'string', 'max:50', $uniqueCode],
-            'slug' => ['nullable', 'string', 'max:100', $uniqueSlug],
+            'slug' => array_filter(['nullable', 'string', 'max:100', request()->filled('slug') ? $uniqueSlug : null]),
             'title' => ['required', 'string', 'max:255'],
             'short_desc' => ['nullable', 'string'],
             'level_tag' => ['required', Rule::enum(LevelTag::class)],
@@ -63,9 +63,28 @@ trait HasSchemesRequestRules
             'thumbnail' => ['sometimes', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'banner' => ['sometimes', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
             'status' => ['sometimes', Rule::enum(CourseStatus::class)],
-            'instructor_id' => ['sometimes', 'integer', 'exists:users,id'],
+            'instructor_id' => [
+                'sometimes', 
+                'integer', 
+                'exists:users,id',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $user = \Modules\Auth\Models\User::find($value);
+                    if ($user && !$user->hasRole('Instructor')) {
+                        $fail(__('validation.custom.instructor_id.role', ['attribute' => __('validation.attributes.instructor')]));
+                    }
+                }
+            ],
             'instructor_ids' => ['sometimes', 'array'],
-            'instructor_ids.*' => ['integer', 'exists:users,id'],
+            'instructor_ids.*' => [
+                'integer', 
+                'exists:users,id',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $user = \Modules\Auth\Models\User::find($value);
+                    if ($user && !$user->hasRole('Instructor')) {
+                        $fail(__('validation.custom.instructor_id.role', ['attribute' => __('validation.attributes.instructor')]));
+                    }
+                }
+            ],
         ];
     }
 
@@ -115,7 +134,7 @@ trait HasSchemesRequestRules
 
         return [
             'code' => ['required', 'string', 'max:50', $uniqueCode],
-            'slug' => ['nullable', 'string', 'max:100', $uniqueSlug],
+            'slug' => array_filter(['nullable', 'string', 'max:100', request()->filled('slug') ? $uniqueSlug : null]),
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'order' => ['sometimes', 'integer', 'min:1'],
@@ -165,7 +184,7 @@ trait HasSchemesRequestRules
         }
 
         return [
-            'slug' => ['nullable', 'string', 'max:100', $uniqueSlug],
+            'slug' => array_filter(['nullable', 'string', 'max:100', request()->filled('slug') ? $uniqueSlug : null]),
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'markdown_content' => ['nullable', 'string'],
