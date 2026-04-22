@@ -17,7 +17,7 @@ class CoursePolicy
     public function view(?User $user, Course $course): bool
     {
         
-        if ($course->status === 'published') {
+        if ($course->status === \Modules\Schemes\Enums\CourseStatus::Published) {
             return true;
         }
 

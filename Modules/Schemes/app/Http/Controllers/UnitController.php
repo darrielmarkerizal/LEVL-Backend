@@ -25,7 +25,11 @@ class UnitController extends Controller
     {
         
         if ($course->status !== \Modules\Schemes\Enums\CourseStatus::Published) {
-            $this->authorize('viewUnits', $course);
+            $user = auth('api')->user();
+            if (! $user) {
+                throw new \Illuminate\Auth\Access\AuthorizationException(__('messages.forbidden'));
+            }
+            \Illuminate\Support\Facades\Gate::forUser($user)->authorize('viewUnits', $course);
         }
 
         $paginator = $this->service->paginate(
