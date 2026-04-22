@@ -30,14 +30,7 @@ class UnitRequest extends FormRequest
                 \Illuminate\Validation\Rule::unique('units', 'slug')->ignore($unitId),
             ],
             'description' => ['nullable', 'string'],
-            'order' => [
-                'nullable',
-                'integer',
-                'min:1',
-                \Illuminate\Validation\Rule::unique('units')->where(function ($query) use ($courseId) {
-                    return $query->where('course_id', $courseId);
-                })->ignore($unitId),
-            ],
+            'order' => ['nullable', 'integer', 'min:1'],
             'status' => ['nullable', 'in:draft,published'],
         ];
     }
@@ -50,7 +43,7 @@ class UnitRequest extends FormRequest
             'title.required' => __('messages.units.title_required'),
             'slug.unique' => __('messages.units.slug_unique'),
             'slug.regex' => __('messages.units.slug_format'),
-            'order.unique' => __('messages.units.order_unique'),
+
         ];
     }
 
