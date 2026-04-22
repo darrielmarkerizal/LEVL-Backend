@@ -67,6 +67,11 @@ class Quiz extends Model implements HasMedia
         'auto_grading' => 'boolean',
     ];
 
+    public function setAutoGradingAttribute($value)
+    {
+        $this->attributes['auto_grading'] = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
+    }
+
     public function unit(): BelongsTo
     {
         return $this->belongsTo(\Modules\Schemes\Models\Unit::class);

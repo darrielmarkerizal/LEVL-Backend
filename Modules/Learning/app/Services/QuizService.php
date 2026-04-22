@@ -64,7 +64,7 @@ class QuizService implements QuizServiceInterface
                 'status' => $data['status'] ?? QuizStatus::Draft->value,
                 'passing_grade' => $data['passing_grade'] ?? 75.00,
                 'max_score' => $data['max_score'] ?? 100,
-                'auto_grading' => isset($data['auto_grading']) ? (bool) $data['auto_grading'] : true,
+                'auto_grading' => array_key_exists('auto_grading', $data) ? filter_var($data['auto_grading'], FILTER_VALIDATE_BOOLEAN) : true,
                 'review_mode' => $data['review_mode'] ?? 'immediate',
             ]));
 
