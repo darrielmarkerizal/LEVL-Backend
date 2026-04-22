@@ -696,12 +696,12 @@ class UnitService
     public function reorderContent(Unit $unit, array $contentOrder): array
     {
         return \Illuminate\Support\Facades\DB::transaction(function () use ($unit, $contentOrder) {
-            foreach ($contentOrder as $item) {
+            foreach ($contentOrder as $index => $item) {
                 $type = $item['type'] ?? null;
                 $id = $item['id'] ?? null;
-                $order = $item['order'] ?? null;
+                $order = $index + 1;
 
-                if (! $type || ! $id || ! $order) {
+                if (! $type || ! $id) {
                     continue;
                 }
 

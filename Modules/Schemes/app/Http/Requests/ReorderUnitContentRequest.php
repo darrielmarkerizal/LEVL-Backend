@@ -19,7 +19,6 @@ class ReorderUnitContentRequest extends FormRequest
             'content' => ['required', 'array', 'min:1'],
             'content.*.type' => ['required', 'string', 'in:lesson,assignment,quiz'],
             'content.*.id' => ['required', 'integer'],
-            'content.*.order' => ['required', 'integer', 'min:1'],
         ];
     }
 
@@ -29,7 +28,6 @@ class ReorderUnitContentRequest extends FormRequest
             'content' => __('validation.attributes.content'),
             'content.*.type' => __('validation.attributes.type'),
             'content.*.id' => __('validation.attributes.id'),
-            'content.*.order' => __('validation.attributes.order'),
         ];
     }
 }
