@@ -59,7 +59,7 @@ class AssignmentResource extends JsonResource
                 ] : null,
             ],
             'attached_files' => $attachmentFiles,
-            'attachments' => $attachmentFiles,
+
             'created_at' => $this->resource->created_at?->toIso8601String(),
         ];
     }
@@ -120,7 +120,7 @@ class AssignmentResource extends JsonResource
                 });
             }),
             'attached_files' => $attachmentFiles,
-            'attachments' => $attachmentFiles,
+
         ];
     }
 

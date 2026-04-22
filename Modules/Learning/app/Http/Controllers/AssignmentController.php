@@ -94,7 +94,13 @@ class AssignmentController extends Controller
 
     public function update(UpdateAssignmentRequest $request, Assignment $assignment): JsonResponse
     {
-        $updated = $this->assignmentService->update($assignment, $request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('attachments')) {
+            $data['attachments'] = $request->file('attachments');
+        }
+
+        $updated = $this->assignmentService->update($assignment, $data);
 
         return $this->success(AssignmentResource::make($updated), __('messages.assignments.updated'));
     }
