@@ -228,7 +228,7 @@ class QuestionService implements QuestionServiceInterface
     private function validateQuestionWeight(int $assignmentId, float $newWeight): void
     {
         $assignment = Assignment::findOrFail($assignmentId);
-        $currentWeight = (float) $assignment->questions()->sum('weight');
+        $currentWeight = (float) Question::where('assignment_id', $assignmentId)->sum('weight');
         $maxAllowed = (float) ($assignment->max_score ?? 100);
         $totalWeight = $currentWeight + (float) $newWeight;
 
@@ -246,7 +246,7 @@ class QuestionService implements QuestionServiceInterface
     public static function computeWeightStats(int $assignmentId, ?float $additionalWeight = null): array
     {
         $assignment = Assignment::findOrFail($assignmentId);
-        $currentWeight = (float) $assignment->questions()->sum('weight');
+        $currentWeight = (float) Question::where('assignment_id', $assignmentId)->sum('weight');
         $maxAllowed = (float) ($assignment->max_score ?? 100);
         $totalWeight = $currentWeight + (float) ($additionalWeight ?? 0.0);
 
