@@ -54,7 +54,14 @@ class SubmissionController extends Controller
     public function store(StoreSubmissionRequest $request, Assignment $assignment): JsonResponse
     {
         $this->authorize('createForAssignment', [Submission::class, $assignment]);
-        $submission = $this->service->create($assignment, auth('api')->id(), $request->validated());
+
+        $data = $request->validated();
+
+        if ($request->hasFile('files')) {
+            $data['files'] = $request->file('files');
+        }
+
+        $submission = $this->service->create($assignment, auth('api')->id(), $data);
 
         return $this->created(SubmissionResource::make($submission), __('messages.submissions.created'));
     }

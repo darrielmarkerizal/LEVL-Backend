@@ -41,8 +41,8 @@ class AssignmentResource extends JsonResource
             'is_locked' => $this->when(isset($this->resource->is_locked), $this->resource->is_locked),
             'is_completed' => $this->when(isset($this->resource->is_completed), $this->resource->is_completed),
             'is_submission_completed' => $this->when(isset($this->resource->is_submission_completed), $this->resource->is_submission_completed),
-            'accepted_formats' => $this->acceptedFormats(),
-            'max_file_size' => $this->maxFileSizeInMb(),
+            'accepted_formats' => $this->when(!$this->isTextSubmission(), $this->acceptedFormats()),
+            'max_file_size' => $this->when(!$this->isTextSubmission(), $this->maxFileSizeInMb()),
             'grading_scheme' => $this->gradingScheme(),
             'unit_slug' => $this->resource->unit->slug ?? null,
             'course_slug' => $this->resource->unit->course->slug ?? null,
@@ -80,8 +80,8 @@ class AssignmentResource extends JsonResource
             'time_limit_minutes' => $this->resource->time_limit_minutes,
             'review_mode' => $this->resource->review_mode?->value ?? $this->resource->review_mode,
             'status' => $this->resource->status?->value ?? $this->resource->status,
-            'accepted_formats' => $this->acceptedFormats(),
-            'max_file_size' => $this->maxFileSizeInMb(),
+            'accepted_formats' => $this->when(!$this->isTextSubmission(), $this->acceptedFormats()),
+            'max_file_size' => $this->when(!$this->isTextSubmission(), $this->maxFileSizeInMb()),
             'grading_scheme' => $this->gradingScheme(),
             'unit_slug' => $this->resource->unit->slug ?? null,
             'course_slug' => $this->resource->unit->course->slug ?? null,
@@ -122,6 +122,12 @@ class AssignmentResource extends JsonResource
             'attached_files' => $attachmentFiles,
             'attachments' => $attachmentFiles,
         ];
+    }
+
+    private function isTextSubmission(): bool
+    {
+        $type = $this->resource->submission_type;
+        return $type === 'text' || $type === \Modules\Learning\Enums\SubmissionType::Text;
     }
 
     private function acceptedFormats(): array
