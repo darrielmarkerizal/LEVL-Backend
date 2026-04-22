@@ -12,6 +12,8 @@ class LessonBlockResource extends JsonResource
     
     public function toArray(Request $request): array
     {
+        $media = $this->getFirstMedia('media');
+
         return [
             'id' => $this->id,
             'lesson_id' => $this->lesson_id,
@@ -20,20 +22,22 @@ class LessonBlockResource extends JsonResource
             'content' => $this->content,
             'order' => $this->order,
             
-            'external_url' => $this->external_url,
-            'embed_url' => $this->embed_url,
-            
-            'media' => (function () {
-                $media = $this->getFirstMedia('media');
-
-                return $media ? [
+            $this->mergeWhen($this->external_url, [
+                'external_url' => $this->external_url,
+            ]),
+            $this->mergeWhen($this->embed_url, [
+                'embed_url' => $this->embed_url,
+            ]),
+            $this->mergeWhen($media, [
+                'media' => $media ? [
                     'url' => $media->getUrl(),
                     'id' => $media->id,
                     'file_name' => $media->file_name,
                     'mime_type' => $media->mime_type,
                     'size' => $media->size,
-                ] : null;
-            })(),
+                ] : null,
+            ]),
+
             'metadata' => $this->metadata,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
