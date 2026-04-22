@@ -33,16 +33,6 @@ class StoreAssignmentRequest extends FormRequest
         ];
     }
 
-    public function withValidator($validator): void
-    {
-        $validator->after(function ($validator) {
-            $submissionType = $this->input('submission_type');
-            if ($submissionType && ! in_array($submissionType, ['file', 'mixed'])) {
-                $validator->errors()->add('submission_type', 'Assignment must use file or mixed submission type.');
-            }
-        });
-    }
-
     public function attributes(): array
     {
         return [
