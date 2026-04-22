@@ -27,7 +27,6 @@ class UpdateAssignmentRequest extends FormRequest
             'max_score' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'passing_grade' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'status' => ['sometimes', Rule::enum(AssignmentStatus::class)],
-            'time_limit_minutes' => ['nullable', 'integer', 'min:1'],
             'attachments' => ['nullable', 'array', 'max:5'],
             'attachments.*' => ['file', 'max:10240'],
             'delete_attachments' => ['nullable', 'array'],

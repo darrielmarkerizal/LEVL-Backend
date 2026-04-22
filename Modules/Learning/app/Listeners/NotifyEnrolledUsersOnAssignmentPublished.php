@@ -18,13 +18,17 @@ class NotifyEnrolledUsersOnAssignmentPublished implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
-    public string $queue = 'notifications';
 
     public int $tries = 3;
 
     public int $maxExceptions = 2;
 
     public array $backoff = [5, 30, 120];
+
+    public function __construct()
+    {
+        $this->onQueue('notifications');
+    }
 
     public function handle(AssignmentPublished $event): void
     {

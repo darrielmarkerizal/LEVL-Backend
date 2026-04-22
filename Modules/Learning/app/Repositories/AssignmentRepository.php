@@ -31,8 +31,6 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
 
     protected const DETAILED_EAGER_LOAD = [
         'creator:id,name,email',
-        'prerequisites:id,title',
-        'assignable',
     ];
 
     public function create(array $attributes): Assignment
@@ -59,7 +57,7 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
 
     public function findForDuplication(int $id): ?Assignment
     {
-        return Assignment::with(['prerequisites'])->find($id);
+        return Assignment::with(['unit', 'unit.course', 'media'])->find($id);
     }
 
     public function update(Model $model, array $attributes): Assignment
@@ -151,8 +149,6 @@ class AssignmentRepository extends BaseRepository implements AssignmentRepositor
                     ->where('id', $id)
                     ->with([
                         'creator:id,name,email',
-                        'prerequisites:id,title',
-                        'assignable',
                         'submissions' => function ($query) {
                             $query->with(['user:id,name,email', 'grade'])
                                 ->orderByDesc('submitted_at')

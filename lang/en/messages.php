@@ -531,6 +531,7 @@ return [
         'submitted' => 'Assignment submitted successfully.',
         'not_found' => 'The requested assignment could not be found.',
         'locked' => 'This assignment is locked. Please complete the required prerequisites to unlock it.',
+        'locked_cannot_submit' => 'This assignment is locked. You cannot submit until you complete the required prerequisites.',
         'cannot_be_own_prerequisite' => 'An assignment cannot be set as its own prerequisite.',
         'circular_dependency' => 'This prerequisite would create a circular dependency.',
         'override_reason_required' => 'A reason is required when granting an override.',
@@ -577,8 +578,8 @@ return [
     
     'submissions' => [
         'list_retrieved' => 'Submission list retrieved successfully.',
-        'submitted' => 'Submission submitted successfully.',
-        'created' => 'Congratulations! Your assignment has been submitted successfully. Wait for the instructor to grade it.',
+        'submitted' => 'Assignment submitted successfully. Please wait for the instructor to grade it.',
+        'created' => 'Submission draft created. Complete your answers and submit via the submit endpoint.',
         'updated' => 'Submission updated successfully.',
         'question_not_in_set' => 'This question does not belong to the current submission set.',
         'question_not_in_assignment' => 'This question does not belong to this assignment.',

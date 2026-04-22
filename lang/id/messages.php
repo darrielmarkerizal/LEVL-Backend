@@ -535,6 +535,7 @@ return [
         'submitted' => 'Tugas berhasil dikumpulkan.',
         'not_found' => 'Tugas yang diminta tidak ditemukan.',
         'locked' => 'Tugas ini terkunci. Selesaikan prasyarat yang diperlukan untuk membukanya.',
+        'locked_cannot_submit' => 'Tugas ini terkunci. Anda tidak dapat mengumpulkan jawaban sebelum menyelesaikan prasyarat yang diperlukan.',
         'cannot_be_own_prerequisite' => 'Tugas tidak dapat dijadikan prasyarat untuk dirinya sendiri.',
         'circular_dependency' => 'Prasyarat ini akan menciptakan ketergantungan melingkar.',
         'override_reason_required' => 'Alasan wajib diisi saat memberikan override.',
@@ -581,8 +582,8 @@ return [
     
     'submissions' => [
         'list_retrieved' => 'Daftar pengumpulan berhasil diambil.',
-        'submitted' => 'Pengumpulan berhasil dikirim.',
-        'created' => 'Selamat! Tugas Anda berhasil dikumpulkan. Tunggu hasil penilaian dari instruktur.',
+        'submitted' => 'Tugas berhasil dikumpulkan. Tunggu hasil penilaian dari instruktur.',
+        'created' => 'Pengumpulan berhasil dimulai. Lengkapi jawaban Anda, lalu kumpulkan melalui endpoint submit.',
         'updated' => 'Pengumpulan berhasil diperbarui.',
         'question_not_in_set' => 'Pertanyaan ini tidak termasuk dalam set pengumpulan saat ini.',
         'question_not_in_assignment' => 'Pertanyaan ini tidak termasuk dalam tugas ini.',

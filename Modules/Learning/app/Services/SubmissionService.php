@@ -10,7 +10,6 @@ use Modules\Auth\Models\User;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Learning\Contracts\Repositories\QuestionRepositoryInterface;
 use Modules\Learning\Contracts\Services\SubmissionServiceInterface;
-use Modules\Learning\Models\Answer;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
 use Modules\Learning\Services\Support\SubmissionFinder;
@@ -39,11 +38,6 @@ class SubmissionService implements SubmissionServiceInterface
     public function update(Submission $submission, array $data): Submission
     {
         return $this->lifecycleProcessor->update($submission, $data);
-    }
-
-    public function saveAnswer(Submission $submission, int $questionId, mixed $answer): Answer
-    {
-        return $this->lifecycleProcessor->saveAnswer($submission, $questionId, $answer);
     }
 
     public function submitAnswers(int $submissionId, array $answers): Submission

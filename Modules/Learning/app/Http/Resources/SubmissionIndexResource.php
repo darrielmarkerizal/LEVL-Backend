@@ -17,6 +17,7 @@ class SubmissionIndexResource extends JsonResource
             'user_id' => $this->user_id,
             'status' => $this->status,
             'workflow_state' => $this->state?->value,
+            'workflow_label' => $this->state?->label(),
             'score' => $this->score,
             'attempt_number' => $this->attempt_number,
             'is_late' => $this->is_late,

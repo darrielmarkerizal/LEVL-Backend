@@ -32,8 +32,6 @@ interface SubmissionServiceInterface
 
     public function startSubmission(int $assignmentId, int $studentId): Submission;
 
-    public function saveAnswer(Submission $submission, int $questionId, mixed $answer): \Modules\Learning\Models\Answer;
-
     public function getSubmissionQuestions(Submission $submission): \Illuminate\Support\Collection;
 
     public function getSubmissionQuestionsPaginated(Submission $submission, int $perPage = 1): LengthAwarePaginator;

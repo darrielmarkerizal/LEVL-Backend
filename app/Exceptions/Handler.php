@@ -34,7 +34,17 @@ class Handler extends ExceptionHandler
 
         $this->renderable(function (AccessDeniedHttpException $e, Request $request) {
             if ($this->isApiRequest($request)) {
-                return $this->forbidden(__('messages.forbidden'));
+                $previous = $e->getPrevious();
+                $message = null;
+
+                if ($previous instanceof \Illuminate\Auth\Access\AuthorizationException) {
+                    $message = $previous->getMessage() ?: null;
+                    if (! $message && method_exists($previous, 'response') && $previous->response()) {
+                        $message = $previous->response()->message();
+                    }
+                }
+
+                return $this->forbidden($message ?: __('messages.forbidden'));
             }
         });
 

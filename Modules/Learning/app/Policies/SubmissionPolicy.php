@@ -66,13 +66,25 @@ class SubmissionPolicy
             ->exists();
     }
 
-    public function update(User $user, Submission $submission): bool
+    public function update(User $user, Submission $submission): \Illuminate\Auth\Access\Response|bool
     {
         if ($user->hasRole('Superadmin')) {
             return true;
         }
 
-        return $submission->user_id === $user->id && $submission->status === 'draft';
+        if ($submission->user_id !== $user->id) {
+            return \Illuminate\Auth\Access\Response::deny(__('messages.forbidden'));
+        }
+
+        $status = $submission->status instanceof \Modules\Learning\Enums\SubmissionStatus
+            ? $submission->status->value
+            : $submission->status;
+
+        if ($status !== 'draft') {
+            return \Illuminate\Auth\Access\Response::deny(__('messages.submissions.cannot_modify'));
+        }
+
+        return true;
     }
 
     public function accessQuestions(User $user, Submission $submission): \Illuminate\Auth\Access\Response
@@ -94,11 +106,6 @@ class SubmissionPolicy
         }
 
         return \Illuminate\Auth\Access\Response::allow();
-    }
-
-    public function saveAnswer(User $user, Submission $submission): \Illuminate\Auth\Access\Response
-    {
-        return $this->accessQuestions($user, $submission);
     }
 
     public function submit(User $user, Submission $submission): \Illuminate\Auth\Access\Response

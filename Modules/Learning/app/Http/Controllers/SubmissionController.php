@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Learning\Contracts\Services\SubmissionServiceInterface;
 use Modules\Learning\Http\Requests\GradeSubmissionRequest;
-use Modules\Learning\Http\Requests\SaveAnswerRequest;
 use Modules\Learning\Http\Requests\SearchSubmissionsRequest;
 use Modules\Learning\Http\Requests\StartSubmissionRequest;
 use Modules\Learning\Http\Requests\StoreSubmissionRequest;
@@ -110,14 +109,6 @@ class SubmissionController extends Controller
         }
 
         return $this->success(QuestionResource::collection($this->service->getSubmissionQuestions($submission)));
-    }
-
-    public function saveAnswer(SaveAnswerRequest $request, Submission $submission): JsonResponse
-    {
-        $this->authorize('saveAnswer', $submission);
-        $answer = $this->service->saveAnswer($submission, (int) $request->validated('question_id'), $request->validated('answer'));
-
-        return $this->success(AnswerResource::make($answer), __('messages.answers.saved'));
     }
 
     public function grade(GradeSubmissionRequest $request, Submission $submission): JsonResponse

@@ -46,8 +46,6 @@ class Assignment extends Model implements HasMedia
         'passing_grade',
         'review_mode',
         'status',
-        'time_limit_minutes',
-        'allow_multiple',
     ];
 
     protected $casts = [
@@ -57,7 +55,6 @@ class Assignment extends Model implements HasMedia
         'review_mode' => ReviewMode::class,
         'passing_grade' => 'decimal:2',
         'order' => 'integer',
-        'allow_multiple' => 'boolean',
     ];
 
     protected static function newFactory()

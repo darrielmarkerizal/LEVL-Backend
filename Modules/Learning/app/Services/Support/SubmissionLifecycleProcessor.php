@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Learning\Services\Support;
 
 use Modules\Learning\Contracts\Repositories\QuestionRepositoryInterface;
-use Modules\Learning\Models\Answer;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
 
@@ -37,11 +36,6 @@ class SubmissionLifecycleProcessor
     public function grade(Submission $submission, int $score, int $gradedBy, ?string $feedback = null): Submission
     {
         return $this->completionProcessor->grade($submission, $score, $gradedBy, $feedback);
-    }
-
-    public function saveAnswer(Submission $submission, int $questionId, mixed $answer, SubmissionValidator $validator): Answer
-    {
-        return $this->completionProcessor->saveAnswer($submission, $questionId, $answer, $validator);
     }
 
     public function submitAnswers(int $submissionId, array $answers, SubmissionValidator $validator, QuestionRepositoryInterface $questionRepo): Submission

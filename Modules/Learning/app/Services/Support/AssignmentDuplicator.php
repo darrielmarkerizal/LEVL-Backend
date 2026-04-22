@@ -14,7 +14,8 @@ class AssignmentDuplicator
 {
     public function __construct(
         private readonly AssignmentRepositoryInterface $repository
-    ) {}
+    ) {
+    }
 
     public function duplicateAssignment(int $assignmentId, int $userId, array $overrides = []): Assignment
     {
@@ -22,7 +23,7 @@ class AssignmentDuplicator
             $overrides['created_by'] = $userId;
             $original = $this->repository->findForDuplication($assignmentId);
 
-            if (! $original) {
+            if (!$original) {
                 throw AssignmentException::notFound();
             }
 
@@ -30,54 +31,35 @@ class AssignmentDuplicator
 
             $newAssignment = $this->repository->create($assignmentData);
 
-            $this->duplicateQuestions($original, $newAssignment);
+            $this->duplicateAttachments($original, $newAssignment);
 
-            $this->duplicatePrerequisites($original, $newAssignment);
-
-            return $newAssignment->fresh(['questions', 'prerequisites', 'lesson', 'creator']);
+            return $newAssignment->fresh(['unit', 'unit.course', 'creator', 'media']);
         });
     }
 
     private function prepareAssignmentDataForDuplication(Assignment $original, ?array $overrides): array
     {
         return [
-            'assignable_type' => $original->assignable_type,
-            'assignable_id' => $original->assignable_id,
+            'unit_id' => $overrides['unit_id'] ?? $original->unit_id,
             'created_by' => $overrides['created_by'] ?? $original->created_by,
-            'title' => $overrides['title'] ?? $original->title.' (Copy)',
+            'title' => $overrides['title'] ?? $original->title . ' (Copy)',
             'description' => $overrides['description'] ?? $original->description,
             'submission_type' => $original->submission_type?->value ?? $original->getRawOriginal('submission_type'),
             'max_score' => $overrides['max_score'] ?? $original->max_score,
+            'passing_grade' => $original->passing_grade,
             'review_mode' => $overrides['review_mode'] ?? ($original->review_mode?->value ?? $original->getRawOriginal('review_mode')),
             'status' => $overrides['status'] ?? AssignmentStatus::Draft->value,
-            'time_limit_minutes' => $original->time_limit_minutes,
+            'order' => $original->order,
         ];
     }
 
-    private function duplicateQuestions(Assignment $original, Assignment $newAssignment): void
+    private function duplicateAttachments(Assignment $original, Assignment $newAssignment): void
     {
-        foreach ($original->questions as $question) {
-            $newAssignment->questions()->create([
-                'type' => $question->type?->value ?? $question->getRawOriginal('type'),
-                'content' => $question->content,
-                'options' => $question->options,
-                'answer_key' => $question->answer_key,
-                'weight' => $question->weight,
-                'order' => $question->order,
-            ]);
-            
-            
-        }
-    }
+        $attachments = $original->getMedia('attachments');
 
-    private function duplicatePrerequisites(Assignment $original, Assignment $newAssignment): void
-    {
-        
-        
-        
-        $prereqIds = $original->prerequisites->pluck('id')->toArray();
-        if (! empty($prereqIds)) {
-            $newAssignment->prerequisites()->attach($prereqIds);
+        foreach ($attachments as $media) {
+            $media->copy($newAssignment, 'attachments');
         }
     }
 }
+

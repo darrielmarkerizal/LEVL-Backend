@@ -80,10 +80,6 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         ->middleware('can:update,submission')
         ->name('submissions.update');
 
-    Route::post('submissions/{submission}/answers', [SubmissionController::class, 'saveAnswer'])
-        ->middleware('can:saveAnswer,submission')
-        ->name('submissions.answers.store');
-
     Route::post('submissions/{submission}/submit', [SubmissionController::class, 'submit'])
         ->middleware(['can:submit,submission', 'xp.info'])
         ->name('submissions.submit');
