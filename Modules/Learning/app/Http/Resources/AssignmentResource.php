@@ -181,7 +181,6 @@ class AssignmentResource extends JsonResource
                     'id' => $media->id,
                     'file_name' => $media->file_name,
                     'file_url' => $url,
-                    'url' => $url,
                     'mime_type' => $media->mime_type,
                     'size' => $media->size,
                 ];
