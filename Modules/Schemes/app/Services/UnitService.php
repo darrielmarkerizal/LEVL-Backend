@@ -45,13 +45,32 @@ class UnitService
     {
         $perPage = max(1, min($perPage, 100));
 
+        $user = auth('api')->user();
+        $accessLevel = 'public';
+
+        if ($user) {
+            if ($user->hasRole('Superadmin') || $user->hasRole('Admin')) {
+                $accessLevel = 'admin';
+            } elseif ($user->hasRole('Instructor')) {
+                $course = \Modules\Schemes\Models\Course::find($courseId);
+                if ($course && $course->hasInstructorAssignment($user)) {
+                    $accessLevel = 'admin';
+                }
+            }
+        }
+
         return cache()->tags(['schemes', 'units'])->remember(
-            "schemes:units:course:{$courseId}:{$perPage}:".request('page', 1).':'.md5(json_encode($filters)),
+            "schemes:units:course:{$courseId}:{$accessLevel}:{$perPage}:".request('page', 1).':'.md5(json_encode($filters)),
             300,
-            function () use ($courseId, $filters, $perPage) {
+            function () use ($courseId, $filters, $perPage, $accessLevel) {
                 $query = QueryBuilder::for(Unit::class, $this->buildQueryBuilderRequest($filters))
-                    ->where('course_id', $courseId)
-                    ->allowedFilters([
+                    ->where('course_id', $courseId);
+
+                if ($accessLevel === 'public') {
+                    $query->where('status', 'published');
+                }
+
+                $query->allowedFilters([
                         AllowedFilter::exact('status'),
                     ])
                     ->allowedIncludes(['course', 'lessons'])
