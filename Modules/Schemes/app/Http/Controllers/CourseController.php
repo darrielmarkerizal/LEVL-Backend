@@ -24,15 +24,16 @@ class CourseController extends Controller
     public function __construct(
         private readonly CourseServiceInterface $service,
         private readonly UnitService $unitService,
-    ) {}
+    ) {
+    }
 
     public function index(Request $request)
     {
-        
+
         if ($request->query('all') === 'true' || $request->query('all') === true) {
             $courses = $this->service->listAll($request->all());
-            $courses = $courses->map(fn ($course) => new \Modules\Schemes\Http\Resources\CourseIndexResource($course));
-            
+            $courses = $courses->map(fn($course) => new \Modules\Schemes\Http\Resources\CourseIndexResource($course));
+
             return $this->success($courses, __('messages.courses.list_retrieved'));
         }
 
@@ -40,7 +41,7 @@ class CourseController extends Controller
             $request->all(),
             (int) $request->query('per_page', 15)
         );
-        $paginator->getCollection()->transform(fn ($course) => new \Modules\Schemes\Http\Resources\CourseIndexResource($course));
+        $paginator->getCollection()->transform(fn($course) => new \Modules\Schemes\Http\Resources\CourseIndexResource($course));
 
         return $this->paginateResponse($paginator, 'messages.courses.list_retrieved');
     }
@@ -71,21 +72,21 @@ class CourseController extends Controller
         $includes = $request->query('include', '');
         $requestedIncludes = array_filter(explode(',', $includes));
 
-        
+
         $allowedIncludes = $this->service->filterIncludesByEnrollment($userId, $course, $requestedIncludes);
 
-        
+
         $hasElementsInclude = in_array('elements', $allowedIncludes);
-        
-        
+
+
         $filteredIncludes = array_diff($allowedIncludes, ['elements']);
-        
-        
+
+
         if ($hasElementsInclude && !in_array('units', $filteredIncludes)) {
             $filteredIncludes[] = 'units';
         }
 
-        
+
         $courseWithIncludes = $this->service->findBySlugWithFilteredIncludes($course->slug, $filteredIncludes);
 
         if (!$courseWithIncludes) {
@@ -103,7 +104,7 @@ class CourseController extends Controller
     private function loadElementsForUnits(Course $course, $user): array
     {
         if (!$course->relationLoaded('units')) {
-            $course->load(['units' => fn ($q) => $q->where('status', 'published')->orderBy('order')]);
+            $course->load(['units' => fn($q) => $q->where('status', 'published')->orderBy('order')]);
         }
 
         $elementsData = [];
@@ -224,7 +225,7 @@ class CourseController extends Controller
         $perPage = (int) $request->query('per_page', 15);
 
         $paginator = $this->service->listEnrolledCourses($userId, $request->all(), $perPage);
-        $paginator->getCollection()->transform(fn ($course) => new \Modules\Schemes\Http\Resources\CourseIndexResource($course));
+        $paginator->getCollection()->transform(fn($course) => new \Modules\Schemes\Http\Resources\CourseIndexResource($course));
 
         return $this->paginateResponse($paginator, 'messages.courses.list_retrieved');
     }

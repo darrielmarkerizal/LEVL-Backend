@@ -35,6 +35,11 @@ class DeleteUnitJob implements ShouldQueue
 
     public function handle(UnitService $unitService): void
     {
+        if ($this->actorId) {
+            auth()->loginUsingId($this->actorId);
+            auth('api')->loginUsingId($this->actorId);
+        }
+
         try {
             $unitService->delete($this->unitId);
         } catch (ModelNotFoundException) {
