@@ -29,8 +29,10 @@ class CourseFinder
     {
         $perPage = max(1, $perPage);
 
+        $user = auth('api')->user();
+        $userKey = $user ? $user->id . ':' . implode(',', $user->getRoleNames()->toArray()) : 'guest';
         $includeParam = request()->get('include', '');
-        $cacheKey = "schemes:courses:paginate:{$perPage}:".request('page', 1).':'.md5(json_encode($filters).':'.$includeParam);
+        $cacheKey = "schemes:courses:paginate:{$perPage}:{$userKey}:".request('page', 1).':'.md5(json_encode($filters).':'.$includeParam);
 
         if (! empty($includeParam)) {
             return $this->buildQuery($filters)->paginate($perPage);
@@ -49,8 +51,10 @@ class CourseFinder
     {
         $perPage = max(1, $perPage);
 
+        $user = auth('api')->user();
+        $userKey = $user ? $user->id . ':' . implode(',', $user->getRoleNames()->toArray()) : 'guest';
         $includeParam = request()->get('include', '');
-        $cacheKey = "schemes:courses:index:paginate:{$perPage}:".request('page', 1).':'.md5(json_encode($filters).':'.$includeParam);
+        $cacheKey = "schemes:courses:index:paginate:{$perPage}:{$userKey}:".request('page', 1).':'.md5(json_encode($filters).':'.$includeParam);
 
         if (! empty($includeParam)) {
             return $this->buildQueryForIndex($filters)->paginate($perPage);
@@ -207,6 +211,16 @@ class CourseFinder
             $builder->search($searchQuery);
         }
 
+        $user = auth('api')->user();
+        if ($user && $user->hasRole('Instructor') && !$user->hasRole('Superadmin') && !$user->hasRole('Admin')) {
+            $builder->where(function($q) use ($user) {
+                $q->where('status', 'published')
+                  ->orWhereHas('instructors', function($query) use ($user) {
+                      $query->where('user_id', $user->id);
+                  });
+            });
+        }
+
         if ($tagFilter = data_get($filters, 'tag')) {
             $this->applyTagFilter($builder, $tagFilter);
         }
@@ -239,6 +253,16 @@ class CourseFinder
 
         if ($searchQuery && trim((string) $searchQuery) !== '') {
             $builder->search($searchQuery);
+        }
+
+        $user = auth('api')->user();
+        if ($user && $user->hasRole('Instructor') && !$user->hasRole('Superadmin') && !$user->hasRole('Admin')) {
+            $builder->where(function($q) use ($user) {
+                $q->where('status', 'published')
+                  ->orWhereHas('instructors', function($query) use ($user) {
+                      $query->where('user_id', $user->id);
+                  });
+            });
         }
 
         if ($tagFilter = data_get($filters, 'tag')) {

@@ -301,7 +301,24 @@ class UnitService
             'perfect_score',
         ])->get()->keyBy('code');
 
-        $lessonIds = $unit->lessons()->where('status', 'published')->pluck('id');
+        $mustFilterPublished = true;
+        if ($user) {
+            if ($user->hasRole('Superadmin') || $user->hasRole('Admin')) {
+                $mustFilterPublished = false;
+            } elseif ($user->hasRole('Instructor')) {
+                $unit->loadMissing('course');
+                if ($unit->course && $unit->course->hasInstructorAssignment($user)) {
+                    $mustFilterPublished = false;
+                }
+            }
+        }
+
+        $lessonQuery = $unit->lessons();
+        if ($mustFilterPublished) {
+            $lessonQuery->where('status', 'published');
+        }
+        $lessonIds = clone $lessonQuery;
+        $lessonIds = $lessonIds->pluck('id');
 
         $completedLessonIds = [];
         if ($user) {
@@ -314,19 +331,24 @@ class UnitService
                 ->toArray();
         }
 
-        $lessons = $unit->lessons()
-            ->where('status', 'published')
+        $lessons = $lessonQuery
             ->select('id', 'unit_id', 'title', 'slug', 'description', 'order', 'status', 'created_at')
             ->orderBy('order')
             ->get();
 
-        $quizzes = \Modules\Learning\Models\Quiz::where('unit_id', $unit->id)
-            ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
+        $quizQuery = \Modules\Learning\Models\Quiz::where('unit_id', $unit->id);
+        if ($mustFilterPublished) {
+            $quizQuery->where('status', \Modules\Learning\Enums\QuizStatus::Published);
+        }
+        $quizzes = $quizQuery
             ->select('id', 'title', 'description', 'status', 'max_score', 'passing_grade', 'created_at', 'order', 'unit_id')
             ->get();
 
-        $assignments = \Modules\Learning\Models\Assignment::where('unit_id', $unit->id)
-            ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
+        $assignmentQuery = \Modules\Learning\Models\Assignment::where('unit_id', $unit->id);
+        if ($mustFilterPublished) {
+            $assignmentQuery->where('status', \Modules\Learning\Enums\AssignmentStatus::Published);
+        }
+        $assignments = $assignmentQuery
             ->select('id', 'title', 'description', 'status', 'max_score', 'submission_type', 'created_at', 'order', 'unit_id')
             ->get();
 

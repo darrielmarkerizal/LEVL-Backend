@@ -48,8 +48,11 @@ class AssignmentFinder
         $lessonSlug = data_get($filters, 'lesson_slug');
 
         
+        $user = auth('api')->user();
+        $userKey = $user ? $user->id . ':' . implode(',', $user->getRoleNames()->toArray()) : 'guest';
+
         return cache()->tags(['learning', 'assignments'])->remember(
-            "learning:assignments:index:{$course->id}:".md5(json_encode($filters)),
+            "learning:assignments:index:{$course->id}:{$userKey}:".md5(json_encode($filters)),
             300,
             function () use ($course, $filters, $unitSlug, $lessonSlug) {
                 if ($lessonSlug) {
