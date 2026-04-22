@@ -48,4 +48,24 @@ class StoreAssignmentRequest extends FormRequest
             'attachments.*' => __('validation.attributes.attachments'),
         ];
     }
+
+    public function getResolvedScope(): array
+    {
+        $unit = \Modules\Schemes\Models\Unit::where('slug', $this->input('unit_slug'))->firstOrFail();
+        
+        return [
+            'assignable_type' => \Modules\Schemes\Models\Unit::class,
+            'assignable_id' => $unit->id,
+        ];
+    }
+
+    public function validated($key = null, $default = null)
+    {
+        $data = parent::validated($key, $default);
+        $unit = \Modules\Schemes\Models\Unit::where('slug', $this->input('unit_slug'))->firstOrFail();
+        $data['unit_id'] = $unit->id;
+        unset($data['unit_slug']);
+        
+        return $data;
+    }
 }

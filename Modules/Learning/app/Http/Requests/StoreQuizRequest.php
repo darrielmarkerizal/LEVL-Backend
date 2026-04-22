@@ -31,4 +31,12 @@ class StoreQuizRequest extends FormRequest
             'attachments.*' => ['file'],
         ];
     }
+
+    public function getResolvedScope(): array
+    {
+        return [
+            'assignable_type' => \Modules\Schemes\Models\Unit::class,
+            'assignable_id' => $this->input('unit_id'),
+        ];
+    }
 }
