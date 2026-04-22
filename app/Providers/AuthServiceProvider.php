@@ -9,12 +9,12 @@ use Modules\Auth\Models\User;
 class AuthServiceProvider extends ServiceProvider
 {
     protected $policies = [
-        \Modules\Schemes\Models\Course::class => \App\Policies\CoursePolicy::class,
-        \Modules\Schemes\Models\Unit::class => \App\Policies\UnitPolicy::class,
-        \Modules\Schemes\Models\Lesson::class => \App\Policies\LessonPolicy::class,
-        \Modules\Schemes\Models\Tag::class => \App\Policies\TagPolicy::class,
-        \Modules\Grading\Models\Grade::class => \App\Policies\GradePolicy::class,
-        \Modules\Auth\Models\User::class => \Modules\Auth\Policies\UserPolicy::class,
+        \Modules\Schemes\Models\Course::class => \Modules\Schemes\Policies\CoursePolicy::class,
+        \Modules\Schemes\Models\Unit::class => \Modules\Schemes\Policies\UnitPolicy::class,
+        \Modules\Schemes\Models\Lesson::class => \Modules\Schemes\Policies\LessonPolicy::class,
+        \Modules\Schemes\Models\Tag::class => \Modules\Schemes\Policies\TagPolicy::class,
+        \Modules\Grading\Models\Grade::class => \Modules\Grading\Policies\GradePolicy::class,
+        User::class => \Modules\Auth\Policies\UserPolicy::class,
         \Modules\Notifications\app\Models\Post::class => \Modules\Notifications\Policies\PostPolicy::class,
     ];
 
