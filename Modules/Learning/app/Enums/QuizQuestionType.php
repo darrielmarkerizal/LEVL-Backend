@@ -42,8 +42,8 @@ enum QuizQuestionType: string
     public function requiresOptions(): bool
     {
         return match ($this) {
-            self::MultipleChoice, self::Checkbox, self::TrueFalse => true,
-            self::Essay => false,
+            self::MultipleChoice, self::Checkbox => true,
+            self::TrueFalse, self::Essay => false,
         };
     }
 

@@ -46,7 +46,7 @@ class AuthRepository extends BaseRepository implements AuthRepositoryInterface
             'status' => $data['status'] ?? UserStatus::Pending->value,
             'email_verified_at' => $data['email_verified_at'] ?? null,
             'specialization_id' => $data['specialization_id'] ?? null,
-            'is_password_set' => $data['is_password_set'] ?? true,
+            'is_password_set' => ($data['is_password_set'] ?? true) ? 'true' : 'false',
         ]);
     }
 

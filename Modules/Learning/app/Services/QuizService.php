@@ -56,7 +56,7 @@ class QuizService implements QuizServiceInterface
     {
         return DB::transaction(function () use ($data, $createdBy) {
             if (! isset($data['order']) || $data['order'] === null) {
-                $data['order'] = $this->getNextOrderForUnit($data['unit_id']);
+                $data['order'] = $this->getNextOrderForUnit((int) $data['unit_id']);
             }
 
             $quiz = $this->repository->create(array_merge($data, [
@@ -142,6 +142,16 @@ class QuizService implements QuizServiceInterface
             if ($stats['exceeds'] ?? false) {
                 throw new \Illuminate\Validation\ValidationException(
                     \Illuminate\Support\Facades\Validator::make([], [])->errors()->add('weight', __('messages.questions.weight_exceeds_max_score'))
+                );
+            }
+
+            $hasNullWeight = \Modules\Learning\Models\QuizQuestion::where('quiz_id', $quiz->id)
+                ->whereNull('weight')
+                ->exists();
+
+            if ($hasNullWeight) {
+                throw new \Illuminate\Validation\ValidationException(
+                    \Illuminate\Support\Facades\Validator::make([], [])->errors()->add('weight', __('messages.questions.weight_required_to_publish'))
                 );
             }
 

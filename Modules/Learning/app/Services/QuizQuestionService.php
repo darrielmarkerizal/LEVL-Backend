@@ -25,7 +25,23 @@ class QuizQuestionService implements QuizQuestionServiceInterface
         return DB::transaction(function () use ($quizId, $data) {
             $this->validateQuestionData($data);
 
+            $quiz = Quiz::findOrFail($quizId);
+            $existingCount = QuizQuestion::where('quiz_id', $quizId)->count();
+            $defaultWeight = $existingCount > 0
+                ? round((float) $quiz->max_score / ($existingCount + 1), 2)
+                : (float) $quiz->max_score;
+
             $data['quiz_id'] = $quizId;
+            $data['weight'] = $data['weight'] ?? $defaultWeight;
+
+            // For auto-graded types, max_score = weight (scoring uses weight, not max_score)
+            // For essay (manual grading), max_score is the instructor's grading ceiling
+            $questionType = \Modules\Learning\Enums\QuizQuestionType::from($data['type']);
+            if ($questionType->canAutoGrade()) {
+                $data['max_score'] = $data['weight'];
+            } else {
+                $data['max_score'] = $data['max_score'] ?? $data['weight'];
+            }
 
             if (! isset($data['order'])) {
                 $maxOrder = QuizQuestion::where('quiz_id', $quizId)->max('order') ?? 0;
@@ -37,11 +53,19 @@ class QuizQuestionService implements QuizQuestionServiceInterface
                 unset($data['options']);
             }
 
+            // Auto-generate options for true_false
+            if ($questionType === \Modules\Learning\Enums\QuizQuestionType::TrueFalse) {
+                $options = null; // no options needed
+                unset($data['options']);
+            }
+
             $question = $this->repository->create($data);
 
             if ($options) {
                 $this->processOptionImages($question, $options);
             }
+
+            $this->syncAutoGrading($quizId);
 
             return $question;
         });
@@ -66,7 +90,13 @@ class QuizQuestionService implements QuizQuestionServiceInterface
                 $this->processOptionImages($question, $options);
             }
 
-            return $this->repository->updateQuizQuestion($questionId, $data);
+            $updated = $this->repository->updateQuizQuestion($questionId, $data);
+
+            if ($quizId !== null) {
+                $this->syncAutoGrading($quizId);
+            }
+
+            return $updated;
         });
     }
 
@@ -79,7 +109,13 @@ class QuizQuestionService implements QuizQuestionServiceInterface
             }
         }
 
-        return $this->repository->deleteQuizQuestion($questionId);
+        $result = $this->repository->deleteQuizQuestion($questionId);
+
+        if ($result && $quizId !== null) {
+            $this->syncAutoGrading($quizId);
+        }
+
+        return $result;
     }
 
     public function reorderQuestions(int $quizId, array $questionIds): void
@@ -152,6 +188,17 @@ class QuizQuestionService implements QuizQuestionServiceInterface
             'total' => round($totalWeight, 2),
             'exceeds' => $totalWeight > $maxAllowed,
         ];
+    }
+
+    private function syncAutoGrading(int $quizId): void
+    {
+        $hasManualQuestion = QuizQuestion::where('quiz_id', $quizId)
+            ->where('type', \Modules\Learning\Enums\QuizQuestionType::Essay->value)
+            ->exists();
+
+        Quiz::where('id', $quizId)->update([
+            'auto_grading' => DB::raw($hasManualQuestion ? 'false' : 'true'),
+        ]);
     }
 
     private function validateQuestionData(array $data, bool $isUpdate = false): void

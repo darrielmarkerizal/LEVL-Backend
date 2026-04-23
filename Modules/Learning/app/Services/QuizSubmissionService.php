@@ -325,9 +325,19 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             return 0.0;
         }
 
-        $correctKey = $answerKey[0] ?? null;
+        // answer_key for true_false is stored as [true] or [false]
+        $correctAnswer = $answerKey[0] ?? null;
+        $studentAnswer = $selected[0] ?? null;
 
-        return ($selected[0] ?? null) === $correctKey ? $weight : 0.0;
+        // Normalize to boolean for comparison
+        $correct = filter_var($correctAnswer, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        $student = filter_var($studentAnswer, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        if ($correct === null || $student === null) {
+            return 0.0;
+        }
+
+        return $correct === $student ? $weight : 0.0;
     }
 
     private function gradeCheckbox(?array $selected, array $answerKey, float $weight): float

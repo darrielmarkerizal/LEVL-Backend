@@ -111,7 +111,7 @@ class AssignmentService implements AssignmentServiceInterface
     {
         return DB::transaction(function () use ($data, $createdBy) {
             if (! isset($data['order']) || $data['order'] === null) {
-                $data['order'] = $this->getNextOrderForUnit($data['unit_id']);
+                $data['order'] = $this->getNextOrderForUnit((int) $data['unit_id']);
             }
 
             $isAssignment = ($data['type'] ?? null) === AssignmentType::Assignment->value || ($data['type'] ?? null) === 'assignment';

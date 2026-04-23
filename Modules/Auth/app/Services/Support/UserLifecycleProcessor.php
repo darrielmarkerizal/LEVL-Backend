@@ -234,7 +234,8 @@ class UserLifecycleProcessor
             throw new AuthorizationException(__('messages.unauthorized'));
         }
 
-        $passwordPlain = $validated['password'] ?? Str::random(12);
+        $passwordPlain = !empty($validated['password']) ? $validated['password'] : Str::random(12);
+        $isPasswordSet = !empty($validated['password']);
 
         if (empty($validated['username'])) {
             $validated['username'] = $this->generateUniqueUsername($validated['name'], $validated['email']);
@@ -243,7 +244,7 @@ class UserLifecycleProcessor
         unset($validated['role'], $validated['password']);
         $validated['password'] = Hash::make($passwordPlain);
 
-        $user = $this->authRepository->createUser($validated + ['is_password_set' => false]);
+        $user = $this->authRepository->createUser($validated + ['is_password_set' => $isPasswordSet]);
         $user->assignRole($role);
 
         $this->sendCredentialsEmail($user, $passwordPlain);
