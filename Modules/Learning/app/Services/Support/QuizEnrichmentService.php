@@ -46,7 +46,7 @@ class QuizEnrichmentService
                 'status' => $item->status?->value,
                 'unit_slug' => $item->unit->slug ?? null,
                 'is_locked' => ! $prerequisiteCheck['accessible'],
-                'is_completed' => $prerequisiteCheck['accessible'],
+                'is_completed' => $submissionData['is_completed'],
                 'submission_status' => $submissionData['submission_status'],
                 'submission_status_label' => $submissionData['submission_status_label'],
                 'score' => $submissionData['score'],
@@ -71,10 +71,10 @@ class QuizEnrichmentService
 
     private function getLatestSubmissions(array $quizIds, int $userId): array
     {
-        return \Modules\Learning\Models\Submission::where('user_id', $userId)
-            ->whereIn('assignment_id', $quizIds)
+        return \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
+            ->whereIn('quiz_id', $quizIds)
             ->get()
-            ->groupBy('assignment_id')
+            ->groupBy('quiz_id')
             ->map(fn ($subs) => $subs->sortByDesc('submitted_at')->first())
             ->all();
     }
@@ -93,10 +93,11 @@ class QuizEnrichmentService
         }
 
         $passingGrade = $quiz->passing_grade;
-        $isPassed = $submission->status->value === 'graded' && $submission->score >= $passingGrade;
+        $finalScore = $submission->final_score ?? $submission->score;
+        $isPassed = $submission->status->value === 'graded' && $finalScore !== null && $finalScore >= $passingGrade;
 
-        $submissionCount = \Modules\Learning\Models\Submission::where('user_id', $userId)
-            ->where('assignment_id', $quiz->id)
+        $submissionCount = \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
+            ->where('quiz_id', $quiz->id)
             ->whereIn('status', ['submitted', 'graded'])
             ->count();
 
@@ -126,8 +127,8 @@ class QuizEnrichmentService
         $quiz->load(['unit:id,slug,course_id', 'unit.course:id,slug', 'creator:id,name', 'media']);
         $quiz->loadCount('questions');
 
-        $submission = \Modules\Learning\Models\Submission::where('user_id', $userId)
-            ->where('assignment_id', $quiz->id)
+        $submission = \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
+            ->where('quiz_id', $quiz->id)
             ->orderByDesc('submitted_at')
             ->first();
 
@@ -144,7 +145,7 @@ class QuizEnrichmentService
         $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
         $quiz->is_locked = ! $prerequisiteCheck['accessible'];
-        $quiz->is_completed = $prerequisiteCheck['accessible'];
+        $quiz->is_completed = $submissionData['is_completed'];
         $quiz->submission_status = $submissionData['submission_status'];
         $quiz->submission_status_label = $submissionData['submission_status_label'];
         $quiz->score = $submissionData['score'];
@@ -164,8 +165,8 @@ class QuizEnrichmentService
         $quiz->load(['unit:id,slug,course_id', 'unit.course:id,slug', 'creator:id,name', 'media']);
         $quiz->loadCount('questions');
 
-        $submission = \Modules\Learning\Models\Submission::where('user_id', $userId)
-            ->where('assignment_id', $quiz->id)
+        $submission = \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
+            ->where('quiz_id', $quiz->id)
             ->orderByDesc('submitted_at')
             ->first();
 
@@ -194,7 +195,7 @@ class QuizEnrichmentService
             'status' => $quiz->status?->value,
             'unit_slug' => $quiz->unit->slug ?? null,
             'is_locked' => ! $prerequisiteCheck['accessible'],
-            'is_completed' => $prerequisiteCheck['accessible'],
+            'is_completed' => $submissionData['is_completed'],
             'submission_status' => $submissionData['submission_status'],
             'submission_status_label' => $submissionData['submission_status_label'],
             'score' => $submissionData['score'],

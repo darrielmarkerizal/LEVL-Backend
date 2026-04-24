@@ -406,7 +406,7 @@ class PrerequisiteService
             return false;
         }
 
-        $passingScore = $assignment->max_score * 0.6;
+        $passingScore = $assignment->passing_grade ?? ($assignment->max_score * 0.6);
 
         return $highestSubmission->score >= $passingScore;
     }
