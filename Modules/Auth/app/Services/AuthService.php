@@ -35,11 +35,6 @@ class AuthService implements AuthServiceInterface
         return $this->sessionProcessor->login($loginOrDto, $password, $ip, $userAgent);
     }
 
-    public function refresh(string $refreshToken, string $ip, ?string $userAgent): array
-    {
-        return $this->sessionProcessor->refresh($refreshToken, $ip, $userAgent);
-    }
-
     public function logout(User $user, string $currentJwt, ?string $refreshToken = null): void
     {
         $this->sessionProcessor->logout($user, $currentJwt, $refreshToken);

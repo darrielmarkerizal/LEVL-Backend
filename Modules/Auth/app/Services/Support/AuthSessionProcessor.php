@@ -158,66 +158,6 @@ class AuthSessionProcessor
         return $response;
     }
 
-    public function refresh(string $refreshToken, string $ip, ?string $userAgent): array
-    {
-        $record = $this->authRepository->findValidRefreshRecord($refreshToken);
-        if (! $record) {
-            throw ValidationException::withMessages([
-                'refresh_token' => __('messages.auth.refresh_token_invalid'),
-            ]);
-        }
-
-        $user = $record->user;
-        if (! $user) {
-            throw ValidationException::withMessages([
-                'refresh_token' => __('messages.auth.refresh_token_user_not_found'),
-            ]);
-        }
-
-        if ($user->status !== UserStatus::Active) {
-            throw ValidationException::withMessages([
-                'refresh_token' => __('messages.auth.account_not_active'),
-            ]);
-        }
-
-        if ($record->isReplaced()) {
-            $chain = $this->authRepository->findReplacedTokenChain($record->id);
-            $deviceIds = collect($chain)->pluck('device_id')->unique()->filter()->toArray();
-
-            foreach ($deviceIds as $deviceId) {
-                $this->authRepository->revokeAllUserRefreshTokensByDevice($user->id, $deviceId);
-            }
-
-            throw ValidationException::withMessages([
-                'refresh_token' => __('messages.auth.refresh_token_compromised'),
-            ]);
-        }
-
-        $deviceId = $record->device_id ?? hash('sha256', ($ip ?? '').($userAgent ?? '').$user->id);
-
-        $newRefresh = $this->authRepository->createRefreshToken(
-            userId: $user->id,
-            ip: $ip,
-            userAgent: $userAgent,
-            deviceId: $deviceId,
-        );
-
-        $this->authRepository->markTokenAsReplaced($record->id, $newRefresh->id);
-
-        $record->update([
-            'last_used_at' => now(),
-            'idle_expires_at' => now()->addDays(14),
-        ]);
-
-        $accessToken = $this->jwt->fromUser($user);
-
-        return [
-            'access_token' => $accessToken,
-            'expires_in' => $this->jwt->factory()->getTTL() * 60,
-            'refresh_token' => $newRefresh->getAttribute('plain_token'),
-        ];
-    }
-
     public function logout(User $user, string $currentJwt, ?string $refreshToken = null): void
     {
         

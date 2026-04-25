@@ -14,9 +14,6 @@ interface AuthServiceInterface
     
     public function login(string $login, string $password, string $ip, ?string $userAgent): array;
 
-    
-    public function refresh(string $refreshToken, string $ip, ?string $userAgent): array;
-
     public function logout(User $user, string $currentJwt, ?string $refreshToken = null): void;
 
     public function me(User $user): User;

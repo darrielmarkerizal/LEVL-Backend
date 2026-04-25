@@ -6,8 +6,6 @@ namespace Modules\Auth\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Modules\Auth\Contracts\Repositories\AuthRepositoryInterface;
-use Modules\Auth\Enums\UserStatus;
 use Symfony\Component\HttpFoundation\Response;
 
 class AllowExpiredToken
@@ -38,41 +36,6 @@ class AllowExpiredToken
             );
         }
 
-        $authRepository = app(AuthRepositoryInterface::class);
-        $refreshRecord = $authRepository->findValidRefreshRecord($refreshToken);
-
-        if (! $refreshRecord) {
-            return response()->json(
-                [
-                    'status' => 'error',
-                    'message' => __('messages.auth.refresh_token_invalid'),
-                ],
-                401,
-            );
-        }
-
-        $user = $refreshRecord->user;
-        if (! $user) {
-            return response()->json(
-                [
-                    'status' => 'error',
-                    'message' => __('messages.user.not_found'),
-                ],
-                401,
-            );
-        }
-
-        if ($user->status !== UserStatus::Active) {
-            return response()->json(
-                [
-                    'status' => 'error',
-                    'message' => __('messages.auth.account_not_active'),
-                ],
-                403,
-            );
-        }
-
-        auth('api')->setUser($user);
         $request->merge(['refresh_token' => $refreshToken]);
 
         return $next($request);
