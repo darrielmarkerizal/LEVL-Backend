@@ -232,6 +232,8 @@ class LearningContentSeeder extends Seeder
         for ($i = 0; $i < $count; $i++) {
 
             $blockType = $blockTypes[$i % count($blockTypes)];
+            $seed = $lesson->id * 50 + $i;
+            $externalUrl = $this->generateExternalUrl($blockType, $seed);
 
             if (! isset($blockTypeCount[$blockType])) {
                 $blockTypeCount[$blockType] = 0;
@@ -241,7 +243,8 @@ class LearningContentSeeder extends Seeder
             $block = LessonBlock::create([
                 'lesson_id' => $lesson->id,
                 'block_type' => $blockType,
-                'content' => $this->generateBlockContent($blockType, $lesson->id * 50 + $i),
+                'content' => $this->generateBlockContent($blockType, $seed),
+                'external_url' => $externalUrl,
                 'order' => $i + 1,
                 'slug' => \Illuminate\Support\Str::slug($lesson->title.'-block-'.($i + 1)),
             ]);
@@ -423,18 +426,27 @@ class LearningContentSeeder extends Seeder
 
     private function generateBlockContent(string $blockType, int $seed): string
     {
-        $yt = substr(md5('yt-'.$seed), 0, 11);
-
         return match ($blockType) {
             'text' => $this->generateTextBlockContent($seed),
             'image' => '<figure><img src="" alt="'.htmlspecialchars(RealisticSeederContent::assessmentSentence($seed), ENT_QUOTES, 'UTF-8').'" /><figcaption>'.htmlspecialchars(RealisticSeederContent::shortSentence($seed + 1), ENT_QUOTES, 'UTF-8').'</figcaption></figure>',
             'video' => '<div class="video-wrapper"><video controls><source src="" type="video/mp4" /></video><p class="video-description">'.htmlspecialchars(RealisticSeederContent::paragraph($seed), ENT_QUOTES, 'UTF-8').'</p></div>',
             'file' => '<div class="file-download"><h4>'.htmlspecialchars(RealisticSeederContent::shortSentence($seed + 2), ENT_QUOTES, 'UTF-8').'</h4><p>'.htmlspecialchars(RealisticSeederContent::paragraph($seed + 3), ENT_QUOTES, 'UTF-8').'</p><a href="" download>Unduh berkas</a></div>',
-            'youtube' => '<div class="embed-responsive"><iframe src="https://www.youtube.com/embed/'.$yt.'" title="materi-youtube" frameborder="0" allowfullscreen></iframe></div>',
-            'drive' => '<p><a href="https://drive.google.com/file/d/'.substr(md5('drive-'.$seed), 0, 28).'/view" target="_blank" rel="noopener noreferrer">Buka dokumen Google Drive</a></p>',
-            'link' => '<p><a href="https://docs.levl.id/materi/'.($seed % 200 + 1).'" target="_blank" rel="noopener noreferrer">Referensi materi eksternal</a></p>',
-            'embed' => '<div class="embed-responsive"><iframe src="https://www.youtube.com/embed/'.$yt.'" title="materi" frameborder="0" allowfullscreen></iframe></div>',
+            'youtube' => '<p>'.htmlspecialchars(RealisticSeederContent::shortSentence($seed + 5), ENT_QUOTES, 'UTF-8').'</p>',
+            'drive' => '<p>'.htmlspecialchars(RealisticSeederContent::shortSentence($seed + 6), ENT_QUOTES, 'UTF-8').'</p>',
+            'link' => '<p>'.htmlspecialchars(RealisticSeederContent::shortSentence($seed + 7), ENT_QUOTES, 'UTF-8').'</p>',
+            'embed' => '<p>'.htmlspecialchars(RealisticSeederContent::shortSentence($seed + 8), ENT_QUOTES, 'UTF-8').'</p>',
             default => RealisticSeederContent::paragraph($seed + 4),
+        };
+    }
+
+    private function generateExternalUrl(string $blockType, int $seed): ?string
+    {
+        return match ($blockType) {
+            'youtube' => 'https://www.youtube.com/watch?v='.substr(md5('yt-'.$seed), 0, 11),
+            'drive' => 'https://drive.google.com/file/d/'.substr(md5('drive-'.$seed), 0, 28).'/view',
+            'link' => 'https://docs.levl.id/materi/'.($seed % 200 + 1),
+            'embed' => 'https://www.youtube.com/embed/'.substr(md5('embed-'.$seed), 0, 11),
+            default => null,
         };
     }
 
