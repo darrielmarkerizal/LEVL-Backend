@@ -10,6 +10,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Auth\Models\User;
+use Modules\Forums\Enums\ReactionType;
 use Modules\Forums\Models\Mention;
 use Modules\Forums\Models\Reaction;
 use Modules\Forums\Models\Reply;
@@ -238,10 +239,11 @@ class ForumSeeder extends Seeder
     private function createReactions($model, Collection $pool): void
     {
         $reactionCount = rand(0, 3);
+        $reactionTypes = ReactionType::values();
 
         for ($i = 0; $i < $reactionCount; $i++) {
             try {
-                $type = ['like', 'helpful', 'solved'][rand(0, 2)];
+                $type = $reactionTypes[array_rand($reactionTypes)];
 
                 Reaction::firstOrCreate([
                     'user_id' => $pool->random()->id,

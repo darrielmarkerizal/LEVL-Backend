@@ -51,10 +51,11 @@ class CourseSeederEnhanced extends Seeder
         $this->command->info('  📊 Creating '.self::TOTAL_COURSES.' courses across all scenarios...');
 
         $distribution = [
-            'published_auto' => 25,       
+            'published_auto' => 20,
             'published_approval' => 10,    
             'published_key' => 10,         
-            'draft' => 5,                 
+            'draft' => 5,
+            'archived' => 5,
         ];
 
         $created = 0;
@@ -103,6 +104,7 @@ class CourseSeederEnhanced extends Seeder
                 'enrollment_key' => $this->generateEnrollmentKey(),
             ])->create(),
             'draft' => $factory->draft()->create(),
+            'archived' => $factory->archived()->create(),
             default => collect(),
         };
     }

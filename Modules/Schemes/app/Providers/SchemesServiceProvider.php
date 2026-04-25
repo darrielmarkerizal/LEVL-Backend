@@ -33,7 +33,7 @@ class SchemesServiceProvider extends ServiceProvider
 
     protected function registerMorphMap(): void
     {
-        Relation::enforceMorphMap([
+        Relation::morphMap([
             'lesson' => \Modules\Schemes\Models\Lesson::class,
             'assignment' => \Modules\Learning\Models\Assignment::class,
             'quiz' => \Modules\Learning\Models\Quiz::class,

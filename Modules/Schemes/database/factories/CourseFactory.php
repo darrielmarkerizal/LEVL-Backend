@@ -97,6 +97,14 @@ class CourseFactory extends Factory
         ]);
     }
 
+    public function archived(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => CourseStatus::Archived->value,
+            'published_at' => SeederDate::randomPastDateTimeBetween(90, 365),
+        ]);
+    }
+
     public function openEnrollment(): static
     {
         return $this->state(fn (array $attributes) => [

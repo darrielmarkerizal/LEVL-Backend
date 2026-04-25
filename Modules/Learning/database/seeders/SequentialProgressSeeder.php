@@ -8,6 +8,8 @@ use App\Support\SeederDate;
 use App\Support\RealisticSeederContent;
 use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
+use Modules\Learning\Enums\QuizGradingStatus;
+use Modules\Learning\Enums\QuizSubmissionStatus;
 use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Quiz;
@@ -366,22 +368,29 @@ class SequentialProgressSeeder extends Seeder
         
         $scenarioRoll = rand(1, 100);
         $scenario = match (true) {
-            $scenarioRoll <= 25 => 'draft',
-            $scenarioRoll <= 65 => 'submitted',
-            default => 'graded',
+            $scenarioRoll <= 20 => 'draft',
+            $scenarioRoll <= 55 => 'submitted',
+            $scenarioRoll <= 80 => 'graded',
+            $scenarioRoll <= 95 => 'released',
+            default => 'missing',
         };
 
         $status = match ($scenario) {
-            'draft' => \Modules\Learning\Enums\QuizSubmissionStatus::Draft->value,
-            'submitted' => \Modules\Learning\Enums\QuizSubmissionStatus::Submitted->value,
-            default => \Modules\Learning\Enums\QuizSubmissionStatus::Graded->value,
+            'draft' => QuizSubmissionStatus::Draft->value,
+            'submitted' => QuizSubmissionStatus::Submitted->value,
+            'graded' => QuizSubmissionStatus::Graded->value,
+            'released' => QuizSubmissionStatus::Released->value,
+            default => QuizSubmissionStatus::Missing->value,
         };
 
         $gradingStatus = match ($scenario) {
-            'draft' => \Modules\Learning\Enums\QuizGradingStatus::Pending->value,
-            
-            'submitted' => \Modules\Learning\Enums\QuizGradingStatus::PartiallyGraded->value,
-            default => \Modules\Learning\Enums\QuizGradingStatus::Graded->value,
+            'draft' => QuizGradingStatus::Pending->value,
+            'submitted' => rand(1, 100) <= 50
+                ? QuizGradingStatus::PartiallyGraded->value
+                : QuizGradingStatus::WaitingForGrading->value,
+            'graded' => QuizGradingStatus::Graded->value,
+            'released' => QuizGradingStatus::Released->value,
+            default => QuizGradingStatus::Pending->value,
         };
 
         $attemptNumber = (int) (QuizSubmission::where('quiz_id', $quiz->id)
@@ -396,10 +405,14 @@ class SequentialProgressSeeder extends Seeder
             'grading_status' => $gradingStatus,
             'score' => null,
             'final_score' => null,
-            'submitted_at' => $scenario === 'draft' ? null : $submittedAt,
+            'submitted_at' => in_array($scenario, ['draft', 'missing'], true) ? null : $submittedAt,
             'started_at' => $startedAt,
             'attempt_number' => $attemptNumber,
         ]);
+
+        if ($scenario === 'missing') {
+            return false;
+        }
 
         $passingGrade = (float) ($quiz->passing_grade ?? 75);
         $passRate = match ($studentType) {
@@ -453,7 +466,7 @@ class SequentialProgressSeeder extends Seeder
                 $answerData['content'] = $this->pregenAnswers[array_rand($this->pregenAnswers)];
                 $answerData['is_auto_graded'] = \DB::raw('false');
 
-                if ($scenario === 'graded') {
+                if (in_array($scenario, ['graded', 'released'], true)) {
                     if ($isCorrect) {
                         $answerData['score'] = rand((int) ($weight * 0.8), (int) $weight);
                         $answerData['feedback'] = 'Good answer';
@@ -471,13 +484,13 @@ class SequentialProgressSeeder extends Seeder
 
             \DB::table('quiz_answers')->insert($answerData);
 
-            if ($scenario !== 'draft' && $question->type !== 'essay') {
+            if (! in_array($scenario, ['draft', 'missing'], true) && $question->type !== 'essay') {
                 $objectiveWeightTotal += $weight;
                 $objectiveEarned += (float) ($answerData['score'] ?? 0);
             }
         }
 
-        if ($scenario === 'draft') {
+        if (in_array($scenario, ['draft', 'missing'], true)) {
             return false;
         }
 

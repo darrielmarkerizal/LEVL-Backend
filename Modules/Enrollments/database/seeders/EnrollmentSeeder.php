@@ -7,6 +7,7 @@ namespace Modules\Enrollments\Database\Seeders;
 use App\Support\SeederDate;
 use Illuminate\Database\Seeder;
 use Modules\Enrollments\Enums\ProgressStatus;
+use Modules\Enrollments\Enums\EnrollmentStatus;
 
 class EnrollmentSeeder extends Seeder
 {
@@ -62,9 +63,10 @@ class EnrollmentSeeder extends Seeder
 
                 $statusRandom = rand(1, 100);
                 $status = match (true) {
-                    $statusRandom <= 70 => 'active',
-                    $statusRandom <= 85 => 'pending',
-                    default => 'completed'
+                    $statusRandom <= 65 => EnrollmentStatus::Active->value,
+                    $statusRandom <= 80 => EnrollmentStatus::Pending->value,
+                    $statusRandom <= 95 => EnrollmentStatus::Completed->value,
+                    default => EnrollmentStatus::Cancelled->value,
                 };
 
                 $enrolledAt = SeederDate::randomPastCarbonBetween(1, 180);
@@ -74,7 +76,7 @@ class EnrollmentSeeder extends Seeder
                     'course_id' => $courseId,
                     'status' => $status,
                     'enrolled_at' => $enrolledAt,
-                    'completed_at' => $status === 'completed' ? SeederDate::randomPastCarbonBetween(1, 180) : null,
+                    'completed_at' => $status === EnrollmentStatus::Completed->value ? SeederDate::randomPastCarbonBetween(1, 180) : null,
                     'auto_activate_on_enrolled_at' => \DB::raw('false'),
                     'created_at' => SeederDate::randomPastDateTimeBetween(1, 180),
                     'updated_at' => SeederDate::randomPastDateTimeBetween(1, 180),

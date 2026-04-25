@@ -8,6 +8,7 @@ use App\Support\RealisticSeederContent;
 use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
+use Modules\Schemes\Enums\BlockType;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\LessonBlock;
@@ -222,7 +223,7 @@ class LearningContentSeeder extends Seeder
     {
         $count = self::BLOCKS_PER_LESSON[0] + ($lesson->id % (self::BLOCKS_PER_LESSON[1] - self::BLOCKS_PER_LESSON[0] + 1));
 
-        $blockTypes = ['text', 'video', 'file', 'image', 'embed'];
+        $blockTypes = BlockType::values();
 
         $blocksCreated = 0;
         $mediaUploaded = 0;
@@ -247,7 +248,7 @@ class LearningContentSeeder extends Seeder
 
             $blocksCreated++;
 
-            if (in_array($blockType, ['video', 'file', 'image'])) {
+            if (in_array($blockType, [BlockType::Video->value, BlockType::File->value, BlockType::Image->value], true)) {
                 if ($this->attachMediaToBlock($block, $blockType)) {
                     $mediaUploaded++;
                 }
@@ -429,6 +430,9 @@ class LearningContentSeeder extends Seeder
             'image' => '<figure><img src="" alt="'.htmlspecialchars(RealisticSeederContent::assessmentSentence($seed), ENT_QUOTES, 'UTF-8').'" /><figcaption>'.htmlspecialchars(RealisticSeederContent::shortSentence($seed + 1), ENT_QUOTES, 'UTF-8').'</figcaption></figure>',
             'video' => '<div class="video-wrapper"><video controls><source src="" type="video/mp4" /></video><p class="video-description">'.htmlspecialchars(RealisticSeederContent::paragraph($seed), ENT_QUOTES, 'UTF-8').'</p></div>',
             'file' => '<div class="file-download"><h4>'.htmlspecialchars(RealisticSeederContent::shortSentence($seed + 2), ENT_QUOTES, 'UTF-8').'</h4><p>'.htmlspecialchars(RealisticSeederContent::paragraph($seed + 3), ENT_QUOTES, 'UTF-8').'</p><a href="" download>Unduh berkas</a></div>',
+            'youtube' => '<div class="embed-responsive"><iframe src="https://www.youtube.com/embed/'.$yt.'" title="materi-youtube" frameborder="0" allowfullscreen></iframe></div>',
+            'drive' => '<p><a href="https://drive.google.com/file/d/'.substr(md5('drive-'.$seed), 0, 28).'/view" target="_blank" rel="noopener noreferrer">Buka dokumen Google Drive</a></p>',
+            'link' => '<p><a href="https://docs.levl.id/materi/'.($seed % 200 + 1).'" target="_blank" rel="noopener noreferrer">Referensi materi eksternal</a></p>',
             'embed' => '<div class="embed-responsive"><iframe src="https://www.youtube.com/embed/'.$yt.'" title="materi" frameborder="0" allowfullscreen></iframe></div>',
             default => RealisticSeederContent::paragraph($seed + 4),
         };

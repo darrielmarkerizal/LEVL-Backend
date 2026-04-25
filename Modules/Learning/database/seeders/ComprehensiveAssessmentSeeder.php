@@ -9,11 +9,13 @@ use App\Support\RealisticSeederContent;
 use App\Support\UATMediaFixtures;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use Modules\Learning\Enums\QuestionType;
+use Modules\Learning\Enums\AssignmentStatus;
 use Modules\Learning\Enums\QuizGradingStatus;
 use Modules\Learning\Enums\QuizQuestionType;
 use Modules\Learning\Enums\QuizSubmissionStatus;
+use Modules\Learning\Enums\QuizStatus;
+use Modules\Learning\Enums\RandomizationType;
+use Modules\Learning\Enums\ReviewMode;
 use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Enums\SubmissionStatus;
 use Modules\Learning\Enums\SubmissionType;
@@ -34,8 +36,6 @@ class ComprehensiveAssessmentSeeder extends Seeder
     private array $userIds = [];
 
     private array $instructorIds = [];
-
-    private static bool $assignmentQuestionsSkipNotified = false;
 
     public function run(): void
     {
@@ -230,6 +230,8 @@ class ComprehensiveAssessmentSeeder extends Seeder
             $submissionType = 'mixed';
         }
 
+        $assignmentStatus = $this->pickAssignmentStatus();
+
         $assignmentId = DB::table('assignments')->insertGetId([
             'unit_id' => $unitId,
             'order' => $order,
@@ -237,9 +239,10 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'title' => $this->pregenSentences[array_rand($this->pregenSentences)],
             'description' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
             'submission_type' => $submissionType,
+            'review_mode' => $this->reviewModeForOrder($order),
             'max_score' => 100,
             'passing_grade' => rand(60, 80),
-            'status' => 'published',
+            'status' => $assignmentStatus,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
         ]);
@@ -254,14 +257,15 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'updated_at' => $this->createdAt,
         ]);
 
-        $this->createAssignmentQuestionsForType($assignmentId, $submissionType);
-
         if (rand(0, 1)) {
             $this->createAssignmentAttachments($assignmentId);
         }
 
-        $selectedUsers = array_slice($this->userIds, 0, min(5, count($this->userIds)));
+        if ($assignmentStatus !== AssignmentStatus::Published->value) {
+            return $stats;
+        }
 
+        $selectedUsers = array_slice($this->userIds, 0, min(5, count($this->userIds)));
         foreach ($selectedUsers as $userId) {
             $submissionResult = $this->createSubmissionWithGrade($assignmentId, $userId, $courseId);
             $stats['submissions'] += $submissionResult['submissions'];
@@ -271,37 +275,12 @@ class ComprehensiveAssessmentSeeder extends Seeder
         return $stats;
     }
 
-    private function createAssignmentQuestionsForType(int $assignmentId, string $submissionType): void
-    {
-        if (! Schema::hasTable('assignment_questions')) {
-            if (! self::$assignmentQuestionsSkipNotified) {
-                echo "   ⚠️  Table assignment_questions does not exist (removed in migration). Skipping assignment question rows; assignments and submissions are still created.\n";
-                self::$assignmentQuestionsSkipNotified = true;
-            }
-
-            return;
-        }
-
-        $typeDistribution = match ($submissionType) {
-            'text' => [QuestionType::Essay->value, QuestionType::Essay->value, QuestionType::MultipleChoice->value],
-            'file' => [QuestionType::FileUpload->value, QuestionType::Essay->value],
-            'mixed' => [
-                QuestionType::Essay->value,
-                QuestionType::MultipleChoice->value,
-                QuestionType::Checkbox->value,
-                QuestionType::FileUpload->value,
-            ],
-            default => [QuestionType::Essay->value],
-        };
-
-        foreach ($typeDistribution as $order => $type) {
-            $this->createAssignmentQuestion($assignmentId, $type, $order + 1);
-        }
-    }
-
     private function createQuizWithSubmissions(int $courseId, int $unitId, int $order): array
     {
         $stats = ['quizzes' => 0, 'questions' => 0, 'submissions' => 0, 'answers' => 0];
+
+        $quizStatus = $this->pickQuizStatus();
+        $randomization = $this->randomizationTypeForOrder($order);
 
         $quizId = DB::table('quizzes')->insertGetId([
             'unit_id' => $unitId,
@@ -313,8 +292,10 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'auto_grading' => \DB::raw('true'),
             'max_score' => 100,
             'time_limit_minutes' => rand(30, 90),
-            'review_mode' => 'immediate',
-            'status' => 'published',
+            'review_mode' => $this->reviewModeForOrder($order),
+            'randomization_type' => $randomization,
+            'question_bank_count' => $randomization === RandomizationType::Bank->value ? rand(8, 20) : null,
+            'status' => $quizStatus,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
         ]);
@@ -343,6 +324,10 @@ class ComprehensiveAssessmentSeeder extends Seeder
             $stats['questions']++;
         }
 
+        if ($quizStatus !== QuizStatus::Published->value) {
+            return $stats;
+        }
+
         $selectedUsers = array_slice($this->userIds, 0, min(5, count($this->userIds)));
 
         foreach ($selectedUsers as $userId) {
@@ -352,49 +337,6 @@ class ComprehensiveAssessmentSeeder extends Seeder
         }
 
         return $stats;
-    }
-
-    private function createAssignmentQuestion(int $assignmentId, string $type, int $order): int
-    {
-        $questionData = [
-            'assignment_id' => $assignmentId,
-            'type' => $type,
-            'content' => $this->getQuestionContent($type),
-            'weight' => 1.0,
-            'order' => $order,
-            'max_score' => 50,
-            'options' => null,
-            'answer_key' => null,
-            'max_file_size' => null,
-            'allowed_file_types' => null,
-            'allow_multiple_files' => \DB::raw('false'),
-            'created_at' => $this->createdAt,
-            'updated_at' => $this->createdAt,
-        ];
-
-        if ($type === QuestionType::MultipleChoice->value) {
-            $questionData['options'] = json_encode([
-                ['label' => 'A', 'text' => 'Option A - First choice'],
-                ['label' => 'B', 'text' => 'Option B - Second choice'],
-                ['label' => 'C', 'text' => 'Option C - Third choice'],
-                ['label' => 'D', 'text' => 'Option D - Fourth choice'],
-            ]);
-            $questionData['answer_key'] = json_encode(['correct_option' => 0]);
-        } elseif ($type === QuestionType::Checkbox->value) {
-            $questionData['options'] = json_encode([
-                ['label' => 'A', 'text' => 'Option A'],
-                ['label' => 'B', 'text' => 'Option B'],
-                ['label' => 'C', 'text' => 'Option C'],
-                ['label' => 'D', 'text' => 'Option D'],
-            ]);
-            $questionData['answer_key'] = json_encode(['correct_options' => [0, 2]]);
-        } elseif ($type === QuestionType::FileUpload->value) {
-            $questionData['max_file_size'] = 10485760;
-            $questionData['allowed_file_types'] = json_encode(['pdf', 'docx', 'xlsx', 'zip']);
-            $questionData['allow_multiple_files'] = \DB::raw('true');
-        }
-
-        return DB::table('assignment_questions')->insertGetId($questionData);
     }
 
     private function createSubmissionWithGrade(int $assignmentId, int $userId, int $courseId): array
@@ -620,63 +562,6 @@ class ComprehensiveAssessmentSeeder extends Seeder
         return DB::table('quiz_questions')->insertGetId($questionData);
     }
 
-    private function createSubmissionWithAnswersAndGrade(int $assignmentId, int $userId, array $questions, int $courseId): array
-    {
-        $stats = ['submissions' => 0, 'answers' => 0, 'grades' => 0];
-
-        $states = [SubmissionState::Graded->value, SubmissionState::PendingManualGrading->value, SubmissionState::Released->value];
-        $state = $states[array_rand($states)];
-
-        $status = match ($state) {
-            SubmissionState::PendingManualGrading->value => SubmissionStatus::Submitted->value,
-            default => SubmissionStatus::Graded->value,
-        };
-
-        $submissionId = DB::table('submissions')->insertGetId([
-            'assignment_id' => $assignmentId,
-            'user_id' => $userId,
-            'status' => $status,
-            'state' => $state,
-            'submitted_at' => SeederDate::randomPastDateTimeBetween(1, 120),
-            'attempt_number' => 1,
-            'is_late' => \DB::raw('false'),
-            'score' => null,
-            'created_at' => $this->createdAt,
-            'updated_at' => $this->createdAt,
-        ]);
-        $stats['submissions']++;
-
-        $totalScore = 0;
-        foreach ($questions as $question) {
-            $answerResult = $this->createAnswer($submissionId, $question, $state);
-            $stats['answers']++;
-            $totalScore += $answerResult['score'] ?? 0;
-        }
-
-        if (in_array($state, [SubmissionState::Graded->value, SubmissionState::Released->value])) {
-            DB::table('submissions')->where('id', $submissionId)->update(['score' => $totalScore]);
-
-            DB::table('grades')->insertOrIgnore([
-                'submission_id' => $submissionId,
-                'source_type' => 'assignment',
-                'source_id' => $assignmentId,
-                'user_id' => $userId,
-                'graded_by' => $this->instructorIds[array_rand($this->instructorIds)],
-                'score' => $totalScore,
-                'max_score' => 100,
-                'feedback' => $this->pregenParagraphs[array_rand($this->pregenParagraphs)],
-                'is_draft' => \DB::raw('false'),
-                'graded_at' => SeederDate::randomPastDateTimeBetween(7, 180),
-                'released_at' => $state === SubmissionState::Released->value ? SeederDate::randomPastDateTimeBetween(1, 120) : null,
-                'created_at' => $this->createdAt,
-                'updated_at' => $this->createdAt,
-            ]);
-            $stats['grades']++;
-        }
-
-        return $stats;
-    }
-
     private function createQuizSubmissionWithAnswers(int $quizId, int $userId, array $questions): array
     {
         $stats = ['submissions' => 0, 'answers' => 0];
@@ -705,22 +590,31 @@ class ComprehensiveAssessmentSeeder extends Seeder
         $startedAt = SeederDate::randomPastCarbonBetween($daysAgo, $daysAgo)->subMinutes(rand(10, 120))->toDateTimeString();
         $submittedAt = SeederDate::randomPastCarbonBetween($daysAgo, $daysAgo)->toDateTimeString();
 
+        $scenarioRoll = rand(1, 100);
         $scenario = match (true) {
-            rand(1, 100) <= 20 => 'draft',
-            rand(1, 100) <= 55 => 'submitted',
-            default => 'graded',
+            $scenarioRoll <= 20 => 'draft',
+            $scenarioRoll <= 55 => 'submitted',
+            $scenarioRoll <= 80 => 'graded',
+            $scenarioRoll <= 95 => 'released',
+            default => 'missing',
         };
 
         $status = match ($scenario) {
             'draft' => QuizSubmissionStatus::Draft->value,
             'submitted' => QuizSubmissionStatus::Submitted->value,
-            default => QuizSubmissionStatus::Graded->value,
+            'graded' => QuizSubmissionStatus::Graded->value,
+            'released' => QuizSubmissionStatus::Released->value,
+            default => QuizSubmissionStatus::Missing->value,
         };
 
         $gradingStatus = match ($scenario) {
             'draft' => QuizGradingStatus::Pending->value,
-            'submitted' => QuizGradingStatus::PartiallyGraded->value,
-            default => QuizGradingStatus::Graded->value,
+            'submitted' => rand(1, 100) <= 50
+                ? QuizGradingStatus::PartiallyGraded->value
+                : QuizGradingStatus::WaitingForGrading->value,
+            'graded' => QuizGradingStatus::Graded->value,
+            'released' => QuizGradingStatus::Released->value,
+            default => QuizGradingStatus::Pending->value,
         };
 
         $submissionId = DB::table('quiz_submissions')->insertGetId([
@@ -731,13 +625,17 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'grading_status' => $gradingStatus,
             'score' => null,
             'final_score' => null,
-            'submitted_at' => $scenario === 'draft' ? null : $submittedAt,
+            'submitted_at' => in_array($scenario, ['draft', 'missing'], true) ? null : $submittedAt,
             'started_at' => $startedAt,
             'attempt_number' => $attemptNumber,
             'created_at' => $this->createdAt,
             'updated_at' => $this->createdAt,
         ]);
         $stats['submissions']++;
+
+        if ($scenario === 'missing') {
+            return $stats;
+        }
 
         $objectiveWeightTotal = 0.0;
         $objectiveEarned = 0.0;
@@ -750,7 +648,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
 
             if ($isEssay) {
 
-                if ($scenario === 'graded') {
+                if (in_array($scenario, ['graded', 'released'], true)) {
                     $essayScore = $score;
                 }
             } else {
@@ -789,47 +687,6 @@ class ComprehensiveAssessmentSeeder extends Seeder
         ]);
 
         return $stats;
-    }
-
-    private function createAnswer(int $submissionId, array $question, string $state): array
-    {
-        $answerData = [
-            'submission_id' => $submissionId,
-            'question_id' => $question['id'],
-            'content' => null,
-            'selected_options' => null,
-            'file_paths' => null,
-            'score' => null,
-            'is_auto_graded' => \DB::raw('false'),
-            'feedback' => null,
-            'created_at' => $this->createdAt,
-            'updated_at' => $this->createdAt,
-        ];
-
-        switch ($question['type']) {
-            case QuestionType::Essay->value:
-                $answerData['content'] = $this->pregenParagraphs[array_rand($this->pregenParagraphs)];
-                if ($state !== SubmissionState::PendingManualGrading->value) {
-                    $answerData['score'] = rand(30, $question['max_score']);
-                    $answerData['feedback'] = $this->pregenSentences[array_rand($this->pregenSentences)];
-                }
-                break;
-
-            case QuestionType::FileUpload->value:
-                $answerData['file_paths'] = json_encode([
-                    'fixtures/uat/sample-minimal.pdf',
-                    'fixtures/uat/sample-readme.txt',
-                ]);
-                if ($state !== SubmissionState::PendingManualGrading->value) {
-                    $answerData['score'] = rand(35, $question['max_score']);
-                    $answerData['feedback'] = $this->pregenSentences[array_rand($this->pregenSentences)];
-                }
-                break;
-        }
-
-        DB::table('answers')->insertOrIgnore($answerData);
-
-        return ['score' => $answerData['score']];
     }
 
     private function createQuizAnswer(int $submissionId, array $question, float $passingGrade): float
@@ -873,35 +730,41 @@ class ComprehensiveAssessmentSeeder extends Seeder
         return $answerData['score'];
     }
 
-    private function getQuestionContent(string $type): string
+
+    private function pickAssignmentStatus(): string
     {
-        $templates = [
-            QuestionType::Essay->value => [
-                'Explain the importance of code testing and describe different types of testing strategies.',
-                'Discuss the Model-View-Controller (MVC) pattern and its role in web applications.',
-                'Compare REST API with GraphQL and explain when to use each.',
-                'Describe the principles of SOLID and how they apply to object-oriented design.',
-            ],
-            QuestionType::FileUpload->value => [
-                'Upload your completed project source code as a ZIP file.',
-                'Submit your database schema diagram in PDF format.',
-                'Upload your test case results in Excel or CSV format.',
-            ],
-            QuestionType::MultipleChoice->value => [
-                'Which design pattern is used to create a single instance of a class?',
-                'What does HTTP status code 422 indicate?',
-                'Which command initializes a new Git repository?',
-            ],
-            QuestionType::Checkbox->value => [
-                'Select all SQL aggregate functions from the list below.',
-                'Which of the following are valid HTTP verbs?',
-                'Select all items that are part of the OSI model.',
-            ],
-        ];
+        $roll = rand(1, 100);
 
-        $options = $templates[$type] ?? $templates[QuestionType::Essay->value];
+        return match (true) {
+            $roll <= 10 => AssignmentStatus::Draft->value,
+            $roll <= 15 => AssignmentStatus::Archived->value,
+            default => AssignmentStatus::Published->value,
+        };
+    }
 
-        return $options[array_rand($options)];
+    private function pickQuizStatus(): string
+    {
+        $roll = rand(1, 100);
+
+        return match (true) {
+            $roll <= 10 => QuizStatus::Draft->value,
+            $roll <= 15 => QuizStatus::Archived->value,
+            default => QuizStatus::Published->value,
+        };
+    }
+
+    private function reviewModeForOrder(int $order): string
+    {
+        $modes = ReviewMode::cases();
+
+        return $modes[($order - 1) % count($modes)]->value;
+    }
+
+    private function randomizationTypeForOrder(int $order): string
+    {
+        $types = RandomizationType::cases();
+
+        return $types[($order - 1) % count($types)]->value;
     }
 
     private function getQuizQuestionContent(string $type): string
