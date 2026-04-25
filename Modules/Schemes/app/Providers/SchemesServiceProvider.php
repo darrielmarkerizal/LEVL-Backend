@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Schemes\Providers;
 
 use App\Support\Traits\RegistersModuleConfig;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -26,7 +27,17 @@ class SchemesServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->registerPolicies();
+        $this->registerMorphMap();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+    }
+
+    protected function registerMorphMap(): void
+    {
+        Relation::enforceMorphMap([
+            'lesson' => \Modules\Schemes\Models\Lesson::class,
+            'assignment' => \Modules\Learning\Models\Assignment::class,
+            'quiz' => \Modules\Learning\Models\Quiz::class,
+        ]);
     }
 
     protected function registerPolicies(): void

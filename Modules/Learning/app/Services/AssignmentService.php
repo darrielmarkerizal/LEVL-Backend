@@ -17,6 +17,7 @@ use Modules\Learning\Repositories\AssignmentRepository;
 use Modules\Learning\Services\Support\AssignmentDuplicator;
 use Modules\Learning\Services\Support\AssignmentFinder;
 use Modules\Learning\Services\Support\AssignmentPrerequisiteProcessor;
+use Modules\Schemes\Services\UnitContentSyncService;
 
 class AssignmentService implements AssignmentServiceInterface
 {
@@ -24,7 +25,8 @@ class AssignmentService implements AssignmentServiceInterface
         private readonly AssignmentRepository $repository,
         private readonly AssignmentFinder $finder,
         private readonly AssignmentPrerequisiteProcessor $prerequisiteProcessor,
-        private readonly AssignmentDuplicator $duplicator
+        private readonly AssignmentDuplicator $duplicator,
+        private readonly UnitContentSyncService $syncService
     ) {}
 
     public function resolveCourseFromScope(string $assignableType, int $assignableId): ?\Modules\Schemes\Models\Course
@@ -110,8 +112,10 @@ class AssignmentService implements AssignmentServiceInterface
     public function create(array $data, int $createdBy): Assignment
     {
         return DB::transaction(function () use ($data, $createdBy) {
+            $unitId = (int) $data['unit_id'];
+
             if (! isset($data['order']) || $data['order'] === null) {
-                $data['order'] = $this->getNextOrderForUnit((int) $data['unit_id']);
+                $data['order'] = $this->syncService->getNextOrder($unitId);
             }
 
             $isAssignment = ($data['type'] ?? null) === AssignmentType::Assignment->value || ($data['type'] ?? null) === 'assignment';
@@ -131,6 +135,8 @@ class AssignmentService implements AssignmentServiceInterface
 
             $assignment = $this->repository->create($assignmentData);
 
+            $this->syncService->register('assignment', $assignment->id, $unitId, $data['order']);
+
             if (isset($data['attachments']) && is_array($data['attachments'])) {
                 foreach ($data['attachments'] as $file) {
                     $assignment->addMedia($file)->toMediaCollection('attachments');
@@ -139,15 +145,6 @@ class AssignmentService implements AssignmentServiceInterface
 
             return $assignment->fresh(['unit', 'creator', 'media']);
         });
-    }
-
-    private function getNextOrderForUnit(int $unitId): int
-    {
-        $maxLessonOrder = \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)->max('order') ?? 0;
-        $maxAssignmentOrder = Assignment::where('unit_id', $unitId)->max('order') ?? 0;
-        $maxQuizOrder = \Modules\Learning\Models\Quiz::where('unit_id', $unitId)->max('order') ?? 0;
-
-        return max($maxLessonOrder, $maxAssignmentOrder, $maxQuizOrder) + 1;
     }
 
     public function update(Assignment $assignment, array $data): Assignment
@@ -206,24 +203,10 @@ class AssignmentService implements AssignmentServiceInterface
     public function delete(Assignment $assignment): bool
     {
         return DB::transaction(function () use ($assignment) {
-            $unitId = $assignment->unit_id;
-            $deletedOrder = $assignment->order;
-
             $deleted = $this->repository->delete($assignment);
 
             if ($deleted) {
-                
-                \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)
-                    ->where('order', '>', $deletedOrder)
-                    ->decrement('order');
-                
-                \Modules\Learning\Models\Quiz::where('unit_id', $unitId)
-                    ->where('order', '>', $deletedOrder)
-                    ->decrement('order');
-                
-                Assignment::where('unit_id', $unitId)
-                    ->where('order', '>', $deletedOrder)
-                    ->decrement('order');
+                $this->syncService->unregister('assignment', $assignment->id);
             }
 
             return $deleted;

@@ -122,6 +122,11 @@ class Quiz extends Model implements HasMedia
         return 'unit';
     }
 
+    public function unitContent(): \Illuminate\Database\Eloquent\Relations\MorphOne
+    {
+        return $this->morphOne(\Modules\Schemes\Models\UnitContent::class, 'contentable');
+    }
+
     public function getCourseId(): ?int
     {
         $this->loadMissing('unit');

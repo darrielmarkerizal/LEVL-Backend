@@ -4,33 +4,28 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Services;
 
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Quiz;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Unit;
+use Modules\Schemes\Models\UnitContent;
 
 class PrerequisiteService
 {
     public function checkLessonAccess(Lesson $lesson, int $userId): array
     {
-        $previousLessons = Lesson::where('unit_id', $lesson->unit_id)
-            ->where('order', '<', $lesson->order)
-            ->orderBy('order')
-            ->get();
+        $uc = UnitContent::where('contentable_type', 'lesson')
+            ->where('contentable_id', $lesson->id)
+            ->first();
 
-        $missing = [];
-
-        foreach ($previousLessons as $prevLesson) {
-            if (! $prevLesson->isCompletedBy($userId)) {
-                $missing[] = [
-                    'type' => 'lesson',
-                    'id' => $prevLesson->id,
-                    'title' => $prevLesson->title,
-                    'order' => $prevLesson->order,
-                ];
-            }
+        if (! $uc) {
+            return ['accessible' => true, 'missing' => []];
         }
+
+        $allContent = $this->loadUnitContentsBefore($uc->unit_id, $uc->order);
+        $missing = $this->checkContentCompletion($allContent, $userId);
 
         return [
             'accessible' => empty($missing),
@@ -40,7 +35,7 @@ class PrerequisiteService
 
     public function checkAssignmentAccess(Assignment $assignment, int $userId): array
     {
-        $unitId = $this->getAssignmentUnitId($assignment);
+        $unitId = $assignment->unit_id;
 
         if (! $unitId) {
             return ['accessible' => true, 'missing' => []];
@@ -48,6 +43,14 @@ class PrerequisiteService
 
         $unit = Unit::find($unitId);
         if (! $unit) {
+            return ['accessible' => true, 'missing' => []];
+        }
+
+        $uc = UnitContent::where('contentable_type', 'assignment')
+            ->where('contentable_id', $assignment->id)
+            ->first();
+
+        if (! $uc) {
             return ['accessible' => true, 'missing' => []];
         }
 
@@ -65,7 +68,7 @@ class PrerequisiteService
             }
         }
 
-        $allContent = $this->getUnitContentBeforeAssignment($unitId, $assignment);
+        $allContent = $this->loadUnitContentsBefore($unitId, $uc->order);
         $currentUnitMissing = $this->checkContentCompletion($allContent, $userId, $unit);
         $missing = array_merge($missing, $currentUnitMissing);
 
@@ -77,7 +80,7 @@ class PrerequisiteService
 
     public function checkQuizAccess(Quiz $quiz, int $userId): array
     {
-        $unitId = $this->getQuizUnitId($quiz);
+        $unitId = $quiz->unit_id;
 
         if (! $unitId) {
             return ['accessible' => true, 'missing' => []];
@@ -85,6 +88,14 @@ class PrerequisiteService
 
         $unit = Unit::find($unitId);
         if (! $unit) {
+            return ['accessible' => true, 'missing' => []];
+        }
+
+        $uc = UnitContent::where('contentable_type', 'quiz')
+            ->where('contentable_id', $quiz->id)
+            ->first();
+
+        if (! $uc) {
             return ['accessible' => true, 'missing' => []];
         }
 
@@ -102,7 +113,7 @@ class PrerequisiteService
             }
         }
 
-        $allContent = $this->getUnitContentBeforeQuiz($unitId, $quiz);
+        $allContent = $this->loadUnitContentsBefore($unitId, $uc->order);
         $currentUnitMissing = $this->checkContentCompletion($allContent, $userId, $unit);
         $missing = array_merge($missing, $currentUnitMissing);
 
@@ -143,53 +154,44 @@ class PrerequisiteService
     private function getUnitIncompleteness(Unit $unit, int $userId): array
     {
         $missing = [];
+        $unitContents = $this->loadAllUnitContents($unit->id);
 
-        $lessons = $unit->lessons()->where('status', 'published')->orderBy('order')->get();
-        foreach ($lessons as $lesson) {
-            if (! $lesson->isCompletedBy($userId)) {
-                $missing[] = [
-                    'type' => 'lesson',
-                    'id' => $lesson->id,
-                    'title' => $lesson->title,
-                    'slug' => $lesson->slug,
-                    'unit_title' => $unit->title,
-                ];
+        foreach ($unitContents as $uc) {
+            $model = $uc->contentable;
+            $type = $uc->contentable_type;
+
+            $isPublished = match ($type) {
+                'lesson' => ($model->status?->value ?? $model->status) === 'published',
+                'assignment' => $model->status === \Modules\Learning\Enums\AssignmentStatus::Published,
+                'quiz' => $model->status === \Modules\Learning\Enums\QuizStatus::Published,
+                default => false,
+            };
+
+            if (! $isPublished) {
+                continue;
             }
-        }
 
-        $assignments = Assignment::forUnit($unit->id)
-            ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
-            ->ordered()
-            ->get();
+            $isCompleted = match ($type) {
+                'lesson' => $model->isCompletedBy($userId),
+                'assignment' => $this->isAssignmentPassed($model, $userId),
+                'quiz' => $this->isQuizPassed($model, $userId),
+                default => false,
+            };
 
-        foreach ($assignments as $assignment) {
-            if (! $this->isAssignmentPassed($assignment, $userId)) {
-                $missing[] = [
-                    'type' => 'assignment',
-                    'id' => $assignment->id,
-                    'title' => $assignment->title,
-                    'slug' => $assignment->slug ?? null,
+            if (! $isCompleted) {
+                $entry = [
+                    'type' => $type,
+                    'id' => $model->id,
+                    'title' => $model->title,
+                    'slug' => $model->slug ?? null,
                     'unit_title' => $unit->title,
-                    'passing_required' => true,
                 ];
-            }
-        }
 
-        $quizzes = Quiz::forUnit($unit->id)
-            ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
-            ->ordered()
-            ->get();
+                if ($type !== 'lesson') {
+                    $entry['passing_required'] = true;
+                }
 
-        foreach ($quizzes as $quiz) {
-            if (! $this->isQuizPassed($quiz, $userId)) {
-                $missing[] = [
-                    'type' => 'quiz',
-                    'id' => $quiz->id,
-                    'title' => $quiz->title,
-                    'slug' => $quiz->slug ?? null,
-                    'unit_title' => $unit->title,
-                    'passing_required' => true,
-                ];
+                $missing[] = $entry;
             }
         }
 
@@ -198,24 +200,17 @@ class PrerequisiteService
 
     public function isUnitCompleted(Unit $unit, int $userId): bool
     {
-        $lessons = $unit->lessons;
-        $assignments = Assignment::forUnit($unit->id)->get();
-        $quizzes = Quiz::forUnit($unit->id)->get();
+        $unitContents = $this->loadAllUnitContents($unit->id);
 
-        foreach ($lessons as $lesson) {
-            if (! $lesson->isCompletedBy($userId)) {
-                return false;
-            }
-        }
+        foreach ($unitContents as $uc) {
+            $isCompleted = match ($uc->contentable_type) {
+                'lesson' => $uc->contentable->isCompletedBy($userId),
+                'assignment' => $this->isAssignmentPassed($uc->contentable, $userId),
+                'quiz' => $this->isQuizPassed($uc->contentable, $userId),
+                default => false,
+            };
 
-        foreach ($assignments as $assignment) {
-            if (! $this->isAssignmentPassed($assignment, $userId)) {
-                return false;
-            }
-        }
-
-        foreach ($quizzes as $quiz) {
-            if (! $this->isQuizPassed($quiz, $userId)) {
+            if (! $isCompleted) {
                 return false;
             }
         }
@@ -225,27 +220,20 @@ class PrerequisiteService
 
     public function getUnitProgress(Unit $unit, int $userId): array
     {
-        $lessons = $unit->lessons;
-        $assignments = Assignment::forUnit($unit->id)->get();
-        $quizzes = Quiz::forUnit($unit->id)->get();
+        $unitContents = $this->loadAllUnitContents($unit->id);
 
-        $totalItems = $lessons->count() + $assignments->count() + $quizzes->count();
+        $totalItems = $unitContents->count();
         $completedItems = 0;
 
-        foreach ($lessons as $lesson) {
-            if ($lesson->isCompletedBy($userId)) {
-                $completedItems++;
-            }
-        }
+        foreach ($unitContents as $uc) {
+            $isCompleted = match ($uc->contentable_type) {
+                'lesson' => $uc->contentable->isCompletedBy($userId),
+                'assignment' => $this->isAssignmentPassed($uc->contentable, $userId),
+                'quiz' => $this->isQuizPassed($uc->contentable, $userId),
+                default => false,
+            };
 
-        foreach ($assignments as $assignment) {
-            if ($this->isAssignmentPassed($assignment, $userId)) {
-                $completedItems++;
-            }
-        }
-
-        foreach ($quizzes as $quiz) {
-            if ($this->isQuizPassed($quiz, $userId)) {
+            if ($isCompleted) {
                 $completedItems++;
             }
         }
@@ -259,109 +247,66 @@ class PrerequisiteService
 
     public function getUnitContentOrder(Unit $unit): array
     {
-        $lessons = $unit->lessons()->orderBy('order')->get();
-        $assignments = Assignment::forUnit($unit->id)->ordered()->get();
-        $quizzes = Quiz::forUnit($unit->id)->ordered()->get();
+        $unitContents = $this->loadAllUnitContents($unit->id);
 
-        $content = collect();
-
-        foreach ($lessons as $lesson) {
-            $content->push([
-                'type' => 'lesson',
-                'id' => $lesson->id,
-                'title' => $lesson->title,
-                'order' => $lesson->order,
-            ]);
-        }
-
-        foreach ($assignments as $assignment) {
-            $content->push([
-                'type' => 'assignment',
-                'id' => $assignment->id,
-                'title' => $assignment->title,
-                'order' => $assignment->order,
-            ]);
-        }
-
-        foreach ($quizzes as $quiz) {
-            $content->push([
-                'type' => 'quiz',
-                'id' => $quiz->id,
-                'title' => $quiz->title,
-                'order' => $quiz->order,
-            ]);
-        }
-
-        return $content->sortBy('order')->values()->toArray();
+        return $unitContents->map(fn (UnitContent $uc) => [
+            'type' => $uc->contentable_type,
+            'id' => $uc->contentable_id,
+            'title' => $uc->contentable?->title,
+            'order' => $uc->order,
+        ])->values()->toArray();
     }
 
-    private function getUnitContentBeforeAssignment(int $unitId, Assignment $assignment): Collection
+    private function loadUnitContentsBefore(int $unitId, int $beforeOrder): Collection
     {
-        $content = collect();
-
-        $lessons = Lesson::where('unit_id', $unitId)->orderBy('order')->get();
-        foreach ($lessons as $lesson) {
-            $content->push(['type' => 'lesson', 'model' => $lesson, 'order' => $lesson->order]);
-        }
-
-        $assignments = Assignment::forUnit($unitId)
-            ->where('order', '<', $assignment->order)
-            ->ordered()
+        $unitContents = UnitContent::forUnit($unitId)
+            ->beforeOrder($beforeOrder)
+            ->orderBy('order')
             ->get();
 
-        foreach ($assignments as $prevAssignment) {
-            $content->push(['type' => 'assignment', 'model' => $prevAssignment, 'order' => $prevAssignment->order]);
-        }
-
-        $quizzes = Quiz::forUnit($unitId)
-            ->where('order', '<', $assignment->order)
-            ->ordered()
-            ->get();
-
-        foreach ($quizzes as $quiz) {
-            $content->push(['type' => 'quiz', 'model' => $quiz, 'order' => $quiz->order]);
-        }
-
-        return $content->sortBy('order');
+        return $this->loadContentableModels($unitContents);
     }
 
-    private function getUnitContentBeforeQuiz(int $unitId, Quiz $quiz): Collection
+    private function loadAllUnitContents(int $unitId): Collection
     {
-        $content = collect();
-
-        $lessons = Lesson::where('unit_id', $unitId)->orderBy('order')->get();
-        foreach ($lessons as $lesson) {
-            $content->push(['type' => 'lesson', 'model' => $lesson, 'order' => $lesson->order]);
-        }
-
-        $assignments = Assignment::forUnit($unitId)
-            ->where('order', '<', $quiz->order)
-            ->ordered()
+        $unitContents = UnitContent::forUnit($unitId)
+            ->orderBy('order')
             ->get();
 
-        foreach ($assignments as $assignment) {
-            $content->push(['type' => 'assignment', 'model' => $assignment, 'order' => $assignment->order]);
-        }
-
-        $quizzes = Quiz::forUnit($unitId)
-            ->where('order', '<', $quiz->order)
-            ->ordered()
-            ->get();
-
-        foreach ($quizzes as $prevQuiz) {
-            $content->push(['type' => 'quiz', 'model' => $prevQuiz, 'order' => $prevQuiz->order]);
-        }
-
-        return $content->sortBy('order');
+        return $this->loadContentableModels($unitContents);
     }
 
-    private function checkContentCompletion(Collection $content, int $userId, ?Unit $unit = null): array
+    private function loadContentableModels(Collection $unitContents): Collection
+    {
+        $grouped = $unitContents->groupBy('contentable_type');
+
+        foreach ($grouped as $type => $items) {
+            $ids = $items->pluck('contentable_id')->toArray();
+            $modelClass = Relation::getMorphedModel($type);
+
+            if ($modelClass) {
+                $models = $modelClass::withoutGlobalScopes()
+                    ->whereIn('id', $ids)
+                    ->whereNull('deleted_at')
+                    ->get()
+                    ->keyBy('id');
+
+                foreach ($items as $item) {
+                    $item->setRelation('contentable', $models->get($item->contentable_id));
+                }
+            }
+        }
+
+        return $unitContents->filter(fn ($uc) => $uc->contentable !== null);
+    }
+
+    private function checkContentCompletion(Collection $unitContents, int $userId, ?Unit $unit = null): array
     {
         $missing = [];
 
-        foreach ($content as $item) {
-            $model = $item['model'];
-            $type = $item['type'];
+        foreach ($unitContents as $uc) {
+            $model = $uc->contentable;
+            $type = $uc->contentable_type;
 
             $isCompleted = match ($type) {
                 'lesson' => $model->isCompletedBy($userId),
@@ -382,16 +327,6 @@ class PrerequisiteService
         }
 
         return $missing;
-    }
-
-    private function getAssignmentUnitId(Assignment $assignment): ?int
-    {
-        return $assignment->unit_id;
-    }
-
-    private function getQuizUnitId(Quiz $quiz): ?int
-    {
-        return $quiz->unit_id;
     }
 
     private function isAssignmentPassed(Assignment $assignment, int $userId): bool

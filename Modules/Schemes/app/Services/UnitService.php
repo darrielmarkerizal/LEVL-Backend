@@ -30,6 +30,7 @@ class UnitService
         private readonly LessonService $lessonService,
         private readonly QuizServiceInterface $quizService,
         private readonly AssignmentServiceInterface $assignmentService,
+        private readonly UnitContentSyncService $syncService,
     ) {}
 
     public function validateHierarchy(int $courseId, int $unitId): void
@@ -433,7 +434,8 @@ class UnitService
                 $previousContentCompleted = $isCompleted;
             } elseif ($type === 'quiz') {
                 $submission = $submissionsByQuiz[$item->id] ?? null;
-                $isPassed = $submission ? ($submission->score >= $item->passing_grade) : false;
+                $finalScore = $submission ? ($submission->final_score ?? $submission->score) : null;
+                $isPassed = $submission && $submission->status->value === 'graded' && $finalScore !== null && $finalScore >= $item->passing_grade;
                 
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
@@ -463,7 +465,7 @@ class UnitService
                 $previousContentCompleted = $isPassed;
             } elseif ($type === 'assignment') {
                 $submission = $submissionsByAssignment[$item->id] ?? null;
-                $isPassed = $submission && $submission->status->value === 'graded' && $submission->score >= ($item->max_score * 0.6);
+                $isPassed = $submission && $submission->status->value === 'graded' && $submission->score >= ($item->passing_grade ?? ($item->max_score * 0.6));
                 
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
@@ -611,47 +613,45 @@ class UnitService
 
     public function getContentOrder(Unit $unit): array
     {
-        $lessons = $unit->lessons()->orderBy('order')->get(['id', 'title', 'order', 'status']);
-        $assignments = \Modules\Learning\Models\Assignment::where('unit_id', $unit->id)
+        $unitContents = \Modules\Schemes\Models\UnitContent::where('unit_id', $unit->id)
             ->orderBy('order')
-            ->get(['id', 'title', 'order', 'status']);
-        $quizzes = \Modules\Learning\Models\Quiz::where('unit_id', $unit->id)
-            ->orderBy('order')
-            ->get(['id', 'title', 'order', 'status']);
+            ->get();
 
-        $content = collect();
+        $grouped = $unitContents->groupBy('contentable_type');
+        $models = [];
 
-        foreach ($lessons as $lesson) {
-            $content->push([
-                'type' => 'lesson',
-                'id' => $lesson->id,
-                'title' => $lesson->title,
-                'order' => $lesson->order,
-                'status' => $lesson->status,
-            ]);
+        foreach ($grouped as $type => $items) {
+            $ids = $items->pluck('contentable_id')->toArray();
+            $modelClass = \Illuminate\Database\Eloquent\Relations\Relation::getMorphedModel($type);
+
+            if ($modelClass) {
+                $models[$type] = $modelClass::withoutGlobalScopes()
+                    ->whereIn('id', $ids)
+                    ->whereNull('deleted_at')
+                    ->get(['id', 'title', 'status'])
+                    ->keyBy('id');
+            }
         }
 
-        foreach ($assignments as $assignment) {
-            $content->push([
-                'type' => 'assignment',
-                'id' => $assignment->id,
-                'title' => $assignment->title,
-                'order' => $assignment->order,
-                'status' => $assignment->status->value,
-            ]);
-        }
+        return $unitContents->map(function ($uc) use ($models) {
+            $model = ($models[$uc->contentable_type] ?? collect())->get($uc->contentable_id);
+            if (! $model) {
+                return null;
+            }
 
-        foreach ($quizzes as $quiz) {
-            $content->push([
-                'type' => 'quiz',
-                'id' => $quiz->id,
-                'title' => $quiz->title,
-                'order' => $quiz->order,
-                'status' => $quiz->status->value,
-            ]);
-        }
+            $status = $model->status;
+            if ($status instanceof \BackedEnum) {
+                $status = $status->value;
+            }
 
-        return $content->sortBy('order')->values()->toArray();
+            return [
+                'type' => $uc->contentable_type,
+                'id' => $uc->contentable_id,
+                'title' => $model->title,
+                'order' => $uc->order,
+                'status' => $status,
+            ];
+        })->filter()->values()->toArray();
     }
 
     public function createContentElement(Unit $unit, array $data, int $createdBy): array
@@ -695,32 +695,9 @@ class UnitService
 
     public function reorderContent(Unit $unit, array $contentOrder): array
     {
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($unit, $contentOrder) {
-            foreach ($contentOrder as $index => $item) {
-                $type = $item['type'] ?? null;
-                $id = $item['id'] ?? null;
-                $order = $index + 1;
+        $this->syncService->reorder($unit->id, $contentOrder);
 
-                if (! $type || ! $id) {
-                    continue;
-                }
-
-                match ($type) {
-                    'lesson' => \Modules\Schemes\Models\Lesson::where('id', $id)
-                        ->where('unit_id', $unit->id)
-                        ->update(['order' => $order]),
-                    'assignment' => \Modules\Learning\Models\Assignment::where('id', $id)
-                        ->where('unit_id', $unit->id)
-                        ->update(['order' => $order]),
-                    'quiz' => \Modules\Learning\Models\Quiz::where('id', $id)
-                        ->where('unit_id', $unit->id)
-                        ->update(['order' => $order]),
-                    default => null,
-                };
-            }
-
-            return $this->getContentOrder($unit);
-        });
+        return $this->getContentOrder($unit);
     }
 
     public function generateUniqueSlug(string $title): string

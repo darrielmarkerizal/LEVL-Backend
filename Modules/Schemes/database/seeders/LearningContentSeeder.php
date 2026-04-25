@@ -190,7 +190,7 @@ class LearningContentSeeder extends Seeder
             $title = $this->generateLessonTitle($i);
             $slug = \Illuminate\Support\Str::slug($title).'-'.$unit->id.'-'.$i;
 
-            $lessons->push(Lesson::create([
+            $lesson = Lesson::create([
                 'unit_id' => $unit->id,
                 'title' => $title,
                 'slug' => $slug,
@@ -201,7 +201,18 @@ class LearningContentSeeder extends Seeder
                 'order' => $i,
                 'duration_minutes' => [10, 15, 20, 30, 45, 60][$i % 6],
                 'status' => 'published',
-            ]));
+            ]);
+
+            \Illuminate\Support\Facades\DB::table('unit_contents')->insert([
+                'unit_id' => $unit->id,
+                'contentable_type' => 'lesson',
+                'contentable_id' => $lesson->id,
+                'order' => $i,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $lessons->push($lesson);
         }
 
         return $lessons;

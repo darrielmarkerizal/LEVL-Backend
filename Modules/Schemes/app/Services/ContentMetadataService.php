@@ -70,8 +70,22 @@ class ContentMetadataService
         return $result;
     }
 
+    public function getContentMetadataByUnitContentId(int $unitContentId): array
+    {
+        $uc = \Modules\Schemes\Models\UnitContent::findOrFail($unitContentId);
+
+        return $this->getContentMetadata($uc->contentable_id, $uc->contentable_type);
+    }
+
     public function getContentMetadataByIdOnly(int $contentId): array
     {
+        $uc = \Modules\Schemes\Models\UnitContent::where('contentable_id', $contentId)
+            ->first();
+
+        if ($uc) {
+            return $this->getContentMetadata($uc->contentable_id, $uc->contentable_type);
+        }
+
         $candidates = [];
 
         $lesson = Lesson::with(['unit.course', 'blocks' => fn($q) => $q->orderBy('order')])->find($contentId);
@@ -110,56 +124,8 @@ class ContentMetadataService
         });
 
         $selected = $candidates[0];
-        $content = $selected['model'];
-        $type = $selected['type'];
 
-        $result = [
-            'id' => $content->id,
-            'type' => $type,
-            'slug' => $content->slug ?? "{$type}-{$content->id}",
-            'title' => $content->title,
-            'description' => $content->description ?? null,
-            'status' => $content->status ?? 'draft',
-            'order' => $content->order ?? null,
-            'sequence' => $this->buildSequence($content),
-            'unit' => [
-                'id' => $content->unit->id,
-                'slug' => $content->unit->slug,
-                'title' => $content->unit->title,
-                'code' => $content->unit->code,
-                'course_slug' => $content->unit->course->slug ?? null,
-                'course' => $content->unit->course ? [
-                    'id' => $content->unit->course->id,
-                    'slug' => $content->unit->course->slug,
-                    'title' => $content->unit->course->title,
-                    'code' => $content->unit->course->code,
-                ] : null,
-            ],
-        ];
-
-        if ($type === 'lesson') {
-            $result['slug'] = $content->slug ?? (string) $content->id;
-            $result['duration_minutes'] = $content->duration_minutes ?? null;
-
-            if ($content->relationLoaded('blocks')) {
-                $result['blocks'] = LessonBlockResource::collection($content->blocks)->resolve();
-            }
-
-            $xpSource = \Modules\Gamification\Models\XpSource::where('code', 'lesson_completed')
-                ->where('is_active', true)
-                ->first();
-            $result['xp_reward'] = $xpSource ? $xpSource->xp_amount : 50;
-        }
-
-        if ($type === 'assignment' && $content instanceof Assignment) {
-            $result = array_merge($result, $this->buildAssignmentMetadata($content));
-        }
-
-        if ($type === 'quiz' && $content instanceof Quiz) {
-            $result = array_merge($result, $this->buildQuizMetadata($content));
-        }
-
-        return $result;
+        return $this->getContentMetadata($selected['model']->id, $selected['type']);
     }
 
     private function buildAssignmentMetadata(Assignment $assignment): array

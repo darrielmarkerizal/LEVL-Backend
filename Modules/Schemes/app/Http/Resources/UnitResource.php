@@ -214,7 +214,7 @@ class UnitResource extends JsonResource
             ->whereIn('assignment_id', $assignmentIds)
             ->where('status', \Modules\Learning\Enums\SubmissionStatus::Graded)
             ->whereHas('assignment', function ($q) {
-                $q->whereRaw('submissions.score >= (assignments.max_score * 0.6)');
+                $q->whereRaw('submissions.score >= COALESCE(assignments.passing_grade, assignments.max_score * 0.6)');
             })
             ->distinct('assignment_id')
             ->count('assignment_id');

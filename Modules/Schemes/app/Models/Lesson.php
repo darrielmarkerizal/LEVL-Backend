@@ -78,6 +78,11 @@ class Lesson extends Model
         return $this->hasMany(\Modules\Enrollments\Models\LessonProgress::class);
     }
 
+    public function unitContent(): \Illuminate\Database\Eloquent\Relations\MorphOne
+    {
+        return $this->morphOne(UnitContent::class, 'contentable');
+    }
+
     public function isCompletedBy(int $userId): bool
     {
         

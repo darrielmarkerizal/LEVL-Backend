@@ -174,7 +174,47 @@ class ComprehensiveAssessmentSeeder extends Seeder
             $currentOrder++;
         }
 
+        $this->shuffleUnitContentOrder($unitId);
+
         return $stats;
+    }
+
+    private function shuffleUnitContentOrder(int $unitId): void
+    {
+        $items = DB::table('unit_contents')
+            ->where('unit_id', $unitId)
+            ->get()
+            ->shuffle()
+            ->values();
+
+        if ($items->isEmpty()) {
+            return;
+        }
+
+        DB::table('unit_contents')
+            ->where('unit_id', $unitId)
+            ->update(['order' => DB::raw('-1 * id')]);
+
+        foreach ($items as $index => $item) {
+            $newOrder = $index + 1;
+
+            DB::table('unit_contents')
+                ->where('id', $item->id)
+                ->update(['order' => $newOrder]);
+
+            $table = match ($item->contentable_type) {
+                'lesson' => 'lessons',
+                'assignment' => 'assignments',
+                'quiz' => 'quizzes',
+                default => null,
+            };
+
+            if ($table) {
+                DB::table($table)
+                    ->where('id', $item->contentable_id)
+                    ->update(['order' => $newOrder]);
+            }
+        }
     }
 
     private function createAssignmentWithSubmissions(int $courseId, int $unitId, int $order): array
@@ -204,6 +244,15 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'updated_at' => $this->createdAt,
         ]);
         $stats['assignments']++;
+
+        DB::table('unit_contents')->insert([
+            'unit_id' => $unitId,
+            'contentable_type' => 'assignment',
+            'contentable_id' => $assignmentId,
+            'order' => $order,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->createdAt,
+        ]);
 
         $this->createAssignmentQuestionsForType($assignmentId, $submissionType);
 
@@ -270,6 +319,15 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'updated_at' => $this->createdAt,
         ]);
         $stats['quizzes']++;
+
+        DB::table('unit_contents')->insert([
+            'unit_id' => $unitId,
+            'contentable_type' => 'quiz',
+            'contentable_id' => $quizId,
+            'order' => $order,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->createdAt,
+        ]);
 
         $questionTypes = [
             QuizQuestionType::MultipleChoice->value,

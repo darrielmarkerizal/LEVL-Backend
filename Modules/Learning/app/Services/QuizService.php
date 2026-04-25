@@ -10,11 +10,13 @@ use Modules\Learning\Contracts\Services\QuizServiceInterface;
 use Modules\Learning\Enums\QuizStatus;
 use Modules\Learning\Models\Quiz;
 use Modules\Learning\Repositories\QuizRepository;
+use Modules\Schemes\Services\UnitContentSyncService;
 
 class QuizService implements QuizServiceInterface
 {
     public function __construct(
         private readonly QuizRepository $repository,
+        private readonly UnitContentSyncService $syncService,
     ) {}
 
     public function resolveCourseFromScope(string $assignableType, int $assignableId): ?\Modules\Schemes\Models\Course
@@ -55,8 +57,10 @@ class QuizService implements QuizServiceInterface
     public function create(array $data, int $createdBy): Quiz
     {
         return DB::transaction(function () use ($data, $createdBy) {
+            $unitId = (int) $data['unit_id'];
+
             if (! isset($data['order']) || $data['order'] === null) {
-                $data['order'] = $this->getNextOrderForUnit((int) $data['unit_id']);
+                $data['order'] = $this->syncService->getNextOrder($unitId);
             }
 
             $quiz = $this->repository->create(array_merge($data, [
@@ -68,6 +72,8 @@ class QuizService implements QuizServiceInterface
                 'review_mode' => $data['review_mode'] ?? 'immediate',
             ]));
 
+            $this->syncService->register('quiz', $quiz->id, $unitId, $data['order']);
+
             if (isset($data['attachments']) && is_array($data['attachments'])) {
                 foreach ($data['attachments'] as $file) {
                     $quiz->addMedia($file)->toMediaCollection('attachments');
@@ -76,15 +82,6 @@ class QuizService implements QuizServiceInterface
 
             return $quiz->fresh(['unit', 'creator', 'media']);
         });
-    }
-
-    private function getNextOrderForUnit(int $unitId): int
-    {
-        $maxLessonOrder = \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)->max('order') ?? 0;
-        $maxAssignmentOrder = \Modules\Learning\Models\Assignment::where('unit_id', $unitId)->max('order') ?? 0;
-        $maxQuizOrder = Quiz::where('unit_id', $unitId)->max('order') ?? 0;
-
-        return max($maxLessonOrder, $maxAssignmentOrder, $maxQuizOrder) + 1;
     }
 
     public function update(Quiz $quiz, array $data): Quiz
@@ -109,24 +106,10 @@ class QuizService implements QuizServiceInterface
     public function delete(Quiz $quiz): bool
     {
         return DB::transaction(function () use ($quiz) {
-            $unitId = $quiz->unit_id;
-            $deletedOrder = $quiz->order;
-
             $deleted = $this->repository->delete($quiz);
 
             if ($deleted) {
-                
-                \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)
-                    ->where('order', '>', $deletedOrder)
-                    ->decrement('order');
-                
-                Quiz::where('unit_id', $unitId)
-                    ->where('order', '>', $deletedOrder)
-                    ->decrement('order');
-                
-                \Modules\Learning\Models\Assignment::where('unit_id', $unitId)
-                    ->where('order', '>', $deletedOrder)
-                    ->decrement('order');
+                $this->syncService->unregister('quiz', $quiz->id);
             }
 
             return $deleted;

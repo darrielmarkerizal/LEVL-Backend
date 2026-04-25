@@ -12,12 +12,14 @@ use Modules\Schemes\DTOs\UpdateLessonDTO;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Services\SchemesCacheService;
+use Modules\Schemes\Services\UnitContentSyncService;
 
 class LessonOrderingProcessor
 {
     public function __construct(
         private readonly LessonRepositoryInterface $repository,
-        private readonly SchemesCacheService $cacheService
+        private readonly SchemesCacheService $cacheService,
+        private readonly UnitContentSyncService $syncService
     ) {}
 
     public function create(int $unitId, CreateLessonDTO|array $data): Lesson
@@ -26,27 +28,18 @@ class LessonOrderingProcessor
             $attributes = $data instanceof CreateLessonDTO ? $data->toArrayWithoutNull() : $data;
             $attributes['unit_id'] = $unitId;
 
-            if (isset($attributes['order'])) {
-                Lesson::where('unit_id', $unitId)
-                    ->where('order', '>=', $attributes['order'])
-                    ->increment('order');
-            } else {
-                $attributes['order'] = $this->getNextOrderForUnit($unitId);
+            if (! isset($attributes['order'])) {
+                $attributes['order'] = $this->syncService->getNextOrder($unitId);
             }
 
             $attributes = Arr::except($attributes, ['slug']);
 
-            return $this->repository->create($attributes);
+            $lesson = $this->repository->create($attributes);
+
+            $this->syncService->register('lesson', $lesson->id, $unitId, $attributes['order']);
+
+            return $lesson;
         });
-    }
-
-    private function getNextOrderForUnit(int $unitId): int
-    {
-        $maxLessonOrder = Lesson::where('unit_id', $unitId)->max('order') ?? 0;
-        $maxAssignmentOrder = \Modules\Learning\Models\Assignment::where('unit_id', $unitId)->max('order') ?? 0;
-        $maxQuizOrder = \Modules\Learning\Models\Quiz::where('unit_id', $unitId)->max('order') ?? 0;
-
-        return max($maxLessonOrder, $maxAssignmentOrder, $maxQuizOrder) + 1;
     }
 
     public function update(Lesson $lesson, UpdateLessonDTO|array $data): Lesson
@@ -81,24 +74,10 @@ class LessonOrderingProcessor
     public function delete(Lesson $lesson): bool
     {
         return DB::transaction(function () use ($lesson) {
-            $unitId = $lesson->unit_id;
-            $deletedOrder = $lesson->order;
-
             $deleted = $this->repository->delete($lesson);
 
             if ($deleted) {
-                
-                Lesson::where('unit_id', $unitId)
-                    ->where('order', '>', $deletedOrder)
-                    ->decrement('order');
-                
-                \Modules\Learning\Models\Quiz::where('unit_id', $unitId)
-                    ->where('order', '>', $deletedOrder)
-                    ->decrement('order');
-                
-                \Modules\Learning\Models\Assignment::where('unit_id', $unitId)
-                    ->where('order', '>', $deletedOrder)
-                    ->decrement('order');
+                $this->syncService->unregister('lesson', $lesson->id);
             }
 
             return $deleted;

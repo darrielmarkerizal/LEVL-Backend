@@ -122,6 +122,11 @@ class Assignment extends Model implements HasMedia
         return $query->where('status', '!=', AssignmentStatus::Published);
     }
 
+    public function unitContent(): \Illuminate\Database\Eloquent\Relations\MorphOne
+    {
+        return $this->morphOne(\Modules\Schemes\Models\UnitContent::class, 'contentable');
+    }
+
     public function getCourseId(): ?int
     {
         $this->loadMissing('unit');

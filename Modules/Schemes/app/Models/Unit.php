@@ -77,6 +77,11 @@ class Unit extends Model
         return $this->hasMany(\Modules\Learning\Models\Quiz::class);
     }
 
+    public function contents()
+    {
+        return $this->hasMany(UnitContent::class)->orderBy('order');
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
