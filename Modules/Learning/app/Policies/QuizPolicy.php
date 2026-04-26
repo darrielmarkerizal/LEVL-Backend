@@ -59,7 +59,6 @@ class QuizPolicy
             return true;
         }
 
-        
         if ($user->hasRole('Admin')) {
             return true;
         }
@@ -78,7 +77,6 @@ class QuizPolicy
             return false;
         }
 
-        
         if ($user->hasRole('Admin')) {
             return true;
         }
@@ -102,7 +100,6 @@ class QuizPolicy
             return false;
         }
 
-        
         if ($user->hasRole('Admin')) {
             return true;
         }
@@ -125,11 +122,8 @@ class QuizPolicy
             return true;
         }
 
-        
         if ($user->hasRole('Student')) {
-            $enrollment = $this->getActiveEnrollment($course);
-
-            return $enrollment && $enrollment->status->value === 'active';
+            return $this->getActiveEnrollment($course) !== null;
         }
 
         return false;
