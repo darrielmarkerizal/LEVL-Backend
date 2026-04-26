@@ -32,7 +32,7 @@ class ActivateScheduledEnrollmentsCommand extends Command
         $enrollments = Enrollment::query()
             ->useWritePdo()
             ->where('status', EnrollmentStatus::Pending)
-            ->where('auto_activate_on_enrolled_at', true)
+            ->whereRaw('auto_activate_on_enrolled_at = true')
             ->whereDate('enrolled_at', '<=', $now->toDateString())
             ->with(['user:id,name,email', 'course:id,title,slug,code'])
             ->get();
@@ -56,7 +56,7 @@ class ActivateScheduledEnrollmentsCommand extends Command
                         ->where('status', EnrollmentStatus::Pending->value)
                         ->update([
                             'status' => EnrollmentStatus::Active->value,
-                            'auto_activate_on_enrolled_at' => false,
+                            'auto_activate_on_enrolled_at' => DB::raw('false'),
                             'updated_at' => now(),
                         ]);
                 });

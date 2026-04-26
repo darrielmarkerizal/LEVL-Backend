@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Enrollments\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Common\Traits\PgSearchable;
@@ -48,7 +49,6 @@ class Enrollment extends Model
     protected $casts = [
         'status' => EnrollmentStatus::class,
         'enrolled_at' => 'datetime',
-        'auto_activate_on_enrolled_at' => 'boolean',
         'completed_at' => 'datetime',
     ];
 
@@ -100,5 +100,13 @@ class Enrollment extends Model
     protected static function newFactory()
     {
         return \Modules\Enrollments\Database\Factories\EnrollmentFactory::new();
+    }
+
+    protected function autoActivateOnEnrolledAt(): Attribute
+    {
+        return Attribute::make(
+            get: static fn (mixed $value): bool => filter_var($value, FILTER_VALIDATE_BOOLEAN),
+            set: static fn (mixed $value): string => filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false',
+        );
     }
 }
