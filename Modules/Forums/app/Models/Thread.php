@@ -142,6 +142,21 @@ class Thread extends Model implements HasMedia
         return $this->is_resolved;
     }
 
+    public function setIsPinnedAttribute(mixed $value): void
+    {
+        $this->attributes['is_pinned'] = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
+    }
+
+    public function setIsClosedAttribute(mixed $value): void
+    {
+        $this->attributes['is_closed'] = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
+    }
+
+    public function setIsResolvedAttribute(mixed $value): void
+    {
+        $this->attributes['is_resolved'] = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
+    }
+
     public function incrementViews(): void
     {
         $this->increment('views_count');
