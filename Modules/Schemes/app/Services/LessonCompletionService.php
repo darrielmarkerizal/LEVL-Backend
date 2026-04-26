@@ -39,33 +39,18 @@ class LessonCompletionService
             );
         }
 
-        
-        $existing = LessonProgress::where('enrollment_id', $enrollment->id)
+        $this->progressionService->markLessonCompleted($lesson, $enrollment);
+
+        $progress = LessonProgress::where('enrollment_id', $enrollment->id)
             ->where('lesson_id', $lesson->id)
             ->where('status', 'completed')
             ->first();
 
-        if ($existing) {
-            throw LessonCompletionException::alreadyCompleted(
-                __('messages.lessons.already_completed')
+        if (! $progress) {
+            throw LessonCompletionException::notCompleted(
+                __('messages.lessons.not_completed')
             );
         }
-
-        
-        $progress = LessonProgress::updateOrCreate(
-            [
-                'enrollment_id' => $enrollment->id,
-                'lesson_id' => $lesson->id,
-            ],
-            [
-                'status' => 'completed',
-                'progress_percent' => 100,
-                'completed_at' => now(),
-            ]
-        );
-
-        
-        $this->progressionService->markLessonCompleted($lesson, $enrollment);
 
         return $progress;
     }

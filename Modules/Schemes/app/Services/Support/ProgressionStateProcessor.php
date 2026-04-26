@@ -26,14 +26,10 @@ class ProgressionStateProcessor
         DB::transaction(function () use ($lesson, $enrollment) {
             $lockedEnrollment = Enrollment::lockForUpdate()->findOrFail($enrollment->id);
 
-            $existingProgress = LessonProgress::where('enrollment_id', $lockedEnrollment->id)
+            $alreadyCompleted = LessonProgress::where('enrollment_id', $lockedEnrollment->id)
                 ->where('lesson_id', $lesson->id)
                 ->where('status', ProgressStatus::Completed)
-                ->first();
-
-            if ($existingProgress) {
-                return;
-            }
+                ->exists();
 
             $lessonModel = $lesson->fresh([
                 'unit.course',
@@ -46,7 +42,9 @@ class ProgressionStateProcessor
                 return;
             }
 
-            $this->storeLessonCompletion($lessonModel, $lockedEnrollment);
+            if (! $alreadyCompleted) {
+                $this->storeLessonCompletion($lessonModel, $lockedEnrollment);
+            }
 
             $unitResult = $this->updateUnitProgress(
                 $lessonModel->unit,
@@ -56,11 +54,13 @@ class ProgressionStateProcessor
 
             $this->updateCourseProgress($lessonModel->unit->course, $lockedEnrollment);
 
-            DB::afterCommit(function () use ($lessonModel, $lockedEnrollment, $unitResult) {
-                \Modules\Schemes\Events\LessonCompleted::dispatch($lessonModel, $lockedEnrollment->user_id, $lockedEnrollment->id);
+            DB::afterCommit(function () use ($lessonModel, $lockedEnrollment, $unitResult, $alreadyCompleted) {
+                if (! $alreadyCompleted) {
+                    \Modules\Schemes\Events\LessonCompleted::dispatch($lessonModel, $lockedEnrollment->user_id, $lockedEnrollment->id);
 
-                if ($unitResult['just_completed']) {
-                    UnitCompleted::dispatch($lessonModel->unit, $lockedEnrollment->user_id, $lockedEnrollment->id);
+                    if ($unitResult['just_completed']) {
+                        UnitCompleted::dispatch($lessonModel->unit, $lockedEnrollment->user_id, $lockedEnrollment->id);
+                    }
                 }
             });
         });

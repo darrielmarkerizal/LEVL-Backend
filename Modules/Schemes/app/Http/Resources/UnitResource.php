@@ -6,6 +6,7 @@ namespace Modules\Schemes\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Enrollments\Enums\ProgressStatus;
 
 class UnitResource extends JsonResource
 {
@@ -163,7 +164,6 @@ class UnitResource extends JsonResource
 
     private function getUnitProgress($enrollment): array
     {
-        
         $unitProgress = \Modules\Enrollments\Models\UnitProgress::where('enrollment_id', $enrollment->id)
             ->where('unit_id', $this->id)
             ->first();
@@ -179,12 +179,12 @@ class UnitResource extends JsonResource
 
         $totalContent = $totalLessons + $totalQuizzes + $totalAssignments;
 
-        if (! $unitProgress || $totalContent === 0) {
+        if ($totalContent === 0) {
             return [
                 'percentage' => 0,
                 'completed_items' => 0,
                 'total_items' => $totalContent,
-                'status' => 'not_started',
+                'status' => ProgressStatus::NotStarted->value,
                 'is_locked' => $this->isUnitLocked($enrollment),
             ];
         }
@@ -221,14 +221,40 @@ class UnitResource extends JsonResource
 
         $completedItems = $completedLessons + $completedQuizzes + $completedAssignments;
         $percentage = $totalContent > 0 ? round(($completedItems / $totalContent) * 100, 2) : 0;
+        $status = $this->resolveProgressStatus($completedItems, $totalContent, $unitProgress?->status);
 
         return [
             'percentage' => $percentage,
             'completed_items' => $completedItems,
             'total_items' => $totalContent,
-            'status' => $unitProgress->status->value,
+            'status' => $status,
             'is_locked' => $this->isUnitLocked($enrollment),
         ];
+    }
+
+    private function resolveProgressStatus(int $completedItems, int $totalItems, mixed $persistedStatus): string
+    {
+        if ($totalItems <= 0 || $completedItems <= 0) {
+            return ProgressStatus::NotStarted->value;
+        }
+
+        if ($completedItems >= $totalItems) {
+            return ProgressStatus::Completed->value;
+        }
+
+        if ($persistedStatus instanceof ProgressStatus && $persistedStatus === ProgressStatus::Completed) {
+            return ProgressStatus::Completed->value;
+        }
+
+        if ($persistedStatus instanceof ProgressStatus && $persistedStatus === ProgressStatus::InProgress) {
+            return ProgressStatus::InProgress->value;
+        }
+
+        if (is_string($persistedStatus) && $persistedStatus === ProgressStatus::Completed->value) {
+            return ProgressStatus::Completed->value;
+        }
+
+        return ProgressStatus::InProgress->value;
     }
 
     private function isUnitLocked($enrollment): bool
