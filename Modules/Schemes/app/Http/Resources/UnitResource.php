@@ -168,16 +168,8 @@ class UnitResource extends JsonResource
             ->where('unit_id', $this->id)
             ->first();
 
-        
-        $totalLessons = $this->lessons()->where('status', 'published')->count();
-        $totalQuizzes = \Modules\Learning\Models\Quiz::where('unit_id', $this->id)
-            ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
-            ->count();
-        $totalAssignments = \Modules\Learning\Models\Assignment::where('unit_id', $this->id)
-            ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
-            ->count();
-
-        $totalContent = $totalLessons + $totalQuizzes + $totalAssignments;
+        $summary = $this->getUnitCompletionSummary($this->id, (int) $enrollment->id, (int) $enrollment->user_id);
+        $totalContent = $summary['total_items'];
 
         if ($totalContent === 0) {
             return [
@@ -189,37 +181,7 @@ class UnitResource extends JsonResource
             ];
         }
 
-        
-        $lessonIds = $this->lessons()->where('status', 'published')->pluck('id');
-        $completedLessons = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
-            ->whereIn('lesson_id', $lessonIds)
-            ->where('status', \Modules\Enrollments\Enums\ProgressStatus::Completed)
-            ->count();
-
-        $quizIds = \Modules\Learning\Models\Quiz::where('unit_id', $this->id)
-            ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
-            ->pluck('id');
-        $completedQuizzes = \Modules\Learning\Models\QuizSubmission::where('user_id', $enrollment->user_id)
-            ->whereIn('quiz_id', $quizIds)
-            ->whereHas('quiz', function ($q) {
-                $q->whereRaw('quiz_submissions.score >= quizzes.passing_grade');
-            })
-            ->distinct('quiz_id')
-            ->count('quiz_id');
-
-        $assignmentIds = \Modules\Learning\Models\Assignment::where('unit_id', $this->id)
-            ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
-            ->pluck('id');
-        $completedAssignments = \Modules\Learning\Models\Submission::where('user_id', $enrollment->user_id)
-            ->whereIn('assignment_id', $assignmentIds)
-            ->where('status', \Modules\Learning\Enums\SubmissionStatus::Graded)
-            ->whereHas('assignment', function ($q) {
-                $q->whereRaw('submissions.score >= COALESCE(assignments.passing_grade, assignments.max_score * 0.6)');
-            })
-            ->distinct('assignment_id')
-            ->count('assignment_id');
-
-        $completedItems = $completedLessons + $completedQuizzes + $completedAssignments;
+        $completedItems = $summary['completed_items'];
         $percentage = $totalContent > 0 ? round(($completedItems / $totalContent) * 100, 2) : 0;
         $status = $this->resolveProgressStatus($completedItems, $totalContent, $unitProgress?->status);
 
@@ -285,12 +247,63 @@ class UnitResource extends JsonResource
             ->where('unit_id', $previousUnit->id)
             ->first();
 
-        
-        if (! $previousUnitProgress) {
-            return true;
-        }
+        $previousSummary = $this->getUnitCompletionSummary($previousUnit->id, (int) $enrollment->id, (int) $enrollment->user_id);
+        $previousStatus = $this->resolveProgressStatus(
+            $previousSummary['completed_items'],
+            $previousSummary['total_items'],
+            $previousUnitProgress?->status
+        );
 
-        return $previousUnitProgress->status->value !== 'completed';
+        return $previousStatus !== ProgressStatus::Completed->value;
+    }
+
+    private function getUnitCompletionSummary(int $unitId, int $enrollmentId, int $userId): array
+    {
+        $lessonIds = $this->lessons()->where('unit_id', $unitId)->where('status', 'published')->pluck('id');
+        $quizIds = \Modules\Learning\Models\Quiz::where('unit_id', $unitId)
+            ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
+            ->pluck('id');
+        $assignmentIds = \Modules\Learning\Models\Assignment::where('unit_id', $unitId)
+            ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
+            ->pluck('id');
+
+        $totalLessons = $lessonIds->count();
+        $totalQuizzes = $quizIds->count();
+        $totalAssignments = $assignmentIds->count();
+        $totalContent = $totalLessons + $totalQuizzes + $totalAssignments;
+
+        $completedLessons = $totalLessons > 0
+            ? \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollmentId)
+                ->whereIn('lesson_id', $lessonIds)
+                ->where('status', ProgressStatus::Completed)
+                ->count()
+            : 0;
+
+        $completedQuizzes = $totalQuizzes > 0
+            ? \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
+                ->whereIn('quiz_id', $quizIds)
+                ->whereHas('quiz', function ($q) {
+                    $q->whereRaw('quiz_submissions.score >= quizzes.passing_grade');
+                })
+                ->distinct('quiz_id')
+                ->count('quiz_id')
+            : 0;
+
+        $completedAssignments = $totalAssignments > 0
+            ? \Modules\Learning\Models\Submission::where('user_id', $userId)
+                ->whereIn('assignment_id', $assignmentIds)
+                ->where('status', \Modules\Learning\Enums\SubmissionStatus::Graded)
+                ->whereHas('assignment', function ($q) {
+                    $q->whereRaw('submissions.score >= COALESCE(assignments.passing_grade, assignments.max_score * 0.6)');
+                })
+                ->distinct('assignment_id')
+                ->count('assignment_id')
+            : 0;
+
+        return [
+            'total_items' => $totalContent,
+            'completed_items' => $completedLessons + $completedQuizzes + $completedAssignments,
+        ];
     }
 
     private function isManager(?object $user): bool
