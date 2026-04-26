@@ -69,7 +69,14 @@ class LessonController extends Controller
             return $error;
         }
 
-        
+        $user = auth('api')->user();
+        if ($user && $user->hasRole('Student')) {
+            $enrollment = $this->getActiveEnrollment($course);
+            if (! $enrollment || ! $this->progression->canAccessLesson($lesson, $enrollment)) {
+                return $this->error(__('messages.lessons.locked_prerequisite'), [], 403);
+            }
+        }
+
         $query = QueryBuilder::for(Lesson::class)
             ->where('id', $lesson->id)
             ->allowedIncludes([
@@ -150,6 +157,18 @@ class LessonController extends Controller
         $this->authorize('view', $lesson);
 
         $course = $lesson->unit->course;
+        if ($error = $this->requireEnrollment($course)) {
+            return $error;
+        }
+
+        $user = auth('api')->user();
+        if ($user && $user->hasRole('Student')) {
+            $enrollment = $this->getActiveEnrollment($course);
+            if (! $enrollment || ! $this->progression->canAccessLesson($lesson, $enrollment)) {
+                return $this->error(__('messages.lessons.locked_prerequisite'), [], 403);
+            }
+        }
+
         $result = $this->service->getLessonForUser($lesson, $course, auth('api')->user());
 
         return $this->success(new LessonResource($result));
