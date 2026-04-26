@@ -4,22 +4,20 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Services\Support;
 
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Enums\EnrollmentStatus;
-use Modules\Enrollments\Enums\ProgressStatus;
 use Modules\Enrollments\Models\Enrollment;
-use Modules\Enrollments\Models\LessonProgress;
-use Modules\Enrollments\Models\UnitProgress;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Lesson;
 use Modules\Schemes\Models\Unit;
+use Modules\Schemes\Services\PrerequisiteService;
 
 class ProgressionGatekeeper
 {
     public function __construct(
-        private readonly ProgressionFinder $finder
+        private readonly ProgressionFinder $finder,
+        private readonly PrerequisiteService $prerequisiteService
     ) {}
 
     public function validateLessonAccess(Course $course, Unit $unit, Lesson $lesson, int $userId): Enrollment
@@ -58,58 +56,19 @@ class ProgressionGatekeeper
     {
         $lessonModel = $lesson->fresh([
             'unit.course',
-            'unit.lessons' => function ($query) {
-                $query->where('status', 'published')->orderBy('order');
-            },
         ]);
 
         if (! $lessonModel || ! $lessonModel->unit || ! $lessonModel->unit->course) {
             return false;
         }
 
-        $course = $lessonModel->unit->course;
-
-        $orderedUnits = $course->units()
-            ->where('status', 'published')
-            ->orderBy('order')
-            ->get(['id']);
-
-        foreach ($orderedUnits as $courseUnit) {
-            if ((int) $courseUnit->id === (int) $lessonModel->unit->id) {
-                break;
-            }
-
-            $unitStatus = UnitProgress::query()
-                ->where('enrollment_id', $enrollment->id)
-                ->where('unit_id', $courseUnit->id)
-                ->value('status');
-
-            if ($unitStatus !== ProgressStatus::Completed) {
-                return false;
-            }
+        $unitAccess = $this->prerequisiteService->checkUnitAccess($lessonModel->unit, $enrollment->user_id);
+        if (! ($unitAccess['accessible'] ?? false)) {
+            return false;
         }
 
-        $lessons = $lessonModel->unit->lessons ?? new EloquentCollection;
-        if ($lessons->isEmpty()) {
-            return true;
-        }
+        $lessonAccess = $this->prerequisiteService->checkLessonAccess($lessonModel, $enrollment->user_id);
 
-        $progressMap = LessonProgress::query()
-            ->where('enrollment_id', $enrollment->id)
-            ->whereIn('lesson_id', $lessons->pluck('id'))
-            ->get()
-            ->keyBy('lesson_id');
-
-        foreach ($lessons as $unitLesson) {
-            if ((int) $unitLesson->id === (int) $lessonModel->id) {
-                return true;
-            }
-
-            if (($progressMap->get($unitLesson->id)?->status ?? ProgressStatus::NotStarted) !== ProgressStatus::Completed) {
-                return false;
-            }
-        }
-
-        return true;
+        return (bool) ($lessonAccess['accessible'] ?? false);
     }
 }

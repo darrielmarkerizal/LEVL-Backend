@@ -9,6 +9,7 @@ use Modules\Auth\Models\User;
 use Modules\Schemes\Contracts\Repositories\LessonRepositoryInterface;
 use Modules\Schemes\Models\Course;
 use Modules\Schemes\Models\Lesson;
+use Modules\Schemes\Services\PrerequisiteService;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -17,7 +18,8 @@ class LessonFinder
     use \App\Support\Traits\BuildsQueryBuilderRequest;
 
     public function __construct(
-        private readonly LessonRepositoryInterface $repository
+        private readonly LessonRepositoryInterface $repository,
+        private readonly PrerequisiteService $prerequisiteService
     ) {}
 
     public function paginate(int $unitId, array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -72,21 +74,19 @@ class LessonFinder
                 throw new \App\Exceptions\BusinessException(__('messages.enrollments.not_enrolled'), [], 403);
             }
 
-            
-            $previousLessons = \Modules\Schemes\Models\Lesson::where('unit_id', $lesson->unit_id)
-                ->where('order', '<', $lesson->order)
-                ->where('status', 'published')
-                ->pluck('id');
+            $unit = $lesson->unit()->first();
+            if (! $unit) {
+                throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), [], 403);
+            }
 
-            if ($previousLessons->isNotEmpty()) {
-                $completedCount = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
-                    ->whereIn('lesson_id', $previousLessons)
-                    ->where('status', \Modules\Enrollments\Enums\ProgressStatus::Completed)
-                    ->count();
+            $unitAccess = $this->prerequisiteService->checkUnitAccess($unit, $user->id);
+            if (! ($unitAccess['accessible'] ?? false)) {
+                throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), [], 403);
+            }
 
-                if ($completedCount < $previousLessons->count()) {
-                    throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), [], 403);
-                }
+            $lessonAccess = $this->prerequisiteService->checkLessonAccess($lesson, $user->id);
+            if (! ($lessonAccess['accessible'] ?? false)) {
+                throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), [], 403);
             }
         }
 

@@ -37,6 +37,11 @@ class LessonBlockController extends Controller
 
         $user = auth('api')->user();
         if ($user && $user->hasRole('Student')) {
+            $unitAccess = $this->prerequisiteService->checkUnitAccess($unit, $user->id);
+            if (! $unitAccess['accessible']) {
+                return $this->error(__('messages.lessons.locked_prerequisite'), [], 403);
+            }
+
             $accessCheck = $this->prerequisiteService->checkLessonAccess($lesson, $user->id);
             if (! $accessCheck['accessible']) {
                 return $this->error(__('messages.lessons.locked_prerequisite'), [], 403);
@@ -70,6 +75,11 @@ class LessonBlockController extends Controller
 
         $user = auth('api')->user();
         if ($user && $user->hasRole('Student')) {
+            $unitAccess = $this->prerequisiteService->checkUnitAccess($unit, $user->id);
+            if (! $unitAccess['accessible']) {
+                return $this->error(__('messages.lessons.locked_prerequisite'), [], 403);
+            }
+
             $accessCheck = $this->prerequisiteService->checkLessonAccess($lesson, $user->id);
             if (! $accessCheck['accessible']) {
                 return $this->error(__('messages.lessons.locked_prerequisite'), [], 403);

@@ -19,15 +19,6 @@ class LessonCompletionService
 
     public function markAsCompleted(Lesson $lesson, int $userId): LessonProgress
     {
-        $accessCheck = $this->prerequisiteService->checkLessonAccess($lesson, $userId);
-
-        if (! $accessCheck['accessible']) {
-            throw LessonCompletionException::lessonLocked(
-                __('messages.lessons.locked_cannot_complete')
-            );
-        }
-
-        
         $enrollment = Enrollment::where('user_id', $userId)
             ->where('course_id', $lesson->unit->course_id)
             ->whereIn('status', [EnrollmentStatus::Active, EnrollmentStatus::Completed])
@@ -36,6 +27,12 @@ class LessonCompletionService
         if (!$enrollment) {
             throw LessonCompletionException::lessonLocked(
                 __('messages.lessons.not_enrolled')
+            );
+        }
+
+        if (! $this->progressionService->canAccessLesson($lesson, $enrollment)) {
+            throw LessonCompletionException::lessonLocked(
+                __('messages.lessons.locked_cannot_complete')
             );
         }
 

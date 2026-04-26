@@ -259,7 +259,9 @@ class UnitResource extends JsonResource
 
     private function getUnitCompletionSummary(int $unitId, int $enrollmentId, int $userId): array
     {
-        $lessonIds = $this->lessons()->where('unit_id', $unitId)->where('status', 'published')->pluck('id');
+        $lessonIds = \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)
+            ->where('status', 'published')
+            ->pluck('id');
         $quizIds = \Modules\Learning\Models\Quiz::where('unit_id', $unitId)
             ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
             ->pluck('id');
@@ -282,8 +284,10 @@ class UnitResource extends JsonResource
         $completedQuizzes = $totalQuizzes > 0
             ? \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
                 ->whereIn('quiz_id', $quizIds)
+                ->where('status', 'graded')
+                ->whereNotNull('final_score')
                 ->whereHas('quiz', function ($q) {
-                    $q->whereRaw('quiz_submissions.score >= quizzes.passing_grade');
+                    $q->whereRaw('quiz_submissions.final_score >= quizzes.passing_grade');
                 })
                 ->distinct('quiz_id')
                 ->count('quiz_id')
