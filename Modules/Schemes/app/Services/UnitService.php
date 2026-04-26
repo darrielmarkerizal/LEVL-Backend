@@ -350,7 +350,7 @@ class UnitService
             $assignmentQuery->where('status', \Modules\Learning\Enums\AssignmentStatus::Published);
         }
         $assignments = $assignmentQuery
-            ->select('id', 'title', 'description', 'status', 'max_score', 'submission_type', 'created_at', 'order', 'unit_id')
+            ->select('id', 'title', 'description', 'status', 'max_score', 'passing_grade', 'submission_type', 'created_at', 'order', 'unit_id')
             ->get();
 
         $submissionsByQuiz = [];
@@ -456,7 +456,7 @@ class UnitService
                     'created_at' => $item->created_at,
                     'submission_status' => $submission ? $submission->status->value : null,
                     'score' => $submission?->score,
-                    'is_passed' => $isPassed,
+                    'is_completed' => $isPassed,
                     'is_locked' => $isLocked,
                     'xp_reward' => $baseXp,
                     'xp_perfect_bonus' => $perfectScoreXp,
@@ -465,11 +465,10 @@ class UnitService
                 $previousContentCompleted = $isPassed;
             } elseif ($type === 'assignment') {
                 $submission = $submissionsByAssignment[$item->id] ?? null;
-                $isPassed = $submission && $submission->status->value === 'graded' && $submission->score >= ($item->passing_grade ?? ($item->max_score * 0.6));
-                
+                $isPassed = $submission && $submission->status->value === 'graded' && $submission->score >= $item->passing_grade;
+
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
-                
                 $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 0;
                 $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
@@ -482,10 +481,12 @@ class UnitService
                     'sequence' => $unit->order . '.' . $item->order,
                     'status' => $item->status->value,
                     'max_score' => $item->max_score,
+                    'passing_grade' => $item->passing_grade,
                     'submission_type' => $item->submission_type->value,
                     'created_at' => $item->created_at,
                     'submission_status' => $submission ? $submission->status->value : null,
                     'score' => $submission?->score,
+                    'is_completed' => $isPassed,
                     'is_locked' => $isLocked,
                     'xp_reward' => $baseXp,
                     'xp_perfect_bonus' => $perfectScoreXp,

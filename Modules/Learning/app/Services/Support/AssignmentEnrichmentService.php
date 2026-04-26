@@ -152,10 +152,13 @@ class AssignmentEnrichmentService
     {
         $assignment->load(['unit:id,slug,title,code,course_id', 'unit.course:id,slug,title,code', 'creator:id,name', 'media']);
 
-        $submission = Submission::where('user_id', $userId)
+        $allSubmissions = Submission::where('user_id', $userId)
             ->where('assignment_id', $assignment->id)
+            ->with(['grade', 'media'])
             ->orderByDesc('submitted_at')
-            ->first();
+            ->get();
+
+        $submission = $allSubmissions->first();
 
         $submissionData = $this->calculateSubmissionData($assignment, $submission, $userId);
         $prerequisiteCheck = $this->prerequisiteService->checkAssignmentAccess($assignment, $userId);
@@ -227,6 +230,35 @@ class AssignmentEnrichmentService
             'xp_perfect_bonus' => $perfectScoreXp,
             'attached_files' => $attachmentFiles,
             'attachments' => $attachmentFiles,
+            'submissions' => $allSubmissions->map(function (Submission $sub) {
+                $files = $sub->getMedia('submission_files')
+                    ->map(function ($media) {
+                        $url = $this->resolveMediaUrl($media);
+
+                        return [
+                            'id' => $media->id,
+                            'file_name' => $media->file_name,
+                            'file_url' => $url,
+                            'url' => $url,
+                            'size' => $media->size,
+                            'mime_type' => $media->mime_type,
+                        ];
+                    })
+                    ->values()
+                    ->toArray();
+
+                return [
+                    'id' => $sub->id,
+                    'attempt_number' => $sub->attempt_number,
+                    'status' => $sub->status?->value,
+                    'score' => $sub->score,
+                    'answer_text' => $sub->answer_text,
+                    'submitted_at' => $sub->submitted_at?->toIso8601String(),
+                    'feedback' => $sub->grade?->feedback,
+                    'graded_at' => $sub->grade?->graded_at?->toIso8601String(),
+                    'files' => $files,
+                ];
+            })->values()->toArray(),
             'creator' => $assignment->creator ? [
                 'id' => $assignment->creator->id,
                 'name' => $assignment->creator->name,
