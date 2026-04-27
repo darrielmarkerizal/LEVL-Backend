@@ -124,13 +124,16 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                     [
                         AllowedFilter::exact('author_id'),
                         AllowedFilter::callback('pinned', function ($query, $value) {
-                            $query->where('is_pinned', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_pinned = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('resolved', function ($query, $value) {
-                            $query->where('is_resolved', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_resolved = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('closed', function ($query, $value) {
-                            $query->where('is_closed', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_closed = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('is_mentioned', function ($query, $value) {
                             $query->whereHas('mentions');
@@ -177,13 +180,16 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                     [
                         AllowedFilter::exact('author_id'),
                         AllowedFilter::callback('pinned', function ($query, $value) {
-                            $query->where('is_pinned', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_pinned = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('resolved', function ($query, $value) {
-                            $query->where('is_resolved', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_resolved = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('closed', function ($query, $value) {
-                            $query->where('is_closed', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_closed = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('is_mentioned', function ($query, $value) {
                             $query->whereHas('mentions');
@@ -242,13 +248,16 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                     [
                         AllowedFilter::exact('author_id'),
                         AllowedFilter::callback('pinned', function ($query, $value) {
-                            $query->where('is_pinned', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_pinned = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('resolved', function ($query, $value) {
-                            $query->where('is_resolved', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_resolved = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('closed', function ($query, $value) {
-                            $query->where('is_closed', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_closed = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('is_mentioned', function ($query, $value) {
                             $query->whereHas('mentions');
@@ -296,13 +305,16 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                     [
                         AllowedFilter::exact('author_id'),
                         AllowedFilter::callback('pinned', function ($query, $value) {
-                            $query->where('is_pinned', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_pinned = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('resolved', function ($query, $value) {
-                            $query->where('is_resolved', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_resolved = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('closed', function ($query, $value) {
-                            $query->where('is_closed', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_closed = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('is_mentioned', function ($query, $value) {
                             $query->whereHas('mentions');
@@ -338,13 +350,16 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                     $filters,
                     [
                         AllowedFilter::callback('pinned', function ($query, $value) {
-                            $query->where('is_pinned', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_pinned = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('resolved', function ($query, $value) {
-                            $query->where('is_resolved', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_resolved = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('closed', function ($query, $value) {
-                            $query->where('is_closed', '=', (bool) $value);
+                            $boolVal = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                            $query->whereRaw('is_closed = '.($boolVal ? 'true' : 'false'));
                         }),
                         AllowedFilter::callback('is_mentioned', function ($query, $value) {
                             $query->whereHas('mentions');
@@ -391,7 +406,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
 
         return cache()->tags(['forums', 'threads', 'trending'])->remember(
             'forums:trending:all:'.$userId.':'.md5(json_encode([$filters, $search, $perPage])),
-            120, 
+            120,
             function () use ($filters, $search, $perPage) {
                 $query = Thread::query()
                     ->withIsMentioned()
@@ -433,7 +448,7 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
 
         return cache()->tags(['forums', 'threads', 'trending', "instructor:{$instructorId}"])->remember(
             'forums:trending:instructor:'.$instructorId.':'.$userId.':'.md5(json_encode([$filters, $search, $perPage])),
-            120, 
+            120,
             function () use ($instructorId, $filters, $search, $perPage) {
                 $courseIds = \Modules\Schemes\Models\Course::where('instructor_id', $instructorId)
                     ->pluck('id')

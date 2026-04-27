@@ -109,22 +109,22 @@ class Thread extends Model implements HasMedia
 
     public function scopePinned($query, bool $isPinned = true)
     {
-        return $query->where('is_pinned', $isPinned);
+        return $query->whereRaw('is_pinned = '.($isPinned ? 'true' : 'false'));
     }
 
     public function scopeResolved($query, bool $isResolved = true)
     {
-        return $query->where('is_resolved', $isResolved);
+        return $query->whereRaw('is_resolved = '.($isResolved ? 'true' : 'false'));
     }
 
     public function scopeClosed($query, bool $isClosed = true)
     {
-        return $query->where('is_closed', $isClosed);
+        return $query->whereRaw('is_closed = '.($isClosed ? 'true' : 'false'));
     }
 
     public function scopeOpen($query)
     {
-        return $query->where('is_closed', false);
+        return $query->whereRaw('is_closed = false');
     }
 
     public function isPinned(): bool
