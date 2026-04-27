@@ -8,6 +8,7 @@ use Modules\Notifications\Http\Controllers\PostController;
 use Modules\Notifications\Http\Controllers\PostMediaController;
 
 Route::middleware(['auth:api'])->prefix('v1')->group(function () {
+    Route::post('notifications/read-all', [NotificationsController::class, 'readAll'])->name('notifications.read-all');
     Route::apiResource('notifications', NotificationsController::class)->names('notifications');
 
     Route::get('notification-preferences', [NotificationPreferenceController::class, 'index'])->name('notification-preferences.index');
@@ -55,7 +56,6 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->middleware('throttle:60,1')
             ->name('destroy');
 
-        
         Route::post('/{uuid}/publish', [PostController::class, 'publish'])
             ->middleware('throttle:60,1')
             ->name('publish');
@@ -64,7 +64,6 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->middleware('throttle:60,1')
             ->name('unpublish');
 
-        
         Route::post('/{uuid}/schedule', [PostController::class, 'schedule'])
             ->middleware('throttle:60,1')
             ->name('schedule');
@@ -73,12 +72,10 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->middleware('throttle:60,1')
             ->name('cancel-schedule');
 
-        
         Route::post('/{uuid}/toggle-pin', [PostController::class, 'togglePin'])
             ->middleware('throttle:60,1')
             ->name('toggle-pin');
 
-        
         Route::post('/bulk-delete', [PostController::class, 'bulkDelete'])
             ->middleware('throttle:10,1')
             ->name('bulk-delete');
@@ -87,7 +84,6 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->middleware('throttle:10,1')
             ->name('bulk-publish');
 
-        
         Route::get('/trash', [PostController::class, 'trash'])
             ->middleware('throttle:60,1')
             ->name('trash');
@@ -100,7 +96,6 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->middleware('throttle:60,1')
             ->name('force');
 
-        
         Route::post('/upload-image', [PostMediaController::class, 'uploadImage'])
             ->middleware('throttle:10,1')
             ->name('upload-image');

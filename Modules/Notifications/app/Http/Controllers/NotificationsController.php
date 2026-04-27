@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Notifications\Http\Controllers;
 
 use App\Http\Controllers\Controller;
@@ -7,14 +9,12 @@ use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Modules\Notifications\Services\NotificationService;
 
-
 class NotificationsController extends Controller
 {
     use ApiResponse;
 
     public function __construct(private readonly NotificationService $service) {}
 
-    
     public function index(Request $request)
     {
         $userId = (int) auth('api')->id();
@@ -27,13 +27,11 @@ class NotificationsController extends Controller
         ]);
     }
 
-    
     public function create()
     {
         return $this->error('messages.feature_unavailable', status: 501);
     }
 
-    
     public function store(Request $request)
     {
         $userId = (int) auth('api')->id();
@@ -58,7 +56,6 @@ class NotificationsController extends Controller
         return $this->created($this->service->toPayload($notification, $userId), 'messages.created');
     }
 
-    
     public function show($id)
     {
         $userId = (int) auth('api')->id();
@@ -70,13 +67,11 @@ class NotificationsController extends Controller
         return $this->success($this->service->toPayload($notification, $userId), 'messages.data_retrieved');
     }
 
-    
     public function edit($id)
     {
         return $this->error('messages.feature_unavailable', status: 501);
     }
 
-    
     public function update(Request $request, string $id)
     {
         $userId = (int) auth('api')->id();
@@ -91,7 +86,14 @@ class NotificationsController extends Controller
         return $this->success($this->service->toPayload($notification, $userId), 'messages.updated');
     }
 
-    
+    public function readAll()
+    {
+        $userId = (int) auth('api')->id();
+        $this->service->markAllAsRead($userId);
+
+        return $this->success([], 'messages.updated');
+    }
+
     public function destroy(string $id)
     {
         $userId = (int) auth('api')->id();
