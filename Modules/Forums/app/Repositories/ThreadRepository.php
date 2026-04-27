@@ -124,13 +124,13 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                     [
                         AllowedFilter::exact('author_id'),
                         AllowedFilter::callback('pinned', function ($query, $value) {
-                            $query->pinned((bool) $value);
+                            $query->where('is_pinned', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('resolved', function ($query, $value) {
-                            $query->resolved((bool) $value);
+                            $query->where('is_resolved', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('closed', function ($query, $value) {
-                            $query->closed((bool) $value);
+                            $query->where('is_closed', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('is_mentioned', function ($query, $value) {
                             $query->whereHas('mentions');
@@ -177,13 +177,13 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                     [
                         AllowedFilter::exact('author_id'),
                         AllowedFilter::callback('pinned', function ($query, $value) {
-                            $query->pinned((bool) $value);
+                            $query->where('is_pinned', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('resolved', function ($query, $value) {
-                            $query->resolved((bool) $value);
+                            $query->where('is_resolved', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('closed', function ($query, $value) {
-                            $query->closed((bool) $value);
+                            $query->where('is_closed', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('is_mentioned', function ($query, $value) {
                             $query->whereHas('mentions');
@@ -242,13 +242,13 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                     [
                         AllowedFilter::exact('author_id'),
                         AllowedFilter::callback('pinned', function ($query, $value) {
-                            $query->pinned((bool) $value);
+                            $query->where('is_pinned', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('resolved', function ($query, $value) {
-                            $query->resolved((bool) $value);
+                            $query->where('is_resolved', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('closed', function ($query, $value) {
-                            $query->closed((bool) $value);
+                            $query->where('is_closed', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('is_mentioned', function ($query, $value) {
                             $query->whereHas('mentions');
@@ -296,13 +296,13 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                     [
                         AllowedFilter::exact('author_id'),
                         AllowedFilter::callback('pinned', function ($query, $value) {
-                            $query->pinned((bool) $value);
+                            $query->where('is_pinned', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('resolved', function ($query, $value) {
-                            $query->resolved((bool) $value);
+                            $query->where('is_resolved', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('closed', function ($query, $value) {
-                            $query->closed((bool) $value);
+                            $query->where('is_closed', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('is_mentioned', function ($query, $value) {
                             $query->whereHas('mentions');
@@ -338,13 +338,13 @@ class ThreadRepository extends BaseRepository implements ThreadRepositoryInterfa
                     $filters,
                     [
                         AllowedFilter::callback('pinned', function ($query, $value) {
-                            $query->pinned((bool) $value);
+                            $query->where('is_pinned', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('resolved', function ($query, $value) {
-                            $query->resolved((bool) $value);
+                            $query->where('is_resolved', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('closed', function ($query, $value) {
-                            $query->closed((bool) $value);
+                            $query->where('is_closed', '=', (bool) $value);
                         }),
                         AllowedFilter::callback('is_mentioned', function ($query, $value) {
                             $query->whereHas('mentions');
