@@ -233,20 +233,21 @@ class UnitController extends Controller
         );
     }
 
-    public function getContentMetadata(Request $request, int $contentId)
+    public function getContentMetadata(Request $request, string $contentId)
     {
         $metadataService = app(\Modules\Schemes\Services\ContentMetadataService::class);
-        
+        $id = (int) $contentId;
+
         try {
             
             $type = $request->query('type');
             
             if ($type && in_array($type, ['lesson', 'assignment', 'quiz'])) {
                 
-                $metadata = $metadataService->getContentMetadata($contentId, $type);
+                $metadata = $metadataService->getContentMetadata($id, $type);
             } else {
                 
-                $metadata = $metadataService->getContentMetadataByIdOnly($contentId);
+                $metadata = $metadataService->getContentMetadataByIdOnly($id);
             }
             
             return $this->success($metadata, __('messages.content.metadata_retrieved'));
