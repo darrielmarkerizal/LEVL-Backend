@@ -23,14 +23,13 @@ class LessonBlock extends Model implements HasMedia
 
     protected $appends = ['media_url', 'media_thumb_url', 'embed_url'];
 
-    
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('media')
             ->singleFile()
             ->useDisk('do')
             ->acceptsMimeTypes([
-                
+
                 'image/jpeg',
                 'image/jpg',
                 'image/png',
@@ -38,35 +37,35 @@ class LessonBlock extends Model implements HasMedia
                 'image/webp',
                 'image/svg+xml',
                 'image/bmp',
-                
+
                 'video/mp4',
                 'video/webm',
                 'video/ogg',
                 'video/quicktime',
-                'video/x-msvideo', 
-                'video/x-matroska', 
-                
+                'video/x-msvideo',
+                'video/x-matroska',
+
                 'audio/mpeg',
                 'audio/wav',
                 'audio/ogg',
                 'audio/mp3',
                 'audio/mp4',
                 'audio/aac',
-                
+
                 'application/pdf',
-                'text/plain', 
+                'text/plain',
                 'text/csv',
                 'text/html',
                 'application/rtf',
-                'text/rtf', 
-                
-                'application/msword', 
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
-                'application/vnd.ms-excel', 
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
-                'application/vnd.ms-powerpoint', 
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation', 
-                
+                'text/rtf',
+
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+
                 'application/zip',
                 'application/x-zip-compressed',
                 'application/x-rar-compressed',
@@ -75,27 +74,28 @@ class LessonBlock extends Model implements HasMedia
                 'application/x-tar',
                 'application/gzip',
                 'application/x-gzip',
-                
+
                 'application/json',
                 'application/xml',
                 'text/xml',
-                'application/octet-stream', 
+                'application/octet-stream',
             ]);
     }
 
-    
     public function registerMediaConversions(?Media $media = null): void
     {
+        if ($media && ! str_starts_with($media->mime_type, 'image/')) {
+            return;
+        }
+
         $this->addMediaConversion('thumb')
             ->width(320)
-            ->height(180) 
+            ->height(180)
             ->sharpen(10)
             ->performOnCollections('media');
 
-        
         $this->addMediaConversion('mobile')->width(160)->height(90)->performOnCollections('media');
 
-        
         $this->addMediaConversion('preview')->width(640)->height(360)->performOnCollections('media');
     }
 
@@ -140,16 +140,14 @@ class LessonBlock extends Model implements HasMedia
         return 'slug';
     }
 
-    
     public function isExternalLink(): bool
     {
         return $this->block_type->isExternalLink();
     }
 
-    
     public function getEmbedUrlAttribute(): ?string
     {
-        if (!$this->external_url) {
+        if (! $this->external_url) {
             return null;
         }
 
@@ -164,15 +162,13 @@ class LessonBlock extends Model implements HasMedia
         return $this->external_url;
     }
 
-    
     private function convertYouTubeToEmbed(string $url): string
     {
-        
+
         if (preg_match('/[?&]v=([^&]+)/', $url, $matches)) {
             return "https://www.youtube.com/embed/{$matches[1]}";
         }
 
-        
         if (preg_match('/youtu\.be\/([^?]+)/', $url, $matches)) {
             return "https://www.youtube.com/embed/{$matches[1]}";
         }
@@ -180,10 +176,9 @@ class LessonBlock extends Model implements HasMedia
         return $url;
     }
 
-    
     private function convertDriveToPreview(string $url): string
     {
-        
+
         if (preg_match('/\/d\/([^\/]+)/', $url, $matches)) {
             return "https://drive.google.com/file/d/{$matches[1]}/preview";
         }

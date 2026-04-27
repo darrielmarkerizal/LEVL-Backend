@@ -308,6 +308,17 @@ class PrerequisiteService
             $model = $uc->contentable;
             $type = $uc->contentable_type;
 
+            $isPublished = match ($type) {
+                'lesson' => ($model->status?->value ?? $model->status) === 'published',
+                'assignment' => $model->status === \Modules\Learning\Enums\AssignmentStatus::Published,
+                'quiz' => $model->status === \Modules\Learning\Enums\QuizStatus::Published,
+                default => false,
+            };
+
+            if (! $isPublished) {
+                continue;
+            }
+
             $isCompleted = match ($type) {
                 'lesson' => $model->isCompletedBy($userId),
                 'assignment' => $this->isAssignmentPassed($model, $userId),
