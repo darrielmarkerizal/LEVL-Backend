@@ -70,6 +70,21 @@ class ContentMetadataService
         return $result;
     }
 
+    public function getContentMetadataBySlug(string $slug, ?string $type = null): array
+    {
+        if ($type === 'lesson' || $type === null) {
+            $lesson = Lesson::with(['unit.course', 'blocks' => fn($q) => $q->orderBy('order')])
+                ->where('slug', $slug)
+                ->first();
+
+            if ($lesson) {
+                return $this->getContentMetadata($lesson->id, 'lesson');
+            }
+        }
+
+        throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Content not found for slug: {$slug}");
+    }
+
     public function getContentMetadataByUnitContentId(int $unitContentId): array
     {
         $uc = \Modules\Schemes\Models\UnitContent::findOrFail($unitContentId);

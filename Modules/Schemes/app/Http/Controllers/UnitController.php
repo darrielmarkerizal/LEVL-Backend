@@ -236,18 +236,19 @@ class UnitController extends Controller
     public function getContentMetadata(Request $request, string $contentId)
     {
         $metadataService = app(\Modules\Schemes\Services\ContentMetadataService::class);
-        $id = (int) $contentId;
+        $type = $request->query('type');
+        $isSlug = ! is_numeric($contentId);
 
         try {
-            
-            $type = $request->query('type');
-            
-            if ($type && in_array($type, ['lesson', 'assignment', 'quiz'])) {
-                
-                $metadata = $metadataService->getContentMetadata($id, $type);
+            if ($isSlug) {
+                $metadata = $metadataService->getContentMetadataBySlug(
+                    $contentId,
+                    ($type && in_array($type, ['lesson', 'assignment', 'quiz'])) ? $type : null
+                );
+            } elseif ($type && in_array($type, ['lesson', 'assignment', 'quiz'])) {
+                $metadata = $metadataService->getContentMetadata((int) $contentId, $type);
             } else {
-                
-                $metadata = $metadataService->getContentMetadataByIdOnly($id);
+                $metadata = $metadataService->getContentMetadataByIdOnly((int) $contentId);
             }
             
             return $this->success($metadata, __('messages.content.metadata_retrieved'));
