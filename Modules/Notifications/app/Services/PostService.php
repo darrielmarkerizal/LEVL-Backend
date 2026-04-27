@@ -47,7 +47,8 @@ class PostService
 
             
             foreach ($dto->audiences as $role) {
-                $post->audiences()->create(['role' => $role]);
+                $roleValue = is_string($role) ? $role : (is_object($role) && property_exists($role, 'value') ? $role->value : $role);
+                $post->audiences()->create(['role' => $roleValue]);
             }
 
             
@@ -99,7 +100,8 @@ class PostService
             if (! ($dto->audiences instanceof \Spatie\LaravelData\Optional)) {
                 $post->audiences()->delete();
                 foreach ($dto->audiences as $role) {
-                    $post->audiences()->create(['role' => $role]);
+                    $roleValue = is_string($role) ? $role : (is_object($role) && property_exists($role, 'value') ? $role->value : $role);
+                    $post->audiences()->create(['role' => $roleValue]);
                 }
             }
 
@@ -289,7 +291,10 @@ class PostService
         }
 
         
-        $audiences = $post->audiences->pluck('role')->toArray();
+        $audiences = $post->audiences->map(function ($audience) {
+            $role = $audience->role;
+            return is_object($role) && property_exists($role, 'value') ? $role->value : $role;
+        })->toArray();
 
         if (empty($audiences)) {
             return;
