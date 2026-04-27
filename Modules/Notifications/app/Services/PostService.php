@@ -15,6 +15,7 @@ use Modules\Notifications\Jobs\BulkDeletePostsJob;
 use Modules\Notifications\Jobs\BulkPublishPostsJob;
 use Modules\Notifications\Jobs\SendPostNotificationJob;
 use Modules\Notifications\Models\Post;
+use Modules\Notifications\Models\Notification;
 use Modules\Notifications\Repositories\PostRepository;
 
 class PostService
@@ -125,6 +126,8 @@ class PostService
     
     public function deletePost(Post $post): bool
     {
+        $this->deletePostNotifications($post);
+
         return $this->repository->delete($post);
     }
 
@@ -141,8 +144,34 @@ class PostService
             
             $post->clearMediaCollection('images');
 
+            
+            $this->deletePostNotifications($post);
+
             return $this->repository->forceDelete($post);
         });
+    }
+
+    
+    private function deletePostNotifications(Post $post): void
+    {
+        
+        $notifications = Notification::query()
+            ->whereJsonContains('data->post_id', $post->id)
+            ->orWhereJsonContains('data->post_uuid', $post->uuid)
+            ->get();
+
+        foreach ($notifications as $notification) {
+            
+            $notification->users()->detach();
+            
+            $notification->delete();
+        }
+
+        Log::info('Deleted notifications for post', [
+            'post_uuid' => $post->uuid,
+            'post_id' => $post->id,
+            'notifications_deleted' => $notifications->count(),
+        ]);
     }
 
     
