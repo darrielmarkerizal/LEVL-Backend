@@ -72,14 +72,13 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
     public function saveAnswer(QuizSubmission $submission, int $questionId, array $data): QuizAnswer
     {
-        
+
         if ($submission->status !== QuizSubmissionStatus::Draft) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'submission' => [__('messages.quiz_submissions.not_draft')],
             ]);
         }
 
-        
         $accessCheck = $this->prerequisiteService->checkQuizAccess($submission->quiz, $submission->user_id);
         if (! $accessCheck['accessible']) {
             throw \Illuminate\Validation\ValidationException::withMessages([
@@ -97,7 +96,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
                 'quiz_question_id' => $questionId,
                 'content' => $data['content'] ?? null,
                 'selected_options' => $data['selected_options'] ?? null,
-                'is_auto_graded' => false,
+                'is_auto_graded' => 0,
                 'score' => null,
             ];
 
@@ -113,14 +112,13 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
     public function submit(QuizSubmission $submission, int $actorId): QuizSubmission
     {
-        
+
         if ($submission->status !== QuizSubmissionStatus::Draft) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'submission' => [__('messages.quiz_submissions.not_draft')],
             ]);
         }
 
-        
         $accessCheck = $this->prerequisiteService->checkQuizAccess($submission->quiz, $submission->user_id);
         if (! $accessCheck['accessible']) {
             throw \Illuminate\Validation\ValidationException::withMessages([
@@ -128,7 +126,6 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             ]);
         }
 
-        
         $questions = $this->listQuestions($submission, $submission->user_id);
         $answeredCount = QuizAnswer::where('quiz_submission_id', $submission->id)->count();
 
@@ -177,7 +174,6 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         $user = \Modules\Auth\Models\User::find($userId);
         $submissions = $this->repository->findForStudent($quizId, $userId);
 
-        
         $submissions->each(function ($submission) use ($user, $includes) {
             $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $submission);
             $includesToLoad = array_intersect($includes, $allowedIncludes);
@@ -383,7 +379,6 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         $user = \Modules\Auth\Models\User::find($userId);
         $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $submission);
 
-        
         return \Spatie\QueryBuilder\QueryBuilder::for(QuizSubmission::class)
             ->where('id', $submission->id)
             ->allowedIncludes($allowedIncludes)
@@ -401,7 +396,6 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
         $question = $questions->get($page - 1);
 
-        
         $answer = \Modules\Learning\Models\QuizAnswer::where('quiz_submission_id', $submission->id)
             ->where('quiz_question_id', $question->id)
             ->first();

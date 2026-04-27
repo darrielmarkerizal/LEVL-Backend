@@ -24,7 +24,7 @@ class QuizAnswer extends Model
     protected $casts = [
         'selected_options' => 'array',
         'score' => 'decimal:2',
-        'is_auto_graded' => 'boolean',
+        'is_auto_graded' => 'integer',
     ];
 
     public function submission(): BelongsTo
