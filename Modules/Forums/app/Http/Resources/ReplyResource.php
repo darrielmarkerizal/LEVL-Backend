@@ -33,6 +33,7 @@ class ReplyResource extends JsonResource
             'parent_id' => $this->parent_id,
             'content' => $this->content,
             'depth' => $this->depth,
+            'is_owned' => auth('api')->id() === $this->author_id,
             'is_accepted_answer' => $this->is_accepted_answer,
             'attachments' => $attachments,
             'created_at' => $this->created_at,

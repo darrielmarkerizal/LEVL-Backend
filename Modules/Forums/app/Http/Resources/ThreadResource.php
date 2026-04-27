@@ -44,6 +44,7 @@ class ThreadResource extends JsonResource
                     'slug' => $this->course?->slug,
                 ];
             }),
+            'is_owned' => auth('api')->id() === $this->author_id,
             'is_pinned' => $this->is_pinned,
             'is_closed' => $this->is_closed,
             'is_resolved' => $this->is_resolved,

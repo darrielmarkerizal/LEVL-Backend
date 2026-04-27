@@ -1969,6 +1969,18 @@ parameters:
 			path: Modules/Forums/app/Services/ModerationService.php
 
 		-
+			message: '#^Access to an undefined property Modules\\Forums\\Http\\Resources\\ThreadResource\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Http/Resources/ThreadResource.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Forums\\Http\\Resources\\ReplyResource\:\:\$author_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Forums/app/Http/Resources/ReplyResource.php
+
+		-
 			message: '#^Access to an undefined property Modules\\Gamification\\Models\\Challenge\:\:\$user_progress\.$#'
 			identifier: property.notFound
 			count: 2
