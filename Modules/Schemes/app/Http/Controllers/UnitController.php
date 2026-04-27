@@ -252,7 +252,7 @@ class UnitController extends Controller
             
             return $this->success($metadata, __('messages.content.metadata_retrieved'));
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->error(__('messages.content.not_found'), 404);
+            return $this->error(__('messages.content.not_found'), [], 404);
         }
     }
 }
