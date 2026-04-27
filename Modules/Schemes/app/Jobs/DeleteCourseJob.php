@@ -38,8 +38,11 @@ class DeleteCourseJob implements ShouldQueue
     public function handle(CourseServiceInterface $courseService): void
     {
         if ($this->actorId) {
-            auth()->loginUsingId($this->actorId);
-            auth('api')->loginUsingId($this->actorId);
+            $user = \Modules\Auth\Models\User::find($this->actorId);
+            if ($user) {
+                auth()->setUser($user);
+                auth('api')->setUser($user);
+            }
         }
 
         $course = Course::query()->find($this->courseId);
