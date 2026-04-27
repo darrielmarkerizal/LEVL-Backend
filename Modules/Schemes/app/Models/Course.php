@@ -106,6 +106,7 @@ class Course extends Model implements HasMedia
         'status',
         'published_at',
         'instructor_id',
+        'creator_id',
     ];
 
     protected $guarded = [
@@ -240,13 +241,18 @@ class Course extends Model implements HasMedia
         return $this->belongsTo(\Modules\Auth\Models\User::class, 'instructor_id');
     }
 
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Auth\Models\User::class, 'creator_id');
+    }
+
     public function getCreatorAttribute()
     {
-        if ($this->relationLoaded('instructors')) {
-            return $this->instructors->sortBy('pivot.created_at')->first();
+        if ($this->relationLoaded('creator')) {
+            return $this->getRelation('creator');
         }
 
-        return $this->instructors()->orderBy('course_admins.created_at', 'asc')->first();
+        return $this->creator()->first();
     }
 
     public function deletedBy(): BelongsTo

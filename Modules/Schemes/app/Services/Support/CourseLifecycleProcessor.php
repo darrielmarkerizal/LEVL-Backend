@@ -50,6 +50,10 @@ class CourseLifecycleProcessor
                     $attributes['instructor_id'] = null;
                 }
 
+                if ($actor && ! isset($attributes['creator_id'])) {
+                    $attributes['creator_id'] = $actor->id;
+                }
+
                 $hasTagsInput = array_key_exists('tags', $attributes)
                     || array_key_exists('tags_list', $attributes);
 
