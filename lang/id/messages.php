@@ -648,6 +648,7 @@ return [
         'invalid_question_order' => 'Urutan pertanyaan tidak valid.',
         'invalid_page' => 'Halaman tidak valid.',
         'unanswered_questions' => '{1} Anda harus menjawab :count pertanyaan sebelum mengumpulkan.|[2,*] Anda harus menjawab semua :count pertanyaan sebelum mengumpulkan.',
+        'time_limit_exceeded' => 'Batas waktu untuk percobaan kuis ini telah habis.',
     ],
 
     

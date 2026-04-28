@@ -20,6 +20,8 @@ use Modules\Learning\Services\Support\QuizSubmissionIncludeAuthorizer;
 
 class QuizSubmissionService implements QuizSubmissionServiceInterface
 {
+    private const TIMER_GRACE_SECONDS = 60;
+
     public function __construct(
         private readonly QuizSubmissionRepository $repository,
         private readonly \Modules\Schemes\Services\PrerequisiteService $prerequisiteService,
@@ -79,6 +81,12 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             ]);
         }
 
+        if ($this->isTimeLimitExceeded($submission)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'submission' => [__('messages.quiz_submissions.time_limit_exceeded')],
+            ]);
+        }
+
         $accessCheck = $this->prerequisiteService->checkQuizAccess($submission->quiz, $submission->user_id);
         if (! $accessCheck['accessible']) {
             throw \Illuminate\Validation\ValidationException::withMessages([
@@ -116,6 +124,12 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         if ($submission->status !== QuizSubmissionStatus::Draft) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'submission' => [__('messages.quiz_submissions.not_draft')],
+            ]);
+        }
+
+        if ($this->isTimeLimitExceeded($submission)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'submission' => [__('messages.quiz_submissions.time_limit_exceeded')],
             ]);
         }
 
@@ -420,5 +434,25 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             ->where('user_id', $userId)
             ->where('status', QuizSubmissionStatus::Draft->value)
             ->first();
+    }
+
+    private function isTimeLimitExceeded(QuizSubmission $submission): bool
+    {
+        $quiz = $submission->quiz;
+
+        if ($quiz->time_limit_minutes === null) {
+            return false;
+        }
+
+        if ($submission->started_at === null) {
+            return false;
+        }
+
+        $expiresAt = $submission->started_at
+            ->copy()
+            ->addMinutes($quiz->time_limit_minutes)
+            ->addSeconds(self::TIMER_GRACE_SECONDS);
+
+        return now()->gt($expiresAt);
     }
 }
