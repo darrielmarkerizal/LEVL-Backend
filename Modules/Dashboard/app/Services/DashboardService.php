@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Dashboard\Services;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Modules\Auth\Models\User;
 use Modules\Dashboard\Contracts\Repositories\DashboardRepositoryInterface;
@@ -44,7 +45,7 @@ class DashboardService implements DashboardServiceInterface
         ];
     }
 
-    
+
     public function getOverview(int $userId): array
     {
         $stats = UserGamificationStat::where('user_id', $userId)->first();
@@ -76,7 +77,7 @@ class DashboardService implements DashboardServiceInterface
         ];
     }
 
-    
+
     public function getRecentLearning(int $userId, int $limit = 1): Collection
     {
         $enrollments = Enrollment::where('user_id', $userId)
@@ -95,7 +96,7 @@ class DashboardService implements DashboardServiceInterface
             ])
             ->get();
 
-        
+
         $lessonCompletions = \Modules\Enrollments\Models\LessonProgress::query()
             ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
             ->where('enrollments.user_id', $userId)
@@ -103,43 +104,43 @@ class DashboardService implements DashboardServiceInterface
             ->select('lesson_progress.*')
             ->get()
             ->groupBy('lesson_id')
-            ->map(fn ($group) => $group->first());
+            ->map(fn($group) => $group->first());
 
-        
+
         $enrollments = $enrollments->sortByDesc(function ($enrollment) use ($lessonCompletions) {
             $courseId = $enrollment->course_id;
-            $lessonIds = $enrollment->course->units->flatMap(fn ($unit) => $unit->lessons->pluck('id'));
+            $lessonIds = $enrollment->course->units->flatMap(fn($unit) => $unit->lessons->pluck('id'));
 
-            
+
             $mostRecentCompletion = $lessonCompletions
-                ->filter(fn ($completion) => $lessonIds->contains($completion->lesson_id))
+                ->filter(fn($completion) => $lessonIds->contains($completion->lesson_id))
                 ->sortByDesc('updated_at')
                 ->first();
 
-            
+
             return $mostRecentCompletion ? $mostRecentCompletion->updated_at : $enrollment->enrolled_at;
         })->take($limit);
 
         return $enrollments->map(function ($enrollment) use ($userId) {
             $course = $enrollment->course;
 
-            
-            $totalLessons = $course->units->sum(fn ($unit) => $unit->lessons->count());
 
-            
+            $totalLessons = $course->units->sum(fn($unit) => $unit->lessons->count());
+
+
             $completedLessons = \Modules\Enrollments\Models\LessonProgress::query()
                 ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
                 ->where('enrollments.user_id', $userId)
                 ->where('lesson_progress.status', 'completed')
-                ->whereIn('lesson_progress.lesson_id', $course->units->flatMap(fn ($unit) => $unit->lessons->pluck('id')))
+                ->whereIn('lesson_progress.lesson_id', $course->units->flatMap(fn($unit) => $unit->lessons->pluck('id')))
                 ->count();
 
-            
+
             $lastLesson = \Modules\Enrollments\Models\LessonProgress::query()
                 ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
                 ->where('enrollments.user_id', $userId)
                 ->where('lesson_progress.status', 'completed')
-                ->whereIn('lesson_progress.lesson_id', $course->units->flatMap(fn ($unit) => $unit->lessons->pluck('id')))
+                ->whereIn('lesson_progress.lesson_id', $course->units->flatMap(fn($unit) => $unit->lessons->pluck('id')))
                 ->select('lesson_progress.*')
                 ->latest('lesson_progress.updated_at')
                 ->first();
@@ -174,7 +175,7 @@ class DashboardService implements DashboardServiceInterface
         })->values();
     }
 
-    
+
     public function getRecentAchievements(int $userId, int $limit = 4): Collection
     {
         return QueryBuilder::for(UserBadge::class)
@@ -197,73 +198,89 @@ class DashboardService implements DashboardServiceInterface
             });
     }
 
-    
-    public function getRecommendedCourses(int $userId, int $limit = 2): Collection
+
+    public function getRecommendedCourseIds(int $userId, int $limit = 2): \Illuminate\Support\Collection
     {
-        
-        
         $enrolledCourseIds = Enrollment::where('user_id', $userId)
             ->pluck('course_id')
             ->unique()
             ->toArray();
 
-        if (empty($enrolledCourseIds)) {
-            
-            return $this->getPopularCourses($limit);
+        $selectedIds = collect();
+
+        if (!empty($enrolledCourseIds)) {
+            $enrolledCourses = Course::whereIn('id', $enrolledCourseIds)->with('category')->get();
+            $categoryIds = $enrolledCourses->pluck('category.id')->filter()->unique()->toArray();
+
+            $query = Course::query()
+                ->whereNotIn('id', $enrolledCourseIds)
+                ->where('status', 'published');
+
+            if (!empty($categoryIds)) {
+                $query->whereHas('category', function ($q) use ($categoryIds) {
+                    $q->whereIn('id', $categoryIds);
+                });
+            }
+
+            $selectedIds = $query
+                ->withCount('enrollments')
+                ->orderByDesc('enrollments_count')
+                ->limit($limit)
+                ->pluck('id');
         }
 
-        
-        $enrolledCourses = Course::whereIn('id', $enrolledCourseIds)->with('category')->get();
-        $categoryIds = $enrolledCourses->pluck('category.id')->filter()->unique()->toArray();
 
-        
-        $query = Course::query()
-            ->whereNotIn('id', $enrolledCourseIds) 
-            ->where('status', 'published');
+        if ($selectedIds->count() < $limit) {
+            $remaining = $limit - $selectedIds->count();
+            $excludeIds = array_merge($enrolledCourseIds ?? [], $selectedIds->toArray());
 
-        if (! empty($categoryIds)) {
-            $query->whereHas('category', function ($q) use ($categoryIds) {
-                $q->whereIn('id', $categoryIds);
-            });
+            $popularIds = Course::query()
+                ->where('status', 'published')
+                ->when(!empty($excludeIds), fn($q) => $q->whereNotIn('id', $excludeIds))
+                ->withCount('enrollments')
+                ->orderByDesc('enrollments_count')
+                ->limit($remaining)
+                ->pluck('id');
+
+            $selectedIds = $selectedIds->merge($popularIds);
         }
 
-        $courses = $query->with(['instructor:id,name', 'media', 'category'])
-            ->withCount('enrollments')
-            ->orderByDesc('enrollments_count')
-            ->limit($limit)
-            ->get();
-
-        
-        if ($courses->count() < $limit) {
-            $remaining = $limit - $courses->count();
-            $popularCourses = $this->getPopularCourses($remaining, array_merge($enrolledCourseIds, $courses->pluck('id')->toArray()));
-            $courses = $courses->merge($popularCourses);
-        }
-
-        return $courses->map(function ($course) {
-            return [
-                'id' => $course->id,
-                'title' => $course->title,
-                'slug' => $course->slug,
-                'description' => $course->short_desc,
-                'category' => $course->category?->name,
-                'thumbnail' => $course->getFirstMediaUrl('thumbnail'),
-                'instructor' => [
-                    'id' => $course->instructor->id ?? null,
-                    'name' => $course->instructor->name ?? null,
-                ],
-                'enrollments_count' => $course->enrollments_count ?? 0,
-            ];
-        });
+        return $selectedIds;
     }
 
-    
+
+    public function getRecommendedCourses(int $userId, int $limit = 2, ?Request $request = null): Collection
+    {
+        $courseIds = $this->getRecommendedCourseIds($userId, $limit);
+
+        if ($courseIds->isEmpty()) {
+            return collect();
+        }
+
+        $courses = QueryBuilder::for(Course::class)
+            ->whereIn('id', $courseIds)
+            ->allowedIncludes([
+                'tags',
+                'category',
+                'outcomes',
+                'units',
+                'instructors',
+            ])
+            ->withCount('enrollments')
+            ->get()
+            ->sortBy(fn($course) => array_search($course->id, $courseIds->toArray()))
+            ->values();
+
+        return $courses;
+    }
+
+
     private function getPopularCourses(int $limit, array $excludeIds = []): Collection
     {
         $query = Course::query()
             ->where('status', 'published');
 
-        if (! empty($excludeIds)) {
+        if (!empty($excludeIds)) {
             $query->whereNotIn('id', $excludeIds);
         }
 
@@ -274,7 +291,7 @@ class DashboardService implements DashboardServiceInterface
             ->get();
     }
 
-    
+
     private function getXpThisMonth(int $userId): int
     {
         $startOfMonth = now()->startOfMonth();
@@ -285,7 +302,7 @@ class DashboardService implements DashboardServiceInterface
             ->sum('points');
     }
 
-    
+
     private function getNextLevelXp(int $currentLevel): int
     {
         $nextLevel = \Modules\Common\Models\LevelConfig::where('level', $currentLevel + 1)->first();
@@ -293,17 +310,17 @@ class DashboardService implements DashboardServiceInterface
         return $nextLevel?->xp_required ?? 0;
     }
 
-    
+
     private function calculateLevelProgress(?UserGamificationStat $stats): float
     {
-        if (! $stats) {
+        if (!$stats) {
             return 0;
         }
 
         $currentLevelConfig = \Modules\Common\Models\LevelConfig::where('level', $stats->global_level)->first();
         $nextLevelConfig = \Modules\Common\Models\LevelConfig::where('level', $stats->global_level + 1)->first();
 
-        if (! $currentLevelConfig || ! $nextLevelConfig) {
+        if (!$currentLevelConfig || !$nextLevelConfig) {
             return 0;
         }
 
@@ -321,7 +338,7 @@ class DashboardService implements DashboardServiceInterface
         return round(($xpInCurrentLevel / $xpNeededForNextLevel) * 100, 2);
     }
 
-    
+
     private function getEnrolledCoursesCount(int $userId): int
     {
         return Enrollment::where('user_id', $userId)
@@ -329,10 +346,10 @@ class DashboardService implements DashboardServiceInterface
             ->count();
     }
 
-    
+
     private function getLearningHours(int $userId): float
     {
-        
+
         $lessonCount = \Modules\Enrollments\Models\LessonProgress::query()
             ->join('enrollments', 'lesson_progress.enrollment_id', '=', 'enrollments.id')
             ->where('enrollments.user_id', $userId)
@@ -340,11 +357,11 @@ class DashboardService implements DashboardServiceInterface
             ->count();
         $lessonHours = ($lessonCount * 15) / 60;
 
-        
+
         $quizCount = \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)->count();
         $quizHours = ($quizCount * 20) / 60;
 
-        
+
         $assignmentCount = \Modules\Learning\Models\Submission::where('user_id', $userId)->count();
         $assignmentHours = ($assignmentCount * 30) / 60;
 
@@ -353,7 +370,7 @@ class DashboardService implements DashboardServiceInterface
         return round($totalHours, 1);
     }
 
-    
+
     private function getDaysActive(int $userId): int
     {
         return \Modules\Gamification\Models\Point::where('user_id', $userId)
@@ -363,7 +380,7 @@ class DashboardService implements DashboardServiceInterface
             ->count();
     }
 
-    
+
     private function getRecentActivity(int $userId, int $limit = 3): array
     {
         $points = \Modules\Gamification\Models\Point::where('user_id', $userId)
@@ -384,12 +401,12 @@ class DashboardService implements DashboardServiceInterface
         })->toArray();
     }
 
-    
+
     private function formatActivity(\Modules\Gamification\Models\Point $point): array
     {
         $metadata = is_string($point->metadata) ? json_decode($point->metadata, true) : $point->metadata;
 
-        
+
         $sourceType = $point->source_type instanceof \BackedEnum
             ? $point->source_type->value
             : $point->source_type;
@@ -398,7 +415,7 @@ class DashboardService implements DashboardServiceInterface
             ? $point->reason->value
             : $point->reason;
 
-        
+
         $type = 'activity';
         $description = __('messages.activity.default');
 
@@ -460,7 +477,7 @@ class DashboardService implements DashboardServiceInterface
                 break;
 
             default:
-                
+
                 if ($reason) {
                     $description = ucfirst(str_replace('_', ' ', $reason));
                 }
@@ -473,140 +490,140 @@ class DashboardService implements DashboardServiceInterface
         ];
     }
 
-    
+
     private function getLessonTitle(array $metadata): string
     {
-        
-        if (! empty($metadata['lesson_title'])) {
+
+        if (!empty($metadata['lesson_title'])) {
             return $metadata['lesson_title'];
         }
 
-        if (! empty($metadata['title'])) {
+        if (!empty($metadata['title'])) {
             return $metadata['title'];
         }
 
-        
-        if (! empty($metadata['lesson_id'])) {
+
+        if (!empty($metadata['lesson_id'])) {
             $lesson = \Modules\Schemes\Models\Lesson::find($metadata['lesson_id']);
             if ($lesson) {
                 return $lesson->title;
             }
         }
 
-        
-        if (! empty($metadata['source_name'])) {
+
+        if (!empty($metadata['source_name'])) {
             return $metadata['source_name'];
         }
 
         return 'Lesson';
     }
 
-    
+
     private function getUnitTitle(array $metadata): string
     {
-        if (! empty($metadata['unit_title'])) {
+        if (!empty($metadata['unit_title'])) {
             return $metadata['unit_title'];
         }
 
-        if (! empty($metadata['title'])) {
+        if (!empty($metadata['title'])) {
             return $metadata['title'];
         }
 
-        if (! empty($metadata['unit_id'])) {
+        if (!empty($metadata['unit_id'])) {
             $unit = \Modules\Schemes\Models\Unit::find($metadata['unit_id']);
             if ($unit) {
                 return $unit->title;
             }
         }
 
-        
-        if (! empty($metadata['source_name'])) {
+
+        if (!empty($metadata['source_name'])) {
             return $metadata['source_name'];
         }
 
         return 'Unit';
     }
 
-    
+
     private function getQuizTitle(array $metadata): string
     {
-        if (! empty($metadata['quiz_title'])) {
+        if (!empty($metadata['quiz_title'])) {
             return $metadata['quiz_title'];
         }
 
-        if (! empty($metadata['title'])) {
+        if (!empty($metadata['title'])) {
             return $metadata['title'];
         }
 
-        if (! empty($metadata['quiz_id'])) {
+        if (!empty($metadata['quiz_id'])) {
             $quiz = \Modules\Learning\Models\Quiz::find($metadata['quiz_id']);
             if ($quiz) {
                 return $quiz->title;
             }
         }
 
-        
-        if (! empty($metadata['submission_id'])) {
+
+        if (!empty($metadata['submission_id'])) {
             $submission = \Modules\Learning\Models\QuizSubmission::find($metadata['submission_id']);
             if ($submission && $submission->quiz) {
                 return $submission->quiz->title;
             }
         }
 
-        
-        if (! empty($metadata['source_name'])) {
+
+        if (!empty($metadata['source_name'])) {
             return $metadata['source_name'];
         }
 
         return 'Quiz';
     }
 
-    
+
     private function getAssignmentTitle(array $metadata): string
     {
-        if (! empty($metadata['assignment_title'])) {
+        if (!empty($metadata['assignment_title'])) {
             return $metadata['assignment_title'];
         }
 
-        if (! empty($metadata['title'])) {
+        if (!empty($metadata['title'])) {
             return $metadata['title'];
         }
 
-        if (! empty($metadata['assignment_id'])) {
+        if (!empty($metadata['assignment_id'])) {
             $assignment = \Modules\Learning\Models\Assignment::find($metadata['assignment_id']);
             if ($assignment) {
                 return $assignment->title;
             }
         }
 
-        
-        if (! empty($metadata['submission_id'])) {
+
+        if (!empty($metadata['submission_id'])) {
             $submission = \Modules\Learning\Models\Submission::find($metadata['submission_id']);
             if ($submission && $submission->assignment) {
                 return $submission->assignment->title;
             }
         }
 
-        
-        if (! empty($metadata['source_name'])) {
+
+        if (!empty($metadata['source_name'])) {
             return $metadata['source_name'];
         }
 
         return 'Tugas';
     }
 
-    
+
     private function getBadgeName(array $metadata): string
     {
-        if (! empty($metadata['badge_name'])) {
+        if (!empty($metadata['badge_name'])) {
             return $metadata['badge_name'];
         }
 
-        if (! empty($metadata['name'])) {
+        if (!empty($metadata['name'])) {
             return $metadata['name'];
         }
 
-        if (! empty($metadata['badge_id'])) {
+        if (!empty($metadata['badge_id'])) {
             $badge = \Modules\Gamification\Models\Badge::find($metadata['badge_id']);
             if ($badge) {
                 return $badge->name;

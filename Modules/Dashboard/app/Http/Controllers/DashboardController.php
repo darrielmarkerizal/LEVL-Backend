@@ -9,6 +9,7 @@ use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Dashboard\Services\DashboardService;
+use Modules\Schemes\Http\Resources\CourseResource;
 
 class DashboardController extends Controller
 {
@@ -54,8 +55,8 @@ class DashboardController extends Controller
         $userId = $request->user()->id;
         $limit = min((int) $request->get('limit', 2), 10);
 
-        $data = $this->dashboardService->getRecommendedCourses($userId, $limit);
+        $courses = $this->dashboardService->getRecommendedCourses($userId, $limit, $request);
 
-        return $this->success($data, __('messages.recommended_courses_retrieved'));
+        return $this->success(CourseResource::collection($courses), __('messages.recommended_courses_retrieved'));
     }
 }
