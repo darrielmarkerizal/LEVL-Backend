@@ -74,27 +74,40 @@ class QuizController extends Controller
         $enrichmentService = app(\Modules\Learning\Services\Support\QuizEnrichmentService::class);
 
         if ($user && $user->hasRole('Student')) {
-            
             $course = $quiz->getCourse();
-
             if (! $course) {
                 return $this->error(__('messages.quizzes.scope_not_found'), [], 404);
             }
-
-            
             if ($error = $this->requireEnrollment($course)) {
                 return $error;
             }
-
             $enriched = $enrichmentService->enrichSingleForStudent($quiz, $user->id);
-
+            $submissions = \Modules\Learning\Models\QuizSubmission::where('quiz_id', $quiz->id)
+                ->where('user_id', $user->id)
+                ->orderByDesc('started_at')
+                ->get()
+                ->map(function ($submission) use ($quiz) {
+                    $remaining = null;
+                    if ($submission->status->value === 'draft' && $submission->started_at) {
+                        $limit = $quiz->time_limit_minutes ? $quiz->time_limit_minutes * 60 : null;
+                        $elapsed = $submission->started_at ? now()->diffInSeconds($submission->started_at) : 0;
+                        $remaining = $limit !== null ? max(0, $limit - $elapsed) : null;
+                    }
+                    return [
+                        'id' => $submission->id,
+                        'status' => $submission->status->value,
+                        'started_at' => $submission->started_at?->toIso8601String(),
+                        'submitted_at' => $submission->submitted_at?->toIso8601String(),
+                        'remaining_time' => $remaining,
+                        'time_spent_seconds' => $submission->time_spent_seconds,
+                    ];
+                });
+            $enriched['submissions'] = $submissions;
             if ($enriched['is_locked']) {
                 return $this->error(__('messages.quizzes.locked'), [], 403);
             }
-
             return $this->success($enriched);
         }
-
         return $this->success(QuizResource::make($this->quizService->getWithRelations($quiz)));
     }
 
