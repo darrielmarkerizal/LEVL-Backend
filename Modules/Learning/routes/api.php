@@ -120,6 +120,10 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         ->middleware('can:view,submission')
         ->name('quiz-submissions.questions.show');
 
+    Route::get('quiz-submissions/{submission}/overview', [QuizSubmissionController::class, 'overview'])
+        ->middleware('can:view,submission')
+        ->name('quiz-submissions.overview');
+
     Route::post('quiz-submissions/{submission}/answers', [QuizSubmissionController::class, 'saveAnswer'])
         ->middleware('can:update,submission')
         ->name('quiz-submissions.answers.store');

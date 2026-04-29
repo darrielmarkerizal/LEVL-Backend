@@ -8,16 +8,17 @@
 ## Alur Pengerjaan Kuis
 
 ```
-1. Lihat daftar kuis dalam skema          → GET  /courses/:slug/quizzes
-2. Lihat detail kuis spesifik             → GET  /quizzes/:quiz_id
-3. Mulai sesi kuis                        → POST /quizzes/:quiz_id/submissions/start
-4. Ambil pertanyaan satu per satu         → GET  /quiz-submissions/:id/questions?page=N
-   atau berdasarkan urutan                → GET  /quiz-submissions/:id/questions/:order
-5. Simpan jawaban per pertanyaan          → POST /quiz-submissions/:id/answers
-6. Kirim kuis secara final                → POST /quiz-submissions/:id/submit
-7. Lihat hasil / nilai akhir              → GET  /quiz-submissions/:id
-8. Lihat riwayat semua sesi kuis          → GET  /quizzes/:quiz_id/submissions
-9. Lihat nilai terbaik                    → GET  /quizzes/:quiz_id/submissions/highest
+1.  Lihat daftar kuis dalam skema          → GET  /courses/:slug/quizzes
+2.  Lihat detail kuis spesifik             → GET  /quizzes/:quiz_id
+3.  Mulai sesi kuis                        → POST /quizzes/:quiz_id/submissions/start
+3b. Overview semua soal + status jawaban   → GET  /quiz-submissions/:id/overview
+4.  Ambil pertanyaan satu per satu         → GET  /quiz-submissions/:id/questions?page=N
+    atau berdasarkan urutan                → GET  /quiz-submissions/:id/questions/:order
+5.  Simpan jawaban per pertanyaan          → POST /quiz-submissions/:id/answers
+6.  Kirim kuis secara final                → POST /quiz-submissions/:id/submit
+7.  Lihat hasil / nilai akhir              → GET  /quiz-submissions/:id
+8.  Lihat riwayat semua sesi kuis          → GET  /quizzes/:quiz_id/submissions
+9.  Lihat nilai terbaik                    → GET  /quizzes/:quiz_id/submissions/highest
 ```
 
 ---
@@ -212,6 +213,155 @@ POST {{url}}/api/v1/quizzes/:quiz_id/submissions/start
 ```
 
 > ⚠️ **Simpan `id` dari respons ini** sebagai `:submission_id` untuk semua endpoint berikutnya.
+
+---
+
+## 3b. [GET] Overview Semua Soal + Status Jawaban (Saat Mengerjakan)
+
+**Endpoint:**
+```
+GET {{url}}/api/v1/quiz-submissions/:submission_id/overview
+```
+
+**Authorization:** Bearer `{{access_token_student}}`
+
+**Path Variables:**
+
+| Key | Value | Deskripsi |
+|-----|-------|-----------|
+| `submission_id` | `1530` | ID sesi kuis (dari endpoint Mulai Sesi) |
+
+**Body:** Tidak diperlukan (kosong / no body)
+
+**Catatan:**
+- Di-hit **saat asesi sedang mengerjakan kuis** untuk melihat semua nomor soal sekaligus
+- Cocok untuk sidebar navigasi soal + penanda soal yang sudah/belum dijawab
+- Mengembalikan informasi waktu (`started_at`, `time_limit_minutes`, `time_remaining_seconds`) untuk timer countdown
+- `summary` berisi array ringkasan ringan per soal (cocok untuk navigasi)
+- `questions` berisi detail lengkap setiap pertanyaan + jawaban yang sudah disimpan
+
+**Contoh Respons (200 OK):**
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "submission_id": 1530,
+    "status": "draft",
+    "started_at": "2026-04-27T08:00:00.000000Z",
+    "time_limit_minutes": 30,
+    "time_remaining_seconds": 1245,
+    "is_time_limited": true,
+    "total_questions": 4,
+    "answered_count": 2,
+    "unanswered_count": 2,
+    "summary": [
+      { "order": 1, "question_id": 225, "is_answered": true },
+      { "order": 2, "question_id": 226, "is_answered": false },
+      { "order": 3, "question_id": 227, "is_answered": true },
+      { "order": 4, "question_id": 228, "is_answered": false }
+    ],
+    "questions": [
+      {
+        "id": 225,
+        "order": 1,
+        "type": "multiple_choice",
+        "type_label": "Pilihan Ganda",
+        "content": "Apa yang dimaksud dengan mean dalam statistik?",
+        "options": [
+          { "text": "Nilai yang paling sering muncul" },
+          { "text": "Nilai tengah dari data yang diurutkan" },
+          { "text": "Nilai rata-rata dari semua data" },
+          { "text": "Selisih antara nilai terbesar dan terkecil" }
+        ],
+        "weight": "25.00",
+        "max_score": "25.00",
+        "is_answered": true,
+        "answer": {
+          "id": 891,
+          "content": null,
+          "selected_options": ["2"]
+        }
+      },
+      {
+        "id": 226,
+        "order": 2,
+        "type": "essay",
+        "type_label": "Essay",
+        "content": "Jelaskan perbedaan antara data kualitatif dan kuantitatif!",
+        "options": null,
+        "weight": "25.00",
+        "max_score": "25.00",
+        "is_answered": false,
+        "answer": null
+      },
+      {
+        "id": 227,
+        "order": 3,
+        "type": "checkbox",
+        "type_label": "Checkbox",
+        "content": "Manakah yang termasuk ukuran pemusatan data?",
+        "options": [
+          { "text": "Mean" },
+          { "text": "Range" },
+          { "text": "Median" },
+          { "text": "Standar Deviasi" },
+          { "text": "Modus" }
+        ],
+        "weight": "25.00",
+        "max_score": "25.00",
+        "is_answered": true,
+        "answer": {
+          "id": 893,
+          "content": null,
+          "selected_options": ["0", "2", "4"]
+        }
+      },
+      {
+        "id": 228,
+        "order": 4,
+        "type": "true_false",
+        "type_label": "Benar/Salah",
+        "content": "Median selalu sama dengan mean pada distribusi normal.",
+        "options": [
+          { "text": "Benar" },
+          { "text": "Salah" }
+        ],
+        "weight": "25.00",
+        "max_score": "25.00",
+        "is_answered": false,
+        "answer": null
+      }
+    ]
+  },
+  "errors": null
+}
+```
+
+**Contoh Respons (200 OK — Kuis Tanpa Batas Waktu):**
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "submission_id": 1531,
+    "status": "draft",
+    "started_at": "2026-04-27T09:00:00.000000Z",
+    "time_limit_minutes": null,
+    "time_remaining_seconds": null,
+    "is_time_limited": false,
+    "total_questions": 2,
+    "answered_count": 0,
+    "unanswered_count": 2,
+    "summary": [
+      { "order": 1, "question_id": 300, "is_answered": false },
+      { "order": 2, "question_id": 301, "is_answered": false }
+    ],
+    "questions": [...]
+  },
+  "errors": null
+}
+```
 
 ---
 
@@ -840,6 +990,7 @@ GET {{url}}/api/v1/quizzes/:quiz_id/submissions/highest
 | 1 | `GET` | `/courses/:course_slug/quizzes` | Daftar kuis dalam skema |
 | 2 | `GET` | `/quizzes/:quiz_id` | Detail kuis |
 | 3 | `POST` | `/quizzes/:quiz_id/submissions/start` | Mulai sesi kuis |
+| 3b | `GET` | `/quiz-submissions/:id/overview` | Overview semua soal + status jawaban + waktu |
 | 4 | `GET` | `/quiz-submissions/:id/questions?page=N` | Ambil pertanyaan per halaman |
 | 5 | `GET` | `/quiz-submissions/:id/questions/:order` | Ambil pertanyaan berdasarkan urutan |
 | 6 | `POST` | `/quiz-submissions/:id/answers` | Simpan jawaban |

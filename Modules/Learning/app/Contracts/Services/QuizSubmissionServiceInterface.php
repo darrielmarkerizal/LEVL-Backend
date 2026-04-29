@@ -33,4 +33,6 @@ interface QuizSubmissionServiceInterface
     public function getQuestionsForStudent(QuizSubmission $submission, int $page): array;
 
     public function checkExistingDraft(int $quizId, int $userId): ?QuizSubmission;
+
+    public function getOverview(QuizSubmission $submission): array;
 }

@@ -141,4 +141,12 @@ class QuizSubmissionController extends Controller
 
         return $this->success(QuizSubmissionResource::make($submitted), __('messages.quiz_submissions.submitted'));
     }
+
+    public function overview(QuizSubmission $submission): JsonResponse
+    {
+        $this->authorize('view', $submission);
+        $overview = $this->submissionService->getOverview($submission);
+
+        return $this->success($overview);
+    }
 }

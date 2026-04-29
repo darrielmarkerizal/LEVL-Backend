@@ -428,6 +428,78 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         ];
     }
 
+    public function getOverview(QuizSubmission $submission): array
+    {
+        $submission->loadMissing('quiz');
+        $quiz = $submission->quiz;
+
+        $questions = $this->listQuestions($submission, $submission->user_id);
+
+        $answers = QuizAnswer::where('quiz_submission_id', $submission->id)
+            ->get()
+            ->keyBy('quiz_question_id');
+
+        $timeLimitMinutes = $quiz->time_limit_minutes;
+        $isTimeLimited = $timeLimitMinutes !== null;
+        $timeRemainingSeconds = null;
+
+        if ($isTimeLimited && $submission->started_at) {
+            $expiresAt = $submission->started_at->copy()->addMinutes($timeLimitMinutes);
+            $timeRemainingSeconds = max(0, (int) now()->diffInSeconds($expiresAt, false));
+        }
+
+        $summary = [];
+        $questionDetails = [];
+
+        foreach ($questions->values() as $index => $question) {
+            $order = $index + 1;
+            $answer = $answers->get($question->id);
+            $isAnswered = $answer !== null;
+
+            $summary[] = [
+                'order' => $order,
+                'question_id' => $question->id,
+                'is_answered' => $isAnswered,
+            ];
+
+            $questionData = [
+                'id' => $question->id,
+                'order' => $order,
+                'type' => $question->type?->value,
+                'type_label' => $question->type?->label(),
+                'content' => $question->content,
+                'options' => $question->options,
+                'weight' => $question->weight,
+                'max_score' => $question->max_score,
+                'is_answered' => $isAnswered,
+                'answer' => $isAnswered ? [
+                    'id' => $answer->id,
+                    'content' => $answer->content,
+                    'selected_options' => $answer->selected_options,
+                ] : null,
+            ];
+
+            $questionDetails[] = $questionData;
+        }
+
+        $answeredCount = count(array_filter($summary, fn ($s) => $s['is_answered']));
+        $totalQuestions = count($summary);
+
+        return [
+            'submission_id' => $submission->id,
+            'status' => $submission->status?->value,
+            'started_at' => $submission->started_at?->toISOString(),
+            'time_limit_minutes' => $timeLimitMinutes,
+            'time_remaining_seconds' => $timeRemainingSeconds,
+            'is_time_limited' => $isTimeLimited,
+            'total_questions' => $totalQuestions,
+            'answered_count' => $answeredCount,
+            'unanswered_count' => $totalQuestions - $answeredCount,
+            'summary' => $summary,
+            'questions' => $questionDetails,
+        ];
+    }
+
     public function checkExistingDraft(int $quizId, int $userId): ?QuizSubmission
     {
         return QuizSubmission::where('quiz_id', $quizId)
