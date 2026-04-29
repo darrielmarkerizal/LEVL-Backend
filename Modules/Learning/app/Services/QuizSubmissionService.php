@@ -448,6 +448,27 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             $timeRemainingSeconds = max(0, (int) now()->diffInSeconds($expiresAt, false));
         }
 
+        if ($isTimeLimited && $timeRemainingSeconds === 0 && $submission->status === QuizSubmissionStatus::Draft) {
+            $submittedSubmission = $this->forceSubmitOnTimeout($submission);
+
+            return [
+                'auto_submitted' => true,
+                'submission_id' => $submittedSubmission->id,
+                'status' => $submittedSubmission->status?->value,
+                'grading_status' => $submittedSubmission->grading_status?->value,
+                'grading_status_label' => $submittedSubmission->grading_status?->label(),
+                'score' => $submittedSubmission->score,
+                'final_score' => $submittedSubmission->final_score,
+                'started_at' => $submittedSubmission->started_at?->toISOString(),
+                'submitted_at' => $submittedSubmission->submitted_at?->toISOString(),
+                'time_limit_minutes' => $timeLimitMinutes,
+                'time_remaining_seconds' => 0,
+                'is_time_limited' => true,
+                'time_spent_seconds' => $submittedSubmission->time_spent_seconds,
+                'message' => __('messages.quiz_submissions.auto_submitted_timeout'),
+            ];
+        }
+
         $summary = [];
         $questionDetails = [];
 
@@ -498,6 +519,37 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             'summary' => $summary,
             'questions' => $questionDetails,
         ];
+    }
+
+    public function forceSubmitOnTimeout(QuizSubmission $submission): QuizSubmission
+    {
+        if ($submission->status !== QuizSubmissionStatus::Draft) {
+            return $submission;
+        }
+
+        return DB::transaction(function () use ($submission) {
+            $timeSpent = 0;
+            if ($submission->started_at) {
+                $quiz = $submission->quiz;
+                $timeSpent = $quiz->time_limit_minutes ? $quiz->time_limit_minutes * 60 : max(0, (int) now()->diffInSeconds($submission->started_at, false));
+            }
+
+            $this->repository->updateSubmission($submission, [
+                'status' => QuizSubmissionStatus::Submitted->value,
+                'submitted_at' => now(),
+                'time_spent_seconds' => $timeSpent,
+            ]);
+
+            $gradedSubmission = $this->autoGrade($submission);
+
+            event(new \Modules\Learning\Events\QuizSubmitted($gradedSubmission));
+
+            if ($gradedSubmission->grading_status === QuizGradingStatus::Graded) {
+                event(new \Modules\Learning\Events\QuizCompleted($gradedSubmission));
+            }
+
+            return $gradedSubmission;
+        });
     }
 
     public function checkExistingDraft(int $quizId, int $userId): ?QuizSubmission

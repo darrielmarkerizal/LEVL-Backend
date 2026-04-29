@@ -645,6 +645,7 @@ return [
         'invalid_page' => 'Invalid page number.',
         'unanswered_questions' => '{1} You must answer :count question before submitting.|[2,*] You must answer all :count questions before submitting.',
         'time_limit_exceeded' => 'The time limit for this quiz attempt has expired.',
+        'auto_submitted_timeout' => 'Time is up. Your quiz has been automatically submitted.',
     ],
 
     
