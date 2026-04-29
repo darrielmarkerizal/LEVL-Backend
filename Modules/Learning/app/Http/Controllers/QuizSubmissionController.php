@@ -114,16 +114,6 @@ class QuizSubmissionController extends Controller
         return $this->success(\Modules\Learning\Http\Resources\QuizQuestionResource::collection($questions));
     }
 
-    public function getQuestionAtOrder(QuizSubmission $submission, int $order): JsonResponse
-    {
-        $this->authorize('view', $submission);
-        $result = $this->submissionService->getQuestionAtOrder($submission, $order);
-
-        return $this->success([
-            'question' => new \Modules\Learning\Http\Resources\QuizQuestionResource($result['question']),
-            'navigation' => $result['navigation'],
-        ]);
-    }
 
     public function saveAnswer(SaveQuizAnswerRequest $request, QuizSubmission $submission): JsonResponse
     {

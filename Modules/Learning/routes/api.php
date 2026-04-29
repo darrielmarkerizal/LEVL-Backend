@@ -116,9 +116,6 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         ->middleware('can:view,submission')
         ->name('quiz-submissions.questions.index');
 
-    Route::get('quiz-submissions/{submission}/questions/{order}', [QuizSubmissionController::class, 'getQuestionAtOrder'])
-        ->middleware('can:view,submission')
-        ->name('quiz-submissions.questions.show');
 
     Route::get('quiz-submissions/{submission}/overview', [QuizSubmissionController::class, 'overview'])
         ->middleware('can:view,submission')

@@ -230,27 +230,6 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         return $quiz->questions()->ordered()->get();
     }
 
-    public function getQuestionAtOrder(QuizSubmission $submission, int $order): array
-    {
-        $questions = $this->listQuestions($submission, $submission->user_id);
-        $total = $questions->count();
-
-        if ($order < 0 || $order >= $total) {
-            throw new \InvalidArgumentException(__('messages.quiz_submissions.invalid_question_order'));
-        }
-
-        $question = $questions->get($order);
-
-        return [
-            'question' => $question,
-            'navigation' => [
-                'total' => $total,
-                'current_order' => $order,
-                'has_previous' => $order > 0,
-                'has_next' => $order < ($total - 1),
-            ],
-        ];
-    }
 
     private function autoGrade(QuizSubmission $submission): QuizSubmission
     {

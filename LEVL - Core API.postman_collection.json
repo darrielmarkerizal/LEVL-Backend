@@ -2917,6 +2917,16 @@
             {
               "name": "[GET] Daftar Kuis di Dalam Skema Tersebut",
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [],
                 "url": {
@@ -2931,10 +2941,463 @@
                     ":course_slug",
                     "quizzes"
                   ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": null,
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": null,
+                      "disabled": true
+                    }
+                  ],
                   "variable": [
                     {
                       "key": "course_slug",
-                      "value": ""
+                      "value": "perawatan-mesin-produksi-34"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[GET] Detail Kuis",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/quizzes/:quiz_id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "quizzes",
+                    ":quiz_id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "quiz_id",
+                      "value": "135"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[POST] Mulai Sesi Kuis",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/quizzes/:quiz_id/submissions/start",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "quizzes",
+                    ":quiz_id",
+                    "submissions",
+                    "start"
+                  ],
+                  "variable": [
+                    {
+                      "key": "quiz_id",
+                      "value": "135"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[GET] Overview Semua Soal + Status Jawaban (Saat Mengerjakan)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_superadmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/quiz-submissions/:submission_id/overview",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "quiz-submissions",
+                    ":submission_id",
+                    "overview"
+                  ],
+                  "variable": [
+                    {
+                      "key": "submission_id",
+                      "value": "1422"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[GET] Ambil Pertanyaan Saat Ini (Per Halaman)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/quiz-submissions/:submission_id/questions?page=1",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "quiz-submissions",
+                    ":submission_id",
+                    "questions"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "submission_id",
+                      "value": "1422"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[GET] Ambil Pertanyaan Berdasarkan Urutan",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/quiz-submissions/:submission_id/questions/:order",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "quiz-submissions",
+                    ":submission_id",
+                    "questions",
+                    ":order"
+                  ],
+                  "variable": [
+                    {
+                      "key": "submission_id",
+                      "value": "1422"
+                    },
+                    {
+                      "key": "order",
+                      "value": "0"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[POST] Simpan Jawaban Pertanyaan",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "// Multiple Choice\n// {\n//   \"quiz_question_id\": 537,\n//   \"selected_options\": [\"1\"]\n// }\n\n\n// True or False\n// {\n//   \"quiz_question_id\": 538,\n//   \"selected_options\": [\"1\"]\n// }\n\n\n// Checkbox\n// {\n//   \"quiz_question_id\": 539,\n//   \"selected_options\": [\"0\", \"2\"]\n// }\n\n// Essay\n{\n  \"quiz_question_id\": 540,\n  \"content\": \"Data kualitatif adalah data yang bersifat deskriptif dan tidak dapat diukur dengan angka, seperti warna, rasa, atau pendapat. Sedangkan data kuantitatif adalah data yang dapat diukur secara numerik, seperti tinggi badan, berat badan, atau jumlah produk.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/api/v1/quiz-submissions/:submission_id/answers",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "quiz-submissions",
+                    ":submission_id",
+                    "answers"
+                  ],
+                  "variable": [
+                    {
+                      "key": "submission_id",
+                      "value": "1422"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[POST] Kirim Kuis (Submit Final)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/api/v1/quiz-submissions/:submission_id/submit",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "quiz-submissions",
+                    ":submission_id",
+                    "submit"
+                  ],
+                  "variable": [
+                    {
+                      "key": "submission_id",
+                      "value": "1422"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[GET] Detail Hasil Pengerjaan Kuis",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/api/v1/quiz-submissions/:submission_id?include=answers,quiz",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "quiz-submissions",
+                    ":submission_id"
+                  ],
+                  "query": [
+                    {
+                      "key": "include",
+                      "value": "answers,quiz"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "submission_id",
+                      "value": "1422"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[GET] Riwayat Semua Sesi Pengerjaan Kuis Saya",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/api/v1/quizzes/:quiz_id/submissions",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "quizzes",
+                    ":quiz_id",
+                    "submissions"
+                  ],
+                  "variable": [
+                    {
+                      "key": "quiz_id",
+                      "value": "135"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[GET] Nilai Terbaik / Submission Tertinggi",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token_student}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/api/v1/quizzes/:quiz_id/submissions/highest",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "quizzes",
+                    ":quiz_id",
+                    "submissions",
+                    "highest"
+                  ],
+                  "variable": [
+                    {
+                      "key": "quiz_id",
+                      "value": "135"
                     }
                   ]
                 }
@@ -3842,7 +4305,7 @@
                   "variable": [
                     {
                       "key": "course_slug",
-                      "value": "perawatan-mesin-produksi-34"
+                      "value": "operasional-gudang-dan-logistik-13"
                     }
                   ]
                 }
@@ -5008,7 +5471,7 @@
                     },
                     {
                       "key": "unit_slug",
-                      "value": "intermediate-techniques-13-179597"
+                      "value": "fundamentals-and-core-concepts-13-5f4335"
                     }
                   ]
                 }
@@ -6171,7 +6634,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{url}}/api/v1/dev/tokens?login=peserta@demo.levl.id",
+              "raw": "{{url}}/api/v1/dev/tokens?login=uat_struggling",
               "host": [
                 "{{url}}"
               ],
@@ -6189,7 +6652,7 @@
                 },
                 {
                   "key": "login",
-                  "value": "peserta@demo.levl.id",
+                  "value": "uat_struggling",
                   "description": "username/email"
                 }
               ]
