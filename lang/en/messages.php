@@ -648,6 +648,17 @@ return [
         'auto_submitted_timeout' => 'Time is up. Your quiz has been automatically submitted.',
     ],
 
+    'quiz_answers' => [
+        'selected_options_required' => 'You must select an answer.',
+        'single_option_only' => 'Only one option can be selected for this question.',
+        'invalid_option_index' => 'Invalid option selected. Valid options are 0 to :max.',
+        'true_false_invalid' => 'Answer must be either true (0) or false (1).',
+        'duplicate_options' => 'Duplicate options are not allowed.',
+        'content_not_allowed' => 'Text content is not accepted for this question type.',
+        'options_not_allowed_for_essay' => 'Option selection is not accepted for essay questions. Please provide text content instead.',
+        'content_required' => 'Answer text is required for essay questions.',
+    ],
+
     
     'learning' => [
         'progress_saved' => 'Your learning progress has been saved.',

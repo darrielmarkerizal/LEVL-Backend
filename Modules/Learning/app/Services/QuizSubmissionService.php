@@ -94,7 +94,10 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             ]);
         }
 
-        return DB::transaction(function () use ($submission, $questionId, $data) {
+        $question = QuizQuestion::findOrFail($questionId);
+        $this->validateAnswerForQuestionType($question, $data);
+
+        return DB::transaction(function () use ($submission, $questionId, $question, $data) {
             $existing = QuizAnswer::where('quiz_submission_id', $submission->id)
                 ->where('quiz_question_id', $questionId)
                 ->first();
@@ -102,8 +105,8 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             $answerData = [
                 'quiz_submission_id' => $submission->id,
                 'quiz_question_id' => $questionId,
-                'content' => $data['content'] ?? null,
-                'selected_options' => $data['selected_options'] ?? null,
+                'content' => $question->type === QuizQuestionType::Essay ? ($data['content'] ?? null) : null,
+                'selected_options' => $question->type !== QuizQuestionType::Essay ? ($data['selected_options'] ?? null) : null,
                 'is_auto_graded' => 0,
                 'score' => null,
             ];
@@ -558,6 +561,125 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             ->where('user_id', $userId)
             ->where('status', QuizSubmissionStatus::Draft->value)
             ->first();
+    }
+
+    private function validateAnswerForQuestionType(QuizQuestion $question, array $data): void
+    {
+        $type = $question->type;
+        $selectedOptions = $data['selected_options'] ?? null;
+        $content = $data['content'] ?? null;
+
+        match ($type) {
+            QuizQuestionType::MultipleChoice => $this->validateMultipleChoiceAnswer($question, $selectedOptions, $content),
+            QuizQuestionType::TrueFalse => $this->validateTrueFalseAnswer($selectedOptions, $content),
+            QuizQuestionType::Checkbox => $this->validateCheckboxAnswer($question, $selectedOptions, $content),
+            QuizQuestionType::Essay => $this->validateEssayAnswer($selectedOptions, $content),
+        };
+    }
+
+    private function validateMultipleChoiceAnswer(QuizQuestion $question, ?array $selectedOptions, ?string $content): void
+    {
+        if ($content !== null) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'content' => [__('messages.quiz_answers.content_not_allowed')],
+            ]);
+        }
+
+        if (empty($selectedOptions)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'selected_options' => [__('messages.quiz_answers.selected_options_required')],
+            ]);
+        }
+
+        if (count($selectedOptions) !== 1) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'selected_options' => [__('messages.quiz_answers.single_option_only')],
+            ]);
+        }
+
+        $optionsCount = is_array($question->options) ? count($question->options) : 0;
+        $index = (int) $selectedOptions[0];
+
+        if (! is_numeric($selectedOptions[0]) || $index < 0 || $index >= $optionsCount) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'selected_options' => [__('messages.quiz_answers.invalid_option_index', ['max' => $optionsCount - 1])],
+            ]);
+        }
+    }
+
+    private function validateTrueFalseAnswer(?array $selectedOptions, ?string $content): void
+    {
+        if ($content !== null) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'content' => [__('messages.quiz_answers.content_not_allowed')],
+            ]);
+        }
+
+        if (empty($selectedOptions)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'selected_options' => [__('messages.quiz_answers.selected_options_required')],
+            ]);
+        }
+
+        if (count($selectedOptions) !== 1) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'selected_options' => [__('messages.quiz_answers.single_option_only')],
+            ]);
+        }
+
+        if (! in_array($selectedOptions[0], ['0', '1'], true)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'selected_options' => [__('messages.quiz_answers.true_false_invalid')],
+            ]);
+        }
+    }
+
+    private function validateCheckboxAnswer(QuizQuestion $question, ?array $selectedOptions, ?string $content): void
+    {
+        if ($content !== null) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'content' => [__('messages.quiz_answers.content_not_allowed')],
+            ]);
+        }
+
+        if (empty($selectedOptions)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'selected_options' => [__('messages.quiz_answers.selected_options_required')],
+            ]);
+        }
+
+        $optionsCount = is_array($question->options) ? count($question->options) : 0;
+
+        if (count($selectedOptions) !== count(array_unique($selectedOptions))) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'selected_options' => [__('messages.quiz_answers.duplicate_options')],
+            ]);
+        }
+
+        foreach ($selectedOptions as $option) {
+            $index = (int) $option;
+
+            if (! is_numeric($option) || $index < 0 || $index >= $optionsCount) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'selected_options' => [__('messages.quiz_answers.invalid_option_index', ['max' => $optionsCount - 1])],
+                ]);
+            }
+        }
+    }
+
+    private function validateEssayAnswer(?array $selectedOptions, ?string $content): void
+    {
+        if (! empty($selectedOptions)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'selected_options' => [__('messages.quiz_answers.options_not_allowed_for_essay')],
+            ]);
+        }
+
+        if ($content === null || trim($content) === '') {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'content' => [__('messages.quiz_answers.content_required')],
+            ]);
+        }
     }
 
     private function isTimeLimitExceeded(QuizSubmission $submission): bool

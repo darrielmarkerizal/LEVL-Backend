@@ -652,6 +652,17 @@ return [
         'auto_submitted_timeout' => 'Waktu habis. Kuis Anda telah dikumpulkan secara otomatis.',
     ],
 
+    'quiz_answers' => [
+        'selected_options_required' => 'Anda harus memilih jawaban.',
+        'single_option_only' => 'Hanya satu opsi yang dapat dipilih untuk pertanyaan ini.',
+        'invalid_option_index' => 'Opsi yang dipilih tidak valid. Opsi yang valid adalah 0 sampai :max.',
+        'true_false_invalid' => 'Jawaban harus berupa benar (0) atau salah (1).',
+        'duplicate_options' => 'Opsi yang dipilih tidak boleh duplikat.',
+        'content_not_allowed' => 'Konten teks tidak diterima untuk tipe pertanyaan ini.',
+        'options_not_allowed_for_essay' => 'Pemilihan opsi tidak diterima untuk pertanyaan esai. Silakan isi jawaban dalam bentuk teks.',
+        'content_required' => 'Teks jawaban wajib diisi untuk pertanyaan esai.',
+    ],
+
     
     'learning' => [
         'progress_saved' => 'Progres belajar Anda berhasil disimpan.',
