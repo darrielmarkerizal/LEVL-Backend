@@ -57,6 +57,9 @@ class DashboardController extends Controller
 
         $courses = $this->dashboardService->getRecommendedCourses($userId, $limit, $request);
 
-        return $this->success(CourseResource::collection($courses), __('messages.recommended_courses_retrieved'));
+        return $this->success(
+            $courses->map(fn ($course) => new CourseResource($course)),
+            __('messages.recommended_courses_retrieved')
+        );
     }
 }
