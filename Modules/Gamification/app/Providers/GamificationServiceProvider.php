@@ -105,6 +105,7 @@ class GamificationServiceProvider extends ServiceProvider
             \Modules\Gamification\Console\Commands\CreateInitialBadgeVersions::class,
             \Modules\Gamification\Console\Commands\SyncLevelConfigs::class,
             \Modules\Gamification\Console\Commands\SeedGamificationData::class,
+            \Modules\Gamification\Console\RetroactiveBadgeCheckCommand::class,
         ]);
     }
 

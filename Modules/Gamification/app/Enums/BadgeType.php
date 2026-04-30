@@ -19,7 +19,7 @@ enum BadgeType: string
 
     public static function rule(): string
     {
-        return 'in:'.implode(',', self::values());
+        return 'in:' . implode(',', self::values());
     }
 
     public function label(): string
