@@ -39,7 +39,7 @@ interface EnrollmentServiceInterface
 
     public function bulkRemove(array $enrollments): array;
 
-    public function getEnrollmentsAuthorizedFor(User $user, array $enrollmentIds, string $ability): array;
+    public function getEnrollmentsAuthorizedFor(User $user, array $enrollmentIds, string $ability, array $allowedStatuses = []): array;
 
     public function isUserEnrolledInCourse(int $userId, int $courseId): bool;
 

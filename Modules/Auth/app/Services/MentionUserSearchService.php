@@ -63,7 +63,7 @@ class MentionUserSearchService
             ->pluck('user_id')
             ->toArray();
 
-        $adminIds = $course->admins()->pluck('users.id')->toArray();
+        $adminIds = $course->instructors()->pluck('users.id')->toArray();
 
         $ids = array_merge($enrolledIds, $adminIds);
 

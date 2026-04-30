@@ -56,7 +56,7 @@ class EnrollmentReportService implements EnrollmentReportServiceInterface
             $courseIds = Course::query()
                 ->where(function ($q) use ($user) {
                     $q->where('instructor_id', $user->id)
-                        ->orWhereHas('admins', fn ($aq) => $aq->where('user_id', $user->id));
+                        ->orWhereHas('instructors', fn ($aq) => $aq->where('user_id', $user->id));
                 })
                 ->pluck('id');
             $query->whereIn('course_id', $courseIds);

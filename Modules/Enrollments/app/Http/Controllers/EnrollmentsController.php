@@ -204,7 +204,12 @@ class EnrollmentsController extends Controller
     {
         $data = $request->validated();
         $actor = auth('api')->user();
-        $enrollments = $this->service->getEnrollmentsAuthorizedFor($actor, $data['enrollment_ids'], 'approve');
+        $enrollments = $this->service->getEnrollmentsAuthorizedFor(
+            $actor,
+            $data['enrollment_ids'],
+            'approve',
+            [\Modules\Enrollments\Enums\EnrollmentStatus::Pending->value]
+        );
         $result = $this->service->bulkApprove($enrollments);
 
         return $this->success([
@@ -217,7 +222,12 @@ class EnrollmentsController extends Controller
     {
         $data = $request->validated();
         $actor = auth('api')->user();
-        $enrollments = $this->service->getEnrollmentsAuthorizedFor($actor, $data['enrollment_ids'], 'decline');
+        $enrollments = $this->service->getEnrollmentsAuthorizedFor(
+            $actor,
+            $data['enrollment_ids'],
+            'decline',
+            [\Modules\Enrollments\Enums\EnrollmentStatus::Pending->value]
+        );
         $result = $this->service->bulkDecline($enrollments);
 
         return $this->success([
@@ -230,7 +240,15 @@ class EnrollmentsController extends Controller
     {
         $data = $request->validated();
         $actor = auth('api')->user();
-        $enrollments = $this->service->getEnrollmentsAuthorizedFor($actor, $data['enrollment_ids'], 'remove');
+        $enrollments = $this->service->getEnrollmentsAuthorizedFor(
+            $actor,
+            $data['enrollment_ids'],
+            'remove',
+            [
+                \Modules\Enrollments\Enums\EnrollmentStatus::Pending->value,
+                \Modules\Enrollments\Enums\EnrollmentStatus::Active->value,
+            ]
+        );
         $result = $this->service->bulkRemove($enrollments);
 
         return $this->success([

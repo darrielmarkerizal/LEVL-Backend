@@ -209,16 +209,21 @@ class EnrollmentService implements EnrollmentServiceInterface
         return $this->bulkAction($enrollments, 'remove');
     }
 
-    public function getEnrollmentsAuthorizedFor(User $user, array $enrollmentIds, string $ability): array
+    public function getEnrollmentsAuthorizedFor(User $user, array $enrollmentIds, string $ability, array $allowedStatuses = []): array
     {
         $gate = Gate::forUser($user);
-        $enrollments = Enrollment::query()
+        $query = Enrollment::query()
             ->whereIn('id', $enrollmentIds)
             ->with([
                 'course:id,instructor_id',
-                'course.admins:id',
-            ])
-            ->get();
+                'course.instructors:id',
+            ]);
+
+        if (! empty($allowedStatuses)) {
+            $query->whereIn('status', $allowedStatuses);
+        }
+
+        $enrollments = $query->get();
 
         return $enrollments
             ->filter(fn (Enrollment $enrollment) => $gate->allows($ability, $enrollment))
