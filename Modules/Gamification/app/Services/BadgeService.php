@@ -68,6 +68,11 @@ class BadgeService implements BadgeServiceInterface
 
             cache()->tags(['common', 'badges'])->flush();
 
+            \Illuminate\Support\Facades\Artisan::queue('gamification:check-retroactive', [
+                '--badge' => $badge->id,
+                '--force' => true,
+            ]);
+
             return $badge->fresh();
         });
     }
@@ -95,6 +100,11 @@ class BadgeService implements BadgeServiceInterface
 
         cache()->tags(['common', 'badges'])->flush();
 
+        \Illuminate\Support\Facades\Artisan::queue('gamification:check-retroactive', [
+            '--badge' => $badge->id,
+            '--force' => true,
+        ]);
+
         return $badge->fresh();
     }
 
@@ -121,6 +131,11 @@ class BadgeService implements BadgeServiceInterface
             $this->handleMedia($updated, $files);
 
             cache()->tags(['common', 'badges'])->flush();
+
+            \Illuminate\Support\Facades\Artisan::queue('gamification:check-retroactive', [
+                '--badge' => $updated->id,
+                '--force' => true,
+            ]);
 
             return $updated->fresh();
         });
