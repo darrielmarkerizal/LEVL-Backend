@@ -14,7 +14,7 @@ class BadgeStoreRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return auth('api')->check() && auth('api')->user()->hasRole('Superadmin');
+        return auth('api')->check() && (auth('api')->user()->hasRole('Superadmin') || auth('api')->user()->hasRole('Admin'));
     }
 
     public function rules(): array
