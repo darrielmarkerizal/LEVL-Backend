@@ -108,7 +108,7 @@ class EnrollmentService implements EnrollmentServiceInterface
             ->where('user_id', $student->id)
             ->where('status', EnrollmentStatus::Pending)
             ->with([
-                'course:id,title,slug,code,description,status',
+                'course:id,title,slug,code,short_desc,status',
                 'course.instructor:id,name,email',
             ])
             ->orderBy('created_at', 'desc')
@@ -122,7 +122,7 @@ class EnrollmentService implements EnrollmentServiceInterface
             ->where('user_id', $student->id)
             ->where('status', EnrollmentStatus::Pending)
             ->with([
-                'course:id,title,slug,code,description,status',
+                'course:id,title,slug,code,short_desc,status',
                 'course.instructor:id,name,email',
             ])
             ->first();
