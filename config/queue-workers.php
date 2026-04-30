@@ -37,6 +37,17 @@ return [
             'max_time' => 3600,
         ],
 
+        'gamification' => [
+            'queue' => 'gamification',
+            'processes' => env('QUEUE_GAMIFICATION_PROCESSES', 1),
+            'tries' => 3,
+            'timeout' => 120,
+            'memory' => 256,
+            'sleep' => 3,
+            'max_jobs' => 1000,
+            'max_time' => 3600,
+        ],
+
         'default' => [
             'queue' => 'default',
             'processes' => env('QUEUE_DEFAULT_PROCESSES', 1),
@@ -50,6 +61,6 @@ return [
 
     ],
 
-    'combined_queue_order' => 'emails-critical,emails-transactional,grading,notifications,file-processing,trash,logging,audit,default',
+    'combined_queue_order' => 'emails-critical,emails-transactional,grading,notifications,file-processing,trash,logging,audit,gamification,default',
 
 ];

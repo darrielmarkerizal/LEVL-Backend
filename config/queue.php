@@ -17,6 +17,7 @@ return [
         'trash' => env('QUEUE_TRASH', 'trash'),
         'logging' => env('QUEUE_LOGGING', 'logging'),
         'audit' => env('QUEUE_AUDIT', 'audit'),
+        'gamification' => env('QUEUE_GAMIFICATION', 'gamification'),
         'default' => env('QUEUE_DEFAULT', 'default'),
     ],
 
