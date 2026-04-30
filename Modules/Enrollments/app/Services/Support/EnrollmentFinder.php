@@ -484,7 +484,7 @@ class EnrollmentFinder
             ->where(function ($query) use ($user) {
                 $query
                     ->where('instructor_id', $user->id)
-                    ->orWhereHas('admins', function ($adminQuery) use ($user) {
+                    ->orWhereHas('instructors', function ($adminQuery) use ($user) {
                         $adminQuery->where('user_id', $user->id);
                     });
             })

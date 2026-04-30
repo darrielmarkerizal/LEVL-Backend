@@ -57,9 +57,12 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->whereNumber('enrollment')
             ->name('courses.enrollments.show');
 
-        Route::get('enrollments', [EnrollmentsController::class, 'index'])->name('enrollments.index');
+        Route::get('enrollments', [EnrollmentsController::class, 'index'])
+            ->middleware('role:Superadmin|Admin|Student')
+            ->name('enrollments.index');
         Route::get('enrollments/{enrollment}', [EnrollmentsController::class, 'show'])
             ->whereNumber('enrollment')
+            ->middleware('role:Superadmin|Admin|Student')
             ->name('enrollments.show');
         Route::get('enrollments/{enrollment}/activities', [EnrollmentsController::class, 'activities'])
             ->whereNumber('enrollment')
