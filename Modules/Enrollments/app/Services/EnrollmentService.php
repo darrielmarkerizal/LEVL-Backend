@@ -110,6 +110,7 @@ class EnrollmentService implements EnrollmentServiceInterface
             ->with([
                 'course:id,title,slug,code,short_desc,status',
                 'course.instructor:id,name,email',
+                'course.instructors:id,name,email',
             ])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
@@ -124,6 +125,7 @@ class EnrollmentService implements EnrollmentServiceInterface
             ->with([
                 'course:id,title,slug,code,short_desc,status',
                 'course.instructor:id,name,email',
+                'course.instructors:id,name,email',
             ])
             ->first();
     }

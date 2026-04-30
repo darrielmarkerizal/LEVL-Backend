@@ -23,21 +23,33 @@ class EnrollmentInvitationResource extends JsonResource
                     'title' => $this->course->title,
                     'slug' => $this->course->slug,
                     'code' => $this->course->code ?? null,
-                    'description' => $this->course->description ?? null,
+                    'description' => $this->course->short_desc ?? null,
                     'status' => $this->course->status ?? null,
                 ];
             }),
 
-            'instructor' => $this->whenLoaded('course', function () {
+            'instructor_list' => $this->whenLoaded('course', function () {
+                $instructors = collect([]);
+
                 if ($this->course && $this->course->relationLoaded('instructor') && $this->course->instructor) {
-                    return [
+                    $instructors->push([
                         'id' => $this->course->instructor->id,
                         'name' => $this->course->instructor->name,
                         'email' => $this->course->instructor->email,
-                    ];
+                    ]);
                 }
 
-                return null;
+                if ($this->course && $this->course->relationLoaded('instructors') && $this->course->instructors) {
+                    foreach ($this->course->instructors as $inst) {
+                        $instructors->push([
+                            'id' => $inst->id,
+                            'name' => $inst->name,
+                            'email' => $inst->email,
+                        ]);
+                    }
+                }
+
+                return $instructors->unique('id')->values()->all();
             }),
         ];
     }
