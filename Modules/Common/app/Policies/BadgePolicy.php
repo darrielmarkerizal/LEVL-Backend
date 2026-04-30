@@ -21,16 +21,16 @@ class BadgePolicy
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['Superadmin', 'Admin']);
+        return $user->hasRole('Superadmin') || $user->hasRole('Admin');
     }
 
     public function update(User $user, Badge $badge): bool
     {
-        return $user->hasAnyRole(['Superadmin', 'Admin']);
+        return $user->hasRole('Superadmin') || $user->hasRole('Admin');
     }
 
     public function delete(User $user, Badge $badge): bool
     {
-        return $user->hasAnyRole(['Superadmin', 'Admin']);
+        return $user->hasRole('Superadmin') || $user->hasRole('Admin');
     }
 }
