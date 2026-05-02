@@ -272,7 +272,9 @@ class GamificationService implements GamificationServiceInterface
             'activity' => [
                 'current_streak' => $stats->current_streak,
                 'longest_streak' => $stats->longest_streak,
-                'total_course_enrolled' => \Modules\Enrollments\Models\Enrollment::where('user_id', $userId)->count(),
+                'total_course_enrolled' => \Modules\Enrollments\Models\Enrollment::where('user_id', $userId)
+                    ->whereIn('status', ['active', 'completed'])
+                    ->count(),
             ],
         ];
     }
