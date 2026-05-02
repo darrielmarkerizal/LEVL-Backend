@@ -539,16 +539,32 @@ GET {{url}}/api/v1/user/gamification-summary
   "success": true,
   "message": "Ringkasan gamifikasi berhasil diambil.",
   "data": {
-    "total_xp": 1200,
-    "current_level": 7,
-    "tier": 1,
-    "level_name": "Pemula VII",
-    "xp_to_next_level": 200,
-    "progress_percentage": 50,
-    "total_badges": 2,
-    "total_milestones": 3,
-    "rank": 5,
-    "period": "all_time"
+    "xp": {
+      "total": 1200,
+      "today": 50,
+      "this_week": 150,
+      "this_month": 400,
+      "period": 1200
+    },
+    "level": {
+      "current": 7,
+      "name": "Pemula VII",
+      "progress_percentage": 50,
+      "xp_to_next_level": 200
+    },
+    "badges": {
+      "total_earned": 2,
+      "period_earned": 2
+    },
+    "leaderboard": {
+      "global_rank": 5,
+      "total_students": 150
+    },
+    "activity": {
+      "current_streak": 3,
+      "longest_streak": 10,
+      "total_course_enrolled": 4
+    }
   },
   "meta": null,
   "errors": null
