@@ -281,7 +281,7 @@ class GamificationService implements GamificationServiceInterface
 
     private function getPeriodXp(int $userId, string $period, ?string $month = null): int
     {
-        $query = \Modules\Gamification\Models\Point::where('user_id', $userId);
+        $query = Point::where('user_id', $userId);
 
         
         if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
