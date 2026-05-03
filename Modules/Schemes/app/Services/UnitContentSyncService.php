@@ -12,7 +12,14 @@ class UnitContentSyncService
     public function register(string $type, int $contentId, int $unitId, ?int $order = null): UnitContent
     {
         return DB::transaction(function () use ($type, $contentId, $unitId, $order) {
-            $order = $order ?? $this->getNextOrder($unitId);
+            if ($order !== null) {
+                UnitContent::where('unit_id', $unitId)
+                    ->where('order', '>=', $order)
+                    ->lockForUpdate()
+                    ->increment('order');
+            } else {
+                $order = $this->getNextOrder($unitId);
+            }
 
             $uc = UnitContent::create([
                 'unit_id' => $unitId,
@@ -30,35 +37,45 @@ class UnitContentSyncService
     public function reorder(int $unitId, array $contentOrder): array
     {
         return DB::transaction(function () use ($unitId, $contentOrder) {
-            // Temporary: set all orders to negative to avoid unique constraint conflicts
-            UnitContent::where('unit_id', $unitId)
-                ->update(['order' => DB::raw('-1 * id')]);
+            $items = UnitContent::where('unit_id', $unitId)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy(fn ($item) => $item->contentable_type . '-' . $item->contentable_id);
+
+            $usedKeys = [];
 
             foreach ($contentOrder as $index => $item) {
+                $key = $item['type'] . '-' . $item['id'];
+
+                if (!isset($items[$key])) {
+                    continue;
+                }
+
                 $newOrder = $index + 1;
 
-                UnitContent::where('unit_id', $unitId)
-                    ->where('contentable_type', $item['type'])
-                    ->where('contentable_id', $item['id'])
-                    ->update(['order' => $newOrder]);
+                $items[$key]->update(['order' => $newOrder]);
 
                 $this->syncOrderToModel($item['type'], (int) $item['id'], $newOrder);
+
+                $usedKeys[] = $key;
             }
 
-            $nextOrder = UnitContent::where('unit_id', $unitId)
-                ->where('order', '>', 0)
-                ->max('order') ?? 0;
+            $nextOrder = count($usedKeys);
 
-            $remaining = UnitContent::where('unit_id', $unitId)
-                ->where('order', '<', 0)
-                ->orderBy('order')
-                ->get();
+            foreach ($items as $key => $item) {
+                if (in_array($key, $usedKeys, true)) {
+                    continue;
+                }
 
-            foreach ($remaining as $uc) {
                 $nextOrder++;
-                $uc->order = $nextOrder;
-                $uc->save();
-                $this->syncOrderToModel($uc->contentable_type, (int) $uc->contentable_id, $uc->order);
+
+                $item->update(['order' => $nextOrder]);
+
+                $this->syncOrderToModel(
+                    $item->contentable_type,
+                    (int) $item->contentable_id,
+                    $nextOrder
+                );
             }
 
             return UnitContent::where('unit_id', $unitId)
@@ -105,20 +122,21 @@ class UnitContentSyncService
     public function reindexUnit(int $unitId): void
     {
         DB::transaction(function () use ($unitId) {
-            $items = UnitContent::where('unit_id', $unitId)->orderBy('order')->get();
-
-            if ($items->isEmpty()) {
-                return;
-            }
-
-            // Temporary negative to avoid unique constraint
-            UnitContent::where('unit_id', $unitId)
-                ->update(['order' => DB::raw('-1 * id')]);
+            $items = UnitContent::where('unit_id', $unitId)
+                ->orderBy('order')
+                ->lockForUpdate()
+                ->get();
 
             foreach ($items->values() as $index => $item) {
                 $newOrder = $index + 1;
+
                 $item->update(['order' => $newOrder]);
-                $this->syncOrderToModel($item->contentable_type, $item->contentable_id, $newOrder);
+
+                $this->syncOrderToModel(
+                    $item->contentable_type,
+                    (int) $item->contentable_id,
+                    $newOrder
+                );
             }
         });
     }
