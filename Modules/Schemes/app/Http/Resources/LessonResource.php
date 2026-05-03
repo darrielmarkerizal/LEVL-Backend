@@ -117,7 +117,7 @@ class LessonResource extends JsonResource
 
         return $course->enrollments()
             ->where('user_id', $user->id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->exists();
     }
 

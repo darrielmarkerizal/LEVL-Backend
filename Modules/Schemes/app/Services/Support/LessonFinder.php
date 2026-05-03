@@ -74,19 +74,22 @@ class LessonFinder
                 throw new \App\Exceptions\BusinessException(__('messages.enrollments.not_enrolled'), [], 403);
             }
 
-            $unit = $lesson->unit()->first();
-            if (! $unit) {
-                throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), [], 403);
-            }
+            // Lesson yang sudah diselesaikan selalu bisa diakses kembali
+            if (! $lesson->isCompletedBy($user->id)) {
+                $unit = $lesson->unit()->first();
+                if (! $unit) {
+                    throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), [], 403);
+                }
 
-            $unitAccess = $this->prerequisiteService->checkUnitAccess($unit, $user->id);
-            if (! ($unitAccess['accessible'] ?? false)) {
-                throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), [], 403);
-            }
+                $unitAccess = $this->prerequisiteService->checkUnitAccess($unit, $user->id);
+                if (! ($unitAccess['accessible'] ?? false)) {
+                    throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), [], 403);
+                }
 
-            $lessonAccess = $this->prerequisiteService->checkLessonAccess($lesson, $user->id);
-            if (! ($lessonAccess['accessible'] ?? false)) {
-                throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), [], 403);
+                $lessonAccess = $this->prerequisiteService->checkLessonAccess($lesson, $user->id);
+                if (! ($lessonAccess['accessible'] ?? false)) {
+                    throw new \App\Exceptions\BusinessException(__('messages.lessons.locked_prerequisite'), [], 403);
+                }
             }
         }
 
