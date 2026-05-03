@@ -153,13 +153,15 @@ class CourseResource extends JsonResource
 
         
         $completedQuizzes = \Modules\Learning\Models\QuizSubmission::where('user_id', $enrollment->user_id)
+            ->whereIn('status', ['graded', 'released'])
+            ->whereNotNull('final_score')
             ->whereHas('quiz', function ($q) use ($courseId) {
                 $q->whereHas('unit', function ($unitQuery) use ($courseId) {
                     $unitQuery->where('course_id', $courseId);
                 })
-                    ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
-                    ->whereRaw('quiz_submissions.score >= quizzes.passing_grade');
+                    ->where('status', \Modules\Learning\Enums\QuizStatus::Published);
             })
+            ->whereRaw('final_score >= (select passing_grade from quizzes where quizzes.id = quiz_submissions.quiz_id)')
             ->distinct('quiz_id')
             ->count('quiz_id');
 

@@ -6,6 +6,7 @@ namespace Modules\Gamification\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Modules\Common\Models\SystemSetting;
 use Modules\Gamification\Models\Point;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
@@ -56,9 +57,11 @@ class AwardXpForAssignmentSubmitted implements ShouldQueue
             ->exists();
 
         if (! $existingXp) {
+            $xpSubmitted = (int) SystemSetting::get('gamification.points.assignment_submitted', 5);
+
             $this->gamification->awardXp(
                 $userId,
-                0,
+                $xpSubmitted,
                 'assignment_submitted',
                 'assignment',
                 $assignmentId,
@@ -69,9 +72,11 @@ class AwardXpForAssignmentSubmitted implements ShouldQueue
 
             $isFirst = $this->checkIfFirstSubmission($assignmentId, $userId);
             if ($isFirst) {
+                $xpFirst = (int) SystemSetting::get('gamification.points.first_submission', 10);
+
                 $this->gamification->awardXp(
                     $userId,
-                    0,
+                    $xpFirst,
                     'first_submission',
                     'assignment',
                     $assignmentId,
@@ -117,14 +122,17 @@ class AwardXpForAssignmentSubmitted implements ShouldQueue
             $passingGrade = (float) $submission->assignment->passing_grade;
 
             if ($score >= $passingGrade) {
+                $xpCompleted = (int) SystemSetting::get('gamification.points.assignment_completed', 20);
+
                 $this->gamification->awardXp(
                     $userId,
-                    0,
+                    $xpCompleted,
                     'assignment_completed',
                     'assignment',
                     $assignmentId,
                     [
                         'description' => sprintf('Passed auto-graded assignment: %s', $submission->assignment->title),
+                        'allow_multiple' => false,
                     ]
                 );
             }

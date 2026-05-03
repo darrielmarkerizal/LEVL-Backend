@@ -11,27 +11,17 @@ use Modules\Gamification\Models\BadgeRule;
 
 class RetroactiveBadgeCheckCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+    
     protected $signature = 'gamification:check-retroactive 
                             {--event= : Filter by specific event trigger (e.g. quiz_passed)} 
                             {--badge= : Filter by specific badge ID} 
                             {--user= : Filter by specific user ID}
                             {--force : Force execution without asking for confirmation}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+    
     protected $description = 'Retroactively evaluate and assign gamification badges to eligible users.';
 
-    /**
-     * Execute the console command.
-     */
+    
     public function handle(): int
     {
         $eventId = $this->option('event');
@@ -47,7 +37,7 @@ class RetroactiveBadgeCheckCommand extends Command
             }
         }
 
-        // Validate badge if provided
+        
         if ($badgeId) {
             $ruleExists = BadgeRule::where('badge_id', $badgeId)->exists();
             if (! $ruleExists) {
@@ -58,8 +48,8 @@ class RetroactiveBadgeCheckCommand extends Command
 
         $query = User::query()->where('status', 'active');
 
-        // Focus mainly on roles that usually receive gamification points
-        // Assuming students/asesi are the primary audience
+        
+        
         $query->whereHas('roles', function ($q) {
             $q->whereIn('name', ['Student', 'Asesi']);
         });

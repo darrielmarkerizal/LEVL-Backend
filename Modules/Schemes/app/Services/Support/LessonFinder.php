@@ -74,7 +74,7 @@ class LessonFinder
                 throw new \App\Exceptions\BusinessException(__('messages.enrollments.not_enrolled'), [], 403);
             }
 
-            // Lesson yang sudah diselesaikan selalu bisa diakses kembali
+            
             if (! $lesson->isCompletedBy($user->id)) {
                 $unit = $lesson->unit()->first();
                 if (! $unit) {

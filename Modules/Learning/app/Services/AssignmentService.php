@@ -169,7 +169,7 @@ class AssignmentService implements AssignmentServiceInterface
     public function publish(Assignment $assignment): Assignment
     {
         return DB::transaction(function () use ($assignment) {
-            // Validasi bobot hanya diperlukan untuk Assignment bertipe Quiz yang punya pertanyaan
+            
             if ($assignment->isQuiz()) {
                 $stats = \Modules\Learning\Services\QuestionService::computeWeightStats($assignment->id);
                 if ($stats['exceeds'] ?? false) {

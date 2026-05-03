@@ -54,7 +54,7 @@ class ProgressionGatekeeper
 
     public function canAccessLesson(Lesson $lesson, Enrollment $enrollment): bool
     {
-        // Lesson yang sudah diselesaikan selalu bisa diakses kembali
+        
         if ($lesson->isCompletedBy($enrollment->user_id)) {
             return true;
         }

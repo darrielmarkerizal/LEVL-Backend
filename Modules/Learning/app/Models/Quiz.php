@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Common\Traits\PgSearchable;
 use Modules\Learning\Enums\QuizStatus;
+use Modules\Learning\Enums\QuizQuestionType;
 use Modules\Learning\Enums\RandomizationType;
 use Modules\Learning\Enums\ReviewMode;
 use Spatie\MediaLibrary\HasMedia;
@@ -99,17 +100,17 @@ class Quiz extends Model implements HasMedia
 
     public function hasOnlyObjectiveQuestions(): bool
     {
-        return $this->questions()->where('type', 'essay')->doesntExist();
+        return $this->questions()->where('type', QuizQuestionType::Essay->value)->doesntExist();
     }
 
     public function hasEssayQuestions(): bool
     {
-        return $this->questions()->where('type', 'essay')->exists();
+        return $this->questions()->where('type', QuizQuestionType::Essay->value)->exists();
     }
 
     public function hasOnlyEssayQuestions(): bool
     {
-        return $this->questions()->whereNotIn('type', ['essay'])->doesntExist();
+        return $this->questions()->whereNotIn('type', [QuizQuestionType::Essay->value])->doesntExist();
     }
 
     public function hasObjectiveAndEssay(): bool

@@ -35,7 +35,7 @@ enum QuizGradingStatus: string
 
     public function isFinal(): bool
     {
-        return $this === self::Graded;
+        return in_array($this, [self::Graded, self::Released], true);
     }
 
     public function needsManualGrading(): bool

@@ -15,6 +15,7 @@ class GradingStrategyFactory
             QuestionType::MultipleChoice => new MultipleChoiceGradingStrategy,
             QuestionType::Checkbox => new CheckboxGradingStrategy,
             QuestionType::Essay, QuestionType::FileUpload => new ManualGradingStrategy,
+            default => throw new \InvalidArgumentException("No grading strategy defined for question type: {$type->value}"),
         };
     }
 }

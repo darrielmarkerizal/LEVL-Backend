@@ -432,7 +432,7 @@ class UnitService
             } elseif ($type === 'quiz') {
                 $submission = $submissionsByQuiz[$item->id] ?? null;
                 $finalScore = $submission ? ($submission->final_score ?? $submission->score) : null;
-                $isPassed = $submission && $submission->status->value === 'graded' && $finalScore !== null && $finalScore >= $item->passing_grade;
+                $isPassed = $submission && in_array($submission->status->value, ['graded', 'released']) && $finalScore !== null && $finalScore >= $item->passing_grade;
 
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 

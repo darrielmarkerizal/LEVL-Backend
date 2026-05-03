@@ -271,7 +271,7 @@ class PrerequisiteService
         $completedQuizzes = $quizIds->isNotEmpty()
             ? \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
                 ->whereIn('quiz_id', $quizIds)
-                ->where('status', 'graded')
+                ->whereIn('status', ['graded', 'released'])
                 ->whereNotNull('final_score')
                 ->whereRaw('final_score >= (select passing_grade from quizzes where quizzes.id = quiz_submissions.quiz_id)')
                 ->distinct('quiz_id')
@@ -345,7 +345,7 @@ class PrerequisiteService
                 ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
             )
             ->whereNotNull('final_score')
-            ->where('status', 'graded')
+            ->whereIn('status', ['graded', 'released'])
             ->whereRaw('final_score >= (select passing_grade from quizzes where quizzes.id = quiz_submissions.quiz_id)')
             ->distinct('quiz_id')
             ->count('quiz_id');
@@ -505,7 +505,7 @@ class PrerequisiteService
     {
         $highestSubmission = $quiz->submissions()
             ->where('user_id', $userId)
-            ->where('status', 'graded')
+            ->whereIn('status', ['graded', 'released'])
             ->whereNotNull('final_score')
             ->orderByDesc('final_score')
             ->first();

@@ -66,6 +66,29 @@ class HandleLevelUp implements ShouldQueue
 
     private function awardRewards(UserLeveledUp $event): void
     {
-        //
+        foreach ($event->rewards as $reward) {
+            $type = $reward['type'] ?? null;
+
+            if ($type === 'badge' && ! empty($reward['badge_code'])) {
+                $this->badgeManager->awardBadge(
+                    $event->userId,
+                    $reward['badge_code'],
+                    $reward['badge_name'] ?? "Level {$event->newLevel} Badge",
+                    $reward['badge_description'] ?? null,
+                );
+            } elseif ($type === 'xp' && ! empty($reward['amount'])) {
+                $this->pointManager->awardXp(
+                    $event->userId,
+                    (int) $reward['amount'],
+                    'level_up_reward',
+                    'system',
+                    null,
+                    [
+                        'description' => "Level {$event->newLevel} reward",
+                        'metadata' => ['level' => $event->newLevel],
+                    ]
+                );
+            }
+        }
     }
 }

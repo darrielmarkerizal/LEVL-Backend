@@ -24,7 +24,7 @@ class UpdateQuizQuestionRequest extends FormRequest
             'options' => ['nullable', 'array', 'min:2'],
             'options.*.text' => ['nullable', 'string'],
             'options.*.image' => ['nullable', 'file', 'image'],
-            // true_false uses [0] or [1]; others use array of option indices
+            
             'answer_key' => ['nullable'],
             'answer_key.*' => ['integer', 'min:0'],
             'weight' => ['nullable', 'numeric', 'min:0.01'],
@@ -38,7 +38,7 @@ class UpdateQuizQuestionRequest extends FormRequest
         $type = $this->input('type');
         $answerKey = $this->input('answer_key');
 
-        // Wrap single value answer_key into array for multiple_choice (handles string "1" from form-data)
+        
         if ($type === QuizQuestionType::MultipleChoice->value && ! is_array($answerKey) && $answerKey !== null) {
             $this->merge(['answer_key' => [(int) $answerKey]]);
         }
@@ -64,7 +64,7 @@ class UpdateQuizQuestionRequest extends FormRequest
         $validator->after(function ($validator) {
             $typeInput = $this->input('type');
 
-            // Resolve type: from input or from existing question via route
+            
             if ($typeInput) {
                 try {
                     $questionType = QuizQuestionType::from($typeInput);
@@ -81,7 +81,7 @@ class UpdateQuizQuestionRequest extends FormRequest
                     : QuizQuestionType::from($question->type);
             }
 
-            // Resolve options: from input or from existing question
+            
             $options = $this->input('options');
             if ($options === null) {
                 $question = $question ?? $this->route('question');
@@ -89,7 +89,7 @@ class UpdateQuizQuestionRequest extends FormRequest
             }
             $optionCount = count($options);
 
-            // answer_key indices must be valid
+            
             if ($this->has('answer_key') && $questionType->canAutoGrade()) {
                 if ($questionType === QuizQuestionType::TrueFalse) {
                     $answerKey = $this->input('answer_key');
@@ -118,8 +118,8 @@ class UpdateQuizQuestionRequest extends FormRequest
                 }
             }
 
-            // max_score not applicable for auto-graded types — silently ignored
-            // (max_score will be set equal to weight automatically)
+            
+            
         });
     }
 }

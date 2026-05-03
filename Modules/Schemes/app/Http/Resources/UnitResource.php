@@ -149,7 +149,7 @@ class UnitResource extends JsonResource
         }
 
         $completedItems = $summary['completed_items'];
-        $percentage = $totalContent > 0 ? round(($completedItems / $totalContent) * 100, 2) : 0;
+        $percentage = round(($completedItems / $totalContent) * 100, 2);
         $status = $this->resolveProgressStatus($completedItems, $totalContent, $unitProgress?->status);
 
         return [
@@ -167,20 +167,21 @@ class UnitResource extends JsonResource
             return ProgressStatus::NotStarted->value;
         }
 
+        
+        
+        
+        
+        
         if ($completedItems >= $totalItems) {
-            return ProgressStatus::Completed->value;
-        }
-
-        if ($persistedStatus instanceof ProgressStatus && $persistedStatus === ProgressStatus::Completed) {
-            return ProgressStatus::Completed->value;
-        }
-
-        if ($persistedStatus instanceof ProgressStatus && $persistedStatus === ProgressStatus::InProgress) {
+            
+            if ($persistedStatus instanceof ProgressStatus && $persistedStatus === ProgressStatus::Completed) {
+                return ProgressStatus::Completed->value;
+            }
+            if (is_string($persistedStatus) && $persistedStatus === ProgressStatus::Completed->value) {
+                return ProgressStatus::Completed->value;
+            }
+            
             return ProgressStatus::InProgress->value;
-        }
-
-        if (is_string($persistedStatus) && $persistedStatus === ProgressStatus::Completed->value) {
-            return ProgressStatus::Completed->value;
         }
 
         return ProgressStatus::InProgress->value;

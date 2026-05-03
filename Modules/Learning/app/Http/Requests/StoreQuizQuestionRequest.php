@@ -23,7 +23,7 @@ class StoreQuizQuestionRequest extends FormRequest
             'options' => ['nullable', 'array', 'min:2'],
             'options.*.text' => ['nullable', 'string'],
             'options.*.image' => ['nullable', 'file', 'image'],
-            // true_false uses [0] or [1]; others use array of option indices
+            
             'answer_key' => ['nullable'],
             'answer_key.*' => ['integer', 'min:0'],
             'weight' => ['nullable', 'numeric', 'min:0.01'],
@@ -37,7 +37,7 @@ class StoreQuizQuestionRequest extends FormRequest
         $type = $this->input('type');
         $answerKey = $this->input('answer_key');
 
-        // Wrap single value answer_key into array for multiple_choice (handles string "1" from form-data)
+        
         if ($type === QuizQuestionType::MultipleChoice->value && ! is_array($answerKey) && $answerKey !== null) {
             $this->merge(['answer_key' => [(int) $answerKey]]);
         }
@@ -64,7 +64,7 @@ class StoreQuizQuestionRequest extends FormRequest
                 return;
             }
 
-            // Options must have at least 2 items for types that require options
+            
             if ($questionType->requiresOptions()) {
                 $options = $this->input('options', []);
                 if (count($options) < 2) {
@@ -72,7 +72,7 @@ class StoreQuizQuestionRequest extends FormRequest
                 }
             }
 
-            // answer_key required for auto-gradable types
+            
             if ($questionType->canAutoGrade()) {
                 $answerKey = $this->input('answer_key');
 
@@ -90,7 +90,7 @@ class StoreQuizQuestionRequest extends FormRequest
                     } elseif (! is_array($answerKey)) {
                         $validator->errors()->add('answer_key', __('messages.questions.answer_key_required'));
                     } else {
-                        // answer_key indices must be valid option indices
+                        
                         $options = $this->input('options', []);
                         $optionCount = count($options);
                         foreach ($answerKey as $idx => $keyIndex) {
@@ -108,8 +108,8 @@ class StoreQuizQuestionRequest extends FormRequest
                 }
             }
 
-            // max_score not applicable for auto-graded types — silently ignored
-            // (max_score will be set equal to weight automatically)
+            
+            
         });
     }
 }

@@ -10,6 +10,6 @@ class UserObserver
 {
     public function created(User $user): void
     {
-        // Privacy settings removed
+        
     }
 }

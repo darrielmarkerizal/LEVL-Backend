@@ -45,9 +45,9 @@ class EvaluateRetroactiveBadgesJob implements ShouldQueue
                 continue;
             }
 
-            // Retroactive evaluation is generally safe for rules that only depend on the event counter
-            // For rules with complex conditions (like score >= 80), it requires payload context which we don't have.
-            // We'll skip rules that have condition requirements that can't be resolved without a payload context.
+            
+            
+            
             if (! empty($rule->conditions)) {
                 $hasPayloadConditions = false;
                 $payloadKeys = ['min_score', 'max_attempts', 'is_passed', 'max_duration_days', 'is_first_submission', 'is_weekend', 'time_before', 'time_after', 'level', 'course_slug'];
@@ -60,7 +60,7 @@ class EvaluateRetroactiveBadgesJob implements ShouldQueue
                 }
 
                 if ($hasPayloadConditions) {
-                    continue; // Skip because we cannot evaluate payload-dependent rules retroactively
+                    continue; 
                 }
             }
 
@@ -73,7 +73,7 @@ class EvaluateRetroactiveBadgesJob implements ShouldQueue
             );
 
             if ($counter >= $rule->badge->threshold) {
-                // Award Badge (idempotency is handled inside the badgeManager)
+                
                 $badgeManager->awardBadge(
                     $this->userId,
                     $rule->badge->code,

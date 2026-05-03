@@ -5,7 +5,9 @@ namespace Modules\Notifications\Providers;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Modules\Grading\Events\GradeRecalculated;
 use Modules\Grading\Events\GradesReleased;
+use Modules\Learning\Events\SubmissionCreated;
 use Modules\Learning\Events\SubmissionStateChanged;
+use Modules\Notifications\Listeners\NotifyInstructorOnSubmissionCreated;
 use Modules\Notifications\Listeners\NotifyOnGradeRecalculated;
 use Modules\Notifications\Listeners\NotifyOnGradesReleased;
 use Modules\Notifications\Listeners\NotifyOnSubmissionStateChanged;
@@ -17,6 +19,10 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         CourseCompleted::class => [
             NotifyUserOnCourseCompleted::class,
+        ],
+
+        SubmissionCreated::class => [
+            NotifyInstructorOnSubmissionCreated::class,
         ],
 
         SubmissionStateChanged::class => [

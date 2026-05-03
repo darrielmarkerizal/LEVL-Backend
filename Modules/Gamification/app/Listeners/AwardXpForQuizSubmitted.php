@@ -6,6 +6,7 @@ namespace Modules\Gamification\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Modules\Common\Models\SystemSetting;
 use Modules\Gamification\Models\Point;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
@@ -56,9 +57,11 @@ class AwardXpForQuizSubmitted implements ShouldQueue
             return;
         }
 
+        $xpAmount = (int) SystemSetting::get('gamification.points.quiz_submitted', 10);
+
         $this->gamification->awardXp(
             $userId,
-            0,
+            $xpAmount,
             'quiz_submitted',
             'quiz',
             $quizId,

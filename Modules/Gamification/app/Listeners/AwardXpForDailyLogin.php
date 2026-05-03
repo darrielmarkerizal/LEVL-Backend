@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Cache;
+use Modules\Common\Models\SystemSetting;
 use Modules\Gamification\Events\UserLoggedIn;
 use Modules\Gamification\Models\UserGamificationStat;
 use Modules\Gamification\Services\EventCounterService;
@@ -47,7 +48,7 @@ class AwardXpForDailyLogin implements ShouldQueue
 
         $this->gamification->awardXp(
             $userId,
-            0,
+            (int) SystemSetting::get('gamification.points.daily_login', 5),
             'daily_login',
             'system',
             null,
@@ -63,7 +64,7 @@ class AwardXpForDailyLogin implements ShouldQueue
             if ($currentStreak == 7) {
                 $this->gamification->awardXp(
                     $userId,
-                    0,
+                    (int) SystemSetting::get('gamification.points.streak_7_days', 50),
                     'streak_7_days',
                     'system',
                     null,
@@ -74,7 +75,7 @@ class AwardXpForDailyLogin implements ShouldQueue
             } elseif ($currentStreak == 30) {
                 $this->gamification->awardXp(
                     $userId,
-                    0,
+                    (int) SystemSetting::get('gamification.points.streak_30_days', 200),
                     'streak_30_days',
                     'system',
                     null,

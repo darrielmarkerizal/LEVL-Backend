@@ -34,8 +34,8 @@ class QuizQuestionService implements QuizQuestionServiceInterface
             $data['quiz_id'] = $quizId;
             $data['weight'] = $data['weight'] ?? $defaultWeight;
 
-            // For auto-graded types, max_score = weight (scoring uses weight, not max_score)
-            // For essay (manual grading), max_score is the instructor's grading ceiling
+            
+            
             $questionType = \Modules\Learning\Enums\QuizQuestionType::from($data['type']);
             if ($questionType->canAutoGrade()) {
                 $data['max_score'] = $data['weight'];
@@ -53,9 +53,9 @@ class QuizQuestionService implements QuizQuestionServiceInterface
                 unset($data['options']);
             }
 
-            // Auto-generate options for true_false
+            
             if ($questionType === \Modules\Learning\Enums\QuizQuestionType::TrueFalse) {
-                $options = null; // no options needed
+                $options = null; 
                 unset($data['options']);
             }
 

@@ -13,7 +13,8 @@ class EventServiceProvider extends ServiceProvider
             \Modules\Learning\Listeners\CheckHighScoreOnSubmissionStateChanged::class,
         ],
         \Modules\Learning\Events\SubmissionCreated::class => [
-
+            
+            
         ],
         \Modules\Learning\Events\AssignmentPublished::class => [
             \Modules\Learning\Listeners\NotifyEnrolledUsersOnAssignmentPublished::class,

@@ -85,6 +85,11 @@ class ProgressionService
         $this->stateProcessor->markUnitCompleted($unit, $enrollment);
     }
 
+    public function refreshUnitAndCourseProgress(Unit $unit, Enrollment $enrollment): void
+    {
+        $this->stateProcessor->refreshUnitAndCourseProgress($unit, $enrollment);
+    }
+
     public function canAccessLesson(Lesson $lesson, Enrollment $enrollment): bool
     {
         return $this->gatekeeper->canAccessLesson($lesson, $enrollment);

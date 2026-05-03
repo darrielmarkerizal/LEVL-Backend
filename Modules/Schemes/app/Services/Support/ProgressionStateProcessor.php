@@ -13,6 +13,13 @@ use Modules\Enrollments\Models\CourseProgress;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Enrollments\Models\LessonProgress;
 use Modules\Enrollments\Models\UnitProgress;
+use Modules\Learning\Enums\AssignmentStatus;
+use Modules\Learning\Enums\QuizStatus;
+use Modules\Learning\Enums\SubmissionStatus;
+use Modules\Learning\Models\Assignment;
+use Modules\Learning\Models\Quiz;
+use Modules\Learning\Models\QuizSubmission;
+use Modules\Learning\Models\Submission;
 use Modules\Schemes\Events\CourseCompleted;
 use Modules\Schemes\Events\UnitCompleted;
 use Modules\Schemes\Models\Course;
@@ -124,6 +131,32 @@ class ProgressionStateProcessor
         });
     }
 
+    
+    public function refreshUnitAndCourseProgress(Unit $unit, Enrollment $enrollment): void
+    {
+        DB::transaction(function () use ($unit, $enrollment) {
+            $unit->loadMissing([
+                'course',
+                'lessons' => function ($query) {
+                    $query->where('status', 'published')->orderBy('order');
+                },
+            ]);
+
+            if (! $unit->course) {
+                return;
+            }
+
+            $unitResult = $this->updateUnitProgress($unit, $enrollment, $unit->lessons);
+            $this->updateCourseProgress($unit->course, $enrollment);
+
+            DB::afterCommit(function () use ($unit, $enrollment, $unitResult) {
+                if ($unitResult['just_completed']) {
+                    \Modules\Schemes\Events\UnitCompleted::dispatch($unit, $enrollment->user_id, $enrollment->id);
+                }
+            });
+        });
+    }
+
     public function getCourseProgressData(Course $course, Enrollment $enrollment): array
     {
         $course->load([
@@ -207,13 +240,15 @@ class ProgressionStateProcessor
             $totalLessons = max(1, $lessons->count());
             $derivedUnitPercent = round(($completedLessonCount / $totalLessons) * 100, 2);
 
-            $unitStatus = $unitProgress->status ?? (
-                $lessons->isEmpty() ? ProgressStatus::Completed :
-                ($completedLessonCount === $lessons->count() ? ProgressStatus::Completed :
+            
+            
+            $unitStatus = $unitProgress?->status ?? (
+                $lessons->isEmpty() ? ProgressStatus::NotStarted :
+                ($completedLessonCount === $lessons->count() ? ProgressStatus::InProgress : 
                     ($completedLessonCount > 0 ? ProgressStatus::InProgress : ProgressStatus::NotStarted))
             );
 
-            $unitPercent = $unitProgress->progress_percent ?? $derivedUnitPercent;
+            $unitPercent = $unitProgress?->progress_percent ?? $derivedUnitPercent;
 
             if ($unitStatus === ProgressStatus::Completed) {
                 $completedUnitsCount++;
@@ -241,13 +276,14 @@ class ProgressionStateProcessor
         $totalUnits = max(1, $courseModel->units->count());
         $derivedCoursePercent = round(($completedUnitsCount / $totalUnits) * 100, 2);
 
-        $courseStatus = $courseProgress->status ?? (
-            $courseModel->units->isEmpty() ? ProgressStatus::Completed :
-            ($completedUnitsCount === $courseModel->units->count() ? ProgressStatus::Completed :
-                ($completedUnitsCount > 0 ? ProgressStatus::InProgress : ProgressStatus::NotStarted))
+        
+        
+        $courseStatus = $courseProgress?->status ?? (
+            $courseModel->units->isEmpty() ? ProgressStatus::NotStarted :
+            ($completedUnitsCount > 0 ? ProgressStatus::InProgress : ProgressStatus::NotStarted)
         );
 
-        $coursePercent = $courseProgress->progress_percent ?? $derivedCoursePercent;
+        $coursePercent = $courseProgress?->progress_percent ?? $derivedCoursePercent;
 
         return [
             'course' => [
@@ -294,28 +330,64 @@ class ProgressionStateProcessor
         $lessonIds = $lessonsCollection->pluck('id');
         $totalLessons = $lessonIds->count();
 
-        if ($totalLessons === 0) {
+        // Count published quizzes and assignments for this unit
+        $quizIds = Quiz::where('unit_id', $unit->id)
+            ->where('status', QuizStatus::Published)
+            ->pluck('id');
+
+        $assignmentIds = Assignment::where('unit_id', $unit->id)
+            ->where('status', AssignmentStatus::Published)
+            ->pluck('id');
+
+        $totalItems = $totalLessons + $quizIds->count() + $assignmentIds->count();
+        $userId = $enrollment->user_id;
+
+        if ($totalItems === 0) {
             $status = ProgressStatus::Completed;
             $progressPercent = 100;
         } else {
-            $completedLessons = LessonProgress::query()
-                ->where('enrollment_id', $enrollment->id)
-                ->whereIn('lesson_id', $lessonIds)
-                ->where('status', ProgressStatus::Completed->value)
-                ->count();
+            $completedLessons = $totalLessons > 0
+                ? LessonProgress::query()
+                    ->where('enrollment_id', $enrollment->id)
+                    ->whereIn('lesson_id', $lessonIds)
+                    ->where('status', ProgressStatus::Completed->value)
+                    ->count()
+                : 0;
 
-            $hasProgress = LessonProgress::query()
-                ->where('enrollment_id', $enrollment->id)
-                ->whereIn('lesson_id', $lessonIds)
-                ->whereIn('status', [ProgressStatus::InProgress->value, ProgressStatus::Completed->value])
-                ->exists();
+            $completedQuizzes = $quizIds->isNotEmpty()
+                ? QuizSubmission::where('user_id', $userId)
+                    ->whereIn('quiz_id', $quizIds)
+                    ->whereIn('status', ['graded', 'released'])
+                    ->whereNotNull('final_score')
+                    ->whereRaw('final_score >= (select passing_grade from quizzes where quizzes.id = quiz_submissions.quiz_id)')
+                    ->distinct('quiz_id')
+                    ->count('quiz_id')
+                : 0;
 
-            if ($forceComplete || $completedLessons === $totalLessons) {
+            $completedAssignments = $assignmentIds->isNotEmpty()
+                ? Submission::where('user_id', $userId)
+                    ->whereIn('assignment_id', $assignmentIds)
+                    ->where('status', SubmissionStatus::Graded)
+                    ->whereRaw('score >= (select COALESCE(passing_grade, max_score * 0.6) from assignments where assignments.id = submissions.assignment_id)')
+                    ->distinct('assignment_id')
+                    ->count('assignment_id')
+                : 0;
+
+            $completedItems = $completedLessons + $completedQuizzes + $completedAssignments;
+
+            $hasProgress = $completedItems > 0
+                || ($totalLessons > 0 && LessonProgress::query()
+                    ->where('enrollment_id', $enrollment->id)
+                    ->whereIn('lesson_id', $lessonIds)
+                    ->whereIn('status', [ProgressStatus::InProgress->value, ProgressStatus::Completed->value])
+                    ->exists());
+
+            if ($forceComplete || $completedItems === $totalItems) {
                 $status = ProgressStatus::Completed;
                 $progressPercent = 100;
-            } elseif ($hasProgress || $completedLessons > 0) {
+            } elseif ($hasProgress) {
                 $status = ProgressStatus::InProgress;
-                $progressPercent = round(($completedLessons / $totalLessons) * 100, 2);
+                $progressPercent = round(($completedItems / $totalItems) * 100, 2);
             } else {
                 $status = ProgressStatus::NotStarted;
                 $progressPercent = 0;

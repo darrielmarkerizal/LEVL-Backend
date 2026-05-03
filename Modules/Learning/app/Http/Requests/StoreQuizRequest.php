@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\Learning\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\Learning\Enums\RandomizationType;
+use Modules\Learning\Enums\ReviewMode;
 
 class StoreQuizRequest extends FormRequest
 {
@@ -23,9 +25,9 @@ class StoreQuizRequest extends FormRequest
             'auto_grading' => ['nullable', 'boolean'],
             'max_score' => ['nullable', 'numeric', 'min:1'],
             'time_limit_minutes' => ['nullable', 'integer', 'min:1'],
-            'randomization_type' => ['nullable', 'string', 'in:static,random_order,bank'],
+            'randomization_type' => ['nullable', 'string', RandomizationType::rule()],
             'question_bank_count' => ['nullable', 'integer', 'min:1'],
-            'review_mode' => ['nullable', 'string', 'in:immediate,after_deadline,never'],
+            'review_mode' => ['nullable', 'string', ReviewMode::rule()],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file'],
         ];

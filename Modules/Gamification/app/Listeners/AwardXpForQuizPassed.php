@@ -6,6 +6,7 @@ namespace Modules\Gamification\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Modules\Common\Models\SystemSetting;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
@@ -48,14 +49,17 @@ class AwardXpForQuizPassed implements ShouldQueue
 
         $finalScore = $submission->final_score ?? $submission->score;
 
+        $xpAmount = (int) SystemSetting::get('gamification.points.quiz_passed', 30);
+
         $this->gamification->awardXp(
             $userId,
-            0,
+            $xpAmount,
             'quiz_passed',
             'quiz',
             $quizId,
             [
                 'description' => sprintf('Passed quiz: %s (Score: %.2f)', $submission->quiz->title, $finalScore),
+                'allow_multiple' => false,
                 'metadata' => [
                     'score' => $finalScore,
                     'passing_grade' => $submission->quiz->passing_grade,
@@ -65,14 +69,17 @@ class AwardXpForQuizPassed implements ShouldQueue
         );
 
         if ($finalScore >= 100) {
+            $perfectScoreXp = (int) SystemSetting::get('gamification.points.perfect_score_quiz', 20);
+
             $this->gamification->awardXp(
                 $userId,
-                0,
+                $perfectScoreXp,
                 'perfect_score',
                 'quiz',
                 $quizId,
                 [
                     'description' => 'Perfect score on quiz!',
+                    'allow_multiple' => false,
                     'metadata' => [
                         'score' => $finalScore,
                     ],

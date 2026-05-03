@@ -321,11 +321,11 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             return 0.0;
         }
 
-        // answer_key for true_false is stored as [true] or [false]
+        
         $correctAnswer = $answerKey[0] ?? null;
         $studentAnswer = $selected[0] ?? null;
 
-        // Normalize to boolean for comparison
+        
         $correct = filter_var($correctAnswer, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
         $student = filter_var($studentAnswer, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
