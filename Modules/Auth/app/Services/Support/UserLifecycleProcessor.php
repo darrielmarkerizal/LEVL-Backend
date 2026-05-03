@@ -171,6 +171,14 @@ class UserLifecycleProcessor
         return DB::transaction(function () use ($user, $newPassword) {
             $user->password = Hash::make($newPassword);
             $user->is_password_set = true;
+
+            // Hapus virtual attributes yang di-set oleh hydrateInstructorDetail/hydrateStudentDetail
+            // agar tidak ikut di-persist ke DB
+            unset($user['learning_statistics']);
+            unset($user['last_login_at']);
+            unset($user['rank']);
+            unset($user['total_xp']);
+
             $user->save();
 
             
