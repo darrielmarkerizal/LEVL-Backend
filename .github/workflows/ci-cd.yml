@@ -138,6 +138,24 @@ jobs:
             php artisan event:cache
             php artisan route:cache
 
+            # ── Write log monitor env file from GitHub Secrets ───────────────
+            # Reuses the same tokens already configured for CI/CD notifications
+            sudo tee /etc/levl-log-monitor.env > /dev/null <<EOF
+TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
+DEPLOY_PATH=${{ secrets.DEPLOY_PATH }}
+COOLDOWN=30
+EOF
+            sudo chmod 600 /etc/levl-log-monitor.env
+
+            # ── Install systemd service if not already present ────────────────
+            if [ ! -f /etc/systemd/system/levl-log-monitor.service ]; then
+              sudo cp ${{ secrets.DEPLOY_PATH }}/.github/scripts/levl-log-monitor.service /etc/systemd/system/
+              sudo systemctl daemon-reload
+              sudo systemctl enable levl-log-monitor
+              echo "✅ levl-log-monitor service installed"
+            fi
+
             # ── Restart Octane via systemd ────────────────────────────────────
             sudo systemctl restart octane
 

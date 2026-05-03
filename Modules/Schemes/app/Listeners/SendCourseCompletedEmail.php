@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Listeners;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Mail;
 use Modules\Mail\Mail\Schemes\CourseCompletedMail;
