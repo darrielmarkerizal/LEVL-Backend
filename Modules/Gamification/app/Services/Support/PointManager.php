@@ -354,28 +354,9 @@ class PointManager
 
     public function getAchievements(int $totalXp, int $currentLevel): array
     {
-        $milestones = \Modules\Gamification\Models\Milestone::active()
-            ->ordered()
-            ->get();
-
-        $achievements = $milestones->map(function ($milestone) use ($totalXp) {
-            $achieved = $totalXp >= $milestone->xp_required;
-            $progress = min(100, ($totalXp / $milestone->xp_required) * 100);
-
-            return [
-                'name' => $milestone->name,
-                'xp_required' => $milestone->xp_required,
-                'level_required' => $milestone->level_required,
-                'achieved' => $achieved,
-                'progress' => round($progress, 2),
-            ];
-        });
-
-        $nextMilestone = $achievements->first(fn ($m) => ! $m['achieved']);
-
         return [
-            'achievements' => $achievements,
-            'next_milestone' => $nextMilestone,
+            'achievements' => collect(),
+            'next_milestone' => null,
             'current_xp' => $totalXp,
             'current_level' => $currentLevel,
         ];
@@ -479,46 +460,15 @@ class PointManager
 
     private function handleLevelUp(int $userId, int $oldLevel, int $newLevel, int $totalXp): void
     {
-        
         $levelConfig = $this->levelService->getLevelConfig($newLevel);
         $rewards = $levelConfig?->rewards ?? [];
-        $bonusXp = $levelConfig?->bonus_xp ?? 0;
 
-        
-        if ($bonusXp > 0) {
-            $this->repository->createPoint([
-                'user_id' => $userId,
-                'points' => $bonusXp,
-                'reason' => 'bonus',
-                'source_type' => 'system',
-                'source_id' => null,
-                'description' => sprintf('Bonus XP untuk mencapai level %d', $newLevel),
-                'xp_source_code' => null,
-                'old_level' => $newLevel,
-                'new_level' => $newLevel,
-                'triggered_level_up' => false,
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'metadata' => [
-                    'level_up' => true,
-                    'old_level' => $oldLevel,
-                    'new_level' => $newLevel,
-                ],
-            ]);
-
-            
-            $stats = $this->repository->getOrCreateStats($userId);
-            $stats->total_xp += $bonusXp;
-            $this->repository->saveStats($stats);
-        }
-
-        
         event(new UserLeveledUp(
             userId: $userId,
             oldLevel: $oldLevel,
             newLevel: $newLevel,
-            totalXp: $totalXp + $bonusXp,
-            rewards: array_merge($rewards, ['bonus_xp' => $bonusXp])
+            totalXp: $totalXp,
+            rewards: $rewards
         ));
     }
 

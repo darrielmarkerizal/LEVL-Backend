@@ -45,8 +45,6 @@ interface GamificationServiceInterface
 
     public function exportUserGamificationLog(int $userId, string $type = 'csv', $request = null): Response;
 
-    public function getAchievements(int $userId): array;
-
     public function getSummary(int $userId, string $period = 'all_time', ?string $month = null): array;
 
     public function getCourseOverview(int $userId, int $courseId): array;

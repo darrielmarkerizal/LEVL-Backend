@@ -13,9 +13,7 @@ class GamificationDatabaseSeeder extends Seeder
         $chain = [
             LevelConfigSeeder::class,
             XpSourceSeeder::class,
-            MilestoneSeeder::class,
             BadgeSeeder::class,
-            LinkMilestoneBadgesSeeder::class,
         ];
 
         if (config('seeding.mode') !== 'uat') {

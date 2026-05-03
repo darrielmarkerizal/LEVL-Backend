@@ -19,7 +19,6 @@ class UserIncludeRequest extends FormRequest
         'badges',
         'points',
         'levels',
-        'milestones',
         'learning_streaks',
         'submissions',
         'assignments',

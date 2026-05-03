@@ -15,7 +15,6 @@ class LevelRepository
     public function getPaginated(int $perPage = 20): LengthAwarePaginator
     {
         return QueryBuilder::for(LevelConfig::class)
-            ->with('milestoneBadge')
             ->allowedFilters([
                 AllowedFilter::exact('level'),
                 AllowedFilter::callback('tier', function ($query, $value) {
@@ -37,7 +36,7 @@ class LevelRepository
                     $query->where('xp_required', '<=', (int) $value);
                 }),
             ])
-            ->allowedSorts(['level', 'xp_required', 'bonus_xp'])
+            ->allowedSorts(['level', 'xp_required'])
             ->defaultSort('level')
             ->paginate($perPage);
     }
@@ -47,17 +46,14 @@ class LevelRepository
         $startLevel = ($tier - 1) * 10 + 1;
         $endLevel = $tier * 10;
 
-        return LevelConfig::with('milestoneBadge')
-            ->whereBetween('level', [$startLevel, $endLevel])
+        return LevelConfig::whereBetween('level', [$startLevel, $endLevel])
             ->orderBy('level')
             ->get();
     }
 
     public function getAllGroupedByTier(): array
     {
-        $allLevels = LevelConfig::with('milestoneBadge')
-            ->orderBy('level')
-            ->get();
+        $allLevels = LevelConfig::orderBy('level')->get();
 
         $tiers = [];
         for ($i = 1; $i <= 10; $i++) {
@@ -83,13 +79,12 @@ class LevelRepository
 
     public function findById(int $id): ?LevelConfig
     {
-        return LevelConfig::with('milestoneBadge')->find($id);
+        return LevelConfig::find($id);
     }
 
     public function update(LevelConfig $levelConfig, array $data): LevelConfig
     {
         $levelConfig->update($data);
-        $levelConfig->load('milestoneBadge');
 
         return $levelConfig;
     }

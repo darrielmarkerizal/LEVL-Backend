@@ -1,14 +1,18 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('gamification_milestones', function (Blueprint $table) {
+        Schema::dropIfExists('gamification_milestones');
+    }
+
+    public function down(): void
+    {
+        Schema::create('gamification_milestones', function (\Illuminate\Database\Schema\Blueprint $table) {
             $table->id();
             $table->string('code')->unique();
             $table->string('name');
@@ -19,10 +23,5 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('gamification_milestones');
     }
 };

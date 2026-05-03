@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 use Modules\Common\Contracts\Services\LevelConfigServiceInterface;
 use Modules\Common\Models\LevelConfig;
 use Modules\Common\Repositories\LevelConfigRepository;
-use Modules\Gamification\Services\BadgeService;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -17,7 +16,6 @@ class LevelConfigService implements LevelConfigServiceInterface
 {
     public function __construct(
         private readonly LevelConfigRepository $repository,
-        private readonly BadgeService $badgeService,
     ) {}
 
     public function paginate(int $perPage = 15, array $params = []): LengthAwarePaginator
@@ -55,7 +53,6 @@ class LevelConfigService implements LevelConfigServiceInterface
     {
         return DB::transaction(function () use ($data) {
             $levelConfig = $this->repository->create($data);
-            $this->syncBadgesFromRewards($levelConfig->id, $data['rewards'] ?? []);
             cache()->tags(['common', 'levels'])->flush();
 
             return $levelConfig->fresh();
@@ -77,7 +74,6 @@ class LevelConfigService implements LevelConfigServiceInterface
 
         return DB::transaction(function () use ($config, $data) {
             $updated = $this->repository->update($config, $data);
-            $this->syncBadgesFromRewards($updated->id, $data['rewards'] ?? []);
             cache()->tags(['common', 'levels'])->flush();
 
             return $updated->fresh();
@@ -96,28 +92,5 @@ class LevelConfigService implements LevelConfigServiceInterface
 
             return $result;
         });
-    }
-
-    private function syncBadgesFromRewards(int $levelConfigId, array $rewards): void
-    {
-        if (empty($rewards)) {
-            return;
-        }
-
-        foreach ($rewards as $reward) {
-            if ($reward['type'] !== 'badge') {
-                continue;
-            }
-
-            $badgeCode = $reward['value'] ?? null;
-            if (! $badgeCode) {
-                continue;
-            }
-
-            $this->badgeService->createOrFind($badgeCode, [
-                'description' => 'Badge earned upon reaching level milestone',
-                'type' => 'milestone',
-            ]);
-        }
     }
 }

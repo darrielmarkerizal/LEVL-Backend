@@ -229,13 +229,6 @@ class GamificationService implements GamificationServiceInterface
         }, $baseFileName.'.csv', ['Content-Type' => 'text/csv']);
     }
 
-    public function getAchievements(int $userId): array
-    {
-        $stats = $this->pointManager->getOrCreateStats($userId);
-
-        return $this->pointManager->getAchievements($stats->total_xp, $stats->global_level);
-    }
-
     public function getSummary(int $userId, string $period = 'all_time', ?string $month = null): array
     {
         $stats = $this->pointManager->getOrCreateStats($userId);

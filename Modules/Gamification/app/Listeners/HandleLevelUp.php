@@ -36,9 +36,6 @@ class HandleLevelUp implements ShouldQueue
     {
         try {
             
-            $this->awardMilestoneBadge($event);
-
-            
             $user = User::find($event->userId);
             if ($user) {
                 $this->evaluator->evaluate($user, 'level_reached', [
@@ -67,37 +64,8 @@ class HandleLevelUp implements ShouldQueue
         }
     }
 
-    
-    private function awardMilestoneBadge(UserLeveledUp $event): void
-    {
-        
-        $levelConfig = \Modules\Common\Models\LevelConfig::where('level', $event->newLevel)
-            ->with('milestoneBadge')
-            ->first();
-
-        if ($levelConfig && $levelConfig->milestone_badge_id) {
-            $badge = $levelConfig->milestoneBadge;
-
-            if ($badge) {
-                $this->badgeManager->awardBadge(
-                    $event->userId,
-                    $badge->code,
-                    "Mencapai level {$event->newLevel}"
-                );
-
-                Log::info('Milestone badge awarded', [
-                    'user_id' => $event->userId,
-                    'level' => $event->newLevel,
-                    'badge_code' => $badge->code,
-                    'badge_name' => $badge->name,
-                ]);
-            }
-        }
-    }
-
     private function awardRewards(UserLeveledUp $event): void
     {
-        
-        
+        //
     }
 }

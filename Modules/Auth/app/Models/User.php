@@ -145,11 +145,6 @@ class User extends Authenticatable implements HasMedia, JWTSubject
         return $this->hasMany(\Modules\Gamification\Models\Point::class);
     }
 
-    public function milestones()
-    {
-        return $this->hasMany(\Modules\Gamification\Models\Milestone::class);
-    }
-
     public function learningStreaks()
     {
         return $this->hasMany(\Modules\Gamification\Models\LearningStreak::class);

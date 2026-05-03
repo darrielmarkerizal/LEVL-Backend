@@ -18,15 +18,11 @@ class LevelConfigSeeder extends Seeder
             
             $xpRequired = (int) round(100 * pow($i, 1.6));
 
-            
-            $bonusXp = (int) round(10 * pow($i, 1.3));
-
             $levels[] = [
                 'level' => $i,
                 'name' => $this->getLevelName($i),
                 'xp_required' => $xpRequired,
-                'bonus_xp' => $bonusXp,
-                'rewards' => [], 
+                'rewards' => [],
             ];
         }
 
@@ -37,7 +33,7 @@ class LevelConfigSeeder extends Seeder
             );
         }
 
-        $this->command->info('✅ Successfully seeded 100 level configurations with dynamic bonus XP');
+        $this->command->info('✅ Successfully seeded 100 level configurations');
     }
 
     

@@ -193,30 +193,6 @@ class LevelServiceTest extends TestCase
     }
 
     
-    public function it_assigns_milestone_rewards()
-    {
-        $configs = $this->levelService->generateLevelConfigs(1, 100);
-
-        
-        $level10 = $configs->firstWhere('level', 10);
-        $this->assertArrayHasKey('badge', $level10['rewards']);
-        $this->assertEquals('level_10_milestone', $level10['rewards']['badge']);
-        $this->assertEquals(100, $level10['rewards']['bonus_xp']);
-
-        
-        $level50 = $configs->firstWhere('level', 50);
-        $this->assertArrayHasKey('badge', $level50['rewards']);
-        $this->assertArrayHasKey('title', $level50['rewards']);
-        $this->assertEquals('level_50_milestone', $level50['rewards']['badge']);
-        $this->assertEquals('Advanced', $level50['rewards']['title']);
-        $this->assertEquals(1000, $level50['rewards']['bonus_xp']);
-
-        
-        $level15 = $configs->firstWhere('level', 15);
-        $this->assertEmpty($level15['rewards']);
-    }
-
-    
     public function it_calculates_consistent_level_progression()
     {
         

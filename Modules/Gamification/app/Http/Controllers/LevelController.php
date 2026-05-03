@@ -135,8 +135,6 @@ class LevelController extends Controller
             'name' => 'sometimes|string|max:255',
             'xp_required' => 'sometimes|integer|min:0',
             'rewards' => 'sometimes|array',
-            'milestone_badge_id' => 'sometimes|nullable|exists:badges,id',
-            'bonus_xp' => 'sometimes|integer|min:0',
         ]);
 
         $levelConfig = $this->levelService->updateLevelConfig($id, $validated);

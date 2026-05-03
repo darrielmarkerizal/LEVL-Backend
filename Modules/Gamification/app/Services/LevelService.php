@@ -236,19 +236,7 @@ class LevelService
 
     private function getDefaultRewards(int $level): array
     {
-        $rewards = [];
-
-        if ($level % 10 === 0) {
-            $rewards['badge'] = "level_{$level}_milestone";
-            $rewards['bonus_xp'] = $level * 10;
-        }
-
-        if (in_array($level, [25, 50, 75, 100])) {
-            $rewards['title'] = $this->getLevelName($level);
-            $rewards['bonus_xp'] = $level * 20;
-        }
-
-        return $rewards;
+        return [];
     }
 
     public function updateTierName(int $tier, string $baseTierName): int
