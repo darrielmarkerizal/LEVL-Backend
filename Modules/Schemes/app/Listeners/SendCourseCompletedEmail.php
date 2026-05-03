@@ -14,11 +14,14 @@ class SendCourseCompletedEmail implements ShouldQueue
 {
     use Queueable;
 
-    public $queue = 'emails-transactional';
-
     public int $tries = 3;
 
     public int $timeout = 60;
+
+    public function viaQueue(): string
+    {
+        return 'emails-transactional';
+    }
 
     public function handle(CourseCompleted $event): void
     {
