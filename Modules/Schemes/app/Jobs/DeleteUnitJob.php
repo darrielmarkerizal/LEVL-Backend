@@ -30,14 +30,18 @@ class DeleteUnitJob implements ShouldQueue
         public int $unitId,
         public ?int $actorId = null,
     ) {
-        $this->onQueue('default');
+        $this->onQueue('trash');
     }
 
     public function handle(UnitService $unitService): void
     {
         if ($this->actorId) {
-            auth()->loginUsingId($this->actorId);
-            auth('api')->loginUsingId($this->actorId);
+            $user = \Modules\Auth\Models\User::find($this->actorId);
+
+            if ($user) {
+                auth()->setUser($user);
+                auth('api')->setUser($user);
+            }
         }
 
         try {

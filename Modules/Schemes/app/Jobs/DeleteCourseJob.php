@@ -32,7 +32,7 @@ class DeleteCourseJob implements ShouldQueue
         public int $courseId,
         public ?int $actorId = null
     ) {
-        $this->onQueue('default');
+        $this->onQueue('trash');
     }
 
     public function handle(CourseServiceInterface $courseService): void
