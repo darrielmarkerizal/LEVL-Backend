@@ -65,9 +65,6 @@ class UserResource extends JsonResource
         
         
         if ($this->resource instanceof \Illuminate\Database\Eloquent\Model) {
-            $data['privacySettings'] = $this->resource->relationLoaded('privacySettings')
-                ? new ProfilePrivacyResource($this->resource->privacySettings)
-                : null;
             $data['enrollments'] = $this->resource->relationLoaded('enrollments')
                 ? EnrollmentResource::collection($this->resource->enrollments)
                 : null;
@@ -156,7 +153,6 @@ class UserResource extends JsonResource
         } elseif (is_array($this->resource)) {
             
             foreach ([
-                'privacySettings',
                 'enrollments',
                 'managedCourses',
                 'gamificationStats',
@@ -216,7 +212,6 @@ class UserResource extends JsonResource
             'global_rank',
             'total_xp',
             'recent_badges',
-            'privacySettings',
             'enrollments',
             'managedCourses',
             'gamificationStats',

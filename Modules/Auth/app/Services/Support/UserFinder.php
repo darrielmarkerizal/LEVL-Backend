@@ -126,7 +126,6 @@ class UserFinder
                     ->allowedIncludes([
                         
                         'roles',
-                        'privacySettings',
                         'enrollments',
                         'managedCourses',
                         
@@ -166,7 +165,6 @@ class UserFinder
                 ->allowedIncludes([
                     
                     'roles',
-                    'privacySettings',
                     'enrollments',
                     'managedCourses',
                     
@@ -209,7 +207,7 @@ class UserFinder
                 $includes = array_filter($includes); 
 
                 $allowedIncludes = [
-                    'roles', 'privacySettings', 'enrollments', 'managedCourses',
+                    'roles', 'enrollments', 'managedCourses',
                     'gamificationStats', 'badges',
                     'points', 'levels', 'learningStreaks',
                     'submissions', 'assignments', 'receivedOverrides', 'grantedOverrides',

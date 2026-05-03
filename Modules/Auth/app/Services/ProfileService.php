@@ -20,7 +20,6 @@ use Modules\Auth\Models\User;
 class ProfileService implements ProfileServiceInterface
 {
     public function __construct(
-        private ProfilePrivacyService $privacyService,
         private UserActivityService $activityService,
         private EmailVerificationServiceInterface $emailVerification,
         private AuthServiceInterface $authService,
@@ -105,7 +104,6 @@ class ProfileService implements ProfileServiceInterface
         $isAdmin = $viewer->hasRole('Admin') || $viewer->hasRole('Superadmin');
 
         if ($isOwnProfile || $isAdmin) {
-            
             $data['email'] = $user->email;
             $data['phone'] = $user->phone;
             $data['email_verified_at'] = $user->email_verified_at;
@@ -115,26 +113,12 @@ class ProfileService implements ProfileServiceInterface
                 $data['statistics'] = $this->getStudentStatistics($user);
             }
         } else {
-            
-            $privacySettings = $user->privacySettings ?? $this->privacyService->getPrivacySettings($user);
+            $data['email'] = $user->email;
+            $data['phone'] = $user->phone;
 
-            
-            if ($privacySettings->show_email) {
-                $data['email'] = $user->email;
-            }
-
-            
-            if ($privacySettings->show_phone) {
-                $data['phone'] = $user->phone;
-            }
-
-            
-            if ($primaryRole === 'student' && $privacySettings->show_statistics) {
+            if ($primaryRole === 'student') {
                 $data['statistics'] = $this->getStudentStatistics($user);
             }
-
-            
-            
         }
 
         return $data;
@@ -159,15 +143,7 @@ class ProfileService implements ProfileServiceInterface
 
     public function getPublicProfile(User $user, User $viewer): array
     {
-        if (! $this->privacyService->canViewProfile($user, $viewer)) {
-            throw new \Illuminate\Auth\Access\AuthorizationException(__('messages.profile.no_permission'));
-        }
-
-        $profileData = $this->getProfileData($user, $viewer);
-
-        $visibleFields = collect($user->getVisibleFieldsFor($viewer));
-
-        return $profileData;
+        return $this->getProfileData($user, $viewer);
     }
 
     public function changePassword(User $user, string $currentPassword, string $newPassword): bool

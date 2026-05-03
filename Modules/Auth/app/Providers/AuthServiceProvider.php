@@ -92,11 +92,6 @@ class AuthServiceProvider extends ServiceProvider
         );
 
         $this->app->scoped(
-            \Modules\Auth\Contracts\Services\ProfilePrivacyServiceInterface::class,
-            \Modules\Auth\Services\ProfilePrivacyService::class,
-        );
-
-        $this->app->scoped(
             \Modules\Auth\Contracts\Services\UserActivityServiceInterface::class,
             \Modules\Auth\Services\UserActivityService::class,
         );

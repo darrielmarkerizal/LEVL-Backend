@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Modules\Auth\Enums\UserStatus;
-use Modules\Auth\Traits\HasProfilePrivacy;
 use Modules\Auth\Traits\TracksUserActivity;
 use Modules\Common\Traits\PgSearchable;
 use Spatie\Activitylog\LogOptions;
@@ -24,7 +23,6 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 class User extends Authenticatable implements HasMedia, JWTSubject
 {
     use HasFactory,
-        HasProfilePrivacy,
         HasRoles,
         InteractsWithMedia,
         LogsActivity,
@@ -123,11 +121,6 @@ class User extends Authenticatable implements HasMedia, JWTSubject
         $media = $this->getFirstMedia('avatar');
 
         return $media?->getUrl('thumb');
-    }
-
-    public function privacySettings()
-    {
-        return $this->hasOne(ProfilePrivacySetting::class);
     }
 
     public function gamificationStats()

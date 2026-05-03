@@ -8,7 +8,6 @@ use Modules\Auth\Http\Controllers\ProfileAccountController;
 use Modules\Auth\Http\Controllers\ProfileActivityController;
 use Modules\Auth\Http\Controllers\ProfileController;
 use Modules\Auth\Http\Controllers\ProfilePasswordController;
-use Modules\Auth\Http\Controllers\ProfilePrivacyController;
 use Modules\Auth\Http\Controllers\PublicProfileController;
 use Modules\Auth\Http\Controllers\UserBulkController;
 use Modules\Auth\Http\Controllers\UserManagementController;
@@ -64,12 +63,6 @@ Route::prefix('v1')
                     Route::post('/avatar', [ProfileController::class, 'uploadAvatar'])->name('avatar.upload');
                     Route::delete('/avatar', [ProfileController::class, 'deleteAvatar'])->name(
                         'avatar.delete',
-                    );
-
-                    
-                    Route::get('/privacy', [ProfilePrivacyController::class, 'index'])->name('privacy.index');
-                    Route::put('/privacy', [ProfilePrivacyController::class, 'update'])->name(
-                        'privacy.update',
                     );
 
                     
