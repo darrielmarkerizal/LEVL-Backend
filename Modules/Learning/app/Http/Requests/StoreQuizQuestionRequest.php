@@ -6,6 +6,7 @@ namespace Modules\Learning\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Modules\Learning\Enums\QuizQuestionType;
+use Modules\Learning\Http\Support\TrueFalseAnswerKeyNormalizer;
 
 class StoreQuizQuestionRequest extends FormRequest
 {
@@ -22,7 +23,7 @@ class StoreQuizQuestionRequest extends FormRequest
             'options' => ['nullable', 'array', 'min:2'],
             'options.*.text' => ['nullable', 'string'],
             'options.*.image' => ['nullable', 'file', 'image'],
-            // true_false uses boolean (true/false), others use array of option indices
+            // true_false uses [0] or [1]; others use array of option indices
             'answer_key' => ['nullable'],
             'answer_key.*' => ['integer', 'min:0'],
             'weight' => ['nullable', 'numeric', 'min:0.01'],
@@ -39,6 +40,13 @@ class StoreQuizQuestionRequest extends FormRequest
         // Wrap single value answer_key into array for multiple_choice (handles string "1" from form-data)
         if ($type === QuizQuestionType::MultipleChoice->value && ! is_array($answerKey) && $answerKey !== null) {
             $this->merge(['answer_key' => [(int) $answerKey]]);
+        }
+
+        if ($type === QuizQuestionType::TrueFalse->value && $answerKey !== null) {
+            $normalized = TrueFalseAnswerKeyNormalizer::normalize($answerKey);
+            if ($normalized !== null) {
+                $this->merge(['answer_key' => $normalized]);
+            }
         }
     }
 
@@ -69,8 +77,11 @@ class StoreQuizQuestionRequest extends FormRequest
                 $answerKey = $this->input('answer_key');
 
                 if ($questionType === QuizQuestionType::TrueFalse) {
-                    // true_false answer_key must be boolean
-                    if (! is_bool($answerKey) && ! in_array($answerKey, [true, false, 0, 1, '0', '1'], true)) {
+                    if (
+                        ! is_array($answerKey)
+                        || count($answerKey) !== 1
+                        || ! in_array((int) ($answerKey[0] ?? -1), [0, 1], true)
+                    ) {
                         $validator->errors()->add('answer_key', __('messages.questions.answer_key_required'));
                     }
                 } else {

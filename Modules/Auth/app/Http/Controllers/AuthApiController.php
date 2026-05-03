@@ -155,8 +155,11 @@ class AuthApiController extends Controller
         }
     }
 
-    public function googleCallback(): JsonResponse
+    public function googleCallback(): \Illuminate\Http\RedirectResponse|JsonResponse
     {
+        $frontendUrl = rtrim(config('app.frontend_url', 'http://localhost:3000'), '/');
+        $callbackUrl = $frontendUrl.'/auth/callback';
+
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
 
@@ -168,9 +171,18 @@ class AuthApiController extends Controller
 
             $tokens = $this->authenticationService->generateTokens($user, request()->ip(), request()->userAgent());
 
-            return $this->success(new LoginResource($tokens), 'Google login successful.');
+            $needsUsername = empty($user->username) ? '1' : '0';
+
+            $query = http_build_query([
+                'access_token'  => $tokens['access_token'],
+                'refresh_token' => $tokens['refresh_token'],
+                'expires_in'    => $tokens['expires_in'],
+                'needs_username' => $needsUsername,
+            ]);
+
+            return redirect($callbackUrl.'?'.$query);
         } catch (\Exception $e) {
-            return $this->error($e->getMessage(), [], 500);
+            return redirect($callbackUrl.'?'.http_build_query(['error' => $e->getMessage()]));
         }
     }
 
