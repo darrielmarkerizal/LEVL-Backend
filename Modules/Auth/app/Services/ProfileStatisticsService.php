@@ -32,7 +32,7 @@ class ProfileStatisticsService implements ProfileStatisticsServiceInterface
             ->selectRaw("
                 COUNT(*) as total_enrolled,
                 SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as total_completed,
-                SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress
+                SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as in_progress
             ")
             ->first();
 

@@ -167,6 +167,15 @@ class AuthApiController extends Controller
 
             if (! $user) {
                 $user = $this->authService->createUserFromGoogle($googleUser);
+            } else {
+                // Existing user logging in via Google — activate if not already active
+                if ($user->status !== \Modules\Auth\Enums\UserStatus::Active) {
+                    $user->update([
+                        'status' => \Modules\Auth\Enums\UserStatus::Active,
+                        'email_verified_at' => $user->email_verified_at ?? now(),
+                    ]);
+                    $user->refresh();
+                }
             }
 
             $tokens = $this->authenticationService->generateTokens($user, request()->ip(), request()->userAgent());
