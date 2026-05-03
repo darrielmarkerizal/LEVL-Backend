@@ -45,6 +45,22 @@ class UnitContentSyncService
                 $this->syncOrderToModel($item['type'], (int) $item['id'], $newOrder);
             }
 
+            $nextOrder = UnitContent::where('unit_id', $unitId)
+                ->where('order', '>', 0)
+                ->max('order') ?? 0;
+
+            $remaining = UnitContent::where('unit_id', $unitId)
+                ->where('order', '<', 0)
+                ->orderBy('order')
+                ->get();
+
+            foreach ($remaining as $uc) {
+                $nextOrder++;
+                $uc->order = $nextOrder;
+                $uc->save();
+                $this->syncOrderToModel($uc->contentable_type, (int) $uc->contentable_id, $uc->order);
+            }
+
             return UnitContent::where('unit_id', $unitId)
                 ->orderBy('order')
                 ->get()
