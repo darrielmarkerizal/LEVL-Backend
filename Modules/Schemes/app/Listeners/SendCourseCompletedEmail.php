@@ -14,7 +14,7 @@ class SendCourseCompletedEmail implements ShouldQueue
 {
     use Queueable;
 
-    public string $queue = 'emails-transactional';
+    public $queue = 'emails-transactional';
 
     public int $tries = 3;
 
