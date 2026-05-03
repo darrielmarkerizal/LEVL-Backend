@@ -105,37 +105,24 @@ Route::prefix('v1')
                 'users.mentions.search',
             );
 
-            
-            Route::middleware(['role:Admin,Superadmin,Instructor'])->group(function () {
+
+            Route::middleware(['role:Admin,Superadmin'])->group(function () {
                 Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
                 Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
                 Route::get('/users/{user}/enrolled-course', [UserManagementController::class, 'enrolledCourse'])->name('users.enrolled-course');
                 Route::get('/users/{user}/assigned-schemes', [UserManagementController::class, 'assignedSchemes'])->name('users.assigned-schemes');
-            });
-
-            
-            Route::middleware(['role:Admin,Superadmin'])->group(function () {
                 Route::get('/user/{user}/latest-activity', [UserManagementController::class, 'latestActivity'])->name('users.latest-activity');
-            });
 
-            
-            Route::middleware(['role:Admin,Superadmin'])->group(function () {
                 Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
                 Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
                 Route::put('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
 
-                
-                Route::middleware(['role:Superadmin'])->group(function () {
-                    Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
-                });
-
-                
                 Route::post('/users/bulk/export', [UserBulkController::class, 'export'])->name('users.bulk.export');
                 Route::post('/users/bulk/activate', [UserBulkController::class, 'activate'])->name('users.bulk.activate');
                 Route::post('/users/bulk/deactivate', [UserBulkController::class, 'deactivate'])->name('users.bulk.deactivate');
 
-                
                 Route::middleware(['role:Superadmin'])->group(function () {
+                    Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
                     Route::delete('/users/bulk/delete', [UserBulkController::class, 'delete'])->name('users.bulk.delete');
                 });
             });
