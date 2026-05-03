@@ -49,5 +49,5 @@ interface GamificationServiceInterface
 
     public function getSummary(int $userId, string $period = 'all_time', ?string $month = null): array;
 
-    public function getUnitLevels(int $userId, int $courseId): \Illuminate\Support\Collection;
+    public function getCourseOverview(int $userId, int $courseId): array;
 }

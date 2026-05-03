@@ -61,6 +61,6 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
         Route::get('daily-xp-stats', [LevelController::class, 'dailyXpStats'])
             ->middleware('xp.info')
             ->name('gamification.daily-xp-stats');
-        Route::get('levels/{slug}', [GamificationController::class, 'unitLevels'])->name('gamification.unit-levels');
+        Route::get('{slug}', [GamificationController::class, 'courseOverview'])->name('gamification.course-overview');
     });
 });

@@ -64,12 +64,12 @@ class GamificationController extends Controller
         return $this->success($data, __('gamification.milestones_retrieved'));
     }
 
-    public function unitLevels(Request $request, string $slug): JsonResponse
+    public function courseOverview(Request $request, string $slug): JsonResponse
     {
         $userId = $request->user()->id;
         $course = \Modules\Schemes\Models\Course::where('slug', $slug)->firstOrFail();
 
-        $data = $this->gamificationService->getUnitLevels($userId, $course->id);
+        $data = $this->gamificationService->getCourseOverview($userId, $course->id);
 
         return $this->success($data, __('gamification.levels_retrieved'));
     }

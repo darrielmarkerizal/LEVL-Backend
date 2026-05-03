@@ -594,28 +594,189 @@ class GamificationService implements GamificationServiceInterface
         return \Carbon\Carbon::parse($isoDateTime)->timezone('Asia/Jakarta')->format('M d, Y H:i').' WIB';
     }
 
-    public function getUnitLevels(int $userId, int $courseId): Collection
+    public function getCourseOverview(int $userId, int $courseId): array
     {
+        /** @var \Modules\Schemes\Services\PrerequisiteService $prerequisiteService */
+        $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
+
+        // Load units ordered
         $units = \Modules\Schemes\Models\Unit::where('course_id', $courseId)
             ->orderBy('order')
-            ->get(['id', 'title', 'order']);
+            ->get(['id', 'title', 'order', 'slug', 'course_id']);
 
-        $stats = \Modules\Gamification\Models\UserScopeStat::where('user_id', $userId)
+        $unitIds = $units->pluck('id');
+
+        // Gamification stats per unit
+        $scopeStats = \Modules\Gamification\Models\UserScopeStat::where('user_id', $userId)
             ->where('scope_type', 'unit')
-            ->whereIn('scope_id', $units->pluck('id'))
+            ->whereIn('scope_id', $unitIds)
             ->get()
             ->keyBy('scope_id');
 
-        return $units->map(function ($unit) use ($stats) {
-            $stat = $stats->get($unit->id);
+        // Enrollment for this course
+        $enrollment = \Modules\Enrollments\Models\Enrollment::where('user_id', $userId)
+            ->where('course_id', $courseId)
+            ->first();
+
+        // Per-unit lesson/quiz/assignment progress counts
+        $lessonCompletedByUnit   = collect();
+        $lessonTotalByUnit       = collect();
+        $quizCompletedByUnit     = collect();
+        $quizTotalByUnit         = collect();
+        $assignmentCompletedByUnit = collect();
+        $assignmentTotalByUnit   = collect();
+
+        if ($enrollment) {
+            // Total published lessons per unit
+            $lessonTotalByUnit = \Modules\Schemes\Models\Lesson::whereIn('unit_id', $unitIds)
+                ->where('status', 'published')
+                ->selectRaw('unit_id, count(*) as total')
+                ->groupBy('unit_id')
+                ->pluck('total', 'unit_id');
+
+            // Completed lessons per unit
+            $lessonCompletedByUnit = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
+                ->where('status', \Modules\Enrollments\Enums\ProgressStatus::Completed)
+                ->whereHas('lesson', fn ($q) => $q->whereIn('unit_id', $unitIds))
+                ->join('lessons', 'lesson_progresses.lesson_id', '=', 'lessons.id')
+                ->selectRaw('lessons.unit_id, count(*) as completed')
+                ->groupBy('lessons.unit_id')
+                ->pluck('completed', 'unit_id');
+
+            // Total published quizzes per unit
+            $quizTotalByUnit = \Modules\Learning\Models\Quiz::whereIn('unit_id', $unitIds)
+                ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
+                ->selectRaw('unit_id, count(*) as total')
+                ->groupBy('unit_id')
+                ->pluck('total', 'unit_id');
+
+            // Passed quizzes per unit
+            $quizCompletedByUnit = \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
+                ->whereHas('quiz', fn ($q) => $q
+                    ->whereIn('unit_id', $unitIds)
+                    ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
+                    ->whereRaw('quiz_submissions.score >= quizzes.passing_grade')
+                )
+                ->join('quizzes', 'quiz_submissions.quiz_id', '=', 'quizzes.id')
+                ->selectRaw('quizzes.unit_id, count(distinct quiz_submissions.quiz_id) as completed')
+                ->groupBy('quizzes.unit_id')
+                ->pluck('completed', 'unit_id');
+
+            // Total published assignments per unit
+            $assignmentTotalByUnit = \Modules\Learning\Models\Assignment::whereIn('unit_id', $unitIds)
+                ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
+                ->selectRaw('unit_id, count(*) as total')
+                ->groupBy('unit_id')
+                ->pluck('total', 'unit_id');
+
+            // Passed assignments per unit
+            $assignmentCompletedByUnit = \Modules\Learning\Models\Submission::where('user_id', $userId)
+                ->where('status', \Modules\Learning\Enums\SubmissionStatus::Graded)
+                ->whereHas('assignment', fn ($q) => $q
+                    ->whereIn('unit_id', $unitIds)
+                    ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
+                    ->whereRaw('submissions.score >= (assignments.max_score * 0.6)')
+                )
+                ->join('assignments', 'submissions.assignment_id', '=', 'assignments.id')
+                ->selectRaw('assignments.unit_id, count(distinct submissions.assignment_id) as completed')
+                ->groupBy('assignments.unit_id')
+                ->pluck('completed', 'unit_id');
+        }
+
+        $unitMap = $units->keyBy('id');
+
+        $unitData = $units->map(function ($unit) use (
+            $scopeStats, $unitMap, $prerequisiteService, $userId,
+            $lessonTotalByUnit, $lessonCompletedByUnit,
+            $quizTotalByUnit, $quizCompletedByUnit,
+            $assignmentTotalByUnit, $assignmentCompletedByUnit,
+            $enrollment
+        ) {
+            $stat = $scopeStats->get($unit->id);
+
+            // Lock status
+            $accessCheck = $prerequisiteService->checkUnitAccess($unit, $userId);
+            $isLocked = ! ($accessCheck['accessible'] ?? true);
+
+            // Progress counts for this unit
+            $totalItems     = ($lessonTotalByUnit[$unit->id] ?? 0)
+                            + ($quizTotalByUnit[$unit->id] ?? 0)
+                            + ($assignmentTotalByUnit[$unit->id] ?? 0);
+
+            $completedItems = ($lessonCompletedByUnit[$unit->id] ?? 0)
+                            + ($quizCompletedByUnit[$unit->id] ?? 0)
+                            + ($assignmentCompletedByUnit[$unit->id] ?? 0);
+
+            $progressPct = $totalItems > 0
+                ? round(($completedItems / $totalItems) * 100, 2)
+                : 0;
+
+            // Prerequisite (previous unit by order)
+            $prerequisite = null;
+            if ($unit->order > 1) {
+                $prevUnit = $unitMap->first(fn ($u) => $u->order === $unit->order - 1);
+                if ($prevUnit) {
+                    $prevStat = $scopeStats->get($prevUnit->id);
+                    $prerequisite = [
+                        'unit_id'   => $prevUnit->id,
+                        'title'     => $prevUnit->title,
+                        'slug'      => $prevUnit->slug,
+                        'completed' => $prevStat !== null && ($prevStat->total_xp ?? 0) > 0,
+                    ];
+                }
+            }
 
             return [
-                'unit_id' => $unit->id,
-                'title' => $unit->title,
-                'level' => $stat?->current_level ?? 1,
-                'total_xp' => $stat?->total_xp ?? 0,
-                'progress' => 0,
+                'unit_id'        => $unit->id,
+                'title'          => $unit->title,
+                'slug'           => $unit->slug,
+                'level'          => $stat?->current_level ?? 1,
+                'total_xp'       => $stat?->total_xp ?? 0,
+                'is_locked'      => $isLocked,
+                'progress'       => [
+                    'percentage'      => $progressPct,
+                    'completed_items' => (int) $completedItems,
+                    'total_items'     => (int) $totalItems,
+                ],
+                'prerequisites'  => $prerequisite ? [$prerequisite] : [],
             ];
         });
+
+        // Course-level totals
+        $courseTotalItems     = $unitData->sum(fn ($u) => $u['progress']['total_items']);
+        $courseCompletedItems = $unitData->sum(fn ($u) => $u['progress']['completed_items']);
+        $courseProgressPct    = $courseTotalItems > 0
+            ? round(($courseCompletedItems / $courseTotalItems) * 100, 2)
+            : 0;
+
+        // Last accessed lesson/unit
+        $lastLesson = null;
+        $lastUnit   = null;
+        if ($enrollment) {
+            $lastLessonProgress = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollment->id)
+                ->orderBy('updated_at', 'desc')
+                ->first();
+
+            if ($lastLessonProgress?->lesson_id) {
+                $lesson = \Modules\Schemes\Models\Lesson::with('unit')->find($lastLessonProgress->lesson_id);
+                if ($lesson) {
+                    $lastLesson = ['id' => $lesson->id, 'title' => $lesson->title, 'slug' => $lesson->slug];
+                    $lastUnit   = $lesson->unit
+                        ? ['id' => $lesson->unit->id, 'title' => $lesson->unit->title, 'slug' => $lesson->unit->slug]
+                        : null;
+                }
+            }
+        }
+
+        return [
+            'course_progress' => [
+                'percentage'           => $courseProgressPct,
+                'completed_items'      => $courseCompletedItems,
+                'total_items'          => $courseTotalItems,
+                'last_accessed_lesson' => $lastLesson,
+                'last_accessed_unit'   => $lastUnit,
+            ],
+            'units' => $unitData->values(),
+        ];
     }
 }
