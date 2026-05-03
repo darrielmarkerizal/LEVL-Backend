@@ -72,7 +72,8 @@ class UnitContentSyncService
 
     public function getNextOrder(int $unitId): int
     {
-        return (UnitContent::where('unit_id', $unitId)->max('order') ?? 0) + 1;
+        $maxOrder = UnitContent::where('unit_id', $unitId)->max('order') ?? 0;
+        return max(0, $maxOrder) + 1;
     }
 
     public function reindexUnit(int $unitId): void

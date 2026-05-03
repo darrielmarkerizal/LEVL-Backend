@@ -46,46 +46,6 @@ class UnitResource extends JsonResource
         ];
 
         if ($isManager || $isEnrolledStudent) {
-            $data['lessons'] = LessonResource::collection($this->whenLoaded('lessons'));
-            
-            
-            $data['quizzes'] = $this->whenLoaded('quizzes', function () {
-                return $this->quizzes->map(function ($quiz) {
-                    return [
-                        'id' => $quiz->id,
-                        'title' => $quiz->title,
-                        'order' => $quiz->order,
-                        'status' => $quiz->status?->value,
-                        'status_label' => $quiz->status ? __('enums.quiz_status.'.$quiz->status->value) : null,
-                        'randomization_type' => $quiz->randomization_type,
-                        'time_limit_minutes' => $quiz->time_limit_minutes,
-                        'passing_grade' => $quiz->passing_grade,
-                        'max_attempts' => $quiz->max_attempts,
-                        'max_score' => $quiz->max_score,
-                        'created_at' => $quiz->created_at?->toIso8601String(),
-                        'updated_at' => $quiz->updated_at?->toIso8601String(),
-                    ];
-                });
-            });
-            
-            $data['assignments'] = $this->whenLoaded('assignments', function () {
-                return $this->assignments->map(function ($assignment) {
-                    return [
-                        'id' => $assignment->id,
-                        'title' => $assignment->title,
-                        'order' => $assignment->order,
-                        'status' => $assignment->status?->value,
-                        'status_label' => $assignment->status ? __('enums.assignment_status.'.$assignment->status->value) : null,
-                        'submission_type' => $assignment->submission_type?->value,
-                        'submission_type_label' => $assignment->submission_type ? __('enums.submission_type.'.$assignment->submission_type->value) : null,
-                        'max_score' => $assignment->max_score,
-                        'created_at' => $assignment->created_at?->toIso8601String(),
-                        'updated_at' => $assignment->updated_at?->toIso8601String(),
-                    ];
-                });
-            });
-            
-            
             if ($this->relationLoaded('lessons') && $this->relationLoaded('quizzes') && $this->relationLoaded('assignments')) {
                 $elements = collect();
                 $unitOrder = $this->order;
