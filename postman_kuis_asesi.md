@@ -10,7 +10,8 @@
 ```
 1.  Lihat daftar kuis dalam skema          → GET  /courses/:slug/quizzes
 2.  Lihat detail kuis spesifik             → GET  /quizzes/:quiz_id
-3.  Mulai sesi kuis                        → POST /quizzes/:quiz_id/submissions/start
+3.  Mulai sesi kuis
+→ POST /quizzes/:quiz_id/submissions/start
 3b. Overview semua soal + status jawaban   → GET  /quiz-submissions/:id/overview
 4.  Ambil pertanyaan satu per satu         → GET  /quiz-submissions/:id/questions?page=N
     atau berdasarkan urutan                → GET  /quiz-submissions/:id/questions/:order

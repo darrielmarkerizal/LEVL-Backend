@@ -22,7 +22,6 @@ class StoreAssignmentRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'unit_slug' => ['required', 'string', 'exists:units,slug'],
-            'order' => ['nullable', 'integer', 'min:1'],
             'submission_type' => ['required', Rule::enum(SubmissionType::class)],
             'max_score' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'passing_grade' => ['nullable', 'numeric', 'min:0', 'max:100'],
@@ -38,7 +37,6 @@ class StoreAssignmentRequest extends FormRequest
             'title' => __('validation.attributes.title'),
             'description' => __('validation.attributes.description'),
             'unit_slug' => __('validation.attributes.unit_slug'),
-            'order' => __('validation.attributes.order'),
             'submission_type' => __('validation.attributes.submission_type'),
             'max_score' => __('validation.attributes.max_score'),
             'passing_grade' => __('validation.attributes.passing_grade'),
@@ -51,7 +49,7 @@ class StoreAssignmentRequest extends FormRequest
     public function getResolvedScope(): array
     {
         $unit = \Modules\Schemes\Models\Unit::where('slug', $this->input('unit_slug'))->firstOrFail();
-        
+
         return [
             'assignable_type' => \Modules\Schemes\Models\Unit::class,
             'assignable_id' => $unit->id,
@@ -64,7 +62,7 @@ class StoreAssignmentRequest extends FormRequest
         $unit = \Modules\Schemes\Models\Unit::where('slug', $this->input('unit_slug'))->firstOrFail();
         $data['unit_id'] = $unit->id;
         unset($data['unit_slug']);
-        
+
         return $data;
     }
 }

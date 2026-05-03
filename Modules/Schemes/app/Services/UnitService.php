@@ -72,8 +72,8 @@ class UnitService
                 }
 
                 $query->allowedFilters([
-                        AllowedFilter::exact('status'),
-                    ])
+                    AllowedFilter::exact('status'),
+                ])
                     ->allowedIncludes(['course', 'lessons'])
                     ->allowedSorts(['order', 'title', 'created_at'])
                     ->defaultSort('order');
@@ -104,21 +104,18 @@ class UnitService
 
         $unit->load('course');
         $user = auth('api')->user();
-        
-        
+
         $requestedIncludes = array_filter(explode(',', $includeParam));
         $hasElementsInclude = in_array('elements', $requestedIncludes);
-        
-        
+
         if ($hasElementsInclude) {
             $requestedIncludes = array_diff($requestedIncludes, ['elements']);
             $requestedIncludes = array_merge($requestedIncludes, ['lessons', 'quizzes', 'assignments']);
             $requestedIncludes = array_unique($requestedIncludes);
-            
-            
+
             request()->merge(['include' => implode(',', $requestedIncludes)]);
         }
-        
+
         $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $unit);
 
         return QueryBuilder::for(Unit::class)
@@ -137,30 +134,26 @@ class UnitService
                 $attributes['code'] = CodeGenerator::generate('UNIT-', 4, Unit::class);
             }
 
-            
             $maxOrder = Unit::where('course_id', $courseId)->max('order') ?? 0;
 
             if (isset($attributes['order'])) {
-                
+
                 if ($attributes['order'] > $maxOrder + 1) {
                     $attributes['order'] = $maxOrder + 1;
                 }
 
-                
                 Unit::where('course_id', $courseId)
                     ->where('order', '>=', $attributes['order'])
                     ->increment('order');
             } else {
-                
+
                 $attributes['order'] = $maxOrder + 1;
             }
 
-            
             if (empty($attributes['slug'])) {
                 $attributes = Arr::except($attributes, ['slug']);
             }
 
-            
             $attributes = Arr::except($attributes, ['course_slug']);
 
             $unit = $this->repository->create($attributes);
@@ -195,9 +188,6 @@ class UnitService
                         ->decrement('order');
                 }
             }
-
-            
-            
 
             $updated = $this->repository->update($unit, $attributes);
             cache()->tags(['schemes', 'units'])->flush();
@@ -294,7 +284,7 @@ class UnitService
 
     public function getContents(Unit $unit, ?\Modules\Auth\Models\User $user = null): array
     {
-        
+
         $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
             'lesson_completed',
             'quiz_passed',
@@ -376,12 +366,18 @@ class UnitService
                 ->map(fn ($submissions) => $submissions->sortByDesc('submitted_at')->first());
         }
 
+        $unitContentsMap = \Modules\Schemes\Models\UnitContent::where('unit_id', $unit->id)
+            ->get()
+            ->mapWithKeys(fn ($uc) => [$uc->contentable_type.'_'.$uc->contentable_id => $uc->order]);
+
+        $getCanonicalOrder = fn (string $type, int $id): int => $unitContentsMap->get($type.'_'.$id, PHP_INT_MAX);
+
         $allContent = collect();
 
         foreach ($lessons as $lesson) {
             $allContent->push([
                 'type' => 'lesson',
-                'order' => $lesson->order,
+                'order' => $getCanonicalOrder('lesson', $lesson->id),
                 'data' => $lesson,
             ]);
         }
@@ -389,7 +385,7 @@ class UnitService
         foreach ($quizzes as $quiz) {
             $allContent->push([
                 'type' => 'quiz',
-                'order' => $quiz->order,
+                'order' => $getCanonicalOrder('quiz', $quiz->id),
                 'data' => $quiz,
             ]);
         }
@@ -397,7 +393,7 @@ class UnitService
         foreach ($assignments as $assignment) {
             $allContent->push([
                 'type' => 'assignment',
-                'order' => $assignment->order,
+                'order' => $getCanonicalOrder('assignment', $assignment->id),
                 'data' => $assignment,
             ]);
         }
@@ -410,10 +406,11 @@ class UnitService
         foreach ($allContent as $contentItem) {
             $type = $contentItem['type'];
             $item = $contentItem['data'];
+            $canonicalOrder = $contentItem['order'];
 
             if ($type === 'lesson') {
                 $isCompleted = in_array($item->id, $completedLessonIds);
-                
+
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
                 $contents->push([
@@ -422,8 +419,8 @@ class UnitService
                     'title' => $item->title,
                     'slug' => $item->slug,
                     'description' => $item->description,
-                    'order' => $item->order,
-                    'sequence' => $unit->order . '.' . $item->order,
+                    'order' => $canonicalOrder,
+                    'sequence' => $unit->order.'.'.$canonicalOrder,
                     'status' => $item->status,
                     'created_at' => $item->created_at,
                     'is_completed' => $isCompleted,
@@ -436,10 +433,9 @@ class UnitService
                 $submission = $submissionsByQuiz[$item->id] ?? null;
                 $finalScore = $submission ? ($submission->final_score ?? $submission->score) : null;
                 $isPassed = $submission && $submission->status->value === 'graded' && $finalScore !== null && $finalScore >= $item->passing_grade;
-                
+
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
-                
                 $baseXp = $xpSources['quiz_passed']->xp_amount ?? 0;
                 $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
 
@@ -448,8 +444,8 @@ class UnitService
                     'type' => 'quiz',
                     'title' => $item->title,
                     'description' => $item->description,
-                    'order' => $item->order,
-                    'sequence' => $unit->order . '.' . $item->order,
+                    'order' => $canonicalOrder,
+                    'sequence' => $unit->order.'.'.$canonicalOrder,
                     'status' => $item->status->value,
                     'max_score' => $item->max_score,
                     'passing_grade' => $item->passing_grade,
@@ -477,8 +473,8 @@ class UnitService
                     'type' => 'assignment',
                     'title' => $item->title,
                     'description' => $item->description,
-                    'order' => $item->order,
-                    'sequence' => $unit->order . '.' . $item->order,
+                    'order' => $canonicalOrder,
+                    'sequence' => $unit->order.'.'.$canonicalOrder,
                     'status' => $item->status->value,
                     'max_score' => $item->max_score,
                     'passing_grade' => $item->passing_grade,
@@ -503,10 +499,8 @@ class UnitService
     {
         $perPage = max(1, min($perPage, 100));
 
-        
         $query = Unit::query();
-        
-        
+
         if ($user && ! $user->hasRole('Superadmin') && ! $user->hasRole('Admin')) {
             $query->whereHas('course', function ($q) use ($user) {
                 if ($user->hasRole('Instructor')) {
@@ -525,22 +519,18 @@ class UnitService
             });
         }
 
-        
         $includeParam = request()->query('include', '');
         $requestedIncludes = array_filter(explode(',', $includeParam));
         $hasElementsInclude = in_array('elements', $requestedIncludes);
-        
-        
+
         if ($hasElementsInclude) {
             $requestedIncludes = array_diff($requestedIncludes, ['elements']);
             $requestedIncludes = array_merge($requestedIncludes, ['lessons', 'quizzes', 'assignments']);
             $requestedIncludes = array_unique($requestedIncludes);
-            
-            
+
             request()->merge(['include' => implode(',', $requestedIncludes)]);
         }
 
-        
         if (in_array('lessons', $requestedIncludes)) {
             if ($user && $user->hasRole('Student')) {
                 $query->with(['lessons' => fn ($q) => $q->where('status', 'published')->orderBy('order', 'asc')]);
@@ -548,7 +538,7 @@ class UnitService
                 $query->with(['lessons' => fn ($q) => $q->orderBy('order', 'asc')]);
             }
         }
-        
+
         if (in_array('quizzes', $requestedIncludes)) {
             if ($user && $user->hasRole('Student')) {
                 $query->with(['quizzes' => function ($q) use ($user) {
@@ -566,7 +556,7 @@ class UnitService
                 $query->with(['quizzes' => fn ($q) => $q->orderBy('order', 'asc')]);
             }
         }
-        
+
         if (in_array('assignments', $requestedIncludes)) {
             if ($user && $user->hasRole('Student')) {
                 $query->with(['assignments' => function ($q) use ($user) {
@@ -585,13 +575,11 @@ class UnitService
             }
         }
 
-        
         $searchQuery = request()->query('search');
         if ($searchQuery && trim((string) $searchQuery) !== '') {
             $query->search($searchQuery);
         }
 
-        
         $queryBuilder = \Spatie\QueryBuilder\QueryBuilder::for($query)
             ->allowedFilters([
                 \Spatie\QueryBuilder\AllowedFilter::exact('status'),
@@ -600,14 +588,11 @@ class UnitService
                         $q->where('slug', $value);
                     });
                 }),
-                \Spatie\QueryBuilder\AllowedFilter::callback('search', function ($query, $value) {
-                    
-                    
-                }),
+                \Spatie\QueryBuilder\AllowedFilter::callback('search', function ($query, $value) {}),
             ])
             ->allowedSorts(['order', 'title', 'created_at', 'updated_at'])
             ->defaultSort('-created_at')
-            ->with('course:id,slug,title'); 
+            ->with('course:id,slug,title');
 
         return $queryBuilder->paginate($perPage);
     }

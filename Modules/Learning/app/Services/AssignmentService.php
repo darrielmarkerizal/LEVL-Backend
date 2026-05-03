@@ -10,13 +10,13 @@ use Modules\Learning\Contracts\Services\AssignmentServiceInterface;
 use Modules\Learning\DTOs\PrerequisiteCheckResult;
 use Modules\Learning\Enums\AssignmentStatus;
 use Modules\Learning\Enums\AssignmentType;
-use Modules\Learning\Enums\RandomizationType;
 use Modules\Learning\Enums\ReviewMode;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Repositories\AssignmentRepository;
 use Modules\Learning\Services\Support\AssignmentDuplicator;
 use Modules\Learning\Services\Support\AssignmentFinder;
 use Modules\Learning\Services\Support\AssignmentPrerequisiteProcessor;
+use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Services\UnitContentSyncService;
 
 class AssignmentService implements AssignmentServiceInterface
@@ -114,9 +114,8 @@ class AssignmentService implements AssignmentServiceInterface
         return DB::transaction(function () use ($data, $createdBy) {
             $unitId = (int) $data['unit_id'];
 
-            if (! isset($data['order']) || $data['order'] === null) {
-                $data['order'] = $this->syncService->getNextOrder($unitId);
-            }
+            Unit::lockForUpdate()->findOrFail($unitId);
+            $data['order'] = $this->syncService->getNextOrder($unitId);
 
             $isAssignment = ($data['type'] ?? null) === AssignmentType::Assignment->value || ($data['type'] ?? null) === 'assignment';
 
@@ -150,6 +149,7 @@ class AssignmentService implements AssignmentServiceInterface
     public function update(Assignment $assignment, array $data): Assignment
     {
         return DB::transaction(function () use ($assignment, $data) {
+            unset($data['order']);
             $updated = $this->repository->update($assignment, $data);
 
             if (isset($data['delete_attachments']) && is_array($data['delete_attachments'])) {

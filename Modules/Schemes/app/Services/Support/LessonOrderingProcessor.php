@@ -28,9 +28,8 @@ class LessonOrderingProcessor
             $attributes = $data instanceof CreateLessonDTO ? $data->toArrayWithoutNull() : $data;
             $attributes['unit_id'] = $unitId;
 
-            if (! isset($attributes['order'])) {
-                $attributes['order'] = $this->syncService->getNextOrder($unitId);
-            }
+            Unit::lockForUpdate()->findOrFail($unitId);
+            $attributes['order'] = $this->syncService->getNextOrder($unitId);
 
             $attributes = Arr::except($attributes, ['slug']);
 
@@ -46,26 +45,7 @@ class LessonOrderingProcessor
     {
         return DB::transaction(function () use ($lesson, $data) {
             $attributes = $data instanceof UpdateLessonDTO ? $data->toArrayWithoutNull() : $data;
-
-            if (isset($attributes['order']) && $attributes['order'] != $lesson->order) {
-                $newOrder = $attributes['order'];
-                $currentOrder = $lesson->order;
-                $unitId = $lesson->unit_id;
-
-                if ($newOrder < $currentOrder) {
-                    Lesson::where('unit_id', $unitId)
-                        ->where('order', '>=', $newOrder)
-                        ->where('order', '<', $currentOrder)
-                        ->increment('order');
-                } elseif ($newOrder > $currentOrder) {
-                    Lesson::where('unit_id', $unitId)
-                        ->where('order', '>', $currentOrder)
-                        ->where('order', '<=', $newOrder)
-                        ->decrement('order');
-                }
-            }
-
-            $attributes = Arr::except($attributes, ['slug']);
+            $attributes = Arr::except($attributes, ['slug', 'order']);
 
             return $this->repository->update($lesson, $attributes);
         });

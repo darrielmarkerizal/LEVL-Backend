@@ -19,7 +19,6 @@ class UpdateQuizRequest extends FormRequest
     {
         return [
             'unit_id' => ['sometimes', 'integer', 'exists:units,id'],
-            'order' => ['sometimes', 'integer', 'min:1'],
             'title' => ['sometimes', 'string', 'max:255'],
             'status' => ['sometimes', 'string', QuizStatus::rule()],
             'description' => ['nullable', 'string'],

@@ -7,10 +7,12 @@ namespace Modules\Schemes\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Enrollments\Enums\ProgressStatus;
+use Modules\Schemes\Models\UnitContent;
 
 class UnitResource extends JsonResource
 {
     protected $enrollment;
+
     protected ?array $elements = null;
 
     public function __construct($resource, $enrollment = null)
@@ -22,6 +24,7 @@ class UnitResource extends JsonResource
     public function setElements(array $elements): static
     {
         $this->elements = $elements;
+
         return $this;
     }
 
@@ -47,18 +50,24 @@ class UnitResource extends JsonResource
 
         if ($isManager || $isEnrolledStudent) {
             if ($this->relationLoaded('lessons') && $this->relationLoaded('quizzes') && $this->relationLoaded('assignments')) {
+                $unitContentsMap = UnitContent::where('unit_id', $this->id)
+                    ->get()
+                    ->mapWithKeys(fn ($uc) => [$uc->contentable_type.'_'.$uc->contentable_id => $uc->order]);
+
+                $getOrder = fn (string $type, int $id): int => $unitContentsMap->get($type.'_'.$id, PHP_INT_MAX);
+
                 $elements = collect();
                 $unitOrder = $this->order;
-                
-                
+
                 foreach ($this->lessons as $lesson) {
+                    $order = $getOrder('lesson', $lesson->id);
                     $elements->push([
                         'id' => $lesson->id,
                         'type' => 'lesson',
                         'title' => $lesson->title,
                         'slug' => $lesson->slug,
-                        'order' => $lesson->order,
-                        'sequence' => $unitOrder . '.' . $lesson->order,
+                        'order' => $order,
+                        'sequence' => $unitOrder.'.'.$order,
                         'status' => $lesson->status,
                         'duration_minutes' => $lesson->duration_minutes,
                         'xp_reward' => $lesson->xp_reward,
@@ -66,15 +75,15 @@ class UnitResource extends JsonResource
                         'updated_at' => $lesson->updated_at?->toIso8601String(),
                     ]);
                 }
-                
-                
+
                 foreach ($this->quizzes as $quiz) {
+                    $order = $getOrder('quiz', $quiz->id);
                     $elements->push([
                         'id' => $quiz->id,
                         'type' => 'quiz',
                         'title' => $quiz->title,
-                        'order' => $quiz->order,
-                        'sequence' => $unitOrder . '.' . $quiz->order,
+                        'order' => $order,
+                        'sequence' => $unitOrder.'.'.$order,
                         'status' => $quiz->status?->value,
                         'status_label' => $quiz->status ? __('enums.quiz_status.'.$quiz->status->value) : null,
                         'randomization_type' => $quiz->randomization_type,
@@ -86,15 +95,15 @@ class UnitResource extends JsonResource
                         'updated_at' => $quiz->updated_at?->toIso8601String(),
                     ]);
                 }
-                
-                
+
                 foreach ($this->assignments as $assignment) {
+                    $order = $getOrder('assignment', $assignment->id);
                     $elements->push([
                         'id' => $assignment->id,
                         'type' => 'assignment',
                         'title' => $assignment->title,
-                        'order' => $assignment->order,
-                        'sequence' => $unitOrder . '.' . $assignment->order,
+                        'order' => $order,
+                        'sequence' => $unitOrder.'.'.$order,
                         'status' => $assignment->status?->value,
                         'status_label' => $assignment->status ? __('enums.assignment_status.'.$assignment->status->value) : null,
                         'submission_type' => $assignment->submission_type?->value,
@@ -104,13 +113,11 @@ class UnitResource extends JsonResource
                         'updated_at' => $assignment->updated_at?->toIso8601String(),
                     ]);
                 }
-                
-                
+
                 $data['elements'] = $elements->sortBy('order')->values()->all();
             }
         }
 
-        
         if ($isEnrolledStudent && $this->enrollment) {
             $data['progress'] = $this->getUnitProgress($this->enrollment);
         }
@@ -181,19 +188,17 @@ class UnitResource extends JsonResource
 
     private function isUnitLocked($enrollment): bool
     {
-        
+
         if ($this->order === 1) {
             return false;
         }
 
-        
         $course = $this->relationLoaded('course') ? $this->course : $this->course()->first();
 
         if (! $course) {
             return false;
         }
 
-        
         $previousUnit = \Modules\Schemes\Models\Unit::where('course_id', $course->id)
             ->where('order', $this->order - 1)
             ->first();
@@ -202,7 +207,6 @@ class UnitResource extends JsonResource
             return false;
         }
 
-        
         $previousUnitProgress = \Modules\Enrollments\Models\UnitProgress::where('enrollment_id', $enrollment->id)
             ->where('unit_id', $previousUnit->id)
             ->first();
@@ -287,7 +291,7 @@ class UnitResource extends JsonResource
         }
 
         if ($user->hasRole('Admin')) {
-            return true; 
+            return true;
         }
 
         if ($user->hasRole('Instructor')) {

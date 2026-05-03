@@ -10,6 +10,7 @@ use Modules\Learning\Contracts\Services\QuizServiceInterface;
 use Modules\Learning\Enums\QuizStatus;
 use Modules\Learning\Models\Quiz;
 use Modules\Learning\Repositories\QuizRepository;
+use Modules\Schemes\Models\Unit;
 use Modules\Schemes\Services\UnitContentSyncService;
 
 class QuizService implements QuizServiceInterface
@@ -59,9 +60,8 @@ class QuizService implements QuizServiceInterface
         return DB::transaction(function () use ($data, $createdBy) {
             $unitId = (int) $data['unit_id'];
 
-            if (! isset($data['order']) || $data['order'] === null) {
-                $data['order'] = $this->syncService->getNextOrder($unitId);
-            }
+            Unit::lockForUpdate()->findOrFail($unitId);
+            $data['order'] = $this->syncService->getNextOrder($unitId);
 
             $quiz = $this->repository->create(array_merge($data, [
                 'created_by' => $createdBy,
@@ -87,6 +87,7 @@ class QuizService implements QuizServiceInterface
     public function update(Quiz $quiz, array $data): Quiz
     {
         return DB::transaction(function () use ($quiz, $data) {
+            unset($data['order']);
             $updated = $this->repository->update($quiz, $data);
 
             if (isset($data['delete_attachments']) && is_array($data['delete_attachments'])) {

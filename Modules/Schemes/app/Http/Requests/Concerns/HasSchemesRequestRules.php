@@ -64,26 +64,26 @@ trait HasSchemesRequestRules
             'banner' => ['sometimes', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
             'status' => ['sometimes', Rule::enum(CourseStatus::class)],
             'instructor_id' => [
-                'sometimes', 
-                'integer', 
+                'sometimes',
+                'integer',
                 'exists:users,id',
                 function (string $attribute, mixed $value, \Closure $fail) {
                     $user = \Modules\Auth\Models\User::find($value);
-                    if ($user && !$user->hasRole('Instructor')) {
+                    if ($user && ! $user->hasRole('Instructor')) {
                         $fail(__('validation.custom.instructor_id.role', ['attribute' => __('validation.attributes.instructor')]));
                     }
-                }
+                },
             ],
             'instructor_ids' => ['sometimes', 'array'],
             'instructor_ids.*' => [
-                'integer', 
+                'integer',
                 'exists:users,id',
                 function (string $attribute, mixed $value, \Closure $fail) {
                     $user = \Modules\Auth\Models\User::find($value);
-                    if ($user && !$user->hasRole('Instructor')) {
+                    if ($user && ! $user->hasRole('Instructor')) {
                         $fail(__('validation.custom.instructor_id.role', ['attribute' => __('validation.attributes.instructor')]));
                     }
-                }
+                },
             ],
         ];
     }
@@ -188,7 +188,6 @@ trait HasSchemesRequestRules
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'markdown_content' => ['nullable', 'string'],
-            'order' => ['nullable', 'integer', 'min:1'],
             'duration_minutes' => ['sometimes', 'integer', 'min:0'],
             'status' => ['sometimes', Rule::enum(PublishStatus::class)],
             'blocks' => ['sometimes', 'array'],
@@ -203,8 +202,6 @@ trait HasSchemesRequestRules
             'slug.unique' => __('validation.unique', ['attribute' => __('validation.attributes.slug')]),
             'title.required' => __('validation.required', ['attribute' => __('validation.attributes.title')]),
             'markdown_content.string' => __('validation.string', ['attribute' => __('validation.attributes.markdown_content')]),
-            'order.integer' => __('validation.integer', ['attribute' => __('validation.attributes.order')]),
-            'order.min' => __('validation.min.numeric', ['attribute' => __('validation.attributes.order'), 'min' => 1]),
             'duration_minutes.integer' => __('validation.integer', ['attribute' => __('validation.attributes.duration_minutes')]),
             'duration_minutes.min' => __('validation.min.numeric', ['attribute' => __('validation.attributes.duration_minutes'), 'min' => 0]),
             'status.in' => __('validation.in', ['attribute' => __('validation.attributes.status')]),
