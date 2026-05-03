@@ -140,12 +140,11 @@ jobs:
 
             # ── Write log monitor env file from GitHub Secrets ───────────────
             # Reuses the same tokens already configured for CI/CD notifications
-            sudo tee /etc/levl-log-monitor.env > /dev/null <<EOF
-TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
-DEPLOY_PATH=${{ secrets.DEPLOY_PATH }}
-COOLDOWN=30
-EOF
+            printf 'TELEGRAM_BOT_TOKEN=%s\nTELEGRAM_CHAT_ID=%s\nDEPLOY_PATH=%s\nCOOLDOWN=30\n' \
+              '${{ secrets.TELEGRAM_BOT_TOKEN }}' \
+              '${{ secrets.TELEGRAM_CHAT_ID }}' \
+              '${{ secrets.DEPLOY_PATH }}' \
+              | sudo tee /etc/levl-log-monitor.env > /dev/null
             sudo chmod 600 /etc/levl-log-monitor.env
 
             # ── Install systemd service if not already present ────────────────
