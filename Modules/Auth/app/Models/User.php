@@ -150,6 +150,15 @@ class User extends Authenticatable implements HasMedia, JWTSubject
         return $this->hasMany(\Modules\Gamification\Models\LearningStreak::class);
     }
 
+    /**
+     * Alias for gamificationStats — exposes level data via the same stat row.
+     * Allows ?include=levels,levelsCount,levelsExists in query builder.
+     */
+    public function levels()
+    {
+        return $this->hasOne(\Modules\Gamification\Models\UserGamificationStat::class);
+    }
+
     public function submissions()
     {
         return $this->hasMany(\Modules\Learning\Models\Submission::class);
