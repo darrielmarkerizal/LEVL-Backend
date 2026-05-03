@@ -358,6 +358,8 @@ return [
         'cannot_deactivate_self' => 'You cannot deactivate your own account.',
         'cannot_delete_self' => 'You cannot delete your own account.',
         'no_access_to_user' => 'You do not have permission to view this user\'s profile.',
+        'enrolled_courses_student_only' => 'This endpoint is only available for users with the Student role.',
+        'assigned_schemes_instructor_only' => 'This endpoint is only available for users with the Instructor role.',
         'current_password_incorrect' => 'The current password you entered is incorrect.',
         'password_min_length' => 'Your new password must be at least 8 characters long.',
         'password_incorrect' => 'The password you entered is incorrect.',

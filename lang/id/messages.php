@@ -362,6 +362,8 @@ return [
         'cannot_deactivate_self' => 'Anda tidak dapat menonaktifkan akun Anda sendiri.',
         'cannot_delete_self' => 'Anda tidak dapat menghapus akun Anda sendiri.',
         'no_access_to_user' => 'Anda tidak memiliki izin untuk melihat profil pengguna ini.',
+        'enrolled_courses_student_only' => 'Endpoint ini hanya tersedia untuk pengguna dengan role Student.',
+        'assigned_schemes_instructor_only' => 'Endpoint ini hanya tersedia untuk pengguna dengan role Instructor.',
         'current_password_incorrect' => 'Password saat ini yang Anda masukkan tidak sesuai.',
         'password_min_length' => 'Password baru harus terdiri dari minimal 8 karakter.',
         'password_incorrect' => 'Password yang Anda masukkan tidak sesuai.',

@@ -263,6 +263,10 @@ class UserFinder
             throw new AuthorizationException(__('messages.auth.no_access_to_user'));
         }
 
+        if (! $target->hasRole('Student')) {
+            throw new AuthorizationException(__('messages.auth.enrolled_courses_student_only'));
+        }
+
         return QueryBuilder::for(Enrollment::class, $request ?? new Request)
             ->where('user_id', $userId)
             ->with([
@@ -297,6 +301,10 @@ class UserFinder
 
         if (! $authUser->can('view', $target)) {
             throw new AuthorizationException(__('messages.auth.no_access_to_user'));
+        }
+
+        if (! $target->hasRole('Instructor')) {
+            throw new AuthorizationException(__('messages.auth.assigned_schemes_instructor_only'));
         }
 
         return QueryBuilder::for(\Modules\Schemes\Models\Course::class, $request ?? new Request)
