@@ -9,6 +9,7 @@ use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Modules\Auth\Contracts\Repositories\AuthRepositoryInterface;
 use Modules\Auth\Contracts\Repositories\PasswordResetTokenRepositoryInterface;
 use Modules\Auth\Http\Requests\ChangePasswordRequest;
 use Modules\Auth\Http\Requests\ForgotPasswordRequest;
@@ -21,7 +22,8 @@ class PasswordResetController extends Controller
     use ApiResponse;
 
     public function __construct(
-        private PasswordResetTokenRepositoryInterface $passwordResetTokenRepository
+        private PasswordResetTokenRepositoryInterface $passwordResetTokenRepository,
+        private AuthRepositoryInterface $authRepository,
     ) {}
 
     public function forgot(ForgotPasswordRequest $request): JsonResponse
@@ -145,21 +147,11 @@ class PasswordResetController extends Controller
         return $this->success([], __('messages.password.updated'));
     }
 
-    
     private function revokeAllUserTokens(User $user): void
     {
         try {
-            
-            
-            auth('api')->setUser($user);
-
-            
-            \Illuminate\Support\Facades\DB::table('refresh_tokens')
-                ->where('user_id', $user->id)
-                ->delete();
-
+            $this->authRepository->revokeAllUserRefreshTokens($user->id);
         } catch (\Exception $e) {
-            
             \Illuminate\Support\Facades\Log::warning('Failed to revoke tokens for user '.$user->id.': '.$e->getMessage());
         }
     }

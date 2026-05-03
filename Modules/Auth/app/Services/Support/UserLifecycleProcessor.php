@@ -190,17 +190,11 @@ class UserLifecycleProcessor
         });
     }
 
-    
     private function revokeAllUserTokens(User $user): void
     {
         try {
-            
-            DB::table('refresh_tokens')
-                ->where('user_id', $user->id)
-                ->delete();
-
+            $this->authRepository->revokeAllUserRefreshTokens($user->id);
         } catch (\Exception $e) {
-            
             \Illuminate\Support\Facades\Log::warning('Failed to revoke tokens for user '.$user->id.': '.$e->getMessage());
         }
     }
