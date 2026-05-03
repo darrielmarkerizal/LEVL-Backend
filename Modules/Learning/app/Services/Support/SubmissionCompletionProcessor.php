@@ -80,9 +80,7 @@ class SubmissionCompletionProcessor
                 throw SubmissionException::notAllowed(__('messages.submissions.cannot_modify'));
             }
 
-            if ($this->isTimerExpired($assignment, $submission)) {
-                throw SubmissionException::timerExpired();
-            }
+
 
             $this->validateQuestionInAssignment($submission, $assignment, $questionId);
 
@@ -118,9 +116,7 @@ class SubmissionCompletionProcessor
 
             $this->validateAllQuestionsAnswered($submission, $questionRepo);
 
-            if ($this->isTimerExpired($assignment, $submission)) {
-                throw SubmissionException::timerExpired();
-            }
+
 
             $submission->update([
                 'submitted_at' => Carbon::now(),
@@ -152,17 +148,7 @@ class SubmissionCompletionProcessor
         return DB::transaction(fn () => $this->repository->delete($submission));
     }
 
-    private function isTimerExpired(mixed $assignment, Submission $submission): bool
-    {
-        if ($assignment->time_limit_minutes === null) {
-            return false;
-        }
-        $limitEnds = $submission->created_at?->copy()
-            ->addMinutes($assignment->time_limit_minutes)
-            ->addSeconds(self::TIMER_GRACE_SECONDS);
 
-        return $limitEnds && now()->gt($limitEnds);
-    }
 
     private function validateQuestionInAssignment(Submission $submission, mixed $assignment, int $questionId): void
     {

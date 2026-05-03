@@ -31,7 +31,7 @@ class AssignmentFactory extends Factory
             'review_mode' => ReviewMode::Manual->value,
             'randomization_type' => 'static',
             'question_bank_count' => null,
-            'time_limit_minutes' => fake()->optional(0.5)->numberBetween(15, 120),
+
         ];
     }
 

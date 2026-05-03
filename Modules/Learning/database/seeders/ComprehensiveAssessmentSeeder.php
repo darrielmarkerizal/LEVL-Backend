@@ -291,7 +291,7 @@ class ComprehensiveAssessmentSeeder extends Seeder
             'passing_grade' => rand(60, 80),
             'auto_grading' => \DB::raw('true'),
             'max_score' => 100,
-            'time_limit_minutes' => rand(30, 90),
+
             'review_mode' => $this->reviewModeForOrder($order),
             'randomization_type' => $randomization,
             'question_bank_count' => $randomization === RandomizationType::Bank->value ? rand(8, 20) : null,
