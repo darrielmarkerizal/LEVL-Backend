@@ -14,6 +14,7 @@ use Modules\Learning\Http\Requests\DuplicateAssignmentRequest;
 use Modules\Learning\Http\Requests\StoreAssignmentRequest;
 use Modules\Learning\Http\Requests\UpdateAssignmentRequest;
 use Modules\Learning\Http\Resources\AssignmentResource;
+use Modules\Learning\Jobs\DeleteAssignmentJob;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Services\Support\AssignmentEnrichmentService;
 
@@ -107,9 +108,17 @@ class AssignmentController extends Controller
 
     public function destroy(Assignment $assignment): JsonResponse
     {
-        $this->assignmentService->delete($assignment);
+        DeleteAssignmentJob::dispatch($assignment->id, auth('api')->id());
 
-        return $this->success([], __('messages.assignments.deleted'));
+        return $this->success(
+            [
+                'queued' => true,
+                'assignment_id' => $assignment->id,
+            ],
+            'messages.assignments.delete_queued',
+            [],
+            202
+        );
     }
 
     public function publish(Assignment $assignment): JsonResponse

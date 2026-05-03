@@ -559,6 +559,7 @@ return [
         'created' => 'Tugas berhasil dibuat.',
         'updated' => 'Tugas berhasil diperbarui.',
         'deleted' => 'Tugas berhasil dihapus.',
+        'delete_queued' => 'Permintaan penghapusan tugas diterima dan sedang diproses di latar belakang.',
         'published' => 'Tugas berhasil dipublikasikan.',
         'unpublished' => 'Publikasi tugas berhasil dibatalkan.',
         'duplicated' => 'Tugas berhasil diduplikasi.',
