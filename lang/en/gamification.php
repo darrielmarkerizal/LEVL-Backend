@@ -12,4 +12,5 @@ return [
     'summary_retrieved' => 'Gamification summary retrieved successfully.',
     'rank_retrieved' => 'Rank retrieved successfully.',
     'level_retrieved' => 'Level data retrieved successfully.',
+    'course_progress_retrieved' => 'Course progress retrieved successfully.',
 ];

@@ -71,7 +71,7 @@ class GamificationController extends Controller
 
         $data = $this->gamificationService->getCourseOverview($userId, $course->id);
 
-        return $this->success($data, __('gamification.levels_retrieved'));
+        return $this->success($data, __('gamification.course_progress_retrieved'));
     }
 
     public function level(Request $request): JsonResponse

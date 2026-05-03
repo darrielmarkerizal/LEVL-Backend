@@ -12,4 +12,5 @@ return [
     'summary_retrieved' => 'Ringkasan gamifikasi berhasil diambil.',
     'rank_retrieved' => 'Rank berhasil diambil.',
     'level_retrieved' => 'Data level berhasil diambil.',
+    'course_progress_retrieved' => 'Progress kursus berhasil diambil.',
 ];
