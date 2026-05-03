@@ -50,7 +50,7 @@ class PasswordResetController extends Controller
 
         $ttlMinutes = (int) (config('auth.passwords.users.expire', 60) ?? 60);
         $frontendUrl = config('app.frontend_url');
-        $resetUrl = $frontendUrl.'/atur-ulang-kata-sandi?token='.$plainToken;
+        $resetUrl = $frontendUrl.'/reset-password?token='.$plainToken;
 
         Mail::to($user)
             ->queue((new ResetPasswordMail($user, $resetUrl, $ttlMinutes))->onQueue('emails-critical'));
