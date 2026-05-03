@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Events\AccountDeleted;
 use Modules\Auth\Models\User;
 use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
-class NotifyAdminsOnAccountDeleted
+class NotifyAdminsOnAccountDeleted implements ShouldQueue
 {
     public function __construct(
         private readonly NotificationService $notificationService

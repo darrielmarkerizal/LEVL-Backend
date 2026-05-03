@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Forums\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Forums\Events\ReplyCreated;
 use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
-class NotifyAuthorOnReply
+class NotifyAuthorOnReply implements ShouldQueue
 {
     public function __construct(
         private readonly NotificationService $notificationService

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Common\Models\SystemSetting;
 use Modules\Forums\Events\ReplyCreated;
 use Modules\Gamification\Services\EventCounterService;
@@ -11,7 +12,7 @@ use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Gamification\Services\Support\BadgeRuleEvaluator;
 
-class AwardXpForReplyCreated
+class AwardXpForReplyCreated implements ShouldQueue
 {
     public function __construct(
         private readonly GamificationService $gamification,

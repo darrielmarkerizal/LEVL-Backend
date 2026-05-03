@@ -2,11 +2,12 @@
 
 namespace Modules\Forums\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Forums\Events\ThreadUnresolved;
 use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
-class NotifyAuthorOnThreadUnresolved
+class NotifyAuthorOnThreadUnresolved implements ShouldQueue
 {
     public function __construct(
         private readonly NotificationService $notificationService

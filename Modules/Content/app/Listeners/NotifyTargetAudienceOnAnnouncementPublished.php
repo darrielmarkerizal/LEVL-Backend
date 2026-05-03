@@ -2,10 +2,11 @@
 
 namespace Modules\Content\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Content\Events\AnnouncementPublished;
 use Modules\Content\Services\ContentNotificationService;
 
-class NotifyTargetAudienceOnAnnouncementPublished
+class NotifyTargetAudienceOnAnnouncementPublished implements ShouldQueue
 {
     protected ContentNotificationService $notificationService;
 

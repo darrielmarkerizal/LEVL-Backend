@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Gamification\Traits\CachesUsers;
 use Modules\Schemes\Events\LessonCompleted;
 
-class AwardXpForLessonCompleted
+class AwardXpForLessonCompleted implements ShouldQueue
 {
     use CachesUsers;
 

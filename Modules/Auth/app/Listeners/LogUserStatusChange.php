@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Auth\Events\UserStatusChanged;
 
-
-class LogUserStatusChange
+class LogUserStatusChange implements ShouldQueue
 {
     
     public function handle(UserStatusChanged $event): void

@@ -2,11 +2,12 @@
 
 namespace Modules\Forums\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Forums\Events\ThreadPinned;
 use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
-class NotifyUsersOnThreadPinned
+class NotifyUsersOnThreadPinned implements ShouldQueue
 {
     protected NotificationService $notificationService;
 

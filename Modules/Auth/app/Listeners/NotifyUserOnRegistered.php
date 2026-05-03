@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Auth\Events\UserRegistered;
 use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
-class NotifyUserOnRegistered
+class NotifyUserOnRegistered implements ShouldQueue
 {
     public function __construct(
         private readonly NotificationService $notificationService

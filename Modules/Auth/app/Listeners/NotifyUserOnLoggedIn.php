@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Auth\Events\UserLoggedIn;
 use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
-class NotifyUserOnLoggedIn
+class NotifyUserOnLoggedIn implements ShouldQueue
 {
     public function __construct(
         private readonly NotificationService $notificationService

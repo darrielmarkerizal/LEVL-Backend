@@ -2,13 +2,14 @@
 
 namespace Modules\Content\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Auth\Enums\UserStatus;
 use Modules\Auth\Models\User;
 use Modules\Content\Events\ContentSubmitted;
 use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
-class NotifyReviewersOnContentSubmitted
+class NotifyReviewersOnContentSubmitted implements ShouldQueue
 {
     public function __construct(
         private readonly NotificationService $notificationService

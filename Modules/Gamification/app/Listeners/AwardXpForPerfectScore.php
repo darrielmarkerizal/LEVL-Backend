@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Grading\Events\GradesReleased;
 
-class AwardXpForPerfectScore
+class AwardXpForPerfectScore implements ShouldQueue
 {
     public function __construct(
         private GamificationService $gamification,

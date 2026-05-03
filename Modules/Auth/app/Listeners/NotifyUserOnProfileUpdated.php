@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Auth\Events\ProfileUpdated;
 use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
-class NotifyUserOnProfileUpdated
+class NotifyUserOnProfileUpdated implements ShouldQueue
 {
     public function __construct(
         private readonly NotificationService $notificationService

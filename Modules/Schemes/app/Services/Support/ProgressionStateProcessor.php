@@ -31,14 +31,15 @@ class ProgressionStateProcessor
                 ->where('status', ProgressStatus::Completed)
                 ->exists();
 
-            $lessonModel = $lesson->fresh([
+            $lesson->load([
                 'unit.course',
                 'unit.lessons' => function ($query) {
                     $query->where('status', 'published')->orderBy('order');
                 },
             ]);
+            $lessonModel = $lesson;
 
-            if (! $lessonModel || ! $lessonModel->unit || ! $lessonModel->unit->course) {
+            if (! $lessonModel->unit || ! $lessonModel->unit->course) {
                 return;
             }
 
@@ -69,14 +70,15 @@ class ProgressionStateProcessor
     public function markLessonUncompleted(Lesson $lesson, Enrollment $enrollment): void
     {
         DB::transaction(function () use ($lesson, $enrollment) {
-            $lessonModel = $lesson->fresh([
+            $lesson->load([
                 'unit.course',
                 'unit.lessons' => function ($query) {
                     $query->where('status', 'published')->orderBy('order');
                 },
             ]);
+            $lessonModel = $lesson;
 
-            if (! $lessonModel || ! $lessonModel->unit || ! $lessonModel->unit->course) {
+            if (! $lessonModel->unit || ! $lessonModel->unit->course) {
                 return;
             }
 
@@ -105,14 +107,15 @@ class ProgressionStateProcessor
     public function markUnitCompleted(Unit $unit, Enrollment $enrollment): void
     {
         DB::transaction(function () use ($unit, $enrollment) {
-            $unitModel = $unit->fresh([
+            $unit->load([
                 'course',
                 'lessons' => function ($query) {
                     $query->where('status', 'published')->orderBy('order');
                 },
             ]);
+            $unitModel = $unit;
 
-            if (! $unitModel || ! $unitModel->course) {
+            if (! $unitModel->course) {
                 return;
             }
 
@@ -123,7 +126,7 @@ class ProgressionStateProcessor
 
     public function getCourseProgressData(Course $course, Enrollment $enrollment): array
     {
-        $courseModel = $course->fresh([
+        $course->load([
             'units' => function ($query) {
                 $query->where('status', 'published')
                     ->orderBy('order')
@@ -132,10 +135,7 @@ class ProgressionStateProcessor
                     }]);
             },
         ]);
-
-        if (! $courseModel) {
-            return [];
-        }
+        $courseModel = $course;
 
         DB::transaction(function () use ($courseModel, $enrollment) {
             foreach ($courseModel->units as $unit) {
@@ -427,7 +427,7 @@ class ProgressionStateProcessor
         $enrollment->save();
 
         if ($courseJustCompleted) {
-            CourseCompleted::dispatch($course->fresh(), $enrollment->fresh());
+            CourseCompleted::dispatch($course, $enrollment);
         }
 
         return [

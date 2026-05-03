@@ -2,11 +2,12 @@
 
 namespace Modules\Forums\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Forums\Events\ThreadCreated;
 use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
-class NotifyInstructorOnThreadCreated
+class NotifyInstructorOnThreadCreated implements ShouldQueue
 {
     protected NotificationService $notificationService;
 

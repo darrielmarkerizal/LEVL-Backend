@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Schemes\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Schemes\Events\UnitCompleted;
 use Modules\Schemes\Services\ProgressionService;
 
-class UpdateProgressOnUnitCompleted
+class UpdateProgressOnUnitCompleted implements ShouldQueue
 {
     public function __construct(private ProgressionService $progression) {}
 

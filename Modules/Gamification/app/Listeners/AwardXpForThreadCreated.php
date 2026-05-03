@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Common\Models\SystemSetting;
 use Modules\Forums\Events\ThreadCreated;
 use Modules\Gamification\Services\EventCounterService;
@@ -12,7 +13,7 @@ use Modules\Gamification\Services\GamificationService;
 use Modules\Gamification\Services\Support\BadgeRuleEvaluator;
 use Modules\Gamification\Traits\CachesUsers;
 
-class AwardXpForThreadCreated
+class AwardXpForThreadCreated implements ShouldQueue
 {
     use CachesUsers;
 

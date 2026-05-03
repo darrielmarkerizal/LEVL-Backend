@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Enrollments\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Enrollments\Models\Enrollment;
 use Modules\Enrollments\Models\EnrollmentActivity;
 use Modules\Learning\Events\QuizCompleted;
 
-class RecordQuizCompletedActivity
+class RecordQuizCompletedActivity implements ShouldQueue
 {
     public function handle(QuizCompleted $event): void
     {

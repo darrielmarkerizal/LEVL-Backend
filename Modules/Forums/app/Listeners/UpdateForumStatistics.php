@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Modules\Forums\Listeners;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Cache;
 use Modules\Forums\Events\ReplyCreated;
 use Modules\Forums\Events\ThreadCreated;
 use Modules\Forums\Repositories\ForumStatisticsRepository;
 
-class UpdateForumStatistics
+class UpdateForumStatistics implements ShouldQueue
 {
     public function __construct(
         protected ForumStatisticsRepository $statisticsRepository

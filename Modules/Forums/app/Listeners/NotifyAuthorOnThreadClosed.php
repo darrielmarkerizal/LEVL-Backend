@@ -2,11 +2,12 @@
 
 namespace Modules\Forums\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Forums\Events\ThreadClosed;
 use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
-class NotifyAuthorOnThreadClosed
+class NotifyAuthorOnThreadClosed implements ShouldQueue
 {
     public function __construct(
         private readonly NotificationService $notificationService

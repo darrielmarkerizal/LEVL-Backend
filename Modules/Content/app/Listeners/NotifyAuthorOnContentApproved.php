@@ -2,11 +2,12 @@
 
 namespace Modules\Content\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Content\Events\ContentApproved;
 use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
-class NotifyAuthorOnContentApproved
+class NotifyAuthorOnContentApproved implements ShouldQueue
 {
     public function __construct(
         private readonly NotificationService $notificationService

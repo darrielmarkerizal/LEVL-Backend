@@ -2,12 +2,13 @@
 
 namespace Modules\Content\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Content\Events\ContentRejected;
 use Modules\Content\Models\ContentWorkflowHistory;
 use Modules\Notifications\Enums\NotificationType;
 use Modules\Notifications\Services\NotificationService;
 
-class NotifyAuthorOnContentRejected
+class NotifyAuthorOnContentRejected implements ShouldQueue
 {
     public function __construct(
         private readonly NotificationService $notificationService
