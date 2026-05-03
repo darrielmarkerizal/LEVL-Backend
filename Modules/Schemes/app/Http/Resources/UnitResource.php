@@ -188,90 +188,17 @@ class UnitResource extends JsonResource
 
     private function isUnitLocked($enrollment): bool
     {
+        $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
+        $accessCheck = $prerequisiteService->checkUnitAccess($this->resource, (int) $enrollment->user_id);
 
-        if ($this->order === 1) {
-            return false;
-        }
-
-        $course = $this->relationLoaded('course') ? $this->course : $this->course()->first();
-
-        if (! $course) {
-            return false;
-        }
-
-        $previousUnit = \Modules\Schemes\Models\Unit::where('course_id', $course->id)
-            ->where('order', $this->order - 1)
-            ->first();
-
-        if (! $previousUnit) {
-            return false;
-        }
-
-        $previousUnitProgress = \Modules\Enrollments\Models\UnitProgress::where('enrollment_id', $enrollment->id)
-            ->where('unit_id', $previousUnit->id)
-            ->first();
-
-        $previousSummary = $this->getUnitCompletionSummary($previousUnit->id, (int) $enrollment->id, (int) $enrollment->user_id);
-        $previousStatus = $this->resolveProgressStatus(
-            $previousSummary['completed_items'],
-            $previousSummary['total_items'],
-            $previousUnitProgress?->status
-        );
-
-        return $previousStatus !== ProgressStatus::Completed->value;
+        return ! ($accessCheck['accessible'] ?? true);
     }
 
     private function getUnitCompletionSummary(int $unitId, int $enrollmentId, int $userId): array
     {
-        $lessonIds = \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)
-            ->where('status', 'published')
-            ->pluck('id');
-        $quizIds = \Modules\Learning\Models\Quiz::where('unit_id', $unitId)
-            ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
-            ->pluck('id');
-        $assignmentIds = \Modules\Learning\Models\Assignment::where('unit_id', $unitId)
-            ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
-            ->pluck('id');
+        $prerequisiteService = app(\Modules\Schemes\Services\PrerequisiteService::class);
 
-        $totalLessons = $lessonIds->count();
-        $totalQuizzes = $quizIds->count();
-        $totalAssignments = $assignmentIds->count();
-        $totalContent = $totalLessons + $totalQuizzes + $totalAssignments;
-
-        $completedLessons = $totalLessons > 0
-            ? \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollmentId)
-                ->whereIn('lesson_id', $lessonIds)
-                ->where('status', ProgressStatus::Completed)
-                ->count()
-            : 0;
-
-        $completedQuizzes = $totalQuizzes > 0
-            ? \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
-                ->whereIn('quiz_id', $quizIds)
-                ->where('status', 'graded')
-                ->whereNotNull('final_score')
-                ->whereHas('quiz', function ($q) {
-                    $q->whereRaw('quiz_submissions.final_score >= quizzes.passing_grade');
-                })
-                ->distinct('quiz_id')
-                ->count('quiz_id')
-            : 0;
-
-        $completedAssignments = $totalAssignments > 0
-            ? \Modules\Learning\Models\Submission::where('user_id', $userId)
-                ->whereIn('assignment_id', $assignmentIds)
-                ->where('status', \Modules\Learning\Enums\SubmissionStatus::Graded)
-                ->whereHas('assignment', function ($q) {
-                    $q->whereRaw('submissions.score >= COALESCE(assignments.passing_grade, assignments.max_score * 0.6)');
-                })
-                ->distinct('assignment_id')
-                ->count('assignment_id')
-            : 0;
-
-        return [
-            'total_items' => $totalContent,
-            'completed_items' => $completedLessons + $completedQuizzes + $completedAssignments,
-        ];
+        return $prerequisiteService->getUnitCompletionCounts($unitId, $enrollmentId, $userId);
     }
 
     private function isManager(?object $user): bool

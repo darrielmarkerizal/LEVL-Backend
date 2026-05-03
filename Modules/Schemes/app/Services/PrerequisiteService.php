@@ -245,6 +245,150 @@ class PrerequisiteService
         ];
     }
 
+    public function getUnitCompletionCounts(int $unitId, int $enrollmentId, int $userId): array
+    {
+        $lessonIds = \Modules\Schemes\Models\Lesson::where('unit_id', $unitId)
+            ->where('status', 'published')
+            ->pluck('id');
+
+        $quizIds = \Modules\Learning\Models\Quiz::where('unit_id', $unitId)
+            ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
+            ->pluck('id');
+
+        $assignmentIds = \Modules\Learning\Models\Assignment::where('unit_id', $unitId)
+            ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
+            ->pluck('id');
+
+        $totalItems = $lessonIds->count() + $quizIds->count() + $assignmentIds->count();
+
+        $completedLessons = $lessonIds->isNotEmpty()
+            ? \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollmentId)
+                ->whereIn('lesson_id', $lessonIds)
+                ->where('status', \Modules\Enrollments\Enums\ProgressStatus::Completed)
+                ->count()
+            : 0;
+
+        $completedQuizzes = $quizIds->isNotEmpty()
+            ? \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
+                ->whereIn('quiz_id', $quizIds)
+                ->where('status', 'graded')
+                ->whereNotNull('final_score')
+                ->whereRaw('final_score >= (select passing_grade from quizzes where quizzes.id = quiz_submissions.quiz_id)')
+                ->distinct('quiz_id')
+                ->count('quiz_id')
+            : 0;
+
+        $completedAssignments = $assignmentIds->isNotEmpty()
+            ? \Modules\Learning\Models\Submission::where('user_id', $userId)
+                ->whereIn('assignment_id', $assignmentIds)
+                ->where('status', \Modules\Learning\Enums\SubmissionStatus::Graded)
+                ->whereRaw('score >= (select COALESCE(passing_grade, max_score * 0.6) from assignments where assignments.id = submissions.assignment_id)')
+                ->distinct('assignment_id')
+                ->count('assignment_id')
+            : 0;
+
+        return [
+            'total_items'     => $totalItems,
+            'completed_items' => $completedLessons + $completedQuizzes + $completedAssignments,
+        ];
+    }
+
+    public function getCourseCompletionCounts(int $courseId, int $enrollmentId, int $userId): Collection
+    {
+        $unitIds = Unit::where('course_id', $courseId)
+            ->orderBy('order')
+            ->pluck('id');
+
+        $result = collect();
+        foreach ($unitIds as $unitId) {
+            $result[$unitId] = $this->getUnitCompletionCounts((int) $unitId, $enrollmentId, $userId);
+        }
+
+        return $result;
+    }
+
+    public function getCourseProgressInfo(int $courseId, int $enrollmentId, int $userId): array
+    {
+        $courseProgress = \Modules\Enrollments\Models\CourseProgress::where('enrollment_id', $enrollmentId)->first();
+
+        $totalLessons = \Modules\Schemes\Models\Lesson::whereHas('unit', fn ($q) => $q->where('course_id', $courseId))
+            ->where('status', 'published')
+            ->count();
+
+        $totalQuizzes = \Modules\Learning\Models\Quiz::whereHas('unit', fn ($q) => $q->where('course_id', $courseId))
+            ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
+            ->count();
+
+        $totalAssignments = \Modules\Learning\Models\Assignment::whereHas('unit', fn ($q) => $q->where('course_id', $courseId))
+            ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
+            ->count();
+
+        $totalContent = $totalLessons + $totalQuizzes + $totalAssignments;
+
+        if (! $courseProgress || $totalContent === 0) {
+            return [
+                'percentage'           => 0,
+                'completed_items'      => 0,
+                'total_items'          => $totalContent,
+                'last_accessed_lesson' => null,
+                'last_accessed_unit'   => null,
+            ];
+        }
+
+        $completedLessons = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollmentId)
+            ->where('status', \Modules\Enrollments\Enums\ProgressStatus::Completed)
+            ->count();
+
+        $completedQuizzes = \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
+            ->whereHas('quiz', fn ($q) => $q
+                ->whereHas('unit', fn ($u) => $u->where('course_id', $courseId))
+                ->where('status', \Modules\Learning\Enums\QuizStatus::Published)
+            )
+            ->whereNotNull('final_score')
+            ->where('status', 'graded')
+            ->whereRaw('final_score >= (select passing_grade from quizzes where quizzes.id = quiz_submissions.quiz_id)')
+            ->distinct('quiz_id')
+            ->count('quiz_id');
+
+        $completedAssignments = \Modules\Learning\Models\Submission::where('user_id', $userId)
+            ->where('status', \Modules\Learning\Enums\SubmissionStatus::Graded)
+            ->whereHas('assignment', fn ($q) => $q
+                ->whereHas('unit', fn ($u) => $u->where('course_id', $courseId))
+                ->where('status', \Modules\Learning\Enums\AssignmentStatus::Published)
+            )
+            ->whereRaw('score >= (select COALESCE(passing_grade, max_score * 0.6) from assignments where assignments.id = submissions.assignment_id)')
+            ->distinct('assignment_id')
+            ->count('assignment_id');
+
+        $completedItems = $completedLessons + $completedQuizzes + $completedAssignments;
+        $percentage     = $totalContent > 0 ? round(($completedItems / $totalContent) * 100, 2) : 0;
+
+        $lastLessonProgress = \Modules\Enrollments\Models\LessonProgress::where('enrollment_id', $enrollmentId)
+            ->orderBy('updated_at', 'desc')
+            ->first();
+
+        $lastLesson = null;
+        $lastUnit   = null;
+
+        if ($lastLessonProgress?->lesson_id) {
+            $lesson = \Modules\Schemes\Models\Lesson::with('unit')->find($lastLessonProgress->lesson_id);
+            if ($lesson) {
+                $lastLesson = ['id' => $lesson->id, 'title' => $lesson->title, 'slug' => $lesson->slug];
+                $lastUnit   = $lesson->unit
+                    ? ['id' => $lesson->unit->id, 'title' => $lesson->unit->title, 'slug' => $lesson->unit->slug]
+                    : null;
+            }
+        }
+
+        return [
+            'percentage'           => $percentage,
+            'completed_items'      => $completedItems,
+            'total_items'          => $totalContent,
+            'last_accessed_lesson' => $lastLesson,
+            'last_accessed_unit'   => $lastUnit,
+        ];
+    }
+
     public function getUnitContentOrder(Unit $unit): array
     {
         $unitContents = $this->loadAllUnitContents($unit->id);
