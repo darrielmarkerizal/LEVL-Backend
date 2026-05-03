@@ -330,7 +330,7 @@ class ProgressionStateProcessor
         $lessonIds = $lessonsCollection->pluck('id');
         $totalLessons = $lessonIds->count();
 
-        // Count published quizzes and assignments for this unit
+        
         $quizIds = Quiz::where('unit_id', $unit->id)
             ->where('status', QuizStatus::Published)
             ->pluck('id');
