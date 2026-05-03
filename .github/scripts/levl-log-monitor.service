@@ -1,0 +1,59 @@
+# =============================================================================
+# levl-log-monitor.service — Systemd unit untuk log monitor Laravel
+#
+# Cara install di VPS:
+#   1. Copy file ini ke /etc/systemd/system/
+#      sudo cp levl-log-monitor.service /etc/systemd/system/
+#
+#   2. Buat file env (jangan hardcode token di sini):
+#      sudo nano /etc/levl-log-monitor.env
+#      Isi:
+#        TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
+#        TELEGRAM_CHAT_ID=-100123456789
+#        COOLDOWN=30
+#
+#   3. Aktifkan & jalankan:
+#      sudo systemctl daemon-reload
+#      sudo systemctl enable levl-log-monitor
+#      sudo systemctl start levl-log-monitor
+#
+#   4. Cek status:
+#      sudo systemctl status levl-log-monitor
+#      sudo journalctl -u levl-log-monitor -f
+# =============================================================================
+
+[Unit]
+Description=LEVL Laravel Log Error Monitor (Telegram Notifier)
+After=network.target
+# Restart otomatis jika Octane/app belum buat log file saat boot
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+
+# File env berisi TELEGRAM_BOT_TOKEN dan TELEGRAM_CHAT_ID
+EnvironmentFile=/etc/levl-log-monitor.env
+
+# Sesuaikan DEPLOY_PATH dengan path deploy di VPS (sama dengan ci-cd.yml)
+ExecStart=/bin/bash /var/www/levl/current/.github/scripts/log-monitor.sh \
+  "${TELEGRAM_BOT_TOKEN}" \
+  "${TELEGRAM_CHAT_ID}" \
+  "/var/www/levl/current/storage/logs/laravel.log" \
+  "LEVL-BE"
+
+# Restart otomatis jika script mati (misal log file di-rotate)
+Restart=always
+RestartSec=5s
+
+# Beri waktu 10 detik untuk shutdown bersih
+TimeoutStopSec=10
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=levl-log-monitor
+
+[Install]
+WantedBy=multi-user.target

@@ -154,6 +154,9 @@ jobs:
               echo "⚠️ No levl-queue-worker processes found"
             fi
 
+            # ── Restart log monitor (picks up new log file after rotate) ─────
+            sudo systemctl restart levl-log-monitor || echo "⚠️ levl-log-monitor not installed, skipping"
+
             # ── Bring application back online ─────────────────────────────────
             php artisan up
 
