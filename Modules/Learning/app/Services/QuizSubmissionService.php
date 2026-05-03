@@ -7,6 +7,7 @@ namespace Modules\Learning\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Modules\Learning\Contracts\Services\QuizSubmissionServiceInterface;
 use Modules\Learning\Enums\QuizGradingStatus;
 use Modules\Learning\Enums\QuizQuestionType;
@@ -33,7 +34,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
     {
         $accessCheck = $this->prerequisiteService->checkQuizAccess($quiz, $userId);
 
-        if (!$accessCheck['accessible']) {
+        if (! $accessCheck['accessible']) {
             $missingCount = count($accessCheck['missing']);
             $message = trans_choice('messages.quizzes.locked_cannot_start', $missingCount, ['count' => $missingCount]);
             throw \Illuminate\Validation\ValidationException::withMessages([
@@ -47,10 +48,18 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             ->first();
 
         if ($pendingSubmission) {
-            $message = $pendingSubmission->status === QuizSubmissionStatus::Draft
-                ? __('messages.quiz_submissions.in_progress')
-                : __('messages.quiz_submissions.pending_grading');
+            if ($pendingSubmission->status === QuizSubmissionStatus::Draft) {
+                throw new \Illuminate\Http\Exceptions\HttpResponseException(
+                    response()->json([
+                        'success' => false,
+                        'message' => __('messages.quiz_submissions.device_conflict'),
+                        'errors' => null,
+                        'data' => ['submission_id' => $pendingSubmission->id],
+                    ], 409)
+                );
+            }
 
+            $message = __('messages.quiz_submissions.pending_grading');
             throw new \Illuminate\Http\Exceptions\HttpResponseException(
                 response()->json([
                     'success' => false,
@@ -68,6 +77,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
                 'quiz_id' => $quiz->id,
                 'user_id' => $userId,
                 'enrollment_id' => $enrollmentId,
+                'session_token' => Str::random(60),
                 'status' => QuizSubmissionStatus::Draft->value,
                 'grading_status' => QuizGradingStatus::Pending->value,
                 'attempt_number' => $attemptNumber,
@@ -167,6 +177,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
                 'status' => QuizSubmissionStatus::Submitted->value,
                 'submitted_at' => now(),
                 'time_spent_seconds' => $timeSpent,
+                'session_token' => null,
             ]);
 
             $gradedSubmission = $this->autoGrade($submission);
@@ -524,6 +535,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
                 'status' => QuizSubmissionStatus::Submitted->value,
                 'submitted_at' => now(),
                 'time_spent_seconds' => $timeSpent,
+                'session_token' => null,
             ]);
 
             $gradedSubmission = $this->autoGrade($submission);
@@ -544,6 +556,21 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             ->where('user_id', $userId)
             ->where('status', QuizSubmissionStatus::Draft->value)
             ->first();
+    }
+
+    public function takeover(QuizSubmission $submission): QuizSubmission
+    {
+        if ($submission->status !== QuizSubmissionStatus::Draft) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'submission' => [__('messages.quiz_submissions.not_draft')],
+            ]);
+        }
+
+        $this->repository->updateSubmission($submission, [
+            'session_token' => Str::random(60),
+        ]);
+
+        return $submission->fresh();
     }
 
     private function validateAnswerForQuestionType(QuizQuestion $question, array $data): void

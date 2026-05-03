@@ -648,6 +648,10 @@ return [
         'unanswered_questions' => '{1} You must answer :count question before submitting.|[2,*] You must answer all :count questions before submitting.',
         'time_limit_exceeded' => 'The time limit for this quiz attempt has expired.',
         'auto_submitted_timeout' => 'Time is up. Your quiz has been automatically submitted.',
+        'device_conflict' => 'This quiz is currently being taken on another device.',
+        'session_token_required' => 'X-Session-Token header is required for active quiz sessions.',
+        'session_taken_over' => 'Your session has been taken over by another device. You cannot continue from this device.',
+        'takeover_success' => 'Session successfully taken over. You can continue the quiz.',
     ],
 
     'quiz_answers' => [

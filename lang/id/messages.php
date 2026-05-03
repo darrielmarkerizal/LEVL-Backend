@@ -653,6 +653,10 @@ return [
         'unanswered_questions' => '{1} Anda harus menjawab :count pertanyaan sebelum mengumpulkan.|[2,*] Anda harus menjawab semua :count pertanyaan sebelum mengumpulkan.',
         'time_limit_exceeded' => 'Batas waktu untuk percobaan kuis ini telah habis.',
         'auto_submitted_timeout' => 'Waktu habis. Kuis Anda telah dikumpulkan secara otomatis.',
+        'device_conflict' => 'Kuis sedang dikerjakan di perangkat lain.',
+        'session_token_required' => 'Header X-Session-Token wajib disertakan untuk sesi kuis yang aktif.',
+        'session_taken_over' => 'Sesi Anda telah diambil alih oleh perangkat lain. Tidak dapat melanjutkan dari perangkat ini.',
+        'takeover_success' => 'Sesi berhasil diambil alih. Anda dapat melanjutkan kuis.',
     ],
 
     'quiz_answers' => [

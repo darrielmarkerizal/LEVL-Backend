@@ -34,5 +34,7 @@ interface QuizSubmissionServiceInterface
 
     public function checkExistingDraft(int $quizId, int $userId): ?QuizSubmission;
 
+    public function takeover(QuizSubmission $submission): QuizSubmission;
+
     public function getOverview(QuizSubmission $submission): array;
 }

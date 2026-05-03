@@ -22,7 +22,10 @@ class QuizSubmissionController extends Controller
     public function __construct(
         private readonly QuizSubmissionServiceInterface $submissionService,
         private readonly \Modules\Learning\Services\Support\QuizSubmissionIncludeAuthorizer $includeAuthorizer
-    ) {}
+    ) {
+        $this->middleware(\Modules\Learning\Http\Middleware\ValidateQuizSessionToken::class)
+            ->only(['show', 'listQuestions', 'saveAnswer', 'submit', 'overview']);
+    }
 
     public function index(Quiz $quiz): JsonResponse
     {
@@ -138,5 +141,16 @@ class QuizSubmissionController extends Controller
         $overview = $this->submissionService->getOverview($submission);
 
         return $this->success($overview);
+    }
+
+    public function takeover(QuizSubmission $submission): JsonResponse
+    {
+        $this->authorize('takeover', $submission);
+        $updated = $this->submissionService->takeover($submission);
+
+        return $this->success(
+            QuizSubmissionResource::make($updated),
+            __('messages.quiz_submissions.takeover_success')
+        );
     }
 }

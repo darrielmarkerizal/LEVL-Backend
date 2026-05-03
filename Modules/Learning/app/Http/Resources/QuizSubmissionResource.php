@@ -39,6 +39,10 @@ class QuizSubmissionResource extends JsonResource
             'submitted_at' => $this->submitted_at?->toISOString(),
             'time_spent_seconds' => $this->time_spent_seconds,
             'duration' => $this->duration,
+            'session_token' => $this->when(
+                $this->status === \Modules\Learning\Enums\QuizSubmissionStatus::Draft,
+                fn () => $this->session_token
+            ),
             'quiz' => $this->when(
                 $this->relationLoaded('quiz'),
                 fn () => new \Modules\Learning\Http\Resources\QuizResource($this->quiz)

@@ -18,6 +18,7 @@ class QuizSubmission extends Model
         'quiz_id',
         'user_id',
         'enrollment_id',
+        'session_token',
         'status',
         'grading_status',
         'score',
@@ -69,6 +70,12 @@ class QuizSubmission extends Model
         }
 
         return (float) $finalScore >= (float) $this->quiz->passing_grade;
+    }
+
+    public function hasValidSessionToken(string $token): bool
+    {
+        return $this->session_token !== null
+            && hash_equals((string) $this->session_token, (string) $token);
     }
 
     public function getDurationAttribute(): ?int

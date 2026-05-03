@@ -56,7 +56,30 @@ class QuizSubmissionPolicy
             return false;
         }
 
-        
+        if ($user->hasRole('Student')) {
+            $submission->loadMissing('quiz.unit.course');
+            $course = $submission->quiz?->unit?->course;
+
+            if (! $course) {
+                return false;
+            }
+
+            return $this->isEnrolled($course);
+        }
+
+        return true;
+    }
+
+    public function takeover(User $user, QuizSubmission $submission): bool
+    {
+        if ($submission->user_id !== $user->id) {
+            return false;
+        }
+
+        if ($submission->status?->value !== 'draft') {
+            return false;
+        }
+
         if ($user->hasRole('Student')) {
             $submission->loadMissing('quiz.unit.course');
             $course = $submission->quiz?->unit?->course;

@@ -129,6 +129,10 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
         ->middleware(['can:update,submission', 'xp.info'])
         ->name('quiz-submissions.submit');
 
+    Route::post('quiz-submissions/{submission}/takeover', [QuizSubmissionController::class, 'takeover'])
+        ->middleware('can:takeover,submission')
+        ->name('quiz-submissions.takeover');
+
     Route::get('quiz-submissions/{submission}', [QuizSubmissionController::class, 'show'])
         ->middleware('can:view,submission')
         ->name('quiz-submissions.show');
