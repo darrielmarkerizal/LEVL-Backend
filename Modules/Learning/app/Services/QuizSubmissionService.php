@@ -26,13 +26,14 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         private readonly QuizSubmissionRepository $repository,
         private readonly \Modules\Schemes\Services\PrerequisiteService $prerequisiteService,
         private readonly QuizSubmissionIncludeAuthorizer $includeAuthorizer,
-    ) {}
+    ) {
+    }
 
     public function start(Quiz $quiz, int $userId, ?int $enrollmentId = null): QuizSubmission
     {
         $accessCheck = $this->prerequisiteService->checkQuizAccess($quiz, $userId);
 
-        if (! $accessCheck['accessible']) {
+        if (!$accessCheck['accessible']) {
             $missingCount = count($accessCheck['missing']);
             $message = trans_choice('messages.quizzes.locked_cannot_start', $missingCount, ['count' => $missingCount]);
             throw \Illuminate\Validation\ValidationException::withMessages([
@@ -46,15 +47,18 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             ->first();
 
         if ($pendingSubmission) {
-            if ($pendingSubmission->status === QuizSubmissionStatus::Draft) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
-                    'quiz' => [__('messages.quiz_submissions.in_progress')],
-                ]);
-            }
+            $message = $pendingSubmission->status === QuizSubmissionStatus::Draft
+                ? __('messages.quiz_submissions.in_progress')
+                : __('messages.quiz_submissions.pending_grading');
 
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'quiz' => [__('messages.quiz_submissions.pending_grading')],
-            ]);
+            throw new \Illuminate\Http\Exceptions\HttpResponseException(
+                response()->json([
+                    'success' => false,
+                    'message' => $message,
+                    'errors' => ['quiz' => [$message]],
+                    'data' => ['latest_submission_id' => $pendingSubmission->id],
+                ], 422)
+            );
         }
 
         return DB::transaction(function () use ($quiz, $userId, $enrollmentId) {
@@ -88,7 +92,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         }
 
         $accessCheck = $this->prerequisiteService->checkQuizAccess($submission->quiz, $submission->user_id);
-        if (! $accessCheck['accessible']) {
+        if (!$accessCheck['accessible']) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'quiz' => [__('messages.quizzes.locked_cannot_answer')],
             ]);
@@ -137,7 +141,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         }
 
         $accessCheck = $this->prerequisiteService->checkQuizAccess($submission->quiz, $submission->user_id);
-        if (! $accessCheck['accessible']) {
+        if (!$accessCheck['accessible']) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'quiz' => [__('messages.quizzes.locked_cannot_submit')],
             ]);
@@ -195,7 +199,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             $allowedIncludes = $this->includeAuthorizer->getAllowedIncludesForQueryBuilder($user, $submission);
             $includesToLoad = array_intersect($includes, $allowedIncludes);
 
-            if (! empty($includesToLoad)) {
+            if (!empty($includesToLoad)) {
                 $submission->load($includesToLoad);
             }
         });
@@ -223,7 +227,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
         if ($submission->question_set) {
             return QuizQuestion::whereIn('id', $submission->question_set)
-                ->orderByRaw('ARRAY_POSITION(ARRAY['.implode(',', $submission->question_set).']::bigint[], id)')
+                ->orderByRaw('ARRAY_POSITION(ARRAY[' . implode(',', $submission->question_set) . ']::bigint[], id)')
                 ->get();
         }
 
@@ -237,9 +241,9 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
         $quiz = $submission->quiz;
         $hasEssay = $quiz->hasEssayQuestions();
-        $hasObjective = ! $quiz->hasOnlyEssayQuestions();
+        $hasObjective = !$quiz->hasOnlyEssayQuestions();
 
-        if (! $hasObjective && $hasEssay) {
+        if (!$hasObjective && $hasEssay) {
             return $this->applyGradingStatus($submission, QuizGradingStatus::WaitingForGrading, null);
         }
 
@@ -247,7 +251,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         $earnedObjectiveScore = 0.0;
 
         foreach ($quiz->questions as $question) {
-            if (! $question->canAutoGrade()) {
+            if (!$question->canAutoGrade()) {
                 continue;
             }
 
@@ -285,7 +289,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
     private function gradeObjectiveAnswer(QuizQuestion $question, ?QuizAnswer $answer): float
     {
-        if (! $answer) {
+        if (!$answer) {
             return 0.0;
         }
 
@@ -485,7 +489,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             $questionDetails[] = $questionData;
         }
 
-        $answeredCount = count(array_filter($summary, fn ($s) => $s['is_answered']));
+        $answeredCount = count(array_filter($summary, fn($s) => $s['is_answered']));
         $totalQuestions = count($summary);
 
         return [
@@ -579,7 +583,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         $optionsCount = is_array($question->options) ? count($question->options) : 0;
         $index = (int) $selectedOptions[0];
 
-        if (! is_numeric($selectedOptions[0]) || $index < 0 || $index >= $optionsCount) {
+        if (!is_numeric($selectedOptions[0]) || $index < 0 || $index >= $optionsCount) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'selected_options' => [__('messages.quiz_answers.invalid_option_index', ['max' => $optionsCount - 1])],
             ]);
@@ -606,7 +610,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
             ]);
         }
 
-        if (! in_array($selectedOptions[0], ['0', '1'], true)) {
+        if (!in_array($selectedOptions[0], ['0', '1'], true)) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'selected_options' => [__('messages.quiz_answers.true_false_invalid')],
             ]);
@@ -638,7 +642,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         foreach ($selectedOptions as $option) {
             $index = (int) $option;
 
-            if (! is_numeric($option) || $index < 0 || $index >= $optionsCount) {
+            if (!is_numeric($option) || $index < 0 || $index >= $optionsCount) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
                     'selected_options' => [__('messages.quiz_answers.invalid_option_index', ['max' => $optionsCount - 1])],
                 ]);
@@ -648,7 +652,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
 
     private function validateEssayAnswer(?array $selectedOptions, ?string $content): void
     {
-        if (! empty($selectedOptions)) {
+        if (!empty($selectedOptions)) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'selected_options' => [__('messages.quiz_answers.options_not_allowed_for_essay')],
             ]);
