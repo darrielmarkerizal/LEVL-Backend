@@ -114,7 +114,6 @@ class ProfileService implements ProfileServiceInterface
             }
         } else {
             $data['email'] = $user->email;
-            $data['phone'] = $user->phone;
 
             if ($primaryRole === 'student') {
                 $data['statistics'] = $this->getStudentStatistics($user);
