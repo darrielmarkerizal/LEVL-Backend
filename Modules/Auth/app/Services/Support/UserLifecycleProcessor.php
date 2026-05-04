@@ -246,14 +246,18 @@ class UserLifecycleProcessor
         unset($validated['role'], $validated['password']);
         $validated['password'] = Hash::make($passwordPlain);
 
-        $user = $this->authRepository->createUser($validated + ['is_password_set' => $isPasswordSet]);
-        $user->assignRole($role);
+        $user = DB::transaction(function () use ($passwordPlain, $role, $validated, $isPasswordSet) {
+            $newUser = $this->authRepository->createUser($validated + ['is_password_set' => $isPasswordSet]);
+            $newUser->assignRole($role);
+
+            $this->cacheService->invalidateAllUsers();
+
+            return $newUser->fresh()->load('specialization:id,name,value');
+        }, 3);
 
         $this->sendCredentialsEmail($user, $passwordPlain);
 
-        $this->cacheService->invalidateAllUsers();
-
-        return $user->fresh()->load('specialization:id,name,value');
+        return $user;
     }
 
     public function updateProfile(User $user, array $validated, ?string $ip, ?string $userAgent): User
