@@ -45,9 +45,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
             ->middleware('throttle:60,1')
             ->name('unpublish');
 
-        Route::post('/{uuid}/schedule', [PostController::class, 'schedule'])
-            ->middleware('throttle:60,1')
-            ->name('schedule');
+
 
         Route::post('/bulk-delete', [PostController::class, 'bulkDelete'])
             ->middleware('throttle:10,1')

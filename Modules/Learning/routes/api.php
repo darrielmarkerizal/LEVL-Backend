@@ -63,9 +63,7 @@ Route::middleware(['auth:api'])->prefix('v1')->scopeBindings()->group(function (
             ->middleware('can:update,assignment')
             ->name('assignments.archive');
 
-        Route::post('assignments/{assignment}/duplicate', [AssignmentController::class, 'duplicate'])
-            ->middleware('can:duplicate,assignment')
-            ->name('assignments.duplicate');
+
 
         Route::get('submissions/search', [SubmissionController::class, 'search'])
             ->name('submissions.search');

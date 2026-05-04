@@ -1,0 +1,776 @@
+[
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/users",
+        "name": "api.auth.users.index",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserManagementController@index"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/users\/{user}",
+        "name": "api.auth.users.show",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserManagementController@show"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/users\/{user}\/enrolled-course",
+        "name": "api.auth.users.enrolled-course",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserManagementController@enrolledCourse"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/users\/{user}\/assigned-schemes",
+        "name": "api.auth.users.assigned-schemes",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserManagementController@assignedSchemes"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/user\/{user}\/latest-activity",
+        "name": "api.auth.users.latest-activity",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserManagementController@latestActivity"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/users",
+        "name": "api.auth.users.store",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserManagementController@store"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/users\/{user}",
+        "name": "api.auth.users.update",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserManagementController@update"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/users\/{user}\/reset-password",
+        "name": "api.auth.users.reset-password",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserManagementController@resetPassword"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/users\/bulk\/export",
+        "name": "api.auth.users.bulk.export",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserBulkController@export"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/users\/bulk\/activate",
+        "name": "api.auth.users.bulk.activate",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserBulkController@activate"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/users\/bulk\/deactivate",
+        "name": "api.auth.users.bulk.deactivate",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserBulkController@deactivate"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/users\/{user}",
+        "name": "api.auth.users.destroy",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserManagementController@destroy"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/users\/bulk\/delete",
+        "name": "api.auth.users.bulk.delete",
+        "action": "Modules\\Auth\\Http\\Controllers\\UserBulkController@delete"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/enrollments\/create",
+        "name": "api.enrollments.create-manual",
+        "action": "Modules\\Enrollments\\Http\\Controllers\\EnrollmentsController@createManual"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/enrollments\/approve\/bulk",
+        "name": "api.enrollments.bulk-approve",
+        "action": "Modules\\Enrollments\\Http\\Controllers\\EnrollmentsController@bulkApprove"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/enrollments\/decline\/bulk",
+        "name": "api.enrollments.bulk-decline",
+        "action": "Modules\\Enrollments\\Http\\Controllers\\EnrollmentsController@bulkDecline"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/enrollments\/remove\/bulk",
+        "name": "api.enrollments.bulk-remove",
+        "action": "Modules\\Enrollments\\Http\\Controllers\\EnrollmentsController@bulkRemove"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/enrollments",
+        "name": "api.enrollments.index",
+        "action": "Modules\\Enrollments\\Http\\Controllers\\EnrollmentsController@index"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/enrollments\/{enrollment}",
+        "name": "api.enrollments.show",
+        "action": "Modules\\Enrollments\\Http\\Controllers\\EnrollmentsController@show"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/courses\/generate-slug",
+        "name": "api.courses.generate-slug",
+        "action": "Modules\\Schemes\\Http\\Controllers\\CourseController@generateSlug"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/courses",
+        "name": "api.courses.store",
+        "action": "Modules\\Schemes\\Http\\Controllers\\CourseController@store"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}",
+        "name": "api.courses.update",
+        "action": "Modules\\Schemes\\Http\\Controllers\\CourseController@update"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/courses\/{course}",
+        "name": "api.courses.destroy",
+        "action": "Modules\\Schemes\\Http\\Controllers\\CourseController@destroy"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/publish",
+        "name": "api.courses.publish",
+        "action": "Modules\\Schemes\\Http\\Controllers\\CourseController@publish"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/unpublish",
+        "name": "api.courses.unpublish",
+        "action": "Modules\\Schemes\\Http\\Controllers\\CourseController@unpublish"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/archive",
+        "name": "api.courses.archive",
+        "action": "Modules\\Schemes\\Http\\Controllers\\CourseController@archive"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/unarchive",
+        "name": "api.courses.unarchive",
+        "action": "Modules\\Schemes\\Http\\Controllers\\CourseController@unarchive"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/courses\/{course}\/enrollment-key\/generate",
+        "name": "api.courses.enrollment-key.generate",
+        "action": "Modules\\Schemes\\Http\\Controllers\\CourseController@generateEnrollmentKey"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/enrollment-key",
+        "name": "api.courses.enrollment-key.update",
+        "action": "Modules\\Schemes\\Http\\Controllers\\CourseController@updateEnrollmentKey"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/courses\/{course}\/enrollment-key",
+        "name": "api.courses.enrollment-key.destroy",
+        "action": "Modules\\Schemes\\Http\\Controllers\\CourseController@removeEnrollmentKey"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/units\/generate-slug",
+        "name": "api.units.generate-slug",
+        "action": "Modules\\Schemes\\Http\\Controllers\\UnitController@generateSlug"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/units",
+        "name": "api.units.store",
+        "action": "Modules\\Schemes\\Http\\Controllers\\UnitController@storeGlobal"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/contents\/{contentId}\/metadata",
+        "name": "api.contents.metadata",
+        "action": "Modules\\Schemes\\Http\\Controllers\\UnitController@getContentMetadata"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/contents",
+        "name": "api.courses.units.contents.store",
+        "action": "Modules\\Schemes\\Http\\Controllers\\UnitController@storeContent"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/courses\/{course}\/units",
+        "name": "api.courses.units.store",
+        "action": "Modules\\Schemes\\Http\\Controllers\\UnitController@store"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/units\/reorder",
+        "name": "api.courses.units.reorder",
+        "action": "Modules\\Schemes\\Http\\Controllers\\UnitController@reorder"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}",
+        "name": "api.courses.units.update",
+        "action": "Modules\\Schemes\\Http\\Controllers\\UnitController@update"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}",
+        "name": "api.courses.units.destroy",
+        "action": "Modules\\Schemes\\Http\\Controllers\\UnitController@destroy"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/publish",
+        "name": "api.courses.units.publish",
+        "action": "Modules\\Schemes\\Http\\Controllers\\UnitController@publish"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/unpublish",
+        "name": "api.courses.units.unpublish",
+        "action": "Modules\\Schemes\\Http\\Controllers\\UnitController@unpublish"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/content-order",
+        "name": "api.courses.units.content-order",
+        "action": "Modules\\Schemes\\Http\\Controllers\\UnitController@getContentOrder"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/content-order",
+        "name": "api.courses.units.content-order.update",
+        "action": "Modules\\Schemes\\Http\\Controllers\\UnitController@reorderContent"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/lessons",
+        "name": "api.courses.units.lessons.store",
+        "action": "Modules\\Schemes\\Http\\Controllers\\LessonController@store"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/lessons\/{lesson}",
+        "name": "api.courses.units.lessons.update",
+        "action": "Modules\\Schemes\\Http\\Controllers\\LessonController@update"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/lessons\/{lesson}",
+        "name": "api.courses.units.lessons.destroy",
+        "action": "Modules\\Schemes\\Http\\Controllers\\LessonController@destroy"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/lessons\/{lesson}\/publish",
+        "name": "api.courses.units.lessons.publish",
+        "action": "Modules\\Schemes\\Http\\Controllers\\LessonController@publish"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/lessons\/{lesson}\/unpublish",
+        "name": "api.courses.units.lessons.unpublish",
+        "action": "Modules\\Schemes\\Http\\Controllers\\LessonController@unpublish"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/lessons\/{lesson}\/blocks",
+        "name": "api.courses.units.lessons.blocks.store",
+        "action": "Modules\\Schemes\\Http\\Controllers\\LessonBlockController@store"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/lessons\/{lesson}\/blocks\/reorder",
+        "name": "api.courses.units.lessons.blocks.reorder",
+        "action": "Modules\\Schemes\\Http\\Controllers\\LessonBlockController@reorder"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/lessons\/{lesson}\/blocks\/bulk-delete",
+        "name": "api.courses.units.lessons.blocks.bulk-destroy",
+        "action": "Modules\\Schemes\\Http\\Controllers\\LessonBlockController@bulkDestroy"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/lessons\/{lesson}\/blocks\/{block}",
+        "name": "api.courses.units.lessons.blocks.update",
+        "action": "Modules\\Schemes\\Http\\Controllers\\LessonBlockController@update"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/courses\/{course}\/units\/{unit}\/lessons\/{lesson}\/blocks\/{block}",
+        "name": "api.courses.units.lessons.blocks.destroy",
+        "action": "Modules\\Schemes\\Http\\Controllers\\LessonBlockController@destroy"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/trash-bins",
+        "name": "api.trash-bins.index",
+        "action": "Modules\\Trash\\Http\\Controllers\\TrashBinController@index"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/trash-bins\/source-types",
+        "name": "api.trash-bins.source-types",
+        "action": "Modules\\Trash\\Http\\Controllers\\TrashBinController@sourceTypes"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/master-data\/trash-bin-source-types",
+        "name": "api.trash-bins.source-types.master-data",
+        "action": "Modules\\Trash\\Http\\Controllers\\TrashBinController@masterSourceTypes"
+    },
+    {
+        "method": "PATCH",
+        "uri": "api\/v1\/trash-bins\/{trashBinId}",
+        "name": "api.trash-bins.restore",
+        "action": "Modules\\Trash\\Http\\Controllers\\TrashBinController@restore"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/trash-bins\/{trashBinId}",
+        "name": "api.trash-bins.delete",
+        "action": "Modules\\Trash\\Http\\Controllers\\TrashBinController@forceDelete"
+    },
+    {
+        "method": "PATCH",
+        "uri": "api\/v1\/trash-bins",
+        "name": "api.trash-bins.restore-all",
+        "action": "Modules\\Trash\\Http\\Controllers\\TrashBinController@restoreAll"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/trash-bins",
+        "name": "api.trash-bins.delete-all",
+        "action": "Modules\\Trash\\Http\\Controllers\\TrashBinController@forceDeleteAll"
+    },
+    {
+        "method": "PATCH",
+        "uri": "api\/v1\/trash-bins\/bulk\/restore",
+        "name": "api.trash-bins.bulk-restore",
+        "action": "Modules\\Trash\\Http\\Controllers\\TrashBinController@bulkRestore"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/trash-bins\/bulk",
+        "name": "api.trash-bins.bulk-delete",
+        "action": "Modules\\Trash\\Http\\Controllers\\TrashBinController@bulkForceDelete"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/courses\/{course}\/assessments",
+        "name": "api.courses.assessments.index",
+        "action": "Modules\\Learning\\Http\\Controllers\\AssessmentController@index"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/assignments",
+        "name": "api.assignments.store",
+        "action": "Modules\\Learning\\Http\\Controllers\\AssignmentController@store"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/assignments\/{assignment}",
+        "name": "api.assignments.update",
+        "action": "Modules\\Learning\\Http\\Controllers\\AssignmentController@update"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/assignments\/{assignment}",
+        "name": "api.assignments.destroy",
+        "action": "Modules\\Learning\\Http\\Controllers\\AssignmentController@destroy"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/assignments\/{assignment}\/publish",
+        "name": "api.assignments.publish",
+        "action": "Modules\\Learning\\Http\\Controllers\\AssignmentController@publish"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/assignments\/{assignment}\/unpublish",
+        "name": "api.assignments.unpublish",
+        "action": "Modules\\Learning\\Http\\Controllers\\AssignmentController@unpublish"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/assignments\/{assignment}\/archived",
+        "name": "api.assignments.archive",
+        "action": "Modules\\Learning\\Http\\Controllers\\AssignmentController@archive"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/assignments\/{assignment}\/duplicate",
+        "name": "api.assignments.duplicate",
+        "action": "Modules\\Learning\\Http\\Controllers\\AssignmentController@duplicate"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/submissions\/search",
+        "name": "api.submissions.search",
+        "action": "Modules\\Learning\\Http\\Controllers\\SubmissionController@search"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/quizzes",
+        "name": "api.quizzes.store",
+        "action": "Modules\\Learning\\Http\\Controllers\\QuizController@store"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/quizzes\/{quiz}",
+        "name": "api.quizzes.update",
+        "action": "Modules\\Learning\\Http\\Controllers\\QuizController@update"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/quizzes\/{quiz}",
+        "name": "api.quizzes.destroy",
+        "action": "Modules\\Learning\\Http\\Controllers\\QuizController@destroy"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/quizzes\/{quiz}\/publish",
+        "name": "api.quizzes.publish",
+        "action": "Modules\\Learning\\Http\\Controllers\\QuizController@publish"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/quizzes\/{quiz}\/unpublish",
+        "name": "api.quizzes.unpublish",
+        "action": "Modules\\Learning\\Http\\Controllers\\QuizController@unpublish"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/quizzes\/{quiz}\/archived",
+        "name": "api.quizzes.archive",
+        "action": "Modules\\Learning\\Http\\Controllers\\QuizController@archive"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/quizzes\/{quiz}\/questions",
+        "name": "api.quizzes.questions.store",
+        "action": "Modules\\Learning\\Http\\Controllers\\QuizController@addQuestion"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/quizzes\/{quiz}\/questions\/reorder",
+        "name": "api.quizzes.questions.reorder",
+        "action": "Modules\\Learning\\Http\\Controllers\\QuizController@reorderQuestions"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/quizzes\/{quiz}\/questions\/reorder",
+        "name": "api.quizzes.questions.reorder.put",
+        "action": "Modules\\Learning\\Http\\Controllers\\QuizController@reorderQuestions"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/quizzes\/{quiz}\/questions\/{question}",
+        "name": "api.quizzes.questions.show",
+        "action": "Modules\\Learning\\Http\\Controllers\\QuizController@showQuestion"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/quizzes\/{quiz}\/questions\/{question}",
+        "name": "api.quizzes.questions.update",
+        "action": "Modules\\Learning\\Http\\Controllers\\QuizController@updateQuestion"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/quizzes\/{quiz}\/questions\/{question}",
+        "name": "api.quizzes.questions.destroy",
+        "action": "Modules\\Learning\\Http\\Controllers\\QuizController@deleteQuestion"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/grading",
+        "name": "api.grading.index",
+        "action": "Modules\\Grading\\Http\\Controllers\\GradingController@queue"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/grading\/quiz-submissions\/{quizSubmission}\/questions\/{questionId}",
+        "name": "api.grading.quiz-essay-question.show",
+        "action": "Modules\\Grading\\Http\\Controllers\\GradingController@showQuizEssayQuestion"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/grading\/{submissionId}",
+        "name": "api.grading.show",
+        "action": "Modules\\Grading\\Http\\Controllers\\GradingController@show"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/submissions\/{submissionId}\/grades",
+        "name": "api.grading.store",
+        "action": "Modules\\Grading\\Http\\Controllers\\GradingController@manualGradeUnified"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/submissions\/{submissionId}\/grades\/draft",
+        "name": "api.grading.save-draft",
+        "action": "Modules\\Grading\\Http\\Controllers\\GradingController@saveDraftGradeUnified"
+    },
+    {
+        "method": "PATCH",
+        "uri": "api\/v1\/submissions\/{submissionId}\/grades\/release",
+        "name": "api.grading.release",
+        "action": "Modules\\Grading\\Http\\Controllers\\GradingController@releaseGradeUnified"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/grading\/bulk-release",
+        "name": "api.grading.bulk.release",
+        "action": "Modules\\Grading\\Http\\Controllers\\GradingController@bulkReleaseGrades"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/grading\/bulk-feedback",
+        "name": "api.grading.bulk.feedback",
+        "action": "Modules\\Grading\\Http\\Controllers\\GradingController@bulkApplyFeedback"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/submissions\/{submission}\/grades",
+        "name": "api.grading.get",
+        "action": "Modules\\Grading\\Http\\Controllers\\GradingController@getGrade"
+    },
+    {
+        "method": "PATCH",
+        "uri": "api\/v1\/submissions\/{submission}\/grades\/return-to-queue",
+        "name": "api.grading.return-to-queue",
+        "action": "Modules\\Grading\\Http\\Controllers\\GradingController@returnToQueue"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/submissions\/{submission}\/grades\/status",
+        "name": "api.grading.status",
+        "action": "Modules\\Grading\\Http\\Controllers\\GradingController@gradingStatus"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/metrics",
+        "name": "api.metrics.index",
+        "action": "Modules\\Gamification\\Http\\Controllers\\MetricsController@index"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/badges",
+        "name": "api.badges.store",
+        "action": "Modules\\Gamification\\Http\\Controllers\\BadgesController@store"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/badges\/{badge}",
+        "name": "api.badges.update",
+        "action": "Modules\\Gamification\\Http\\Controllers\\BadgesController@update"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/badges\/{badge}",
+        "name": "api.badges.destroy",
+        "action": "Modules\\Gamification\\Http\\Controllers\\BadgesController@destroy"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/levels\/sync",
+        "name": "api.levels.sync",
+        "action": "Modules\\Gamification\\Http\\Controllers\\LevelController@sync"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/levels\/tiers\/{tier}",
+        "name": "api.levels.update-tier",
+        "action": "Modules\\Gamification\\Http\\Controllers\\LevelController@updateTier"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/levels\/{id}",
+        "name": "api.levels.update",
+        "action": "Modules\\Gamification\\Http\\Controllers\\LevelController@update"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/levels\/statistics",
+        "name": "api.levels.statistics",
+        "action": "Modules\\Gamification\\Http\\Controllers\\LevelController@statistics"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/admin\/posts",
+        "name": "api.admin.posts.store",
+        "action": "Modules\\Notifications\\Http\\Controllers\\PostController@store"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/admin\/posts",
+        "name": "api.admin.posts.index",
+        "action": "Modules\\Notifications\\Http\\Controllers\\PostController@index"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/admin\/posts\/{uuid}",
+        "name": "api.admin.posts.show",
+        "action": "Modules\\Notifications\\Http\\Controllers\\PostController@show"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/admin\/posts\/{uuid}",
+        "name": "api.admin.posts.update",
+        "action": "Modules\\Notifications\\Http\\Controllers\\PostController@update"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/admin\/posts\/{uuid}",
+        "name": "api.admin.posts.destroy",
+        "action": "Modules\\Notifications\\Http\\Controllers\\PostController@destroy"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/admin\/posts\/{uuid}\/publish",
+        "name": "api.admin.posts.publish",
+        "action": "Modules\\Notifications\\Http\\Controllers\\PostController@publish"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/admin\/posts\/{uuid}\/unpublish",
+        "name": "api.admin.posts.unpublish",
+        "action": "Modules\\Notifications\\Http\\Controllers\\PostController@unpublish"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/admin\/posts\/{uuid}\/schedule",
+        "name": "api.admin.posts.schedule",
+        "action": "Modules\\Notifications\\Http\\Controllers\\PostController@schedule"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/admin\/posts\/bulk-delete",
+        "name": "api.admin.posts.bulk-delete",
+        "action": "Modules\\Notifications\\Http\\Controllers\\PostController@bulkDelete"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/admin\/posts\/bulk-publish",
+        "name": "api.admin.posts.bulk-publish",
+        "action": "Modules\\Notifications\\Http\\Controllers\\PostController@bulkPublish"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/activity-logs",
+        "name": "api.activity-logs.index",
+        "action": "App\\Http\\Controllers\\Api\\ActivityLogController@index"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/activity-logs\/{id}",
+        "name": "api.activity-logs.show",
+        "action": "App\\Http\\Controllers\\Api\\ActivityLogController@show"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/audit-logs",
+        "name": "api.audit-logs.index",
+        "action": "Modules\\Common\\Http\\Controllers\\AuditLogController@index"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/audit-logs\/{id}",
+        "name": "api.audit-logs.show",
+        "action": "Modules\\Common\\Http\\Controllers\\AuditLogController@show"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/audit-logs\/meta\/actions",
+        "name": "api.audit-logs.actions",
+        "action": "Modules\\Common\\Http\\Controllers\\AuditLogController@actions"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/tags",
+        "name": "api.tags.store",
+        "action": "Modules\\Schemes\\Http\\Controllers\\TagController@store"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/tags\/{tag}",
+        "name": "api.tags.update",
+        "action": "Modules\\Schemes\\Http\\Controllers\\TagController@update"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/tags\/{tag}",
+        "name": "api.tags.destroy",
+        "action": "Modules\\Schemes\\Http\\Controllers\\TagController@destroy"
+    },
+    {
+        "method": "GET|HEAD",
+        "uri": "api\/v1\/master-data\/students",
+        "name": "api.master-data.students",
+        "action": "\\Modules\\Common\\Http\\Controllers\\MasterDataController@students"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/master-data\/{type}",
+        "name": "api.master-data.store",
+        "action": "Modules\\Common\\Http\\Controllers\\MasterDataController@store"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/master-data\/{type}\/{id}",
+        "name": "api.master-data.update",
+        "action": "Modules\\Common\\Http\\Controllers\\MasterDataController@update"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/master-data\/{type}\/{id}",
+        "name": "api.master-data.destroy",
+        "action": "Modules\\Common\\Http\\Controllers\\MasterDataController@destroy"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/categories",
+        "name": "api.categories.store",
+        "action": "Modules\\Common\\Http\\Controllers\\CategoriesController@store"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/categories\/{category}",
+        "name": "api.categories.update",
+        "action": "Modules\\Common\\Http\\Controllers\\CategoriesController@update"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/categories\/{category}",
+        "name": "api.categories.destroy",
+        "action": "Modules\\Common\\Http\\Controllers\\CategoriesController@destroy"
+    },
+    {
+        "method": "POST",
+        "uri": "api\/v1\/level-configs",
+        "name": "api.level-configs.store",
+        "action": "Modules\\Common\\Http\\Controllers\\LevelConfigsController@store"
+    },
+    {
+        "method": "PUT",
+        "uri": "api\/v1\/level-configs\/{level_config}",
+        "name": "api.level-configs.update",
+        "action": "Modules\\Common\\Http\\Controllers\\LevelConfigsController@update"
+    },
+    {
+        "method": "DELETE",
+        "uri": "api\/v1\/level-configs\/{level_config}",
+        "name": "api.level-configs.destroy",
+        "action": "Modules\\Common\\Http\\Controllers\\LevelConfigsController@destroy"
+    }
+]

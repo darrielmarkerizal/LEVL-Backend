@@ -10,7 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Learning\Contracts\Services\AssignmentServiceInterface;
-use Modules\Learning\Http\Requests\DuplicateAssignmentRequest;
+
 use Modules\Learning\Http\Requests\StoreAssignmentRequest;
 use Modules\Learning\Http\Requests\UpdateAssignmentRequest;
 use Modules\Learning\Http\Resources\AssignmentResource;
@@ -150,11 +150,5 @@ class AssignmentController extends Controller
         return $this->success($data, $data['message'] ?? __('messages.success'));
     }
 
-    public function duplicate(DuplicateAssignmentRequest $request, Assignment $assignment): JsonResponse
-    {
-        $this->authorize('duplicate', $assignment);
-        $duplicated = $this->assignmentService->duplicateAssignment($assignment->id, auth('api')->id(), $request->validated());
 
-        return $this->created(AssignmentResource::make($duplicated), __('messages.assignments.duplicated'));
-    }
 }

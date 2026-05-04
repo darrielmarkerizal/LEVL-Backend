@@ -107,25 +107,7 @@ class LevelController extends Controller
         );
     }
 
-    public function sync(Request $request): JsonResponse
-    {
-        $this->authorize('manage-gamification');
 
-        $startLevel = max(1, (int) $request->get('start', 1));
-        $endLevel = min(100, (int) $request->get('end', 100));
-
-        $synced = $this->levelService->syncLevelConfigs($startLevel, $endLevel);
-
-        return $this->success(
-            [
-                'synced_count' => $synced,
-                'start_level' => $startLevel,
-                'end_level' => $endLevel,
-            ],
-            'messages.levels_synced',
-            ['count' => $synced]
-        );
-    }
 
     public function update(Request $request, int $id): JsonResponse
     {

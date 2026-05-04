@@ -14,9 +14,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
     Route::get('leaderboards/{userId}/gamification-log/export', [LeaderboardController::class, 'exportUserGamificationLog'])->name('leaderboards.user-gamification-log-export');
 
     
-    Route::get('metrics', [MetricsController::class, 'index'])
-        ->middleware(['role:Superadmin'])
-        ->name('metrics.index');
+
 
     Route::prefix('badges')->name('badges.')->group(function () {
         Route::get('/', [BadgesController::class, 'index'])->name('index');
@@ -38,7 +36,7 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
         Route::post('/calculate', [LevelController::class, 'calculate'])->name('calculate');
 
         Route::middleware(['role:Superadmin,Admin'])->group(function () {
-            Route::post('/sync', [LevelController::class, 'sync'])->name('sync');
+
             Route::put('/tiers/{tier}', [LevelController::class, 'updateTier'])->name('update-tier');
             Route::put('/{id}', [LevelController::class, 'update'])->name('update');
             Route::get('/statistics', [LevelController::class, 'statistics'])->name('statistics');
