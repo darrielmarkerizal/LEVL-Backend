@@ -52,14 +52,6 @@ class PostController extends Controller
         return $this->created(new PostResource($post), __('messages.posts.created'));
     }
 
-    public function pinned(Request $request): JsonResponse
-    {
-        $role = $request->get('role');
-        $posts = $this->service->repository->getPinnedPosts($role);
-
-        return $this->success(PostListResource::collection($posts), __('messages.posts.retrieved'));
-    }
-
     public function show(string $uuid): JsonResponse
     {
         $post = $this->service->repository->findByUuid($uuid);
@@ -157,64 +149,6 @@ class PostController extends Controller
     }
 
     
-    public function schedule(Request $request, string $uuid): JsonResponse
-    {
-        if (! auth('api')->user()->hasRole('Admin')) {
-            return $this->forbidden(__('messages.posts.unauthorized'));
-        }
-
-        $request->validate([
-            'scheduled_at' => ['required', 'date', 'after:now'],
-        ]);
-
-        $post = $this->service->repository->findByUuid($uuid);
-
-        if (! $post) {
-            return $this->error(__('messages.posts.not_found'), [], 404);
-        }
-
-        $scheduled = $this->service->schedulePost($post, $request->input('scheduled_at'));
-
-        return $this->success(new PostResource($scheduled), __('messages.posts.scheduled'));
-    }
-
-    
-    public function cancelSchedule(string $uuid): JsonResponse
-    {
-        if (! auth('api')->user()->hasRole('Admin')) {
-            return $this->forbidden(__('messages.posts.unauthorized'));
-        }
-
-        $post = $this->service->repository->findByUuid($uuid);
-
-        if (! $post) {
-            return $this->error(__('messages.posts.not_found'), [], 404);
-        }
-
-        $cancelled = $this->service->cancelSchedule($post);
-
-        return $this->success(new PostResource($cancelled), __('messages.posts.schedule_cancelled'));
-    }
-
-    
-    public function togglePin(string $uuid): JsonResponse
-    {
-        if (! auth('api')->user()->hasRole('Admin')) {
-            return $this->forbidden(__('messages.posts.unauthorized'));
-        }
-
-        $post = $this->service->repository->findByUuid($uuid);
-
-        if (! $post) {
-            return $this->error(__('messages.posts.not_found'), [], 404);
-        }
-
-        $toggled = $this->service->togglePin($post);
-
-        return $this->success(new PostResource($toggled), __('messages.posts.pin_toggled'));
-    }
-
-    
     public function bulkDelete(Request $request): JsonResponse
     {
         if (! auth('api')->user()->hasRole('Admin')) {
@@ -267,66 +201,4 @@ class PostController extends Controller
     }
 
     
-    public function trash(Request $request): JsonResponse
-    {
-        if (! auth('api')->user()->hasRole('Admin')) {
-            return $this->forbidden(__('messages.posts.unauthorized'));
-        }
-
-        $perPage = min((int) $request->get('per_page', 15), 100);
-        $paginator = $this->service->repository->getTrashedPosts($perPage);
-        $paginator->getCollection()->transform(fn ($item) => new PostListResource($item));
-
-        return $this->paginateResponse($paginator, __('messages.posts.trash_retrieved'));
-    }
-
-    
-    public function restore(string $uuid): JsonResponse
-    {
-        if (! auth('api')->user()->hasRole('Admin')) {
-            return $this->forbidden(__('messages.posts.unauthorized'));
-        }
-
-        $post = $this->service->repository->model()::withTrashed()->where('uuid', $uuid)->first();
-
-        if (! $post) {
-            return $this->error(__('messages.posts.not_found'), [], 404);
-        }
-
-        $this->service->restorePost($post);
-
-        return $this->success([], __('messages.posts.restored'));
-    }
-
-    
-    public function forceDelete(string $uuid): JsonResponse
-    {
-        if (! auth('api')->user()->hasRole('Admin')) {
-            return $this->forbidden(__('messages.posts.unauthorized'));
-        }
-
-        $post = $this->service->repository->model()::withTrashed()->where('uuid', $uuid)->first();
-
-        if (! $post) {
-            return $this->error(__('messages.posts.not_found'), [], 404);
-        }
-
-        $this->service->forceDeletePost($post);
-
-        return $this->success([], __('messages.posts.permanently_deleted'));
-    }
-
-    
-    public function markAsViewed(string $uuid): JsonResponse
-    {
-        $post = $this->service->repository->findByUuid($uuid);
-
-        if (! $post) {
-            return $this->error(__('messages.posts.not_found'), [], 404);
-        }
-
-        $this->service->markAsViewed($post, auth('api')->id());
-
-        return $this->success([], __('messages.posts.marked_as_viewed'));
-    }
 }

@@ -45,7 +45,7 @@ Dokumentasi lengkap untuk seluruh endpoint **Notifikasi**, termasuk manajemen no
    ┣ 📄 [POST] Jadwalkan Post              ⬜
    ┣ 📄 [POST] Batalkan Jadwal             ⬜
    ┣ 📄 [POST] Toggle Pin Post             ⬜
-   ┣ 📄 [GET] Tempat Sampah Post           ⬜
+    ┣ 📄 [GET] Trash Bin Post               ⬜
    ┣ 📄 [POST] Pulihkan Post               ⬜
    ┣ 📄 [DELETE] Hapus Permanen            ⬜
    ┗ 📄 [POST] Unggah Gambar Post          ⬜
@@ -78,15 +78,11 @@ Dokumentasi lengkap untuk seluruh endpoint **Notifikasi**, termasuk manajemen no
 | 19 | DELETE | `/admin/posts/:uuid` | Admin | Hapus post (soft delete) | ✅ |
 | 20 | POST | `/admin/posts/:uuid/publish` | Admin | Publikasikan post | ✅ |
 | 21 | POST | `/admin/posts/:uuid/unpublish` | Admin | Batalkan publikasi | ✅ |
-| 22 | POST | `/admin/posts/:uuid/schedule` | Admin | Jadwalkan post | ⬜ |
-| 23 | POST | `/admin/posts/:uuid/cancel-schedule` | Admin | Batalkan jadwal | ⬜ |
-| 24 | POST | `/admin/posts/:uuid/toggle-pin` | Admin | Sematkan / lepas sematan | ⬜ |
 | 25 | POST | `/admin/posts/bulk-delete` | Admin | Hapus massal (maks 50) | ✅ |
 | 26 | POST | `/admin/posts/bulk-publish` | Admin | Publikasi massal (maks 50) | ✅ |
-| 27 | GET | `/admin/posts/trash` | Admin | Daftar post terhapus | ⬜ |
-| 28 | POST | `/admin/posts/:uuid/restore` | Admin | Pulihkan dari tempat sampah | ⬜ |
-| 29 | DELETE | `/admin/posts/:uuid/force` | Admin | Hapus permanen | ⬜ |
-| 30 | POST | `/admin/posts/upload-image` | Admin | Unggah gambar untuk konten post | ⬜ |
+| 27 | GET | `/trash-bins` | Admin / Superadmin / Instructor | Daftar Trash Bin lintas resource | ✅ |
+| 28 | PATCH | `/trash-bins/{trashBinId}` | Admin / Superadmin / Instructor | Pulihkan item dari Trash Bin | ✅ |
+| 29 | DELETE | `/trash-bins/{trashBinId}` | Admin / Superadmin / Instructor | Hapus permanen item Trash Bin | ✅ |
 
 ---
 
@@ -557,177 +553,6 @@ Tidak diperlukan.
 
 ---
 
-# D. Post / Broadcast — Student (Shared)
-
-Post yang bisa diakses student sesuai role-nya. Endpoint ini digunakan untuk **student-facing portal** (belum diimplementasikan di FE saat ini).
-
----
-
-## 11. Daftar Post (Shared)
-
-**GET** `{{url}}/api/v1/posts`
-
-> Hanya menampilkan post yang audiens-nya sesuai dengan role user yang sedang login.
-
-### Authorization
-```
-Bearer Token: {{access_token_student}}
-```
-
-### Query Parameter (Opsional)
-| Parameter | Tipe | Keterangan |
-|-----------|------|------------|
-| `per_page` | integer | Jumlah per halaman (maks 100, default 15) |
-| `search` | string | Cari berdasarkan judul/konten |
-| `role` | string | Filter berdasarkan role audiens |
-
-### Contoh Response (200)
-```json
-{
-    "success": true,
-    "message": "Data berhasil diambil.",
-    "data": [
-        {
-            "uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-            "title": "Pembaruan Sistem Levl v2.5",
-            "category": "system",
-            "status": "published",
-            "is_pinned": true,
-            "audiences": ["student", "instructor"],
-            "published_at": "2026-05-01T08:00:00.000000Z"
-        }
-    ],
-    "meta": {
-        "pagination": {
-            "current_page": 1,
-            "per_page": 15,
-            "total": 1
-        }
-    },
-    "errors": null
-}
-```
-
----
-
-## 12. Post Tersematkan (Shared)
-
-**GET** `{{url}}/api/v1/posts/pinned`
-
-### Authorization
-```
-Bearer Token: {{access_token_student}}
-```
-
-### Query Parameter (Opsional)
-| Parameter | Tipe | Keterangan |
-|-----------|------|------------|
-| `role` | string | Filter berdasarkan role audiens |
-
-### Contoh Response (200)
-```json
-{
-    "success": true,
-    "message": "Data berhasil diambil.",
-    "data": [
-        {
-            "uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-            "title": "Pembaruan Sistem Levl v2.5",
-            "category": "system",
-            "is_pinned": true,
-            "published_at": "2026-05-01T08:00:00.000000Z"
-        }
-    ],
-    "meta": null,
-    "errors": null
-}
-```
-
----
-
-## 13. Detail Post (Shared)
-
-**GET** `{{url}}/api/v1/posts/:uuid`
-
-> Akses dibatasi: user hanya bisa melihat post jika role-nya ada di daftar audiens post tersebut.
-
-### Path Parameter
-| Parameter | Tipe | Contoh |
-|-----------|------|--------|
-| `uuid` | string | `f47ac10b-58cc-4372-a567-0e02b2c3d479` |
-
-### Authorization
-```
-Bearer Token: {{access_token_student}}
-```
-
-### Contoh Response (200)
-```json
-{
-    "success": true,
-    "message": "Permintaan berhasil diproses.",
-    "data": {
-        "uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-        "title": "Pembaruan Sistem Levl v2.5",
-        "content": "Kami dengan bangga mengumumkan pembaruan sistem Levl versi 2.5...",
-        "category": "system",
-        "status": "published",
-        "is_pinned": true,
-        "audiences": ["student", "instructor"],
-        "notification_channels": ["in_app", "email"],
-        "published_at": "2026-05-01T08:00:00.000000Z",
-        "scheduled_at": null
-    },
-    "meta": null,
-    "errors": null
-}
-```
-
-### Contoh Response (403) — Role tidak termasuk audiens
-```json
-{
-    "success": false,
-    "message": "Aksi ini tidak diizinkan.",
-    "data": null,
-    "meta": null,
-    "errors": null
-}
-```
-
----
-
-## 14. Tandai Post Sudah Dilihat (Shared)
-
-**POST** `{{url}}/api/v1/posts/:uuid/view`
-
-### Path Parameter
-| Parameter | Tipe | Contoh |
-|-----------|------|--------|
-| `uuid` | string | `f47ac10b-58cc-4372-a567-0e02b2c3d479` |
-
-### Authorization
-```
-Bearer Token: {{access_token_student}}
-```
-
-### Body
-Tidak diperlukan.
-
-### Contoh Response (200)
-```json
-{
-    "success": true,
-    "message": "Post berhasil ditandai dilihat.",
-    "data": [],
-    "meta": null,
-    "errors": null
-}
-```
-
----
-
----
-
 # E. Post / Broadcast — Admin ✅ FE (Fitur Informasi)
 
 Endpoint admin untuk mengelola Post/Broadcast. Seluruh fitur **Manajemen Informasi** di FE menggunakan endpoint `/admin/posts` ini.
@@ -997,7 +822,7 @@ Bearer Token: {{access_token_admin}}
 
 **DELETE** `{{url}}/api/v1/admin/posts/:uuid`
 
-> Post dipindahkan ke tempat sampah (soft delete). Bisa dipulihkan.
+> Post dipindahkan ke Trash Bin (soft delete). Bisa dipulihkan.
 
 ### Authorization
 ```
@@ -1077,96 +902,6 @@ Bearer Token: {{access_token_admin}}
 ---
 
 ## 22. Jadwalkan Post (Admin)
-
-**POST** `{{url}}/api/v1/admin/posts/:uuid/schedule`
-
-### Authorization
-```
-Bearer Token: {{access_token_admin}}
-```
-
-### Body (raw JSON)
-```json
-{
-    "scheduled_at": "2026-05-09T17:00:00+00:00"
-}
-```
-
-### Contoh Response (200)
-```json
-{
-    "success": true,
-    "message": "Post berhasil dijadwalkan.",
-    "data": {
-        "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-        "status": "scheduled",
-        "scheduled_at": "2026-05-09T17:00:00.000000Z"
-    },
-    "meta": null,
-    "errors": null
-}
-```
-
----
-
-## 23. Batalkan Jadwal Post (Admin)
-
-**POST** `{{url}}/api/v1/admin/posts/:uuid/cancel-schedule`
-
-### Authorization
-```
-Bearer Token: {{access_token_admin}}
-```
-
-### Body
-Tidak diperlukan.
-
-### Contoh Response (200)
-```json
-{
-    "success": true,
-    "message": "Jadwal post berhasil dibatalkan.",
-    "data": {
-        "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-        "status": "draft",
-        "scheduled_at": null
-    },
-    "meta": null,
-    "errors": null
-}
-```
-
----
-
-## 24. Toggle Pin Post (Admin)
-
-**POST** `{{url}}/api/v1/admin/posts/:uuid/toggle-pin`
-
-> Sematkan post jika belum disematkan, atau lepas sematan jika sudah.
-
-### Authorization
-```
-Bearer Token: {{access_token_admin}}
-```
-
-### Body
-Tidak diperlukan.
-
-### Contoh Response (200) — Pin aktif
-```json
-{
-    "success": true,
-    "message": "Sematan post berhasil diperbarui.",
-    "data": {
-        "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-        "is_pinned": true
-    },
-    "meta": null,
-    "errors": null
-}
-```
-
----
 
 ## 25. Hapus Massal (Admin)
 
@@ -1249,123 +984,9 @@ Bearer Token: {{access_token_admin}}
 
 ---
 
-## 27. Daftar Post Terhapus / Tempat Sampah (Admin)
+## 27. Trash Bin Lintas Resource
 
-**GET** `{{url}}/api/v1/admin/posts/trash`
-
-### Authorization
-```
-Bearer Token: {{access_token_admin}}
-```
-
-### Query Parameter (Opsional)
-| Parameter | Tipe | Default |
-|-----------|------|---------|
-| `per_page` | integer | `15` |
-
-### Contoh Response (200)
-```json
-{
-    "success": true,
-    "message": "Data tempat sampah berhasil diambil.",
-    "data": [
-        {
-            "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-            "title": "Pembaruan Sistem Levl v2.5",
-            "status": "published",
-            "deleted_at": "2026-05-04T12:00:00.000000Z"
-        }
-    ],
-    "meta": {
-        "pagination": {
-            "current_page": 1,
-            "per_page": 15,
-            "total": 1
-        }
-    },
-    "errors": null
-}
-```
-
----
-
-## 28. Pulihkan Post dari Tempat Sampah (Admin)
-
-**POST** `{{url}}/api/v1/admin/posts/:uuid/restore`
-
-### Authorization
-```
-Bearer Token: {{access_token_admin}}
-```
-
-### Body
-Tidak diperlukan.
-
-### Contoh Response (200)
-```json
-{
-    "success": true,
-    "message": "Post berhasil dipulihkan.",
-    "data": [],
-    "meta": null,
-    "errors": null
-}
-```
-
----
-
-## 29. Hapus Post Permanen (Admin)
-
-**DELETE** `{{url}}/api/v1/admin/posts/:uuid/force`
-
-> **Tidak dapat dibatalkan.** Post dihapus dari database secara permanen.
-
-### Authorization
-```
-Bearer Token: {{access_token_admin}}
-```
-
-### Contoh Response (200)
-```json
-{
-    "success": true,
-    "message": "Post berhasil dihapus secara permanen.",
-    "data": [],
-    "meta": null,
-    "errors": null
-}
-```
-
----
-
-## 30. Unggah Gambar untuk Konten Post (Admin)
-
-**POST** `{{url}}/api/v1/admin/posts/upload-image`
-
-> Mengunggah gambar yang dapat disisipkan ke dalam `content` post.
-
-### Authorization
-```
-Bearer Token: {{access_token_admin}}
-```
-
-### Body (form-data)
-| Key | Type | Value |
-|-----|------|-------|
-| `image` | File | File gambar (jpeg, png, jpg, gif, webp) |
-
-### Contoh Response (200)
-```json
-{
-    "success": true,
-    "message": "Gambar berhasil diunggah.",
-    "data": {
-        "url": "https://levl-buckets.sgp1.cdn.digitaloceanspaces.com/posts/images/maintenance-banner.png"
-    },
-    "meta": null,
-    "errors": null
-}
-```
+Gunakan endpoint trash-bins yang disediakan modul Trash untuk melihat, memulihkan, dan menghapus permanen item di Trash Bin lintas resource, termasuk post.
 
 ---
 

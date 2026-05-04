@@ -280,16 +280,13 @@
                                 <li class="py-0.5">Administrator dapat melihat daftar post/pengumuman</li>
                                 <li class="py-0.5">Administrator dapat membuat/mengirim post/pengumuman (bulkDelete)</li>
                                 <li class="py-0.5">Administrator dapat membuat/mengirim post/pengumuman (bulkPublish)</li>
-                                <li class="py-0.5">Administrator dapat melihat post/pengumuman (trash)</li>
+                                <li class="py-0.5">Administrator dapat melihat post/pengumuman (Trash Bin)</li>
                                 <li class="py-0.5">Administrator dapat melihat detail post/pengumuman</li>
                                 <li class="py-0.5">Administrator dapat mengubah post/pengumuman</li>
                                 <li class="py-0.5">Administrator dapat menghapus post/pengumuman</li>
-                                <li class="py-0.5">Administrator dapat membuat/mengirim post/pengumuman (cancelSchedule)</li>
-                                <li class="py-0.5">Administrator dapat menghapus permanen post/pengumuman</li>
+                                <li class="py-0.5">Administrator dapat menghapus permanen post/pengumuman melalui Trash Bin lintas resource</li>
                                 <li class="py-0.5">Administrator dapat mempublikasikan post/pengumuman</li>
-                                <li class="py-0.5">Administrator dapat memulihkan post/pengumuman</li>
-                                <li class="py-0.5">Administrator dapat membuat/mengirim post/pengumuman (schedule)</li>
-                                <li class="py-0.5">Administrator dapat membuat/mengirim post/pengumuman (togglePin)</li>
+                                <li class="py-0.5">Administrator dapat memulihkan post/pengumuman melalui Trash Bin lintas resource</li>
                                 <li class="py-0.5">Administrator dapat membatalkan publikasi post/pengumuman</li>
                                 </ul>
                             </td>
@@ -299,31 +296,11 @@
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts</span></li>
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/bulk-delete</span></li>
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/bulk-publish</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/trash</span></li>
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/{uuid}</span></li>
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 font-medium">PUT</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/{uuid}</span></li>
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-medium">DELETE</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/{uuid}</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/{uuid}/cancel-schedule</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-medium">DELETE</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/{uuid}/force</span></li>
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/{uuid}/publish</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/{uuid}/restore</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/{uuid}/schedule</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/{uuid}/toggle-pin</span></li>
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/{uuid}/unpublish</span></li>
-                                </ul>
-                            </td>
-                        </tr>
-                        <tr class="bg-white hover:bg-gray-100 transition-colors align-top">
-                            <td class="px-4 py-3 text-sm font-medium text-gray-500">3</td>
-                            <td class="px-4 py-3 text-sm font-semibold text-gray-900">Media Post</td>
-                            <td class="px-4 py-3 text-sm">
-                                <ul class="list-disc list-inside space-y-0.5 text-gray-700">
-                                <li class="py-0.5">Administrator dapat membuat/mengirim post/pengumuman (uploadImage)</li>
-                                </ul>
-                            </td>
-                            <td class="px-4 py-3 text-sm">
-                                <ul class="space-y-0.5">
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/admin/posts/upload-image</span></li>
                                 </ul>
                             </td>
                         </tr>
@@ -789,18 +766,18 @@
                         </tr>
                         <tr class="bg-white hover:bg-gray-100 transition-colors align-top">
                             <td class="px-4 py-3 text-sm font-medium text-gray-500">25</td>
-                            <td class="px-4 py-3 text-sm font-semibold text-gray-900">Tempat Sampah</td>
+                            <td class="px-4 py-3 text-sm font-semibold text-gray-900">Trash Bin</td>
                             <td class="px-4 py-3 text-sm">
                                 <ul class="list-disc list-inside space-y-0.5 text-gray-700">
                                 <li class="py-0.5">Administrator dapat melihat master data (masterSourceTypes)</li>
-                                <li class="py-0.5">Administrator dapat melihat daftar tempat sampah</li>
-                                <li class="py-0.5">Administrator dapat mengubah tempat sampah (restoreAll)</li>
-                                <li class="py-0.5">Administrator dapat menghapus permanen semua tempat sampah</li>
-                                <li class="py-0.5">Administrator dapat menghapus permanen tempat sampah secara massal</li>
-                                <li class="py-0.5">Administrator dapat memulihkan tempat sampah secara massal</li>
-                                <li class="py-0.5">Administrator dapat melihat jenis sumber tempat sampah</li>
-                                <li class="py-0.5">Administrator dapat memulihkan tempat sampah</li>
-                                <li class="py-0.5">Administrator dapat menghapus permanen tempat sampah</li>
+                                <li class="py-0.5">Administrator dapat melihat daftar Trash Bin</li>
+                                <li class="py-0.5">Administrator dapat mengubah Trash Bin (restoreAll)</li>
+                                <li class="py-0.5">Administrator dapat menghapus permanen semua Trash Bin</li>
+                                <li class="py-0.5">Administrator dapat menghapus permanen Trash Bin secara massal</li>
+                                <li class="py-0.5">Administrator dapat memulihkan Trash Bin secara massal</li>
+                                <li class="py-0.5">Administrator dapat melihat jenis sumber Trash Bin</li>
+                                <li class="py-0.5">Administrator dapat memulihkan Trash Bin</li>
+                                <li class="py-0.5">Administrator dapat menghapus permanen Trash Bin</li>
                                 </ul>
                             </td>
                             <td class="px-4 py-3 text-sm">
@@ -935,18 +912,12 @@
                             <td class="px-4 py-3 text-sm font-semibold text-gray-900">Post/Pengumuman Notifikasi</td>
                             <td class="px-4 py-3 text-sm">
                                 <ul class="list-disc list-inside space-y-0.5 text-gray-700">
-                                <li class="py-0.5">Instruktur dapat melihat daftar post/pengumuman</li>
-                                <li class="py-0.5">Instruktur dapat melihat post/pengumuman (pinned)</li>
-                                <li class="py-0.5">Instruktur dapat melihat detail post/pengumuman</li>
-                                <li class="py-0.5">Instruktur dapat membuat/mengirim post/pengumuman (markAsViewed)</li>
+                                <li class="py-0.5">Instruktur dapat menerima notifikasi post/pengumuman yang dikirim admin</li>
                                 </ul>
                             </td>
                             <td class="px-4 py-3 text-sm">
                                 <ul class="space-y-0.5">
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/posts</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/posts/pinned</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/posts/{uuid}</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/posts/{uuid}/view</span></li>
+                                <li class="py-0.5 text-gray-600">Post/pengumuman ditampilkan melalui notifikasi, tanpa endpoint shared khusus.</li>
                                 </ul>
                             </td>
                         </tr>
@@ -1688,18 +1659,18 @@
                         </tr>
                         <tr class="bg-white hover:bg-gray-100 transition-colors align-top">
                             <td class="px-4 py-3 text-sm font-medium text-gray-500">33</td>
-                            <td class="px-4 py-3 text-sm font-semibold text-gray-900">Tempat Sampah</td>
+                            <td class="px-4 py-3 text-sm font-semibold text-gray-900">Trash Bin</td>
                             <td class="px-4 py-3 text-sm">
                                 <ul class="list-disc list-inside space-y-0.5 text-gray-700">
                                 <li class="py-0.5">Instruktur dapat melihat master data (masterSourceTypes)</li>
-                                <li class="py-0.5">Instruktur dapat melihat daftar tempat sampah</li>
-                                <li class="py-0.5">Instruktur dapat mengubah tempat sampah (restoreAll)</li>
-                                <li class="py-0.5">Instruktur dapat menghapus permanen semua tempat sampah</li>
-                                <li class="py-0.5">Instruktur dapat menghapus permanen tempat sampah secara massal</li>
-                                <li class="py-0.5">Instruktur dapat memulihkan tempat sampah secara massal</li>
-                                <li class="py-0.5">Instruktur dapat melihat jenis sumber tempat sampah</li>
-                                <li class="py-0.5">Instruktur dapat memulihkan tempat sampah</li>
-                                <li class="py-0.5">Instruktur dapat menghapus permanen tempat sampah</li>
+                                <li class="py-0.5">Instruktur dapat melihat daftar Trash Bin</li>
+                                <li class="py-0.5">Instruktur dapat mengubah Trash Bin (restoreAll)</li>
+                                <li class="py-0.5">Instruktur dapat menghapus permanen semua Trash Bin</li>
+                                <li class="py-0.5">Instruktur dapat menghapus permanen Trash Bin secara massal</li>
+                                <li class="py-0.5">Instruktur dapat memulihkan Trash Bin secara massal</li>
+                                <li class="py-0.5">Instruktur dapat melihat jenis sumber Trash Bin</li>
+                                <li class="py-0.5">Instruktur dapat memulihkan Trash Bin</li>
+                                <li class="py-0.5">Instruktur dapat menghapus permanen Trash Bin</li>
                                 </ul>
                             </td>
                             <td class="px-4 py-3 text-sm">
@@ -1940,18 +1911,12 @@
                             <td class="px-4 py-3 text-sm font-semibold text-gray-900">Post/Pengumuman Notifikasi</td>
                             <td class="px-4 py-3 text-sm">
                                 <ul class="list-disc list-inside space-y-0.5 text-gray-700">
-                                <li class="py-0.5">Asesi dapat melihat daftar post/pengumuman</li>
-                                <li class="py-0.5">Asesi dapat melihat post/pengumuman (pinned)</li>
-                                <li class="py-0.5">Asesi dapat melihat detail post/pengumuman</li>
-                                <li class="py-0.5">Asesi dapat membuat/mengirim post/pengumuman (markAsViewed)</li>
+                                <li class="py-0.5">Asesi dapat menerima post/pengumuman admin melalui notifikasi</li>
                                 </ul>
                             </td>
                             <td class="px-4 py-3 text-sm">
                                 <ul class="space-y-0.5">
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/posts</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/posts/pinned</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/posts/{uuid}</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/posts/{uuid}/view</span></li>
+                                <li class="py-0.5 text-gray-600">Post/pengumuman admin tersedia lewat notifikasi in-app dan kanal notifikasi lain yang dikonfigurasi.</li>
                                 </ul>
                             </td>
                         </tr>

@@ -78,10 +78,6 @@ class PostPolicy
     }
 
     
-    public function markAsViewed(User $user, Post $post): bool
-    {
-        return $this->view($user, $post);
-    }
 
     
     private function getUserRole(User $user): ?string

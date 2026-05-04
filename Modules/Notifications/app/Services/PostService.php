@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Notifications\Services;
 
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -132,26 +131,6 @@ class PostService
     }
 
     
-    public function restorePost(Post $post): bool
-    {
-        return $this->repository->restore($post);
-    }
-
-    
-    public function forceDeletePost(Post $post): bool
-    {
-        return DB::transaction(function () use ($post) {
-            
-            $post->clearMediaCollection('images');
-
-            
-            $this->deletePostNotifications($post);
-
-            return $this->repository->forceDelete($post);
-        });
-    }
-
-    
     private function deletePostNotifications(Post $post): void
     {
         
@@ -203,18 +182,6 @@ class PostService
     }
 
     
-    public function schedulePost(Post $post, string $scheduledAt): Post
-    {
-        $this->repository->update($post, [
-            'status' => PostStatus::SCHEDULED->value,
-            'scheduled_at' => $scheduledAt,
-            'published_at' => null,
-        ]);
-
-        return $post->fresh();
-    }
-
-    
     public function publishScheduledPost(Post $post): Post
     {
         return DB::transaction(function () use ($post) {
@@ -233,60 +200,6 @@ class PostService
 
             return $post->fresh(['author', 'audiences', 'notifications']);
         });
-    }
-
-    
-    public function cancelSchedule(Post $post): Post
-    {
-        $this->repository->update($post, [
-            'status' => PostStatus::DRAFT->value,
-            'scheduled_at' => null,
-        ]);
-
-        return $post->fresh();
-    }
-
-    
-    public function togglePin(Post $post): Post
-    {
-        $this->repository->update($post, [
-            'is_pinned' => ! $post->is_pinned,
-        ]);
-
-        return $post->fresh();
-    }
-
-    
-    public function markAsViewed(Post $post, int $userId): void
-    {
-        try {
-            
-            \Modules\Common\Models\ContentRead::firstOrCreate(
-                [
-                    'readable_type' => 'Modules\\Notifications\\Models\\Post',
-                    'readable_id' => $post->id,
-                    'user_id' => $userId,
-                ],
-                [
-                    'read_at' => now(),
-                ]
-            );
-        } catch (\Exception $e) {
-            
-            Log::debug('View already recorded', [
-                'post_id' => $post->id,
-                'user_id' => $userId,
-            ]);
-        }
-    }
-
-    
-    public function uploadImage(Post $post, UploadedFile $file): string
-    {
-        $media = $post->addMedia($file)
-            ->toMediaCollection('images');
-
-        return $media->getUrl();
     }
 
     

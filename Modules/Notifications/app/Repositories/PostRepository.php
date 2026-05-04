@@ -84,17 +84,6 @@ class PostRepository extends BaseRepository
         );
     }
 
-    public function getTrashedPosts(int $perPage = 15): LengthAwarePaginator
-    {
-        $perPage = max(1, min($perPage, 100));
-
-        return $this->model()::query()
-            ->onlyTrashed()
-            ->with(['author', 'lastEditor'])
-            ->orderBy('deleted_at', 'desc')
-            ->paginate($perPage);
-    }
-
     public function getPendingScheduledPosts(): Collection
     {
         return $this->model()::query()
@@ -135,28 +124,6 @@ class PostRepository extends BaseRepository
     public function delete($model): bool
     {
         $deleted = parent::delete($model);
-
-        if ($deleted) {
-            $this->clearCache();
-        }
-
-        return $deleted;
-    }
-
-    public function restore(Post $post): bool
-    {
-        $restored = $post->restore();
-
-        if ($restored) {
-            $this->clearCache();
-        }
-
-        return $restored;
-    }
-
-    public function forceDelete(Post $post): bool
-    {
-        $deleted = $post->forceDelete();
 
         if ($deleted) {
             $this->clearCache();
