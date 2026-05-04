@@ -29,7 +29,6 @@ class TrashBinService
         'assignment' => 3,
         'user' => 1,
         'badge' => 1,
-        'news' => 1,
     ];
 
     
@@ -41,7 +40,6 @@ class TrashBinService
         \Modules\Learning\Models\Assignment::class => 'assignment',
         \Modules\Auth\Models\User::class => 'user',
         \Modules\Gamification\Models\Badge::class => 'badge',
-        \Modules\Content\Models\News::class => 'news',
     ];
 
     
@@ -52,7 +50,6 @@ class TrashBinService
         \Modules\Schemes\Models\Lesson::class => 'draft',
         \Modules\Learning\Models\Quiz::class => 'archived',
         \Modules\Learning\Models\Assignment::class => 'archived',
-        \Modules\Content\Models\News::class => 'archived',
     ];
 
     public function __construct(

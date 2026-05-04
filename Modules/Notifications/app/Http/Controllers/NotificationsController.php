@@ -27,11 +27,6 @@ class NotificationsController extends Controller
         ]);
     }
 
-    public function create()
-    {
-        return $this->error('messages.feature_unavailable', status: 501);
-    }
-
     public function store(Request $request)
     {
         $userId = (int) auth('api')->id();
@@ -65,11 +60,6 @@ class NotificationsController extends Controller
         }
 
         return $this->success($this->service->toPayload($notification, $userId), 'messages.data_retrieved');
-    }
-
-    public function edit($id)
-    {
-        return $this->error('messages.feature_unavailable', status: 501);
     }
 
     public function update(Request $request, string $id)

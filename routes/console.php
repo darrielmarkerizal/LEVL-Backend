@@ -9,9 +9,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 
-Schedule::job(new \Modules\Content\Jobs\PublishScheduledContent)->everyFiveMinutes();
-
-
 Schedule::command('auth:cleanup-deleted-accounts')->daily();
 
 

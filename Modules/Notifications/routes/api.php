@@ -9,7 +9,7 @@ use Modules\Notifications\Http\Controllers\PostMediaController;
 
 Route::middleware(['auth:api'])->prefix('v1')->group(function () {
     Route::post('notifications/read-all', [NotificationsController::class, 'readAll'])->name('notifications.read-all');
-    Route::apiResource('notifications', NotificationsController::class)->names('notifications');
+    Route::apiResource('notifications', NotificationsController::class)->except(['create', 'edit'])->names('notifications');
 
     Route::get('notification-preferences', [NotificationPreferenceController::class, 'index'])->name('notification-preferences.index');
     Route::put('notification-preferences', [NotificationPreferenceController::class, 'update'])->name('notification-preferences.update');
