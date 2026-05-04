@@ -77,9 +77,4 @@ Route::middleware(['auth:api'])->prefix('v1')->group(function () {
     });
 
     
-    Route::middleware(['role:Superadmin|Admin|Instructor', 'throttle:api'])->group(function () {
-        Route::get('courses/{course:slug}/reports/completion-rate', [\Modules\Enrollments\Http\Controllers\ReportController::class, 'courseCompletionRate'])->name('courses.reports.completion-rate');
-        Route::get('reports/enrollment-funnel', [\Modules\Enrollments\Http\Controllers\ReportController::class, 'enrollmentFunnel'])->name('reports.enrollment-funnel');
-        Route::get('courses/{course:slug}/exports/enrollments-csv', [\Modules\Enrollments\Http\Controllers\ReportController::class, 'exportEnrollmentsCsv'])->name('courses.exports.enrollments-csv');
-    });
 });

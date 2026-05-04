@@ -522,24 +522,6 @@
                                 </ul>
                             </td>
                         </tr>
-                        <tr class="bg-white hover:bg-gray-100 transition-colors align-top">
-                            <td class="px-4 py-3 text-sm font-medium text-gray-500">15</td>
-                            <td class="px-4 py-3 text-sm font-semibold text-gray-900">Laporan Enrollment</td>
-                            <td class="px-4 py-3 text-sm">
-                                <ul class="list-disc list-inside space-y-0.5 text-gray-700">
-                                <li class="py-0.5">Administrator dapat melihat kursus (exportEnrollmentsCsv)</li>
-                                <li class="py-0.5">Administrator dapat melihat kursus (courseCompletionRate)</li>
-                                <li class="py-0.5">Administrator dapat melihat laporan (enrollmentFunnel)</li>
-                                </ul>
-                            </td>
-                            <td class="px-4 py-3 text-sm">
-                                <ul class="space-y-0.5">
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/courses/{course}/exports/enrollments-csv</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/courses/{course}/reports/completion-rate</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/reports/enrollment-funnel</span></li>
-                                </ul>
-                            </td>
-                        </tr>
                         <tr class="bg-gray-50 hover:bg-gray-100 transition-colors align-top">
                             <td class="px-4 py-3 text-sm font-medium text-gray-500">16</td>
                             <td class="px-4 py-3 text-sm font-semibold text-gray-900">Kuis</td>
@@ -1228,24 +1210,6 @@
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/enrollments/{enrollment}/approve</span></li>
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/enrollments/{enrollment}/decline</span></li>
                                 <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">POST</span> <span class="endpoint-badge text-gray-600">api/v1/enrollments/{enrollment}/remove</span></li>
-                                </ul>
-                            </td>
-                        </tr>
-                        <tr class="bg-white hover:bg-gray-100 transition-colors align-top">
-                            <td class="px-4 py-3 text-sm font-medium text-gray-500">15</td>
-                            <td class="px-4 py-3 text-sm font-semibold text-gray-900">Laporan Enrollment</td>
-                            <td class="px-4 py-3 text-sm">
-                                <ul class="list-disc list-inside space-y-0.5 text-gray-700">
-                                <li class="py-0.5">Instruktur dapat melihat kursus (exportEnrollmentsCsv)</li>
-                                <li class="py-0.5">Instruktur dapat melihat kursus (courseCompletionRate)</li>
-                                <li class="py-0.5">Instruktur dapat melihat laporan (enrollmentFunnel)</li>
-                                </ul>
-                            </td>
-                            <td class="px-4 py-3 text-sm">
-                                <ul class="space-y-0.5">
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/courses/{course}/exports/enrollments-csv</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/courses/{course}/reports/completion-rate</span></li>
-                                <li class="py-0.5"><span class="endpoint-badge inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">GET</span> <span class="endpoint-badge text-gray-600">api/v1/reports/enrollment-funnel</span></li>
                                 </ul>
                             </td>
                         </tr>

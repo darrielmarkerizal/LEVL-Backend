@@ -42,10 +42,6 @@ Dokumentasi lengkap untuk seluruh endpoint **Operasional**, mencakup manajemen p
  ┃ ┣ 📄 [GET] Detail Undangan
  ┃ ┣ 📄 [POST] Terima Undangan
  ┃ ┗ 📄 [POST] Tolak Undangan
- ┣ 📁 Laporan & Ekspor (Admin)
- ┃ ┣ 📄 [GET] Completion Rate Kursus
- ┃ ┣ 📄 [GET] Enrollment Funnel
- ┃ ┗ 📄 [GET] Ekspor Pendaftaran CSV
  ┗ 📁 Tempat Sampah (Trash Bin)
    ┣ 📄 [GET] Daftar Item Terhapus
    ┣ 📄 [GET] Tipe Sumber Aktif
@@ -84,9 +80,6 @@ Dokumentasi lengkap untuk seluruh endpoint **Operasional**, mencakup manajemen p
 | 18 | GET | `/me/enrollments/invitations/:id` | Student | Detail undangan |
 | 19 | POST | `/me/enrollments/invitations/:id/accept` | Student | Terima undangan |
 | 20 | POST | `/me/enrollments/invitations/:id/decline` | Student | Tolak undangan |
-| 21 | GET | `/courses/:slug/reports/completion-rate` | Admin | Laporan completion rate |
-| 22 | GET | `/reports/enrollment-funnel` | Admin | Enrollment funnel |
-| 23 | GET | `/courses/:slug/exports/enrollments-csv` | Admin | Ekspor pendaftaran (.csv) |
 | 24 | GET | `/trash-bins` | Admin | Daftar item terhapus |
 | 25 | GET | `/trash-bins/source-types` | Admin | Tipe sumber aktif milik user |
 | 26 | GET | `/master-data/trash-bin-source-types` | Admin | Semua tipe sumber (master data) |
@@ -798,118 +791,6 @@ Bearer Token: {{access_token_student}}
     "meta": null,
     "errors": null
 }
-```
-
----
-
-# C. Laporan & Ekspor (Admin)
-
----
-
-## 21. Completion Rate Kursus
-
-**GET** `{{url}}/api/v1/courses/:slug/reports/completion-rate`
-
-### Path Parameter
-| Parameter | Tipe | Contoh |
-|-----------|------|--------|
-| `slug` | string | `manajemen-proyek-sesuai-standar-industri-26` |
-
-### Authorization
-```
-Bearer Token: {{access_token_admin}}
-```
-
-### Contoh Response (200)
-```json
-{
-    "success": true,
-    "message": "Permintaan berhasil diproses.",
-    "data": {
-        "course": {
-            "id": 14,
-            "slug": "manajemen-proyek-sesuai-standar-industri-26",
-            "title": "Manajemen Proyek Sesuai Standar Industri"
-        },
-        "statistics": {
-            "total_enrolled": 45,
-            "total_active": 38,
-            "total_completed": 12,
-            "total_cancelled": 7,
-            "completion_rate": 26.67,
-            "avg_progress_percentage": 61.4
-        }
-    },
-    "meta": null,
-    "errors": null
-}
-```
-
----
-
-## 22. Enrollment Funnel
-
-**GET** `{{url}}/api/v1/reports/enrollment-funnel`
-
-> Melihat corong pendaftaran dari seluruh kursus atau satu kursus tertentu.
-
-### Authorization
-```
-Bearer Token: {{access_token_admin}}
-```
-
-### Query Parameter (Opsional)
-| Parameter | Tipe | Keterangan |
-|-----------|------|------------|
-| `course_id` | integer | Filter funnel untuk kursus tertentu |
-
-### Contoh Response (200)
-```json
-{
-    "success": true,
-    "message": "Permintaan berhasil diproses.",
-    "data": {
-        "funnel": {
-            "pending": 12,
-            "active": 38,
-            "completed": 22,
-            "cancelled": 8,
-            "total": 80,
-            "conversion_rate": 75.0
-        }
-    },
-    "meta": null,
-    "errors": null
-}
-```
-
----
-
-## 23. Ekspor Pendaftaran (CSV)
-
-**GET** `{{url}}/api/v1/courses/:slug/exports/enrollments-csv`
-
-> Mengunduh file `.csv` berisi data detail pendaftaran kursus.
-> **Response adalah file CSV**, bukan JSON.
-
-### Path Parameter
-| Parameter | Tipe | Contoh |
-|-----------|------|--------|
-| `slug` | string | `manajemen-proyek-sesuai-standar-industri-26` |
-
-### Authorization
-```
-Bearer Token: {{access_token_admin}}
-```
-
-### Contoh Response
-- **Content-Type**: `text/csv; charset=UTF-8`
-- **Content-Disposition**: `attachment; filename="enrollments-manajemen-proyek-sesuai-standar-industri-26-2026-05-04.csv"`
-
-```csv
-ID,Nama,Email,Status,Tanggal Daftar,Progress
-301,Budi Santoso,budi@email.com,active,2026-04-01,35%
-302,Siti Rahayu,siti@email.com,active,2026-04-03,72%
 ```
 
 ---
