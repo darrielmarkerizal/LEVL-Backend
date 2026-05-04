@@ -145,31 +145,35 @@ class EnrollmentLifecycleProcessor
 
     public function approve(Enrollment $enrollment): Enrollment
     {
-        $enrollment = $this->updateEnrollmentStatus($enrollment, EnrollmentStatus::Active, EnrollmentStatus::Pending, __('messages.enrollments.cannot_approve_pending'));
-        $course = $enrollment->course;
-        $student = $enrollment->user;
+        return DB::transaction(function () use ($enrollment): Enrollment {
+            $enrollment = $this->updateEnrollmentStatus($enrollment, EnrollmentStatus::Active, EnrollmentStatus::Pending, __('messages.enrollments.cannot_approve_pending'));
+            $course = $enrollment->course;
+            $student = $enrollment->user;
 
-        if ($student && $course) {
-            $courseUrl = $this->getCourseUrl($course);
-            Mail::to($student->email)
-                ->queue((new StudentEnrollmentApprovedMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
-        }
+            if ($student && $course) {
+                $courseUrl = $this->getCourseUrl($course);
+                Mail::to($student->email)
+                    ->queue((new StudentEnrollmentApprovedMail($student, $course, $courseUrl))->onQueue('emails-transactional'));
+            }
 
-        return $enrollment;
+            return $enrollment;
+        });
     }
 
     public function decline(Enrollment $enrollment): Enrollment
     {
-        $enrollment = $this->updateEnrollmentStatus($enrollment, EnrollmentStatus::Cancelled, EnrollmentStatus::Pending, __('messages.enrollments.cannot_decline_pending'));
-        $course = $enrollment->course;
-        $student = $enrollment->user;
+        return DB::transaction(function () use ($enrollment): Enrollment {
+            $enrollment = $this->updateEnrollmentStatus($enrollment, EnrollmentStatus::Cancelled, EnrollmentStatus::Pending, __('messages.enrollments.cannot_decline_pending'));
+            $course = $enrollment->course;
+            $student = $enrollment->user;
 
-        if ($student && $course) {
-            Mail::to($student->email)
-                ->queue((new StudentEnrollmentDeclinedMail($student, $course))->onQueue('emails-transactional'));
-        }
+            if ($student && $course) {
+                Mail::to($student->email)
+                    ->queue((new StudentEnrollmentDeclinedMail($student, $course))->onQueue('emails-transactional'));
+            }
 
-        return $enrollment;
+            return $enrollment;
+        });
     }
 
     public function remove(Enrollment $enrollment): Enrollment
@@ -179,11 +183,13 @@ class EnrollmentLifecycleProcessor
             throw new BusinessException(__('messages.enrollments.cannot_remove_active_pending'));
         }
 
-        $enrollment->status = EnrollmentStatus::Cancelled;
-        $enrollment->completed_at = null;
-        $enrollment->save();
+        return DB::transaction(function () use ($enrollment): Enrollment {
+            $enrollment->status = EnrollmentStatus::Cancelled;
+            $enrollment->completed_at = null;
+            $enrollment->save();
 
-        return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email', 'user.media']);
+            return $enrollment->fresh(['course:id,title,slug', 'user:id,name,email', 'user.media']);
+        });
     }
 
     

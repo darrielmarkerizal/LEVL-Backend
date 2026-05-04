@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Services;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -85,12 +86,14 @@ class AccountDeletionService
             return false;
         }
 
-        $otp->markAsConsumed();
-        $user->status = UserStatus::Inactive;
-        $user->save();
+        return DB::transaction(function () use ($otp, $user): bool {
+            $otp->markAsConsumed();
+            $user->status = UserStatus::Inactive;
+            $user->save();
 
-        $user->delete();
+            $user->delete();
 
-        return true;
+            return true;
+        });
     }
 }

@@ -6,6 +6,7 @@ namespace Modules\Auth\Services;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Auth\Contracts\Repositories\UserBulkRepositoryInterface;
 use Modules\Auth\Contracts\Services\UserBulkServiceInterface;
@@ -84,26 +85,27 @@ class UserBulkService implements UserBulkServiceInterface
     public function bulkActivate(array $userIds, int $changedBy): int
     {
         $changedByUser = User::find($changedBy);
-
-        
         $users = User::whereIn('id', $userIds)->get();
 
-        $updated = $this->repository->bulkUpdateStatus($userIds, UserStatus::Active->value);
+        $updated = DB::transaction(function () use ($userIds, $changedBy, $changedByUser, $users): int {
+            $count = $this->repository->bulkUpdateStatus($userIds, UserStatus::Active->value);
 
-        
-        foreach ($users as $user) {
-            $oldStatus = $user->status;
-            if ($oldStatus !== UserStatus::Active) {
-                event(new UserStatusChanged(
-                    $user->fresh(),
-                    $oldStatus,
-                    UserStatus::Active,
-                    $changedByUser
-                ));
+            foreach ($users as $user) {
+                $oldStatus = $user->status;
+                if ($oldStatus !== UserStatus::Active) {
+                    event(new UserStatusChanged(
+                        $user->fresh(),
+                        $oldStatus,
+                        UserStatus::Active,
+                        $changedByUser
+                    ));
+                }
             }
-        }
 
-        $this->logStatusChanges($userIds, $changedBy, UserStatus::Active->value);
+            $this->logStatusChanges($userIds, $changedBy, UserStatus::Active->value);
+
+            return $count;
+        });
 
         cache()->tags(['auth', 'users'])->flush();
 
@@ -119,26 +121,27 @@ class UserBulkService implements UserBulkServiceInterface
         }
 
         $changedByUser = User::find($changedBy);
-
-        
         $users = User::whereIn('id', $userIds)->get();
 
-        $updated = $this->repository->bulkUpdateStatus($userIds, UserStatus::Inactive->value);
+        $updated = DB::transaction(function () use ($userIds, $changedBy, $changedByUser, $users): int {
+            $count = $this->repository->bulkUpdateStatus($userIds, UserStatus::Inactive->value);
 
-        
-        foreach ($users as $user) {
-            $oldStatus = $user->status;
-            if ($oldStatus !== UserStatus::Inactive) {
-                event(new UserStatusChanged(
-                    $user->fresh(),
-                    $oldStatus,
-                    UserStatus::Inactive,
-                    $changedByUser
-                ));
+            foreach ($users as $user) {
+                $oldStatus = $user->status;
+                if ($oldStatus !== UserStatus::Inactive) {
+                    event(new UserStatusChanged(
+                        $user->fresh(),
+                        $oldStatus,
+                        UserStatus::Inactive,
+                        $changedByUser
+                    ));
+                }
             }
-        }
 
-        $this->logStatusChanges($userIds, $changedBy, UserStatus::Inactive->value);
+            $this->logStatusChanges($userIds, $changedBy, UserStatus::Inactive->value);
+
+            return $count;
+        });
 
         cache()->tags(['auth', 'users'])->flush();
 
@@ -153,7 +156,8 @@ class UserBulkService implements UserBulkServiceInterface
             throw new \InvalidArgumentException(__('messages.auth.cannot_delete_self'));
         }
 
-        $deleted = $this->repository->bulkDelete($userIds);
+        $deleted = DB::transaction(fn (): int => $this->repository->bulkDelete($userIds));
+
         cache()->tags(['auth', 'users'])->flush();
 
         return $deleted;
