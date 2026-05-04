@@ -72,13 +72,41 @@ class ContentMetadataService
 
     public function getContentMetadataBySlug(string $slug, ?string $type = null): array
     {
-        if ($type === 'lesson' || $type === null) {
-            $lesson = Lesson::with(['unit.course', 'blocks' => fn($q) => $q->orderBy('order')])
-                ->where('slug', $slug)
-                ->first();
+        $tryTypes = [];
 
-            if ($lesson) {
-                return $this->getContentMetadata($lesson->id, 'lesson');
+        if ($type !== null) {
+            $tryTypes[] = $type;
+        } else {
+            $tryTypes = ['lesson', 'assignment', 'quiz'];
+        }
+
+        foreach ($tryTypes as $t) {
+            try {
+                switch ($t) {
+                    case 'lesson':
+                        $model = Lesson::with(['unit.course', 'blocks' => fn($q) => $q->orderBy('order')])
+                            ->where('slug', $slug)
+                            ->first();
+                        break;
+                    case 'assignment':
+                        $model = Assignment::with(['unit.course', 'media'])
+                            ->where('slug', $slug)
+                            ->first();
+                        break;
+                    case 'quiz':
+                        $model = Quiz::with('unit.course')
+                            ->where('slug', $slug)
+                            ->first();
+                        break;
+                    default:
+                        $model = null;
+                }
+
+                if ($model) {
+                    return $this->getContentMetadata($model->id, $t);
+                }
+            } catch (\Throwable $e) {
+                // ignore and try next type
             }
         }
 
