@@ -122,11 +122,17 @@ class ContentMetadataService
 
     public function getContentMetadataByIdOnly(int $contentId): array
     {
-        $uc = \Modules\Schemes\Models\UnitContent::where('contentable_id', $contentId)
-            ->first();
+        $ucs = \Modules\Schemes\Models\UnitContent::where('contentable_id', $contentId)
+            ->orderBy('updated_at', 'desc')
+            ->get();
 
-        if ($uc) {
-            return $this->getContentMetadata($uc->contentable_id, $uc->contentable_type);
+        if ($ucs->isNotEmpty()) {
+            foreach ($ucs as $uc) {
+                $norm = $this->normalizeContentableType($uc->contentable_type);
+                if ($norm !== null) {
+                    return $this->getContentMetadata($uc->contentable_id, $norm);
+                }
+            }
         }
 
         $candidates = [];
@@ -263,6 +269,22 @@ class ContentMetadataService
 
         if ($contentOrder > 0) {
             return (string) $contentOrder;
+        }
+
+        return null;
+    }
+
+    private function normalizeContentableType(string $type): ?string
+    {
+        if (in_array($type, ['lesson', 'assignment', 'quiz'], true)) {
+            return $type;
+        }
+
+        $base = class_basename($type);
+        $lower = strtolower($base);
+
+        if (in_array($lower, ['lesson', 'assignment', 'quiz'], true)) {
+            return $lower;
         }
 
         return null;
