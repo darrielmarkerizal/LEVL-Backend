@@ -330,10 +330,13 @@ class CourseFinder
                     $query->where('status', \Modules\Enrollments\Enums\EnrollmentStatus::Active);
                 } elseif ($status === 'completed') {
                     $query->where('status', \Modules\Enrollments\Enums\EnrollmentStatus::Completed);
+                } elseif ($status === 'pending') {
+                    $query->where('status', \Modules\Enrollments\Enums\EnrollmentStatus::Pending);
                 } else {
                     $query->whereIn('status', [
                         \Modules\Enrollments\Enums\EnrollmentStatus::Active,
                         \Modules\Enrollments\Enums\EnrollmentStatus::Completed,
+                        \Modules\Enrollments\Enums\EnrollmentStatus::Pending,
                     ]);
                 }
             })
