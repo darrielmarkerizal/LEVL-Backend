@@ -8,7 +8,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Grading\Services\GradingEntryService;
-use Modules\Learning\Contracts\Repositories\QuestionRepositoryInterface;
 use Modules\Learning\Contracts\Repositories\SubmissionRepositoryInterface;
 use Modules\Learning\Enums\QuestionType;
 use Modules\Learning\Enums\SubmissionState;
@@ -80,8 +79,6 @@ class SubmissionCompletionProcessor
                 throw SubmissionException::notAllowed(__('messages.submissions.cannot_modify'));
             }
 
-
-
             $this->validateQuestionInAssignment($submission, $assignment, $questionId);
 
             $question = Question::find($questionId);
@@ -101,22 +98,16 @@ class SubmissionCompletionProcessor
         });
     }
 
-    public function submitAnswers(int $submissionId, array $answers, QuestionRepositoryInterface $questionRepo): Submission
+    public function submitAnswers(int $submissionId, array $answers): Submission
     {
-        $submission = DB::transaction(function () use ($submissionId, $answers, $questionRepo) {
+        $submission = DB::transaction(function () use ($submissionId, $answers) {
             $submission = Submission::findOrFail($submissionId);
-            $assignment = $submission->assignment;
-            $studentId = $submission->user_id;
 
             if ($submission->state !== SubmissionState::InProgress) {
                 throw SubmissionException::notAllowed(__('messages.submissions.cannot_modify'));
             }
 
             $this->processAnswers($submission, $answers);
-
-            $this->validateAllQuestionsAnswered($submission, $questionRepo);
-
-
 
             $submission->update([
                 'submitted_at' => Carbon::now(),
@@ -147,8 +138,6 @@ class SubmissionCompletionProcessor
     {
         return DB::transaction(fn () => $this->repository->delete($submission));
     }
-
-
 
     private function validateQuestionInAssignment(Submission $submission, mixed $assignment, int $questionId): void
     {
@@ -224,21 +213,6 @@ class SubmissionCompletionProcessor
             if ($val !== null) {
                 $this->saveAnswer($submission, (int) $answerData['question_id'], $val);
             }
-        }
-    }
-
-    private function validateAllQuestionsAnswered(Submission $submission, QuestionRepositoryInterface $questionRepo): void
-    {
-        $questionIds = $submission->question_set;
-        if (empty($questionIds)) {
-            $questionIds = $questionRepo->findByAssignment($submission->assignment_id)->pluck('id')->toArray();
-        }
-
-        $answeredQuestionIds = $submission->answers()->pluck('question_id')->toArray();
-        $unansweredQuestions = array_diff($questionIds, $answeredQuestionIds);
-
-        if (! empty($unansweredQuestions)) {
-            throw SubmissionException::notAllowed(__('messages.submissions.incomplete_answers'));
         }
     }
 

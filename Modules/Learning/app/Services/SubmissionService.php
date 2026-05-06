@@ -8,7 +8,6 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Modules\Auth\Models\User;
 use Modules\Enrollments\Models\Enrollment;
-use Modules\Learning\Contracts\Repositories\QuestionRepositoryInterface;
 use Modules\Learning\Contracts\Services\SubmissionServiceInterface;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
@@ -21,7 +20,6 @@ class SubmissionService implements SubmissionServiceInterface
     public function __construct(
         private readonly SubmissionFinder $finder,
         private readonly SubmissionLifecycleProcessor $lifecycleProcessor,
-        private readonly QuestionRepositoryInterface $questionRepository,
         private readonly PrerequisiteService $prerequisiteService
     ) {}
 
@@ -42,7 +40,7 @@ class SubmissionService implements SubmissionServiceInterface
 
     public function submitAnswers(int $submissionId, array $answers): Submission
     {
-        return $this->lifecycleProcessor->submitAnswers($submissionId, $answers, $this->questionRepository);
+        return $this->lifecycleProcessor->submitAnswers($submissionId, $answers);
     }
 
     public function delete(Submission $submission): bool
