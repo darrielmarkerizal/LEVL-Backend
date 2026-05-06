@@ -22,10 +22,9 @@ class SubmissionLifecycleProcessor
 
     public function startSubmission(
         int $assignmentId,
-        int $studentId,
-        SubmissionValidator $validator
+        int $studentId
     ): Submission {
-        return $this->creationProcessor->startSubmission($assignmentId, $studentId, $validator);
+        return $this->creationProcessor->startSubmission($assignmentId, $studentId);
     }
 
     public function update(Submission $submission, array $data): Submission
@@ -38,9 +37,9 @@ class SubmissionLifecycleProcessor
         return $this->completionProcessor->grade($submission, $score, $gradedBy, $feedback);
     }
 
-    public function submitAnswers(int $submissionId, array $answers, SubmissionValidator $validator, QuestionRepositoryInterface $questionRepo): Submission
+    public function submitAnswers(int $submissionId, array $answers, QuestionRepositoryInterface $questionRepo): Submission
     {
-        return $this->completionProcessor->submitAnswers($submissionId, $answers, $validator, $questionRepo);
+        return $this->completionProcessor->submitAnswers($submissionId, $answers, $questionRepo);
     }
 
     public function updateSubmissionScore(Submission $submission, float $score): Submission
