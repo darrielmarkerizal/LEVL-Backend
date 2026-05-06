@@ -117,7 +117,8 @@ class Grade extends Model
 
     public function getEffectiveScoreAttribute(): float
     {
-        return $this->score;
+        return (float) $this->score;
+
     }
 
     public function scopeDraft($query, bool $isDraft = true)
