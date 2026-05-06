@@ -50,16 +50,6 @@ class SubmissionCreationProcessor
                 throw SubmissionException::notAllowed(__('messages.submissions.assignment_unavailable'));
             }
 
-            
-            $pendingSubmission = Submission::where('assignment_id', $assignment->id)
-                ->where('user_id', $userId)
-                ->where('status', SubmissionStatus::Submitted->value)
-                ->exists();
-
-            if ($pendingSubmission) {
-                throw SubmissionException::notAllowed(__('messages.submissions.pending_grading_exists'));
-            }
-
             $attemptNumber = $this->repository->countAttempts($userId, $assignment->id) + 1;
 
             
@@ -70,9 +60,8 @@ class SubmissionCreationProcessor
                 'user_id' => $userId,
                 'enrollment_id' => $enrollment->id,
                 'answer_text' => $data['answer_text'] ?? null,
-                'status' => SubmissionStatus::Submitted->value,
-                'state' => SubmissionState::PendingManualGrading->value,
-                'submitted_at' => Carbon::now(),
+                'status' => SubmissionStatus::Draft->value,
+                'state' => SubmissionState::InProgress->value,
                 'attempt_number' => $attemptNumber,
                 'question_set' => $questionSet,
             ]);

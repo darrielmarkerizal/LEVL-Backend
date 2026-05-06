@@ -10,14 +10,18 @@ Dokumentasi lengkap untuk seluruh endpoint pengumpulan tugas oleh **Asesi (Stude
 ## Alur Kerja
 
 ```
-1. Daftar Tugas → 2. Detail Tugas → 3. Kumpulkan Tugas (store)
+1. Daftar Tugas → 2. Detail Tugas → 3. Simpan Draft (store)
                                            ↓
                                     4. Update Jawaban (opsional, jika draft)
                                            ↓
-                                    5. Submit Final
+                                    5. Submit Final (kirim ke instructor)
                                            ↓
-                                    6. Lihat Hasil / Riwayat
+                                    6. Dapatkan XP & Lihat Hasil / Riwayat
 ```
+
+**Penting**: 
+- **Langkah 3-4**: Draft disimpan lokal, belum dikirim ke instructor, **belum ada XP**
+- **Langkah 5**: Submit resmi, data masuk ke instructor, **XP diberikan**
 
 ---
 
@@ -31,9 +35,9 @@ Dokumentasi lengkap untuk seluruh endpoint pengumpulan tugas oleh **Asesi (Stude
 | 4 | GET | `/assignments/:assignment_id/submissions` | Riwayat semua pengumpulan saya |
 | 5 | GET | `/assignments/:assignment_id/submissions/highest` | Pengumpulan dengan nilai terbaik |
 | 6 | GET | `/assignments/:assignment_id/submissions/:submission_id` | Detail satu pengumpulan |
-| 7 | POST | `/assignments/:assignment_id/submissions` | Kumpulkan tugas (buat submission) |
-| 8 | PUT | `/submissions/:submission_id` | Perbarui jawaban (jika masih draft) |
-| 9 | POST | `/submissions/:submission_id/submit` | Submit final |
+| 7 | POST | `/assignments/:assignment_id/submissions` | **Simpan draft** (belum ke instructor, belum XP) |
+| 8 | PUT | `/submissions/:submission_id` | Perbarui jawaban draft |
+| 9 | POST | `/submissions/:submission_id/submit` | **Submit final** (kirim ke instructor, dapat XP) |
 
 ---
 
@@ -372,10 +376,13 @@ GET {{url}}/api/v1/assignments/88/submissions/701
 
 ---
 
-## 7. Kumpulkan Tugas (Buat Submission)
+## 7. Simpan Jawaban (Create Draft Submission)
 
 **POST** `{{url}}/api/v1/assignments/:assignment_id/submissions`
 
+> **CATATAN PENTING**: Endpoint ini **HANYA membuat draft** (status: `draft`). Jawaban belum dikirim ke instructor.
+> Untuk **mengirim resmi**, gunakan endpoint **#9** setelah ini.
+>
 > Body request bergantung pada `submission_type` tugas. Cek detail tugas terlebih dahulu.
 
 ### Path Parameter
@@ -444,18 +451,22 @@ files[0]: [FILE: analisis-risiko.pdf]
 
 ---
 
-### Contoh Response (201) — Berhasil
+### Contoh Response (201) — Berhasil (Draft dibuat)
 ```json
 {
     "success": true,
-    "message": "Pengumpulan tugas berhasil dibuat.",
+    "message": "Draft jawaban berhasil disimpan. Lanjutkan dengan submit untuk pengumpulan resmi.",
     "data": {
         "id": 712,
-        "attempt_number": 2,
+        "attempt_number": 1,
         "status": "draft",
         "score": null,
         "submitted_at": null,
         "graded_at": null,
+        "assignment": {
+            "id": 88,
+            "title": "Analisis Manajemen Risiko Proyek"
+        },
         "files": [
             {
                 "id": 215,
@@ -471,6 +482,12 @@ files[0]: [FILE: analisis-risiko.pdf]
     "errors": null
 }
 ```
+
+> **Catatan**:
+> - Status adalah `draft` (belum dikumpulkan ke instructor)
+> - `submitted_at` adalah `null` (draft tidak memiliki waktu submit)
+> - **Belum ada XP yang diterima** — XP hanya diberikan saat submit final (endpoint #9)
+> - Untuk menyelesaikan pengumpulan, gunakan endpoint **#9** (`POST /submissions/:id/submit`)
 
 ### Contoh Response (422) — Tipe `text`, file dikirim
 ```json
@@ -559,11 +576,15 @@ Bearer Token: {{access_token_student}}
 
 ---
 
-## 9. Submit Final
+## 9. Kirim/Submit Final ke Instructor
 
 **POST** `{{url}}/api/v1/submissions/:submission_id/submit`
 
-> Mengubah status submission dari `draft` menjadi `submitted`. Setelah ini submission tidak bisa diubah lagi.
+> **PERBEDAAN dengan Endpoint #7**:
+> - **Endpoint #7** (POST `/assignments/.../submissions`): Membuat draft saja. Jawaban **belum dikirim** ke instructor.
+> - **Endpoint #9** (POST `/submissions/.../submit`): **Mengirim resmi** ke instructor. Status berubah dari `draft` → `submitted`.
+>
+> Setelah submit, jawaban **tidak bisa diubah lagi**.
 
 ### Path Parameter
 | Parameter | Tipe | Contoh |
@@ -683,14 +704,14 @@ Bearer Token: {{access_token_student}}
 
 ## Catatan untuk Postman Collection
 
-| Endpoint | Method | Folder | Token |
-|----------|--------|--------|-------|
-| `/courses/:slug/assignments` | GET | Pembelajaran > Pengumpulan Tugas Asesi | `{{access_token_student}}` |
-| `/courses/:slug/assignments/incomplete` | GET | Pembelajaran > Pengumpulan Tugas Asesi | `{{access_token_student}}` |
-| `/assignments/:id` | GET | Pembelajaran > Pengumpulan Tugas Asesi | `{{access_token_student}}` |
-| `/assignments/:id/submissions` | GET | Pembelajaran > Pengumpulan Tugas Asesi | `{{access_token_student}}` |
-| `/assignments/:id/submissions/highest` | GET | Pembelajaran > Pengumpulan Tugas Asesi | `{{access_token_student}}` |
-| `/assignments/:id/submissions/:sub_id` | GET | Pembelajaran > Pengumpulan Tugas Asesi | `{{access_token_student}}` |
-| `/assignments/:id/submissions` | POST | Pembelajaran > Pengumpulan Tugas Asesi | `{{access_token_student}}` |
-| `/submissions/:id` | PUT | Pembelajaran > Pengumpulan Tugas Asesi | `{{access_token_student}}` |
-| `/submissions/:id/submit` | POST | Pembelajaran > Pengumpulan Tugas Asesi | `{{access_token_student}}` |
+| Endpoint | Method | Folder | Keterangan | Token |
+|----------|--------|--------|-----------|-------|
+| `/courses/:slug/assignments` | GET | Pembelajaran > Pengumpulan Tugas Asesi | Daftar tugas | `{{access_token_student}}` |
+| `/courses/:slug/assignments/incomplete` | GET | Pembelajaran > Pengumpulan Tugas Asesi | Tugas belum selesai | `{{access_token_student}}` |
+| `/assignments/:id` | GET | Pembelajaran > Pengumpulan Tugas Asesi | Detail tugas | `{{access_token_student}}` |
+| `/assignments/:id/submissions` | GET | Pembelajaran > Pengumpulan Tugas Asesi | Riwayat pengumpulan | `{{access_token_student}}` |
+| `/assignments/:id/submissions/highest` | GET | Pembelajaran > Pengumpulan Tugas Asesi | Nilai terbaik | `{{access_token_student}}` |
+| `/assignments/:id/submissions/:sub_id` | GET | Pembelajaran > Pengumpulan Tugas Asesi | Detail submission | `{{access_token_student}}` |
+| `/assignments/:id/submissions` | POST | Pembelajaran > Pengumpulan Tugas Asesi | **SIMPAN draft** (belum ke instructor) | `{{access_token_student}}` |
+| `/submissions/:id` | PUT | Pembelajaran > Pengumpulan Tugas Asesi | Update draft | `{{access_token_student}}` |
+| `/submissions/:id/submit` | POST | Pembelajaran > Pengumpulan Tugas Asesi | **SUBMIT final** (kirim ke instructor) | `{{access_token_student}}` |
