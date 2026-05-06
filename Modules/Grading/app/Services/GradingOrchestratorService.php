@@ -142,7 +142,7 @@ class GradingOrchestratorService
 
             return $this->success(
                 new GradingQueueItemResource($submission, true),
-                __('messages.grading.submission_fetched'
+                __('messages.grading.submission_fetched')
             );
         }
 
@@ -177,7 +177,7 @@ class GradingOrchestratorService
 
         return $this->success(
             new GradingQueueItemResource($quizSubmission, true),
-            __('messages.grading.submission_fetched'
+            __('messages.grading.submission_fetched')
         );
     }
 
