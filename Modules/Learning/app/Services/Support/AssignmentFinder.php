@@ -47,9 +47,8 @@ class AssignmentFinder
         $unitSlug = data_get($filters, 'unit_slug');
         $lessonSlug = data_get($filters, 'lesson_slug');
 
-        
         $user = auth('api')->user();
-        $userKey = $user ? $user->id . ':' . implode(',', $user->getRoleNames()->toArray()) : 'guest';
+        $userKey = $user ? $user->id.':'.implode(',', $user->getRoleNames()->toArray()) : 'guest';
 
         return cache()->tags(['learning', 'assignments'])->remember(
             "learning:assignments:index:{$course->id}:{$userKey}:".md5(json_encode($filters)),
@@ -220,7 +219,7 @@ class AssignmentFinder
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('submission_type'),
             ])
-            ->allowedIncludes(['questions', 'prerequisites', 'creator', 'unit'])
+            ->allowedIncludes(['prerequisites', 'creator', 'unit'])
             ->allowedSorts(['id', 'title', 'created_at', 'updated_at'])
             ->defaultSort('-created_at');
     }

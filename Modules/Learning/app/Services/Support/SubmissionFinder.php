@@ -50,7 +50,6 @@ class SubmissionFinder
                     ->allowedFilters([
                         AllowedFilter::exact('status'),
                         AllowedFilter::exact('user_id'),
-                        AllowedFilter::exact('is_late'),
                         AllowedFilter::scope('score_range', 'filterByScoreRange'),
                     ])
                     ->allowedSorts(['submitted_at', 'created_at', 'score', 'status'])

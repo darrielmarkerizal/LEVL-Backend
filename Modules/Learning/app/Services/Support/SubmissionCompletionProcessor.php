@@ -110,6 +110,7 @@ class SubmissionCompletionProcessor
             $this->processAnswers($submission, $answers);
 
             $submission->update([
+                'status' => SubmissionStatus::Submitted->value,
                 'submitted_at' => Carbon::now(),
             ]);
 

@@ -63,7 +63,6 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
                     ->allowedFilters([
                         'status',
                         \Spatie\QueryBuilder\AllowedFilter::exact('user_id'),
-                        \Spatie\QueryBuilder\AllowedFilter::exact('is_late'),
                         \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', $v)),
                         \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', $v)),
                     ])
@@ -93,7 +92,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
             "learning:submissions:search:{$query}:{$perPage}:{$sortBy}:{$sortDirection}:".md5(json_encode($filters)),
             300,
             function () use ($filters, $query, $perPage, $sortBy, $sortDirection) {
-                
+
                 return \Spatie\QueryBuilder\QueryBuilder::for(Submission::class, new \Illuminate\Http\Request($filters))
                     ->search($query)
                     ->allowedFilters([
@@ -161,7 +160,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
         return Submission::query()
             ->where('assignment_id', $assignment->id)
             ->where('user_id', $userId)
-            ->whereIn('status', ['submitted', 'late', 'graded'])
+            ->whereIn('status', ['submitted', 'graded'])
             ->with(self::DEFAULT_EAGER_LOAD)
             ->latest('id')
             ->first();
@@ -251,7 +250,7 @@ class SubmissionRepository extends BaseRepository implements SubmissionRepositor
                     ->where('state', SubmissionState::PendingManualGrading->value)
                     ->allowedFilters([
                         \Spatie\QueryBuilder\AllowedFilter::exact('assignment_id'),
-                        \Spatie\QueryBuilder\AllowedFilter::exact('user_id', 'student_id'), 
+                        \Spatie\QueryBuilder\AllowedFilter::exact('user_id', 'student_id'),
                         \Spatie\QueryBuilder\AllowedFilter::callback('date_from', fn ($q, $v) => $q->where('submitted_at', '>=', Carbon::parse($v)->startOfDay())),
                         \Spatie\QueryBuilder\AllowedFilter::callback('date_to', fn ($q, $v) => $q->where('submitted_at', '<=', Carbon::parse($v)->endOfDay())),
                     ])

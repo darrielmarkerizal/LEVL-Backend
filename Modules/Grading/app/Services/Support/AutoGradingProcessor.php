@@ -16,7 +16,14 @@ class AutoGradingProcessor
 
     public function execute(int $submissionId): void
     {
-        $submission = Submission::with(['answers.question', 'assignment.questions'])->findOrFail($submissionId);
+        $submission = Submission::with(['answers.question', 'assignment'])->findOrFail($submissionId);
+
+        if (! $submission->assignment->isQuiz()) {
+            $submission->transitionTo(SubmissionState::PendingManualGrading, $submission->user_id);
+
+            return;
+        }
+
         $hasManualQuestions = false;
 
         foreach ($submission->answers as $answer) {

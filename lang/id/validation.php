@@ -280,7 +280,6 @@ $overrides = [
         'assignable_id' => 'ID Assignable',
         'assignable_slug' => 'Slug Assignable',
         'allow_resubmit' => 'Izinkan Pengiriman Ulang',
-        'late_penalty_percent' => 'Persentase Penalti Terlambat',
         'attachments' => 'Lampiran',
         'available_from' => 'Tersedia Dari',
         'status' => 'Status',

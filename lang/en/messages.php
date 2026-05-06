@@ -608,6 +608,8 @@ return [
         'finished' => 'You have completed this assignment.',
         'invalid_state_transition' => 'Cannot change submission status from ":from" to ":to".',
         'grading_incomplete' => 'Grading cannot be finalized until all required questions have been graded.',
+        'draft_exists' => 'You already have a draft submission for this assignment. Please update or submit your existing draft before creating a new one.',
+        'grading_not_released' => 'Your grade exists but has not been published by the instructor yet. Please wait for the instructor to release the grade before resubmitting.',
         'pending_grading_exists' => 'You have a pending submission awaiting grading. Please wait for the instructor to grade your previous submission before resubmitting.',
         'status_label' => [
             'draft'         => 'Draft',

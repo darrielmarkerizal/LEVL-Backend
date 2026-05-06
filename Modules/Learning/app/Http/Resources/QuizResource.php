@@ -103,9 +103,6 @@ class QuizResource extends JsonResource
             'question_bank_count' => $this->question_bank_count,
             'status' => $this->status?->value,
             'status_label' => $this->status?->label(),
-            'available_from' => $this->available_from?->toISOString(),
-            'tolerance_minutes' => $this->tolerance_minutes,
-            'late_penalty_percent' => $this->late_penalty_percent,
             'scope_type' => $this->scope_type,
             'assignable_type' => $this->assignable_type,
             'assignable_id' => $this->assignable_id,
@@ -167,6 +164,6 @@ class QuizResource extends JsonResource
             return null;
         }
 
-        return $unitOrder . '.' . $elementOrder;
+        return $unitOrder.'.'.$elementOrder;
     }
 }

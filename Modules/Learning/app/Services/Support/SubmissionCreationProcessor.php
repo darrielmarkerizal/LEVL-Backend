@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Learning\Services\Support;
 
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Enrollments\Contracts\Repositories\EnrollmentRepositoryInterface;
 use Modules\Learning\Contracts\Repositories\SubmissionRepositoryInterface;
@@ -50,9 +49,26 @@ class SubmissionCreationProcessor
                 throw SubmissionException::notAllowed(__('messages.submissions.assignment_unavailable'));
             }
 
+            $existing = Submission::query()
+                ->where('assignment_id', $assignment->id)
+                ->where('user_id', $userId)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing) {
+                if ($existing->status === SubmissionStatus::Draft) {
+                    throw SubmissionException::notAllowed(__('messages.submissions.draft_exists'));
+                }
+                if ($existing->status === SubmissionStatus::Submitted) {
+                    throw SubmissionException::notAllowed(__('messages.submissions.pending_grading_exists'));
+                }
+                if ($existing->state !== SubmissionState::Released) {
+                    throw SubmissionException::notAllowed(__('messages.submissions.grading_not_released'));
+                }
+            }
+
             $attemptNumber = $this->repository->countAttempts($userId, $assignment->id) + 1;
 
-            
             $questionSet = $assignment->isQuiz() ? $this->generateQuestionSet($assignment->id) : null;
 
             $submission = $this->repository->create([
@@ -66,7 +82,6 @@ class SubmissionCreationProcessor
                 'question_set' => $questionSet,
             ]);
 
-            
             if (isset($data['files']) && is_array($data['files'])) {
                 foreach ($data['files'] as $file) {
                     if ($file instanceof \Illuminate\Http\UploadedFile) {
@@ -105,10 +120,9 @@ class SubmissionCreationProcessor
                 throw SubmissionException::notAllowed(__('messages.submissions.draft_exists'));
             }
 
-            throw SubmissionException::notAllowed(__('messages.submissions.pending_grading'));
+            throw SubmissionException::notAllowed(__('messages.submissions.pending_grading_exists'));
         }
 
-        
         $questionSet = $assignment->isQuiz() ? $this->generateQuestionSet($assignmentId) : null;
         $attemptNumber = $this->repository->countAttempts($studentId, $assignmentId) + 1;
 

@@ -68,7 +68,6 @@ class QuizSubmissionResource extends JsonResource
             'score' => $this->score,
             'final_score' => $this->final_score,
             'attempt_number' => $this->attempt_number,
-            'is_late' => $this->is_late,
             'is_resubmission' => $this->is_resubmission,
             'submitted_at' => $this->submitted_at?->toISOString(),
             'started_at' => $this->started_at?->toISOString(),

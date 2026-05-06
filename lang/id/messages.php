@@ -613,6 +613,8 @@ return [
         'finished' => 'Anda telah selesai mengerjakan tugas ini.',
         'invalid_state_transition' => 'Status pengumpulan tidak dapat diubah dari ":from" menjadi ":to".',
         'grading_incomplete' => 'Penilaian belum dapat diselesaikan karena masih ada pertanyaan yang belum dinilai.',
+        'draft_exists' => 'Anda sudah memiliki draft pengumpulan untuk tugas ini. Perbarui atau kumpulkan draft yang ada sebelum membuat yang baru.',
+        'grading_not_released' => 'Nilai Anda sudah ada namun belum dipublikasikan oleh instruktur. Tunggu hingga instruktur mempublikasikan nilai sebelum mengumpulkan kembali.',
         'pending_grading_exists' => 'Anda masih memiliki pengumpulan yang sedang menunggu penilaian. Harap tunggu hingga instruktur menilai pengumpulan sebelumnya sebelum mengumpulkan kembali.',
         'status_label' => [
             'draft'         => 'Draft',

@@ -44,21 +44,6 @@ class GradeCalculator
         }
     }
 
-    public function applyLatePenalty(float $score, ?float $penaltyPercent): float
-    {
-        if ($penaltyPercent === null) {
-            $penaltyPercent = (float) \Modules\Common\Models\SystemSetting::get('learning.late_penalty_percent', 0);
-        }
-
-        if ($penaltyPercent > 0) {
-            $penalty = ($score * $penaltyPercent) / 100;
-
-            return max(0, $score - $penalty);
-        }
-
-        return $score;
-    }
-
     public function calculateCourseScore(Collection $assignments, int $studentId): float
     {
         if ($assignments->isEmpty()) {

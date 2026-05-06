@@ -164,7 +164,6 @@ return [
                     'score',
                     'submitted_at',
                     'attempt_number',
-                    'is_late',
                     'created_at',
                 ],
                 'sortableAttributes' => [

@@ -35,14 +35,6 @@ class GradingEntryService
 
         $globalScoreOverride = $data->scoreOverride;
 
-        if ($globalScoreOverride !== null && $submission->is_late) {
-            $globalScoreOverride = $this->calculator->applyLatePenalty(
-                $globalScoreOverride,
-                $submission->assignment->late_penalty_percent
-            );
-        }
-
-        
         $this->actionProcessor->processAnswers($submission, $data->answers);
 
         if ($globalScoreOverride === null) {
@@ -60,7 +52,6 @@ class GradingEntryService
 
         $submission->update(['score' => $score]);
 
-        
         $grade = $this->actionProcessor->persistGrade(
             $submission,
             $score,

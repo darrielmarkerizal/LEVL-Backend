@@ -20,13 +20,11 @@ class SubmissionIndexResource extends JsonResource
             'workflow_label' => $this->state?->label(),
             'score' => $this->score,
             'attempt_number' => $this->attempt_number,
-            'is_late' => $this->is_late,
             'submitted_at' => $this->submitted_at,
             'graded_at' => $this->graded_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
-            
             'user' => $this->whenLoaded('user', function () {
                 return [
                     'id' => $this->user->id,

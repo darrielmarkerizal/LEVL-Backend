@@ -127,7 +127,6 @@ class AssessmentAuditService implements AuditServiceInterface
             'student_id' => $submission->user_id,
             'attempt_number' => $submission->attempt_number,
             'state' => $submission->state ? $submission->state->value : 'in_progress',
-            'is_late' => $submission->is_late ?? false,
             'submitted_at' => $submission->submitted_at?->toIso8601String(),
         ];
     }

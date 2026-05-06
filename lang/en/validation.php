@@ -226,7 +226,6 @@ return [
         'assignable_id' => 'assignable ID',
         'assignable_slug' => 'assignable slug',
         'allow_resubmit' => 'allow resubmit',
-        'late_penalty_percent' => 'late penalty percent',
         'attachments' => 'attachments',
         'status' => 'status',
         'code' => 'code',

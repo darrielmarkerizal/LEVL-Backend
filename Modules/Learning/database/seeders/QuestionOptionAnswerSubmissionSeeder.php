@@ -28,8 +28,6 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
 
         echo "Seeding questions, options, answers, and submissions...\n";
 
-        
-        
         if (! Schema::hasTable('assignment_questions')) {
             echo "⚠️  Table assignment_questions not found. Skipping QuestionOptionAnswerSubmissionSeeder.\n";
 
@@ -198,7 +196,6 @@ class QuestionOptionAnswerSubmissionSeeder extends Seeder
                     'state' => $state,
                     'submitted_at' => $state !== SubmissionState::InProgress->value ? $this->createdAt : null,
                     'attempt_number' => $nextAttempt,
-                    'is_late' => \DB::raw(rand(1, 100) <= 15 ? 'true' : 'false'),
                     'score' => null,
                     'created_at' => $this->createdAt,
                     'updated_at' => $this->createdAt,
