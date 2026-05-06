@@ -23,14 +23,20 @@ class GradingQueueItemResource extends JsonResource
         return $this->toAssignmentArray();
     }
 
+    private function isDetailView(Request $request): bool
+    {
+        return $request->routeIs('grading.show');
+    }
+
     private function toAssignmentArray(): array
     {
         $statusValue = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
         $workflowValue = $this->state instanceof \BackedEnum ? $this->state->value : $this->state;
         $submissionType = $this->assignment?->submission_type?->value ?? $this->assignment?->submission_type;
         $course = $this->assignment?->unit?->course;
+        $isDetail = $this->isDetailView(request());
 
-        return [
+        $data = [
             'type' => 'assignment',
             'submission_id' => $this->id,
             'student_name' => $this->user?->name,
@@ -56,6 +62,17 @@ class GradingQueueItemResource extends JsonResource
             'workflow_state_label' => $this->enumLabel($this->state),
             'score' => $this->score,
         ];
+
+        if ($isDetail) {
+            $data['text'] = in_array($submissionType, ['text', 'mixed'], true)
+                ? $this->answer_text
+                : null;
+            $data['files'] = in_array($submissionType, ['file', 'mixed'], true)
+                ? $this->getSubmissionFiles()
+                : [];
+        }
+
+        return $data;
     }
 
     private function toQuizArray(): array
@@ -99,8 +116,9 @@ class GradingQueueItemResource extends JsonResource
         $workflowValue = $submission->grading_status instanceof \BackedEnum ? $submission->grading_status->value : $submission->grading_status;
         $course = $submission->quiz?->unit?->course;
         $question = $essayAnswer->question;
+        $isDetail = $this->isDetailView(request());
 
-        return [
+        $data = [
             'type' => 'quiz',
             'row_type' => 'essay_question',
             'submission_id' => $submission->id,
@@ -137,6 +155,30 @@ class GradingQueueItemResource extends JsonResource
             'answered_at' => $essayAnswer->created_at,
             'answered_updated_at' => $essayAnswer->updated_at,
         ];
+
+        if ($isDetail) {
+            $data['student_answer'] = $essayAnswer->content;
+            $data['answer_feedback'] = $essayAnswer->feedback;
+            $data['answer_selected_options'] = $essayAnswer->selected_options;
+            $data['answer_is_auto_graded'] = $essayAnswer->is_auto_graded;
+            $data['answer_score'] = $essayAnswer->score;
+        }
+
+        return $data;
+    }
+
+    private function getSubmissionFiles(): array
+    {
+        return $this->getMedia('submission_files')
+            ->map(fn ($media) => [
+                'id' => $media->id,
+                'name' => $media->file_name,
+                'url' => $media->getUrl(),
+                'size' => $media->size,
+                'mime_type' => $media->mime_type,
+            ])
+            ->values()
+            ->toArray();
     }
 
     private function enumLabel(mixed $enum): ?string
