@@ -6,6 +6,7 @@ namespace Modules\Learning\Services\Support;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
+use Modules\Learning\Enums\SubmissionType;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
 use Modules\Learning\Traits\FormatsSubmissionStatus;
@@ -182,6 +183,7 @@ class AssignmentEnrichmentService
 
         $maxFileSizeInBytes = (int) config('media-library.max_file_size', 52428800);
         $maxFileSizeInMb = (int) ceil($maxFileSizeInBytes / 1024 / 1024);
+        $submissionUploadSettings = $this->submissionUploadSettings($assignment, $maxFileSizeInMb);
 
         return [
             'id' => $assignment->id,
@@ -193,8 +195,6 @@ class AssignmentEnrichmentService
             'max_score' => $assignment->max_score,
             'passing_grade' => $assignment->passing_grade,
             'status' => $assignment->status->value,
-            'accepted_formats' => ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.jpg', '.jpeg', '.png', '.webp'],
-            'max_file_size' => $maxFileSizeInMb,
             'grading_scheme' => "Manual Grading by Instructor (1 - {$assignment->max_score} Points)",
             'unit_slug' => $assignment->unit->slug ?? null,
             'course_slug' => $assignment->unit->course->slug ?? null,
@@ -257,6 +257,19 @@ class AssignmentEnrichmentService
             ] : null,
             'created_at' => $assignment->created_at?->toIso8601String(),
             'updated_at' => $assignment->updated_at?->toIso8601String(),
+            ...$submissionUploadSettings,
+        ];
+    }
+
+    private function submissionUploadSettings(Assignment $assignment, int $maxFileSizeInMb): array
+    {
+        if ($assignment->submission_type === SubmissionType::Text) {
+            return [];
+        }
+
+        return [
+            'accepted_formats' => ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.jpg', '.jpeg', '.png', '.webp'],
+            'max_file_size' => $maxFileSizeInMb,
         ];
     }
 
