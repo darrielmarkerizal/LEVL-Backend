@@ -345,8 +345,10 @@ class ProgressionStateProcessor
                     ($completedUnitItems > 0 ? ProgressStatus::InProgress : ProgressStatus::NotStarted))
             );
 
-            // Use stored progress if available, otherwise use calculated
-            $displayUnitPercent = $unitProgress?->progress_percent ?? $unitPercent;
+            $displayUnitPercent = $unitPercent;
+            if ($unitProgress) {
+                $unitProgress->update(['progress_percent' => $displayUnitPercent]);
+            }
 
             if ($unitStatus === ProgressStatus::Completed) {
                 $previousUnitsCompleted = true;
@@ -381,8 +383,11 @@ class ProgressionStateProcessor
                 ($completedCourseItems > 0 ? ProgressStatus::InProgress : ProgressStatus::NotStarted))
         );
 
-        // Use stored progress if available, otherwise use calculated
-        $displayCoursePercent = $courseProgress?->progress_percent ?? $coursePercent;
+        // Always use calculated progress for accuracy, sync to DB if needed
+        $displayCoursePercent = $coursePercent;
+        if ($courseProgress) {
+            $courseProgress->update(['progress_percent' => $displayCoursePercent]);
+        }
 
         return [
             'course' => [
