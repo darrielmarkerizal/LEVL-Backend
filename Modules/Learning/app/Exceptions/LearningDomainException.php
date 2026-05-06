@@ -24,6 +24,9 @@ class LearningDomainException extends Exception
 
         if (! empty($this->errors)) {
             $response['errors'] = $this->errors;
+            if (array_key_exists('latest_submission_id', $this->errors)) {
+                $response['latest_submission_id'] = $this->errors['latest_submission_id'];
+            }
             $status = 422;
         }
 

@@ -57,7 +57,7 @@ class SubmissionCreationProcessor
 
             if ($existing) {
                 if ($existing->status === SubmissionStatus::Draft) {
-                    throw SubmissionException::notAllowed(__('messages.submissions.draft_exists'));
+                    throw SubmissionException::draftExists($existing->id);
                 }
                 if ($existing->status === SubmissionStatus::Submitted) {
                     throw SubmissionException::notAllowed(__('messages.submissions.pending_grading_exists'));
@@ -117,7 +117,7 @@ class SubmissionCreationProcessor
 
         if ($pendingSubmission) {
             if ($pendingSubmission->status === SubmissionStatus::Draft->value) {
-                throw SubmissionException::notAllowed(__('messages.submissions.draft_exists'));
+                throw SubmissionException::draftExists($pendingSubmission->id);
             }
 
             throw SubmissionException::notAllowed(__('messages.submissions.pending_grading_exists'));

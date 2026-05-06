@@ -6,9 +6,19 @@ namespace Modules\Learning\Exceptions;
 
 class SubmissionException extends LearningDomainException
 {
-    public static function notAllowed(string $message): self
+    public static function notAllowed(string $message, array $errors = []): self
     {
-        return new self($message);
+        return new self($message, 0, null, $errors);
+    }
+
+    public static function draftExists(int $latestSubmissionId): self
+    {
+        return new self(
+            __('messages.submissions.draft_exists'),
+            0,
+            null,
+            ['latest_submission_id' => $latestSubmissionId]
+        );
     }
 
     public static function deadlinePassed(): self
