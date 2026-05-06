@@ -39,12 +39,6 @@ class GradingQueueItemResource extends JsonResource
             'assignment_title' => $this->assignment?->title,
             'submission_type' => $submissionType,
             'submission_type_label' => $this->enumLabel($this->assignment?->submission_type),
-            'text' => in_array($submissionType, ['text', 'mixed'], true)
-                ? $this->answer_text
-                : null,
-            'files' => in_array($submissionType, ['file', 'mixed'], true)
-                ? $this->getSubmissionFiles()
-                : [],
             'course' => $course ? [
                 'id' => $course->id,
                 'slug' => $course->slug,
@@ -134,34 +128,15 @@ class GradingQueueItemResource extends JsonResource
             'workflow_state_label' => $this->enumLabel($submission->grading_status),
             'score' => $submission->score,
             'final_score' => $submission->final_score,
-            'student_answer' => $essayAnswer->content,
-            'answer_feedback' => $essayAnswer->feedback,
-            'answer_selected_options' => $essayAnswer->selected_options,
-            'answer_is_auto_graded' => $essayAnswer->is_auto_graded,
             'question_id' => $essayAnswer->quiz_question_id,
             'question_type' => $question?->type?->value,
             'question_order' => $question?->order,
             'question_weight' => $question?->weight,
             'question_max_score' => $question?->max_score,
-            'answer_score' => $essayAnswer->score,
             'is_graded' => $essayAnswer->score !== null,
             'answered_at' => $essayAnswer->created_at,
             'answered_updated_at' => $essayAnswer->updated_at,
         ];
-    }
-
-    private function getSubmissionFiles(): array
-    {
-        return $this->getMedia('submission_files')
-            ->map(fn ($media) => [
-                'id' => $media->id,
-                'name' => $media->file_name,
-                'url' => $media->getUrl(),
-                'size' => $media->size,
-                'mime_type' => $media->mime_type,
-            ])
-            ->values()
-            ->toArray();
     }
 
     private function enumLabel(mixed $enum): ?string
