@@ -350,13 +350,13 @@ class ProgressionStateProcessor
                 $unitProgress->update(['progress_percent' => $displayUnitPercent]);
             }
 
+            $isUnitLocked = ! $previousUnitsCompleted;
+
             if ($unitStatus === ProgressStatus::Completed) {
                 $previousUnitsCompleted = true;
             } else {
                 $previousUnitsCompleted = false;
             }
-
-            $isUnitLocked = ! $previousUnitsCompleted;
 
             $unitsData[] = [
                 'id' => $unit->id,
