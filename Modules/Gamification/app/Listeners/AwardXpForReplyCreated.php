@@ -35,7 +35,7 @@ class AwardXpForReplyCreated implements ShouldQueue
         $this->gamification->awardXp(
             $userId,
             $xp,
-            'engagement',
+            'forum_reply_created',
             'reply',
             $reply->id,
             [

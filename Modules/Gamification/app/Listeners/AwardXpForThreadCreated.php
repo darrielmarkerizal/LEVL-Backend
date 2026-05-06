@@ -38,7 +38,7 @@ class AwardXpForThreadCreated implements ShouldQueue
         $this->gamification->awardXp(
             $userId,
             $xp,
-            'engagement',
+            'forum_post_created',
             'thread',
             $thread->id,
             [

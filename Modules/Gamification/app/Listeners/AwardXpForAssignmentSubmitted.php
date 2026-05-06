@@ -50,6 +50,10 @@ class AwardXpForAssignmentSubmitted implements ShouldQueue
             return;
         }
 
+        if ((int) ($submission->attempt_number ?? 0) !== 1) {
+            return;
+        }
+
         $existingXp = Point::where('user_id', $userId)
             ->where('reason', 'assignment_submitted')
             ->where('source_type', 'assignment')

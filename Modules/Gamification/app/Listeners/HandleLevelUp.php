@@ -80,7 +80,7 @@ class HandleLevelUp implements ShouldQueue
                 $this->pointManager->awardXp(
                     $event->userId,
                     (int) $reward['amount'],
-                    'level_up_reward',
+                    'level_up_bonus',
                     'system',
                     null,
                     [

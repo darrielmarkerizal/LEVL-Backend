@@ -41,8 +41,8 @@ class AwardBadgeForCourseCompleted implements ShouldQueue
             $this->gamification->awardXp(
                 $enrollment->user_id,
                 $completionXp,
-                'bonus',
-                'system',
+                'course_completed',
+                'course',
                 $course->id,
                 [
                     'description' => sprintf('Menyelesaikan course: %s', $course->title),

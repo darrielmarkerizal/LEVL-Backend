@@ -47,7 +47,7 @@ class AwardXpForReactionReceived implements ShouldQueue
         $this->gamification->awardXp(
             $contentOwnerId,
             $xp,
-            'engagement',
+            'forum_liked',
             'reaction',
             $reaction->id,
             [
