@@ -10,6 +10,14 @@ use Modules\Learning\Models\QuizSubmission;
 
 class GradingQueueItemResource extends JsonResource
 {
+    public bool $isDetailView = false;
+
+    public function __construct(mixed $resource, bool $isDetailView = false)
+    {
+        parent::__construct($resource);
+        $this->isDetailView = $isDetailView;
+    }
+
     public function toArray(Request $request): array
     {
         if (is_array($this->resource) && isset($this->resource['quiz_submission'], $this->resource['essay_answer'])) {
@@ -23,18 +31,12 @@ class GradingQueueItemResource extends JsonResource
         return $this->toAssignmentArray();
     }
 
-    private function isDetailView(Request $request): bool
-    {
-        return $request->routeIs('grading.show');
-    }
-
     private function toAssignmentArray(): array
     {
         $statusValue = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
         $workflowValue = $this->state instanceof \BackedEnum ? $this->state->value : $this->state;
         $submissionType = $this->assignment?->submission_type?->value ?? $this->assignment?->submission_type;
         $course = $this->assignment?->unit?->course;
-        $isDetail = $this->isDetailView(request());
 
         $data = [
             'type' => 'assignment',
@@ -63,7 +65,7 @@ class GradingQueueItemResource extends JsonResource
             'score' => $this->score,
         ];
 
-        if ($isDetail) {
+        if ($this->isDetailView) {
             $data['text'] = in_array($submissionType, ['text', 'mixed'], true)
                 ? $this->answer_text
                 : null;
@@ -116,7 +118,6 @@ class GradingQueueItemResource extends JsonResource
         $workflowValue = $submission->grading_status instanceof \BackedEnum ? $submission->grading_status->value : $submission->grading_status;
         $course = $submission->quiz?->unit?->course;
         $question = $essayAnswer->question;
-        $isDetail = $this->isDetailView(request());
 
         $data = [
             'type' => 'quiz',
@@ -156,7 +157,7 @@ class GradingQueueItemResource extends JsonResource
             'answered_updated_at' => $essayAnswer->updated_at,
         ];
 
-        if ($isDetail) {
+        if ($this->isDetailView) {
             $data['student_answer'] = $essayAnswer->content;
             $data['answer_feedback'] = $essayAnswer->feedback;
             $data['answer_selected_options'] = $essayAnswer->selected_options;
