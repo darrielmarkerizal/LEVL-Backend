@@ -614,6 +614,15 @@ return [
         'invalid_state_transition' => 'Status pengumpulan tidak dapat diubah dari ":from" menjadi ":to".',
         'grading_incomplete' => 'Penilaian belum dapat diselesaikan karena masih ada pertanyaan yang belum dinilai.',
         'pending_grading_exists' => 'Anda masih memiliki pengumpulan yang sedang menunggu penilaian. Harap tunggu hingga instruktur menilai pengumpulan sebelumnya sebelum mengumpulkan kembali.',
+        'status_label' => [
+            'draft'         => 'Draft',
+            'submitted'     => 'Menunggu Penilaian',
+            'passed'        => 'Lulus',
+            'failed'        => 'Tidak Lulus',
+            'returned'      => 'Dikembalikan',
+            'not_submitted' => 'Belum Dikerjakan',
+            'unknown'       => 'Tidak Diketahui',
+        ],
     ],
 
     

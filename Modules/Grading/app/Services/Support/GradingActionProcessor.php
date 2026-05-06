@@ -11,6 +11,8 @@ use Modules\Learning\Models\Submission;
 
 class GradingActionProcessor
 {
+    public function __construct(private readonly GradeCalculator $calculator) {}
+
     public function processAnswers(Submission $submission, array $answersData): void
     {
         foreach ($answersData as $questionId => $gradeData) {
@@ -95,9 +97,7 @@ class GradingActionProcessor
 
             if ($score !== null) {
                 $maxScore = $answer->question->max_score ?? 100;
-                if ($score < 0 || $score > $maxScore) {
-                    throw new \InvalidArgumentException(__('messages.grading.invalid_score'));
-                }
+                $this->calculator->assertValidScore((float) $score, (float) $maxScore);
             }
 
             $answer->update([
@@ -108,9 +108,7 @@ class GradingActionProcessor
 
         if ($scoreOverride !== null) {
             $maxScore = (float) ($submission->assignment?->max_score ?? 100);
-            if ($scoreOverride < 0 || $scoreOverride > $maxScore) {
-                throw new \InvalidArgumentException(__('messages.grading.invalid_score'));
-            }
+            $this->calculator->assertValidScore($scoreOverride, $maxScore);
         }
 
         Grade::updateOrCreate(

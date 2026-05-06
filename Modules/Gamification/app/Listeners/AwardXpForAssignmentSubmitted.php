@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Modules\Common\Models\SystemSetting;
 use Modules\Gamification\Models\Point;
 use Modules\Gamification\Services\EventCounterService;
@@ -16,17 +14,8 @@ use Modules\Learning\Enums\SubmissionState;
 use Modules\Learning\Events\SubmissionStateChanged;
 use Modules\Learning\Models\Submission;
 
-class AwardXpForAssignmentSubmitted implements ShouldQueue
+class AwardXpForAssignmentSubmitted extends GamificationListener
 {
-    use InteractsWithQueue;
-
-    public string $queue = 'notifications';
-
-    public int $tries = 3;
-
-    public int $maxExceptions = 2;
-
-    public array $backoff = [5, 30, 120];
 
     public function __construct(
         private GamificationService $gamification,
@@ -103,11 +92,9 @@ class AwardXpForAssignmentSubmitted implements ShouldQueue
                 ]
             );
 
-            $this->counterService->increment($userId, 'assignment_submitted', 'global', null, 'lifetime');
-            $this->counterService->increment($userId, 'assignment_submitted', 'global', null, 'daily');
-            $this->counterService->increment($userId, 'assignment_submitted', 'global', null, 'weekly');
+            $this->counterService->incrementGlobal($userId, 'assignment_submitted');
 
-            $user = \Modules\Auth\Models\User::find($userId);
+            $user = $this->getCachedUser($userId);
             if ($user) {
                 $payload = [
                     'assignment_id' => $assignmentId,

@@ -7,12 +7,10 @@ namespace Modules\Gamification\Listeners;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
-use Modules\Gamification\Traits\CachesUsers;
 use Modules\Schemes\Events\LessonCompleted;
 
-class AwardXpForLessonCompleted
+class AwardXpForLessonCompleted extends GamificationListener
 {
-    use CachesUsers;
 
     public function __construct(
         private GamificationService $gamification,
@@ -61,9 +59,7 @@ class AwardXpForLessonCompleted
             ]
         );
 
-        $this->counterService->increment($userId, 'lesson_completed', 'global', null, 'lifetime');
-        $this->counterService->increment($userId, 'lesson_completed', 'global', null, 'daily');
-        $this->counterService->increment($userId, 'lesson_completed', 'global', null, 'weekly');
+        $this->counterService->incrementGlobal($userId, 'lesson_completed');
         $this->counterService->increment($userId, 'lesson_completed', 'course', $lesson->unit->course_id, 'lifetime');
 
         $user = $this->getCachedUser($userId);

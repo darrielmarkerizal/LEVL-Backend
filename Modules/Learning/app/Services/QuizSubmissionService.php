@@ -17,6 +17,7 @@ use Modules\Learning\Models\QuizAnswer;
 use Modules\Learning\Models\QuizQuestion;
 use Modules\Learning\Models\QuizSubmission;
 use Modules\Learning\Repositories\QuizSubmissionRepository;
+use Modules\Learning\Services\Support\QuizObjectiveGrader;
 use Modules\Learning\Services\Support\QuizSubmissionIncludeAuthorizer;
 
 class QuizSubmissionService implements QuizSubmissionServiceInterface
@@ -27,6 +28,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         private readonly QuizSubmissionRepository $repository,
         private readonly \Modules\Schemes\Services\PrerequisiteService $prerequisiteService,
         private readonly QuizSubmissionIncludeAuthorizer $includeAuthorizer,
+        private readonly QuizObjectiveGrader $objectiveGrader,
     ) {
     }
 
@@ -270,7 +272,7 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
                 ->where('quiz_question_id', $question->id)
                 ->first();
 
-            $score = $this->gradeObjectiveAnswer($question, $answer);
+            $score = $this->objectiveGrader->grade($question, $answer);
             $totalObjectiveWeight += (float) $question->weight;
             $earnedObjectiveScore += $score;
 
@@ -296,73 +298,6 @@ class QuizSubmissionService implements QuizSubmissionServiceInterface
         }
 
         return $this->applyGradingStatus($submission, QuizGradingStatus::Graded, $objectiveScore);
-    }
-
-    private function gradeObjectiveAnswer(QuizQuestion $question, ?QuizAnswer $answer): float
-    {
-        if (!$answer) {
-            return 0.0;
-        }
-
-        $answerKey = $question->answer_key ?? [];
-        $weight = (float) $question->weight;
-
-        return match ($question->type) {
-            QuizQuestionType::MultipleChoice => $this->gradeMultipleChoice($answer->selected_options, $answerKey, $weight),
-            QuizQuestionType::TrueFalse => $this->gradeTrueFalse($answer->selected_options, $answerKey, $weight),
-            QuizQuestionType::Checkbox => $this->gradeCheckbox($answer->selected_options, $answerKey, $weight),
-            default => 0.0,
-        };
-    }
-
-    private function gradeMultipleChoice(?array $selected, array $answerKey, float $weight): float
-    {
-        if (empty($selected)) {
-            return 0.0;
-        }
-
-        $correctKey = $answerKey[0] ?? null;
-
-        return ($selected[0] ?? null) === $correctKey ? $weight : 0.0;
-    }
-
-    private function gradeTrueFalse(?array $selected, array $answerKey, float $weight): float
-    {
-        if (empty($selected)) {
-            return 0.0;
-        }
-
-        
-        $correctAnswer = $answerKey[0] ?? null;
-        $studentAnswer = $selected[0] ?? null;
-
-        
-        $correct = filter_var($correctAnswer, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-        $student = filter_var($studentAnswer, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-
-        if ($correct === null || $student === null) {
-            return 0.0;
-        }
-
-        return $correct === $student ? $weight : 0.0;
-    }
-
-    private function gradeCheckbox(?array $selected, array $answerKey, float $weight): float
-    {
-        if (empty($selected) && empty($answerKey)) {
-            return $weight;
-        }
-
-        if (empty($selected) || empty($answerKey)) {
-            return 0.0;
-        }
-
-        $selectedSorted = array_values($selected);
-        sort($selectedSorted);
-        $keySorted = array_values($answerKey);
-        sort($keySorted);
-
-        return $selectedSorted === $keySorted ? $weight : 0.0;
     }
 
     private function applyGradingStatus(QuizSubmission $submission, QuizGradingStatus $gradingStatus, ?float $objectiveScore): QuizSubmission

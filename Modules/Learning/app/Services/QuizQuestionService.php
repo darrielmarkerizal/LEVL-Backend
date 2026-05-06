@@ -7,6 +7,7 @@ namespace Modules\Learning\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Learning\Traits\HandlesOptionImages;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 use Modules\Learning\Contracts\Services\QuizQuestionServiceInterface;
@@ -16,6 +17,8 @@ use Modules\Learning\Repositories\QuizQuestionRepository;
 
 class QuizQuestionService implements QuizQuestionServiceInterface
 {
+    use HandlesOptionImages;
+
     public function __construct(
         private readonly QuizQuestionRepository $repository,
     ) {}
@@ -218,20 +221,6 @@ class QuizQuestionService implements QuizQuestionServiceInterface
         }
     }
 
-    private function processOptionImages(QuizQuestion $question, array $options): void
-    {
-        $modified = false;
-        foreach ($options as $key => &$option) {
-            if (is_array($option) && isset($option['image']) && $option['image'] instanceof \Illuminate\Http\UploadedFile) {
-                $media = $question->addMedia($option['image'])->toMediaCollection('option_images');
-                $option['image'] = $media->getUrl();
-                $modified = true;
-            }
-        }
-
-        $question->options = $options;
-        $question->save();
-    }
 
     public function getQuizQuestionsForUser(int $quizId, array $filters, ?\Modules\Auth\Models\User $user): LengthAwarePaginator
     {

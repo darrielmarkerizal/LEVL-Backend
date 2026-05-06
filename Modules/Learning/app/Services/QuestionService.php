@@ -6,6 +6,7 @@ namespace Modules\Learning\Services;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Modules\Learning\Traits\HandlesOptionImages;
 use Modules\Grading\Jobs\RecalculateGradesJob;
 use Modules\Learning\Contracts\Repositories\QuestionRepositoryInterface;
 use Modules\Learning\Contracts\Services\QuestionServiceInterface;
@@ -16,6 +17,8 @@ use Modules\Learning\Models\Question;
 
 class QuestionService implements QuestionServiceInterface
 {
+    use HandlesOptionImages;
+
     public function __construct(
         private QuestionRepositoryInterface $questionRepository
     ) {}
@@ -200,20 +203,6 @@ class QuestionService implements QuestionServiceInterface
         }
     }
 
-    private function processOptionImages(Question $question, array $options): void
-    {
-        $modified = false;
-        foreach ($options as $key => &$option) {
-            if (is_array($option) && isset($option['image']) && $option['image'] instanceof \Illuminate\Http\UploadedFile) {
-                $media = $question->addMedia($option['image'])->toMediaCollection('option_images');
-                $option['image'] = $media->getUrl();
-                $modified = true;
-            }
-        }
-
-        $question->options = $options;
-        $question->save();
-    }
 
     private function processQuestionAttachments(Question $question, array $attachments): void
     {

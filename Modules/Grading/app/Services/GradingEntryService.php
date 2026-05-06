@@ -150,9 +150,7 @@ class GradingEntryService
             $score = (float) ($gradeData['score'] ?? 0);
             $maxScore = (float) ($answer->question->max_score ?? $answer->question->weight ?? 100);
 
-            if ($score < 0 || $score > $maxScore) {
-                throw new InvalidArgumentException(__('messages.grading.invalid_score'));
-            }
+            $this->calculator->assertValidScore($score, $maxScore);
 
             $answer->update([
                 'score' => $score,
@@ -180,9 +178,7 @@ class GradingEntryService
                 $score = (float) $gradeData['score'];
                 $maxScore = (float) ($answer->question->max_score ?? $answer->question->weight ?? 100);
 
-                if ($score < 0 || $score > $maxScore) {
-                    throw new InvalidArgumentException(__('messages.grading.invalid_score'));
-                }
+                $this->calculator->assertValidScore($score, $maxScore);
             }
 
             $answer->update([

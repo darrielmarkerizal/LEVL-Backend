@@ -609,6 +609,15 @@ return [
         'invalid_state_transition' => 'Cannot change submission status from ":from" to ":to".',
         'grading_incomplete' => 'Grading cannot be finalized until all required questions have been graded.',
         'pending_grading_exists' => 'You have a pending submission awaiting grading. Please wait for the instructor to grade your previous submission before resubmitting.',
+        'status_label' => [
+            'draft'         => 'Draft',
+            'submitted'     => 'Awaiting Review',
+            'passed'        => 'Passed',
+            'failed'        => 'Failed',
+            'returned'      => 'Returned',
+            'not_submitted' => 'Not Yet Submitted',
+            'unknown'       => 'Unknown',
+        ],
     ],
 
     

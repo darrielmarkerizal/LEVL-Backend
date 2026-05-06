@@ -4,26 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
-use Modules\Auth\Models\User;
 use Modules\Gamification\Events\UserLeveledUp;
 use Modules\Gamification\Services\Support\BadgeManager;
 use Modules\Gamification\Services\Support\BadgeRuleEvaluator;
 use Modules\Gamification\Services\Support\PointManager;
 
-class HandleLevelUp implements ShouldQueue
+class HandleLevelUp extends GamificationListener
 {
-    use InteractsWithQueue;
-
-    public string $queue = 'notifications';
-
-    public int $tries = 3;
-
-    public int $maxExceptions = 2;
-
-    public array $backoff = [5, 30, 120];
 
     public function __construct(
         private readonly BadgeManager $badgeManager,
@@ -36,7 +24,7 @@ class HandleLevelUp implements ShouldQueue
     {
         try {
             
-            $user = User::find($event->userId);
+            $user = $this->getCachedUser($event->userId);
             if ($user) {
                 $this->evaluator->evaluate($user, 'level_reached', [
                     'level' => $event->newLevel,

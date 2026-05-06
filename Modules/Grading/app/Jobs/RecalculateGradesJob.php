@@ -11,6 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Modules\Grading\Events\GradeRecalculated;
+use Modules\Grading\Services\Support\GradeCalculator;
 use Modules\Grading\Strategies\GradingStrategyFactory;
 use Modules\Learning\Models\Answer;
 use Modules\Learning\Models\Question;
@@ -32,7 +33,7 @@ class RecalculateGradesJob implements ShouldQueue
         $this->onQueue('grading');
     }
 
-    public function handle(): void
+    public function handle(GradeCalculator $calculator): void
     {
         $question = Question::find($this->questionId);
 
@@ -86,13 +87,23 @@ class RecalculateGradesJob implements ShouldQueue
 
         $uniqueSubmissionIds = $affectedSubmissionIds->unique();
 
-        
-        
         if ($uniqueSubmissionIds->isNotEmpty()) {
             \Modules\Learning\Models\Submission::whereIn('id', $uniqueSubmissionIds)
-                ->chunkById(100, function ($submissions) {
+                ->chunkById(100, function ($submissions) use ($calculator) {
                     foreach ($submissions as $submission) {
-                        $this->recalculateSubmissionScore($submission);
+                        $submission->load('answers.question');
+                        $oldScore = (float) ($submission->score ?? 0);
+                        $newScore = $calculator->calculateSubmissionScore($submission);
+
+                        $submission->update(['score' => $newScore]);
+
+                        if ($submission->grade && ! $submission->grade->is_override) {
+                            $submission->grade->update(['score' => $newScore]);
+                        }
+
+                        if (abs($oldScore - $newScore) >= 0.01) {
+                            GradeRecalculated::dispatch($submission, $oldScore, $newScore);
+                        }
                     }
                 });
         }
@@ -102,45 +113,6 @@ class RecalculateGradesJob implements ShouldQueue
             'affected_answers' => $processedCount,
             'affected_submissions' => $uniqueSubmissionIds->count(),
         ]);
-    }
-
-    private function recalculateSubmissionScore($submission): void
-    {
-        $submission->load('answers.question');
-
-        $oldScore = (float) ($submission->score ?? 0);
-
-        $totalWeightedScore = 0;
-        $totalWeight = 0;
-
-        foreach ($submission->answers as $answer) {
-            $question = $answer->question;
-
-            if (! $question || $answer->score === null) {
-                continue;
-            }
-
-            $weight = $question->weight ?? 1;
-            $maxScore = $question->max_score ?? 100;
-            $normalizedScore = ($answer->score / $maxScore) * 100;
-
-            $totalWeightedScore += $normalizedScore * $weight;
-            $totalWeight += $weight;
-        }
-
-        $newScore = $totalWeight > 0 ? round($totalWeightedScore / $totalWeight, 2) : 0;
-
-        $submission->update(['score' => $newScore]);
-
-        if ($submission->grade) {
-            if (! $submission->grade->is_override) {
-                $submission->grade->update(['score' => $newScore]);
-            }
-        }
-
-        if (abs($oldScore - $newScore) >= 0.01) {
-            GradeRecalculated::dispatch($submission, $oldScore, $newScore);
-        }
     }
 
     public function failed(\Throwable $exception): void

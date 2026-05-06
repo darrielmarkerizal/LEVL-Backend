@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Common\Models\SystemSetting;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Grading\Events\GradesReleased;
 
-class AwardXpForPerfectScore implements ShouldQueue
+class AwardXpForPerfectScore extends GamificationListener
 {
     public function __construct(
         private GamificationService $gamification,
@@ -63,7 +62,7 @@ class AwardXpForPerfectScore implements ShouldQueue
                 $this->counterService->increment($userId, 'perfect_score', 'global', null, 'lifetime');
                 $this->counterService->increment($userId, 'perfect_score', 'global', null, 'daily');
 
-                $user = \Modules\Auth\Models\User::find($userId);
+                $user = $this->getCachedUser($userId);
                 if ($user) {
                     $payload = [
                         'grade_id' => $grade->id,

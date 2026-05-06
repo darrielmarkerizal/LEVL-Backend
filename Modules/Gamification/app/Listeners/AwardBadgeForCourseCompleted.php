@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Schemes\Events\CourseCompleted;
 
-class AwardBadgeForCourseCompleted implements ShouldQueue
+class AwardBadgeForCourseCompleted extends GamificationListener
 {
     public function __construct(
         private GamificationService $gamification,

@@ -91,7 +91,7 @@ class AssignmentFinder
 
     public function listByLesson(\Modules\Schemes\Models\Lesson $lesson, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
+        $perPage = $this->resolvePerPage($filters);
 
         return $this->buildQuery($filters)
             ->forLesson($lesson->id)
@@ -100,7 +100,7 @@ class AssignmentFinder
 
     public function listByLessonForIndex(\Modules\Schemes\Models\Lesson $lesson, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
+        $perPage = $this->resolvePerPage($filters);
 
         return $this->buildQueryForIndex($filters)
             ->forLesson($lesson->id)
@@ -109,7 +109,7 @@ class AssignmentFinder
 
     public function listByUnit(\Modules\Schemes\Models\Unit $unit, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
+        $perPage = $this->resolvePerPage($filters);
 
         return $this->buildQuery($filters)
             ->forUnit($unit->id)
@@ -118,7 +118,7 @@ class AssignmentFinder
 
     public function listByUnitForIndex(\Modules\Schemes\Models\Unit $unit, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
+        $perPage = $this->resolvePerPage($filters);
 
         return $this->buildQueryForIndex($filters)
             ->forUnit($unit->id)
@@ -127,7 +127,7 @@ class AssignmentFinder
 
     public function paginateByCourse(int $courseId, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', $perPage)));
+        $perPage = $this->resolvePerPage($filters, $perPage);
 
         return $this->buildQuery($filters)
             ->forCourse($courseId)
@@ -136,7 +136,7 @@ class AssignmentFinder
 
     public function listByCourse(\Modules\Schemes\Models\Course $course, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
+        $perPage = $this->resolvePerPage($filters);
 
         return $this->buildQuery($filters)
             ->forCourse($course->id)
@@ -145,7 +145,7 @@ class AssignmentFinder
 
     public function listByCourseForIndex(\Modules\Schemes\Models\Course $course, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
+        $perPage = $this->resolvePerPage($filters);
 
         return $this->buildQueryForIndex($filters)
             ->forCourse($course->id)
@@ -154,7 +154,7 @@ class AssignmentFinder
 
     public function listIncomplete(\Modules\Schemes\Models\Course $course, int $studentId, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
+        $perPage = $this->resolvePerPage($filters);
 
         return cache()->tags(['learning', 'assignments'])->remember(
             "learning:assignments:incomplete:{$course->id}:{$studentId}:{$perPage}:".md5(json_encode($filters)),
@@ -194,6 +194,11 @@ class AssignmentFinder
                 return $query->paginate($perPage);
             }
         );
+    }
+
+    private function resolvePerPage(array $filters, int $default = 15): int
+    {
+        return max(1, min(100, (int) data_get($filters, 'per_page', $default)));
     }
 
     private function buildQuery(array $payload = []): QueryBuilder

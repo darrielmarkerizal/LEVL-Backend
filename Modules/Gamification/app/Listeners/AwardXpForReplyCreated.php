@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Common\Models\SystemSetting;
 use Modules\Forums\Events\ReplyCreated;
 use Modules\Gamification\Services\EventCounterService;
@@ -12,7 +11,7 @@ use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Gamification\Services\Support\BadgeRuleEvaluator;
 
-class AwardXpForReplyCreated implements ShouldQueue
+class AwardXpForReplyCreated extends GamificationListener
 {
     public function __construct(
         private readonly GamificationService $gamification,
@@ -55,11 +54,9 @@ class AwardXpForReplyCreated implements ShouldQueue
             ]
         );
 
-        $this->counterService->increment($userId, 'reply_created', 'global', null, 'lifetime');
-        $this->counterService->increment($userId, 'reply_created', 'global', null, 'daily');
-        $this->counterService->increment($userId, 'reply_created', 'global', null, 'weekly');
+        $this->counterService->incrementGlobal($userId, 'reply_created');
 
-        $user = \Modules\Auth\Models\User::find($userId);
+        $user = $this->getCachedUser($userId);
         if ($user) {
             $payload = [
                 'reply_id' => $reply->id,

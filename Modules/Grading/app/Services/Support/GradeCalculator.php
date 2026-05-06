@@ -37,6 +37,13 @@ class GradeCalculator
         return round($totalWeightedScore / $totalWeight, 2);
     }
 
+    public function assertValidScore(float $score, float $maxScore): void
+    {
+        if ($score < 0.0 || $score > $maxScore) {
+            throw new \InvalidArgumentException(__('messages.grading.invalid_score'));
+        }
+    }
+
     public function applyLatePenalty(float $score, ?float $penaltyPercent): float
     {
         if ($penaltyPercent === null) {

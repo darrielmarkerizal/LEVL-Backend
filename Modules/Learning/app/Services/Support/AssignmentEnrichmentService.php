@@ -8,11 +8,14 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Modules\Learning\Models\Assignment;
 use Modules\Learning\Models\Submission;
+use Modules\Learning\Traits\FormatsSubmissionStatus;
 use Modules\Schemes\Services\PrerequisiteService;
 use Throwable;
 
 class AssignmentEnrichmentService
 {
+    use FormatsSubmissionStatus;
+
     public function __construct(
         private readonly PrerequisiteService $prerequisiteService
     ) {
@@ -25,14 +28,7 @@ class AssignmentEnrichmentService
         $assignmentIds = $paginator->pluck('id')->toArray();
         $submissions = $this->getLatestSubmissions($assignmentIds, $userId);
 
-
-        $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
-            'assignment_submitted',
-            'perfect_score',
-        ])->get()->keyBy('code');
-
-        $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 100;
-        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 50;
+        ['base' => $baseXp, 'perfect' => $perfectScoreXp] = $this->getXpAmounts();
 
         $paginator->getCollection()->transform(function ($item) use ($submissions, $userId, $baseXp, $perfectScoreXp) {
             $submission = $submissions[$item->id] ?? null;
@@ -111,7 +107,7 @@ class AssignmentEnrichmentService
         if (!$submission) {
             return [
                 'submission_status' => null,
-                'submission_status_label' => 'Belum Dikerjakan',
+                'submission_status_label' => __('messages.submissions.status_label.not_submitted'),
                 'score' => null,
                 'submitted_at' => null,
                 'is_completed' => false,
@@ -137,15 +133,17 @@ class AssignmentEnrichmentService
         ];
     }
 
-    private function getSubmissionStatusLabel(Submission $submission, bool $isPassed): string
+    private function getXpAmounts(): array
     {
-        return match ($submission->status->value) {
-            'draft' => 'Draft',
-            'submitted' => 'Menunggu Penilaian',
-            'graded' => $isPassed ? 'Lulus' : 'Tidak Lulus',
-            'returned' => 'Dikembalikan',
-            default => 'Unknown',
-        };
+        $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
+            'assignment_submitted',
+            'perfect_score',
+        ])->get()->keyBy('code');
+
+        return [
+            'base'    => $xpSources['assignment_submitted']->xp_amount ?? 100,
+            'perfect' => $xpSources['perfect_score']->xp_amount ?? 50,
+        ];
     }
 
     public function enrichSingleForStudent(Assignment $assignment, int $userId): array
@@ -163,13 +161,7 @@ class AssignmentEnrichmentService
         $submissionData = $this->calculateSubmissionData($assignment, $submission, $userId);
         $prerequisiteCheck = $this->prerequisiteService->checkAssignmentAccess($assignment, $userId);
 
-        $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
-            'assignment_submitted',
-            'perfect_score',
-        ])->get()->keyBy('code');
-
-        $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 100;
-        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 50;
+        ['base' => $baseXp, 'perfect' => $perfectScoreXp] = $this->getXpAmounts();
 
         $attachmentFiles = $assignment->getMedia('attachments')
             ->filter(fn($media) => Storage::disk($media->disk)->exists($media->getPath()))

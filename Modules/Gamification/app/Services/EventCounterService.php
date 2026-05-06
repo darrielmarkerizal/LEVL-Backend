@@ -70,6 +70,13 @@ class EventCounterService
         ) ?? new UserEventCounter;
     }
 
+    public function incrementGlobal(int $userId, string $eventType): void
+    {
+        $this->increment($userId, $eventType, 'global', null, 'lifetime');
+        $this->increment($userId, $eventType, 'global', null, 'daily');
+        $this->increment($userId, $eventType, 'global', null, 'weekly');
+    }
+
     public function getCounter(
         int $userId,
         string $eventType,

@@ -6,10 +6,13 @@ namespace Modules\Learning\Services\Support;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Modules\Learning\Models\Quiz;
+use Modules\Learning\Traits\FormatsSubmissionStatus;
 use Modules\Schemes\Services\PrerequisiteService;
 
 class QuizEnrichmentService
 {
+    use FormatsSubmissionStatus;
+
     public function __construct(
         private readonly PrerequisiteService $prerequisiteService
     ) {}
@@ -22,14 +25,7 @@ class QuizEnrichmentService
         $quizIds = $paginator->pluck('id')->toArray();
         $submissions = $this->getLatestSubmissions($quizIds, $userId);
 
-        
-        $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
-            'quiz_passed',
-            'perfect_score',
-        ])->get()->keyBy('code');
-
-        $baseXp = $xpSources['quiz_passed']->xp_amount ?? 80;
-        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 50;
+        ['base' => $baseXp, 'perfect' => $perfectScoreXp] = $this->getXpAmounts();
 
         $paginator->getCollection()->transform(function ($item) use ($submissions, $userId, $baseXp, $perfectScoreXp) {
             $submission = $submissions[$item->id] ?? null;
@@ -84,7 +80,7 @@ class QuizEnrichmentService
         if (! $submission) {
             return [
                 'submission_status' => null,
-                'submission_status_label' => 'Belum Dikerjakan',
+                'submission_status_label' => __('messages.submissions.status_label.not_submitted'),
                 'score' => null,
                 'submitted_at' => null,
                 'is_completed' => false,
@@ -111,15 +107,17 @@ class QuizEnrichmentService
         ];
     }
 
-    private function getSubmissionStatusLabel($submission, bool $isPassed): string
+    private function getXpAmounts(): array
     {
-        return match ($submission->status->value) {
-            'draft' => 'Draft',
-            'submitted' => 'Menunggu Penilaian',
-            'graded' => $isPassed ? 'Lulus' : 'Tidak Lulus',
-            'returned' => 'Dikembalikan',
-            default => 'Unknown',
-        };
+        $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
+            'quiz_passed',
+            'perfect_score',
+        ])->get()->keyBy('code');
+
+        return [
+            'base'    => $xpSources['quiz_passed']->xp_amount ?? 80,
+            'perfect' => $xpSources['perfect_score']->xp_amount ?? 50,
+        ];
     }
 
     public function enrichDetailForStudent($quiz, int $userId)
@@ -135,14 +133,7 @@ class QuizEnrichmentService
         $submissionData = $this->calculateSubmissionData($quiz, $submission, $userId);
         $prerequisiteCheck = $this->prerequisiteService->checkQuizAccess($quiz, $userId);
 
-        
-        $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
-            'quiz_passed',
-            'perfect_score',
-        ])->get()->keyBy('code');
-
-        $baseXp = $xpSources['quiz_passed']->xp_amount ?? 80;
-        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 50;
+        ['base' => $baseXp, 'perfect' => $perfectScoreXp] = $this->getXpAmounts();
 
         $quiz->is_locked = ! $prerequisiteCheck['accessible'];
         $quiz->is_completed = $submissionData['is_completed'];
@@ -173,14 +164,7 @@ class QuizEnrichmentService
         $submissionData = $this->calculateSubmissionData($quiz, $submission, $userId);
         $prerequisiteCheck = $this->prerequisiteService->checkQuizAccess($quiz, $userId);
 
-        
-        $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
-            'quiz_passed',
-            'perfect_score',
-        ])->get()->keyBy('code');
-
-        $baseXp = $xpSources['quiz_passed']->xp_amount ?? 80;
-        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 50;
+        ['base' => $baseXp, 'perfect' => $perfectScoreXp] = $this->getXpAmounts();
 
         return [
             'id' => $quiz->id,

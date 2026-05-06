@@ -40,7 +40,7 @@ class SubmissionFinder
 
     public function listForAssignmentForIndex(Assignment $assignment, User $user, array $filters = []): LengthAwarePaginator
     {
-        $perPage = max(1, min(100, (int) data_get($filters, 'per_page', 15)));
+        $perPage = $this->resolvePerPage($filters);
 
         return cache()->tags(['learning', 'submissions'])->remember(
             "learning:submissions:assignment:{$assignment->id}:user:{$user->id}:{$perPage}:".md5(json_encode($filters)),
@@ -156,6 +156,11 @@ class SubmissionFinder
     public function listByAssignment(Assignment $assignment, array $filters = [])
     {
         return $this->repository->listForAssignment($assignment, null, $filters);
+    }
+
+    private function resolvePerPage(array $filters, int $default = 15): int
+    {
+        return max(1, min(100, (int) data_get($filters, 'per_page', $default)));
     }
 
     public function getHighestScoreSubmission(int $assignmentId, int $studentId): ?Submission

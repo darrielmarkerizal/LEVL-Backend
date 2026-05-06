@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Common\Models\SystemSetting;
 use Modules\Forums\Events\ThreadCreated;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\EventLoggerService;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Gamification\Services\Support\BadgeRuleEvaluator;
-use Modules\Gamification\Traits\CachesUsers;
 
-class AwardXpForThreadCreated implements ShouldQueue
+class AwardXpForThreadCreated extends GamificationListener
 {
-    use CachesUsers;
 
     public function __construct(
         private readonly GamificationService $gamification,
@@ -58,9 +55,7 @@ class AwardXpForThreadCreated implements ShouldQueue
             ]
         );
 
-        $this->counterService->increment($userId, 'thread_created', 'global', null, 'lifetime');
-        $this->counterService->increment($userId, 'thread_created', 'global', null, 'daily');
-        $this->counterService->increment($userId, 'thread_created', 'global', null, 'weekly');
+        $this->counterService->incrementGlobal($userId, 'thread_created');
 
         $user = $this->getCachedUser($userId);
         if ($user) {

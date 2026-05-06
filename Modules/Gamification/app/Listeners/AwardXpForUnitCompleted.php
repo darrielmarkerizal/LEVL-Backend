@@ -4,27 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Gamification\Listeners;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Modules\Common\Models\SystemSetting;
 use Modules\Gamification\Services\EventCounterService;
 use Modules\Gamification\Services\GamificationService;
 use Modules\Gamification\Services\Support\BadgeRuleEvaluator;
-use Modules\Gamification\Traits\CachesUsers;
 use Modules\Schemes\Events\UnitCompleted;
 
-class AwardXpForUnitCompleted implements ShouldQueue
+class AwardXpForUnitCompleted extends GamificationListener
 {
-    use CachesUsers;
-    use InteractsWithQueue;
-
-    public string $queue = 'notifications';
-
-    public int $tries = 3;
-
-    public int $maxExceptions = 2;
-
-    public array $backoff = [5, 30, 120];
 
     public function __construct(
         private GamificationService $gamification,
@@ -55,9 +42,7 @@ class AwardXpForUnitCompleted implements ShouldQueue
             ]
         );
 
-        $this->counterService->increment($userId, 'unit_completed', 'global', null, 'lifetime');
-        $this->counterService->increment($userId, 'unit_completed', 'global', null, 'daily');
-        $this->counterService->increment($userId, 'unit_completed', 'global', null, 'weekly');
+        $this->counterService->incrementGlobal($userId, 'unit_completed');
         $this->counterService->increment($userId, 'unit_completed', 'course', $unit->course_id, 'lifetime');
 
         $user = $this->getCachedUser($userId);
