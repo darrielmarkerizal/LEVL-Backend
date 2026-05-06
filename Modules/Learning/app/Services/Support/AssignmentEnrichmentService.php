@@ -19,8 +19,7 @@ class AssignmentEnrichmentService
 
     public function __construct(
         private readonly PrerequisiteService $prerequisiteService
-    ) {
-    }
+    ) {}
 
     public function enrichForStudent(LengthAwarePaginator $paginator, int $userId): LengthAwarePaginator
     {
@@ -45,7 +44,7 @@ class AssignmentEnrichmentService
                 'passing_grade' => $item->passing_grade,
                 'status' => $item->status->value,
                 'unit_slug' => $item->unit->slug ?? null,
-                'is_locked' => !$prerequisiteCheck['accessible'],
+                'is_locked' => ! $prerequisiteCheck['accessible'],
                 'is_completed' => $submissionData['is_completed'],
                 'submission_status' => $submissionData['submission_status'],
                 'submission_status_label' => $submissionData['submission_status_label'],
@@ -97,15 +96,16 @@ class AssignmentEnrichmentService
     {
         return Submission::where('user_id', $userId)
             ->whereIn('assignment_id', $assignmentIds)
+            ->with('grade')
             ->get()
             ->groupBy('assignment_id')
-            ->map(fn($subs) => $subs->sortByDesc('submitted_at')->first())
+            ->map(fn ($subs) => $subs->sortByDesc('submitted_at')->first())
             ->all();
     }
 
     private function calculateSubmissionData(Assignment $assignment, ?Submission $submission, int $userId): array
     {
-        if (!$submission) {
+        if (! $submission) {
             return [
                 'submission_status' => null,
                 'submission_status_label' => __('messages.submissions.status_label.not_submitted'),
@@ -116,8 +116,9 @@ class AssignmentEnrichmentService
             ];
         }
 
+        $isReleased = $submission->isScoreVisible();
         $passingGrade = $assignment->passing_grade;
-        $isPassed = $submission->status->value === 'graded' && $submission->score >= $passingGrade;
+        $isPassed = $isReleased && $submission->status->value === 'graded' && $submission->score >= $passingGrade;
 
         $submissionCount = Submission::where('user_id', $userId)
             ->where('assignment_id', $assignment->id)
@@ -127,7 +128,7 @@ class AssignmentEnrichmentService
         return [
             'submission_status' => $submission->status->value,
             'submission_status_label' => $this->getSubmissionStatusLabel($submission, $isPassed),
-            'score' => $submission->score,
+            'score' => $isReleased ? $submission->score : null,
             'submitted_at' => $submission->submitted_at?->toIso8601String(),
             'is_completed' => $isPassed,
             'attempts_used' => $submissionCount,
@@ -142,7 +143,7 @@ class AssignmentEnrichmentService
         ])->get()->keyBy('code');
 
         return [
-            'base'    => $xpSources['assignment_submitted']->xp_amount ?? 100,
+            'base' => $xpSources['assignment_submitted']->xp_amount ?? 100,
             'perfect' => $xpSources['perfect_score']->xp_amount ?? 50,
         ];
     }
@@ -154,7 +155,7 @@ class AssignmentEnrichmentService
         $allSubmissions = Submission::where('user_id', $userId)
             ->where('assignment_id', $assignment->id)
             ->with(['grade', 'media'])
-            ->orderByDesc('submitted_at')
+            ->orderByRaw('submitted_at DESC NULLS LAST')
             ->get();
 
         $submission = $allSubmissions->first();
@@ -165,7 +166,7 @@ class AssignmentEnrichmentService
         ['base' => $baseXp, 'perfect' => $perfectScoreXp] = $this->getXpAmounts();
 
         $attachmentFiles = $assignment->getMedia('attachments')
-            ->filter(fn($media) => Storage::disk($media->disk)->exists($media->getPath()))
+            ->filter(fn ($media) => Storage::disk($media->disk)->exists($media->getPath()))
             ->map(function ($media) {
                 $url = $this->resolveMediaUrl($media);
 
@@ -210,7 +211,7 @@ class AssignmentEnrichmentService
                     'code' => $assignment->unit->course->code,
                 ] : null,
             ],
-            'is_locked' => !$prerequisiteCheck['accessible'],
+            'is_locked' => ! $prerequisiteCheck['accessible'],
             'is_completed' => $submissionData['is_completed'],
             'submission_status' => $submissionData['submission_status'],
             'submission_status_label' => $submissionData['submission_status_label'],

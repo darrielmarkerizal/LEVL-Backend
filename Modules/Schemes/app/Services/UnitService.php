@@ -361,6 +361,7 @@ class UnitService
 
             $submissionsByAssignment = \Modules\Learning\Models\Submission::where('user_id', $user->id)
                 ->whereIn('assignment_id', $assignmentIds)
+                ->with('grade')
                 ->get()
                 ->groupBy('assignment_id')
                 ->map(fn ($submissions) => $submissions->sortByDesc('submitted_at')->first());
@@ -443,8 +444,9 @@ class UnitService
                 $previousContentCompleted = $isCompleted;
             } elseif ($type === 'quiz') {
                 $submission = $submissionsByQuiz[$item->id] ?? null;
-                $finalScore = $submission ? ($submission->final_score ?? $submission->score) : null;
-                $isPassed = $submission && in_array($submission->status->value, ['graded', 'released']) && $finalScore !== null && $finalScore >= $item->passing_grade;
+                $isQuizReleased = $submission?->isScoreVisible() ?? false;
+                $finalScore = $isQuizReleased ? ($submission->final_score ?? $submission->score) : null;
+                $isPassed = $isQuizReleased && $finalScore !== null && $finalScore >= $item->passing_grade;
 
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
@@ -462,7 +464,7 @@ class UnitService
                     'passing_grade' => $item->passing_grade,
                     'created_at' => $item->created_at,
                     'submission_status' => $submission ? $submission->status->value : null,
-                    'score' => $submission?->score,
+                    'score' => $isQuizReleased ? $submission->score : null,
                     'is_completed' => $isPassed,
                     'is_locked' => $isLocked,
                     'xp_reward' => $baseXp,
@@ -472,7 +474,8 @@ class UnitService
                 $previousContentCompleted = $isPassed;
             } elseif ($type === 'assignment') {
                 $submission = $submissionsByAssignment[$item->id] ?? null;
-                $isPassed = $submission && $submission->status->value === 'graded' && $submission->score >= $item->passing_grade;
+                $isAssignmentReleased = $submission?->isScoreVisible() ?? false;
+                $isPassed = $isAssignmentReleased && $submission->status->value === 'graded' && $submission->score >= $item->passing_grade;
 
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
@@ -491,7 +494,7 @@ class UnitService
                     'submission_type' => $item->submission_type->value,
                     'created_at' => $item->created_at,
                     'submission_status' => $submission ? $submission->status->value : null,
-                    'score' => $submission?->score,
+                    'score' => $isAssignmentReleased ? $submission->score : null,
                     'is_completed' => $isPassed,
                     'is_locked' => $isLocked,
                     'xp_reward' => $baseXp,

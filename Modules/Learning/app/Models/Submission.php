@@ -120,6 +120,13 @@ class Submission extends Model implements HasMedia
         return $this->hasOne(\Modules\Grading\Models\Grade::class, 'submission_id');
     }
 
+    public function isScoreVisible(): bool
+    {
+        $grade = $this->grade;
+
+        return $grade instanceof \Modules\Grading\Models\Grade && $grade->isReleased();
+    }
+
     public function getStateAttribute($value): ?SubmissionState
     {
         if ($value) {

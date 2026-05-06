@@ -62,6 +62,11 @@ class QuizSubmission extends Model
         return $this->hasMany(QuizAnswer::class, 'quiz_submission_id');
     }
 
+    public function isScoreVisible(): bool
+    {
+        return $this->status === QuizSubmissionStatus::Released;
+    }
+
     public function isPassed(): bool
     {
         $finalScore = $this->final_score ?? $this->score;

@@ -88,19 +88,20 @@ class QuizEnrichmentService
             ];
         }
 
+        $isReleased = $submission->isScoreVisible();
         $passingGrade = $quiz->passing_grade;
         $finalScore = $submission->final_score ?? $submission->score;
-        $isPassed = $submission->status->value === 'graded' && $finalScore !== null && $finalScore >= $passingGrade;
+        $isPassed = $isReleased && $finalScore !== null && $finalScore >= $passingGrade;
 
         $submissionCount = \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
             ->where('quiz_id', $quiz->id)
-            ->whereIn('status', ['submitted', 'graded'])
+            ->whereIn('status', ['submitted', 'graded', 'released'])
             ->count();
 
         return [
             'submission_status' => $submission->status->value,
             'submission_status_label' => $this->getSubmissionStatusLabel($submission, $isPassed),
-            'score' => $submission->score,
+            'score' => $isReleased ? $submission->score : null,
             'submitted_at' => $submission->submitted_at?->toIso8601String(),
             'is_completed' => $isPassed,
             'attempts_used' => $submissionCount,
@@ -115,7 +116,7 @@ class QuizEnrichmentService
         ])->get()->keyBy('code');
 
         return [
-            'base'    => $xpSources['quiz_passed']->xp_amount ?? 80,
+            'base' => $xpSources['quiz_passed']->xp_amount ?? 80,
             'perfect' => $xpSources['perfect_score']->xp_amount ?? 50,
         ];
     }
@@ -127,7 +128,7 @@ class QuizEnrichmentService
 
         $submission = \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
             ->where('quiz_id', $quiz->id)
-            ->orderByDesc('submitted_at')
+            ->orderByRaw('submitted_at DESC NULLS LAST')
             ->first();
 
         $submissionData = $this->calculateSubmissionData($quiz, $submission, $userId);
@@ -158,7 +159,7 @@ class QuizEnrichmentService
 
         $submission = \Modules\Learning\Models\QuizSubmission::where('user_id', $userId)
             ->where('quiz_id', $quiz->id)
-            ->orderByDesc('submitted_at')
+            ->orderByRaw('submitted_at DESC NULLS LAST')
             ->first();
 
         $submissionData = $this->calculateSubmissionData($quiz, $submission, $userId);
