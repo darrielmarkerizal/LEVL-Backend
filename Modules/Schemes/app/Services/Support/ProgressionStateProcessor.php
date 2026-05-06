@@ -163,9 +163,17 @@ class ProgressionStateProcessor
             'units' => function ($query) {
                 $query->where('status', 'published')
                     ->orderBy('order')
-                    ->with(['lessons' => function ($lessonQuery) {
-                        $lessonQuery->where('status', 'published')->orderBy('order');
-                    }]);
+                    ->with([
+                        'lessons' => function ($lessonQuery) {
+                            $lessonQuery->where('status', 'published')->orderBy('order');
+                        },
+                        'quizzes' => function ($quizQuery) {
+                            $quizQuery->where('status', QuizStatus::Published)->orderBy('order');
+                        },
+                        'assignments' => function ($assignmentQuery) {
+                            $assignmentQuery->where('status', AssignmentStatus::Published)->orderBy('order');
+                        },
+                    ]);
             },
         ]);
         $courseModel = $course;
@@ -198,60 +206,152 @@ class ProgressionStateProcessor
             ->where('enrollment_id', $enrollment->id)
             ->first();
 
+        $userId = $enrollment->user_id;
+
         $unitsData = [];
         $previousUnitsCompleted = true;
-        $completedUnitsCount = 0;
+        $totalCourseItems = 0;
+        $completedCourseItems = 0;
 
         foreach ($courseModel->units as $unit) {
             $lessons = $unit->lessons ?? new EloquentCollection;
+            $quizzes = $unit->quizzes ?? new EloquentCollection;
+            $assignments = $unit->assignments ?? new EloquentCollection;
+
             $unitProgress = $unitProgressMap->get($unit->id);
+            $elementsData = [];
 
-            $lessonsData = [];
-            $completedLessonCount = 0;
-            $previousLessonsCompleted = true;
+            $allElements = collect();
 
-            foreach ($lessons as $lessonItem) {
-                $lessonProgress = $lessonProgressMap->get($lessonItem->id);
-                $lessonStatus = $lessonProgress->status ?? ProgressStatus::NotStarted;
-                $lessonPercent = $lessonProgress->progress_percent ?? 0;
+            foreach ($lessons as $lesson) {
+                $allElements->push([
+                    'type' => 'lesson',
+                    'order' => $lesson->order,
+                    'model' => $lesson,
+                ]);
+            }
 
-                if ($lessonStatus === ProgressStatus::Completed) {
-                    $completedLessonCount++;
+            foreach ($quizzes as $quiz) {
+                $allElements->push([
+                    'type' => 'quiz',
+                    'order' => $quiz->order,
+                    'model' => $quiz,
+                ]);
+            }
+
+            foreach ($assignments as $assignment) {
+                $allElements->push([
+                    'type' => 'assignment',
+                    'order' => $assignment->order,
+                    'model' => $assignment,
+                ]);
+            }
+
+            $totalUnitItems = $allElements->count();
+            $completedUnitItems = 0;
+            $previousElementCompleted = true;
+
+            foreach ($allElements as $element) {
+                $type = $element['type'];
+                $model = $element['model'];
+                $isCompleted = false;
+                $elementStatus = ProgressStatus::NotStarted;
+                $elementPercent = 0;
+                $completedAt = null;
+
+                if ($type === 'lesson') {
+                    $lessonProgress = $lessonProgressMap->get($model->id);
+                    $elementStatus = $lessonProgress->status ?? ProgressStatus::NotStarted;
+                    $elementPercent = $lessonProgress->progress_percent ?? 0;
+                    $isCompleted = $elementStatus === ProgressStatus::Completed;
+                    $completedAt = optional($lessonProgress?->completed_at)->toIso8601String();
+                } elseif ($type === 'quiz') {
+                    $quizSubmission = QuizSubmission::where('user_id', $userId)
+                        ->where('quiz_id', $model->id)
+                        ->whereIn('status', ['graded', 'released'])
+                        ->whereNotNull('final_score')
+                        ->whereRaw('final_score >= (select passing_grade from quizzes where quizzes.id = quiz_submissions.quiz_id)')
+                        ->latest('submitted_at')
+                        ->first();
+
+                    if ($quizSubmission) {
+                        $elementStatus = ProgressStatus::Completed;
+                        $elementPercent = 100;
+                        $isCompleted = true;
+                        $completedAt = optional($quizSubmission->submitted_at)->toIso8601String();
+                    } else {
+                        $hasAttempt = QuizSubmission::where('user_id', $userId)
+                            ->where('quiz_id', $model->id)
+                            ->exists();
+                        $elementStatus = $hasAttempt ? ProgressStatus::InProgress : ProgressStatus::NotStarted;
+                        $elementPercent = 0;
+                    }
+                } elseif ($type === 'assignment') {
+                    $submission = Submission::where('user_id', $userId)
+                        ->where('assignment_id', $model->id)
+                        ->where('status', SubmissionStatus::Graded)
+                        ->whereRaw('score >= (select COALESCE(passing_grade, max_score * 0.6) from assignments where assignments.id = submissions.assignment_id)')
+                        ->latest('submitted_at')
+                        ->first();
+
+                    if ($submission) {
+                        $elementStatus = ProgressStatus::Completed;
+                        $elementPercent = 100;
+                        $isCompleted = true;
+                        $completedAt = optional($submission->submitted_at)->toIso8601String();
+                    } else {
+                        $hasSubmission = Submission::where('user_id', $userId)
+                            ->where('assignment_id', $model->id)
+                            ->exists();
+                        $elementStatus = $hasSubmission ? ProgressStatus::InProgress : ProgressStatus::NotStarted;
+                        $elementPercent = 0;
+                    }
                 }
 
-                $isLessonLocked = ! $previousUnitsCompleted || ! $previousLessonsCompleted;
+                if ($isCompleted) {
+                    $completedUnitItems++;
+                    $completedCourseItems++;
+                }
+                $totalCourseItems++;
 
-                $lessonsData[] = [
-                    'id' => $lessonItem->id,
-                    'slug' => $lessonItem->slug,
-                    'title' => $lessonItem->title,
-                    'order' => $lessonItem->order,
-                    'status' => $lessonStatus instanceof ProgressStatus ? $lessonStatus->value : $lessonStatus,
-                    'progress_percent' => round((float) $lessonPercent, 2),
-                    'is_locked' => $isLessonLocked,
-                    'completed_at' => optional($lessonProgress?->completed_at)->toIso8601String(),
+                $isElementLocked = ! $previousUnitsCompleted || ! $previousElementCompleted;
+
+                $elementsData[] = [
+                    'id' => $model->id,
+                    'slug' => $model->slug ?? null,
+                    'title' => $model->title,
+                    'order' => $model->order,
+                    'type' => $type,
+                    'status' => $elementStatus instanceof ProgressStatus ? $elementStatus->value : $elementStatus,
+                    'progress_percent' => round((float) $elementPercent, 2),
+                    'is_locked' => $isElementLocked,
+                    'completed_at' => $completedAt,
                 ];
 
-                if ($lessonStatus !== ProgressStatus::Completed) {
-                    $previousLessonsCompleted = false;
+                if (!$isCompleted) {
+                    $previousElementCompleted = false;
                 }
             }
 
-            $totalLessons = max(1, $lessons->count());
-            $derivedUnitPercent = round(($completedLessonCount / $totalLessons) * 100, 2);
+            // Calculate unit progress percentage
+            $unitPercent = $totalUnitItems > 0
+                ? round(($completedUnitItems / $totalUnitItems) * 100, 2)
+                : 0;
 
-            
-            
+            // Determine unit status
             $unitStatus = $unitProgress?->status ?? (
-                $lessons->isEmpty() ? ProgressStatus::NotStarted :
-                ($completedLessonCount === $lessons->count() ? ProgressStatus::InProgress : 
-                    ($completedLessonCount > 0 ? ProgressStatus::InProgress : ProgressStatus::NotStarted))
+                $totalUnitItems === 0 ? ProgressStatus::NotStarted :
+                ($completedUnitItems === $totalUnitItems ? ProgressStatus::Completed :
+                    ($completedUnitItems > 0 ? ProgressStatus::InProgress : ProgressStatus::NotStarted))
             );
 
-            $unitPercent = $unitProgress?->progress_percent ?? $derivedUnitPercent;
+            // Use stored progress if available, otherwise use calculated
+            $displayUnitPercent = $unitProgress?->progress_percent ?? $unitPercent;
 
             if ($unitStatus === ProgressStatus::Completed) {
-                $completedUnitsCount++;
+                $previousUnitsCompleted = true;
+            } else {
+                $previousUnitsCompleted = false;
             }
 
             $isUnitLocked = ! $previousUnitsCompleted;
@@ -262,28 +362,27 @@ class ProgressionStateProcessor
                 'title' => $unit->title,
                 'order' => $unit->order,
                 'status' => $unitStatus instanceof ProgressStatus ? $unitStatus->value : $unitStatus,
-                'progress_percent' => round((float) $unitPercent, 2),
+                'progress_percent' => round((float) $displayUnitPercent, 2),
                 'is_locked' => $isUnitLocked,
                 'completed_at' => optional($unitProgress?->completed_at)->toIso8601String(),
-                'lessons' => $lessonsData,
+                'elements' => $elementsData,
             ];
-
-            if ($unitStatus !== ProgressStatus::Completed) {
-                $previousUnitsCompleted = false;
-            }
         }
 
-        $totalUnits = max(1, $courseModel->units->count());
-        $derivedCoursePercent = round(($completedUnitsCount / $totalUnits) * 100, 2);
+        // Calculate course progress based on total items across all units
+        $coursePercent = $totalCourseItems > 0
+            ? round(($completedCourseItems / $totalCourseItems) * 100, 2)
+            : 0;
 
-        
-        
+        // Determine course status
         $courseStatus = $courseProgress?->status ?? (
-            $courseModel->units->isEmpty() ? ProgressStatus::NotStarted :
-            ($completedUnitsCount > 0 ? ProgressStatus::InProgress : ProgressStatus::NotStarted)
+            $totalCourseItems === 0 ? ProgressStatus::NotStarted :
+            ($completedCourseItems === $totalCourseItems ? ProgressStatus::Completed :
+                ($completedCourseItems > 0 ? ProgressStatus::InProgress : ProgressStatus::NotStarted))
         );
 
-        $coursePercent = $courseProgress?->progress_percent ?? $derivedCoursePercent;
+        // Use stored progress if available, otherwise use calculated
+        $displayCoursePercent = $courseProgress?->progress_percent ?? $coursePercent;
 
         return [
             'course' => [
@@ -291,7 +390,7 @@ class ProgressionStateProcessor
                 'slug' => $courseModel->slug,
                 'title' => $courseModel->title,
                 'status' => $courseStatus instanceof ProgressStatus ? $courseStatus->value : $courseStatus,
-                'progress_percent' => round((float) $coursePercent, 2),
+                'progress_percent' => round((float) $displayCoursePercent, 2),
                 'completed_at' => optional($courseProgress?->completed_at)->toIso8601String(),
             ],
             'units' => $unitsData,
