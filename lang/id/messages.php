@@ -591,7 +591,7 @@ return [
     'submissions' => [
         'list_retrieved' => 'Daftar pengumpulan berhasil diambil.',
         'submitted' => 'Tugas berhasil dikumpulkan. Tunggu hasil penilaian dari instruktur.',
-        'created' => 'Pengumpulan berhasil dimulai. Lengkapi jawaban Anda, lalu kumpulkan melalui endpoint submit.',
+        'created' => 'Draft jawaban berhasil disimpan. Silakan kirim jawaban melalui tombol "Kumpulkan" untuk pengumpulan resmi.',
         'updated' => 'Pengumpulan berhasil diperbarui.',
         'question_not_in_set' => 'Pertanyaan ini tidak termasuk dalam set pengumpulan saat ini.',
         'question_not_in_assignment' => 'Pertanyaan ini tidak termasuk dalam tugas ini.',

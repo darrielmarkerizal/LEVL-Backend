@@ -37,13 +37,25 @@ class AppendXpInfoToResponse
             return $response;
         }
 
-        
         $latestXpAward = Point::where('user_id', $userId)
             ->where('created_at', '>=', now()->subSeconds(5))
             ->latest()
             ->first();
 
-        
+        $shouldAppend = false;
+
+        if ($latestXpAward) {
+            $shouldAppend = true;
+        }
+
+        if (isset($data['data']['status']) && $data['data']['status'] === 'submitted') {
+            $shouldAppend = true;
+        }
+
+        if (! $shouldAppend) {
+            return $response;
+        }
+
         $xpInfo = [
             'current_xp' => $stats->total_xp,
             'current_level' => $stats->global_level,
