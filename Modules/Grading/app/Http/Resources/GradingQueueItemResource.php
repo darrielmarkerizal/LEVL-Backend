@@ -39,6 +39,9 @@ class GradingQueueItemResource extends JsonResource
             'assignment_title' => $this->assignment?->title,
             'submission_type' => $submissionType,
             'submission_type_label' => $this->enumLabel($this->assignment?->submission_type),
+            'text' => in_array($submissionType, ['text', 'mixed'], true)
+                ? $this->answer_text
+                : null,
             'files' => in_array($submissionType, ['file', 'mixed'], true)
                 ? $this->getSubmissionFiles()
                 : [],
