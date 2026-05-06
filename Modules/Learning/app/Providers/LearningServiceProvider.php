@@ -22,6 +22,7 @@ use Modules\Learning\Contracts\Services\QuizServiceInterface;
 use Modules\Learning\Contracts\Services\QuizSubmissionServiceInterface;
 use Modules\Learning\Contracts\Services\ReviewModeServiceInterface;
 use Modules\Learning\Contracts\Services\SubmissionServiceInterface;
+use Modules\Learning\Console\Commands\PurgeDraftSubmissions;
 use Modules\Learning\Repositories\AssignmentRepository;
 use Modules\Learning\Repositories\OverrideRepository;
 use Modules\Learning\Repositories\QuestionRepository;
@@ -110,6 +111,7 @@ class LearningServiceProvider extends ServiceProvider
     protected function registerCommands(): void
     {
         $this->commands([
+            PurgeDraftSubmissions::class,
         ]);
     }
 

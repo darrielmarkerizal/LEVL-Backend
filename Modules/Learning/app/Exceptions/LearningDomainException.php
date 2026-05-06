@@ -15,7 +15,7 @@ class LearningDomainException extends Exception
 
     public function render($request)
     {
-        $status = $this->getCode() ?: 400;
+        $status = $this->getCode() ?: ($this instanceof SubmissionException ? 422 : 400);
 
         $response = [
             'status' => 'error',
