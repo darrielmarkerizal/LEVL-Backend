@@ -48,7 +48,12 @@ class GradingServiceProvider extends ServiceProvider
 
     }
 
-    protected function registerCommands(): void {}
+    protected function registerCommands(): void
+    {
+        $this->commands([
+            \Modules\Grading\Console\RecalculateQuizScoresCommand::class,
+        ]);
+    }
 
     protected function registerCommandSchedules(): void {}
 

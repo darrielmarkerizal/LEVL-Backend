@@ -200,6 +200,17 @@ class GradingEntryService
         return $this->recalculateQuizSubmissionGrade($submission, false);
     }
 
+    public function recalculateQuizScore(QuizSubmission $submission): QuizSubmission
+    {
+        $forceDraft = in_array(
+            $submission->grading_status?->value,
+            [QuizGradingStatus::PartiallyGraded->value],
+            true
+        );
+
+        return $this->recalculateQuizSubmissionGrade($submission, $forceDraft);
+    }
+
     private function recalculateQuizSubmissionGrade(QuizSubmission $submission, bool $forceDraft): QuizSubmission
     {
         $submission->load(['quiz.questions', 'answers.question']);
@@ -219,7 +230,18 @@ class GradingEntryService
                 $hasUngradedManual = true;
             }
 
-            $earnedWeight += (float) ($score ?? 0);
+            if ($score !== null) {
+                $questionWeight = (float) $question->weight;
+
+                if ($answer && ! $answer->is_auto_graded) {
+                    $questionMaxScore = (float) ($question->max_score ?? $questionWeight);
+                    $earnedWeight += $questionMaxScore > 0
+                        ? ((float) $score / $questionMaxScore) * $questionWeight
+                        : 0.0;
+                } else {
+                    $earnedWeight += (float) $score;
+                }
+            }
         }
 
         $quizMaxScore = (float) ($submission->quiz->max_score ?? 100);
