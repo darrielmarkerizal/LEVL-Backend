@@ -366,6 +366,18 @@ class UnitService
                 ->map(fn ($submissions) => $submissions->sortByDesc('submitted_at')->first());
         }
 
+        $xpSources = \Modules\Gamification\Models\XpSource::whereIn('code', [
+            'lesson_completed',
+            'quiz_passed',
+            'perfect_score',
+            'assignment_submitted',
+        ])->get()->keyBy('code');
+
+        $lessonXp = $xpSources['lesson_completed']->xp_amount ?? 50;
+        $quizXp = $xpSources['quiz_passed']->xp_amount ?? 80;
+        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 50;
+        $assignmentXp = $xpSources['assignment_submitted']->xp_amount ?? 100;
+
         $unitContentsMap = \Modules\Schemes\Models\UnitContent::where('unit_id', $unit->id)
             ->get()
             ->mapWithKeys(fn ($uc) => [$uc->contentable_type.'_'.$uc->contentable_id => $uc->order]);
@@ -425,7 +437,7 @@ class UnitService
                     'created_at' => $item->created_at,
                     'is_completed' => $isCompleted,
                     'is_locked' => $isLocked,
-                    'xp_reward' => $xpSources['lesson_completed']->xp_amount ?? 0,
+                    'xp_reward' => $lessonXp,
                 ]);
 
                 $previousContentCompleted = $isCompleted;
@@ -436,8 +448,7 @@ class UnitService
 
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
-                $baseXp = $xpSources['quiz_passed']->xp_amount ?? 0;
-                $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
+                $baseXp = $quizXp;
 
                 $contents->push([
                     'id' => $item->id,
@@ -465,8 +476,7 @@ class UnitService
 
                 $isLocked = $user && $contents->isNotEmpty() ? ! $previousContentCompleted : false;
 
-                $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 0;
-                $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
+                $baseXp = $assignmentXp;
 
                 $contents->push([
                     'id' => $item->id,

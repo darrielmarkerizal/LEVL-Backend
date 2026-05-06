@@ -50,6 +50,7 @@ class ProductionSeeder extends Seeder
         $this->command->info('');
         $this->command->info('📋 Phase 4: Seeding Gamification Levels...');
         $this->call(\Modules\Gamification\Database\Seeders\LevelConfigSeeder::class);
+        $this->call(\Modules\Gamification\Database\Seeders\XpSourceSeeder::class);
 
         // Phase 5: Create production superadmin user (MUST BE LAST)
         $this->command->info('');

@@ -28,8 +28,8 @@ class QuizEnrichmentService
             'perfect_score',
         ])->get()->keyBy('code');
 
-        $baseXp = $xpSources['quiz_passed']->xp_amount ?? 0;
-        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
+        $baseXp = $xpSources['quiz_passed']->xp_amount ?? 80;
+        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 50;
 
         $paginator->getCollection()->transform(function ($item) use ($submissions, $userId, $baseXp, $perfectScoreXp) {
             $submission = $submissions[$item->id] ?? null;
@@ -141,8 +141,8 @@ class QuizEnrichmentService
             'perfect_score',
         ])->get()->keyBy('code');
 
-        $baseXp = $xpSources['quiz_passed']->xp_amount ?? 0;
-        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
+        $baseXp = $xpSources['quiz_passed']->xp_amount ?? 80;
+        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 50;
 
         $quiz->is_locked = ! $prerequisiteCheck['accessible'];
         $quiz->is_completed = $submissionData['is_completed'];
@@ -179,8 +179,8 @@ class QuizEnrichmentService
             'perfect_score',
         ])->get()->keyBy('code');
 
-        $baseXp = $xpSources['quiz_passed']->xp_amount ?? 0;
-        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
+        $baseXp = $xpSources['quiz_passed']->xp_amount ?? 80;
+        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 50;
 
         return [
             'id' => $quiz->id,

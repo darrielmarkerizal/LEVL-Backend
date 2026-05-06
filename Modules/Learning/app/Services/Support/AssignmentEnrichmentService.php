@@ -31,8 +31,8 @@ class AssignmentEnrichmentService
             'perfect_score',
         ])->get()->keyBy('code');
 
-        $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 0;
-        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
+        $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 100;
+        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 50;
 
         $paginator->getCollection()->transform(function ($item) use ($submissions, $userId, $baseXp, $perfectScoreXp) {
             $submission = $submissions[$item->id] ?? null;
@@ -168,8 +168,8 @@ class AssignmentEnrichmentService
             'perfect_score',
         ])->get()->keyBy('code');
 
-        $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 0;
-        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 0;
+        $baseXp = $xpSources['assignment_submitted']->xp_amount ?? 100;
+        $perfectScoreXp = $xpSources['perfect_score']->xp_amount ?? 50;
 
         $attachmentFiles = $assignment->getMedia('attachments')
             ->filter(fn($media) => Storage::disk($media->disk)->exists($media->getPath()))
